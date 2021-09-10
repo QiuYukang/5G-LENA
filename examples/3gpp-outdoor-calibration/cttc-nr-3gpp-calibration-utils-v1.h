@@ -38,6 +38,8 @@ public:
   static void
   SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                 std::string scenario,
+                                const std::string &confType,
+                                const std::string &configurationScenario,
                                 NodeContainer enbSector1Container,
                                 NodeContainer enbSector2Container,
                                 NodeContainer enbSector3Container,
@@ -58,7 +60,10 @@ public:
                                 PowerOutputStats *powerStats,
                                 const std::string &scheduler,
                                 uint32_t bandwidthMHz,
+                                double startingFreq,
                                 uint32_t freqScenario,
+                                double gnbTxPower,
+                                double ueTxPower,
                                 const double gnbNoiseFigure,
                                 const double ueNoiseFigure,
                                 bool enableShadowing);

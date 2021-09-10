@@ -34,6 +34,9 @@ struct Parameters
 
   bool Validate (void) const;
 
+  std::string confType = "customConf"; //calibrationConf
+  std::string configurationScenario = "DenseA"; //DenseA, DenseB, RuralA, RuralB
+
   uint16_t numOuterRings = 3;
   uint16_t ueNumPergNb = 2;
   bool logging = false;
@@ -57,6 +60,19 @@ struct Parameters
   uint16_t numerologyBwp = 0;
   std::string pattern = "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
   uint32_t bandwidthMHz = 20;
+  double startingFreq = 2110e6;
+
+  double gnbTxPower = 40;
+  double ueTxPower = 23;
+
+  double isd = 1732;
+  double bsHeight = 30.0;
+  double utHeight = 1.5;
+  //uint32_t sectorization = 3;
+  double minBsUtDistance = 30.203;
+  double antennaOffset = 1.0;
+
+  double speed = 0;
 
   // Where we will store the output files.
   std::string simTag = "default";
@@ -111,7 +127,9 @@ struct Parameters
   bool enableShadowing = false;
 };
 
-extern void Nr3gppCalibration (const Parameters &params);
+extern void Nr3gppCalibration (Parameters &params);
+extern void ChooseCalibrationScenario (Parameters &params);
+
 
 } // namespace ns3
 

@@ -117,6 +117,8 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
 void
 LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            const std::string &scenario,
+                                           const std::string &confType,
+                                           const std::string &configurationScenario,
                                            const std::string &radioNetwork,
                                            std::string errorModel,
                                            const std::string &operationMode,
@@ -145,7 +147,11 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            PowerOutputStats *gnbRxPowerStats,
                                            SlotOutputStats *slotStats, RbOutputStats *rbStats,
                                            const std::string &scheduler,
-                                           uint32_t bandwidthMHz, uint32_t freqScenario,
+                                           uint32_t bandwidthMHz,
+                                           double startingFreq,
+                                           uint32_t freqScenario,
+                                           double gnbTxPower,
+                                           double ueTxPower,
                                            double downtiltAngle,
                                            double bearingAngle,
                                            const uint32_t gnbNumRows,
@@ -171,6 +177,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   uint32_t harqProcesses = 20;
   uint32_t n1Delay = 2;
   uint32_t n2Delay = 2;
+
   if (radioNetwork == "LTE")
     {
       rbOverhead = 0.1;
@@ -236,25 +243,49 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   double txPowerBs = 0.0;
 
   BandwidthPartInfo::Scenario scene;
-  if (scenario == "UMi")
+
+  if (confType == "customConf")
     {
-      txPowerBs = 30;
-      scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
+      if (scenario == "UMi")
+        {
+          txPowerBs = 30;
+          scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
+        }
+      else if (scenario == "UMa")
+        {
+          txPowerBs = 43;
+          scene = BandwidthPartInfo::UMa_LoS;
+        }
+      else if (scenario == "RMa")
+        {
+          txPowerBs = 43;
+          scene = BandwidthPartInfo::RMa_LoS;
+        }
+      else
+        {
+          NS_ABORT_MSG ("Unsupported scenario " << scenario <<
+                        ". Supported values: UMi, UMa, RMa");
+        }
     }
-  else if (scenario == "UMa")
+  else if (confType == "calibrationConf")
     {
-      txPowerBs = 43;
-      scene = BandwidthPartInfo::UMa_LoS;
-    }
-  else if (scenario == "RMa")
-    {
-      txPowerBs = 43;
-      scene = BandwidthPartInfo::RMa_LoS;
+      if (scenario == "UMi_StreetCanyon")
+        {
+          scene =  BandwidthPartInfo::UMi_StreetCanyon;
+        }
+      else if (scenario == "RMa")
+        {
+          scene = BandwidthPartInfo::RMa;
+        }
+
+      txPowerBs = gnbTxPower;
     }
   else
     {
-      NS_ABORT_MSG ("Unsupported scenario " << scenario << ". Supported values: UMi, UMa, RMa");
+      NS_ABORT_MSG ("Unsupported configuration Type " << scenario <<
+                    ". Supported Types: customConf and calibrationConf");
     }
+
 
   /*
    * Attributes of ThreeGppChannelModel still cannot be set in our way.
@@ -368,7 +399,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
    *
    */
   // \todo: set band 0 start frequency from the command line
-  const double band0Start = 2110e6;
+  //const double band0Start = 2110e6;
+  const double band0Start = startingFreq;
   double bandwidthBwp = bandwidthMHz * 1e6;
 
   OperationBandInfo band0, band1, band2;
@@ -659,7 +691,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
     }
 
   // UE transmit power
-  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
+  //nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
+  nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (ueTxPower));
 
   // Set LTE RBG size
   // TODO: What these values would be in TDD? bandwidthMhz refers to FDD.

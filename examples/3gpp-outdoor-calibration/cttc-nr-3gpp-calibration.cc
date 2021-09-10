@@ -157,6 +157,11 @@ Parameters::Validate (void) const
                    "Realistic BF should not be enabled in calibration mode");
   NS_ABORT_MSG_IF (calibration == true && enableShadowing == true,
                    "Shadowing must be disabled in calibration mode");
+  NS_ABORT_MSG_IF (confType != "customConf" && confType != "calibrationConf",
+                   "Urecognized Configuration type: " << confType);
+  NS_ABORT_MSG_IF (configurationScenario != "DenseA" && configurationScenario != "DenseB"
+                   && configurationScenario != "RuralA" && configurationScenario != "RuralB",
+                   "Urecognized Configuration scenario: " << configurationScenario);
 
   if (dlRem || ulRem)
     {
@@ -174,9 +179,76 @@ Parameters::Validate (void) const
   return true;
 }
 
+void
+ChooseCalibrationScenario (Parameters &params)
+{
+  if (params.confType == "calibrationConf")
+    {
+      if (params.configurationScenario == "DenseA")
+        {
+          params.scenario = "UMi_StreetCanyon";
+          params.startingFreq = 4e9;
+          params.gnbTxPower = 41;
+          params.ueTxPower = 23;
+          params.bsHeight = 25;
+          params.utHeight = 1.5;
+          params.isd = 200;
+          params.gnbNoiseFigure = 5;
+          params.ueNoiseFigure = 7;
+          params.bandwidthMHz = 10;
+          params.trafficScenario = 0; //full buffer
+          params.speed = 8.33333; // in m/s (30 km/h)
+        }
+      else if (params.configurationScenario == "DenseB")
+        {
+          params.scenario = "UMi_StreetCanyon";
+          params.startingFreq = 30e9;
+          params.gnbTxPower = 37;
+          params.ueTxPower = 23;
+          params.bsHeight = 25;
+          params.utHeight = 1.5;
+          params.isd = 200;
+          params.gnbNoiseFigure = 7;
+          params.ueNoiseFigure = 10;
+          params.bandwidthMHz = 40;
+          params.trafficScenario = 0; //full buffer
+          params.speed = 8.33333; // in m/s (30 km/h)
+        }
+      else if (params.configurationScenario == "RuralA")
+        {
+          params.scenario = "RMa";
+          params.startingFreq = 700e6;
+          params.gnbTxPower = 46;
+          params.ueTxPower = 23;
+          params.bsHeight = 35;
+          params.utHeight = 1.5;
+          params.isd = 1732;
+          params.gnbNoiseFigure = 5;
+          params.ueNoiseFigure = 7;
+          params.bandwidthMHz = 10;
+          params.trafficScenario = 0; //full buffer
+          params.speed = 33.33; // in m/s (120 km/h)
+        }
+      else if (params.configurationScenario == "RuralB")
+        {
+          params.scenario = "RMa";
+          params.startingFreq = 4e9;
+          params.gnbTxPower = 46;
+          params.ueTxPower = 23;
+          params.bsHeight = 35;
+          params.utHeight = 1.5;
+          params.isd = 1732;
+          params.gnbNoiseFigure = 5;
+          params.ueNoiseFigure = 7;
+          params.bandwidthMHz = 10;
+          params.trafficScenario = 0; //full buffer
+          params.speed = 33.33; // in m/s (120 km/h)
+        }
+      }
+}
 
 void
-Nr3gppCalibration (const Parameters &params)
+Nr3gppCalibration (Parameters &params)
 {
   params.Validate ();
 
@@ -308,7 +380,7 @@ Nr3gppCalibration (const Parameters &params)
    */
 
   ScenarioParameters scenarioParams;
-  scenarioParams.SetScenarioParameters (params.scenario);
+
   // Customize parameters here
   //  scenarioParams.isd = ...
 
@@ -318,6 +390,27 @@ Nr3gppCalibration (const Parameters &params)
   NodeContainer ueNodes;
   double sector0AngleRad = 0;
   const uint32_t sectors = 3;
+
+  if (params.confType == "customConf")
+    {
+      scenarioParams.SetScenarioParameters (params.scenario);
+    }
+  else if (params.confType == "calibrationConf")
+    {
+      scenarioParams.m_isd = params.isd;
+      scenarioParams.m_bsHeight = params.bsHeight;
+      scenarioParams.m_utHeight = params.utHeight;
+      scenarioParams.m_minBsUtDistance = params.minBsUtDistance;
+      scenarioParams.m_antennaOffset = params.antennaOffset;
+
+      scenarioParams.SetSectorization (sectors);
+      scenarioParams.SetScenarioParameters (scenarioParams);
+    }
+  else
+    {
+      NS_ABORT_MSG ("The selected configuration is not correct."
+                    "Please choose among 'customConf' or 'calibrationConf'.");
+    }
 
   //
   NodeDistributionScenarioInterface * scenario {NULL};
@@ -372,7 +465,15 @@ Nr3gppCalibration (const Parameters &params)
       std::cout << sector0AngleRad << std::endl;
 
       // Creates and plots the network deployment
-      gridScenario.CreateScenario ();
+      if (params.confType == "customConf")
+        {
+          gridScenario.CreateScenario ();
+        }
+      else if (params.confType == "calibrationConf")
+        {
+          gridScenario.CreateScenarioWithMobility (Vector (params.speed, 0, 0)); //move UEs along the x axis
+        }
+      //gridScenario.CreateScenario ();
       gnbNodes = gridScenario.GetBaseStations ();
       ueNodes = gridScenario.GetUserTerminals ();
       scenario = &gridScenario;
@@ -455,6 +556,8 @@ Nr3gppCalibration (const Parameters &params)
       epcHelper = CreateObject<PointToPointEpcHelper> ();
       LenaV1Utils::SetLenaV1SimulatorParameters (sector0AngleRad,
                                                  params.scenario,
+                                                 params.confType,
+                                                 params.configurationScenario,
                                                  gnbSector1Container,
                                                  gnbSector2Container,
                                                  gnbSector3Container,
@@ -475,7 +578,10 @@ Nr3gppCalibration (const Parameters &params)
                                                  &ueTxPowerStats,
                                                  params.scheduler,
                                                  params.bandwidthMHz,
+                                                 params.startingFreq,
                                                  params.freqScenario,
+                                                 params.gnbTxPower,
+                                                 params.ueTxPower,
                                                  params.gnbNoiseFigure,
                                                  params.ueNoiseFigure,
                                                  params.enableShadowing);
@@ -485,6 +591,8 @@ Nr3gppCalibration (const Parameters &params)
       epcHelper = CreateObject<NrPointToPointEpcHelper> ();
       LenaV2Utils::SetLenaV2SimulatorParameters (sector0AngleRad,
                                                  params.scenario,
+                                                 params.confType,
+                                                 params.configurationScenario,
                                                  params.radioNetwork,
                                                  params.errorModel,
                                                  params.operationMode,
@@ -515,7 +623,10 @@ Nr3gppCalibration (const Parameters &params)
                                                  &rbStats,
                                                  params.scheduler,
                                                  params.bandwidthMHz,
+                                                 params.startingFreq,
                                                  params.freqScenario,
+                                                 params.gnbTxPower,
+                                                 params.ueTxPower,
                                                  params.downtiltAngle,
                                                  params.bearingAngle,
                                                  params.gnbNumRows,
@@ -849,6 +960,7 @@ operator << (std::ostream & os, const Parameters & parameters)
         << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
       MSG ("4G-NR calibration mode") << (p.calibration ? "ON" : "off");
       MSG ("4G-NR ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
+      MSG ("Starting Frequency") << (p.startingFreq);
       MSG ("Operation mode") << p.operationMode;
       if (p.operationMode == "TDD")
         {
@@ -867,6 +979,9 @@ operator << (std::ostream & os, const Parameters & parameters)
         {
           MSG ("Error model") << "ns3::NrEesmCcT2";
         }
+
+      MSG ("gNB/UE Tx Power (dBm)") << p.gnbTxPower <<
+          (", ") << p.ueTxPower;
 
       MSG ("Downtilt/Bearing angle (deg)/(rad)") << p.downtiltAngle <<
           (", ") << p.bearingAngle;
@@ -917,22 +1032,44 @@ operator << (std::ostream & os, const Parameters & parameters)
 
   MSG ("");
   MSG ("Basic scenario") << p.scenario;
-  if (p.scenario == "UMa")
+
+  if (p.confType == "calibrationConf")
     {
-      os << "\n  (ISD: 1.7 km, BS: 30 m, UE: 1.5 m, UE-BS min: 30.2 m)";
+      if (p.configurationScenario == "DenseA")
+        {
+          MSG ("Dense A");
+        }
+      else if (p.configurationScenario == "DenseB")
+        {
+          MSG ("Dense B ");
+        }
+      else
+        {
+          MSG ("unknown configuration");
+        }
+      MSG ("ISD") << p.isd;
+      MSG ("BS Height") << p.bsHeight;
     }
-  else if (p.scenario == "UMi")
+  else if (p.confType == "customConf")
     {
-      os << "\n  (ISD: 0.5 km, BS: 10 m, UE: 1.5 m, UE-BS min: 10 m)";
+      if (p.scenario == "UMa")
+        {
+          os << "\n  (ISD: 1.7 km, BS: 30 m, UE: 1.5 m, UE-BS min: 30.2 m)";
+        }
+      else if (p.scenario == "UMi")
+        {
+          os << "\n  (ISD: 0.5 km, BS: 10 m, UE: 1.5 m, UE-BS min: 10 m)";
+        }
+      else if (p.scenario == "RMa")
+        {
+          os << "\n  (ISD: 7.0 km, BS: 45 m, UE: 1.5 m, UE-BS min: 44.6 m)";
+        }
+      else
+        {
+          os << "\n  (unknown configuration)";
+        }
     }
-  else if (p.scenario == "RMa")
-    {
-      os << "\n  (ISD: 7.0 km, BS: 45 m, UE: 1.5 m, UE-BS min: 44.6 m)";
-    }
-  else
-    {
-      os << "\n  (unknown configuration)";
-    }
+
   if (p.baseStationFile == "" and p.useSiteFile)
     {
       MSG ("Number of outer rings") << p.numOuterRings;

@@ -45,6 +45,17 @@ main (int argc, char *argv[])
    */
   CommandLine cmd;
 
+  cmd.AddValue ("configurationType",
+                "Choose among a) customConf and b) calibrationConf."
+                "a) allows custom configuration through the command line,"
+                "while b) allows user to select one of the predefined"
+                "calibration scenarios. Please notice that if b) is selected"
+                "custom parameters should not be set through the command line",
+                params.confType);
+  cmd.AddValue ("configurationScenario",
+                "The calibration scenario string (DenseA, DenseB, RuralA, RuralB)."
+                "This variable must be set when calibrationConf is choosen",
+                params.configurationScenario);
   cmd.AddValue ("scenario",
                 "The urban scenario string (UMa,UMi,RMa)",
                 params.scenario);
@@ -89,13 +100,15 @@ main (int argc, char *argv[])
                 "directory where to store simulation results",
                 params.outputDir);
   cmd.AddValue ("errorModelType",
-               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
+               "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, "
+               "ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                params.errorModel);
   cmd.AddValue ("calibration",
                 "disable a bunch of things to make LENA and NR_LTE comparable",
                 params.calibration);
   cmd.AddValue ("trafficScenario",
-                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), 2: low-load (1 Mbps), 3: medium-load (20Mbps)",
+                "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), "
+                "2: low-load (1 Mbps), 3: medium-load (20Mbps)",
                 params.trafficScenario);
   cmd.AddValue ("scheduler",
                 "PF: Proportional Fair, RR: Round-Robin",
@@ -103,6 +116,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("bandwidth",
                 "BW in MHz for each BWP (integer value): valid values are 20, 10, 5",
                 params.bandwidthMHz);
+  cmd.AddValue ("startingFreq",
+                "Frequency for the first band. Rest of the bands will be configured"
+                "accordingly based on the configured BW",
+                params.startingFreq);
   cmd.AddValue ("freqScenario",
                 "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
                 params.freqScenario);
@@ -152,6 +169,12 @@ main (int argc, char *argv[])
                 "Progress reporting interval",
                 params.progressInterval);
   //Newly added parameters
+  cmd.AddValue ("gnbTxPower",
+                "The transmit power of the gNB",
+                params.gnbTxPower);
+  cmd.AddValue ("ueTxPower",
+                "The transmit power of the UE",
+                params.ueTxPower);
   cmd.AddValue ("gnbNumRows",
                 "The number of rows of the phased array of the gNB",
                 params.gnbNumRows);
@@ -204,6 +227,10 @@ main (int argc, char *argv[])
   // Parse the command line
   cmd.Parse (argc, argv);
   params.Validate ();
+
+  //in case calibrationConf is choosen, it sets the parameters of one
+  //of the four pre-defined scenarios (DenseA, DenseB, RuralA, RuralB)
+  ChooseCalibrationScenario (params);
   
   std::cout << params;
 

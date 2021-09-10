@@ -24,6 +24,8 @@ namespace ns3 {
 void
 LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                            std::string scenario,
+                                           [[maybe_unused]] const std::string &confType,
+                                           [[maybe_unused]] const std::string &configurationScenario,
                                            NodeContainer enbSector1Container,
                                            NodeContainer enbSector2Container,
                                            NodeContainer enbSector3Container,
@@ -44,11 +46,15 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                            PowerOutputStats *powerStats,
                                            const std::string &scheduler,
                                            uint32_t bandwidthMHz,
+                                           [[maybe_unused]] double startingFreq,
                                            uint32_t freqScenario,
+                                           [[maybe_unused]] double gnbTxPower,
+                                           double ueTxPower,
                                            const double gnbNoiseFigure,
                                            const double ueNoiseFigure,
                                            bool enableShadowing)
 {
+
   /*
    *  An example of how the spectrum is being used, for 20 MHz bandwidth..
    *
@@ -135,7 +141,7 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
     }
 
   double txPower;
-  double ueTxPower = 23;
+  //double ueTxPower = 23;
   std::string pathlossModel;
   if (scenario == "UMa")
     {
