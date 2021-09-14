@@ -68,6 +68,8 @@ public:
   // inherited
   virtual void CreateScenario () override;
 
+  void CreateScenarioWithMobility (const Vector &speed);
+
   /**
    * Assign a fixed random variable stream number to the random variables
    * used by this model.  Return the number of streams (possibly zero) that
