@@ -38,7 +38,7 @@ struct Parameters
   std::string configurationScenario = "DenseA"; //DenseA, DenseB, RuralA, RuralB
 
   uint16_t numOuterRings = 3;
-  uint16_t ueNumPergNb = 2;
+  uint16_t ueNumPergNb = 10;
   bool logging = false;
   bool traces = false;
   std::string simulator = "5GLENA";
@@ -69,7 +69,7 @@ struct Parameters
   double bsHeight = 30.0;
   double utHeight = 1.5;
   //uint32_t sectorization = 3;
-  double minBsUtDistance = 30.203;
+  double minBsUtDistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
   double antennaOffset = 1.0;
 
   double speed = 0;

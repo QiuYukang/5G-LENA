@@ -145,8 +145,8 @@ bool
 Parameters::Validate (void) const
 {
 
-  NS_ABORT_MSG_IF (bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
-                   "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
+  NS_ABORT_MSG_IF (bandwidthMHz != 40 && bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
+                   "Valid bandwidth values are 40, 20, 10, 5, you set " << bandwidthMHz);
 
   NS_ABORT_MSG_IF (trafficScenario > 3,
                    "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2 3");
@@ -206,6 +206,17 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 25;
           params.utHeight = 1.5;
           params.isd = 200;
+          params.gnbNumRows = 8;
+          params.gnbNumColumns = 8;
+          params.ueNumRows = 1;
+          params.ueNumColumns = 2;
+          params.gnbHSpacing = 0.5;
+          params.gnbVSpacing = 0.8;
+          params.ueHSpacing = 0.5;
+          params.ueVSpacing = 0.5;
+          params.gnbEnable3gppElement = true;
+          params.ueEnable3gppElement = false;
+          params.downtiltAngle = 90;
           params.gnbNoiseFigure = 5;
           params.ueNoiseFigure = 7;
           params.bandwidthMHz = 10;
@@ -221,6 +232,17 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 25;
           params.utHeight = 1.5;
           params.isd = 200;
+          params.gnbNumRows = 4;
+          params.gnbNumColumns = 8;
+          params.ueNumRows = 2;
+          params.ueNumColumns = 4;
+          params.gnbHSpacing = 0.5;
+          params.gnbVSpacing = 0.5;
+          params.ueHSpacing = 0.5;
+          params.ueVSpacing = 0.5;
+          params.gnbEnable3gppElement = true;
+          //params.ueEnable3gppElement = true;
+          params.downtiltAngle = 90;
           params.gnbNoiseFigure = 7;
           params.ueNoiseFigure = 10;
           params.bandwidthMHz = 40;
@@ -236,6 +258,17 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 35;
           params.utHeight = 1.5;
           params.isd = 1732;
+          params.gnbNumRows = 8;
+          params.gnbNumColumns = 4;
+          params.ueNumRows = 1;
+          params.ueNumColumns = 1;
+          params.gnbHSpacing = 0.5;
+          params.gnbVSpacing = 0.8;
+          params.ueHSpacing = 0.5;
+          params.ueVSpacing = 0.5;
+          params.gnbEnable3gppElement = true;
+          params.ueEnable3gppElement = false;
+          params.downtiltAngle = 90;
           params.gnbNoiseFigure = 5;
           params.ueNoiseFigure = 7;
           params.bandwidthMHz = 10;
@@ -251,6 +284,17 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 35;
           params.utHeight = 1.5;
           params.isd = 1732;
+          params.gnbNumRows = 8;
+          params.gnbNumColumns = 8;
+          params.ueNumRows = 1;
+          params.ueNumColumns = 2;
+          params.gnbHSpacing = 0.5;
+          params.gnbVSpacing = 0.8;
+          params.ueHSpacing = 0.5;
+          params.ueVSpacing = 0.5;
+          params.gnbEnable3gppElement = true;
+          params.ueEnable3gppElement = false;
+          params.downtiltAngle = 90;
           params.gnbNoiseFigure = 5;
           params.ueNoiseFigure = 7;
           params.bandwidthMHz = 10;
@@ -281,6 +325,9 @@ Nr3gppCalibration (Parameters &params)
         packetCount = 0xFFFFFFFF;
         switch (params.bandwidthMHz)
           {
+            case 40:
+              udpPacketSize = 2000;
+              break;
             case 20:
               udpPacketSize = 1000;
               break;
@@ -304,6 +351,9 @@ Nr3gppCalibration (Parameters &params)
         packetCount = 0xFFFFFFFF;
         switch (params.bandwidthMHz)
           {
+            case 40:
+              udpPacketSize = 250;
+              break;
             case 20:
               udpPacketSize = 125;
               break;
@@ -322,6 +372,9 @@ Nr3gppCalibration (Parameters &params)
         packetCount = 0xFFFFFFFF;
         switch (params.bandwidthMHz)
           {
+            case 40:
+              udpPacketSize = 500;
+              break;
             case 20:
               udpPacketSize = 250;
               break;
@@ -401,7 +454,7 @@ Nr3gppCalibration (Parameters &params)
   uint32_t gnbSites = 0;
   NodeContainer gnbNodes;
   NodeContainer ueNodes;
-  double sector0AngleRad = 0;
+  double sector0AngleRad = 30;
   const uint32_t sectors = 3;
 
   if (params.confType == "customConf")
@@ -1106,6 +1159,9 @@ operator << (std::ostream & os, const Parameters & parameters)
         MSG ("  Packet size");
         switch (p.bandwidthMHz)
           {
+            case 40:
+              os << "2000 bytes";
+              break;
             case 20:
               os << "1000 bytes";
               break;
@@ -1135,6 +1191,9 @@ operator << (std::ostream & os, const Parameters & parameters)
         MSG ("  Packet size");
         switch (p.bandwidthMHz)
           {
+            case 40:
+              os << "250 bytes";
+              break;
             case 20:
               os << "125 bytes";
               break;
@@ -1158,6 +1217,9 @@ operator << (std::ostream & os, const Parameters & parameters)
         MSG ("  Packet size");
         switch (p.bandwidthMHz)
           {
+            case 40:
+              os << "500 bytes";
+              break;
             case 20:
               os << "250 bytes";
               break;
