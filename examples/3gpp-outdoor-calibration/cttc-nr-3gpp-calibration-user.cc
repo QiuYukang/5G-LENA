@@ -222,6 +222,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("enableShadowing",
                 "If true, it enables shadowing (must be disabled for calibration)",
                 params.enableShadowing);
+  cmd.AddValue ("checkUeMobility",
+                "If true, it enables printing of UE position every 100 ms",
+                params.checkUeMobility);
 
 
   // Parse the command line

@@ -125,6 +125,8 @@ struct Parameters
   bool ueEnable3gppElement = false;
 
   bool enableShadowing = false;
+
+  bool checkUeMobility = false;
 };
 
 extern void Nr3gppCalibration (Parameters &params);

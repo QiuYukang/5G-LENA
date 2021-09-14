@@ -127,6 +127,19 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
   return std::make_pair (app, startTime);
 }
 
+static void PrintUePosition (NetDeviceContainer ueNetDevs, NodeContainer ueNodes)
+{
+  for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
+    {
+      Ptr<NetDevice> ueNetDev = ueNetDevs.Get (ueId);
+      Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+
+      std::cout << "ueId: " << ueId << ", at " << uepos << std::endl;
+    }
+
+  Simulator::Schedule (MilliSeconds (100), &PrintUePosition, ueNetDevs, ueNodes);
+}
+
 
 bool
 Parameters::Validate (void) const
@@ -724,6 +737,11 @@ Nr3gppCalibration (Parameters &params)
                     << ", range: " << distance << " meters"
                     << std::endl;
         }
+    }
+
+  if (params.checkUeMobility)
+    {
+      Simulator::Schedule (MilliSeconds (100), &PrintUePosition, ueNetDevs, ueNodes);
     }
 
   /*
