@@ -138,8 +138,8 @@ NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTra
         m_rsrpSinrFileName = oss.str ();
         m_rsrpSinrFile.open (m_rsrpSinrFileName.c_str ());
 
-        m_rsrpSinrFile << "Time" << "\t" << "IMSI" <<
-                                    "\t" << "SINR (dB)" << std::endl;
+        m_rsrpSinrFile << "Time" << "\t" << "CellId" << "\t" << "RNTI" << "\t" << "BWPId"
+                       << "\t" << "SINR(dB)" << std::endl;
 
         if (!m_rsrpSinrFile.is_open ())
           {
@@ -149,7 +149,7 @@ NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTra
 
   m_rsrpSinrFile << Simulator::Now ().GetSeconds () <<
                     "\t" << cellId << "\t" << rnti << "\t" << bwpId <<
-                    "\t" << avgSinr << "\t" << power << std::endl;
+                    "\t" << 10 * log10 (avgSinr) << std::endl;
 }
 
 void
