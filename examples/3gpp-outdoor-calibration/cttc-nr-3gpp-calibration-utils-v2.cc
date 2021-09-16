@@ -611,7 +611,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   RealisticBfManager::TriggerEvent realTriggerEvent {RealisticBfManager::SRS_COUNT};
 
-  if (radioNetwork == "LTE" && calibration == true)
+  if (radioNetwork == "LTE" || calibration == true)
     {
       beamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
     }
@@ -734,10 +734,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
     }
 
   // gNb routing between Bearer and bandwidth part
-  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
 
   // Ue routing between Bearer and bandwidth part
-  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_VIDEO_TCP_DEFAULT", UintegerValue (bwpIdForLowLat));
+  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
 
   /*
    * We miss many other parameters. By default, not configuring them is equivalent

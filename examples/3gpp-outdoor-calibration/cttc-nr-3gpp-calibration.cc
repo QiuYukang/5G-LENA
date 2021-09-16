@@ -762,12 +762,12 @@ Nr3gppCalibration (Parameters &params)
     }
 
   // attach UEs to their gNB. Try to attach them per cellId order
-  std::cout << "  attach UEs to gNBs\n";
+  std::cout << "  attach UEs to gNBs\n" << std::endl;
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
       auto cellId = scenario->GetCellIndex (ueId);
-      Ptr<NetDevice> gnbNetDev = gnbNetDevs.Get (cellId);
-      Ptr<NetDevice> ueNetDev = ueNetDevs.Get (ueId);
+      Ptr<NetDevice> gnbNetDev = gnbNodes.Get (cellId)->GetDevice (0);
+      Ptr<NetDevice> ueNetDev = ueNodes.Get (ueId)->GetDevice (0);
       if (lteHelper != nullptr)
         {
           lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -775,19 +775,18 @@ Nr3gppCalibration (Parameters &params)
       else if (nrHelper != nullptr)
         {
           nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-          // UL phy
-          uint32_t bwp = (params.operationMode == "FDD" ? 1 : 0);
-          auto ueUlPhy {nrHelper->GetUePhy (ueNetDev, bwp)};
-          auto rnti = ueUlPhy->GetRnti ();
+          auto uePhyBwp0 {nrHelper->GetUePhy (ueNetDev, 0)};
+          auto gnbPhyBwp0 {nrHelper->GetGnbPhy (gnbNetDev, 0)};
           Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
           Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
           double distance = CalculateDistance (gnbpos, uepos);
-          std::cout << "ueId: " << ueId
-                    << ", rnti: " << rnti
-                    << ", at " << uepos
-                    << ", attached to eNB " << cellId
-                    << " at " << gnbpos
-                    << ", range: " << distance << " meters"
+          std::cout << "ueId "<< ueId
+                    << ", cellIndex "<< cellId
+                    << ", ue freq "<< uePhyBwp0->GetCentralFrequency () / 1e9
+                    << ", gnb freq "<< gnbPhyBwp0->GetCentralFrequency () / 1e9
+                    << ", sector "<< scenario->GetSectorIndex (cellId)
+                    << ", distance "<< distance
+                    << ", azimuth gnb->ue:"<< RadiansToDegrees (Angles (gnbpos, uepos).GetAzimuth ())
                     << std::endl;
         }
     }
