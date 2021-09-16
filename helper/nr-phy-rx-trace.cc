@@ -30,6 +30,8 @@
 #include <ns3/log.h>
 #include "nr-phy-rx-trace.h"
 #include <ns3/simulator.h>
+#include <ns3/nr-ue-net-device.h>
+#include <ns3/nr-gnb-net-device.h>
 #include <stdio.h>
 #include <ns3/string.h>
 
@@ -57,6 +59,11 @@ std::ofstream NrPhyRxTrace::m_txedUePhyCtrlMsgsFile;
 std::string NrPhyRxTrace::m_txedUePhyCtrlMsgsFileName;
 std::ofstream NrPhyRxTrace::m_rxedUePhyDlDciFile;
 std::string NrPhyRxTrace::m_rxedUePhyDlDciFileName;
+
+std::ofstream NrPhyRxTrace::m_dlPathlossFile;
+std::string NrPhyRxTrace::m_dlPathlossFileName;
+std::ofstream NrPhyRxTrace::m_ulPathlossFile;
+std::string NrPhyRxTrace::m_ulPathlossFileName;
 
 
 NrPhyRxTrace::NrPhyRxTrace ()
@@ -98,6 +105,16 @@ NrPhyRxTrace::~NrPhyRxTrace ()
   if (m_rxedUePhyDlDciFile.is_open ())
     {
       m_rxedUePhyDlDciFile.close ();
+    }
+
+  if (m_dlPathlossFile.is_open ())
+    {
+      m_dlPathlossFile.close ();
+    }
+
+  if (m_ulPathlossFile.is_open ())
+    {
+      m_ulPathlossFile.close ();
     }
 }
 
@@ -191,9 +208,8 @@ NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
 
         m_rxedGnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity"  << "\t" <<
                                     "Frame" << "\t" << "SF" << "\t" << "Slot" <<
-                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
-                                    "\t" << "RNTI" << "\t" << "bwpId" <<
-                                    "\t" << "MsgType" << std::endl;
+                                    "\t" << "nodeId" << "\t" << "RNTI" <<
+                                    "\t" << "bwpId" << "\t" << "MsgType" << std::endl;
 
         if (!m_rxedGnbPhyCtrlMsgsFile.is_open ())
           {
@@ -229,6 +245,10 @@ NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
     {
       m_rxedGnbPhyCtrlMsgsFile << "DL_HARQ";
     }
+  else if (msg->GetMessageType () == NrControlMessage::SRS)
+    {
+      m_rxedGnbPhyCtrlMsgsFile << "SRS";
+    }
   else
     {
       m_rxedGnbPhyCtrlMsgsFile << "Other";
@@ -250,9 +270,8 @@ NrPhyRxTrace::TxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
 
         m_txedGnbPhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                     "Frame" << "\t" << "SF" << "\t" << "Slot" <<
-                                    "\t" << "VarTTI" << "\t" << "nodeId" <<
-                                    "\t" << "RNTI" << "\t" << "bwpId" <<
-                                    "\t" << "MsgType" << std::endl;
+                                    "\t" << "nodeId" << "\t" << "RNTI"<<
+                                    "\t" << "bwpId" << "\t" << "MsgType" << std::endl;
 
         if (!m_txedGnbPhyCtrlMsgsFile.is_open ())
           {
@@ -308,9 +327,8 @@ NrPhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
 
         m_rxedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
-                                   "\t" << "VarTTI" << "\t" << "nodeId" <<
-                                   "\t" << "RNTI" << "\t" << "bwpId" << "\t" <<
-                                   "MsgType" << std::endl;
+                                   "\t" << "nodeId" << "\t" << "RNTI" <<
+                                   "\t" << "bwpId" << "\t" << "MsgType" << std::endl;
 
         if (!m_rxedUePhyCtrlMsgsFile.is_open ())
           {
@@ -366,7 +384,7 @@ NrPhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
 
         m_txedUePhyCtrlMsgsFile << "Time" << "\t" << "Entity" << "\t" <<
                                    "Frame" << "\t" << "SF" << "\t" << "Slot" <<
-                                   "\t" << "VarTTI" << "\t" << "nodeId" <<
+                                   "\t" << "nodeId" <<
                                    "\t" << "RNTI" << "\t" << "bwpId" <<
                                    "\t" << "MsgType" << std::endl;
 
@@ -402,6 +420,10 @@ NrPhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
   else if (msg->GetMessageType () == NrControlMessage::DL_HARQ)
     {
       m_txedUePhyCtrlMsgsFile << "DL_HARQ";
+    }
+  else if (msg->GetMessageType () == NrControlMessage::SRS)
+    {
+      m_txedUePhyCtrlMsgsFile << "SRS";
     }
   else
     {
@@ -608,11 +630,11 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
       m_rxPacketTraceFile << "Time" << "\t" << "direction" << "\t" <<
                              "frame" << "\t" << "subF" << "\t" << "slot" <<
                              "\t" << "1stSym" << "\t" << "nSymbol" <<
-                             "\t" << "cellId" << "\t" << "rnti" <<
+                             "\t" << "cellId" << "\t" << "bwpId" <<
+                             "\t" << "streamId" << "\t" << "rnti" <<
                              "\t" << "tbSize" << "\t" << "mcs" <<
                              "\t" << "rv" << "\t" << "SINR(dB)" <<
-                             "\t" << "corrupt" << "\t" << "TBler" <<
-                             "\t" << "bwpId" << std::endl;
+                             "\t" << "corrupt" << "\t" << "TBler" << std::endl;
 
       if (!m_rxPacketTraceFile.is_open ())
         {
@@ -628,14 +650,15 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                          "\t" << (unsigned)params.m_symStart <<
                          "\t" << (unsigned)params.m_numSym <<
                          "\t" << params.m_cellId <<
+                         "\t" << (unsigned)params.m_bwpId <<
+                         "\t" << static_cast<uint16_t> (params.m_streamId) <<
                          "\t" << params.m_rnti <<
                          "\t" << params.m_tbSize <<
                          "\t" << (unsigned)params.m_mcs <<
                          "\t" << (unsigned)params.m_rv <<
                          "\t" << 10 * log10 (params.m_sinr) <<
                          "\t" << params.m_corrupt <<
-                         "\t" << params.m_tbler <<
-                         "\t" << (unsigned)params.m_bwpId << std::endl;
+                         "\t" << params.m_tbler << std::endl;
 
   if (params.m_corrupt)
     {
@@ -667,11 +690,11 @@ NrPhyRxTrace::RxPacketTraceEnbCallback (Ptr<NrPhyRxTrace> phyStats, std::string 
       m_rxPacketTraceFile << "Time" << "\t" << "direction" << "\t" <<
                              "frame" << "\t" << "subF" << "\t" << "slot" <<
                              "\t" << "1stSym" << "\t" << "nSymbol" <<
-                             "\t" << "cellId" << "\t" << "rnti" <<
+                             "\t" << "cellId" << "\t" << "bwpId" <<
+                             "\t" << "streamId" << "\t" << "rnti" <<
                              "\t" << "tbSize" << "\t" << "mcs" <<
                              "\t" << "rv" << "\t" << "SINR(dB)" <<
-                             "\t" << "corrupt" << "\t" << "TBler" <<
-                             "\t" << "bwpId" << std::endl;
+                             "\t" << "corrupt" << "\t" << "TBler" << std::endl;
 
       if (!m_rxPacketTraceFile.is_open ())
         {
@@ -686,14 +709,15 @@ NrPhyRxTrace::RxPacketTraceEnbCallback (Ptr<NrPhyRxTrace> phyStats, std::string 
                          "\t" << (unsigned)params.m_symStart <<
                          "\t" << (unsigned)params.m_numSym <<
                          "\t" << params.m_cellId <<
+                         "\t" << (unsigned)params.m_bwpId <<
+                         "\t" << static_cast<uint16_t> (params.m_streamId) <<
                          "\t" << params.m_rnti <<
                          "\t" << params.m_tbSize <<
                          "\t" << (unsigned)params.m_mcs <<
                          "\t" << (unsigned)params.m_rv <<
                          "\t" << 10 * log10 (params.m_sinr) <<
                          "\t" << params.m_corrupt <<
-                         "\t" << params.m_tbler <<
-                         "\t" << params.m_bwpId << std::endl;
+                         "\t" << params.m_tbler << std::endl;
 
   if (params.m_corrupt)
     {
@@ -712,6 +736,125 @@ NrPhyRxTrace::RxPacketTraceEnbCallback (Ptr<NrPhyRxTrace> phyStats, std::string 
                     "\t" << params.m_sinrMin <<
                     "\t" << params.m_bwpId);
     }
+}
+
+void
+NrPhyRxTrace::PathlossTraceCallback (Ptr<NrPhyRxTrace> phyStats,
+                                     std::string path,
+                                     Ptr<const SpectrumPhy> txPhy,
+                                     Ptr<const SpectrumPhy> rxPhy,
+                                     double lossDb)
+{
+  Ptr<NrSpectrumPhy> txNrSpectrumPhy = txPhy->GetObject <NrSpectrumPhy> ();
+  Ptr<NrSpectrumPhy> rxNrSpectrumPhy = rxPhy->GetObject <NrSpectrumPhy> ();
+  if (DynamicCast<NrGnbNetDevice> (txNrSpectrumPhy->GetDevice ()) != nullptr)
+    {
+      // All the gNBs are on the same channel (especially in TDD), therefore,
+      // to log real DL reception we need to make sure that the RX spectrum
+      // belongs to an UE.
+      if (DynamicCast<NrUeNetDevice> (rxNrSpectrumPhy->GetDevice ()) != nullptr)
+        {
+          uint16_t txCellId = txNrSpectrumPhy->GetDevice ()->GetObject<NrGnbNetDevice> ()->GetCellId ();
+          uint16_t rxCellId = rxNrSpectrumPhy->GetDevice ()->GetObject<NrUeNetDevice> ()->GetCellId ();
+          uint16_t txBwpId = txNrSpectrumPhy->GetBwpId ();
+          uint16_t rxBwpId = rxNrSpectrumPhy->GetBwpId ();
+          uint16_t txStreamId = txNrSpectrumPhy->GetStreamId ();
+          uint16_t rxStreamId = rxNrSpectrumPhy->GetStreamId ();
+
+          if (txCellId == rxCellId && txBwpId == rxBwpId && txStreamId == rxStreamId)
+            {
+              // We multiply loss values with -1 to get the notion of loss
+              // instead of a gain.
+              phyStats->WriteDlPathlossTrace (txNrSpectrumPhy, rxNrSpectrumPhy, lossDb * -1);
+            }
+        }
+    }
+  else
+    {
+      // All the UEs are on the same channel (especially in TDD), therefore,
+      // to log real UL reception we need to make sure that the RX spectrum
+      // belongs to a gNB.
+      if (DynamicCast<NrGnbNetDevice> (rxNrSpectrumPhy->GetDevice ()) != nullptr)
+        {
+          uint16_t txCellId = txNrSpectrumPhy->GetDevice ()->GetObject<NrUeNetDevice> ()->GetCellId ();
+          uint16_t rxCellId = rxNrSpectrumPhy->GetDevice ()->GetObject<NrGnbNetDevice> ()->GetCellId ();
+          uint16_t txBwpId = txNrSpectrumPhy->GetBwpId ();
+          uint16_t rxBwpId = rxNrSpectrumPhy->GetBwpId ();
+          uint16_t txStreamId = txNrSpectrumPhy->GetStreamId ();
+          uint16_t rxStreamId = rxNrSpectrumPhy->GetStreamId ();
+          if (txCellId == rxCellId && txBwpId == rxBwpId && txStreamId == rxStreamId)
+            {
+              // We multiply loss values with -1 to get the notion of loss
+              // instead of a gain.
+              phyStats->WriteUlPathlossTrace (txNrSpectrumPhy, rxNrSpectrumPhy, lossDb * -1);
+            }
+        }
+    }
+}
+
+void
+NrPhyRxTrace::WriteDlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
+                                    Ptr<NrSpectrumPhy> rxNrSpectrumPhy,
+                                    double lossDb)
+{
+  if (!m_dlPathlossFile.is_open ())
+      {
+        std::ostringstream oss;
+        oss << "DlPathlossTrace" << m_simTag.c_str () << ".txt";
+        m_dlPathlossFileName = oss.str ();
+        m_dlPathlossFile.open (m_dlPathlossFileName.c_str ());
+
+        m_dlPathlossFile << "Time(sec)" << "\t" << "CellId" << "\t"
+                         << "BwpId" << "\t"  << "txStreamId "<< "\t"
+                         << "IMSI" << "\t" << "rxStreamId" << "\t"
+                         << "pathLoss(dB)" << std::endl;
+
+        if (!m_dlPathlossFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open DL pathloss tracefile");
+          }
+      }
+
+  m_dlPathlossFile << Simulator::Now ().GetSeconds () << "\t"
+                   << txNrSpectrumPhy->GetDevice ()->GetObject<NrGnbNetDevice> ()->GetCellId () << "\t"
+                   << txNrSpectrumPhy->GetBwpId () << "\t"
+                   << +txNrSpectrumPhy->GetStreamId () << "\t"
+                   << rxNrSpectrumPhy->GetDevice ()->GetObject<NrUeNetDevice> ()->GetImsi () << "\t"
+                   << +rxNrSpectrumPhy->GetStreamId () << "\t"
+                   << lossDb << std::endl;
+
+}
+
+void
+NrPhyRxTrace::WriteUlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
+                                    Ptr<NrSpectrumPhy> rxNrSpectrumPhy,
+                                    double lossDb)
+{
+  if (!m_ulPathlossFile.is_open ())
+      {
+        std::ostringstream oss;
+        oss << "UlPathlossTrace" << m_simTag.c_str () << ".txt";
+        m_ulPathlossFileName = oss.str ();
+        m_ulPathlossFile.open (m_ulPathlossFileName.c_str ());
+
+        m_ulPathlossFile << "Time(sec)" << "\t" << "CellId" << "\t"
+                         << "BwpId" << "\t"  << "txStreamId "<< "\t"
+                         << "IMSI" << "\t" << "rxStreamId" << "\t"
+                         << "pathLoss(dB)" << std::endl;
+
+        if (!m_ulPathlossFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open UL pathloss tracefile");
+          }
+      }
+
+  m_ulPathlossFile << Simulator::Now ().GetSeconds () << "\t"
+                   << txNrSpectrumPhy->GetDevice ()->GetObject<NrUeNetDevice> ()->GetCellId () << "\t"
+                   << txNrSpectrumPhy->GetBwpId () << "\t"
+                   << +txNrSpectrumPhy->GetStreamId () << "\t"
+                   << txNrSpectrumPhy->GetDevice ()->GetObject<NrUeNetDevice> ()->GetImsi () << "\t"
+                   << +rxNrSpectrumPhy->GetStreamId () << "\t"
+                   << lossDb << std::endl;
 }
 
 } /* namespace ns3 */

@@ -829,6 +829,7 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
   // SRS will be transmitted over all panels/streams
   for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
     {
+      m_phyTxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), dci->m_rnti, GetBwpId (), *srsMsg.begin ());
       m_spectrumPhys.at (panelIndex)->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
     }
 

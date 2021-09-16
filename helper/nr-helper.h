@@ -791,6 +791,10 @@ private:
    * Enable trace sinks for UL MAC layer scheduling.
    */
   void EnableUlMacSchedTraces (void);
+  /**
+   * \brief Enable trace sinks for DL and UL pathloss
+   */
+  void EnablePathlossTraces ();
 
 
   ObjectFactory m_gnbNetDeviceFactory;  //!< NetDevice factory for gnb

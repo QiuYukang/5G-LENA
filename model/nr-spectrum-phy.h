@@ -409,6 +409,14 @@ public:
    * \return streamId The stream id
    */
   uint8_t GetStreamId () const;
+  /**
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+  /**
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
 
 protected:
   /**
@@ -439,14 +447,6 @@ private:
    * one CTRL message which should be of type SRS
    */
   void StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
-  /**
-   * \return the cell id
-   */
-  uint16_t GetCellId () const;
-  /**
-   * \return the bwp id
-   */
-  uint16_t GetBwpId () const;
   /**
    * \return true if this class is inside an enb/gnb
    */

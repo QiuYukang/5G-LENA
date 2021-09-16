@@ -1491,6 +1491,7 @@ NrHelper::EnableTraces (void)
   EnableUeMacCtrlMsgsTraces ();
   EnableDlMacSchedTraces ();
   EnableUlMacSchedTraces ();
+  EnablePathlossTraces ();
 }
 
 void
@@ -1622,6 +1623,15 @@ NrHelper::EnableUlMacSchedTraces ()
   NS_LOG_FUNCTION_NOARGS ();
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/UlScheduling",
                    MakeBoundCallback (&NrMacSchedulingStats::UlSchedulingCallback, m_macSchedStats));
+}
+
+void
+NrHelper::EnablePathlossTraces ()
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  Config::Connect ("/ChannelList/*/$ns3::SpectrumChannel/PathLoss",
+                   MakeBoundCallback (&NrPhyRxTrace::PathlossTraceCallback, m_phyStats));
+
 }
 
 } // namespace ns3
