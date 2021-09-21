@@ -704,6 +704,95 @@ public:
   void SetDlErrorModel (const std::string & errorModelTypeId);
 
   /**
+   * \brief Enable DL PHY traces
+   */
+  void EnableDlPhyTraces ();
+
+  /**
+   * \brief Enable UL PHY traces
+   */
+  void EnableUlPhyTraces ();
+
+  /**
+   * \brief Enable gNB packet count trace
+   */
+  void EnableGnbPacketCountTrace ();
+
+  /**
+   * \brief Enable UE packet count trace
+   *
+   */
+  void EnableUePacketCountTrace ();
+
+  /**
+   * \brief Enable transport block trace
+   *
+   * At the time of writing this documentation
+   * this method only connect the ReportDownlinkTbSize
+   * of NrUePhy.
+   */
+  void EnableTransportBlockTrace ();
+
+  /**
+   * \brief Enable gNB PHY CTRL TX and RX traces
+   */
+  void EnableGnbPhyCtrlMsgsTraces (void);
+
+  /**
+   * \brief Enable UE PHY CTRL TX and RX traces
+   */
+  void EnableUePhyCtrlMsgsTraces (void);
+
+  /**
+   * \brief Enable gNB MAC CTRL TX and RX traces
+   */
+  void EnableGnbMacCtrlMsgsTraces (void);
+
+  /**
+   * \brief Enable UE MAC CTRL TX and RX traces
+   */
+  void EnableUeMacCtrlMsgsTraces (void);
+
+  /**
+   * \brief Get the RLC stats calculator object
+   *
+   * \return The NrBearerStatsCalculator stats calculator object to write RLC traces
+   */
+  Ptr<NrBearerStatsCalculator> GetRlcStats (void);
+
+  /**
+   * \brief Enable RLC traces
+   */
+  void EnableRlcTraces (void);
+
+  /**
+   * \brief Enable PDCP traces
+   */
+  void EnablePdcpTraces (void);
+
+  /**
+   * \brief Get the PDCP stats calculator object
+   *
+   * \return The NrBearerStatsCalculator stats calculator object to write PDCP traces
+   */
+  Ptr<NrBearerStatsCalculator> GetPdcpStats (void);
+
+  /**
+   * Enable trace sinks for DL MAC layer scheduling.
+   */
+  void EnableDlMacSchedTraces (void);
+
+  /**
+   * Enable trace sinks for UL MAC layer scheduling.
+   */
+  void EnableUlMacSchedTraces (void);
+
+  /**
+   * \brief Enable trace sinks for DL and UL pathloss
+   */
+  void EnablePathlossTraces ();
+
+  /**
     * Assign a fixed random variable stream number to the random variables used.
     *
     * The InstallGnbDevice() or InstallUeDevice method should have previously
@@ -767,35 +856,8 @@ private:
                                          const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
                                          uint8_t numberOfPanels);
   void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
-  void EnableDlPhyTrace ();
-  void EnableUlPhyTrace ();
-  void EnableEnbPacketCountTrace ();
-  void EnableUePacketCountTrace ();
-  void EnableTransportBlockTrace ();
-  void EnableRlcTraces (void);
-  void EnableGnbPhyCtrlMsgsTraces (void);
-  void EnableUePhyCtrlMsgsTraces (void);
-  void EnableGnbMacCtrlMsgsTraces (void);
-  void EnableUeMacCtrlMsgsTraces (void);
-  Ptr<NrBearerStatsCalculator> GetRlcStats (void);
-  void EnablePdcpTraces (void);
-  Ptr<NrBearerStatsCalculator> GetPdcpStats (void);
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
-
-  /**
-   * Enable trace sinks for DL MAC layer scheduling.
-   */
-  void EnableDlMacSchedTraces (void);
-  /**
-   * Enable trace sinks for UL MAC layer scheduling.
-   */
-  void EnableUlMacSchedTraces (void);
-  /**
-   * \brief Enable trace sinks for DL and UL pathloss
-   */
-  void EnablePathlossTraces ();
-
 
   ObjectFactory m_gnbNetDeviceFactory;  //!< NetDevice factory for gnb
   ObjectFactory m_ueNetDeviceFactory;   //!< NetDevice factory for ue

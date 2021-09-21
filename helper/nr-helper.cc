@@ -1478,8 +1478,8 @@ NrHelper::ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer)
 void
 NrHelper::EnableTraces (void)
 {
-  EnableDlPhyTrace ();
-  EnableUlPhyTrace ();
+  EnableDlPhyTraces ();
+  EnableUlPhyTraces ();
   //EnableEnbPacketCountTrace ();
   //EnableUePacketCountTrace ();
   //EnableTransportBlockTrace ();
@@ -1495,7 +1495,7 @@ NrHelper::EnableTraces (void)
 }
 
 void
-NrHelper::EnableDlPhyTrace (void)
+NrHelper::EnableDlPhyTraces (void)
 {
   //NS_LOG_FUNCTION_NOARGS ();
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/ReportCurrentCellRsrpSinr",
@@ -1547,7 +1547,7 @@ NrHelper::EnableUeMacCtrlMsgsTraces (void)
 }
 
 void
-NrHelper::EnableUlPhyTrace (void)
+NrHelper::EnableUlPhyTraces (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/RxPacketTraceEnb",
@@ -1555,7 +1555,7 @@ NrHelper::EnableUlPhyTrace (void)
 }
 
 void
-NrHelper::EnableEnbPacketCountTrace ()
+NrHelper::EnableGnbPacketCountTrace ()
 {
   NS_LOG_FUNCTION_NOARGS ();
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/ReportEnbTxRxPacketCount",
