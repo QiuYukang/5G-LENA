@@ -225,6 +225,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("checkUeMobility",
                 "If true, it enables printing of UE position every 100 ms",
                 params.checkUeMobility);
+  cmd.AddValue ("enableTraces",
+                "If true, it enables printing of UE position every 100 ms",
+                params.enableTraces);
 
 
   // Parse the command line

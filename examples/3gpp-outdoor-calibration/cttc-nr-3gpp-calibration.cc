@@ -201,105 +201,151 @@ ChooseCalibrationScenario (Parameters &params)
         {
           params.scenario = "UMi_StreetCanyon";
           params.startingFreq = 4e9;
+          params.bandwidthMHz = 10;
           params.gnbTxPower = 41;
           params.ueTxPower = 23;
           params.bsHeight = 25;
           params.utHeight = 1.5;
+          params.uesWithRandomUtHeight = 0.8;
           params.isd = 200;
+
           params.gnbNumRows = 8;
           params.gnbNumColumns = 8;
           params.ueNumRows = 1;
           params.ueNumColumns = 2;
+
           params.gnbHSpacing = 0.5;
           params.gnbVSpacing = 0.8;
           params.ueHSpacing = 0.5;
           params.ueVSpacing = 0.5;
+
           params.gnbEnable3gppElement = true;
           params.ueEnable3gppElement = false;
+
           params.downtiltAngle = 90;
+
           params.gnbNoiseFigure = 5;
           params.ueNoiseFigure = 7;
-          params.bandwidthMHz = 10;
+
           params.trafficScenario = 0; //full buffer
           params.speed = 8.33333; // in m/s (30 km/h)
+
+          params.calibration = false;
+          params.enableShadowing = true;
+
+          params.scheduler = "RR";
         }
       else if (params.configurationScenario == "DenseB")
         {
           params.scenario = "UMi_StreetCanyon";
           params.startingFreq = 30e9;
+          params.bandwidthMHz = 40;
           params.gnbTxPower = 37;
           params.ueTxPower = 23;
+          params.uesWithRandomUtHeight = 0.8;
           params.bsHeight = 25;
           params.utHeight = 1.5;
           params.isd = 200;
+
           params.gnbNumRows = 4;
           params.gnbNumColumns = 8;
           params.ueNumRows = 2;
           params.ueNumColumns = 4;
+
           params.gnbHSpacing = 0.5;
           params.gnbVSpacing = 0.5;
           params.ueHSpacing = 0.5;
           params.ueVSpacing = 0.5;
+
           params.gnbEnable3gppElement = true;
           //params.ueEnable3gppElement = true;
+
           params.downtiltAngle = 90;
+
           params.gnbNoiseFigure = 7;
           params.ueNoiseFigure = 10;
-          params.bandwidthMHz = 40;
+
           params.trafficScenario = 0; //full buffer
           params.speed = 8.33333; // in m/s (30 km/h)
+
+          params.calibration = false;
+          params.enableShadowing = true;
+
+          params.scheduler = "RR";
         }
       else if (params.configurationScenario == "RuralA")
         {
           params.scenario = "RMa";
           params.startingFreq = 700e6;
+          params.bandwidthMHz = 10;
           params.gnbTxPower = 46;
           params.ueTxPower = 23;
           params.bsHeight = 35;
           params.utHeight = 1.5;
           params.isd = 1732;
+
           params.gnbNumRows = 8;
           params.gnbNumColumns = 4;
           params.ueNumRows = 1;
           params.ueNumColumns = 1;
+
           params.gnbHSpacing = 0.5;
           params.gnbVSpacing = 0.8;
           params.ueHSpacing = 0.5;
           params.ueVSpacing = 0.5;
+
           params.gnbEnable3gppElement = true;
           params.ueEnable3gppElement = false;
+
           params.downtiltAngle = 90;
+
           params.gnbNoiseFigure = 5;
           params.ueNoiseFigure = 7;
-          params.bandwidthMHz = 10;
+
           params.trafficScenario = 0; //full buffer
           params.speed = 33.33; // in m/s (120 km/h)
+
+          params.calibration = false;
+          params.enableShadowing = true;
+
+          params.scheduler = "RR";
         }
       else if (params.configurationScenario == "RuralB")
         {
           params.scenario = "RMa";
           params.startingFreq = 4e9;
+          params.bandwidthMHz = 10;
           params.gnbTxPower = 46;
           params.ueTxPower = 23;
           params.bsHeight = 35;
           params.utHeight = 1.5;
           params.isd = 1732;
+
           params.gnbNumRows = 8;
           params.gnbNumColumns = 8;
           params.ueNumRows = 1;
           params.ueNumColumns = 2;
+
           params.gnbHSpacing = 0.5;
           params.gnbVSpacing = 0.8;
           params.ueHSpacing = 0.5;
           params.ueVSpacing = 0.5;
+
           params.gnbEnable3gppElement = true;
           params.ueEnable3gppElement = false;
+
           params.downtiltAngle = 90;
+
           params.gnbNoiseFigure = 5;
           params.ueNoiseFigure = 7;
-          params.bandwidthMHz = 10;
+
           params.trafficScenario = 0; //full buffer
           params.speed = 33.33; // in m/s (120 km/h)
+
+          params.calibration = false;
+          params.enableShadowing = true;
+
+          params.scheduler = "RR";
         }
       }
 }
@@ -537,9 +583,10 @@ Nr3gppCalibration (Parameters &params)
         }
       else if (params.confType == "calibrationConf")
         {
-          gridScenario.CreateScenarioWithMobility (Vector (params.speed, 0, 0)); //move UEs along the x axis
+          gridScenario.CreateScenarioWithMobility (Vector (params.speed, 0, 0),
+                                                   params.uesWithRandomUtHeight); //move UEs along the x axis
         }
-      //gridScenario.CreateScenario ();
+
       gnbNodes = gridScenario.GetBaseStations ();
       ueNodes = gridScenario.GetUserTerminals ();
       scenario = &gridScenario;
@@ -782,6 +829,8 @@ Nr3gppCalibration (Parameters &params)
           double distance = CalculateDistance (gnbpos, uepos);
           std::cout << "ueId "<< ueId
                     << ", cellIndex "<< cellId
+                    << " ue Pos: " << uepos
+                    << " gnb Pos: " << gnbpos
                     << ", ue freq "<< uePhyBwp0->GetCentralFrequency () / 1e9
                     << ", gnb freq "<< gnbPhyBwp0->GetCentralFrequency () / 1e9
                     << ", sector "<< scenario->GetSectorIndex (cellId)
@@ -877,7 +926,7 @@ Nr3gppCalibration (Parameters &params)
 
   // enable the traces provided by the nr module
   std::cout << "  tracing\n";
-  if (params.traces == true)
+  if (params.enableTraces == true)
     {
       if (lteHelper != nullptr)
         {
@@ -1247,7 +1296,7 @@ operator << (std::ostream & os, const Parameters & parameters)
   MSG ("Output file name") << p.simTag;
   MSG ("Output directory") << p.outputDir;
   MSG ("Logging") << (p.logging ? "ON" : "off");
-  MSG ("Trace file generation") << (p.traces ? "ON" : "off");
+  MSG ("Trace file generation") << (p.enableTraces ? "ON" : "off");
   MSG ("");
   MSG ("Radio environment map") << (p.dlRem ? "DL" : (p.ulRem ? "UL" : "off"));
   if (p.dlRem || p.ulRem)

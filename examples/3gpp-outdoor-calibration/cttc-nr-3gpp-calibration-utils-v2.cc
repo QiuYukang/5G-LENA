@@ -242,7 +242,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   double txPowerBs = 0.0;
 
-  BandwidthPartInfo::Scenario scene;
+  BandwidthPartInfo::Scenario scene = BandwidthPartInfo::UMa;
 
   if (confType == "customConf")
     {
@@ -420,7 +420,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       else // if (operationMode = "TDD")
         {
           // Use double with BWP, to match total bandwidth for FDD in UL and DL
-          bandwidthBwp *= 2;
+          //bandwidthBwp *= 2;
           numBwp = 1;
         }
 
@@ -514,7 +514,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       else // if (operationMode = "TDD")
         {
           // Use double with BWP, to match total bandwidth for FDD in UL and DL
-          bandwidthBwp *= 2;
+          //bandwidthBwp *= 2;
           numBwp = 1;
         }
 
@@ -566,7 +566,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
   // Omit fading from calibration mode
-  if (!calibration)
+  if (!calibration || confType == "calibrationConf")
     {
       bandMask |= NrHelper::INIT_FADING;
     }
@@ -636,11 +636,11 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   if (scheduler == "PF")
     {
-      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaPF"));
     }
   else if (scheduler == "RR")
     {
-      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
+      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaRR"));
     }
 
   // configure SRS symbols
@@ -724,6 +724,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         {
           NS_ABORT_MSG ("Currently, only supported bandwidths are 5, 10, 15, 20 and 40MHz, you chose " << bandwidthMHz);
         }
+    }
+  else
+    {
+      nrHelper->SetGnbMacAttribute ("NumRbPerRbg", UintegerValue (1));
     }
 
   // We assume a common traffic pattern for all UEs
