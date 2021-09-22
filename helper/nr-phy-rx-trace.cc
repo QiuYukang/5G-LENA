@@ -142,7 +142,7 @@ NrPhyRxTrace::SetSimTag (const std::string &simTag)
 
 void
 NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats, std::string path,
-                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
+                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId, uint8_t streamId)
 {
   NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
   //phyStats->ReportInterferenceTrace (imsi, sinr);
@@ -151,12 +151,12 @@ NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTra
   if (!m_rsrpSinrFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "SinrTrace" << m_simTag.c_str () << ".txt";
+        oss << "DlSinrTrace" << m_simTag.c_str () << ".txt";
         m_rsrpSinrFileName = oss.str ();
         m_rsrpSinrFile.open (m_rsrpSinrFileName.c_str ());
 
         m_rsrpSinrFile << "Time" << "\t" << "CellId" << "\t" << "RNTI" << "\t" << "BWPId"
-                       << "\t" << "SINR(dB)" << std::endl;
+                       << "\t" << "StreamId" << "\t" << "SINR(dB)" << std::endl;
 
         if (!m_rsrpSinrFile.is_open ())
           {
@@ -166,7 +166,7 @@ NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTra
 
   m_rsrpSinrFile << Simulator::Now ().GetSeconds () <<
                     "\t" << cellId << "\t" << rnti << "\t" << bwpId <<
-                    "\t" << 10 * log10 (avgSinr) << std::endl;
+                    "\t" << +streamId << "\t" << 10 * log10 (avgSinr) << std::endl;
 }
 
 void

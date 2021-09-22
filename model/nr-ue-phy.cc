@@ -1119,16 +1119,14 @@ NrUePhy::CreateDlCqiFeedbackMessage (const DlCqiInfo& dlcqi)
 }
 
 void
-NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
+NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t streamId)
 {
   NS_LOG_FUNCTION (this);
 
   // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
-      // TODO this trace needs to be extended to support also the panel ID,
-      // and also all functions all over the module that use this trace
-      m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId ());
+      m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId (), streamId);
 
       // TODO
       // Not sure what this IF is about, seems that it can be removed,
@@ -1147,11 +1145,11 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
 
       std::vector <double> avrgSinr = std::vector <double> (m_spectrumPhys.size (), UINT32_MAX);
 
-      NS_ASSERT (panelIndex < m_prevDlWbCqi.size ());
-      m_prevDlWbCqi [panelIndex] = wbCqi;
+      NS_ASSERT (streamId < m_prevDlWbCqi.size ());
+      m_prevDlWbCqi [streamId] = wbCqi;
       double avrgSinrdB = 10 * log10 (ComputeAvgSinr (sinr));
-      avrgSinr [panelIndex] = avrgSinrdB;
-      NS_LOG_DEBUG ("Stream " << +panelIndex << " WB CQI " << +wbCqi << " avrg MCS " << +mcs << " avrg SINR (dB) " << avrgSinrdB);
+      avrgSinr [streamId] = avrgSinrdB;
+      NS_LOG_DEBUG ("Stream " << +streamId << " WB CQI " << +wbCqi << " avrg MCS " << +mcs << " avrg SINR (dB) " << avrgSinrdB);
       m_dlCqiFeedbackCounter++;
 
       // if we received SINR from all the active panels,

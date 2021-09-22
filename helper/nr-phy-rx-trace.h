@@ -59,7 +59,7 @@ public:
    *
    */
   static void ReportCurrentCellRsrpSinrCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
-                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId);
+                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId, uint8_t streamId);
   static void UlSinrTraceCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
                                    uint64_t imsi, SpectrumValue& sinr, SpectrumValue& power);
   static void ReportPacketCountUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
