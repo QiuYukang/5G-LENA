@@ -457,7 +457,7 @@ NrHelper::GetSnrTest ()
 NetDeviceContainer
 NrHelper::InstallUeDevice (const NodeContainer &c,
                                const std::vector<std::reference_wrapper<BandwidthPartInfoPtr> > &allBwps,
-                               uint8_t numberOfPanels)
+                               uint8_t numberOfStreams)
 {
   NS_LOG_FUNCTION (this);
   Initialize ();    // Run DoInitialize (), if necessary
@@ -465,7 +465,7 @@ NrHelper::InstallUeDevice (const NodeContainer &c,
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
     {
       Ptr<Node> node = *i;
-      Ptr<NetDevice> device = InstallSingleUeDevice (node, allBwps, numberOfPanels);
+      Ptr<NetDevice> device = InstallSingleUeDevice (node, allBwps, numberOfStreams);
       device->SetAddress (Mac48Address::Allocate ());
       devices.Add (device);
     }
@@ -476,7 +476,7 @@ NrHelper::InstallUeDevice (const NodeContainer &c,
 NetDeviceContainer
 NrHelper::InstallGnbDevice (const NodeContainer & c,
                                 const std::vector<std::reference_wrapper<BandwidthPartInfoPtr> > allBwps,
-                                uint8_t numberOfPanels)
+                                uint8_t numberOfStreams)
 {
   NS_LOG_FUNCTION (this);
   Initialize ();    // Run DoInitialize (), if necessary
@@ -484,7 +484,7 @@ NrHelper::InstallGnbDevice (const NodeContainer & c,
   for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
     {
       Ptr<Node> node = *i;
-      Ptr<NetDevice> device = InstallSingleGnbDevice (node, allBwps, numberOfPanels);
+      Ptr<NetDevice> device = InstallSingleGnbDevice (node, allBwps, numberOfStreams);
       device->SetAddress (Mac48Address::Allocate ());
       devices.Add (device);
     }
@@ -503,7 +503,7 @@ Ptr<NrUePhy>
 NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                            const Ptr<NrUeNetDevice> &dev,
                            const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback,
-                           uint8_t numberOfPanels)
+                           uint8_t numberOfStreams)
 {
   NS_LOG_FUNCTION (this);
 
@@ -527,13 +527,13 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling NrHelper::InstallUeDevice ()");
 
-  for (uint8_t panelIndex = 0 ; panelIndex < numberOfPanels; panelIndex++)
+  for (uint8_t streamIndex = 0 ; streamIndex < numberOfStreams; streamIndex++)
     {
-      Ptr<NrSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <NrSpectrumPhy> (); // Create NrSpectrumPhy per panel
+      Ptr<NrSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <NrSpectrumPhy> (); // Create NrSpectrumPhy per stream
+      
+      channelPhy->SetStreamId (streamIndex);
 
-      channelPhy->SetStreamId (panelIndex);
-
-      Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per panel
+      Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per stream
       channelPhy->InstallHarqPhyModule (harq);
 
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
@@ -541,9 +541,9 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
       Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per panel
       channelPhy->SetAntenna (antenna);
 
-      if (panelIndex == 0)
+      if (streamIndex == 0)
         {
-          cam->SetNrSpectrumPhy (channelPhy); // TODO currently we connect CAM only to the first panel
+          cam->SetNrSpectrumPhy (channelPhy); // TODO currently we connect CAM only to the first stream
         }
 
       Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> ();
@@ -571,7 +571,7 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
 Ptr<NetDevice>
 NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
                                      const std::vector<std::reference_wrapper<BandwidthPartInfoPtr> > allBwps,
-                                     uint8_t numberOfPanels)
+                                     uint8_t numberOfStreams)
 {
   NS_LOG_FUNCTION (this);
 
@@ -595,7 +595,7 @@ NrHelper::InstallSingleUeDevice (const Ptr<Node> &n,
       cc->SetMac (mac);
 
       auto phy = CreateUePhy (n, allBwps[bwpId].get(), dev, std::bind (&NrUeNetDevice::RouteIngoingCtrlMsgs, dev,
-                                         std::placeholders::_1, bwpId), numberOfPanels);
+                                         std::placeholders::_1, bwpId), numberOfStreams);
 
       if (m_harqEnabled)
         {
@@ -710,7 +710,7 @@ Ptr<NrGnbPhy>
 NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                            const Ptr<NrGnbNetDevice> &dev,
                            const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyEndCtrlCallback,
-                           uint8_t numberOfPanels)
+                           uint8_t numberOfStreams)
 {
   NS_LOG_FUNCTION (this);
 
@@ -732,13 +732,13 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling NrHelper::InstallEnbDevice ()");
 
-  for (uint8_t panelIndex = 0 ; panelIndex < numberOfPanels; panelIndex++)
+  for (uint8_t streamIndex = 0 ; streamIndex < numberOfStreams; streamIndex++)
     {
       Ptr<NrSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create <NrSpectrumPhy> ();
       Ptr<UniformPlanarArray> antenna = m_gnbAntennaFactory.Create <UniformPlanarArray> ();
       channelPhy->SetAntenna (antenna);
 
-      if (panelIndex == 0)
+      if (streamIndex == 0)
         {
           // TODO currently we set to CAM only the first spectrum phy, this feature needs to be further extended
           cam->SetNrSpectrumPhy (channelPhy);
@@ -748,7 +748,7 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
       channelPhy->SetChannel (bwp->m_channel); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel object of the corresponding spectrum part
       channelPhy->InstallPhy (phy); // each NrSpectrumPhy should have a pointer to its NrPhy device, in this case NrGnbPhy
-      channelPhy->SetStreamId (panelIndex);
+      channelPhy->SetStreamId (streamIndex);
 
       Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor> (); // create pData chunk processor per NrSpectrumPhy
       Ptr<LteChunkProcessor> pSrs = Create<LteChunkProcessor> ();  // create pSrs per processor per NrSpectrumPhy
@@ -803,7 +803,7 @@ NrHelper::CreateGnbSched ()
 Ptr<NetDevice>
 NrHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr> > allBwps,
-                                      uint8_t numberOfPanels)
+                                      uint8_t numberOfStreams)
 {
   NS_ABORT_MSG_IF (m_cellIdCounter == 65535, "max num gNBs exceeded");
 
@@ -833,7 +833,7 @@ NrHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
 
       auto phy = CreateGnbPhy (n, allBwps[bwpId].get(), dev,
                                std::bind (&NrGnbNetDevice::RouteIngoingCtrlMsgs,
-                                          dev, std::placeholders::_1, bwpId), numberOfPanels);
+                                          dev, std::placeholders::_1, bwpId), numberOfStreams);
       phy->SetBwpId (bwpId);
       cc->SetPhy (phy);
 
@@ -1278,10 +1278,10 @@ NrHelper::AssignStreams (NetDeviceContainer c, int64_t stream)
           for (uint32_t bwp = 0; bwp < nrGnb->GetCcMapSize (); bwp++)
             {
               currentStream += nrGnb->GetScheduler (bwp)->AssignStreams (currentStream);
-              for (uint8_t panelIndex = 0; panelIndex < nrGnb->GetPhy (bwp)->GetNumberOfPanels(); panelIndex++)
+              for (uint8_t streamIndex = 0; streamIndex < nrGnb->GetPhy (bwp)->GetNumberOfStreams (); streamIndex++)
                 {
-                  currentStream += nrGnb->GetPhy (bwp)->GetSpectrumPhy (panelIndex)->AssignStreams (currentStream);
-                  currentStream += DoAssignStreamsToChannelObjects (nrGnb->GetPhy (bwp)->GetSpectrumPhy (panelIndex), currentStream);
+                  currentStream += nrGnb->GetPhy (bwp)->GetSpectrumPhy (streamIndex)->AssignStreams (currentStream);
+                  currentStream += DoAssignStreamsToChannelObjects (nrGnb->GetPhy (bwp)->GetSpectrumPhy (streamIndex), currentStream);
                 }
             }
         }
@@ -1292,10 +1292,10 @@ NrHelper::AssignStreams (NetDeviceContainer c, int64_t stream)
           for (uint32_t bwp = 0; bwp < nrUe->GetCcMapSize (); bwp++)
             {
               currentStream += nrUe->GetMac (bwp)->AssignStreams (currentStream);
-              for (uint8_t panelIndex = 0; panelIndex < nrUe->GetPhy (bwp)->GetNumberOfPanels(); panelIndex++)
+              for (uint8_t streamIndex = 0; streamIndex < nrUe->GetPhy (bwp)->GetNumberOfStreams (); streamIndex++)
                 {
-                  currentStream += nrUe->GetPhy (bwp)->GetSpectrumPhy (panelIndex)->AssignStreams (currentStream);
-                  currentStream += DoAssignStreamsToChannelObjects (nrUe->GetPhy (bwp)->GetSpectrumPhy (panelIndex), currentStream);
+                  currentStream += nrUe->GetPhy (bwp)->GetSpectrumPhy (streamIndex)->AssignStreams (currentStream);
+                  currentStream += DoAssignStreamsToChannelObjects (nrUe->GetPhy (bwp)->GetSpectrumPhy (streamIndex), currentStream);
                 }
             }
         }

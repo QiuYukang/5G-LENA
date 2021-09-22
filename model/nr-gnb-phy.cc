@@ -615,9 +615,9 @@ NrGnbPhy::SetSubChannels (const std::vector<int> &rbIndexVector, uint8_t activeS
 {
   Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (rbIndexVector, activeStreams);
   NS_ASSERT (txPsd);
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      m_spectrumPhys.at(panelIndex)->SetTxPowerSpectralDensity (txPsd);
+      m_spectrumPhys.at(streamIndex)->SetTxPowerSpectralDensity (txPsd);
     }
 
 }
@@ -1245,9 +1245,9 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, panelIndex);
+      Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, streamIndex);
       if (!pktBurst || pktBurst->GetNPackets () == 0)
         {
           // sometimes the UE will be scheduled when no data is queued.
@@ -1263,7 +1263,7 @@ NrGnbPhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
                     " end " << Simulator::Now () + varTtiPeriod - NanoSeconds (2.0));
 
       Simulator::Schedule (NanoSeconds (1.0), &NrGnbPhy::SendDataChannels, this,
-                           pktBurst, varTtiPeriod - NanoSeconds (2.0), dci, panelIndex);
+                           pktBurst, varTtiPeriod - NanoSeconds (2.0), dci, streamIndex);
     }
 
   return varTtiPeriod;
@@ -1279,21 +1279,19 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  // We do not support MIMO in UL yet. DCI is prepared for stream 0. So, if there is
+  // only one stream, do we need this for loop?
+  uint8_t streamIndex = 0;
+
+  if (dci->m_tbSize.at (streamIndex) > 0)
     {
-      // TODO pass the TB of the correct stream/panel after the merge with the MAC changes for MIMO
-      //Ok, but we do not support MIMO in UL yet. DCI is prepared for stream 0. So, if there is
-      //only one stream, do we need this for loop?
-      if (dci->m_tbSize.at (panelIndex) > 0)
-        {
-          m_spectrumPhys.at(panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (panelIndex),
-                                                        dci->m_tbSize.at (panelIndex),
-                                                        dci->m_mcs.at (panelIndex),
+      m_spectrumPhys.at(streamIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (streamIndex),
+                                                        dci->m_tbSize.at (streamIndex),
+                                                        dci->m_mcs.at (streamIndex),
                                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                                        dci->m_harqProcess, dci->m_rv.at (panelIndex), false,
+                                                        dci->m_harqProcess, dci->m_rv.at (streamIndex), false,
                                                         dci->m_symStart, dci->m_numSym, m_currentSlot);
-        }
-    }
+     }
 
   bool found = false;
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
@@ -1324,9 +1322,9 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
 void
 NrGnbPhy::ChangeBeamformingVector (Ptr<NetDevice> dev)
 {
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      m_spectrumPhys.at(panelIndex)->GetBeamManager ()->ChangeBeamformingVector (dev);
+      m_spectrumPhys.at (streamIndex)->GetBeamManager ()->ChangeBeamformingVector (dev);
     }
 }
 
@@ -1334,9 +1332,9 @@ NrGnbPhy::ChangeBeamformingVector (Ptr<NetDevice> dev)
 void
 NrGnbPhy::ChangeToQuasiOmniBeamformingVector ()
 {
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      m_spectrumPhys.at(panelIndex)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
+      m_spectrumPhys.at (streamIndex)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
     }
 }
 
@@ -1350,9 +1348,9 @@ NrGnbPhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      m_spectrumPhys.at(panelIndex)->AddExpectedSrsRnti (dci->m_rnti);
+      m_spectrumPhys.at(streamIndex)->AddExpectedSrsRnti (dci->m_rnti);
     }
 
   bool found = false;
@@ -1466,7 +1464,7 @@ NrGnbPhy::EndSlot (void)
 void
 NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
                             const std::shared_ptr<DciInfoElementTdma> &dci,
-                            const uint8_t &panelId)
+                            const uint8_t &streamId)
 {
   NS_LOG_FUNCTION (this);
   // update beamforming vectors (currently supports 1 user only)
@@ -1503,7 +1501,7 @@ NrGnbPhy::SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod
   SetSubChannels (FromRBGBitmaskToRBAssignment (m_rbgAllocationPerSym.at (dci->m_symStart)), activeStreams);
 
   std::list<Ptr<NrControlMessage> > ctrlMsgs;
-  m_spectrumPhys.at (panelId)->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
+  m_spectrumPhys.at (streamId)->StartTxDataFrames (pb, ctrlMsgs, varTtiPeriod);
 }
 
 void
@@ -1520,7 +1518,7 @@ NrGnbPhy::SendCtrlChannels (const Time &varTtiPeriod)
 
   // Currently all DL CTRL is sent only through one stream
   SetSubChannels (fullBwRb, 1);
-  // DL control will be transmitted only through a single panel, we assume that it is the first one
+  // DL control will be transmitted only through a single stream, we assume that it is the first one
   m_spectrumPhys.at(0)->StartTxDlControlFrames (m_ctrlMsgs, varTtiPeriod);
   m_ctrlMsgs.clear ();
 }

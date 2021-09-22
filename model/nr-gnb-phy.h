@@ -396,7 +396,7 @@ public:
   const SfnSf & GetCurrentSfnSf () const override;
 
   /**
-   *  TODO change to private and add documentation
+   * TODO change to private and add documentation
    */
   void ChangeBeamformingVector (Ptr<NetDevice> dev);
   /**
@@ -478,12 +478,12 @@ private:
    * \param pb Data to transmit
    * \param varTtiPeriod period of transmission
    * \param dci DCI of the transmission
-   * \param panelId The id of the panel, which identifies the instance of the
+   * \param streamId The id of the stream, which identifies the instance of the
    *        NrSpecturmPhy to be used to transmit the packet burst
    */
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
                          const std::shared_ptr<DciInfoElementTdma> &dci,
-                         const uint8_t &panelId);
+                         const uint8_t &streamId);
 
   /**
    * \brief Transmit the control channel

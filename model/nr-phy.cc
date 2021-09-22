@@ -213,13 +213,13 @@ NrPhy::DoDispose ()
   m_tddPattern.clear ();
   m_netDevice = nullptr;
 
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      if (m_spectrumPhys.at (panelIndex))
+      if (m_spectrumPhys.at (streamIndex))
         {
-          m_spectrumPhys.at (panelIndex)->Dispose ();
+          m_spectrumPhys.at (streamIndex)->Dispose ();
         }
-      m_spectrumPhys.at (panelIndex) = nullptr;
+      m_spectrumPhys.at (streamIndex) = nullptr;
     }
   delete m_phySapProvider;
 }
@@ -555,16 +555,16 @@ NrPhy::DoUpdateRbNum ()
   if (m_spectrumPhys.size ())
     {
       // Update the noisePowerSpectralDensity, as it depends on m_rbNum
-      for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+      for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
         {
-          m_spectrumPhys.at (panelIndex)->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+          m_spectrumPhys.at (streamIndex)->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
 
           // once we have set noise power spectral density which will
           // initialize SpectrumModel of our SpectrumPhy, we can
           // call AddRx function of the SpectrumChannel
-          if (m_spectrumPhys.at (panelIndex)->GetSpectrumChannel())
+          if (m_spectrumPhys.at (streamIndex)->GetSpectrumChannel())
             {
-              m_spectrumPhys.at (panelIndex)->GetSpectrumChannel()->AddRx (m_spectrumPhys.at (panelIndex));
+              m_spectrumPhys.at (streamIndex)->GetSpectrumChannel()->AddRx (m_spectrumPhys.at (streamIndex));
             }
           else
             {
@@ -675,16 +675,16 @@ NrPhy::GetL1L2CtrlLatency() const
 }
 
 uint8_t
-NrPhy::GetNumberOfPanels () const
+NrPhy::GetNumberOfStreams  () const
 {
   return m_spectrumPhys.size ();
 }
 
 Ptr<NrSpectrumPhy>
-NrPhy::GetSpectrumPhy (uint8_t panelIndex) const
+NrPhy::GetSpectrumPhy (uint8_t streamIndex) const
 {
-  NS_ABORT_MSG_IF (m_spectrumPhys.size () <= panelIndex, "The panel index is not valid.");
-  return m_spectrumPhys.at(panelIndex);
+  NS_ABORT_MSG_IF (m_spectrumPhys.size () <= streamIndex, "The stream index is not valid.");
+  return m_spectrumPhys.at(streamIndex);
 }
 
 
@@ -885,9 +885,9 @@ NrPhy::SetNoiseFigure (double d)
 
   if (m_spectrumPhys.size () > 0 && GetRbNum()!=0)
     {
-      for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+      for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
         {
-          m_spectrumPhys.at (panelIndex)->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
+          m_spectrumPhys.at (streamIndex)->SetNoisePowerSpectralDensity (GetNoisePowerSpectralDensity());
         }
     }
 }

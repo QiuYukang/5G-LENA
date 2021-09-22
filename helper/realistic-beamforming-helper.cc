@@ -55,8 +55,8 @@ RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDe
   NS_LOG_FUNCTION (this);
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
-      uint8_t gnbAntennaArrays = gNbDev->GetPhy (ccId)->GetNumberOfPanels();
-      uint8_t ueAntennaArrays = ueDev->GetPhy (ccId)->GetNumberOfPanels();
+      uint8_t gnbAntennaArrays = gNbDev->GetPhy (ccId)->GetNumberOfStreams ();
+      uint8_t ueAntennaArrays = ueDev->GetPhy (ccId)->GetNumberOfStreams ();
       uint8_t arrays = std::min (gnbAntennaArrays, ueAntennaArrays);
       NS_ASSERT (arrays);
 

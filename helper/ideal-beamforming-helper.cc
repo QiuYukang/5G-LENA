@@ -89,8 +89,8 @@ IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gnbDev,
 
   for (uint8_t ccId = 0; ccId < gnbDev->GetCcMapSize () ; ccId++)
      {
-       uint8_t gnbAntennaArrays = gnbDev->GetPhy (ccId)->GetNumberOfPanels();
-       uint8_t ueAntennaArrays = ueDev->GetPhy (ccId)->GetNumberOfPanels();
+       uint8_t gnbAntennaArrays = gnbDev->GetPhy (ccId)->GetNumberOfStreams ();
+       uint8_t ueAntennaArrays = ueDev->GetPhy (ccId)->GetNumberOfStreams ();
        uint8_t arrays = std::min (gnbAntennaArrays, ueAntennaArrays);
        NS_ASSERT (arrays);
        //TODO add assert to check if they are of the same polarization

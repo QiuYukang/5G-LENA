@@ -240,9 +240,9 @@ public:
    * Connected by the helper to a callback in corresponding ChunkProcessor
    *
    * \param sinr the SINR
-   * \param panelIndex the index of the panel for which is reported this SINR
+   * \param streamIndex the index of the stream for which is reported this SINR
    */
-  void GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex);
+  void GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t streamIndex);
 
   /**
    * \brief Get the current RNTI of the user
@@ -429,9 +429,9 @@ public:
   /**
    * \brief Called when rsReceivedPower is fired
    * \param power the power received
-   * \param panelIndex the index of the panel from which is called this function
+   * \param streamIndex the index of the stream from which is called this function
    */
-  void ReportRsReceivedPower (const SpectrumValue& power, uint8_t panelIndex);
+  void ReportRsReceivedPower (const SpectrumValue& power, uint8_t streamIndex);
 
   /**
    * \brief TracedCallback signature for power trace source
@@ -493,7 +493,7 @@ private:
   void DoReceiveRar (Ptr<NrRarMessage> rarMsg);
   /**
    * \brief Create a DlCqiFeedback message
-   * \param dlCqi the structure that contains DL CQI feedback values per panel
+   * \param dlCqi the structure that contains DL CQI feedback values per stream
    * \return a CTRL message with the DL CQI feedback
    */
   Ptr<NrDlCqiMessage> CreateDlCqiFeedbackMessage (const DlCqiInfo& dlcqi) __attribute__((warn_unused_result));
@@ -824,9 +824,9 @@ private:
 
   NrPhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is being generated
 
-  DlHarqInfo m_dlHarqInfo; //!< The attribute used to merge HARQ infos from different NrSpectrumPhy instances belonging to this NrUePhy, i.e., if there are two streams/panels, should be cleaned after triggering m_phyDlHarqFeedbackCallback
+  DlHarqInfo m_dlHarqInfo; //!< The attribute used to merge HARQ infos from different NrSpectrumPhy instances belonging to this NrUePhy, i.e., if there are two streams, should be cleaned after triggering m_phyDlHarqFeedbackCallback
 
-  uint8_t m_activeDlDataPanels {0}; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
+  uint8_t m_activeDlDataStreams {0}; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
 
   std::vector <uint8_t> m_prevDlWbCqi; //!< Vector to cache the CQI values reported by this UE PHY
   uint8_t m_dlCqiFeedbackCounter {0}; /**< Counter to count the number of DL CQI

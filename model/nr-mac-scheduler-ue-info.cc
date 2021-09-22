@@ -156,8 +156,8 @@ NrMacSchedulerUeInfo::UpdateDlMetric (const Ptr<const NrAmc> &amc)
         case 1:
           if (m_dlMcs.size () == 1)
             {
-              //the UE has only one panel, i.e., only max 1 stream
-              NS_ABORT_MSG_IF (m_dlMcs.at (0) == 255, "DL MCS " << +m_dlMcs.at (0) << " is invlaid");
+              //the UE supports only one stream, i.e., max 1 stream
+              NS_ABORT_MSG_IF (m_dlMcs.at (0) == 255, "DL MCS " << +m_dlMcs.at (0) << " is invalid");
               m_dlTbSize.at (0) = amc->CalculateTbSize (m_dlMcs.at (0), m_dlRBG * GetNumRbPerRbg ());
             }
           else

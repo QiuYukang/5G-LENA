@@ -258,19 +258,19 @@ public:
   double GetRbOverhead () const;
 
   /**
-   * \brief Returns the number of panels, which corresponds to the number of NrSpectrumPhys
+   * \brief Returns the number of streams, which corresponds to the number of NrSpectrumPhys per NrPhy
    */
-  uint8_t GetNumberOfPanels () const;
+  uint8_t GetNumberOfStreams  () const;
 
   /**
    * \brief Retrieve the SpectrumPhy pointer
    *
    * As this function is used mainly to get traced values out of Spectrum,
    * it should be removed and the traces connected (and redirected) here.
-   * \param panelIndex the index of the panel of which we will return the SpectrumPhy
+   * \param streamIndex the index of the stream of which we will return the SpectrumPhy
    * \return A pointer to the SpectrumPhy of this UE
    */
-  Ptr<NrSpectrumPhy> GetSpectrumPhy (uint8_t panelIndex = 0) const;
+  Ptr<NrSpectrumPhy> GetSpectrumPhy (uint8_t streamIndex = 0) const;
 
   /**
    * \brief Set the SpectrumPhy associated with this PHY

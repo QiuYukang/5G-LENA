@@ -278,9 +278,9 @@ NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t 
   NS_ASSERT (txPsd);
 
   m_reportPowerSpectralDensity (m_currentSlot, txPsd, numSym * GetSymbolPeriod (), m_rnti, m_imsi, GetBwpId (), GetCellId ());
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
-      m_spectrumPhys.at(panelIndex)->SetTxPowerSpectralDensity (txPsd);
+      m_spectrumPhys.at(streamIndex)->SetTxPowerSpectralDensity (txPsd);
     }
 }
 
@@ -826,11 +826,11 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
   srsMsg.push_back (srs);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  // SRS will be transmitted over all panels/streams
-  for (uint8_t panelIndex = 0; panelIndex < m_spectrumPhys.size(); panelIndex++)
+  // SRS will be transmitted over all streams/streams
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
       m_phyTxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), dci->m_rnti, GetBwpId (), *srsMsg.begin ());
-      m_spectrumPhys.at (panelIndex)->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+      m_spectrumPhys.at (streamIndex)->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
     }
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL SRS frame for symbols " <<
@@ -919,25 +919,25 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_receptionEnabled = true;
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_activeDlDataPanels = 0;
+  m_activeDlDataStreams = 0;
 
-  for (uint8_t panelIndex = 0; panelIndex < dci->m_tbSize.size(); panelIndex++)
+  for (uint8_t streamIndex = 0; streamIndex < dci->m_tbSize.size(); streamIndex++)
     {
-      if (dci->m_tbSize.at (panelIndex) > 0)
+      if (dci->m_tbSize.at (streamIndex) > 0)
         {
-          m_activeDlDataPanels ++;
+          m_activeDlDataStreams ++;
           //Here we need to call the AddExpectedTb of a NrSpectrumPhy
           //responsible to receive the expected TB of the stream we
           //are iterating over
-          m_spectrumPhys.at (panelIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (panelIndex),
-                                                         dci->m_tbSize.at (panelIndex),
-                                                         dci->m_mcs.at (panelIndex),
+          m_spectrumPhys.at (streamIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (streamIndex),
+                                                         dci->m_tbSize.at (streamIndex),
+                                                         dci->m_mcs.at (streamIndex),
                                                          FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                                         dci->m_harqProcess, dci->m_rv.at (panelIndex), true,
+                                                         dci->m_harqProcess, dci->m_rv.at (streamIndex), true,
                                                          dci->m_symStart, dci->m_numSym, m_currentSlot);
                                                          
-          m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (panelIndex));
-          NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +panelIndex <<
+          m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (streamIndex));
+          NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +streamIndex <<
                         " RXing DL DATA frame for"
                         " symbols "  << +dci->m_symStart <<
                         "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
@@ -1095,14 +1095,14 @@ NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
         }
     }
 
-  // TODO Uplink will be sent only through a single panel, the first is assumed, but confirm after the merge with MAC MIMO part
+  // Uplink data is sent only through a single stream, the first is assumed
   m_spectrumPhys.at (0)->StartTxDataFrames (pb, ctrlMsg, duration);
 }
 
 void
 NrUePhy::SendCtrlChannels (Time prd)
 {
-  // TODO Uplink will be sent only through a single panel, the first is assumed, but confirm after the merge with MAC MIMO part
+  // Uplink CTRL is sent only through a single stream, the first is assumed
   m_spectrumPhys.at (0)->StartTxUlControlFrames (m_ctrlMsgs, prd);
   m_ctrlMsgs.clear ();
 }
@@ -1130,7 +1130,7 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t streamId)
 
       // TODO
       // Not sure what this IF is about, seems that it can be removed,
-      // if not, then we have to support wbCqiLast time per panel
+      // if not, then we have to support wbCqiLast time per stream
       // if (Simulator::Now () > m_wbCqiLast)
       if (m_prevDlWbCqi.empty ()) // No DL CQI reported yet, initialize the vector
         {
@@ -1152,9 +1152,9 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t streamId)
       NS_LOG_DEBUG ("Stream " << +streamId << " WB CQI " << +wbCqi << " avrg MCS " << +mcs << " avrg SINR (dB) " << avrgSinrdB);
       m_dlCqiFeedbackCounter++;
 
-      // if we received SINR from all the active panels,
+      // if we received SINR from all the active streams,
       // we can proceed to trigger the corresponding callback
-      if (m_dlCqiFeedbackCounter == m_activeDlDataPanels)
+      if (m_dlCqiFeedbackCounter == m_activeDlDataStreams)
         {
           DlCqiInfo dlcqi;
           dlcqi.m_rnti = m_rnti;
@@ -1234,7 +1234,7 @@ NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeed
     {
       m_dlHarqInfo.m_rnti = m_rnti;
       m_dlHarqInfo.m_bwpIndex = GetBwpId();
-      // (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all panels with NONE
+      // (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all streams with NONE
       m_dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);
       //above initialization logic also applies to m_numRetx vector
       m_dlHarqInfo.m_numRetx = std::vector <uint8_t> (m_spectrumPhys.size(), UINT8_MAX);
@@ -1258,9 +1258,9 @@ NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeed
         }
     }
 
-  // if we received the feedback from all the active panels, we
+  // if we received the feedback from all the active streams, we
   // can proceed to trigger the corresponding callback
-  if (feedbackCounter == m_activeDlDataPanels)
+  if (feedbackCounter == m_activeDlDataStreams)
     {
       m_phyDlHarqFeedbackCallback (m_dlHarqInfo);
       m_dlHarqInfo = DlHarqInfo (); // reset DL harq after reporting it through callback
@@ -1347,11 +1347,11 @@ NrUePhy::ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subfra
 }
 
 void
-NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t panelIndex)
+NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t streamIndex)
 {
   NS_LOG_FUNCTION (this << rsReceivedPower);
 
-  // TODO use panelIndex
+  // TODO use streamIndex
 
   m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
   NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
