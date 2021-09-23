@@ -312,7 +312,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
 }
 
 void
-HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed)
+HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, double percentage)
 {
   m_hexagonalRadius = m_isd / 3;
 
@@ -326,6 +326,8 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed)
   NS_ASSERT (m_utHeight >= 0.0);
   NS_ASSERT (m_bs.GetN () > 0);
   NS_ASSERT (m_ut.GetN () > 0);
+  NS_ASSERT_MSG (percentage >=0 || percentage <=1, "Percentage must between 0"
+                                                   " and 1");
 
   MobilityHelper mobility;
   MobilityHelper ueMobility;
@@ -381,6 +383,12 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed)
 
   // UT position
 
+  uint32_t numUesWithRandomUtHeight = 0;
+  if (percentage != 0)
+    {
+      numUesWithRandomUtHeight = percentage * m_ut.GetN ();
+    }
+
   for (uint32_t utId = 0; utId < m_ut.GetN (); ++utId)
     {
       double d = std::sqrt (m_r->GetValue ());
@@ -390,7 +398,20 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed)
       Vector utPos (bsCenterVector->GetNext ());
       utPos.x += d * cos (t);
       utPos.y += d * sin (t);
-      utPos.z = m_utHeight;
+
+      if (numUesWithRandomUtHeight > 0)
+        {
+          Ptr<UniformRandomVariable> uniformRandomVariable = CreateObject<UniformRandomVariable> ();
+          double Nfl = uniformRandomVariable->GetValue (4, 8);
+          double nfl = uniformRandomVariable->GetValue (1, Nfl);
+          utPos.z = 3 * (nfl - 1) + 1.5;
+
+          numUesWithRandomUtHeight--;
+        }
+      else
+        {
+          utPos.z = m_utHeight;
+        }
 
       utPosVector->Add (utPos);
     }

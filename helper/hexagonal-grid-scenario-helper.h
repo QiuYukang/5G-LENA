@@ -68,7 +68,14 @@ public:
   // inherited
   virtual void CreateScenario () override;
 
-  void CreateScenarioWithMobility (const Vector &speed);
+  /**
+   * \brief This function can be used to create a scenario with
+   *        UEs with mobility and define a percentage of UEs, if needed,
+   *        that will have a random antenna height > 1.5 m
+   * \param speed UE speed
+   * \param percentage Percentage (decimal) of UEs with random antenna height > 1.5 m
+   */
+  void CreateScenarioWithMobility (const Vector &speed, double percentage);
 
   /**
    * Assign a fixed random variable stream number to the random variables
