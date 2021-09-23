@@ -199,7 +199,7 @@ ChooseCalibrationScenario (Parameters &params)
     {
       if (params.configurationScenario == "DenseA")
         {
-          params.scenario = "UMi_StreetCanyon";
+          params.scenario = "UMa";
           params.startingFreq = 4e9;
           params.bandwidthMHz = 10;
           params.gnbTxPower = 41;
@@ -237,7 +237,7 @@ ChooseCalibrationScenario (Parameters &params)
         }
       else if (params.configurationScenario == "DenseB")
         {
-          params.scenario = "UMi_StreetCanyon";
+          params.scenario = "UMa";
           params.startingFreq = 30e9;
           params.bandwidthMHz = 40;
           params.gnbTxPower = 37;

@@ -33,8 +33,9 @@ namespace ns3 {
 
 void
 LenaV2Utils::ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
-                           double power, double avgSinr, uint16_t bwpId)
+                           double power, double avgSinr, uint16_t bwpId, uint8_t streamId)
 {
+  NS_UNUSED (streamId);
   stats->SaveSinr (cellId, rnti, power, avgSinr, bwpId);
 }
 
@@ -269,9 +270,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
     }
   else if (confType == "calibrationConf")
     {
-      if (scenario == "UMi_StreetCanyon")
+      if (scenario == "UMa")
         {
-          scene =  BandwidthPartInfo::UMi_StreetCanyon;
+          scene =  BandwidthPartInfo::UMa;
         }
       else if (scenario == "RMa")
         {
@@ -415,6 +416,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       if (operationMode == "FDD")
         {
           // FDD uses two BWPs per CC, one CC per band
+          //double the BW for FDD (e.g. BW = 10 MHz --> 10 MHz DL and 10 MHz UL)
+          bandwidthBwp *= 2;
           numBwp = 2;
         }
       else // if (operationMode = "TDD")
@@ -509,6 +512,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       if (operationMode == "FDD")
         {
           // FDD uses two BWPs per CC, one CC per band
+          //double the BW for FDD (e.g. BW = 10 MHz --> 10 MHz DL and 10 MHz UL)
+          bandwidthBwp *= 2;
           numBwp = 2;
         }
       else // if (operationMode = "TDD")

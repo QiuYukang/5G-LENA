@@ -93,7 +93,7 @@ public:
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
-                double power, double avgSinr, uint16_t bwpId);
+                double power, double avgSinr, uint16_t bwpId, uint8_t streamId = -1);
   static void
   ReportPowerNr (PowerOutputStats *stats, const SfnSf & sfnSf,
                  Ptr<const SpectrumValue> txPsd, const Time &t, uint16_t rnti, uint64_t imsi,
