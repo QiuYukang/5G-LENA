@@ -73,6 +73,8 @@ struct Parameters
   double minBsUtDistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
   double antennaOffset = 1.0;
 
+  double o2iThreshold = 0;
+
   double speed = 0;
 
   // Where we will store the output files.

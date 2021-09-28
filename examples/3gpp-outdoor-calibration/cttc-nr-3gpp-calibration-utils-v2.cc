@@ -168,7 +168,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            const double gnbNoiseFigure,
                                            const double ueNoiseFigure,
                                            bool enableRealBF,
-                                           bool enableShadowing)
+                                           bool enableShadowing,
+                                           double o2iThreshold)
 {
   /*
    * Create the radio network related parameters
@@ -294,6 +295,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (100)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
+  nrHelper->SetChannelConditionModelAttribute ("O2iThreshold", DoubleValue (o2iThreshold));
+
+  std::cout << "o2iThreshold: " << o2iThreshold << std::endl;
 
   // Disable shadowing in calibration, and enable it in non-calibration mode
   //nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (!calibration));

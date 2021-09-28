@@ -208,6 +208,7 @@ ChooseCalibrationScenario (Parameters &params)
           params.utHeight = 1.5;
           params.uesWithRandomUtHeight = 0.8;
           params.isd = 200;
+          params.o2iThreshold = 0.8;
 
           params.gnbNumRows = 8;
           params.gnbNumColumns = 8;
@@ -228,7 +229,8 @@ ChooseCalibrationScenario (Parameters &params)
           params.ueNoiseFigure = 7;
 
           params.trafficScenario = 0; //full buffer
-          params.speed = 8.33333; // in m/s (30 km/h)
+          //params.speed = 8.33333; // in m/s (30 km/h)
+          params.speed = 0.833; // in m/s (3 km/h)
 
           params.calibration = false;
           params.enableShadowing = true;
@@ -246,6 +248,7 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 25;
           params.utHeight = 1.5;
           params.isd = 200;
+          params.o2iThreshold = 0.8;
 
           params.gnbNumRows = 4;
           params.gnbNumColumns = 8;
@@ -266,7 +269,8 @@ ChooseCalibrationScenario (Parameters &params)
           params.ueNoiseFigure = 10;
 
           params.trafficScenario = 0; //full buffer
-          params.speed = 8.33333; // in m/s (30 km/h)
+          //params.speed = 8.33333; // in m/s (30 km/h)
+          params.speed = 0.8333; // in m/s (3 km/h)
 
           params.calibration = false;
           params.enableShadowing = true;
@@ -283,6 +287,7 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 35;
           params.utHeight = 1.5;
           params.isd = 1732;
+          params.o2iThreshold = 0.5;
 
           params.gnbNumRows = 8;
           params.gnbNumColumns = 4;
@@ -303,7 +308,8 @@ ChooseCalibrationScenario (Parameters &params)
           params.ueNoiseFigure = 7;
 
           params.trafficScenario = 0; //full buffer
-          params.speed = 33.33; // in m/s (120 km/h)
+          //params.speed = 33.33; // in m/s (120 km/h)
+          params.speed = 0.8333; // in m/s (3 km/h)
 
           params.calibration = false;
           params.enableShadowing = true;
@@ -320,6 +326,7 @@ ChooseCalibrationScenario (Parameters &params)
           params.bsHeight = 35;
           params.utHeight = 1.5;
           params.isd = 1732;
+          params.o2iThreshold = 0.5;
 
           params.gnbNumRows = 8;
           params.gnbNumColumns = 8;
@@ -340,7 +347,8 @@ ChooseCalibrationScenario (Parameters &params)
           params.ueNoiseFigure = 7;
 
           params.trafficScenario = 0; //full buffer
-          params.speed = 33.33; // in m/s (120 km/h)
+          //params.speed = 33.33; // in m/s (120 km/h)
+          params.speed = 0.8333; // in m/s (3 km/h)
 
           params.calibration = false;
           params.enableShadowing = true;
@@ -755,7 +763,8 @@ Nr3gppCalibration (Parameters &params)
                                                  params.gnbNoiseFigure,
                                                  params.ueNoiseFigure,
                                                  params.enableRealBF,
-                                                 params.enableShadowing);
+                                                 params.enableShadowing,
+                                                 params.o2iThreshold);
     }
 
   // Check we got one valid helper

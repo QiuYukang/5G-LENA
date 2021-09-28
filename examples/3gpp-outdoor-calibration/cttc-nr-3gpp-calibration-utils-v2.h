@@ -89,7 +89,8 @@ public:
                                      const double gnbNoiseFigure,
                                      const double ueNoiseFigure,
                                      bool enableRealBF,
-                                     bool enableShadowing);
+                                     bool enableShadowing,
+                                     double o2iThreshold);
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
