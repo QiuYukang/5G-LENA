@@ -142,8 +142,8 @@ NrUePhy::GetTypeId (void)
                    "it will report RI = 1. The initial threshold value of 10 dB"
                    "is selected according to: https://ieeexplore.ieee.org/abstract/document/6364098 Figure 2",
                    DoubleValue (10.0),
-                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThold1,
-                                       &NrUePhy::GetRiSinrThold1),
+                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThreshold1,
+                                       &NrUePhy::GetRiSinrThreshold1),
                    MakeDoubleChecker<double> ())
     .AddAttribute ("RiSinrThreshold2",
                    "The SINR threshold 2 in dB. It is used to adaptively choose"
@@ -155,8 +155,8 @@ NrUePhy::GetTypeId (void)
                    "The initial threshold value of 10 dB is selected according to: "
                    "https://ieeexplore.ieee.org/abstract/document/6364098 Figure 2",
                    DoubleValue (10.0),
-                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThold2,
-                                       &NrUePhy::GetRiSinrThold2),
+                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThreshold2,
+                                       &NrUePhy::GetRiSinrThreshold2),
                    MakeDoubleChecker<double> ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
@@ -1535,29 +1535,29 @@ NrUePhy::UseFixedRankIndicator (bool useFixedRi)
 }
 
 void
-NrUePhy::SetRiSinrThold1 (double sinrThold)
+NrUePhy::SetRiSinrThreshold1 (double sinrThreshold)
 {
   NS_LOG_FUNCTION (this);
-  m_riSinrThold1 = sinrThold;
+  m_riSinrThreshold1 = sinrThreshold;
 }
 
 double
-NrUePhy::GetRiSinrThold1 () const
+NrUePhy::GetRiSinrThreshold1 () const
 {
-  return m_riSinrThold1;
+  return m_riSinrThreshold1;
 }
 
 void
-NrUePhy::SetRiSinrThold2 (double sinrThold)
+NrUePhy::SetRiSinrThreshold2 (double sinrThreshold)
 {
   NS_LOG_FUNCTION (this);
-  m_riSinrThold2 = sinrThold;
+  m_riSinrThreshold2 = sinrThreshold;
 }
 
 double
-NrUePhy::GetRiSinrThold2 () const
+NrUePhy::GetRiSinrThreshold2 () const
 {
-  return m_riSinrThold2;
+  return m_riSinrThreshold2;
 }
 
 uint8_t
@@ -1574,9 +1574,9 @@ NrUePhy::SelectRi (const std::vector<double> &avrgSinr)
     {
       // UE supports two stream but it has not yet reported RI equal to 2.
       // Let's check the average SINR of the first stream. If it is
-      // above m_riSinrThold1 then we report RI equal to 2; otherwise, RI
+      // above m_riSinrThreshold1 then we report RI equal to 2; otherwise, RI
       // equal to 1.
-      if (avrgSinr [0] > m_riSinrThold1)
+      if (avrgSinr [0] > m_riSinrThreshold1)
         {
           ri = 2;
           m_reportedRi2 = true;
@@ -1606,9 +1606,9 @@ NrUePhy::SelectRi (const std::vector<double> &avrgSinr)
           // Meaning, that this UE has already received the data on stream 2
           // and has measured its average SINR. Let's check the average SINR
           // of both the streams. If the average SINR of both the streams is
-          // above m_riSinrThold2 then we report RI equal to 2; otherwise, RI
+          // above m_riSinrThreshold2 then we report RI equal to 2; otherwise, RI
           // equal to 1.
-          if (avrgSinr [0] > m_riSinrThold2 && avrgSinr [1] > m_riSinrThold2)
+          if (avrgSinr [0] > m_riSinrThreshold2 && avrgSinr [1] > m_riSinrThreshold2)
             {
               ri = 2;
             }
@@ -1621,12 +1621,12 @@ NrUePhy::SelectRi (const std::vector<double> &avrgSinr)
         {
           // There is at least one stream that UE is unable to measure.
           // If the average SINR of the measured stream is above
-          // m_riSinrThold1, report RI equal to 2; otherwise, RI equal to 1.
+          // m_riSinrThreshold1, report RI equal to 2; otherwise, RI equal to 1.
           // This else was implemented to handle the situations when a UE
           // switches from 2 streams to 1, and unable to measure one of
           // the streams. In that case, following code would help us
           // not to get stuck with one stream till the end of simulation.
-          if (avrgSinr [indexValidSinr.at (0)] > m_riSinrThold1)
+          if (avrgSinr [indexValidSinr.at (0)] > m_riSinrThreshold1)
             {
               ri = 2;
             }

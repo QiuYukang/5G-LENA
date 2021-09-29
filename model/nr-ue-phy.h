@@ -290,30 +290,30 @@ public:
   /**
    * \brief Set SINR threshold in dB that is used to adaptively choose the rank indicator value.
    *
-   * \param sinrThold The SINR threshold in dB.
+   * \param sinrThreshold The SINR threshold in dB.
    */
-  void SetRiSinrThold1 (double sinrThold);
+  void SetRiSinrThreshold1 (double sinrThreshold);
 
   /**
    * \brief Get the SINR threshold that is used to adaptively choose the rank indicator value.
    *
    * \return The SINR threshold value in dB.
    */
-  double GetRiSinrThold1 () const;
+  double GetRiSinrThreshold1 () const;
 
   /**
    * \brief Set SINR threshold in dB that is used to adaptively choose the rank indicator value.
    *
-   * \param sinrThold The SINR threshold in dB.
+   * \param sinrThreshold The SINR threshold in dB.
    */
-  void SetRiSinrThold2 (double sinrThold);
+  void SetRiSinrThreshold2 (double sinrThreshold);
 
   /**
    * \brief Get the SINR threshold that is used to adaptively choose the rank indicator value.
    *
    * \return The SINR threshold value in dB.
    */
-  double GetRiSinrThold2 () const;
+  double GetRiSinrThreshold2 () const;
 
   /**
    *  TracedCallback signature for Ue Phy Received Control Messages.
@@ -839,11 +839,11 @@ private:
                                   an adaptive one. It is set using the
                                   attribute UseFixedRi.
                                   */
-  double m_riSinrThold1 {UINT32_MAX}; /**< SINR threshold in dB that is used to
+  double m_riSinrThreshold1 {UINT32_MAX}; /**< SINR threshold in dB that is used to
                                        adaptively choose the rank indicator value
                                        */
 
-  double m_riSinrThold2 {UINT32_MAX}; /**< SINR threshold in dB that is used to
+  double m_riSinrThreshold2 {UINT32_MAX}; /**< SINR threshold in dB that is used to
                                        adaptively choose the rank indicator value
                                        */
 
