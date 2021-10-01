@@ -103,9 +103,12 @@ main (int argc, char *argv[])
                "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, "
                "ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
                params.errorModel);
-  cmd.AddValue ("calibration",
-                "disable a bunch of things to make LENA and NR_LTE comparable",
-                params.calibration);
+  cmd.AddValue ("lenaCalibration",
+                "whether to configure 4G LENA in calibration mode",
+                params.lenaCalibration);
+  cmd.AddValue ("enableFading",
+                "disable fading and beamforming when simulator is 5GLENA",
+                params.enableFading);
   cmd.AddValue ("trafficScenario",
                 "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), "
                 "2: low-load (1 Mbps), 3: medium-load (20Mbps)",

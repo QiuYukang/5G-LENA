@@ -60,7 +60,7 @@ public:
                                      NetDeviceContainer &ueSector1NetDev,
                                      NetDeviceContainer &ueSector2NetDev,
                                      NetDeviceContainer &ueSector3NetDev,
-                                     bool calibration,
+                                     bool enableFading,
                                      bool enableUlPc,
                                      std::string powerAllocation,
                                      SinrOutputStats *sinrStats,

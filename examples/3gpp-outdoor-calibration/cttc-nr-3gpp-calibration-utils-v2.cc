@@ -140,7 +140,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            NetDeviceContainer &ueSector1NetDev,
                                            NetDeviceContainer &ueSector2NetDev,
                                            NetDeviceContainer &ueSector3NetDev,
-                                           bool calibration,
+                                           bool enableFading,
                                            bool enableUlPc,
                                            std::string powerAllocation,
                                            SinrOutputStats *sinrStats,
@@ -229,15 +229,18 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // through beam manager. Hence, we do not need any ideal algorithm.
   // For other cases, we need it (and the beam will be overwritten)
 
-  if (radioNetwork == "NR" && enableRealBF)
+  if (enableFading)
     {
-       beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
+      if (radioNetwork == "NR" && enableRealBF)
+        {
+          beamformingHelper = CreateObject<RealisticBeamformingHelper> ();
+        }
+      else
+        {
+          beamformingHelper = CreateObject<IdealBeamformingHelper> ();
+        }
+      nrHelper->SetBeamformingHelper (beamformingHelper);
     }
-  else
-     {
-       beamformingHelper = CreateObject<IdealBeamformingHelper> ();
-     }
-  nrHelper->SetBeamformingHelper (beamformingHelper);
 
   Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper> (baseEpcHelper);
   nrHelper->SetEpcHelper (epcHelper);
@@ -575,7 +578,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
   // Omit fading from calibration mode
-  if (!calibration || confType == "calibrationConf")
+  if (enableFading)
     {
       bandMask |= NrHelper::INIT_FADING;
     }
@@ -620,24 +623,24 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   RealisticBfManager::TriggerEvent realTriggerEvent {RealisticBfManager::SRS_COUNT};
 
-  if (radioNetwork == "LTE" || calibration == true)
+  // if there is no fading, that means that there is no bamforming
+  if (enableFading)
     {
-      beamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (QuasiOmniDirectPathBeamforming::GetTypeId ()));
-    }
-  else if (radioNetwork == "NR")
-    {
-      if (enableRealBF)
+      if (radioNetwork == "NR")
         {
-          beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId ());
-          nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId ());
-          nrHelper->SetGnbBeamManagerAttribute ("TriggerEvent", EnumValue (realTriggerEvent));
-          nrHelper->SetGnbBeamManagerAttribute ("UpdateDelay", TimeValue (MicroSeconds (0)));
-        }
-      else
-        {
-          //beamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-          beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId ());
-          beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (10)));
+          if (enableRealBF)
+            {
+              beamformingHelper->SetBeamformingMethod (RealisticBeamformingAlgorithm::GetTypeId ());
+              nrHelper->SetGnbBeamManagerTypeId (RealisticBfManager::GetTypeId ());
+              nrHelper->SetGnbBeamManagerAttribute ("TriggerEvent", EnumValue (realTriggerEvent));
+              nrHelper->SetGnbBeamManagerAttribute ("UpdateDelay", TimeValue (MicroSeconds (0)));
+            }
+          else
+            {
+              //beamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+              beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId ());
+              beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (10)));
+            }
         }
     }
 

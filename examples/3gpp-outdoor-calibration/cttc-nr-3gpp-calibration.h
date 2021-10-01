@@ -84,7 +84,8 @@ struct Parameters
   // Error models
   std::string errorModel = "";
 
-  bool calibration = true;
+  bool lenaCalibration = true;
+  bool enableFading = true;
   bool enableUlPc = false;
   std::string powerAllocation = "UniformPowerAllocUsed";
 
@@ -127,7 +128,7 @@ struct Parameters
   bool gnbEnable3gppElement = true;
   bool ueEnable3gppElement = false;
 
-  bool enableShadowing = false;
+  bool enableShadowing = true;
 
   bool checkUeMobility = false;
 };

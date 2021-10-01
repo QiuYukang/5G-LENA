@@ -166,10 +166,10 @@ Parameters::Validate (void) const
                    "Unrecognized simulator: " << simulator);
   NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
                    "Unrecognized scheduler: " << scheduler);
-  NS_ABORT_MSG_IF (radioNetwork == "NR" && calibration == true && enableRealBF == true,
-                   "Realistic BF should not be enabled in calibration mode");
-  NS_ABORT_MSG_IF (calibration == true && enableShadowing == true,
-                   "Shadowing must be disabled in calibration mode");
+  NS_ABORT_MSG_IF (radioNetwork == "NR" && enableFading == false && enableRealBF == true,
+                   "Realistic BF should not be enabled in when fading is disabled");
+  NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
+                   "Shadowing must be disabled fading is disabled mode");
   NS_ABORT_MSG_IF (confType != "customConf" && confType != "calibrationConf",
                    "Urecognized Configuration type: " << confType);
   NS_ABORT_MSG_IF (configurationScenario != "DenseA" && configurationScenario != "DenseB"
@@ -232,9 +232,6 @@ ChooseCalibrationScenario (Parameters &params)
           //params.speed = 8.33333; // in m/s (30 km/h)
           params.speed = 0.833; // in m/s (3 km/h)
 
-          params.calibration = false;
-          params.enableShadowing = true;
-
           params.scheduler = "RR";
         }
       else if (params.configurationScenario == "DenseB")
@@ -272,9 +269,6 @@ ChooseCalibrationScenario (Parameters &params)
           //params.speed = 8.33333; // in m/s (30 km/h)
           params.speed = 0.8333; // in m/s (3 km/h)
 
-          params.calibration = false;
-          params.enableShadowing = true;
-
           params.scheduler = "RR";
         }
       else if (params.configurationScenario == "RuralA")
@@ -311,9 +305,6 @@ ChooseCalibrationScenario (Parameters &params)
           //params.speed = 33.33; // in m/s (120 km/h)
           params.speed = 0.8333; // in m/s (3 km/h)
 
-          params.calibration = false;
-          params.enableShadowing = true;
-
           params.scheduler = "RR";
         }
       else if (params.configurationScenario == "RuralB")
@@ -349,9 +340,6 @@ ChooseCalibrationScenario (Parameters &params)
           params.trafficScenario = 0; //full buffer
           //params.speed = 33.33; // in m/s (120 km/h)
           params.speed = 0.8333; // in m/s (3 km/h)
-
-          params.calibration = false;
-          params.enableShadowing = true;
 
           params.scheduler = "RR";
         }
@@ -693,7 +681,7 @@ Nr3gppCalibration (Parameters &params)
                                                  ueSector1NetDev,
                                                  ueSector2NetDev,
                                                  ueSector3NetDev,
-                                                 params.calibration,
+                                                 params.lenaCalibration,
                                                  params.enableUlPc,
                                                  &sinrStats,
                                                  &ueTxPowerStats,
@@ -734,7 +722,7 @@ Nr3gppCalibration (Parameters &params)
                                                  ueSector1NetDev,
                                                  ueSector2NetDev,
                                                  ueSector3NetDev,
-                                                 params.calibration,
+                                                 params.enableFading,
                                                  params.enableUlPc,
                                                  params.powerAllocation,
                                                  &sinrStats,
@@ -1086,7 +1074,7 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       MSG ("LTE Standard")
         << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
-      MSG ("4G-NR calibration mode") << (p.calibration ? "ON" : "off");
+      MSG ("4G-NR fading") << (p.enableFading ? "Enabled" : "Disabled");
       MSG ("4G-NR ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
       MSG ("Starting Frequency") << (p.startingFreq);
       MSG ("Operation mode") << p.operationMode;
@@ -1136,7 +1124,7 @@ operator << (std::ostream & os, const Parameters & parameters)
       // LENA v1
       p.operationMode = "FDD";
       MSG ("LTE Standard") << "4G";
-      MSG ("Calibration mode") << (p.calibration ? "ON" : "off");
+      MSG ("Lena calibration mode") << (p.lenaCalibration ? "ON" : "off");
       MSG ("LTE ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
       MSG ("Operation mode") << p.operationMode;
     }
