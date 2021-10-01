@@ -923,16 +923,22 @@ Nr3gppCalibration (Parameters &params)
 
   // enable the traces provided by the nr module
   std::cout << "  tracing\n";
-  if (params.enableTraces == true)
+
+  if (lteHelper != nullptr && (params.basicTraces == true || params.extendedTraces == true))
     {
-      if (lteHelper != nullptr)
-        {
-          lteHelper->EnableTraces ();
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->EnableTraces ();
-        }
+      lteHelper->EnableTraces ();
+    }
+  else if (nrHelper != nullptr && params.extendedTraces == true)
+    {
+      nrHelper->EnableTraces ();
+      nrHelper->GetPhyRxTrace ()->SetSimTag (params.simTag);
+    }
+  else if (nrHelper != nullptr && params.basicTraces == true)
+    {
+      nrHelper->EnableDlPhyTraces ();
+      nrHelper->EnableUlPhyTraces ();
+      nrHelper->EnablePathlossTraces ();
+      nrHelper->GetPhyRxTrace ()->SetSimTag (params.simTag);
     }
 
 
@@ -1293,7 +1299,8 @@ operator << (std::ostream & os, const Parameters & parameters)
   MSG ("Output file name") << p.simTag;
   MSG ("Output directory") << p.outputDir;
   MSG ("Logging") << (p.logging ? "ON" : "off");
-  MSG ("Trace file generation") << (p.enableTraces ? "ON" : "off");
+  MSG ("Basic Trace file generation") << (p.basicTraces ? "ON" : "OFF");
+  MSG ("Extended Trace file generation") << (p.extendedTraces ? "ON" : "OFF");
   MSG ("");
   MSG ("Radio environment map") << (p.dlRem ? "DL" : (p.ulRem ? "UL" : "off"));
   if (p.dlRem || p.ulRem)

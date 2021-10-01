@@ -41,7 +41,8 @@ struct Parameters
   uint16_t ueNumPergNb = 10;
   double uesWithRandomUtHeight = 0;
   bool logging = false;
-  bool enableTraces = false;
+  bool basicTraces = false;
+  bool extendedTraces = false;
   std::string simulator = "5GLENA";
   std::string scenario = "UMa";
   std::string radioNetwork = "NR";  // LTE or NR
