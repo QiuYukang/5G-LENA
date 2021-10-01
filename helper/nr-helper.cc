@@ -1507,6 +1507,12 @@ NrHelper::EnableTraces (void)
   EnablePathlossTraces ();
 }
 
+Ptr<NrPhyRxTrace>
+NrHelper::GetPhyRxTrace (void)
+{
+  return m_phyStats;
+}
+
 void
 NrHelper::EnableDlPhyTraces (void)
 {

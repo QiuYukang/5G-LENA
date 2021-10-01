@@ -728,6 +728,13 @@ public:
   void EnableUlPhyTraces ();
 
   /**
+   * \brief Get the phy traces object
+   *
+   * \return The NrPhyRxTrace object to write PHY traces
+   */
+  Ptr<NrPhyRxTrace> GetPhyRxTrace (void);
+
+  /**
    * \brief Enable gNB packet count trace
    */
   void EnableGnbPacketCountTrace ();
