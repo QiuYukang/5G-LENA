@@ -186,6 +186,10 @@ NrSpectrumPhy::GetTypeId (void)
                      "Indicates the reception of data from this cell (reporting the rxPsd without interferences)",
                      MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxDataTrace),
                      "ns3::RxDataTracedCallback::TracedCallback")
+    .AddTraceSource ("DlDataSnrTrace",
+                     "Report the SNR computed for each TB in DL",
+                     MakeTraceSourceAccessor (&NrSpectrumPhy::m_dlDataSnrTrace),
+                     "ns3::NrSpectrumPhy::DataSnrTracedCallback")
   ;
 
   return tid;
@@ -231,6 +235,10 @@ NrSpectrumPhy::SetDevice (Ptr<NetDevice> d)
     {
       m_interferenceSrs = CreateObject<NrInterference> ();
       m_interferenceSrs -> TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeCallback(&NrSpectrumPhy::UpdateSrsSnrPerceived, this));
+    }
+  else
+    {
+      m_interferenceData->TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeCallback (&NrSpectrumPhy::ReportWbDlDataSnrPerceived, this));
     }
 }
 
@@ -1524,6 +1532,18 @@ NrSpectrumPhy::IsOnlySrs (const std::list<Ptr<NrControlMessage> >& ctrlMsgList)
      {
        return false;
      }
+}
+
+void
+NrSpectrumPhy::ReportWbDlDataSnrPerceived (const double dlDataSnr)
+{
+  NS_LOG_FUNCTION (this << dlDataSnr);
+
+  Ptr<NrUeNetDevice> ueNetDevice = DynamicCast<NrUeNetDevice> (GetDevice ());
+
+  m_dlDataSnrTrace (m_phy->GetCurrentSfnSf (), m_phy->GetCellId (),
+                    m_phy->GetBwpId (), GetStreamId(), ueNetDevice->GetImsi (),
+                    dlDataSnr);
 }
 
 int64_t

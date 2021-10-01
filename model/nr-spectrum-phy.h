@@ -448,6 +448,23 @@ public:
    * \param ratio The inter-stream interference ratio
    */
   void SetInterStreamInterferenceRatio (double ratio);
+  /**
+   * \param [in] sfnSf SfnSf
+   * \param [in] cellId
+   * \param [in] bwpId
+   * \param [in] streamId
+   * \param [in] imsi
+   * \param [in] snr
+   */
+  typedef void (*DataSnrTracedCallback)
+    (const SfnSf & sfnSf, const uint16_t cellId, const uint8_t bwpId,
+     const uint8_t streamId, const uint64_t imsi, const double snr);
+  /**
+   * \brief Report wideband perceived downlink data SNR
+   *
+   * \param dlDataSnr the downlink data SNR
+   */
+  void ReportWbDlDataSnrPerceived (const double dlDataSnr);
 
 protected:
   /**
@@ -632,6 +649,8 @@ private:
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
+  TracedCallback<const SfnSf, const uint16_t, const uint8_t,
+                 const uint8_t, const uint64_t, const double> m_dlDataSnrTrace; //!< DL data SNR trace source
 
   uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
 
