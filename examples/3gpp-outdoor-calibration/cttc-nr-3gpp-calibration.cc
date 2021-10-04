@@ -941,7 +941,9 @@ Nr3gppCalibration (Parameters &params)
     }
   else if (nrHelper != nullptr && params.basicTraces == true)
     {
-      nrHelper->EnableDlPhyTraces ();
+      nrHelper->EnableDlDataPhyTraces ();
+      nrHelper->EnableDlCtrlPhyTraces ();
+      nrHelper->EnableDlCtrlPhyTraces ();
       nrHelper->EnableUlPhyTraces ();
       nrHelper->EnablePathlossTraces ();
       nrHelper->GetPhyRxTrace ()->SetSimTag (params.simTag);

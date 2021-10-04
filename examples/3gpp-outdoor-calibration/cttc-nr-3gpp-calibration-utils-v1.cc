@@ -282,7 +282,8 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
 void
 LenaV1Utils::ReportSinrLena (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
 {
-  LenaV2Utils::ReportSinrNr (stats, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
+  NS_UNUSED (power);
+  LenaV2Utils::ReportSinrNr (stats, cellId, rnti, avgSinr, static_cast<uint16_t> (bwpId));
 }
 
 void
