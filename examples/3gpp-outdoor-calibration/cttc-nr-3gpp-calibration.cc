@@ -752,7 +752,13 @@ Nr3gppCalibration (Parameters &params)
                                                  params.ueNoiseFigure,
                                                  params.enableRealBF,
                                                  params.enableShadowing,
-                                                 params.o2iThreshold);
+                                                 params.o2iThreshold,
+                                                 params.crossPolarizedGnb,
+                                                 params.crossPolarizedUe,
+                                                 params.polSlantAngleGnb1,
+                                                 params.polSlantAngleGnb2,
+                                                 params.polSlantAngleUe1,
+                                                 params.polSlantAngleUe2);
     }
 
   // Check we got one valid helper

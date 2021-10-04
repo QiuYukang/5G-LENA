@@ -90,7 +90,13 @@ public:
                                      const double ueNoiseFigure,
                                      bool enableRealBF,
                                      bool enableShadowing,
-                                     double o2iThreshold);
+                                     double o2iThreshold,
+                                     bool crossPolarizedGnb,
+                                     bool crossPolarizedUe,
+                                     double polSlantAngleGnb1,
+                                     double polSlantAngleGnb2,
+                                     double polSlantAngleUe1,
+                                     double polSlantAngleUe2);
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,

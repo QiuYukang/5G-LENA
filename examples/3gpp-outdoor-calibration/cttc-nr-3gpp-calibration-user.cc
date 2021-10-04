@@ -206,6 +206,26 @@ main (int argc, char *argv[])
                 "Vertical spacing between antenna elements, "
                 "in multiples of wave length, for the UE",
                 params.ueVSpacing);
+  cmd.AddValue ("crossPolarizedGnb",
+                 "Whether the gNB antenna array has the cross polarized antenna "
+                 "elements. If yes, gNB supports 2 streams, otherwise only 1 stream",
+                 params.crossPolarizedGnb);
+   cmd.AddValue ("crossPolarizedUe",
+                 "Whether the UE antenna array has the cross polarized antenna "
+                 "elements. If yes, UE supports 2 streams, otherwise only 1 stream",
+                 params.crossPolarizedUe);
+  cmd.AddValue ("polSlantAngleGnb1",
+                "Polarization slant angle of the first panel of gNB in degrees",
+                params.polSlantAngleGnb1);
+  cmd.AddValue ("polSlantAngleGnb2",
+                "Polarization slant angle of the second panel of gNB in degrees",
+                params.polSlantAngleGnb2);
+  cmd.AddValue ("polSlantAngleUe1",
+                "Polarization slant angle of the first panel of UE in degrees",
+                params.polSlantAngleUe1);
+  cmd.AddValue ("polSlantAngleUe2",
+                "Polarization slant angle of the second panel of UE in degrees",
+                params.polSlantAngleUe2);
   cmd.AddValue ("gnbNoiseFigure",
                 "gNB Noise Figure",
                 params.gnbNoiseFigure);
