@@ -718,9 +718,14 @@ public:
   void SetDlErrorModel (const std::string & errorModelTypeId);
 
   /**
-   * \brief Enable DL PHY traces
+   * \brief Enable DL DATA PHY traces
    */
-  void EnableDlPhyTraces ();
+  void EnableDlDataPhyTraces ();
+
+  /**
+   * \brief Enable DL CTRL PHY traces
+   */
+  void EnableDlCtrlPhyTraces ();
 
   /**
    * \brief Enable UL PHY traces

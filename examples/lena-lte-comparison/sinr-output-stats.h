@@ -71,14 +71,13 @@ public:
    * \brief Store the SINR values
    * \param cellId Cell ID
    * \param rnti RNTI
-   * \param power power (unused)
    * \param avgSinr Average SINR
    * \param bwpId BWP ID
    *
    * The method saves the result in a cache, and if it is necessary, writes the
    * cache to disk before emptying it.
    */
-  void SaveSinr (uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId);
+  void SaveSinr (uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId);
 
   /**
    * \brief Force the cache write to disk, emptying the cache itself.

@@ -530,7 +530,6 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   for (uint8_t streamIndex = 0 ; streamIndex < numberOfStreams; streamIndex++)
     {
       Ptr<NrSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <NrSpectrumPhy> (); // Create NrSpectrumPhy per stream
-      
       channelPhy->SetStreamId (streamIndex);
 
       Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per stream
@@ -538,7 +537,7 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
 
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
 
-      Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per panel
+      Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per stream
       channelPhy->SetAntenna (antenna);
 
       if (streamIndex == 0)
@@ -554,6 +553,11 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
       Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor> ();
       pRs->AddCallback (MakeCallback (&NrSpectrumPhy::ReportRsReceivedPower, channelPhy));
       channelPhy->AddRsPowerChunkProcessor (pRs);
+
+      Ptr<LteChunkProcessor> pSinr = Create<LteChunkProcessor> ();
+      pSinr->AddCallback (MakeCallback (&NrSpectrumPhy::ReportDlCtrlSinr, channelPhy));
+      channelPhy->AddDlCtrlSinrChunkProcessor (pSinr);
+
       channelPhy->SetChannel (bwp->m_channel);
       channelPhy->InstallPhy (phy);
       channelPhy->SetMobility (mm);
@@ -725,7 +729,6 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
 
   // PHY <--> CAM
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_gnbChannelAccessManagerFactory.Create ());
-
   phy->SetCam (cam);
   phy->SetDevice (dev);
 
@@ -1491,7 +1494,8 @@ NrHelper::ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer)
 void
 NrHelper::EnableTraces (void)
 {
-  EnableDlPhyTraces ();
+  EnableDlDataPhyTraces ();
+  EnableDlCtrlPhyTraces ();
   EnableUlPhyTraces ();
   //EnableEnbPacketCountTrace ();
   //EnableUePacketCountTrace ();
@@ -1514,14 +1518,23 @@ NrHelper::GetPhyRxTrace (void)
 }
 
 void
-NrHelper::EnableDlPhyTraces (void)
+NrHelper::EnableDlDataPhyTraces (void)
 {
   //NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/ReportCurrentCellRsrpSinr",
-                   MakeBoundCallback (&NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback, m_phyStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr",
+                   MakeBoundCallback (&NrPhyRxTrace::DlDataSinrCallback, m_phyStats));
 
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPacketTraceUe",
                    MakeBoundCallback (&NrPhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
+}
+
+
+void
+NrHelper::EnableDlCtrlPhyTraces (void)
+{
+  //NS_LOG_FUNCTION_NOARGS ();
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlCtrlSinr",
+                   MakeBoundCallback (&NrPhyRxTrace::DlCtrlSinrCallback, m_phyStats));
 }
 
 void

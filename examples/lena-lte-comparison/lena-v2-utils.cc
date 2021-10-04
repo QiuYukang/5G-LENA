@@ -33,9 +33,9 @@ namespace ns3 {
 
 void
 LenaV2Utils::ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
-                           double power, double avgSinr, uint16_t bwpId, [[maybe_unused]] uint8_t streamId)
+                           double avgSinr, uint16_t bwpId, [[maybe_unused]] uint8_t streamId)
 {
-  stats->SaveSinr (cellId, rnti, power, avgSinr, bwpId);
+  stats->SaveSinr (cellId, rnti, avgSinr, bwpId);
 }
 
 void
@@ -735,7 +735,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           uePhySecond = nrHelper->GetUePhy (*nd, 1);
           uePhySecond->SetUplinkPowerControl (uePhyFirst->GetUplinkPowerControl ());
         }
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
+      uePhyFirst->TraceConnectWithoutContext ("DlDataSinr",
                                               MakeBoundCallback (&ReportSinrNr, sinrStats));
       uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
                                                MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));

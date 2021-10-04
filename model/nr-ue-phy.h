@@ -316,6 +316,31 @@ public:
   double GetRiSinrThreshold2 () const;
 
   /**
+   *  TracedCallback signature for DL CTRL SINR trace callback
+   *
+   * \param [in] cellId
+   * \param [in] rnti
+   * \param [in] sinr
+   * \param [in] bwpId
+   * \param [in] streamId
+   */
+  typedef void (* DlCtrlSinrTracedCallback)
+      (uint16_t, uint16_t, double, uint16_t, uint8_t);
+
+  /**
+   *  TracedCallback signature for DL DATA SINR trace callback
+   *
+   * \param [in] cellId
+   * \param [in] rnti
+   * \param [in] sinr
+   * \param [in] bwpId
+   * \param [in] streamId
+   */
+  typedef void (* DlDataSinrTracedCallback)
+      (uint16_t, uint16_t, double, uint16_t, uint8_t);
+
+
+  /**
    *  TracedCallback signature for Ue Phy Received Control Messages.
    *
    * \param [in] frame Frame number.
@@ -803,11 +828,10 @@ private:
   double m_rsrp {0}; //!< The latest measured RSRP value
 
   /**
-   * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding
-   * RSRP and average SINR (see TS 36.214). Exporting cell ID, RNTI, RSRP, and
-   * SINR, BWP id, and stream id.
+   * The `DlDataSinr` trace source. Trace information regarding
+   * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
    */
-  TracedCallback<uint16_t, uint16_t, double, double, uint16_t, uint8_t> m_reportCurrentCellRsrpSinrTrace;
+  TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlDataSinrTrace;
    /**
    * The `DlCtrlSinrTracedCallback` trace source. Trace information regarding
    * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.

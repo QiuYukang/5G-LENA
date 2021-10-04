@@ -47,8 +47,7 @@ SinrOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
 }
 
 void
-SinrOutputStats::SaveSinr (uint16_t cellId, uint16_t rnti,
-                           [[maybe_unused]] double power, double avgSinr,
+SinrOutputStats::SaveSinr (uint16_t cellId, uint16_t rnti, double avgSinr,
                            uint16_t bwpId)
 {
   m_sinrCache.emplace_back (SinrResultCache (cellId, bwpId, rnti, avgSinr));

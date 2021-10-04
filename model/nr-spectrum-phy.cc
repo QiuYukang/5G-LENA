@@ -656,6 +656,15 @@ NrSpectrumPhy::AddSrsSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
 }
 
 void
+NrSpectrumPhy::ReportDlCtrlSinr (const SpectrumValue& sinr)
+{
+  NS_LOG_FUNCTION (this);
+  Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
+  NS_ABORT_MSG_UNLESS (phy, "This function should only be called for NrSpectrumPhy belonging to NrUEPhy");
+  phy->ReportDlCtrlSinr (sinr, m_streamId);
+}
+
+void
 NrSpectrumPhy::UpdateSrsSinrPerceived (const SpectrumValue& srsSinr)
 {
   NS_LOG_FUNCTION (this << srsSinr);
@@ -683,7 +692,14 @@ void
 NrSpectrumPhy::AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
-  m_interferenceCtrl->AddRsPowerChunkProcessor(p);
+  m_interferenceCtrl->AddRsPowerChunkProcessor (p);
+}
+
+void
+NrSpectrumPhy::AddDlCtrlSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
+{
+  NS_LOG_FUNCTION (this);
+  m_interferenceCtrl->AddSinrChunkProcessor (p);
 }
 
 void

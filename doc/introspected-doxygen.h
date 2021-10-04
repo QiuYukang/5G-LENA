@@ -1897,7 +1897,7 @@ ns3::NrUePhy is accessible through the following paths with Config::Set and Conf
 </ul>
 \section tracesources_465 TraceSources
 <ul>
-<li><b>ReportCurrentCellRsrpSinr</b>: RSRP and SINR statistics.<br>%Callback signature: ns3::CurrentCellRsrpSinr::TracedCallback
+<li><b>DlDataSinr</b>: SINR statistics.<br>%Callback signature: ns3::DlDataSinr::TracedCallback
 </li>
 <li><b>ReportUplinkTbSize</b>: Report allocated uplink TB size for trace.<br>%Callback signature: ns3::UlTbSize::TracedCallback
 </li>
@@ -2702,7 +2702,7 @@ This is a list of all \ref tracing sources.  For more information see the  \ref 
 </ul>
 <b>ns3::NrUePhy</b><br>
 <ul>
-<li><b>ReportCurrentCellRsrpSinr</b>: RSRP and SINR statistics.</li>
+<li><b>DlDataSinr</b>: DL DATA SINR statistics.</li>
 <li><b>ReportUplinkTbSize</b>: Report allocated uplink TB size for trace.</li>
 <li><b>ReportDownlinkTbSize</b>: Report allocated downlink TB size for trace.</li>
 <li><b>UePhyRxedCtrlMsgsTrace</b>: Ue PHY Control Messages Traces.</li>
