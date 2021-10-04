@@ -417,6 +417,12 @@ public:
    * \return the bwp id
    */
   uint16_t GetBwpId () const;
+  /**
+   * \brief Set the inter-stream interference ratio
+   *
+   * \param ratio The inter-stream interference ratio
+   */
+  void SetInterStreamInterferenceRatio (double ratio);
 
 protected:
   /**
@@ -602,6 +608,8 @@ private:
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
 
   uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
+
+  double m_interStrInerfRatio {0.0}; //!< The inter-stream interference ratio.
 };
 
 }

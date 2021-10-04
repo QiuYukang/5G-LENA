@@ -151,6 +151,13 @@ NrSpectrumPhy::GetTypeId (void)
                     MakeDoubleAccessor (&NrSpectrumPhy::SetCcaMode1Threshold,
                                        &NrSpectrumPhy::GetCcaMode1Threshold),
                     MakeDoubleChecker<double> ())
+    .AddAttribute ("InterStreamInterferenceRatio",
+                   "Inter-stream interference ratio in the range of 0 to 1, e.g.,"
+                   "0 means no interference and 1 means full interference",
+                   DoubleValue (0.0),
+                   MakeDoubleAccessor (&NrSpectrumPhy::SetInterStreamInterferenceRatio),
+                   MakeDoubleChecker <double> (0.0, 1.0))
+
     .AddTraceSource ("RxPacketTraceEnb",
                      "The no. of packets received and transmitted by the Base Station",
                      MakeTraceSourceAccessor (&NrSpectrumPhy::m_rxPacketTraceEnb),
@@ -342,15 +349,6 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
   Time duration = params->duration;
   NS_LOG_INFO ("Start receiving signal: " << rxPsd <<" duration= " << duration);
 
-  // pass it to interference calculations regardless of the type (nr or non-nr)
-  m_interferenceData->AddSignal (rxPsd, duration);
-
-  // pass the signal to the interference calculator regardless of the type (nr or non-nr)
-  if (m_interferenceSrs)
-    {
-      m_interferenceSrs->AddSignal (rxPsd, duration);
-    }
-
   Ptr<NrSpectrumSignalParametersDataFrame> nrDataRxParams =
     DynamicCast<NrSpectrumSignalParametersDataFrame> (params);
 
@@ -359,6 +357,41 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
   Ptr<NrSpectrumSignalParametersUlCtrlFrame> ulCtrlRxParams =
     DynamicCast<NrSpectrumSignalParametersUlCtrlFrame> (params);
+
+  if (nrDataRxParams)
+    {
+      if (nrDataRxParams->cellId == GetCellId ()
+          && nrDataRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () != m_streamId)
+        {
+          NS_LOG_INFO ("Inter stream interference DATA signal. Interference Ratio " << m_interStrInerfRatio);
+          (*params->psd) *= m_interStrInerfRatio;
+          Ptr <const SpectrumValue> rxPsdData = params->psd;
+          m_interferenceData->AddSignal (rxPsdData, duration);
+          return;
+        }
+    }
+
+  if (dlCtrlRxParams)
+    {
+      if (dlCtrlRxParams->cellId == GetCellId ()
+          && dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () != m_streamId)
+        {
+          NS_LOG_INFO ("Inter stream interference DL CTRL signal. Interference Ratio " << m_interStrInerfRatio);
+          (*params->psd) *= m_interStrInerfRatio;
+          Ptr <const SpectrumValue> rxPsdDlCtrl = params->psd;
+          m_interferenceCtrl->AddSignal (rxPsdDlCtrl, duration);
+          return;
+        }
+    }
+
+  // pass it to interference calculations regardless of the type (nr or non-nr)
+  m_interferenceData->AddSignal (rxPsd, duration);
+
+  // pass the signal to the interference calculator regardless of the type (nr or non-nr)
+  if (m_interferenceSrs)
+    {
+      m_interferenceSrs->AddSignal (rxPsd, duration);
+    }
 
   if (nrDataRxParams != nullptr)
     {
@@ -1467,5 +1500,11 @@ NrSpectrumPhy::AssignStreams (int64_t stream)
   return 1;
 }
 
+void
+NrSpectrumPhy::SetInterStreamInterferenceRatio (double ratio)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  m_interStrInerfRatio = ratio;
+}
 
 }
