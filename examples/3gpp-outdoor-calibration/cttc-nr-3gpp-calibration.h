@@ -71,7 +71,7 @@ struct Parameters
   double bsHeight = 30.0;
   double utHeight = 1.5;
   //uint32_t sectorization = 3;
-  double minBsUtDistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
+  double minBsUtDistance = 10.0;
   double antennaOffset = 1.0;
 
   double o2iThreshold = 0;
