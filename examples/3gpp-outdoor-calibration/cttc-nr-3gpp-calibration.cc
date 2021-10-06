@@ -170,6 +170,8 @@ Parameters::Validate (void) const
                    "Realistic BF should not be enabled in when fading is disabled");
   NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
                    "Shadowing must be disabled fading is disabled mode");
+  NS_ABORT_MSG_IF (bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam" ,
+                   "For bfMethod you can choose among Omni, CellScan and FixedBeam");
   NS_ABORT_MSG_IF (confType != "customConf" && confType != "calibrationConf",
                    "Urecognized Configuration type: " << confType);
   NS_ABORT_MSG_IF (configurationScenario != "DenseA" && configurationScenario != "DenseB"
@@ -210,10 +212,10 @@ ChooseCalibrationScenario (Parameters &params)
           params.isd = 200;
           params.o2iThreshold = 0.8;
 
-          params.gnbNumRows = 8;
+          params.gnbNumRows = 4;
           params.gnbNumColumns = 8;
           params.ueNumRows = 1;
-          params.ueNumColumns = 2;
+          params.ueNumColumns = 1;
 
           params.gnbHSpacing = 0.5;
           params.gnbVSpacing = 0.8;
@@ -258,7 +260,7 @@ ChooseCalibrationScenario (Parameters &params)
           params.ueVSpacing = 0.5;
 
           params.gnbEnable3gppElement = true;
-          //params.ueEnable3gppElement = true;
+          params.ueEnable3gppElement = true;
 
           params.downtiltAngle = 90;
 
@@ -284,7 +286,7 @@ ChooseCalibrationScenario (Parameters &params)
           params.o2iThreshold = 0.5;
 
           params.gnbNumRows = 8;
-          params.gnbNumColumns = 4;
+          params.gnbNumColumns = 1;
           params.ueNumRows = 1;
           params.ueNumColumns = 1;
 
@@ -320,9 +322,9 @@ ChooseCalibrationScenario (Parameters &params)
           params.o2iThreshold = 0.5;
 
           params.gnbNumRows = 8;
-          params.gnbNumColumns = 8;
+          params.gnbNumColumns = 1;
           params.ueNumRows = 1;
-          params.ueNumColumns = 2;
+          params.ueNumColumns = 1;
 
           params.gnbHSpacing = 0.5;
           params.gnbVSpacing = 0.8;
@@ -758,7 +760,8 @@ Nr3gppCalibration (Parameters &params)
                                                  params.polSlantAngleGnb1,
                                                  params.polSlantAngleGnb2,
                                                  params.polSlantAngleUe1,
-                                                 params.polSlantAngleUe2);
+                                                 params.polSlantAngleUe2,
+                                                 params.bfMethod);
     }
 
   // Check we got one valid helper
@@ -1090,7 +1093,6 @@ operator << (std::ostream & os, const Parameters & parameters)
     {
       MSG ("LTE Standard")
         << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
-      MSG ("4G-NR fading") << (p.enableFading ? "Enabled" : "Disabled");
       MSG ("4G-NR ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
       MSG ("Starting Frequency") << (p.startingFreq);
       MSG ("Operation mode") << p.operationMode;
@@ -1132,6 +1134,22 @@ operator << (std::ostream & os, const Parameters & parameters)
           MSG ("5G-NR Realistic BF") << (p.enableRealBF ? "Enabled" : "Disabled");
         }
 
+      MSG ("Shadowing") << (p.enableShadowing ? "Enabled" : "Disabled");
+      MSG ("Fading") << (p.enableFading ? "Enabled" : "Disabled");
+
+      if (p.bfMethod == "Omni")
+        {
+          MSG ("BF method") << "Omni";
+        }
+      else if (p.bfMethod == "CellScan")
+        {
+          MSG ("BF method") << "CellScan";
+        }
+      else
+        {
+          MSG ("BF method") << "Fixed Beam";
+        }
+
       MSG ("");
 
     }
@@ -1159,7 +1177,6 @@ operator << (std::ostream & os, const Parameters & parameters)
   MSG ("Channel bandwidth") << p.bandwidthMHz << " MHz";
   MSG ("Spectrum configuration")
     <<    (p.freqScenario == 0 ? "non-" : "") << "overlapping";
-  MSG ("Shadowing") << (p.enableShadowing ? "Enabled" : "Disabled");
   MSG ("LTE Scheduler") << p.scheduler;
 
   MSG ("");

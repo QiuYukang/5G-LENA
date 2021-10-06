@@ -191,7 +191,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            double polSlantAngleGnb1,
                                            double polSlantAngleGnb2,
                                            double polSlantAngleUe1,
-                                           double polSlantAngleUe2)
+                                           double polSlantAngleUe2,
+                                           std::string bfMethod)
 {
   /*
    * Create the radio network related parameters
@@ -251,7 +252,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // through beam manager. Hence, we do not need any ideal algorithm.
   // For other cases, we need it (and the beam will be overwritten)
 
-  if (enableFading)
+  if (enableFading && bfMethod != "FixedBeam")
     {
       if (radioNetwork == "NR" && enableRealBF)
         {
@@ -646,7 +647,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   RealisticBfManager::TriggerEvent realTriggerEvent {RealisticBfManager::SRS_COUNT};
 
   // if there is no fading, that means that there is no bamforming
-  if (enableFading)
+  if (enableFading && bfMethod != "FixedBeam")
     {
       if (radioNetwork == "NR")
         {
@@ -659,9 +660,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
             }
           else
             {
-              //beamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
-              beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId ());
-              beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (10)));
+              if (bfMethod == "Omni")
+                {
+                  beamformingHelper->SetBeamformingMethod (QuasiOmniDirectPathBeamforming::GetTypeId ());
+                }
+              else if (bfMethod == "CellScan")
+                {
+                  beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId ());
+                  beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (10)));
+                }
+              else
+                {
+                  NS_ABORT_MSG ("We shouldn't be here. bfMethod is: " << bfMethod);
+                }
             }
         }
     }

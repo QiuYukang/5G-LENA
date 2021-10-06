@@ -96,7 +96,8 @@ public:
                                      double polSlantAngleGnb1,
                                      double polSlantAngleGnb2,
                                      double polSlantAngleUe1,
-                                     double polSlantAngleUe2);
+                                     double polSlantAngleUe2,
+                                     std::string bfMethod);
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,

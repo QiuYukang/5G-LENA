@@ -107,8 +107,18 @@ main (int argc, char *argv[])
                 "whether to configure 4G LENA in calibration mode",
                 params.lenaCalibration);
   cmd.AddValue ("enableFading",
-                "disable fading and beamforming when simulator is 5GLENA",
+                "If false, Fading (and consequently beamforming) will be disabled "
+                "when simulator is 5GLENA. Default value true (enabled). Notice "
+                "that if fading is disabled, also Shadowing must be disabled",
                 params.enableFading);
+  cmd.AddValue ("enableShadowing",
+                "If true, it enables Shadowing",
+                params.enableShadowing);
+  cmd.AddValue ("bfMethod",
+                "The BF method string. Can be a) Omni, b) CellScan c) fixedBeam."
+                "Notice that if Shadowing and Fading are disabled, fixedBeam will"
+                "be used. Default value is CellScan",
+                params.bfMethod);
   cmd.AddValue ("trafficScenario",
                 "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), "
                 "2: low-load (1 Mbps), 3: medium-load (20Mbps)",
@@ -242,9 +252,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("ueEnable3gppElement",
                 "If true, it enables 3GPP Antenna element configuration in the UE",
                 params.ueEnable3gppElement);
-  cmd.AddValue ("enableShadowing",
-                "If true, it enables shadowing (must be disabled for calibration)",
-                params.enableShadowing);
   cmd.AddValue ("checkUeMobility",
                 "If true, it enables printing of UE position every 100 ms",
                 params.checkUeMobility);

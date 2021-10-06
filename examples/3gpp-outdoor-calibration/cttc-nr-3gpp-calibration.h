@@ -87,6 +87,10 @@ struct Parameters
 
   bool lenaCalibration = true;
   bool enableFading = true;
+  bool enableShadowing = true;
+  std::string bfMethod = "CellScan";
+  bool enableRealBF = false;
+
   bool enableUlPc = false;
   std::string powerAllocation = "UniformPowerAllocUsed";
 
@@ -135,11 +139,8 @@ struct Parameters
   double polSlantAngleUe1 = 0.0;
   double polSlantAngleUe2 = 90;
 
-  bool enableRealBF = false;
   bool gnbEnable3gppElement = true;
   bool ueEnable3gppElement = false;
-
-  bool enableShadowing = true;
 
   bool checkUeMobility = false;
 };
