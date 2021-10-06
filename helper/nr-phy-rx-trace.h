@@ -55,6 +55,12 @@ public:
   void SetSimTag (const std::string &simTag);
 
   /**
+   * \brief Set results folder
+   * \param resultsFolder string to be used as a path to results folder
+   */
+  void SetResultsFolder (const std::string &resultsFolder);
+
+  /**
    * \brief Trace sink for DL Average SINR of DATA (in dB).
    * \param [in] phyStats NrPhyRxTrace object
    * \param [in] path context path
@@ -225,6 +231,7 @@ private:
 
 
   static std::string m_simTag;   //!< The `SimTag` attribute.
+  static std::string m_resultsFolder; //!< The results folder path
 
   static std::ofstream m_dlDataSinrFile;
   static std::string m_dlDataSinrFileName;

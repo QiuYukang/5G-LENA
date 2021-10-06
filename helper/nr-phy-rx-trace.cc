@@ -50,6 +50,7 @@ std::string NrPhyRxTrace::m_dlCtrlSinrFileName;
 std::ofstream NrPhyRxTrace::m_rxPacketTraceFile;
 std::string NrPhyRxTrace::m_rxPacketTraceFilename;
 std::string NrPhyRxTrace::m_simTag;
+std::string NrPhyRxTrace::m_resultsFolder;
 
 std::ofstream NrPhyRxTrace::m_rxedGnbPhyCtrlMsgsFile;
 std::string NrPhyRxTrace::m_rxedGnbPhyCtrlMsgsFileName;
@@ -149,14 +150,20 @@ NrPhyRxTrace::SetSimTag (const std::string &simTag)
 }
 
 void
-NrPhyRxTrace::DlDataSinrCallback ([[maybe_unused]]Ptr<NrPhyRxTrace> phyStats, [[maybe_unused]] std::string path,
+NrPhyRxTrace::SetResultsFolder (const std::string &resultsFolder)
+{
+  m_resultsFolder = resultsFolder;
+}
+
+void
+NrPhyRxTrace::DlDataSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats, [[maybe_unused]] std::string path,
                                   uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId, uint8_t streamId)
 {
   NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
   if (!m_dlDataSinrFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "DlDataSinr" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder << "DlDataSinr" << m_simTag.c_str () << ".txt";
         m_dlDataSinrFileName = oss.str ();
         m_dlDataSinrFile.open (m_dlDataSinrFileName.c_str ());
 
@@ -179,12 +186,12 @@ void
 NrPhyRxTrace::DlCtrlSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats, [[maybe_unused]] std::string path,
                                   uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId, uint8_t streamId)
 {
-  NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
+  NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate DlCtrlSinrTrace");
 
   if (!m_dlCtrlSinrFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "DlCtrlSinr" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder << "DlCtrlSinr" << m_simTag.c_str () << ".txt";
         m_dlCtrlSinrFileName = oss.str ();
         m_dlCtrlSinrFile.open (m_dlCtrlSinrFileName.c_str ());
 
@@ -235,7 +242,7 @@ NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
   if (!m_rxedGnbPhyCtrlMsgsFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "RxedGnbPhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"RxedGnbPhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
         m_rxedGnbPhyCtrlMsgsFileName = oss.str ();
         m_rxedGnbPhyCtrlMsgsFile.open (m_rxedGnbPhyCtrlMsgsFileName.c_str ());
 
@@ -297,7 +304,7 @@ NrPhyRxTrace::TxedGnbPhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::strin
   if (!m_txedGnbPhyCtrlMsgsFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "TxedGnbPhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"TxedGnbPhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
         m_txedGnbPhyCtrlMsgsFileName = oss.str ();
         m_txedGnbPhyCtrlMsgsFile.open (m_txedGnbPhyCtrlMsgsFileName.c_str ());
 
@@ -354,7 +361,7 @@ NrPhyRxTrace::RxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
   if (!m_rxedUePhyCtrlMsgsFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "RxedUePhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"RxedUePhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
         m_rxedUePhyCtrlMsgsFileName = oss.str ();
         m_rxedUePhyCtrlMsgsFile.open (m_rxedUePhyCtrlMsgsFileName.c_str ());
 
@@ -411,7 +418,7 @@ NrPhyRxTrace::TxedUePhyCtrlMsgsCallback (Ptr<NrPhyRxTrace> phyStats, std::string
   if (!m_txedUePhyCtrlMsgsFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "TxedUePhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"TxedUePhyCtrlMsgsTrace" << m_simTag.c_str () << ".txt";
         m_txedUePhyCtrlMsgsFileName = oss.str ();
         m_txedUePhyCtrlMsgsFile.open (m_txedUePhyCtrlMsgsFileName.c_str ());
 
@@ -473,7 +480,7 @@ NrPhyRxTrace::RxedUePhyDlDciCallback (Ptr<NrPhyRxTrace> phyStats, std::string pa
   if (!m_rxedUePhyDlDciFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "RxedUePhyDlDciTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"RxedUePhyDlDciTrace" << m_simTag.c_str () << ".txt";
         m_rxedUePhyDlDciFileName = oss.str ();
         m_rxedUePhyDlDciFile.open (m_rxedUePhyDlDciFileName.c_str ());
 
@@ -506,7 +513,7 @@ NrPhyRxTrace::TxedUePhyHarqFeedbackCallback (Ptr<NrPhyRxTrace> phyStats, std::st
   if (!m_rxedUePhyDlDciFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "RxedUePhyDlDciTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"RxedUePhyDlDciTrace" << m_simTag.c_str () << ".txt";
         m_rxedUePhyDlDciFileName = oss.str ();
         m_rxedUePhyDlDciFile.open (m_rxedUePhyDlDciFileName.c_str ());
 
@@ -656,7 +663,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
   if (!m_rxPacketTraceFile.is_open ())
     {
       std::ostringstream oss;
-      oss << "RxPacketTrace" << m_simTag.c_str() << ".txt";
+      oss << m_resultsFolder <<"RxPacketTrace" << m_simTag.c_str() << ".txt";
       m_rxPacketTraceFilename = oss.str ();
       m_rxPacketTraceFile.open (m_rxPacketTraceFilename.c_str ());
 
@@ -718,7 +725,7 @@ NrPhyRxTrace::RxPacketTraceEnbCallback (Ptr<NrPhyRxTrace> phyStats, std::string 
   if (!m_rxPacketTraceFile.is_open ())
     {
       std::ostringstream oss;
-      oss << "RxPacketTrace" << m_simTag.c_str () << ".txt";
+      oss << m_resultsFolder <<"RxPacketTrace" << m_simTag.c_str () << ".txt";
       m_rxPacketTraceFilename = oss.str ();
       m_rxPacketTraceFile.open (m_rxPacketTraceFilename.c_str ());
 
@@ -835,7 +842,7 @@ NrPhyRxTrace::WriteDlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
   if (!m_dlPathlossFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "DlPathlossTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"DlPathlossTrace" << m_simTag.c_str () << ".txt";
         m_dlPathlossFileName = oss.str ();
         m_dlPathlossFile.open (m_dlPathlossFileName.c_str ());
 
@@ -868,7 +875,7 @@ NrPhyRxTrace::WriteUlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
   if (!m_ulPathlossFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "UlPathlossTrace" << m_simTag.c_str () << ".txt";
+        oss << m_resultsFolder <<"UlPathlossTrace" << m_simTag.c_str () << ".txt";
         m_ulPathlossFileName = oss.str ();
         m_ulPathlossFile.open (m_ulPathlossFileName.c_str ());
 

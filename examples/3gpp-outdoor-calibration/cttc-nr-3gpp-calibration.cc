@@ -938,6 +938,7 @@ Nr3gppCalibration (Parameters &params)
     {
       nrHelper->EnableTraces ();
       nrHelper->GetPhyRxTrace ()->SetSimTag (params.simTag);
+      nrHelper->GetPhyRxTrace ()->SetResultsFolder(params.outputDir);
     }
   else if (nrHelper != nullptr && params.basicTraces == true)
     {
@@ -947,6 +948,7 @@ Nr3gppCalibration (Parameters &params)
       nrHelper->EnableUlPhyTraces ();
       nrHelper->EnablePathlossTraces ();
       nrHelper->GetPhyRxTrace ()->SetSimTag (params.simTag);
+      nrHelper->GetPhyRxTrace ()->SetResultsFolder(params.outputDir);
     }
 
 
