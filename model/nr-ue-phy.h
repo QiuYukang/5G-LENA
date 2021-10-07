@@ -45,10 +45,10 @@ class NrSlCommResourcePool;
  * \brief The UE PHY class
  *
  * This class represents the PHY in the User Equipment. Much of the processing
- * and scheduling is done inside the gNb, so the user is a mere "executor"
+ * and scheduling is done inside the gNB, so the user is a mere "executor"
  * of the decision of the base station.
  *
- * The slot processing is the same as the gnb phy, working as a state machine
+ * The slot processing is the same as the gNB phy, working as a state machine
  * in which the processing is done at the beginning of the slot.
  *
  * \section ue_phy_conf Configuration
@@ -57,12 +57,12 @@ class NrSlCommResourcePool;
  * configured through a direct call to `SetAttribute` or, before the PHY creation,
  * with the helper method NrHelper::SetUePhyAttribute().
  *
- * \section ue_phy_attach Attachment to a GNB
+ * \section ue_phy_attach Attachment to a gNB
  *
  * In theory, much of the configuration should pass through RRC, and through
- * messages that come from the gNb. However, we still are not at this level,
+ * messages that come from the gNB. However, we still are not at this level,
  * and we have to rely on direct calls to configure the same values between
- * the gnb and the ue. At this moment, the call that the helper has to perform
+ * the gNB and the ue. At this moment, the call that the helper has to perform
  * are in NrHelper::AttachToEnb().
  *
  * To initialize the class, you must call also SetSpectrumPhy() and StartEventLoop().
@@ -104,7 +104,7 @@ public:
   LteUeCphySapProvider* GetUeCphySapProvider () __attribute__((warn_unused_result));
 
   /**
-   * \brief Install ue C PHY SAP user (AKA the PHY interface towards the RRC)
+   * \brief Install UE C PHY SAP user (AKA the PHY interface towards the RRC)
    * \param s the C PHY SAP user pointer to install
    */
   void SetUeCphySapUser (LteUeCphySapUser* s);
@@ -176,9 +176,9 @@ public:
   void RegisterToEnb (uint16_t bwpId);
 
   /**
-   * \brief Set the AMC pointer from the GNB
-   * \param amc The DL AMC of the GNB. This will be used to create the DL CQI
-   * that will be sent to the GNB.
+   * \brief Set the AMC pointer from the gNB
+   * \param amc The DL AMC of the gNB. This will be used to create the DL CQI
+   * that will be sent to the gNB.
    *
    * This function will be soon deprecated, hopefully with some values that
    * comes from RRC. For the moment, it is called by the helper at the
@@ -210,7 +210,7 @@ public:
   /**
    * \brief Function that sets the number of RBs per RBG.
    * This function will be soon deprecated, as soon as all the functions at
-   * gNb PHY, MAC and UE PHY that work with DCI bitmask start
+   * gNB PHY, MAC and UE PHY that work with DCI bitmask start
    * to work on level of RBs instead of RBGs.
    * This function is configured by helper
    *
@@ -273,68 +273,56 @@ public:
   /**
    *  TracedCallback signature for Ue Phy Received Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] sfnSf Frame, subframe, slot number, numerology object
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
-   * \param [in] pointer to msg to get the msg type
+   * \param [in] ptr pointer to msg to get the msg type
    */
   typedef void (* RxedUePhyCtrlMsgsTracedCallback)
       (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
-       const uint8_t bwpId, Ptr<NrControlMessage>);
+       const uint8_t bwpId, Ptr<NrControlMessage> ptr);
 
   /**
    *  TracedCallback signature for Ue Phy Transmitted Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
-   * \param [in] nodeId
-   * \param [in] rnti
-   * \param [in] bwpId
-   * \param [in] pointer to msg to get the msg type
+   * \param [in] sfnSf Frame, subframe, slot number, numerology object
+   * \param [in] nodeId Node ID
+   * \param [in] rnti RNTI
+   * \param [in] bwpId bandwidth part ID
+   * \param [in] ptr pointer to msg to get the msg type
    */
   typedef void (* TxedUePhyCtrlMsgsTracedCallback)
       (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
-       const uint8_t bwpId, Ptr<NrControlMessage>);
+       const uint8_t bwpId, Ptr<NrControlMessage> ptr);
 
   /**
    *  TracedCallback signature for Ue Phy DL DCI reception.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
-   * \param [in] nodeId
-   * \param [in] rnti
-   * \param [in] bwpId
-   * \param [in] harq ID
-   * \param [in] K1 Delay
+   * \param [in] sfnSf Frame, subframe, slot number, numerology object
+   * \param [in] nodeId Node ID
+   * \param [in] rnti RNTI
+   * \param [in] bwpId bandwidth part ID
+   * \param [in] harqId HARQ ID
+   * \param [in] k1Delay K1 Delay
    */
   typedef void (* RxedUePhyDlDciTracedCallback)
       (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
-       const uint8_t bwpId, uint8_t harqId, uint32_t K1Delay);
+       const uint8_t bwpId, uint8_t harqId, uint32_t k1Delay);
 
   /**
    *  TracedCallback signature for Ue Phy DL HARQ Feedback transmission.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
-   * \param [in] nodeId
-   * \param [in] rnti
-   * \param [in] bwpId
-   * \param [in] harq ID
-   * \param [in] K1 Delay
+   * \param [in] sfnSf Frame, subframe, slot number, numerology object
+   * \param [in] nodeId Node ID
+   * \param [in] rnti RNTI
+   * \param [in] bwpId bandwidth part ID
+   * \param [in] harqId HARQ ID
+   * \param [in] k1Delay K1 Delay
    */
   typedef void (* TxedUePhyHarqFeedbackTracedCallback)
       (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
-       const uint8_t bwpId, uint8_t harqId, uint32_t K1Delay);
+       const uint8_t bwpId, uint8_t harqId, uint32_t k1Delay);
 
   /**
    * \brief Set the channel access manager interface for this instance of the PHY
@@ -348,7 +336,7 @@ public:
   virtual BeamId GetBeamId (uint16_t rnti) const override;
 
   /**
-   * \brief Start the ue Event Loop
+   * \brief Start the UE Event Loop
    *
    * As parameters, there are the initial values for some variables.
    *
@@ -481,7 +469,7 @@ private:
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
-   * \brief Try to perform an lbt before UL CTRL
+   * \brief Try to perform an LBT before UL CTRL
    *
    * This function should be called after we receive the DL_DCI for the slot,
    * and then checks if we can re-use the channel through shared MCOT. Otherwise,
@@ -502,7 +490,7 @@ private:
    * This time can be a DL CTRL, a DL data, a UL data, or UL CTRL, with
    * any number of symbols (limited to the number of symbols per slot).
    *
-   * At the end of processing, schedule the method EndVarTtti that will finish
+   * At the end of processing, schedule the method EndVarTti that will finish
    * the processing of the variable tti allocation.
    *
    * \see DlCtrl
@@ -629,7 +617,7 @@ private:
   void DoResetRlfParams ();
 
   /**
-   * \brief Start in Snyc detection function
+   * \brief Start in Sync detection function
    *
    * When T310 timer is started, it indicates that physical layer
    * problems are detected at the UE and the recovery process is
@@ -681,9 +669,9 @@ private:
   Time m_lastSlotStart; //!< Time of the last slot start
 
   bool m_ulConfigured {false};     //!< Flag to indicate if RRC configured the UL
-  bool m_receptionEnabled {false}; //!< Flag to indicate if we are currently receiveing data
+  bool m_receptionEnabled {false}; //!< Flag to indicate if we are currently receiving data
   uint16_t m_rnti {0};             //!< Current RNTI of the user
-  uint32_t m_currTbs {0};          //!< Current TBS of the receiveing DL data (used to compute the feedback)
+  uint32_t m_currTbs {0};          //!< Current TBS of the receiving DL data (used to compute the feedback)
   uint64_t m_imsi {0}; ///< The IMSI of the UE
   std::unordered_map<uint8_t, uint32_t> m_harqIdToK1Map;  //!< Map that holds the K1 delay for each Harq process id
 
@@ -723,28 +711,28 @@ private:
 
   /**
    * Trace information regarding Ue PHY Received Control Messages
-   * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
+   * Frame number, Subframe number, slot, VarTti, nodeId, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_phyRxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Transmitted Control Messages
-   * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
+   * Frame number, Subframe number, slot, VarTti, nodeId, rnti, bwpId,
    * pointer to message in order to get the msg type
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>> m_phyTxedCtrlMsgsTrace;
 
   /**
    * Trace information regarding Ue PHY Rxed DL DCI Messages
-   * Frame number, Subframe number, slot, VarTtti, nodeId,
+   * Frame number, Subframe number, slot, VarTti, nodeId,
    * rnti, bwpId, Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeRxedDlDciTrace;
 
   /**
    * Trace information regarding Ue PHY Txed Harq Feedback
-   * Frame number, Subframe number, slot, VarTtti, nodeId,
+   * Frame number, Subframe number, slot, VarTti, nodeId,
    * rnti, bwpId, Harq ID, K1 delay
    */
   TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t> m_phyUeTxedHarqFeedbackTrace;
@@ -752,25 +740,25 @@ private:
   //NR SL
 public:
   /**
-   * \brief Get the NR Sidelik UE Control PHY SAP offered by PHY to RRC
+   * \brief Get the NR Sidelink UE Control PHY SAP offered by PHY to RRC
    *
-   * \return the NR Sidelik UE Control PHY SAP provider interface offered by
+   * \return the NR Sidelink UE Control PHY SAP provider interface offered by
    *         PHY to RRC.
    */
   NrSlUeCphySapProvider* GetNrSlUeCphySapProvider ();
 
   /**
-   * \brief Set the NR Sidelik UE Control MAC SAP offered by RRC to PHY
+   * \brief Set the NR Sidelink UE Control MAC SAP offered by RRC to PHY
    *
-   * \param s the NR Sidelik UE Control MAC SAP user interface offered by
+   * \param s the NR Sidelink UE Control MAC SAP user interface offered by
    *          RRC to PHY.
    */
   void SetNrSlUeCphySapUser (NrSlUeCphySapUser* s);
 
   /**
-   * \brief Set the NR Sidelik UE PHY SAP offered by UE MAC to UE PHY
+   * \brief Set the NR Sidelink UE PHY SAP offered by UE MAC to UE PHY
    *
-   * \param s the NR Sidelik UE PHY SAP user interface offered to the
+   * \param s the NR Sidelink UE PHY SAP user interface offered to the
    *          UE PHY by UE MAC
    */
   void SetNrSlUePhySapUser (NrSlUePhySapUser* s);
@@ -808,7 +796,7 @@ private:
    * \brief Sidelink RX grant information about the expected NR SL transport
    *        block at a certain point in the slot
    *
-   * This information will be passed by the NrUePhy to NrSpectrumhy through a
+   * This information will be passed by the NrUePhy to NrSpectrumPhy through a
    * call to AddSlExpectedTb
    */
  struct SlRxGrantInfo
@@ -859,7 +847,7 @@ private:
    * This time can be a SL CTRL, a SL data, SL HARQ feedback (not available yet), with
    * any number of symbols (limited to the number of symbols per slot).
    *
-   * At the end of processing, it schedules the method EndNrSlVarTtti that will finish
+   * At the end of processing, it schedules the method EndNrSlVarTti that will finish
    * the processing of the variable TTI allocation.
    *
    * \see EndNrSlVarTti

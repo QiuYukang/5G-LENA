@@ -2072,7 +2072,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
   for (auto &tbIt : m_slTransportBlocks)
     {
       NS_ABORT_MSG_IF (tbIt.second.sinrUpdated == false, "SINR not updated for the expected TB from RNTI " << tbIt.first);
-      Ptr<Packet> sci2Pkt = ReteriveSci2FromPktBurst (tbIt.second.pktIndex);
+      Ptr<Packet> sci2Pkt = RetrieveSci2FromPktBurst (tbIt.second.pktIndex);
       NrSlSciF2aHeader sciF2a;
       sci2Pkt->PeekHeader (sciF2a);
       if (sciF2a.GetNdi ())
@@ -2281,7 +2281,7 @@ NrSpectrumPhy::RxSlPssch (std::vector<uint32_t> paramIndexes)
 }
 
 Ptr<Packet>
-NrSpectrumPhy::ReteriveSci2FromPktBurst (uint32_t pktIndex)
+NrSpectrumPhy::RetrieveSci2FromPktBurst (uint32_t pktIndex)
 {
   NS_LOG_FUNCTION (this << pktIndex);
   Ptr<PacketBurst> pktBurst = m_slRxSigParamInfo.at (pktIndex).params->packetBurst;

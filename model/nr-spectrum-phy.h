@@ -108,13 +108,13 @@ public:
     IDLE = 0,  //!< IDLE state (no action in progress)
     TX,        //!< Transmitting state (data or ctrl)
     RX_DATA,   //!< Receiving data
-    RX_DL_CTRL,//!< Receiveing DL CTRL
+    RX_DL_CTRL,//!< Receiving DL CTRL
     RX_UL_CTRL,//!< Receiving UL CTRL
     RX_UL_SRS, //!< Receiving SRS
     CCA_BUSY   //!< BUSY state (channel occupied by another entity)
   };
 
-  //callbacks typefefs and setters
+  //callbacks typedefs and setters
   /**
    * \brief This callback method type is used to notify that DATA is received
    */
@@ -164,7 +164,7 @@ public:
    * \brief Inherited from SpectrumPhy
    * Note: Implements GetRxAntenna function from SpectrumPhy. This
    * function should not be called for NR devices, since NR devices do not use
-   * AntennaModel. This is because 3gpp channel model implementation only
+   * AntennaModel. This is because 3GPP channel model implementation only
    * supports PhasedArrayModel antenna type.
    * \return should not return anything
    */
@@ -183,12 +183,12 @@ public:
    */
   void SetCcaMode1Threshold (double thresholdDBm);
   /**
-   * Returns clear channel assesment (CCA) threshold
+   * Returns clear channel assessment (CCA) threshold
    * \return CCA threshold in dBms
    */
   double GetCcaMode1Threshold (void) const;
   /**
-   * \brief Sets whether to perform in unclicensed mode in which the channel monitoring is enabled
+   * \brief Sets whether to perform in unlicensed mode in which the channel monitoring is enabled
    * \param unlicensedMode if true the unlicensed mode is enabled
    */
   void SetUnlicensedMode (bool unlicensedMode);
@@ -224,7 +224,7 @@ public:
    * \brief Starts transmission of DL CTRL
    * \param duration the duration of this transmission
    */
-  void StartTxDlControlFrames (const std::list<Ptr<NrControlMessage> > &ctrlMsgList, const Time &duration);   // control frames from enb to ue
+  void StartTxDlControlFrames (const std::list<Ptr<NrControlMessage> > &ctrlMsgList, const Time &duration);   // control frames from gNB to ue
   /**
    * \brief Start transmission of UL CTRL
    * \param ctrlMsgList the list of control messages to be transmitted in UL
@@ -243,7 +243,7 @@ public:
   void AddDataSinrChunkProcessor (const Ptr<LteChunkProcessor>& p);
 
   /*
-   * \brief Adds the chunk processort that will process the interference for SRS signals at gNBs
+   * \brief Adds the chunk processor that will process the interference for SRS signals at gNBs
    * \param p the chunk processor
    */
   void AddSrsSinrChunkProcessor (const Ptr<LteChunkProcessor>& p);
@@ -309,7 +309,7 @@ public:
    * \param rbMap Resource Block map (PHY-ready vector of SINR indices)
    * \param harqId ID of the HARQ process in the MAC
    * \param rv Redundancy Version: number of times the HARQ has been retransmitted
-   * \param downlink indicate if it is downling
+   * \param downlink indicate if it is downlink
    * \param symStart Sym start
    * \param numSym Num of symbols
    * \param sfn SFN
@@ -387,7 +387,7 @@ private:
   void StartRxUlCtrl (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
   /**
    * \brief Function that is called when is being received SRS
-   * \param param should hold UL CTRL frame singal parameters containing only
+   * \param param should hold UL CTRL frame signal parameters containing only
    * one CTRL message which should be of type SRS
    */
   void StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
@@ -400,7 +400,7 @@ private:
    */
   uint16_t GetBwpId () const;
   /**
-   * \return true if this class is inside an enb/gnb
+   * \return true if this class is inside an eNB/gNB
    */
   bool IsEnb () const;
   /**
@@ -428,7 +428,7 @@ private:
    void EndRxCtrl ();
    /**
     * \brief Function that is celled when the spectrum phy finishes the reception of SRS.
-    * It stores SRS message, calles the interference calculator to notify the end of the
+    * It stores SRS message, calls the interference calculator to notify the end of the
     * reception which will trigger SRS SINR calculation, and it also updates the spectrum phy state.
     */
    void EndRxSrs ();
@@ -547,9 +547,9 @@ private:
   TracedCallback <Time> m_channelOccupied; //!< trace callback that is notifying of total time that this spectrum phy sees the channel occupied, by others and by itself
   TracedCallback <Time> m_txDataTrace; //!< trace callback that is notifying when this spectrum phy starts to occupy the channel with data transmission
   TracedCallback <Time> m_txCtrlTrace; //!< trace callback that is notifying when this spectrum phy starts to occupy the channel with transmission of CTRL
-  TracedCallback<RxPacketTraceParams> m_rxPacketTraceEnb; //!< trace callback that is notifying when eNb received the packet
+  TracedCallback<RxPacketTraceParams> m_rxPacketTraceEnb; //!< trace callback that is notifying when eNB/gNB received the packet
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
-  TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
+  TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNB/gNB transmits the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
 
   // NR SL
@@ -848,7 +848,7 @@ private:
    * \param pktIndex The index of the packet burst received in \p m_slRxSigParamInfo
    * \return The SCI stage 2 packet
    */
-  Ptr<Packet> ReteriveSci2FromPktBurst (uint32_t pktIndex);
+  Ptr<Packet> RetrieveSci2FromPktBurst (uint32_t pktIndex);
   TypeId m_slErrorModelType {Object::GetTypeId()}; //!< Sidelink Error model type by default is NrLteMiErrorModel
   Ptr<NrSlInterference> m_slInterference; //!< the Sidelink interference
   std::vector<SpectrumValue> m_slSinrPerceived; //!< SINR for each NR Sidelink packet received
@@ -856,7 +856,7 @@ private:
   std::vector< SlRxSigParamInfo > m_slRxSigParamInfo; //!< NR Sidelink received signal parameter info
   bool m_dropTbOnRbCollisionEnabled {false}; //!< when true, drop all receptions on colliding RBs regardless SINR value.
   bool m_slDataErrorModelEnabled {true}; //!< whether the phy error model for NR Sidelink DATA is enabled, by default is enabled
-  bool m_slCtrlErrorModelEnabled {true}; //!< whether the phy error model for NR Sidelinl CTRL is enabled, by default is enabled
+  bool m_slCtrlErrorModelEnabled {true}; //!< whether the phy error model for NR Sidelink CTRL is enabled, by default is enabled
   Ptr<NrAmc> m_slAmc {nullptr}; //!< AMC for SL
   NrPhyRxPscchEndOkCallback m_nrPhyRxPscchEndOkCallback; //!< the callback for the NR SL PHY PSCCH successful reception
   NrPhyRxPsschEndOkCallback m_nrPhyRxPsschEndOkCallback; //!< The callback for the NR SL PHY PSSCH successful reception

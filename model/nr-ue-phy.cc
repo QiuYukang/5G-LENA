@@ -1685,18 +1685,18 @@ NrUePhy::SendSlExpectedTbInfo (const SfnSf &s)
   NS_LOG_FUNCTION (this);
   if (m_slRxGrants.size () > 0)
     {
-      auto expextedTbInfo = m_slRxGrants.front ();
-      if (expextedTbInfo.sfn == s)
+      auto expectedTbInfo = m_slRxGrants.front ();
+      if (expectedTbInfo.sfn == s)
         {
           m_slRxGrants.pop_front ();
-          m_spectrumPhy->AddSlExpectedTb (expextedTbInfo.rnti,
-                                          expextedTbInfo.dstId,
-                                          expextedTbInfo.tbSize,
-                                          expextedTbInfo.mcs,
-                                          expextedTbInfo.rbBitmap,
-                                          expextedTbInfo.symStart,
-                                          expextedTbInfo.numSym,
-                                          expextedTbInfo.sfn);
+          m_spectrumPhy->AddSlExpectedTb (expectedTbInfo.rnti,
+                                          expectedTbInfo.dstId,
+                                          expectedTbInfo.tbSize,
+                                          expectedTbInfo.mcs,
+                                          expectedTbInfo.rbBitmap,
+                                          expectedTbInfo.symStart,
+                                          expectedTbInfo.numSym,
+                                          expectedTbInfo.sfn);
         }
     }
 }
@@ -1709,8 +1709,6 @@ NrUePhy::PhyPsschPduReceived (const Ptr<PacketBurst> &pb)
                                   GetTbDecodeLatency (),
                                   &NrSlUePhySapUser::ReceivePsschPhyPdu,
                                   m_nrSlUePhySapUser, pb);
-
-  //m_nrSlUePhySapUser->ReceivePsschPhyPdu (pb);
 }
 
 double
