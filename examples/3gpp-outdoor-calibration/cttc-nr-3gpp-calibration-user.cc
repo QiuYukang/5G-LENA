@@ -136,6 +136,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("freqScenario",
                 "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
                 params.freqScenario);
+  cmd.AddValue ("attachToClosest",
+                "When freqScenario is set to 1 (OVERLAPPING) then attachToClosest can be set to true to allow the attachment to closest gNBs",
+                 params.attachToClosest);
   cmd.AddValue ("downtiltAngle",
                 "Base station antenna down tilt angle (deg)",
                 params.downtiltAngle);

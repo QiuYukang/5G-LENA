@@ -177,6 +177,8 @@ Parameters::Validate (void) const
   NS_ABORT_MSG_IF (configurationScenario != "DenseA" && configurationScenario != "DenseB"
                    && configurationScenario != "RuralA" && configurationScenario != "RuralB",
                    "Urecognized Configuration scenario: " << configurationScenario);
+  NS_ABORT_MSG_IF (attachToClosest == true && freqScenario == 0,
+                   "attachToClosest option should be activated only in overlapping frequency scenario");
 
   if (dlRem || ulRem)
     {
@@ -813,38 +815,46 @@ Nr3gppCalibration (Parameters &params)
       Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting ((*ue)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
-
-  // attach UEs to their gNB. Try to attach them per cellId order
-  std::cout << "  attach UEs to gNBs\n" << std::endl;
-  for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
-    {
-      auto cellId = scenario->GetCellIndex (ueId);
-      Ptr<NetDevice> gnbNetDev = gnbNodes.Get (cellId)->GetDevice (0);
-      Ptr<NetDevice> ueNetDev = ueNodes.Get (ueId)->GetDevice (0);
-      if (lteHelper != nullptr)
-        {
-          lteHelper->Attach (ueNetDev, gnbNetDev);
-        }
-      else if (nrHelper != nullptr)
-        {
-          nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-          auto uePhyBwp0 {nrHelper->GetUePhy (ueNetDev, 0)};
-          auto gnbPhyBwp0 {nrHelper->GetGnbPhy (gnbNetDev, 0)};
-          Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-          Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
-          double distance = CalculateDistance (gnbpos, uepos);
-          std::cout << "ueId "<< ueId
-                    << ", cellIndex "<< cellId
-                    << " ue Pos: " << uepos
-                    << " gnb Pos: " << gnbpos
-                    << ", ue freq "<< uePhyBwp0->GetCentralFrequency () / 1e9
-                    << ", gnb freq "<< gnbPhyBwp0->GetCentralFrequency () / 1e9
-                    << ", sector "<< scenario->GetSectorIndex (cellId)
-                    << ", distance "<< distance
-                    << ", azimuth gnb->ue:"<< RadiansToDegrees (Angles (gnbpos, uepos).GetAzimuth ())
-                    << std::endl;
-        }
-    }
+    
+   
+   if (nrHelper != nullptr && params.attachToClosest == true)
+     {
+       nrHelper->AttachToClosestEnb (ueNetDevs, gnbNetDevs);
+     }
+   else
+     {
+       // attach UEs to their gNB. Try to attach them per cellId order
+       std::cout << "  attach UEs to gNBs\n" << std::endl;
+       for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
+         {
+           auto cellId = scenario->GetCellIndex (ueId);
+           Ptr<NetDevice> gnbNetDev = gnbNodes.Get (cellId)->GetDevice (0);
+           Ptr<NetDevice> ueNetDev = ueNodes.Get (ueId)->GetDevice (0);
+           if (lteHelper != nullptr)
+             {
+               lteHelper->Attach (ueNetDev, gnbNetDev);
+             }
+           else if (nrHelper != nullptr)
+             {
+               nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
+               auto uePhyBwp0 {nrHelper->GetUePhy (ueNetDev, 0)};
+               auto gnbPhyBwp0 {nrHelper->GetGnbPhy (gnbNetDev, 0)};
+               Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+               Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
+               double distance = CalculateDistance (gnbpos, uepos);
+               std::cout << "ueId "<< ueId
+                   << ", cellIndex "<< cellId
+                   << " ue Pos: " << uepos
+                   << " gnb Pos: " << gnbpos
+                   << ", ue freq "<< uePhyBwp0->GetCentralFrequency () / 1e9
+                   << ", gnb freq "<< gnbPhyBwp0->GetCentralFrequency () / 1e9
+                   << ", sector "<< scenario->GetSectorIndex (cellId)
+                   << ", distance "<< distance
+                   << ", azimuth gnb->ue:"<< RadiansToDegrees (Angles (gnbpos, uepos).GetAzimuth ())
+                   << std::endl;
+             }
+         }
+     }
 
   if (params.checkUeMobility)
     {

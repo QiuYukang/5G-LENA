@@ -98,6 +98,7 @@ struct Parameters
 
   std::string scheduler = "PF";
   uint32_t freqScenario = 0;
+  bool attachToClosest = false;
 
   double gnbNoiseFigure = 7.0;
   double ueNoiseFigure = 5.0;
