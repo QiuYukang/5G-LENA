@@ -182,6 +182,16 @@ public:
    */
   virtual Ptr<Object> GetAntenna () const override;
 
+  /*
+   * \brief Used to enable generation and triggering of DL DATA pathloss trace
+   */
+  void EnableDlDataPathlossTrace ();
+
+  /*
+   * \brief Used to enable generation and triggering of DL CTRL pahtloss trace
+   */
+  void EnableDlCtrlPathlossTrace ();
+
   /**
    * \brief Inherited from SpectrumPhy. When this function is called
    * this spectrum phy starts receiving a signal from its spectrum channel.
@@ -226,6 +236,11 @@ public:
    * \param txPsd transmit power spectral density to be used for the upcoming transmissions by this spectrum phy
    */
   void SetTxPowerSpectralDensity (const Ptr<SpectrumValue>& txPsd);
+  /*
+   * \brief Returns the TX PSD
+   * \return the TX PSD
+   */
+  Ptr<const SpectrumValue> GetTxPowerSpectralDensity ();
   /**
    * \brief Starts transmission of data frames on connected spectrum channel object
    * \param pb packet burst to be transmitted
@@ -651,6 +666,16 @@ private:
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
   TracedCallback<const SfnSf, const uint16_t, const uint8_t,
                  const uint8_t, const uint64_t, const double> m_dlDataSnrTrace; //!< DL data SNR trace source
+
+
+  /*
+   * \brief Trace source that reports the following: Cell ID, Bwp ID, Stream ID, UE node ID, DL CTRL pathloss
+   */
+  typedef TracedCallback <uint16_t, uint8_t, uint8_t, uint32_t, double> DlPathlossTrace;
+  DlPathlossTrace m_dlCtrlPathlossTrace; //!< DL CTRL pathloss trace
+  bool m_enableDlCtrlPathlossTrace = false; //!< By default this trace is disabled to not slow done simulations
+  DlPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
+  bool m_enableDlDataPathlossTrace = false; //!< By default this trace is disabled to not slow done simulations
 
   uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
 

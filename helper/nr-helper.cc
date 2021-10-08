@@ -1680,7 +1680,59 @@ NrHelper::EnablePathlossTraces ()
   NS_LOG_FUNCTION_NOARGS ();
   Config::Connect ("/ChannelList/*/$ns3::SpectrumChannel/PathLoss",
                    MakeBoundCallback (&NrPhyRxTrace::PathlossTraceCallback, m_phyStats));
+}
 
+void
+NrHelper::EnableDlCtrlPathlossTraces (NetDeviceContainer& ueDevs)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+
+  for (uint32_t i = 0; i < ueDevs.GetN(); i++)
+    {
+      Ptr<NrUeNetDevice> ueDev = DynamicCast <NrUeNetDevice> (ueDevs.Get (i));
+      NS_ASSERT_MSG (ueDev, "To EnableDlCtrlPathlossTracesfunction is passed device "
+          "container that contains non UE devices.");
+      for (uint32_t j = 0 ; j < ueDev->GetCcMapSize(); j++)
+        {
+          Ptr<NrUePhy> nrUePhy = ueDev->GetPhy (j);
+
+          for (uint8_t k = 0; k < nrUePhy->GetNumberOfStreams(); k++)
+            {
+              Ptr<NrSpectrumPhy> nrSpectrumPhy = nrUePhy->GetSpectrumPhy (k);
+              nrSpectrumPhy->EnableDlCtrlPathlossTrace ();
+            }
+        }
+    }
+
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/DlCtrlPathloss",
+                   MakeBoundCallback (&NrPhyRxTrace::ReportDlCtrlPathloss, m_phyStats));
+}
+
+void
+NrHelper::EnableDlDataPathlossTraces (NetDeviceContainer& ueDevs)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+
+  NS_ASSERT_MSG (ueDevs.GetN(), "Passed an empty UE net device container EnableDlDataPathlossTraces function" );
+
+  for (uint32_t i = 0; i < ueDevs.GetN(); i++)
+    {
+      Ptr<NrUeNetDevice> ueDev = DynamicCast <NrUeNetDevice> (ueDevs.Get (i));
+      NS_ASSERT_MSG (ueDev, "To EnableDlDataPathlossTracesfunction is passed device "
+          "container that contains non UE devices.");
+      for (uint32_t j = 0 ; j < ueDev->GetCcMapSize(); j++)
+        {
+          Ptr<NrUePhy> nrUePhy = ueDev->GetPhy(j);
+          for (uint8_t k = 0; k < nrUePhy->GetNumberOfStreams(); k++)
+            {
+              Ptr<NrSpectrumPhy> nrSpectrumPhy = nrUePhy->GetSpectrumPhy (k);
+              nrSpectrumPhy->EnableDlDataPathlossTrace ();
+            }
+        }
+    }
+
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/DlDataPathloss",
+                   MakeBoundCallback (&NrPhyRxTrace::ReportDlDataPathloss, m_phyStats));
 }
 
 } // namespace ns3

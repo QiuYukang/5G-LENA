@@ -28,6 +28,7 @@
 #include "nr-ue-net-device.h"
 #include "nr-lte-mi-error-model.h"
 #include "ns3/uniform-planar-array.h"
+#include "ns3/node.h"
 
 
 namespace ns3 {
@@ -190,6 +191,14 @@ NrSpectrumPhy::GetTypeId (void)
                      "Report the SNR computed for each TB in DL",
                      MakeTraceSourceAccessor (&NrSpectrumPhy::m_dlDataSnrTrace),
                      "ns3::NrSpectrumPhy::DataSnrTracedCallback")
+    .AddTraceSource ("DlCtrlPathloss",
+                     "Pathloss calculated for CTRL",
+                     MakeTraceSourceAccessor (&NrSpectrumPhy::m_dlCtrlPathlossTrace),
+                     "ns3::NrSpectrumPhy::DlPathlossTrace")
+    .AddTraceSource ("DlDataPathloss",
+                     "Pathloss calculated for CTRL",
+                     MakeTraceSourceAccessor (&NrSpectrumPhy::m_dlDataPathlossTrace),
+                     "ns3::NrSpectrumPhy::DlPathlossTrace")
   ;
 
   return tid;
@@ -307,6 +316,18 @@ NrSpectrumPhy::GetErrorModel () const
 }
 
 void
+NrSpectrumPhy::EnableDlDataPathlossTrace ()
+{
+  m_enableDlDataPathlossTrace = true;
+}
+
+void
+NrSpectrumPhy::EnableDlCtrlPathlossTrace ()
+{
+  m_enableDlCtrlPathlossTrace = true;
+}
+
+void
 NrSpectrumPhy::SetCcaMode1Threshold (double thresholdDBm)
 {
   NS_LOG_FUNCTION (this << thresholdDBm);
@@ -362,6 +383,12 @@ NrSpectrumPhy::SetTxPowerSpectralDensity (const Ptr<SpectrumValue>& TxPsd)
   m_txPsd = TxPsd;
 }
 
+Ptr<const SpectrumValue>
+NrSpectrumPhy::GetTxPowerSpectralDensity ()
+{
+  return m_txPsd;
+}
+
 void
 NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 {
@@ -378,6 +405,8 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
   Ptr<NrSpectrumSignalParametersUlCtrlFrame> ulCtrlRxParams =
     DynamicCast<NrSpectrumSignalParametersUlCtrlFrame> (params);
+    
+  bool isEnb = IsEnb (); // consider to make isEnb a member of this class to avoid many dynamic casts when needed to discover if it is gNB or UE
 
   if (nrDataRxParams)
     {
@@ -419,6 +448,13 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
       if (nrDataRxParams->cellId == GetCellId () && nrDataRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
         {
           StartRxData (nrDataRxParams);
+          if (!isEnb and m_enableDlDataPathlossTrace)
+            {
+              Ptr<const SpectrumValue> txPsd = DynamicCast<NrSpectrumPhy>(nrDataRxParams->txPhy)->GetTxPowerSpectralDensity ();
+              Ptr<const SpectrumValue> rxPsd = nrDataRxParams->psd;
+              double pathloss = 10 * log10 (Integral (*txPsd)) - 10 * log10 (Integral (*rxPsd));
+              m_dlDataPathlossTrace (GetCellId (), GetBwpId (), GetStreamId (), GetMobility ()->GetObject<Node>()->GetId (), pathloss);
+            }
         }
       else
         {
@@ -430,12 +466,20 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     {
       m_interferenceCtrl->AddSignal (rxPsd, duration);
 
-      if (!IsEnb ())
+      if (!isEnb)
         {
           if (dlCtrlRxParams->cellId == GetCellId () && dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {
               m_interferenceCtrl->StartRx(rxPsd);
               StartRxDlCtrl (dlCtrlRxParams);
+
+              if (m_enableDlCtrlPathlossTrace)
+                   {
+                     Ptr<const SpectrumValue> txPsd = DynamicCast<NrSpectrumPhy>(dlCtrlRxParams->txPhy)->GetTxPowerSpectralDensity ();
+                     Ptr<const SpectrumValue> rxPsd = dlCtrlRxParams->psd;
+                     double pathloss = 10 * log10 (Integral (*txPsd)) - 10 * log10 (Integral (*rxPsd));
+                     m_dlCtrlPathlossTrace (GetCellId (), GetBwpId (), GetStreamId (), GetMobility ()->GetObject<Node> ()->GetId (), pathloss);
+                   }
             }
           else
             {
@@ -450,7 +494,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (ulCtrlRxParams != nullptr)
     {
-      if (IsEnb ()) // only gNBs should enter into reception of UL CTRL signals
+      if (isEnb) // only gNBs should enter into reception of UL CTRL signals
         {
           if (ulCtrlRxParams->cellId == GetCellId () && ulCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {

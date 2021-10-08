@@ -202,6 +202,34 @@ public:
                                      Ptr<const SpectrumPhy> rxPhy,
                                      double lossDb);
 
+  /**
+   * \brief Write DL CTRL pathloss values in a file
+   * \param [in] phyStats NrPhyRxTrace object
+   * \param [in] path context path
+   * \param cellId cell ID
+   * \param bwpId BWP ID
+   * \param streamId stream ID
+   * \param ueNodeId UE node ID
+   * \param lossdB loss in dB
+   */
+  static void ReportDlCtrlPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
+                                    uint16_t cellId, uint8_t bwpId, uint8_t streamId,
+                                    uint32_t ueNodeId, double lossDb);
+
+  /**
+   * \brief Write DL DATA pathloss values in a file
+   * \param [in] phyStats NrPhyRxTrace object
+   * \param [in] path context path
+   * \param cellId cell ID
+   * \param bwpId BWP ID
+   * \param streamId stream ID
+   * \param ueNodeId UE node ID
+   * \param lossdB loss in dB
+   */
+  static void ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
+                                    uint16_t cellId, uint8_t bwpId, uint8_t streamId,
+                                    uint32_t ueNodeId, double lossDb);
+
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);
   void ReportPowerTrace (uint64_t imsi, SpectrumValue& power);
@@ -228,7 +256,6 @@ private:
   void WriteUlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
                              Ptr<NrSpectrumPhy> rxNrSpectrumPhy,
                              double lossDb);
-
 
   static std::string m_simTag;   //!< The `SimTag` attribute.
   static std::string m_resultsFolder; //!< The results folder path
@@ -257,7 +284,12 @@ private:
   static std::string m_dlPathlossFileName;
   static std::ofstream m_ulPathlossFile;
   static std::string m_ulPathlossFileName;
-};
+
+  static std::ofstream m_dlCtrlPathlossFile;
+  static std::string m_dlCtrlPathlossFileName;
+  static std::ofstream m_dlDataPathlossFile;
+  static std::string m_dlDataPathlossFileName;
+  };
 
 } /* namespace ns3 */
 

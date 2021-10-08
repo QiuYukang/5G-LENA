@@ -958,6 +958,8 @@ Nr3gppCalibration (Parameters &params)
       nrHelper->EnableDlDataPhyTraces ();
       nrHelper->EnableDlCtrlPhyTraces ();
       nrHelper->EnableDlCtrlPhyTraces ();
+      nrHelper->EnableDlCtrlPathlossTraces(ueNetDevs);
+      nrHelper->EnableDlDataPathlossTraces(ueNetDevs);
       nrHelper->EnableUlPhyTraces ();
       nrHelper->EnablePathlossTraces ();
       nrHelper->GetPhyRxTrace ()->SetSimTag (params.simTag);

@@ -69,6 +69,10 @@ std::string NrPhyRxTrace::m_dlPathlossFileName;
 std::ofstream NrPhyRxTrace::m_ulPathlossFile;
 std::string NrPhyRxTrace::m_ulPathlossFileName;
 
+std::ofstream NrPhyRxTrace::m_dlCtrlPathlossFile;
+std::string NrPhyRxTrace::m_dlCtrlPathlossFileName;
+std::ofstream NrPhyRxTrace::m_dlDataPathlossFile;
+std::string NrPhyRxTrace::m_dlDataPathlossFileName;
 
 NrPhyRxTrace::NrPhyRxTrace ()
 {
@@ -125,6 +129,17 @@ NrPhyRxTrace::~NrPhyRxTrace ()
     {
       m_ulPathlossFile.close ();
     }
+
+  if (m_dlCtrlPathlossFile.is_open ())
+    {
+      m_dlCtrlPathlossFile.close ();
+    }
+
+  if (m_dlDataPathlossFile.is_open ())
+    {
+      m_dlDataPathlossFile.close ();
+    }
+
 }
 
 TypeId
@@ -897,6 +912,87 @@ NrPhyRxTrace::WriteUlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
                    << txNrSpectrumPhy->GetDevice ()->GetObject<NrUeNetDevice> ()->GetImsi () << "\t"
                    << +rxNrSpectrumPhy->GetStreamId () << "\t"
                    << lossDb << std::endl;
+}
+
+
+
+void
+NrPhyRxTrace::ReportDlCtrlPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
+                                    uint16_t cellId, uint8_t bwpId, uint8_t streamId,
+                                    uint32_t ueNodeId, double lossDb)
+{
+  NS_LOG_INFO ("UE node id:" << ueNodeId << "of " << cellId << " over bwp ID " <<
+                 bwpId << "->Generate DL CTRL pathloss record: "<< lossDb);
+  NS_UNUSED (phyStats);
+  NS_UNUSED (path);
+
+  if (!m_dlCtrlPathlossFile.is_open ())
+      {
+        std::ostringstream oss;
+        oss << m_resultsFolder <<"DlCtrlPathlossTrace" << m_simTag.c_str () << ".txt";
+        m_dlCtrlPathlossFileName = oss.str ();
+        m_dlCtrlPathlossFile.open (m_dlCtrlPathlossFileName.c_str ());
+
+        m_dlCtrlPathlossFile << "Time(sec)" << "\t"
+                             << "CellId" << "\t"
+                             << "BwpId" << "\t"
+                             << "streamId "<< "\t"
+                             << "ueNodeId" << "\t"
+                             << "pathLoss(dB)" << std::endl;
+
+        if (!m_dlCtrlPathlossFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open DL CTRL pathloss tracefile");
+          }
+      }
+
+  m_dlCtrlPathlossFile << Simulator::Now ().GetSeconds () << "\t"
+                       << cellId << "\t"
+                       << +bwpId << "\t"
+                       << +streamId << "\t"
+                       << ueNodeId << "\t"
+                       << lossDb << std::endl;
+
+}
+
+
+void
+NrPhyRxTrace::ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
+                                    uint16_t cellId, uint8_t bwpId, uint8_t streamId,
+                                    uint32_t ueNodeId, double lossDb)
+{
+  NS_LOG_INFO ("UE node id:" << ueNodeId << "of " << cellId << " over bwp ID " <<
+               bwpId << "->Generate DL DATA pathloss record: "<< lossDb);
+  NS_UNUSED (phyStats);
+  NS_UNUSED (path);
+
+  if (!m_dlDataPathlossFile.is_open ())
+      {
+        std::ostringstream oss;
+        oss << m_resultsFolder <<"DlDataPathlossTrace" << m_simTag.c_str () << ".txt";
+        m_dlDataPathlossFileName = oss.str ();
+        m_dlDataPathlossFile.open (m_dlDataPathlossFileName.c_str ());
+
+        m_dlDataPathlossFile << "Time(sec)" << "\t"
+                             << "CellId" << "\t"
+                             << "BwpId" << "\t"
+                             << "streamId "<< "\t"
+                             << "ueNodeId" << "\t"
+                             << "pathLoss(dB)" << std::endl;
+
+        if (!m_dlDataPathlossFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open DL DATA pathloss tracefile");
+          }
+      }
+
+  m_dlDataPathlossFile << Simulator::Now ().GetSeconds () << "\t"
+                       << cellId << "\t"
+                       << +bwpId << "\t"
+                       << +streamId << "\t"
+                       << ueNodeId << "\t"
+                       << lossDb << std::endl;
+
 }
 
 } /* namespace ns3 */
