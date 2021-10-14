@@ -534,7 +534,7 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
 
       Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per stream
       channelPhy->InstallHarqPhyModule (harq);
-
+      channelPhy->SetIsEnb (false);
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
 
       Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per stream
@@ -748,6 +748,7 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
         }
 
       channelPhy->InstallHarqPhyModule (Create<NrHarqPhy> ()); // there should be one HARQ instance per NrSpectrumPhy
+      channelPhy->SetIsEnb (true);
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
       channelPhy->SetChannel (bwp->m_channel); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel object of the corresponding spectrum part
       channelPhy->InstallPhy (phy); // each NrSpectrumPhy should have a pointer to its NrPhy device, in this case NrGnbPhy

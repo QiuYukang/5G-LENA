@@ -240,7 +240,7 @@ NrSpectrumPhy::SetDevice (Ptr<NetDevice> d)
   // But since NrSpectrumPhy inherits this SetDevice function from SpectrumPhy class, so
   // passing also device as a parameter to constructor would create a more complicate interface.
 
-  if (IsEnb ())
+  if (m_isEnb)
     {
       m_interferenceSrs = CreateObject<NrInterference> ();
       m_interferenceSrs -> TraceConnectWithoutContext ("SnrPerProcessedChunk", MakeCallback(&NrSpectrumPhy::UpdateSrsSnrPerceived, this));
@@ -406,8 +406,6 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
   Ptr<NrSpectrumSignalParametersUlCtrlFrame> ulCtrlRxParams =
     DynamicCast<NrSpectrumSignalParametersUlCtrlFrame> (params);
     
-  bool isEnb = IsEnb (); // consider to make isEnb a member of this class to avoid many dynamic casts when needed to discover if it is gNB or UE
-
   if (nrDataRxParams)
     {
       if (nrDataRxParams->cellId == GetCellId ()
@@ -448,7 +446,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
       if (nrDataRxParams->cellId == GetCellId () && nrDataRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
         {
           StartRxData (nrDataRxParams);
-          if (!isEnb and m_enableDlDataPathlossTrace)
+          if (!m_isEnb and m_enableDlDataPathlossTrace)
             {
               Ptr<const SpectrumValue> txPsd = DynamicCast<NrSpectrumPhy>(nrDataRxParams->txPhy)->GetTxPowerSpectralDensity ();
               Ptr<const SpectrumValue> rxPsd = nrDataRxParams->psd;
@@ -466,7 +464,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     {
       m_interferenceCtrl->AddSignal (rxPsd, duration);
 
-      if (!isEnb)
+      if (!m_isEnb)
         {
           if (dlCtrlRxParams->cellId == GetCellId () && dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {
@@ -494,7 +492,7 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
     }
   else if (ulCtrlRxParams != nullptr)
     {
-      if (isEnb) // only gNBs should enter into reception of UL CTRL signals
+      if (m_isEnb) // only gNBs should enter into reception of UL CTRL signals
         {
           if (ulCtrlRxParams->cellId == GetCellId () && ulCtrlRxParams->txPhy->GetObject<NrSpectrumPhy> ()->GetStreamId () == m_streamId)
             {
@@ -569,7 +567,7 @@ NrSpectrumPhy::StartTxDataFrames (const Ptr<PacketBurst>& pb, const std::list<Pt
         txParams->ctrlMsgList = ctrlMsgList;
 
         /* This section is used for trace */
-        if (IsEnb ())
+        if (m_isEnb)
           {
             GnbPhyPacketCountParameter traceParam;
             traceParam.m_noBytes = (txParams->packetBurst) ? txParams->packetBurst->GetSize () : 0;
@@ -716,7 +714,7 @@ void
 NrSpectrumPhy::AddSrsSinrChunkProcessor (const Ptr<LteChunkProcessor>& p)
 {
   NS_LOG_FUNCTION (this);
-  NS_ASSERT_MSG (IsEnb () && m_interferenceSrs, "SRS interference object does not exist or this device is not gNb so the function should not be called.");
+  NS_ASSERT_MSG (m_isEnb && m_interferenceSrs, "SRS interference object does not exist or this device is not gNb so the function should not be called.");
   m_interferenceSrs->AddSinrChunkProcessor (p);
 }
 
@@ -909,7 +907,7 @@ NrSpectrumPhy::StartRxData (const Ptr<NrSpectrumSignalParametersDataFrame>& para
   switch (m_state)
     {
     case TX:
-      if (IsEnb ()) // I am gNB. We are here because some of my rebellious UEs is transmitting at the same time as me. -> invalid state.
+      if (m_isEnb) // I am gNB. We are here because some of my rebellious UEs is transmitting at the same time as me. -> invalid state.
         {
           NS_FATAL_ERROR ("eNB transmission overlaps in time with UE transmission. CellId:" << params->cellId);
         }
@@ -981,7 +979,7 @@ NrSpectrumPhy::StartRxDlCtrl (const Ptr<NrSpectrumSignalParametersDlCtrlFrame>& 
   // that UE can start to receive DL CTRL only from its own cellId,
   // and CTRL from other cellIds will be ignored
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (params->cellId == GetCellId () && !IsEnb ());
+  NS_ASSERT (params->cellId == GetCellId () && !m_isEnb);
   // RDF: method currently supports Downlink control only!
   switch (m_state)
     {
@@ -1028,7 +1026,7 @@ NrSpectrumPhy::StartRxUlCtrl (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& 
   // 2) this function should be only called for gNB, only gNB should enter into reception of UL CTRL signals
   // 3) gNB can receive simultaneously signals from various UEs
   NS_LOG_FUNCTION (this);
-  NS_ASSERT (params->cellId == GetCellId () && IsEnb ());
+  NS_ASSERT (params->cellId == GetCellId () && m_isEnb);
   // RDF: method currently supports Uplink control only!
   switch (m_state)
     {
@@ -1089,7 +1087,7 @@ NrSpectrumPhy::StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& par
   // 3) SRS should be received only one at a time, otherwise this function should assert
   // 4) CTRL message list contains only one message and that one is SRS CTRL message
   NS_ASSERT (params->cellId == GetCellId () &&
-             IsEnb () &&
+             m_isEnb &&
              m_state != RX_UL_SRS &&
              params->ctrlMsgList.size() == 1 &&
              (*params->ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS);
@@ -1149,8 +1147,13 @@ uint16_t NrSpectrumPhy::GetBwpId() const
 bool
 NrSpectrumPhy::IsEnb () const
 {
-  NS_ASSERT_MSG (GetDevice () != nullptr, "IsEnb should not be called before device is being set.");
-  return (DynamicCast<NrGnbNetDevice> (GetDevice ()) != nullptr);
+  return m_isEnb;
+}
+
+void
+NrSpectrumPhy::SetIsEnb (bool isEnb)
+{
+  m_isEnb = isEnb;
 }
 
 void

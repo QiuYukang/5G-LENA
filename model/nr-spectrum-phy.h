@@ -435,9 +435,16 @@ public:
    * to assign the stream id to each new instance. Stream id, starts from
    * 0 and ends at "total number of streams - 1".
    *
+   * TODO NrHelper should be declared as friend and this function should be private
    * \param streamId The stream id
    */
   void SetStreamId (uint8_t streamId);
+  /*
+   * \brief Set whether this spectrum PHY belongs to eNB or UE
+   * TODO NrHelper should be declared as friend and this function should be private
+   * \param isEnb whether the spectrum PHY belongs to eNB or UE
+   */
+  void SetIsEnb (bool isEnb);
   /**
    * \brief Get stream id of this NrSpectrumPhy
    *
@@ -678,7 +685,7 @@ private:
   bool m_enableDlDataPathlossTrace = false; //!< By default this trace is disabled to not slow done simulations
 
   uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
-
+  bool m_isEnb = false;
   double m_interStrInerfRatio {0.0}; //!< The inter-stream interference ratio.
 };
 
