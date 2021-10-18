@@ -265,6 +265,9 @@ main (int argc, char *argv[])
   cmd.AddValue ("extendedTraces",
                 "If true, it enables printing all traces",
                 params.extendedTraces);
+  cmd.AddValue ("maxUeClosestSiteDistance",
+                "Max distance between UE and the closest site",
+                params.maxUeClosestSiteDistance);
 
 
   // Parse the command line

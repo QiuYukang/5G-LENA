@@ -78,6 +78,8 @@ struct Parameters
 
   double speed = 0;
 
+  double maxUeClosestSiteDistance = 1000;
+
   // Where we will store the output files.
   std::string simTag = "default";
   std::string outputDir = "./";

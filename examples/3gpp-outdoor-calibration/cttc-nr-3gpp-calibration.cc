@@ -583,6 +583,7 @@ Nr3gppCalibration (Parameters &params)
         }
       else if (params.confType == "calibrationConf")
         {
+          gridScenario.SetMaxUeDistanceToClosestSite (params.maxUeClosestSiteDistance);
           gridScenario.CreateScenarioWithMobility (Vector (params.speed, 0, 0),
                                                    params.uesWithRandomUtHeight); //move UEs along the x axis
         }
