@@ -192,6 +192,29 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
 
 }
 
+
+static Vector GetClosestSitePosition (Vector cellCenterPos, const Ptr<ListPositionAllocator>& sitePosVector)
+{
+  double minDistance = UINT32_MAX;
+  Vector closestSitePosition;
+
+  for (uint32_t i = 0; i < sitePosVector->GetSize(); i++)
+    {
+       Vector sitePos = sitePosVector->GetNext();
+       double d_x = sitePos.x - cellCenterPos.x;
+       double d_y = sitePos.y - cellCenterPos.y;
+       double distance2D = sqrt (d_x * d_x + d_y * d_y);
+       if (distance2D < minDistance)
+         {
+           minDistance = distance2D;
+           closestSitePosition = sitePos;
+         }
+    }
+
+  NS_ABORT_MSG_IF (minDistance == UINT32_MAX, "Get closest site position function not executed properly.");
+  return closestSitePosition;
+}
+
 void
 HexagonalGridScenarioHelper::SetNumRings (uint8_t numRings)
 {
@@ -282,7 +305,6 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
 
   return center;
 }
-
 
 void
 HexagonalGridScenarioHelper::CreateScenario ()
@@ -458,13 +480,32 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
 
   for (uint32_t utId = 0; utId < m_ut.GetN (); ++utId)
     {
-      double d = std::sqrt (m_r->GetValue ());
-      double t = m_theta->GetValue ();
 
-      // Vector utPos (cellCenterPos);
-      Vector utPos (bsCenterVector->GetNext ());
-      utPos.x += d * cos (t);
-      utPos.y += d * sin (t);
+      Vector cellCenterPos = bsCenterVector->GetNext ();
+      Vector utPos (cellCenterPos);
+
+      Vector closestSitePosition = GetClosestSitePosition (cellCenterPos, sitePosVector);
+
+      double distance2DToClosestSite = 0;
+
+      // We do not want to take into account the positions that are in the part of the
+      // disk that is far away from the closest site.
+      // To determine whether the position is far away we use
+      // parameter max distance to closest site.
+      uint16_t sanityCounter = 0;
+      do
+        {
+          NS_ABORT_MSG_IF (sanityCounter++ > 1000, "Algorithm needs too many trials to find correct UE position. Please check parameters.");
+          double d = std::sqrt (m_r->GetValue ());
+          double t = m_theta->GetValue ();
+          utPos.x += d * cos (t);
+          utPos.y += d * sin (t);
+          double d_x = utPos.x - closestSitePosition.x;
+          double d_y = utPos.y - closestSitePosition.y;
+          distance2DToClosestSite = sqrt (d_x * d_x + d_y * d_y);
+        }
+      while (distance2DToClosestSite > m_maxUeDistanceToClosestSite);
+
 
       if (numUesWithRandomUtHeight > 0)
         {
@@ -487,16 +528,22 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
   mobility.SetPositionAllocator (bsPosVector);
   mobility.Install (m_bs);
 
-  //mobility.SetPositionAllocator (utPosVector);
-  //mobility.Install (m_ut);
-
-  ueMobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
-  ueMobility.SetPositionAllocator (utPosVector);
-  ueMobility.Install (m_ut);
-
-  for (uint32_t i = 0; i < m_ut.GetN (); i++)
+  if (speed.GetLength () )
     {
-      m_ut.Get (i)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (speed);
+      ueMobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
+      ueMobility.SetPositionAllocator (utPosVector);
+      ueMobility.Install (m_ut);
+
+      for (uint32_t i = 0; i < m_ut.GetN (); i++)
+        {
+          m_ut.Get (i)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (speed);
+        }
+    }
+  else
+    {
+      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+      mobility.SetPositionAllocator (utPosVector);
+      mobility.Install (m_ut);
     }
 
 
@@ -510,6 +557,13 @@ HexagonalGridScenarioHelper::AssignStreams (int64_t stream)
   m_r->SetStream (stream);
   m_theta->SetStream (stream + 1);
   return 2;
+}
+
+void
+HexagonalGridScenarioHelper::SetMaxUeDistanceToClosestSite (double maxUeDistanceToClosestSite)
+{
+  NS_ASSERT (maxUeDistanceToClosestSite > 0 + (m_minBsUtDistance>0)?m_minBsUtDistance:0);
+  m_maxUeDistanceToClosestSite = maxUeDistanceToClosestSite;
 }
 
 } // namespace ns3

@@ -110,10 +110,17 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
+  /*
+   * \brief Sets the maxmum distance betweeen UE and the closest site.
+   * Note: used only in the function CreateScenarioWithMobility
+   */
+  void SetMaxUeDistanceToClosestSite (double maxUeDistanceToClosestSite);
+
 private:
   uint8_t m_numRings {0};  //!< Number of outer rings of sites around the central site
   Vector m_centralPos {Vector (0,0,0)};     //!< Central site position
   double m_hexagonalRadius {0.0};  //!< Cell radius
+  double m_maxUeDistanceToClosestSite {10000}; //!< Set to some huge value to not affect unless is configured
 
   static std::vector<double> siteDistances;
   static std::vector<double> siteAngles;
