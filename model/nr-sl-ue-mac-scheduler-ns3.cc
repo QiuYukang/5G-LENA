@@ -27,7 +27,7 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("NrSlUeMacMacSchedulerNs3");
+NS_LOG_COMPONENT_DEFINE ("NrSlUeMacSchedulerNs3");
 NS_OBJECT_ENSURE_REGISTERED (NrSlUeMacSchedulerNs3);
 
 TypeId
