@@ -39,7 +39,6 @@ public:
   void SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                      const std::string &scenario,
                                      const std::string &confType,
-                                     const std::string &configurationScenario,
                                      const std::string &radioNetwork,
                                      std::string errorModel,
                                      const std::string &operationMode,

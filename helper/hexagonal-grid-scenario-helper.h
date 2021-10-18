@@ -34,6 +34,16 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
 {
 public:
 
+  /*
+   * \brief Set results directory for the gnuplot file
+   */
+  void SetResultsDir (std::string resultsDir);
+
+  /*
+   * \brief Set simTag for the gnuplot file
+   */
+  void SetSimTag (std::string simTag);
+
   /**
    * \brief HexagonalGridScenarioHelper
    */
@@ -127,6 +137,9 @@ private:
 
   Ptr<UniformRandomVariable> m_r; //!< random variable used for the random generation of the radius
   Ptr<UniformRandomVariable> m_theta; //!< random variable used for the generation of angle
+
+  std::string m_resultsDir; //!< results directory for the gnuplot file
+  std::string m_simTag; //!< simTag for the gnuplot file
 };
 
 } // namespace ns3

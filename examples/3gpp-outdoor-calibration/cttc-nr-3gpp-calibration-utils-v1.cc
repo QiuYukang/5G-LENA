@@ -25,7 +25,6 @@ void
 LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                            std::string scenario,
                                            [[maybe_unused]] const std::string &confType,
-                                           [[maybe_unused]] const std::string &configurationScenario,
                                            NodeContainer enbSector1Container,
                                            NodeContainer enbSector2Container,
                                            NodeContainer enbSector3Container,

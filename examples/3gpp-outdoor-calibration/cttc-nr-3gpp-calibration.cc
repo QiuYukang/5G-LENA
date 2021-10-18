@@ -176,7 +176,7 @@ Parameters::Validate (void) const
 
   if (radioNetwork == "LTE")
     {
-      NS_ABORT_MSG_IF ("LTE is not supported currently");
+      NS_FATAL_ERROR ("LTE not supported currently");
     }
   else if (radioNetwork == "NR")
     {
@@ -227,8 +227,6 @@ ChooseCalibrationScenario (Parameters &params)
 
           params.downtiltAngle = 90;
           params.gnbEnable3gppElement = true;
-          params.ueHSpacing = 0.5;
-          params.ueVSpacing = 0.5;
 
           params.scheduler = "RR";
 
@@ -543,6 +541,8 @@ Nr3gppCalibration (Parameters &params)
     {
       std::cout << "  hexagonal grid: ";
       gridScenario.SetScenarioParameters (scenarioParams);
+      gridScenario.SetSimTag (params.simTag);
+      gridScenario.SetResultsDir (params.outputDir);
       gridScenario.SetNumRings (params.numOuterRings);
       gnbSites = gridScenario.GetNumSites ();
       uint32_t ueNum = params.ueNumPergNb * gnbSites * sectors;
@@ -645,7 +645,6 @@ Nr3gppCalibration (Parameters &params)
       LenaV1Utils::SetLenaV1SimulatorParameters (sector0AngleRad,
                                                  params.scenario,
                                                  params.confType,
-                                                 params.nrConfigurationScenario,
                                                  gnbSector1Container,
                                                  gnbSector2Container,
                                                  gnbSector3Container,
@@ -680,7 +679,6 @@ Nr3gppCalibration (Parameters &params)
       LenaV2Utils::SetLenaV2SimulatorParameters (sector0AngleRad,
                                                  params.scenario,
                                                  params.confType,
-                                                 params.nrConfigurationScenario,
                                                  params.radioNetwork,
                                                  params.errorModel,
                                                  params.operationMode,

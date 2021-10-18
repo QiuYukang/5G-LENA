@@ -135,7 +135,6 @@ void
 LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            const std::string &scenario,
                                            const std::string &confType,
-                                           const std::string &nrConfigurationScenario,
                                            const std::string &radioNetwork,
                                            std::string errorModel,
                                            const std::string &operationMode,
@@ -227,7 +226,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       harqProcesses = 20;
       if (errorModel == "")
         {
-          errorModel = "ns3::NrEesmCcT2";
+          errorModel = "ns3::NrEesmIrT1";
         }
       else if (errorModel == "ns3::NrLteMiErrorModel")
         {
@@ -314,6 +313,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         }
 
       txPowerBs = gnbTxPower;
+      std::cout << "gnbTxPower: " << txPowerBs << std::endl;
     }
   else
     {
@@ -631,6 +631,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   RealisticBfManager::TriggerEvent realTriggerEvent {RealisticBfManager::SRS_COUNT};
 
+  //TODO: Optimize this code (repeated code)
   // if there is no fading, that means that there is no bamforming
   if (enableFading && bfMethod != "FixedBeam")
     {
@@ -662,7 +663,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         }
       else if (radioNetwork == "LTE")   //Omni for LTE
         {
-          beamformingHelper->SetBeamformingMethod (QuasiOmniDirectPathBeamforming::GetTypeId ());
+          if (bfMethod == "Omni")
+            {
+              beamformingHelper->SetBeamformingMethod (QuasiOmniDirectPathBeamforming::GetTypeId ());
+            }
+          else if (bfMethod == "CellScan")
+            {
+              beamformingHelper->SetBeamformingMethod (CellScanBeamforming::GetTypeId ());
+              beamformingHelper->SetAttribute ("BeamformingPeriodicity", TimeValue (MilliSeconds (10)));
+            }
+          else
+            {
+              NS_ABORT_MSG ("We shouldn't be here. bfMethod is: " << bfMethod);
+            }
         }
     }
 

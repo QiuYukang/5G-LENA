@@ -84,7 +84,7 @@ struct Parameters
   std::string outputDir = "./";
 
   // Error models
-  std::string errorModel = "";
+  std::string errorModel = "ns3::NrEesmIrT1";
 
   bool lenaCalibration = true;
   bool enableFading = true;

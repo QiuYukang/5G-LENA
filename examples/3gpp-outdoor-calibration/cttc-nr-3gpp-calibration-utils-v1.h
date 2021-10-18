@@ -39,7 +39,6 @@ public:
   SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                 std::string scenario,
                                 const std::string &confType,
-                                const std::string &configurationScenario,
                                 NodeContainer enbSector1Container,
                                 NodeContainer enbSector2Container,
                                 NodeContainer enbSector3Container,

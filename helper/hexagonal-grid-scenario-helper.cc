@@ -24,6 +24,18 @@
 
 namespace ns3 {
 
+void
+HexagonalGridScenarioHelper::SetResultsDir (std::string resultsDir)
+{
+  m_resultsDir = resultsDir;
+}
+
+void
+HexagonalGridScenarioHelper::SetSimTag (std::string simTag)
+{
+  m_simTag = simTag;
+}
+
 HexagonalGridScenarioHelper::HexagonalGridScenarioHelper ()
 {
   m_r = CreateObject<UniformRandomVariable> ();
@@ -105,7 +117,9 @@ static void
 PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
                          const Ptr<const ListPositionAllocator> &cellCenterVector,
                          const Ptr<const ListPositionAllocator> &utPosVector,
-                         double cellRadius)
+                         double cellRadius,
+                         std::string resultsDir,
+                         std::string simTag)
 {
   uint16_t numCells = cellCenterVector->GetSize ();
   uint16_t numSites = sitePosVector->GetSize ();
@@ -117,8 +131,8 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
 
   // Try to open a new GNUPLOT file
   std::ofstream topologyOutfile;
-  std::string topologyFileRoot = "./hexagonal-topology";
-  std::string topologyFileName = topologyFileRoot + ".gnuplot";
+  std::string topologyFileRoot = resultsDir + "./hexagonal-topology";
+  std::string topologyFileName = topologyFileRoot + simTag +".gnuplot";
   topologyOutfile.open (topologyFileName.c_str (), std::ios_base::out | std::ios_base::trunc);
   if (!topologyOutfile.is_open ())
     {
@@ -126,7 +140,7 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
     }
 
   topologyOutfile << "set term pdf" << std::endl;
-  topologyOutfile << "set output \"" << topologyFileRoot << ".pdf\"" << std::endl;
+  topologyOutfile << "set output \"" << topologyFileName << ".pdf\"" << std::endl;
   topologyOutfile << "set style arrow 1 lc \"black\" lt 1 head filled" << std::endl;
 //  topologyOutfile << "set autoscale" << std::endl;
 
@@ -367,7 +381,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   // Need to weight r to get uniform in the sector hexagon
   // See https://stackoverflow.com/questions/5837572
   // Set max = radius^2 here, then take sqrt below
-  const double outerR = m_hexagonalRadius * std::sqrt(3) / 2 - m_minBsUtDistance;
+  const double outerR = (std::sqrt(3) / 2) * m_hexagonalRadius - m_minBsUtDistance;
   m_r->SetAttribute ("Min", DoubleValue (0));
   m_r->SetAttribute ("Max", DoubleValue (outerR * outerR));
   m_theta->SetAttribute ("Min", DoubleValue (-1.0 * M_PI));
@@ -396,7 +410,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   mobility.SetPositionAllocator (utPosVector);
   mobility.Install (m_ut);
 
-  PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius);
+  PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius, m_resultsDir, m_simTag);
 
 }
 
@@ -482,7 +496,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
     {
 
       Vector cellCenterPos = bsCenterVector->GetNext ();
-      Vector utPos (cellCenterPos);
+      Vector utPos;
 
       Vector closestSitePosition = GetClosestSitePosition (cellCenterPos, sitePosVector);
 
@@ -498,6 +512,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
           NS_ABORT_MSG_IF (sanityCounter++ > 1000, "Algorithm needs too many trials to find correct UE position. Please check parameters.");
           double d = std::sqrt (m_r->GetValue ());
           double t = m_theta->GetValue ();
+          utPos = cellCenterPos;
           utPos.x += d * cos (t);
           utPos.y += d * sin (t);
           double d_x = utPos.x - closestSitePosition.x;
@@ -547,7 +562,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
     }
 
 
-  PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius);
+  PlotHexagonalDeployment (sitePosVector, bsCenterVector, utPosVector, m_hexagonalRadius, m_resultsDir, m_simTag);
 
 }
 
