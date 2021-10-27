@@ -34,9 +34,62 @@ HexagonalGridScenarioHelper::~HexagonalGridScenarioHelper ()
 {
 }
 
+const double distTo2ndRing = std::sqrt (3);
+const double distTo4thRing = std::sqrt (7);
 // Site positions in terms of distance and angle w.r.t. the central site
-std::vector<double> HexagonalGridScenarioHelper::siteDistances {0,1,1,1,1,1,1,std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),std::sqrt(3),2,2,2,2,2,2};
-std::vector<double> HexagonalGridScenarioHelper::siteAngles {0,30,90,150,210,270,330,0,60,120,180,240,300,30,90,150,210,270,330};
+std::vector<double> HexagonalGridScenarioHelper::siteDistances {0,
+                                                                1, 1, 1, 1, 1, 1,
+                                                                distTo2ndRing, distTo2ndRing, distTo2ndRing, distTo2ndRing, distTo2ndRing, distTo2ndRing,
+                                                                2, 2, 2, 2, 2, 2,
+                                                                distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing, distTo4thRing,
+                                                                3, 3, 3, 3, 3, 3
+};
+
+/*
+ * Site angles w.r.t. the central site center.
+ *
+ * Note that the angles in the following vector are when looking the deployment in which hexagons are oriented in the following way:
+ *
+ *    ^               ______
+ *    |              /      \
+ *    |       ______/        \
+ *    |      /      \        /
+ *  y |     /        \______/
+ *    |     \        /      \
+ *    |      \______/        \
+ *    |             \        /
+ *    |              \______/
+ *    ------------------------>
+ *          x
+ *
+ *  This is important to note because the gnuplot function of this the HexagonalGridScenarioHelper plots hexagon in different orientation pointing towards top-bottom, e.g.:
+ *
+ *     /\
+ *   /    \
+ *  |      |
+ *  |      |
+ *   \    /
+ *     \/
+ *
+*/
+
+// the angle of the first hexagon of the fourth ring in the first quadrant
+const double ang4thRingAlpha1 = atan2 (1, (3 * sqrt (3))) * (180 / M_PI);
+// the angle of the second hexagon of the fourth ring in the first quadrant
+const double ang4thRingAlpha2 = 90 - atan2 (sqrt (3), 2) * (180 / M_PI);
+// the angle of the third hexagon of the fourth ring in the first quadrant
+const double ang4thRingAlpha3 = 90 - atan2 (3 , (5 * sqrt(3))) * (180 / M_PI);
+
+std::vector<double> HexagonalGridScenarioHelper::siteAngles {0, // 0 ring
+                                                             30, 90, 150, 210, 270, 330, // 1. ring
+                                                              0, 60, 120, 180, 240, 300, // 2. ring
+                                                             30, 90, 150, 210, 270, 330, // 3. ring
+                                                             ang4thRingAlpha1, ang4thRingAlpha2, ang4thRingAlpha3, // 4. ring 1. quadrant
+                                                             180 - ang4thRingAlpha3, 180 - ang4thRingAlpha2, 180 - ang4thRingAlpha1, // 4. ring 2. quadrant
+                                                             180 + ang4thRingAlpha1, 180 + ang4thRingAlpha2, 180 + ang4thRingAlpha3, // 4. ring 3. quadrant
+                                                             - ang4thRingAlpha3, - ang4thRingAlpha2,  -ang4thRingAlpha1,// 4. ring 4. quadrant
+                                                             30, 90, 150, 210, 270, 330  // 5. ring
+};
 
 /**
  * \brief Creates a GNUPLOT with the hexagonal deployment including base stations
@@ -77,7 +130,7 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
   topologyOutfile << "set style arrow 1 lc \"black\" lt 1 head filled" << std::endl;
 //  topologyOutfile << "set autoscale" << std::endl;
 
-  uint16_t margin = (8 * cellRadius) + 1;  //!< This is the farthest hexagonal vertex from the cell center
+  uint16_t margin = (12 * cellRadius) + 1;  //!< This is the farthest hexagonal vertex from the cell center
   topologyOutfile << "set xrange [-" << margin << ":" << margin <<"]" << std::endl;
   topologyOutfile << "set yrange [-" << margin << ":" << margin <<"]" << std::endl;
   //FIXME: Need to recalculate ranges if the scenario origin is different to (0,0)
@@ -142,10 +195,18 @@ PlotHexagonalDeployment (const Ptr<const ListPositionAllocator> &sitePosVector,
 void
 HexagonalGridScenarioHelper::SetNumRings (uint8_t numRings)
 {
-  NS_ABORT_MSG_IF(numRings > 3, "Unsupported number of outer rings (Maximum is 3");
+  NS_ABORT_MSG_IF(numRings > 5, "Unsupported number of outer rings (Maximum is 5");
 
   m_numRings = numRings;
 
+  /*
+   * 0 rings = 1 + 6 * 0 = 1 site
+   * 1 rings = 1 + 6 * 1 = 7 sites
+   * 2 rings = 1 + 6 * 2 = 13 sites
+   * 3 rings = 1 + 6 * 3 = 19 site5
+   * 4 rings = 1 + 6 * 5 = 31 sites
+   * 5 rings = 1 + 6 * 6 = 37 sites
+   */
   switch (numRings)
   {
     case 0:
@@ -159,6 +220,12 @@ HexagonalGridScenarioHelper::SetNumRings (uint8_t numRings)
       break;
     case 3:
       m_numSites = 19;
+      break;
+    case 4:
+      m_numSites = 31;
+      break;
+    case 5:
+      m_numSites = 37;
       break;
   }
   SetSitesNumber (m_numSites);
@@ -226,7 +293,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   m_ut.Create (m_numUt);
 
   NS_ASSERT (m_isd > 0);
-  NS_ASSERT (m_numRings < 4);
+  NS_ASSERT (m_numRings < 6);
   NS_ASSERT (m_hexagonalRadius > 0);
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);
@@ -320,7 +387,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
   m_ut.Create (m_numUt);
 
   NS_ASSERT (m_isd > 0);
-  NS_ASSERT (m_numRings < 4);
+  NS_ASSERT (m_numRings < 6);
   NS_ASSERT (m_hexagonalRadius > 0);
   NS_ASSERT (m_bsHeight >= 0.0);
   NS_ASSERT (m_utHeight >= 0.0);
