@@ -728,13 +728,15 @@ LenaLteComparison (const Parameters &params)
           remDevBySector = ueNdBySector;
         }
 
+      uint32_t sectorIndex = 0;
       // Reverse order so we get sector 1 for the remSector == 0 case
       for (uint32_t sector = sectors; sector > 0; --sector)
         {
-          if ( (params.remSector == sector) || (params.remSector == 0) )
+          if (params.remSector == sector || params.remSector == 0 )
             {
-              remNd.Add (*remNdBySector[sector]);
-              remDevice = remDevBySector[sector]->Get (0);
+              sectorIndex = sector-1;
+              remNd.Add (*remNdBySector[sectorIndex]);
+              remDevice = remDevBySector[sectorIndex]->Get (0);
             }
         }
 
@@ -760,12 +762,13 @@ LenaLteComparison (const Parameters &params)
         {
           if ( (params.remSector == sector) || (params.remSector == 0) )
             {
+              sectorIndex = sector-1;
               for (uint32_t siteId = 0; siteId < gnbSites; ++siteId)
                 {
-                  gnbNdBySector[sector]->Get (siteId)
+                  gnbNdBySector[sectorIndex]->Get (siteId)
                   ->GetObject<NrGnbNetDevice>()
                   ->GetPhy (remPhyIndex)
-                  ->ChangeBeamformingVector (ueNdBySector[sector]->Get (siteId));
+                  ->ChangeBeamformingVector (ueNdBySector[sectorIndex]->Get (siteId));
                 }
             }
         }
