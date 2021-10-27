@@ -719,8 +719,8 @@ LenaLteComparison (const Parameters &params)
       Ptr<NetDevice> remDevice;
 
       // params.ulRem:
-      std::vector<NetDeviceContainer *> & remNdBySector {ueNdBySector};
-      std::vector<NetDeviceContainer *> & remDevBySector {gnbNdBySector};
+      std::vector<NetDeviceContainer *> remNdBySector {ueNdBySector};
+      std::vector<NetDeviceContainer *> remDevBySector {gnbNdBySector};
 
       if (params.dlRem)
         {
