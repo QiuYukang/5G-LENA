@@ -148,8 +148,8 @@ Parameters::Validate (void) const
   NS_ABORT_MSG_IF (bandwidthMHz != 40 && bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
                    "Valid bandwidth values are 40, 20, 10, 5, you set " << bandwidthMHz);
 
-  NS_ABORT_MSG_IF (trafficScenario > 3,
-                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2 3");
+  NS_ABORT_MSG_IF (trafficScenario > 4 && trafficScenario != UINT32_MAX,
+                   "Traffic scenario " << trafficScenario << " not valid. Valid values are 0 1 2 3 4");
 
   NS_ABORT_MSG_IF (numerologyBwp > 4,
                    "At most 4 bandwidth parts supported.");
@@ -218,7 +218,10 @@ ChooseCalibrationScenario (Parameters &params)
       if (params.radioNetwork == "NR")
         {
           params.freqScenario = 1;
-          params.trafficScenario = 0; //full buffer
+          if (params.trafficScenario == UINT32_MAX )
+            { // if not configured then set it
+              params.trafficScenario = 0; //full buffer
+            }
           params.ueTxPower = 23;
           params.speed = 0.8333; // in m/s (3 km/h)
 
@@ -407,8 +410,29 @@ Nr3gppCalibration (Parameters &params)
           }
         lambda = 10000 / params.ueNumPergNb;
         break;
+      case 4: // let's put 120 Mbps with 20 MHz of bandwidth. Everything else is scaled
+        packetCount = 0xFFFFFFFF;
+        switch (params.bandwidthMHz)
+        {
+          case 40:
+            udpPacketSize = 3000;
+            break;
+          case 20:
+            udpPacketSize = 1500;
+            break;
+          case 10:
+            udpPacketSize = 750;
+            break;
+          case 5:
+            udpPacketSize = 375;
+            break;
+          default:
+            udpPacketSize = 1500;
+        }
+        lambda = 10000 / params.ueNumPergNb;
+        break;
       default:
-        NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2 3");
+        NS_FATAL_ERROR ("Traffic scenario " << params.trafficScenario << " not valid. Valid values are 0 1 2 3 4");
     }
 
   std::cout << "  statistics\n";
@@ -1302,7 +1326,31 @@ operator << (std::ostream & os, const Parameters & parameters)
         MSG ("  Inter-packet interval (per UE)") << 1 / (10000.0 / p.ueNumPergNb) << " s";
 
         break;
-      default:
+     case 4:
+       MSG ("  Max loading (120 Mbps/20 MHz)");
+       MSG ("  Number of packets") << "infinite";
+       MSG ("  Packet size");
+       switch (p.bandwidthMHz)
+       {
+         case 40:
+           os << "3000 bytes";
+           break;
+         case 20:
+           os << "1500 bytes";
+           break;
+         case 10:
+           os << "750 bytes";
+           break;
+         case 5:
+           os << "375 bytes";
+           break;
+         default:
+           os << "1500 bytes";
+       }
+       // 1 s / (10000 / nUes)
+       MSG ("  Inter-packet interval (per UE)") << p.ueNumPergNb / 10.0 << " ms";
+       break;
+         default:
         os << "\n  (Unknown configuration)";
     }
 

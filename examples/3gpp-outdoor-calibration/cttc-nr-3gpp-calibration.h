@@ -95,7 +95,7 @@ struct Parameters
   bool enableUlPc = false;
   std::string powerAllocation = "UniformPowerAllocUsed";
 
-  uint32_t trafficScenario = 0;
+  uint32_t trafficScenario = UINT32_MAX;
 
   std::string scheduler = "PF";
   uint32_t freqScenario = 0;
