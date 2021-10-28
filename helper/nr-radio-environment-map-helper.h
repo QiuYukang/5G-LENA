@@ -28,9 +28,9 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-channel-model.h>
-#include <ns3/phased-array-spectrum-propagation-loss-model.h>
 #include <fstream>
 #include <ns3/mobility-helper.h>
+#include <chrono>
 
 namespace ns3 {
 
@@ -483,6 +483,11 @@ private:
   PropagationModels CreateTemporalPropagationModels () const;
 
   /**
+   * \brief Prints REM generation progress report
+   */
+  void PrintProgressReport (uint32_t* remSizeNextReport);
+
+  /**
    * \brief Prints the position of the RTDs.
    */
   void PrintGnuplottableGnbListToFile (const std::string &filename);
@@ -530,6 +535,8 @@ private:
 
   std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
   std::list<RemPoint> m_rem; ///< List of REM points.
+
+  std::chrono::system_clock::time_point m_remStartTime; //!< Time at which REM generation has started
 
   enum RemMode m_remMode;
 

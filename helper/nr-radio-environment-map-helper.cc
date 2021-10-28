@@ -37,9 +37,6 @@
 #include <ns3/nr-spectrum-phy.h>
 #include "nr-spectrum-value-helper.h"
 #include <ns3/beamforming-vector.h>
-#include <ns3/spectrum-propagation-loss-model.h>
-
-#include <chrono>
 #include <ctime>
 #include <fstream>
 #include <limits>
@@ -576,17 +573,19 @@ NrRadioEnvironmentMapHelper::DelayedInstall (const NetDeviceContainer &rtdNetDev
                                              const Ptr<NetDevice> &rrdDevice)
 {
   NS_LOG_FUNCTION (this);
+  //Save REM creation start time
+  m_remStartTime = std::chrono::system_clock::now ();
 
   ConfigureRrd (rrdDevice);
   ConfigureRtdList (rtdNetDev);
   CreateListOfRemPoints ();
   if (m_remMode == COVERAGE_AREA)
     {
-      CalcCoverageAreaRemMap();
+      CalcCoverageAreaRemMap ();
     }
   else if (m_remMode == BEAM_SHAPE)
     {
-      CalcBeamShapeRemMap();
+      CalcBeamShapeRemMap ();
     }
   else if (m_remMode == UE_COVERAGE)
     {
@@ -817,9 +816,10 @@ void
 NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
 {
   NS_LOG_FUNCTION (this);
-  //Save REM creation start time
-  auto remStartTime = std::chrono::system_clock::now ();
   uint16_t calcRxPsdCounter = 0;
+
+  uint32_t remSizeNextReport = m_rem.size () / 100;
+  uint32_t remPointCounter = 0;
 
   for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
       itRemPoint != m_rem.end ();
@@ -846,11 +846,6 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
 
                // calculate received power from the current RTD device
               receivedPowerList.push_back (CalcRxPsdValue (*itRtd, m_rrd));
-
-              NS_LOG_INFO ("Done:" <<
-                           (double)calcRxPsdCounter/(m_rem.size()*m_numOfIterationsToAverage*m_remDev.size ()) * 100 <<
-                           " %."); // how many times will be called CalcRxPsdValues
-
             } //end for std::list<RemDev>::iterator  (RTDs)
 
           sumSnr += CalculateMaxSnr (receivedPowerList);
@@ -874,10 +869,15 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap ()
       NS_LOG_INFO ("Avg sinr value saved:" << itRemPoint->avgSinrDb);
       NS_LOG_INFO ("Avg ipsd value saved (dBm):" << itRemPoint->avRxPowerDbm);
 
+      if (++remPointCounter == remSizeNextReport)
+        {
+          PrintProgressReport (&remSizeNextReport);
+        }
+
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
   auto remEndTime = std::chrono::system_clock::now ();
-  std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+  std::chrono::duration<double> remElapsedSeconds = remEndTime - m_remStartTime;
   NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
 }
@@ -936,9 +936,9 @@ void
 NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
 {
   NS_LOG_FUNCTION (this);
-  //Save REM creation start time
-  auto remStartTime = std::chrono::system_clock::now ();
   uint16_t calcRxPsdCounter = 0;
+  uint32_t remSizeNextReport = m_rem.size () / 100;
+  uint32_t remPointCounter = 0;
 
   for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
       itRemPoint != m_rem.end ();
@@ -1035,22 +1035,47 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap ()
       //do the average (for the rxPowers in each RemPoint) in linear and then convert to dBm
       itRemPoint->avRxPowerDbm = WToDbm (rxPsdsAllIt / static_cast <double> (m_numOfIterationsToAverage));
 
+      if (++remPointCounter == remSizeNextReport)
+        {
+          PrintProgressReport (&remSizeNextReport);
+        }
+
       NS_LOG_DEBUG ("itRemPoint->avRxPowerDb  in dB: " << itRemPoint->avRxPowerDbm);
 
     } //end for std::list<RemPoint>::iterator  (RemPoints)
 
   auto remEndTime = std::chrono::system_clock::now ();
-  std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+  std::chrono::duration<double> remElapsedSeconds = remEndTime - m_remStartTime;
   NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
+}
+
+void
+NrRadioEnvironmentMapHelper::PrintProgressReport (uint32_t* remSizeNextReport)
+{
+  auto remTimeUpToNow = std::chrono::system_clock::now ();
+  std::chrono::duration<double> remElapsedSecondsUpToNow = remTimeUpToNow - m_remStartTime;
+  double minutesUpToNow = ((double) remElapsedSecondsUpToNow.count ()) / 60;
+  double minutesLeftEstimated = ((double) (minutesUpToNow) / *remSizeNextReport) * ((m_rem.size () - *remSizeNextReport));
+  std::cout << "\n REM done:" << ceil (((double) *remSizeNextReport / m_rem.size()) * 100) << " %." << " Minutes up to now: " << minutesUpToNow << ". Minutes left estimated:" << minutesLeftEstimated << "."; // how many times will be called CalcRxPsdValues
+  // we want progress report for 1%, 10%, 20%, 30%, and so on
+  if (*remSizeNextReport < m_rem.size () / 10 )
+    {
+      *remSizeNextReport = m_rem.size () / 10;
+    }
+  else
+    {
+      *remSizeNextReport += m_rem.size () / 10;
+    }
 }
 
 void
 NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
 {
     NS_LOG_FUNCTION (this);
-    //Save REM creation start time
-    auto remStartTime = std::chrono::system_clock::now ();
+
+    uint32_t remSizeNextReport = m_rem.size () / 100;
+    uint32_t remPointCounter = 0;
 
     for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin ();
         itRemPoint != m_rem.end ();
@@ -1118,10 +1143,15 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap ()
         itRemPoint->avgSnrDb = sumSnr / static_cast <double> (m_numOfIterationsToAverage);
         itRemPoint->avgSinrDb = sumSinr / static_cast <double> (m_numOfIterationsToAverage);
 
+        if (++remPointCounter == remSizeNextReport)
+          {
+            PrintProgressReport (&remSizeNextReport);
+          }
+
       }//end for std::list<RemPoint>::iterator  (RemPoints)
 
     auto remEndTime = std::chrono::system_clock::now ();
-    std::chrono::duration<double> remElapsedSeconds = remEndTime - remStartTime;
+    std::chrono::duration<double> remElapsedSeconds = remEndTime - m_remStartTime;
     NS_LOG_INFO ("REM map created. Total time needed to create the REM map:" <<
                  remElapsedSeconds.count () / 60 << " minutes.");
 }
