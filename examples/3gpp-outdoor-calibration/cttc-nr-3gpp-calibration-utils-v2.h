@@ -96,7 +96,9 @@ public:
                                      double polSlantAngleGnb2,
                                      double polSlantAngleUe1,
                                      double polSlantAngleUe2,
-                                     std::string bfMethod);
+                                     std::string bfMethod,
+                                     uint16_t beamConfSector,
+                                     double beamConfElevation);
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,

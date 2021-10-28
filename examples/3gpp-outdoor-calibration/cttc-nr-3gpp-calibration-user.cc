@@ -269,6 +269,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("maxUeClosestSiteDistance",
                 "Max distance between UE and the closest site",
                 params.maxUeClosestSiteDistance);
+  cmd.AddValue ("bfConfSector",
+                "Beamforming fixed beam sector value.",
+                params.bfConfSector);
+  cmd.AddValue ("bfConfElevation",
+                "Beamforming fixed beam elevation value.",
+                params.bfConfElevation);
 
 
   // Parse the command line

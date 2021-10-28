@@ -90,6 +90,10 @@ struct Parameters
   bool enableFading = true;
   bool enableShadowing = true;
   std::string bfMethod = "CellScan";
+
+  uint16_t bfConfSector = 1;
+  double bfConfElevation = 30;
+
   bool enableRealBF = false;
 
   bool enableUlPc = false;

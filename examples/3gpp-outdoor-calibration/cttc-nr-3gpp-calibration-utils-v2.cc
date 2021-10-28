@@ -93,7 +93,9 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
                    const std::string & pattern,
                    uint32_t bwpIndex,
                    double gnbFirstSubArray,
-                   double gnbSecondSubArray)
+                   double gnbSecondSubArray,
+                   uint16_t beamConfSector,
+                   double beamConfElevation)
 {
   // Change the antenna orientation
   Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
@@ -103,7 +105,8 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
 
   // configure the beam that points toward the center of hexagonal
   // In case of beamforming, it will be overwritten.
-  phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (3, 30);
+  //phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (3, 30);
+  phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (beamConfSector, beamConfElevation);
 
   // Set numerology
   nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));      // BWP
@@ -191,7 +194,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            double polSlantAngleGnb2,
                                            double polSlantAngleUe1,
                                            double polSlantAngleUe2,
-                                           std::string bfMethod)
+                                           std::string bfMethod,
+                                           uint16_t beamConfSector,
+                                           double beamConfElevation)
 {
   /*
    * Create the radio network related parameters
@@ -879,12 +884,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
       // First BWP (in case of FDD) or only BWP (in case of TDD)
       ConfigurePhy (nrHelper, gnb, orientation, numerology, txPowerBs, pattern,
-                    0, gnbFirstSubArray, gnbSecondSubArray);
+                    0, gnbFirstSubArray, gnbSecondSubArray, beamConfSector, beamConfElevation);
 
       if (numBwps == 2)  //FDD
         {
           ConfigurePhy (nrHelper, gnb, orientation, numerology, txPowerBs, pattern,
-                        1, gnbFirstSubArray, gnbSecondSubArray);
+                        1, gnbFirstSubArray, gnbSecondSubArray, beamConfSector, beamConfElevation);
           // Link the two FDD BWP
           nrHelper->GetBwpManagerGnb (gnb)->SetOutputLink (1, 0);
         }

@@ -760,7 +760,9 @@ Nr3gppCalibration (Parameters &params)
                                                  params.polSlantAngleGnb2,
                                                  params.polSlantAngleUe1,
                                                  params.polSlantAngleUe2,
-                                                 params.bfMethod);
+                                                 params.bfMethod,
+                                                 params.bfConfSector,
+                                                 params.bfConfElevation);
     }
 
   // Check we got one valid helper
