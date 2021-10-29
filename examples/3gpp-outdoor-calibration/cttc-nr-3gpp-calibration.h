@@ -134,7 +134,6 @@ struct Parameters
   double ueVSpacing = 0.5;
 
   double downtiltAngle = 0.0;
-  double bearingAngle = 0.0;
 
   //Whether gNB and UE antenna arrays support
   bool crossPolarizedGnb = true;

@@ -229,8 +229,6 @@ ChooseCalibrationScenario (Parameters &params)
 
           params.ueNumRows = 1; //only in DenseB we have 2x4
           params.ueNumColumns = 1;
-
-          params.downtiltAngle = 90;
           params.gnbEnable3gppElement = true;
 
           params.scheduler = "RR";
@@ -254,7 +252,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.gnbVSpacing = 0.8;
 
               params.ueEnable3gppElement = false;
-
+              params.downtiltAngle = 10;
               params.gnbNoiseFigure = 5;
               params.ueNoiseFigure = 7;
             }
@@ -279,7 +277,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.gnbVSpacing = 0.5;
 
               params.ueEnable3gppElement = true;
-
+              params.downtiltAngle = 10;
               params.gnbNoiseFigure = 7;
               params.ueNoiseFigure = 10;
             }
@@ -300,7 +298,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.gnbVSpacing = 0.8;
 
               params.ueEnable3gppElement = false;
-
+              params.downtiltAngle = 0;  // points towards to horizontal direction
               params.gnbNoiseFigure = 5;
               params.ueNoiseFigure = 7;
             }
@@ -321,7 +319,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.gnbVSpacing = 0.8;
 
               params.ueEnable3gppElement = false;
-
+              params.downtiltAngle = 0; // points towards to horizontal direction
               params.gnbNoiseFigure = 5;
               params.ueNoiseFigure = 7;
             }
@@ -742,7 +740,6 @@ Nr3gppCalibration (Parameters &params)
                                                  params.gnbTxPower,
                                                  params.ueTxPower,
                                                  params.downtiltAngle,
-                                                 params.bearingAngle,
                                                  params.gnbNumRows,
                                                  params.gnbNumColumns,
                                                  params.ueNumRows,
@@ -1136,8 +1133,7 @@ operator << (std::ostream & os, const Parameters & parameters)
       MSG ("gNB/UE Tx Power (dBm)") << p.gnbTxPower <<
           (", ") << p.ueTxPower;
 
-      MSG ("Downtilt/Bearing angle (deg)/(rad)") << p.downtiltAngle <<
-          (", ") << p.bearingAngle;
+      MSG ("Downtilt(deg)") << p.downtiltAngle;
 
       MSG ("gNB Antenna") << p.gnbNumRows << (", ") << p.gnbNumColumns <<
           (", ") << p.gnbHSpacing << (", ") << p.gnbVSpacing;

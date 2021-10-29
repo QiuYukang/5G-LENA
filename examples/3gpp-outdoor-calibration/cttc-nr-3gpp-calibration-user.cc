@@ -144,9 +144,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("downtiltAngle",
                 "Base station antenna down tilt angle (deg)",
                 params.downtiltAngle);
-  cmd.AddValue ("bearingAngle",
-                "Base station antenna bearing angle (rad)",
-                params.bearingAngle);
   cmd.AddValue ("enableUlPc",
                 "Whether to enable or disable UL power control",
                 params.enableUlPc);

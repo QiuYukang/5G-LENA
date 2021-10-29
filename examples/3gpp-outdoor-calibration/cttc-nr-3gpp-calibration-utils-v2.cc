@@ -172,7 +172,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            double gnbTxPower,
                                            double ueTxPower,
                                            double downtiltAngle,
-                                           double bearingAngle,
                                            const uint32_t gnbNumRows,
                                            const uint32_t gnbNumColumns,
                                            const uint32_t ueNumRows,
@@ -749,7 +748,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   nrHelper->SetGnbAntennaAttribute ("AntennaVerticalSpacing", DoubleValue (gnbVSpacing));
 
   nrHelper->SetGnbAntennaAttribute ("DowntiltAngle", DoubleValue (downtiltAngle * M_PI / 180.0));
-  nrHelper->SetGnbAntennaAttribute ("BearingAngle", DoubleValue (bearingAngle));
 
   if (gnbEnable3gppElement)
     {

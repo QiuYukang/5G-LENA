@@ -74,7 +74,6 @@ public:
                                      double gnbTxPower,
                                      double ueTxPower,
                                      double downtiltAngle,
-                                     double bearingAngle,
                                      const uint32_t gnbNumRows,
                                      const uint32_t gnbNumColumns,
                                      const uint32_t ueNumRows,
