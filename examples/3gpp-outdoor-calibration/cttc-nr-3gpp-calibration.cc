@@ -168,8 +168,8 @@ Parameters::Validate (void) const
                    "Unrecognized scheduler: " << scheduler);
   NS_ABORT_MSG_IF (radioNetwork == "NR" && enableFading == false && enableRealBF == true,
                    "Realistic BF should not be enabled in when fading is disabled");
-  NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
-                   "Shadowing must be disabled fading is disabled mode");
+  //NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
+  //                 "Shadowing must be disabled fading is disabled mode");
   NS_ABORT_MSG_IF (bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam" ,
                    "For bfMethod you can choose among Omni, CellScan and FixedBeam");
 
@@ -245,6 +245,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.uesWithRandomUtHeight = 0.8;
               params.isd = 200;
               params.o2iThreshold = 0.8;
+              params.o2iLowLossThreshold = 0.8;
 
               params.gnbNumRows = 4;
               params.gnbNumColumns = 8;
@@ -267,6 +268,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.bsHeight = 25;
               params.isd = 200;
               params.o2iThreshold = 0.8;
+              params.o2iLowLossThreshold = 0.8;
 
               params.gnbNumRows = 4;
               params.gnbNumColumns = 8;
@@ -756,6 +758,7 @@ Nr3gppCalibration (Parameters &params)
                                                  params.enableRealBF,
                                                  params.enableShadowing,
                                                  params.o2iThreshold,
+                                                 params.o2iLowLossThreshold,
                                                  params.crossPolarizedGnb,
                                                  params.crossPolarizedUe,
                                                  params.polSlantAngleGnb1,

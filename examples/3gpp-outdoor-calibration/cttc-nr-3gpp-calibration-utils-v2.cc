@@ -188,6 +188,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            bool enableRealBF,
                                            bool enableShadowing,
                                            double o2iThreshold,
+                                           double o2iLowLossThreshold,
                                            bool crossPolarizedGnb,
                                            bool crossPolarizedUe,
                                            double polSlantAngleGnb1,
@@ -334,8 +335,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (100)));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (100)));
   nrHelper->SetChannelConditionModelAttribute ("O2iThreshold", DoubleValue (o2iThreshold));
+  nrHelper->SetChannelConditionModelAttribute ("O2iLowLossThreshold", DoubleValue (o2iLowLossThreshold));
 
   std::cout << "o2iThreshold: " << o2iThreshold << std::endl;
+  std::cout << "o2iLowLossThreshold: " << o2iLowLossThreshold << std::endl;
 
   // Disable shadowing in calibration, and enable it in non-calibration mode
   //nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (!calibration));

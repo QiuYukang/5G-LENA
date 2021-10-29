@@ -90,6 +90,7 @@ public:
                                      bool enableRealBF,
                                      bool enableShadowing,
                                      double o2iThreshold,
+                                     double o2iLowLossThreshold,
                                      bool crossPolarizedGnb,
                                      bool crossPolarizedUe,
                                      double polSlantAngleGnb1,
