@@ -105,9 +105,11 @@ InstallApps (const Ptr<Node> &ue, const Ptr<NetDevice> &ueDevice,
       app = dlClientLowLat->Install (ue);
     }
 
-  double start = x->GetValue (udpAppStartTime.GetMilliSeconds (),
-                              (udpAppStartTime + appStartWindow).GetMilliSeconds ());
-  Time startTime = MilliSeconds (start);
+  //double start = x->GetValue (udpAppStartTime.GetMilliSeconds (),
+  //                            (udpAppStartTime + appStartWindow).GetMilliSeconds ());
+
+  // we want the all application start at the same time to have the full buffer traffic since the beginning
+  Time startTime = udpAppStartTime;
   app.Start (startTime);
   app.Stop (startTime + appGenerationTime);
 
