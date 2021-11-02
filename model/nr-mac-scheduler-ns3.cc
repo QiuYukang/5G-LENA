@@ -190,6 +190,12 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeIntegerAccessor (&NrMacSchedulerNs3::SetMaxDlMcs,
                                          &NrMacSchedulerNs3::GetMaxDlMcs),
                    MakeIntegerChecker<int8_t> (-1,30))
+    .AddAttribute ("EnableHarqReTx",
+                   "If true, it would set the max HARQ ReTx to 3; otherwise it set it to 0",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrMacSchedulerNs3::EnableHarqReTx,
+                                        &NrMacSchedulerNs3::IsHarqReTxEnable),
+                                        MakeBooleanChecker ())
   ;
 
   return tid;
@@ -399,6 +405,19 @@ NrMacSchedulerNs3::IsSrsInFSlots () const
 {
   return m_enableSrsInFSlots;
 }
+
+void
+NrMacSchedulerNs3::EnableHarqReTx (bool enableFlag)
+{
+  m_enableHarqReTx = enableFlag;
+}
+
+bool
+NrMacSchedulerNs3::IsHarqReTxEnable () const
+{
+  return m_enableHarqReTx;
+}
+
 
 uint8_t
 NrMacSchedulerNs3::ScheduleDlHarq (PointInFTPlane *startingPoint,
@@ -979,8 +998,9 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks (std::vector<T> *harqInfo,
       //RV number should not be greater than 3. An unscheduled stream should
       //be assigned RV = 0 in MIMO.
       NS_ASSERT (*rvIt < 4);
+      uint8_t maxHarqReTx = m_enableHarqReTx == true ? 3 : 0;
 
-      if (harqFeedbackIt->IsReceivedOk () || *rvIt == 3)
+      if (harqFeedbackIt->IsReceivedOk () || *rvIt == maxHarqReTx)
         {
           ueHarqVector.Erase (harqId);
           harqFeedbackIt = harqInfo->erase (harqFeedbackIt);
