@@ -136,8 +136,8 @@ struct Parameters
   double downtiltAngle = 0.0;
 
   //Whether gNB and UE antenna arrays support
-  bool crossPolarizedGnb = true;
-  bool crossPolarizedUe = true;
+  bool crossPolarizedGnb = false;
+  bool crossPolarizedUe = false;
   // The polarization slant angle of first and second subarray for gNB in degrees
   double polSlantAngleGnb1 = 0.0;   //we can set to 45
   double polSlantAngleGnb2 = -45;
