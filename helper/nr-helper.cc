@@ -1191,9 +1191,15 @@ NrHelper::SetSchedulerTypeId (const TypeId &typeId)
 void
 NrHelper::SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId)
 {
-
   NS_LOG_FUNCTION (this);
   m_ueBwpManagerAlgoFactory.SetTypeId (typeId);
+}
+
+void
+NrHelper::SetPhasedArraySpectrumPropagationLossModelTypeId (const TypeId &typeId)
+{
+  NS_LOG_FUNCTION (this);
+  m_spectrumPropagationFactory.SetTypeId(typeId);
 }
 
 void
@@ -1201,6 +1207,13 @@ NrHelper::SetUeBwpManagerAlgorithmAttribute (const std::string &n, const Attribu
 {
   NS_LOG_FUNCTION (this);
   m_ueBwpManagerAlgoFactory.Set (n, v);
+}
+
+void
+NrHelper::SetPhasedArraySpectrumPropagationLossModelAttribute (const std::string &n, const AttributeValue &v)
+{
+  NS_LOG_FUNCTION (this);
+  m_spectrumPropagationFactory.Set (n, v);
 }
 
 void

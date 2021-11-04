@@ -608,6 +608,12 @@ public:
    */
   void SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId);
 
+  /*
+   * \brief Sets the TypeId of the PhasedArraySpectrumPropagationLossModel to be used
+   * \param typeId Type of the object
+   */
+  void SetPhasedArraySpectrumPropagationLossModelTypeId (const TypeId &typeId);
+
   /**
    * \brief Set an attribute for the GNB BWP Manager, before it is created.
    *
@@ -615,6 +621,14 @@ public:
    * \param v the value of the attribute
    */
   void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set an attribute for the PhasedArraySpectrumPropagationLossModel before it is created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetPhasedArraySpectrumPropagationLossModelAttribute (const std::string &n, const AttributeValue &v);
 
   /**
    * Set an attribute for the Channel Condition model, before it is created.
