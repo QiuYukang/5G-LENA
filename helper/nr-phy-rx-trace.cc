@@ -633,7 +633,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                              "\t" << "cellId" << "\t" << "bwpId" <<
                              "\t" << "streamId" << "\t" << "rnti" <<
                              "\t" << "tbSize" << "\t" << "mcs" <<
-                             "\t" << "rv" << "\t" << "SINR(dB)" <<
+                             "\t" << "rv" << "\t" << "SINR(dB)" << "\t" << "CQI" <<
                              "\t" << "corrupt" << "\t" << "TBler" << std::endl;
 
       if (!m_rxPacketTraceFile.is_open ())
@@ -657,6 +657,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                          "\t" << (unsigned)params.m_mcs <<
                          "\t" << (unsigned)params.m_rv <<
                          "\t" << 10 * log10 (params.m_sinr) <<
+                         "\t" << (unsigned)params.m_cqi <<
                          "\t" << params.m_corrupt <<
                          "\t" << params.m_tbler << std::endl;
 
@@ -672,6 +673,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                     "\t" << (unsigned)params.m_mcs <<
                     "\t" << (unsigned)params.m_rv <<
                     "\t" << params.m_sinr <<
+                    "\t" << (unsigned)params.m_cqi <<
                     "\t" << params.m_tbler <<
                     "\t" << params.m_corrupt <<
                     "\t" << (unsigned)params.m_bwpId);

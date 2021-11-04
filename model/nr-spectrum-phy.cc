@@ -1257,6 +1257,8 @@ NrSpectrumPhy::EndRxData ()
           else if (ueRx)
             {
               traceParams.m_cellId = ueRx->GetTargetEnb ()->GetCellId ();
+              Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
+              traceParams.m_cqi = phy->ComputeCqi (m_sinrPerceived);
               m_rxPacketTraceUe (traceParams);
             }
 

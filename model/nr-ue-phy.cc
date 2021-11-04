@@ -1363,6 +1363,36 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t st
 }
 
 void
+NrUePhy::ReportDlCtrlSinr (const SpectrumValue& sinr, uint8_t streamId)
+{
+  NS_LOG_FUNCTION (this);
+  uint32_t rbUsed = 0;
+  double sinrSum = 0.0;
+
+  for (uint32_t i =  0; i < sinr.GetValuesN(); i++)
+    {
+      double currentSinr = sinr.ValuesAt(i);
+      if ( currentSinr != 0)
+        {
+          rbUsed++;
+          sinrSum += currentSinr;
+        }
+    }
+
+  NS_ASSERT (rbUsed);
+  m_dlCtrlSinrTrace (GetCellId (), m_rnti, sinrSum/rbUsed, GetBwpId (), streamId);
+}
+
+uint8_t
+NrUePhy::ComputeCqi (const SpectrumValue& sinr)
+{
+  NS_LOG_FUNCTION (this);
+  uint8_t mcs; // it is initialized by AMC in the following call
+  uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (sinr, mcs);
+  return wbCqi;
+}
+
+void
 NrUePhy::StartEventLoop (uint16_t frame, uint8_t subframe, uint16_t slot)
 {
   NS_LOG_FUNCTION (this);
