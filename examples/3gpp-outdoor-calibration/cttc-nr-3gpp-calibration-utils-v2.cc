@@ -196,7 +196,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            double polSlantAngleUe2,
                                            std::string bfMethod,
                                            uint16_t beamConfSector,
-                                           double beamConfElevation)
+                                           double beamConfElevation,
+                                           double isd)
 {
   /*
    * Create the radio network related parameters
@@ -332,6 +333,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
    * TODO: Coordinate with Tommaso
    */
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (100)));
+  nrHelper->SetPhasedArraySpectrumPropagationLossModelTypeId (DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId ());
+  nrHelper->SetPhasedArraySpectrumPropagationLossModelAttribute ("MaxDistance", DoubleValue (2 * isd));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (100)));
   nrHelper->SetChannelConditionModelAttribute ("O2iThreshold", DoubleValue (o2iThreshold));
   nrHelper->SetChannelConditionModelAttribute ("O2iLowLossThreshold", DoubleValue (o2iLowLossThreshold));

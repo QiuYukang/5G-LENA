@@ -98,7 +98,8 @@ public:
                                      double polSlantAngleUe2,
                                      std::string bfMethod,
                                      uint16_t beamConfSector,
-                                     double beamConfElevation);
+                                     double beamConfElevation,
+                                     double isd);
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
