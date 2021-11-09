@@ -134,6 +134,7 @@ struct Parameters
   double ueVSpacing = 0.5;
 
   double downtiltAngle = 0.0;
+  bool ueBearingAngle = false;
 
   //Whether gNB and UE antenna arrays support
   bool crossPolarizedGnb = false;
@@ -149,6 +150,8 @@ struct Parameters
   bool ueEnable3gppElement = false;
 
   bool checkUeMobility = false;
+
+  bool useFixedRi = true;
 };
 
 extern void Nr3gppCalibration (Parameters &params);

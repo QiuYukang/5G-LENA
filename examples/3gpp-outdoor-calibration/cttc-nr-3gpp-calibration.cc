@@ -765,7 +765,9 @@ Nr3gppCalibration (Parameters &params)
                                                  params.bfMethod,
                                                  params.bfConfSector,
                                                  params.bfConfElevation,
-                                                 params.isd);
+                                                 params.isd,
+                                                 params.ueBearingAngle,
+                                                 params.useFixedRi);
     }
 
   // Check we got one valid helper

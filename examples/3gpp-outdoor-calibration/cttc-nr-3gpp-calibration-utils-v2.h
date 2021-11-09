@@ -21,9 +21,8 @@
 
 #include <ns3/nr-module.h>
 #include <ns3/hexagonal-grid-scenario-helper.h>
-
+#include "ns3/random-variable-stream.h"
 #include "sinr-output-stats.h"
-
 
 namespace ns3 {
 
@@ -99,7 +98,9 @@ public:
                                      std::string bfMethod,
                                      uint16_t beamConfSector,
                                      double beamConfElevation,
-                                     double isd);
+                                     double isd,
+                                     bool ueBearingAngle,
+                                     bool useFixedRi);
 
   static void
   ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,

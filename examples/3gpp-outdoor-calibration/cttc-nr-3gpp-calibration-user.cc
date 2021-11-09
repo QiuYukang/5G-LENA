@@ -234,6 +234,10 @@ main (int argc, char *argv[])
   cmd.AddValue ("polSlantAngleUe1",
                 "Polarization slant angle of the first panel of UE in degrees",
                 params.polSlantAngleUe1);
+  cmd.AddValue ("ueBearingAngle",
+                "UE Bearing Angle. If true it sets to a random value among 0 and"
+                "360 the UE bearing angle",
+                params.ueBearingAngle);
   cmd.AddValue ("polSlantAngleUe2",
                 "Polarization slant angle of the second panel of UE in degrees",
                 params.polSlantAngleUe2);
@@ -272,6 +276,11 @@ main (int argc, char *argv[])
   cmd.AddValue ("bfConfElevation",
                 "Beamforming fixed beam elevation value.",
                 params.bfConfElevation);
+  cmd.AddValue ("useFixedRi",
+                "If true, UE will use a fixed configured RI value; otherwise, "
+                "it will use an adaptive RI value based on the SINR of the streams",
+                params.useFixedRi);
+
 
 
   // Parse the command line
