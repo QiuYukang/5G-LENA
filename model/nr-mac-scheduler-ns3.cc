@@ -1492,7 +1492,7 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
                       uint32_t bytes = bytesPerStream.m_bytes - 3; // Consider the subPdu overhead
                       RlcPduInfo newRlcPdu (lcId, bytes);
                       rlcPdusInfoPerStream.push_back (newRlcPdu);
-                      ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes);
+                      ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes, "DL");
 
                       NS_LOG_DEBUG ("DL LCG " << static_cast<uint32_t> (lcgId) <<
                                     " LCID " << static_cast<uint32_t> (lcId) <<
@@ -1698,7 +1698,7 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
           for (const auto & byteDistribution : distributedBytes)
             {
               assignedToLC = true;
-              ue.first->m_ulLCG.at (byteDistribution.m_lcg)->AssignedData (byteDistribution.m_lcId, byteDistribution.m_bytes);
+              ue.first->m_ulLCG.at (byteDistribution.m_lcg)->AssignedData (byteDistribution.m_lcId, byteDistribution.m_bytes, "UL");
               NS_LOG_DEBUG ("UL LCG " << static_cast<uint32_t> (byteDistribution.m_lcg) <<
                             " assigned bytes " << byteDistribution.m_bytes << " to LCID " <<
                             static_cast<uint32_t> (byteDistribution.m_lcId));
