@@ -188,6 +188,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            bool enableShadowing,
                                            double o2iThreshold,
                                            double o2iLowLossThreshold,
+                                           bool linkO2iConditionToAntennaHeight,
                                            bool crossPolarizedGnb,
                                            bool crossPolarizedUe,
                                            double polSlantAngleGnb1,
@@ -338,6 +339,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   nrHelper->SetPhasedArraySpectrumPropagationLossModelTypeId (DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId ());
   nrHelper->SetPhasedArraySpectrumPropagationLossModelAttribute ("MaxDistance", DoubleValue (2 * isd));
   nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (100)));
+  nrHelper->SetChannelConditionModelAttribute ("LinkO2iConditionToAntennaHeight", BooleanValue (linkO2iConditionToAntennaHeight));
   nrHelper->SetChannelConditionModelAttribute ("O2iThreshold", DoubleValue (o2iThreshold));
   nrHelper->SetChannelConditionModelAttribute ("O2iLowLossThreshold", DoubleValue (o2iLowLossThreshold));
 

@@ -527,7 +527,15 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility (const Vector &speed, do
           Ptr<UniformRandomVariable> uniformRandomVariable = CreateObject<UniformRandomVariable> ();
           double Nfl = uniformRandomVariable->GetValue (4, 8);
           double nfl = uniformRandomVariable->GetValue (1, Nfl);
-          utPos.z = 3 * (nfl - 1) + 1.5;
+
+          if (m_bsHeight == 10)
+            {
+              utPos.z = std::min (3 * (nfl - 1) + 1.5, 9.99);
+            }
+          else
+            {
+              utPos.z = 3 * (nfl - 1) + 1.5;
+            }
 
           numUesWithRandomUtHeight--;
         }

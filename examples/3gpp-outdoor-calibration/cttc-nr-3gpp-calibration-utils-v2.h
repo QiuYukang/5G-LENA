@@ -89,6 +89,7 @@ public:
                                      bool enableShadowing,
                                      double o2iThreshold,
                                      double o2iLowLossThreshold,
+                                     bool linkO2iConditionToAntennaHeight,
                                      bool crossPolarizedGnb,
                                      bool crossPolarizedUe,
                                      double polSlantAngleGnb1,

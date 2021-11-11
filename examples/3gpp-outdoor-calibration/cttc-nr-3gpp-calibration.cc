@@ -231,6 +231,8 @@ ChooseCalibrationScenario (Parameters &params)
           params.ueNumColumns = 1;
           params.gnbEnable3gppElement = true;
 
+          params.linkO2iConditionToAntennaHeight = false;
+
           params.scheduler = "RR";
 
           if (params.nrConfigurationScenario == "DenseA")
@@ -244,6 +246,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.isd = 200;
               params.o2iThreshold = 0.8;
               params.o2iLowLossThreshold = 0.8;
+              params.linkO2iConditionToAntennaHeight = true;
 
               params.gnbNumRows = 4;
               params.gnbNumColumns = 8;
@@ -267,6 +270,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.isd = 200;
               params.o2iThreshold = 0.8;
               params.o2iLowLossThreshold = 0.8;
+              params.linkO2iConditionToAntennaHeight = true;
 
               params.gnbNumRows = 4;
               params.gnbNumColumns = 8;
@@ -756,6 +760,7 @@ Nr3gppCalibration (Parameters &params)
                                                  params.enableShadowing,
                                                  params.o2iThreshold,
                                                  params.o2iLowLossThreshold,
+                                                 params.linkO2iConditionToAntennaHeight,
                                                  params.crossPolarizedGnb,
                                                  params.crossPolarizedUe,
                                                  params.polSlantAngleGnb1,

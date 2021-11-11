@@ -75,6 +75,7 @@ struct Parameters
 
   double o2iThreshold = 0;
   double o2iLowLossThreshold = 1.0; //shows the percentage of low losses. Default value is 100% low
+  bool linkO2iConditionToAntennaHeight = false;
 
   double speed = 0;
 
