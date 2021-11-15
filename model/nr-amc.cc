@@ -216,7 +216,7 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
       seAvg /= rbNum;
       mcsAvg /= rbNum;
       cqiAvg /= rbNum;
-      cqi = ceil (cqiAvg);  //GetCqiFromSpectralEfficiency (seAvg);
+      cqi = GetCqiFromSpectralEfficiency (seAvg);   //ceil (cqiAvg);
       mcs = GetMcsFromSpectralEfficiency (seAvg);   //ceil(mcsAvg);
     }
   else if (m_amcModel == ErrorModel)
