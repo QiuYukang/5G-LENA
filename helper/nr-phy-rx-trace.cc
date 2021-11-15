@@ -959,7 +959,7 @@ NrPhyRxTrace::ReportDlCtrlPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path
 void
 NrPhyRxTrace::ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
                                     uint16_t cellId, uint8_t bwpId, uint8_t streamId,
-                                    uint32_t ueNodeId, double lossDb)
+                                    uint32_t ueNodeId, double lossDb, uint8_t cqi)
 {
   NS_LOG_INFO ("UE node id:" << ueNodeId << "of " << cellId << " over bwp ID " <<
                bwpId << "->Generate DL DATA pathloss record: "<< lossDb);
@@ -978,7 +978,8 @@ NrPhyRxTrace::ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path
                              << "BwpId" << "\t"
                              << "streamId "<< "\t"
                              << "ueNodeId" << "\t"
-                             << "pathLoss(dB)" << std::endl;
+                             << "pathLoss(dB)" << "\t"
+                             << "CQI" << std::endl;
 
         if (!m_dlDataPathlossFile.is_open ())
           {
@@ -991,7 +992,8 @@ NrPhyRxTrace::ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path
                        << +bwpId << "\t"
                        << +streamId << "\t"
                        << ueNodeId << "\t"
-                       << lossDb << std::endl;
+                       << lossDb << "\t"
+                       << +cqi << std::endl;
 
 }
 

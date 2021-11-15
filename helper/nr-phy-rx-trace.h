@@ -225,10 +225,11 @@ public:
    * \param streamId stream ID
    * \param ueNodeId UE node ID
    * \param lossdB loss in dB
+   * \param cqi the CQI that corresponds to the received signal (calculated based on the received SINR)
    */
   static void ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
                                     uint16_t cellId, uint8_t bwpId, uint8_t streamId,
-                                    uint32_t ueNodeId, double lossDb);
+                                    uint32_t ueNodeId, double lossDb, uint8_t cqi);
 
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);

@@ -681,9 +681,12 @@ private:
   typedef TracedCallback <uint16_t, uint8_t, uint8_t, uint32_t, double> DlPathlossTrace;
   DlPathlossTrace m_dlCtrlPathlossTrace; //!< DL CTRL pathloss trace
   bool m_enableDlCtrlPathlossTrace = false; //!< By default this trace is disabled to not slow done simulations
-  DlPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
+  /*
+   * \brief Trace source that reports the following: Cell ID, Bwp ID, Stream ID, UE node ID, DL CTRL pathloss, CQI that corresponds to the current SINR
+   */
+  typedef TracedCallback <uint16_t, uint8_t, uint8_t, uint32_t, double, uint8_t> DlDataPathlossTrace;
+  DlDataPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
   bool m_enableDlDataPathlossTrace = false; //!< By default this trace is disabled to not slow done simulations
-
   uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
   bool m_isEnb = false;
   double m_interStrInerfRatio {0.0}; //!< The inter-stream interference ratio.

@@ -451,7 +451,8 @@ NrSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
               Ptr<const SpectrumValue> txPsd = DynamicCast<NrSpectrumPhy>(nrDataRxParams->txPhy)->GetTxPowerSpectralDensity ();
               Ptr<const SpectrumValue> rxPsd = nrDataRxParams->psd;
               double pathloss = 10 * log10 (Integral (*txPsd)) - 10 * log10 (Integral (*rxPsd));
-              m_dlDataPathlossTrace (GetCellId (), GetBwpId (), GetStreamId (), GetMobility ()->GetObject<Node>()->GetId (), pathloss);
+              Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
+              m_dlDataPathlossTrace (GetCellId (), GetBwpId (), GetStreamId (), GetMobility ()->GetObject<Node>()->GetId (), pathloss, phy->ComputeCqi (m_sinrPerceived));
             }
         }
       else
