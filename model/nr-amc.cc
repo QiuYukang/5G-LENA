@@ -213,9 +213,12 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
               //cqi.push_back (cqi_);
             }
         }
-      seAvg /= rbNum;
-      mcsAvg /= rbNum;
-      cqiAvg /= rbNum;
+      if (rbNum != 0)
+        {
+          seAvg /= rbNum;
+          mcsAvg /= rbNum;
+          cqiAvg /= rbNum;
+        }
       cqi = GetCqiFromSpectralEfficiency (seAvg);   //ceil (cqiAvg);
       mcs = GetMcsFromSpectralEfficiency (seAvg);   //ceil(mcsAvg);
     }
