@@ -294,6 +294,7 @@ private:
     Vector pos {0,0,0};
     double avgSnrDb {0};
     double avgSinrDb {0};
+    double avgSirDb {0};
     double avRxPowerDbm {0};
   };
 
@@ -434,6 +435,14 @@ private:
   double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
 
   /**
+   * \brief This function finds the max value in a space of frequency-dependent
+   * values (such as PSD).
+   * \param values The list of spectrumValues for which we want to find the max
+   * \return The max value (sinr)
+   */
+  double CalculateMaxSir (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
+
+  /**
    * \brief This function calculates the SINR for a given space of frequency-dependent
    * values (such as PSD).
    * \param usefulSignal The spectrumValue considered as useful signal
@@ -442,6 +451,16 @@ private:
    */
   double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
                         const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
+
+  /**
+   * \brief This function calculates the SIR for a given space of frequency-dependent
+   * values (such as PSD).
+   * \param usefulSignal The spectrumValue considered as useful signal
+   * \param interferenceSignals The list of spectrumValues considered as interference
+   * \return The max value (sir)
+   */
+  double CalculateSir (const Ptr<SpectrumValue>& usefulSignal,
+                       const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
 
   /**
    * \brief This function finds the max value in a list of double values.
