@@ -72,6 +72,12 @@ NrMacSchedulerUeInfo::GetUlMcs (const UePtr &ue)
   return ue->m_ulMcs;
 }
 
+uint32_t &
+NrMacSchedulerUeInfo::GetDlTBSPerStream (const UePtr &ue, uint8_t stream)
+{
+  return ue->m_dlTbSize.at (stream);
+}
+
 uint32_t
 NrMacSchedulerUeInfo::GetDlTBS (const UePtr &ue)
 {
@@ -87,7 +93,7 @@ NrMacSchedulerUeInfo::GetDlTBS (const UePtr &ue)
   return tbSize;
 }
 
-uint32_t &
+uint32_t
 NrMacSchedulerUeInfo::GetUlTBS (const UePtr &ue)
 {
   return ue->m_ulTbSize;
