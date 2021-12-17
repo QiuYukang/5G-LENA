@@ -94,7 +94,14 @@ NrMacSchedulerLCG::AssignedData (uint8_t lcId, uint32_t size, std::string type)
         }
       else
         {
-          m_totalSize -= std::min (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize, size - rlcOverhead);
+          if (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize <= size)
+            {
+              m_totalSize -= m_lcMap.at (lcId)->m_rlcTransmissionQueueSize;
+            }
+          else
+            {
+              m_totalSize -= std::min (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize, size - rlcOverhead);
+            }
         }
       if (size - rlcOverhead >= m_lcMap.at (lcId)->m_rlcTransmissionQueueSize)
         {
