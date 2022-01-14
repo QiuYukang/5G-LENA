@@ -59,6 +59,26 @@ foreach(
   )
 endforeach()
 
+set(3gpp-outdoor-calibration_source_files
+    3gpp-outdoor-calibration/cttc-nr-3gpp-calibration.cc
+    3gpp-outdoor-calibration/sinr-output-stats.cc
+    3gpp-outdoor-calibration/flow-monitor-output-stats.cc
+    3gpp-outdoor-calibration/power-output-stats.cc
+    3gpp-outdoor-calibration/slot-output-stats.cc
+    3gpp-outdoor-calibration/rb-output-stats.cc
+    3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-utils-v1.cc
+    3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-utils-v2.cc
+)
+
+build_lib_example(
+    NAME cttc-nr-3gpp-calibration-user
+    SOURCE_FILES 3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-user.cc
+                 ${3gpp-outdoor-calibration_source_files}
+    LIBRARIES_TO_LINK ${libnr}
+                      ${libflow-monitor}
+                      ${libstats}
+)
+
 set(example cttc-realistic-beamforming)
 set(source_files ${example}.cc)
 set(libraries_to_link ${libnr} ${libflow-monitor} ${SQLite3_LIBRARIES})

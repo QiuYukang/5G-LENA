@@ -16,6 +16,7 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+
 #include "cttc-nr-3gpp-calibration-utils-v2.h"
 #include "ns3/core-module.h"
 #include "flow-monitor-output-stats.h"
@@ -33,9 +34,8 @@ namespace ns3 {
 
 void
 LenaV2Utils::ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
-                           double avgSinr, uint16_t bwpId, uint8_t streamId)
+                           double avgSinr, uint16_t bwpId, [[maybe_unused]] uint8_t streamId)
 {
-  NS_UNUSED (streamId);
   stats->SaveSinr (cellId, rnti, avgSinr, bwpId);
 }
 
@@ -105,7 +105,6 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
 
   // configure the beam that points toward the center of hexagonal
   // In case of beamforming, it will be overwritten.
-  //phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (3, 30);
   phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (beamConfSector, beamConfElevation);
 
   // Set numerology
@@ -122,14 +121,13 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
   phy0->GetAttribute ("NrSpectrumPhyList", gnbSpectrumPhys);
   nrSpectrumPhy = gnbSpectrumPhys.Get (0)->GetObject <NrSpectrumPhy> ();
   phy0->GetSpectrumPhy (0)->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
-                                                                                                DoubleValue (gnbFirstSubArray));
+                                                                                            DoubleValue (gnbFirstSubArray));
   if (gnbSpectrumPhys.GetN () == 2)
     {
       nrSpectrumPhy = gnbSpectrumPhys.Get (1)->GetObject <NrSpectrumPhy> ();
       nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
-                                                                                         DoubleValue (gnbSecondSubArray));
+                                                                                     DoubleValue (gnbSecondSubArray));
     }
-
 }
 
 }  // unnamed namespace
@@ -283,58 +281,28 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   BandwidthPartInfo::Scenario scene = BandwidthPartInfo::UMa;
 
-  if (confType == "customConf")
+  if (scenario == "UMa")
     {
-      if (scenario == "UMi")
-        {
-          txPowerBs = 30;
-          scene =  BandwidthPartInfo::UMi_StreetCanyon_LoS;
-        }
-      else if (scenario == "UMa")
-        {
-          txPowerBs = 43;
-          scene = BandwidthPartInfo::UMa_LoS;
-        }
-      else if (scenario == "RMa")
-        {
-          txPowerBs = 43;
-          scene = BandwidthPartInfo::RMa_LoS;
-        }
-      else
-        {
-          NS_ABORT_MSG ("Unsupported scenario " << scenario <<
-                        ". Supported values: UMi, UMa, RMa");
-        }
+      scene =  BandwidthPartInfo::UMa;
     }
-  else if (confType == "calibrationConf")
+  else if (scenario == "RMa")
     {
-      if (scenario == "UMa")
-        {
-          scene =  BandwidthPartInfo::UMa;
-        }
-      else if (scenario == "RMa")
-        {
-          scene = BandwidthPartInfo::RMa;
-        }
-      else if (scenario == "UMi-StreetCanyon")
-        {
-          scene = BandwidthPartInfo::UMi_StreetCanyon;
-        }
-
-      txPowerBs = gnbTxPower;
-      std::cout << "gnbTxPower: " << txPowerBs << std::endl;
+      scene = BandwidthPartInfo::RMa;
+    }
+  else if (scenario == "UMi-StreetCanyon")
+    {
+      scene = BandwidthPartInfo::UMi_StreetCanyon;
     }
   else
     {
-      NS_ABORT_MSG ("Unsupported configuration Type " << scenario <<
-                    ". Supported Types: customConf and calibrationConf");
+      NS_ABORT_MSG ("Unsupported scenario " << scenario <<
+                    ". Supported values: UMa, RMa, UMi_StreetCanyon");
     }
 
+  txPowerBs = gnbTxPower;
+  std::cout << "Scenario: " << scenario << "gnbTxPower: " << txPowerBs << std::endl;
 
-  /*
-   * Attributes of ThreeGppChannelModel still cannot be set in our way.
-   * TODO: Coordinate with Tommaso
-   */
+
   Config::SetDefault ("ns3::ThreeGppChannelModel::UpdatePeriod",TimeValue (MilliSeconds (100)));
   nrHelper->SetPhasedArraySpectrumPropagationLossModelTypeId (DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId ());
   nrHelper->SetPhasedArraySpectrumPropagationLossModelAttribute ("MaxDistance", DoubleValue (2 * isd));
@@ -346,8 +314,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   std::cout << "o2iThreshold: " << o2iThreshold << std::endl;
   std::cout << "o2iLowLossThreshold: " << o2iLowLossThreshold << std::endl;
 
-  // Disable shadowing in calibration, and enable it in non-calibration mode
-  //nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (!calibration));
   nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (enableShadowing));
 
   // Noise figure for the gNB
@@ -460,8 +426,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
    * This is tightly coupled with what happens in lena-v1-utils.cc
    *
    */
-  // \todo: set band 0 start frequency from the command line
-  //const double band0Start = 2110e6;
   const double band0Start = startingFreq;
   double bandwidthBwp = bandwidthMHz * 1e6;
 
@@ -624,31 +588,11 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       sector3Bwps = CcBwpCreator::GetAllBwps ({band0});
     }
 
-  /*
-   * Now, we can setup the attributes. We can have three kind of attributes:
-   * (i) parameters that are valid for all the bandwidth parts and applies to
-   * all nodes, (ii) parameters that are valid for all the bandwidth parts
-   * and applies to some node only, and (iii) parameters that are different for
-   * every bandwidth parts. The approach is:
-   *
-   * - for (i): Configure the attribute through the helper, and then install;
-   * - for (ii): Configure the attribute through the helper, and then install
-   * for the first set of nodes. Then, change the attribute through the helper,
-   * and install again;
-   * - for (iii): Install, and then configure the attributes by retrieving
-   * the pointer needed, and calling "SetAttribute" on top of such pointer.
-   *
-   */
-
-  /*
-   *  Case (i): Attributes valid for all the nodes
-   */
-  // Beamforming method
 
   RealisticBfManager::TriggerEvent realTriggerEvent {RealisticBfManager::SRS_COUNT};
 
   //TODO: Optimize this code (repeated code)
-  // if there is no fading, that means that there is no bamforming
+  // if there is no fading, that means that there is no beamforming
   if (enableFading && bfMethod != "FixedBeam")
     {
       if (radioNetwork == "NR")
@@ -781,7 +725,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
 
   // UE transmit power
-  //nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (23.0));
   nrHelper->SetUePhyAttribute ("TxPower", DoubleValue (ueTxPower));
 
   // Set LTE RBG size
@@ -833,22 +776,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // Ue routing between Bearer and bandwidth part
   nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
 
-  /*
-   * We miss many other parameters. By default, not configuring them is equivalent
-   * to use the default values. Please, have a look at the documentation to see
-   * what are the default values for all the attributes you are not seeing here.
-   */
-
-  /*
-   * Case (ii): Attributes valid for a subset of the nodes
-   */
-
-  // NOT PRESENT IN THIS SIMPLE EXAMPLE
-
-  /*
-   * We have configured the attributes we needed. Now, install and get the pointers
-   * to the NetDevices, which contains all the NR stack:
-   */
 
   //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
   gnbSector1NetDev = nrHelper->InstallGnbDevice (gnbSector1Container, sector1Bwps, subArraysGnb);
@@ -871,11 +798,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   randomStream += nrHelper->AssignStreams (ueSector1NetDev, randomStream);
   randomStream += nrHelper->AssignStreams (ueSector2NetDev, randomStream);
   randomStream += nrHelper->AssignStreams (ueSector3NetDev, randomStream);
-
-  /*
-   * Case (iii): Go node for node and change the attributes we have to setup
-   * per-node.
-   */
 
   // Sectors (cells) of a site are pointing at different directions
   std::vector<double> sectorOrientationRad {

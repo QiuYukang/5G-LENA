@@ -917,14 +917,13 @@ NrPhyRxTrace::WriteUlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
 
 
 void
-NrPhyRxTrace::ReportDlCtrlPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
+NrPhyRxTrace::ReportDlCtrlPathloss ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
+                                    [[maybe_unused]] std::string path,
                                     uint16_t cellId, uint8_t bwpId, uint8_t streamId,
                                     uint32_t ueNodeId, double lossDb)
 {
   NS_LOG_INFO ("UE node id:" << ueNodeId << "of " << cellId << " over bwp ID " <<
                  bwpId << "->Generate DL CTRL pathloss record: "<< lossDb);
-  NS_UNUSED (phyStats);
-  NS_UNUSED (path);
 
   if (!m_dlCtrlPathlossFile.is_open ())
       {
@@ -957,14 +956,13 @@ NrPhyRxTrace::ReportDlCtrlPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path
 
 
 void
-NrPhyRxTrace::ReportDlDataPathloss (Ptr<NrPhyRxTrace> phyStats, std::string path,
+NrPhyRxTrace::ReportDlDataPathloss ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
+                                    [[maybe_unused]] std::string path,
                                     uint16_t cellId, uint8_t bwpId, uint8_t streamId,
                                     uint32_t ueNodeId, double lossDb, uint8_t cqi)
 {
   NS_LOG_INFO ("UE node id:" << ueNodeId << "of " << cellId << " over bwp ID " <<
                bwpId << "->Generate DL DATA pathloss record: "<< lossDb);
-  NS_UNUSED (phyStats);
-  NS_UNUSED (path);
 
   if (!m_dlDataPathlossFile.is_open ())
       {

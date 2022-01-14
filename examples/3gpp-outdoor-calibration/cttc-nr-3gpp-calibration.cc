@@ -445,7 +445,7 @@ Nr3gppCalibration (Parameters &params)
     }
 
   std::cout << "  statistics\n";
-  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
+  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db");
   SinrOutputStats sinrStats;
   PowerOutputStats ueTxPowerStats;
   PowerOutputStats gnbRxPowerStats;
@@ -480,7 +480,6 @@ Nr3gppCalibration (Parameters &params)
       LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
       LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
       LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
-//      LogComponentEnable ("NrMacSchedulerOfdma", LOG_LEVEL_ALL);
     }
 
   /*
@@ -498,9 +497,6 @@ Nr3gppCalibration (Parameters &params)
 
   ScenarioParameters scenarioParams;
 
-  // Customize parameters here
-  //  scenarioParams.isd = ...
-
   // The essentials describing a laydown
   uint32_t gnbSites = 0;
   NodeContainer gnbNodes;
@@ -508,26 +504,14 @@ Nr3gppCalibration (Parameters &params)
   double sector0AngleRad = 30;
   const uint32_t sectors = 3;
 
-  if (params.confType == "customConf")
-    {
-      scenarioParams.SetScenarioParameters (params.scenario);
-    }
-  else if (params.confType == "calibrationConf")
-    {
-      scenarioParams.m_isd = params.isd;
-      scenarioParams.m_bsHeight = params.bsHeight;
-      scenarioParams.m_utHeight = params.utHeight;
-      scenarioParams.m_minBsUtDistance = params.minBsUtDistance;
-      scenarioParams.m_antennaOffset = params.antennaOffset;
+  scenarioParams.m_isd = params.isd;
+  scenarioParams.m_bsHeight = params.bsHeight;
+  scenarioParams.m_utHeight = params.utHeight;
+  scenarioParams.m_minBsUtDistance = params.minBsUtDistance;
+  scenarioParams.m_antennaOffset = params.antennaOffset;
 
-      scenarioParams.SetSectorization (sectors);
-      scenarioParams.SetScenarioParameters (scenarioParams);
-    }
-  else
-    {
-      NS_ABORT_MSG ("The selected configuration is not correct."
-                    "Please choose among 'customConf' or 'calibrationConf'.");
-    }
+  scenarioParams.SetSectorization (sectors);
+  scenarioParams.SetScenarioParameters (scenarioParams);
 
   //
   NodeDistributionScenarioInterface * scenario {NULL};

@@ -58,21 +58,14 @@ main (int argc, char *argv[])
                 "This variable must be set when calibrationConf is choosen",
                 params.nrConfigurationScenario);
   cmd.AddValue ("scenario",
-                "The urban scenario string (UMa,UMi,RMa)",
+                "The urban scenario string (UMa, RMa, UMi_StreeCanyon)",
                 params.scenario);
   cmd.AddValue ("numRings",
-                "The number of rings around the central site",
+                "The number of rings",
                 params.numOuterRings);
   cmd.AddValue ("ueNumPergNb",
                 "The number of UE per cell or gNB in multiple-ue topology",
                 params.ueNumPergNb);
-  cmd.AddValue ("siteFile",
-                "Path to file of tower coordinates (instead of hexagonal grid)",
-                params.baseStationFile);
-  cmd.AddValue ("useSiteFile",
-                "If true, it will be used site file, otherwise it will be used "
-                "numRings parameter to create scenario.",
-                params.useSiteFile);
   cmd.AddValue ("appGenerationTime",
                 "Duration applications will generate traffic.",
                 params.appGenerationTime);
@@ -123,7 +116,8 @@ main (int argc, char *argv[])
                 params.bfMethod);
   cmd.AddValue ("trafficScenario",
                 "0: saturation (80 Mbps/20 MHz), 1: latency (1 pkt of 12 bytes), "
-                "2: low-load (1 Mbps), 3: medium-load (20Mbps), 4: extremely high load (50% more than saturation mode)",
+                "2: low-load (1 Mbps), 3: medium-load (20Mbps), 4: extremely high "
+                "load (50% more than saturation mode)",
                 params.trafficScenario);
   cmd.AddValue ("scheduler",
                 "PF: Proportional Fair, RR: Round-Robin",
@@ -140,10 +134,11 @@ main (int argc, char *argv[])
                 "1: OVERLAPPING (same freq for all sectors)",
                 params.freqScenario);
   cmd.AddValue ("attachToClosest",
-                "When freqScenario is set to 1 (OVERLAPPING) then attachToClosest can be set to true to allow the attachment to closest gNBs",
+                "When freqScenario is set to 1 (OVERLAPPING) then attachToClosest "
+                "can be set to true to allow the attachment to closest gNBs",
                  params.attachToClosest);
   cmd.AddValue ("downtiltAngle",
-                "Base station antenna down tilt angle (deg)",
+                "Base station antenna downtilt angle (deg)",
                 params.downtiltAngle);
   cmd.AddValue ("enableUlPc",
                 "Whether to enable or disable UL power control",
@@ -219,12 +214,12 @@ main (int argc, char *argv[])
                 "in multiples of wave length, for the UE",
                 params.ueVSpacing);
   cmd.AddValue ("crossPolarizedGnb",
-                 "Whether the gNB antenna array has the cross polarized antenna "
-                 "elements. If yes, gNB supports 2 streams, otherwise only 1 stream",
-                 params.crossPolarizedGnb);
-   cmd.AddValue ("crossPolarizedUe",
-                 "Whether the UE antenna array has the cross polarized antenna "
-                 "elements. If yes, UE supports 2 streams, otherwise only 1 stream",
+                "Whether the gNB antenna array has the cross polarized antenna "
+                "elements. If yes, gNB supports 2 streams, otherwise only 1 stream",
+                params.crossPolarizedGnb);
+  cmd.AddValue ("crossPolarizedUe",
+                "Whether the UE antenna array has the cross polarized antenna "
+                "elements. If yes, UE supports 2 streams, otherwise only 1 stream",
                  params.crossPolarizedUe);
   cmd.AddValue ("polSlantAngleGnb1",
                 "Polarization slant angle of the first panel of gNB in degrees",
@@ -286,6 +281,34 @@ main (int argc, char *argv[])
                 "If true, UE will use a fixed configured RI value; otherwise, "
                 "it will use an adaptive RI value based on the SINR of the streams",
                 params.useFixedRi);
+  cmd.AddValue ("isd",
+                "The Inter-Site Distance value.",
+                params.isd);
+  cmd.AddValue ("bsHeight",
+                "The antenna height of the BS.",
+                params.bsHeight);
+  cmd.AddValue ("utHeight",
+                "The antenna height of the UE.",
+                params.utHeight);
+  cmd.AddValue ("minBsUtDistance",
+                "The minimum distance between UE and BS.",
+                params.minBsUtDistance);
+  cmd.AddValue ("o2iThreshold",
+                "The ratio of O2I channel conditions. Default value is 0 that "
+                "corresponds to 0 O2I losses.",
+                params.o2iThreshold);
+  cmd.AddValue ("o2iLowLossThreshold",
+                "The ratio of O2I low - high penetration losses. Default value "
+                "is 1.0 meaning that all losses will be low.",
+                params.o2iLowLossThreshold);
+  cmd.AddValue ("linkO2iConditionToAntennaHeight",
+                "Specifies whether the O2I condition will be determined based on "
+                "the UE height, i.e. if the UE height is 1.5 then it is O2O,"
+                "otherwise it is O2I.",
+                params.linkO2iConditionToAntennaHeight);
+  cmd.AddValue ("ueSpeed",
+                "The UE speed.",
+                params.speed);
 
 
   // Parse the command line
@@ -293,7 +316,7 @@ main (int argc, char *argv[])
   params.Validate ();
 
   //in case calibrationConf is choosen, it sets the parameters of one
-  //of the four pre-defined scenarios (DenseA, DenseB, RuralA, RuralB)
+  //of the NR pre-defined scenarios
 
   if (params.confType == "calibrationConf")
     {
