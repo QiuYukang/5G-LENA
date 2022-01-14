@@ -176,19 +176,22 @@ Parameters::Validate (void) const
   NS_ABORT_MSG_IF (confType != "customConf" && confType != "calibrationConf",
                    "Unrecognized Configuration type: " << confType);
 
-  if (radioNetwork == "LTE")
+  if (confType == "calibrationConf")
     {
-      NS_FATAL_ERROR ("LTE not supported currently");
-    }
-  else if (radioNetwork == "NR")
-    {
-      NS_ABORT_MSG_IF ((nrConfigurationScenario != "DenseA" && nrConfigurationScenario != "DenseB"
-                       && nrConfigurationScenario != "RuralA" && nrConfigurationScenario != "RuralB"),
-                       "NR needs one of the NR pre-defined scenarios to be specified");
-    }
-  else
-    {
-      NS_FATAL_ERROR ("Unrecognized radio network technology: " << radioNetwork);
+      if (radioNetwork == "LTE")
+        {
+          NS_FATAL_ERROR ("LTE not supported currently");
+        }
+      else if (radioNetwork == "NR")
+        {
+          NS_ABORT_MSG_IF ((nrConfigurationScenario != "DenseA" && nrConfigurationScenario != "DenseB"
+                           && nrConfigurationScenario != "RuralA" && nrConfigurationScenario != "RuralB"),
+                           "NR needs one of the NR pre-defined scenarios to be specified");
+        }
+      else
+        {
+          NS_FATAL_ERROR ("Unrecognized radio network technology: " << radioNetwork);
+        }
     }
 
   NS_ABORT_MSG_IF (attachToClosest == true && freqScenario == 0,
@@ -528,74 +531,27 @@ Nr3gppCalibration (Parameters &params)
 
   //
   NodeDistributionScenarioInterface * scenario {NULL};
-  FileScenarioHelper fileScenario;
   HexagonalGridScenarioHelper gridScenario;
 
-  if (params.baseStationFile != "" and params.useSiteFile)
-    {
-      std::cout << "  using tower positions from " << params.baseStationFile
-                << std::endl;
-      std::cout << "    setting sectorization" << std::endl;
-      fileScenario.SetSectorization (sectors);
-      std::cout << "    adding site file" << std::endl;
-      fileScenario.Add (params.baseStationFile);
-      std::cout << "    setting scenario" << std::endl;
-      fileScenario.SetScenarioParameters (params.scenario);
-      std::cout << "    getting number of sites..." << std::flush;
-      gnbSites = fileScenario.GetNumSites ();
-      std::cout << gnbSites << std::endl;
-      std::cout << "    getting number of cells..." << std::flush;
-      uint32_t gnbNum = fileScenario.GetNumCells ();
-      std::cout << gnbNum << std::endl;
-      uint32_t ueNum = params.ueNumPergNb * gnbNum;
-      std::cout << "    setting number of UEs..." << ueNum << std::endl;
-      fileScenario.SetUtNumber (ueNum);
-      std::cout << "    getting sector 0 angle..." << std::flush;
-      sector0AngleRad = fileScenario.GetAntennaOrientationRadians (0);
-      std::cout << sector0AngleRad << std::endl;
+  std::cout << "  hexagonal grid: ";
+  gridScenario.SetScenarioParameters (scenarioParams);
+  gridScenario.SetSimTag (params.simTag);
+  gridScenario.SetResultsDir (params.outputDir);
+  gridScenario.SetNumRings (params.numOuterRings);
+  gnbSites = gridScenario.GetNumSites ();
+  uint32_t ueNum = params.ueNumPergNb * gnbSites * sectors;
+  gridScenario.SetUtNumber (ueNum);
+  sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0);
+  std::cout << sector0AngleRad << std::endl;
 
-      // Creates and plots the network deployment
-      std::cout << "    creating scenario" << std::endl;
-      fileScenario.CreateScenario ();
-      std::cout << "    getting gnbNodes..." << std::flush;
-      gnbNodes = fileScenario.GetBaseStations ();
-      std::cout << gnbNodes.GetN () << std::endl;
-      std::cout << "    getting ueNodes..." << std::flush;
-      ueNodes = fileScenario.GetUserTerminals ();
-      std::cout << ueNodes.GetN () << std::endl;
-      std::cout << "    setting scenario pointer..." << std::flush;
-      scenario = &fileScenario;
-      std::cout << "0x" << std::hex << scenario << std::dec << std::endl;
-    }
-  else
-    {
-      std::cout << "  hexagonal grid: ";
-      gridScenario.SetScenarioParameters (scenarioParams);
-      gridScenario.SetSimTag (params.simTag);
-      gridScenario.SetResultsDir (params.outputDir);
-      gridScenario.SetNumRings (params.numOuterRings);
-      gnbSites = gridScenario.GetNumSites ();
-      uint32_t ueNum = params.ueNumPergNb * gnbSites * sectors;
-      gridScenario.SetUtNumber (ueNum);
-      sector0AngleRad = gridScenario.GetAntennaOrientationRadians (0);
-      std::cout << sector0AngleRad << std::endl;
+  // Creates and plots the network deployment
+  gridScenario.SetMaxUeDistanceToClosestSite (params.maxUeClosestSiteDistance);
+  gridScenario.CreateScenarioWithMobility (Vector (params.speed, 0, 0),
+                                           params.uesWithRandomUtHeight); //move UEs along the x axis
 
-      // Creates and plots the network deployment
-      if (params.confType == "customConf")
-        {
-          gridScenario.CreateScenario ();
-        }
-      else if (params.confType == "calibrationConf")
-        {
-          gridScenario.SetMaxUeDistanceToClosestSite (params.maxUeClosestSiteDistance);
-          gridScenario.CreateScenarioWithMobility (Vector (params.speed, 0, 0),
-                                                   params.uesWithRandomUtHeight); //move UEs along the x axis
-        }
-
-      gnbNodes = gridScenario.GetBaseStations ();
-      ueNodes = gridScenario.GetUserTerminals ();
-      scenario = &gridScenario;
-    }
+  gnbNodes = gridScenario.GetBaseStations ();
+  ueNodes = gridScenario.GetUserTerminals ();
+  scenario = &gridScenario;
 
   // Log the configuration
   std::cout << "\n    Topology configuration: " << gnbSites << " sites, "
@@ -781,9 +737,6 @@ Nr3gppCalibration (Parameters &params)
       NS_ABORT_MSG ("Programming error: no valid helper");
     }
 
-
-  // From here, it is standard NS3. In the future, we will create helpers
-  // for this part as well.
 
   // create the internet and install the IP stack on the UEs
   // get SGW/PGW and create a single RemoteHost
@@ -1119,146 +1072,108 @@ operator << (std::ostream & os, const Parameters & parameters)
      << std::setw (40 - strlen (m)) << (strlen (m) > 0 ? ":" : "")
 
 
-  MSG ("LENA LTE Scenario Parameters");
+  MSG ("Calibration Scenario Parameters");
   MSG ("");
   MSG ("Model version")
     << p.simulator << (p.simulator == "LENA" ? " (v1)" : " (v2)");
-  if (p.simulator == "5GLENA")
-    {
-      MSG ("LTE Standard")
-        << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
-      MSG ("4G-NR ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
-      MSG ("Starting Frequency") << (p.startingFreq);
-      MSG ("Operation mode") << p.operationMode;
-      if (p.operationMode == "TDD")
-        {
-          MSG ("Numerology") << p.numerologyBwp;
-          MSG ("TDD pattern") << p.pattern;
-        }
-      if (p.errorModel != "")
-        {
-          MSG ("Error model") << p.errorModel;
-        }
-      else if (p.radioNetwork == "LTE")
-        {
-          MSG ("Error model") << "ns3::LenaErrorModel";
-        }
-      else if (p.radioNetwork == "NR")
-        {
-          MSG ("Error model") << "ns3::NrEesmCcT2";
-        }
 
-      MSG ("gNB/UE Tx Power (dBm)") << p.gnbTxPower <<
-          (", ") << p.ueTxPower;
-
-      MSG ("Downtilt(deg)") << p.downtiltAngle;
-
-      MSG ("gNB Antenna") << p.gnbNumRows << (", ") << p.gnbNumColumns <<
-          (", ") << p.gnbHSpacing << (", ") << p.gnbVSpacing;
-
-      MSG ("gNB Antenna Element") << (p.gnbEnable3gppElement ? "3GPP" : "ISO");
-
-      MSG ("UE Antenna") << p.ueNumRows << (", ") << p.ueNumColumns <<
-          (", ") << p.ueHSpacing << (", ") << p.ueVSpacing;
-      MSG ("UE Antenna Element") << (p.ueEnable3gppElement ? "3GPP" : "ISO");
-
-      if (p.radioNetwork == "NR")
-        {
-          MSG ("5G-NR Realistic BF") << (p.enableRealBF ? "Enabled" : "Disabled");
-        }
-
-      MSG ("Shadowing") << (p.enableShadowing ? "Enabled" : "Disabled");
-      MSG ("Fading") << (p.enableFading ? "Enabled" : "Disabled");
-
-      if (p.bfMethod == "Omni")
-        {
-          MSG ("BF method") << "Omni";
-        }
-      else if (p.bfMethod == "CellScan")
-        {
-          MSG ("BF method") << "CellScan";
-        }
-      else
-        {
-          MSG ("BF method") << "Fixed Beam";
-        }
-
-      MSG ("");
-
-    }
-  else
-    {
-      // LENA v1
-      p.operationMode = "FDD";
-      MSG ("LTE Standard") << "4G";
-      MSG ("Lena calibration mode") << (p.lenaCalibration ? "ON" : "off");
-      MSG ("LTE ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
-      MSG ("Operation mode") << p.operationMode;
-    }
-
-  if (p.baseStationFile != "" and p.useSiteFile)
-    {
-      MSG ("Base station positions") << "read from file " << p.baseStationFile;
-    }
-  else
-    {
-      MSG ("Base station positions") << "regular hexaonal lay down";
-      MSG ("Number of rings") << p.numOuterRings;
-    }
-
-  MSG ("");
+  MSG ("Starting Frequency") << (p.startingFreq);
   MSG ("Channel bandwidth") << p.bandwidthMHz << " MHz";
   MSG ("Spectrum configuration")
     <<    (p.freqScenario == 0 ? "non-" : "") << "overlapping";
-  MSG ("LTE Scheduler") << p.scheduler;
+  MSG ("Scheduler") << p.scheduler;
+  MSG ("Number of UEs per sector") << p.ueNumPergNb;
 
+  if (p.simulator == "5GLENA")
+      {
+        MSG ("LTE Standard")
+          << p.radioNetwork << (p.radioNetwork == "LTE" ? " (4G)" : " (5G NR)");
+        MSG ("Configuration") << (p.confType == "calibrationConf" ? "pre-defined Scenarios" : "custom Configuration");
+        if (p.confType == "calibrationConf")
+          {
+           MSG ("Pre-defined Scenario") << p.nrConfigurationScenario;
+          }
+        MSG ("Operation mode") << p.operationMode;
+        MSG ("Numerology") << p.numerologyBwp;
+
+        if (p.operationMode == "TDD")
+          {
+            MSG ("TDD pattern") << p.pattern;
+          }
+
+        MSG ("gNB/UE Tx Power (dBm)") << p.gnbTxPower <<
+            (", ") << p.ueTxPower;
+        MSG ("gNB/UE Antenna Height (m)") << p.bsHeight <<
+            (", ") << p.utHeight;
+
+        MSG ("UE-BS min distance (m)") << p.minBsUtDistance;
+
+        MSG ("UE-BS max distance (m)") << p.maxUeClosestSiteDistance;
+
+        MSG ("Error model") << p.errorModel;
+
+        MSG ("Downtilt(deg)") << p.downtiltAngle;
+
+        MSG ("gNB Antenna") << p.gnbNumRows << (", ") << p.gnbNumColumns <<
+            (", ") << p.gnbHSpacing << (", ") << p.gnbVSpacing;
+
+        MSG ("gNB Antenna Element") << (p.gnbEnable3gppElement ? "3GPP" : "ISO");
+
+        MSG ("UE Antenna") << p.ueNumRows << (", ") << p.ueNumColumns <<
+            (", ") << p.ueHSpacing << (", ") << p.ueVSpacing;
+        MSG ("UE Antenna Element") << (p.ueEnable3gppElement ? "3GPP" : "ISO");
+
+        MSG ("gNB/UE Noise Figure") << p.gnbNoiseFigure <<
+            (", ") << p.ueNoiseFigure;
+
+        if (p.radioNetwork == "NR")
+          {
+            MSG ("5G-NR Realistic BF") << (p.enableRealBF ? "Enabled" : "Disabled");
+          }
+
+        MSG ("Shadowing") << (p.enableShadowing ? "Enabled" : "Disabled");
+        MSG ("Fading") << (p.enableFading ? "Enabled" : "Disabled");
+
+        MSG ("BF method") << p.bfMethod;
+
+        if (p.crossPolarizedGnb == true)
+          {
+            MSG ("Cross Polarization at gNB with angles") << p.polSlantAngleGnb1 <<
+                (", ") << p.polSlantAngleGnb2;
+
+            if (p.crossPolarizedUe == true)
+              {
+                MSG ("Cross Polarization at UE with angles") << p.polSlantAngleUe1 <<
+                    (", ") << p.polSlantAngleUe2;
+              }
+            else
+              {
+                MSG ("Cross Polarization at UE is NOT ENABLED");
+              }
+          }
+        else
+          {
+            MSG ("Cross Polarization is NOT ENABLED");
+          }
+        MSG ("4G-NR ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
+      }
+  else
+    {
+      // LENA v1
+      MSG ("Operation mode") << p.operationMode;
+      MSG ("LTE Standard") << "4G";
+      MSG ("Lena calibration mode") << (p.lenaCalibration ? "ON" : "off");
+      MSG ("LTE ULPC mode") << (p.enableUlPc ? "Enabled" : "Disabled");
+    }
   MSG ("");
-  MSG ("Basic scenario") << p.scenario;
 
-  if (p.confType == "calibrationConf")
-    {
-      if (p.nrConfigurationScenario == "DenseA")
-        {
-          MSG ("Dense A");
-        }
-      else if (p.nrConfigurationScenario == "DenseB")
-        {
-          MSG ("Dense B ");
-        }
-      else
-        {
-          MSG ("unknown configuration");
-        }
-      MSG ("ISD") << p.isd;
-      MSG ("BS Height") << p.bsHeight;
-    }
-  else if (p.confType == "customConf")
-    {
-      if (p.scenario == "UMa")
-        {
-          os << "\n  (ISD: 1.7 km, BS: 30 m, UE: 1.5 m, UE-BS min: 30.2 m)";
-        }
-      else if (p.scenario == "UMi")
-        {
-          os << "\n  (ISD: 0.5 km, BS: 10 m, UE: 1.5 m, UE-BS min: 10 m)";
-        }
-      else if (p.scenario == "RMa")
-        {
-          os << "\n  (ISD: 7.0 km, BS: 45 m, UE: 1.5 m, UE-BS min: 44.6 m)";
-        }
-      else
-        {
-          os << "\n  (unknown configuration)";
-        }
-    }
+  MSG ("Base station positions") << "regular hexagonal lay down";
+  MSG ("Number of rings") << p.numOuterRings;
 
   if (p.baseStationFile == "" and p.useSiteFile)
     {
       MSG ("Number of outer rings") << p.numOuterRings;
     }
-  MSG ("Number of UEs per sector") << p.ueNumPergNb;
-  MSG ("gNB/UE Noise Figure") << p.gnbNoiseFigure <<
-      (", ") << p.ueNoiseFigure;
 
   MSG ("");
   MSG ("Network loading") << p.trafficScenario;

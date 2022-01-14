@@ -294,8 +294,12 @@ main (int argc, char *argv[])
 
   //in case calibrationConf is choosen, it sets the parameters of one
   //of the four pre-defined scenarios (DenseA, DenseB, RuralA, RuralB)
-  ChooseCalibrationScenario (params);
-  
+
+  if (params.confType == "calibrationConf")
+    {
+      ChooseCalibrationScenario (params);
+    }
+
   std::cout << params;
 
   ShowProgress spinner (params.progressInterval);
