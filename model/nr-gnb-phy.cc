@@ -1589,9 +1589,8 @@ NrGnbPhy::DoSetEarfcn (uint16_t ulEarfcn, uint16_t dlEarfcn)
 
 
 void
-NrGnbPhy::DoAddUe (uint16_t rnti)
+NrGnbPhy::DoAddUe ([[maybe_unused]] uint16_t rnti)
 {
-  NS_UNUSED (rnti);
   NS_LOG_FUNCTION (this << rnti);
   std::set <uint16_t>::iterator it;
   it = m_ueAttachedRnti.find (rnti);
@@ -1637,10 +1636,9 @@ NrGnbPhy::DoSetSrsConfigurationIndex (uint16_t  rnti, uint16_t srcCi)
 }
 
 void
-NrGnbPhy::DoSetMasterInformationBlock (LteRrcSap::MasterInformationBlock mib)
+NrGnbPhy::DoSetMasterInformationBlock ([[maybe_unused]] LteRrcSap::MasterInformationBlock mib)
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (mib);
 }
 
 void

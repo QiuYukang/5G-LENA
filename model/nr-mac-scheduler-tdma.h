@@ -106,10 +106,8 @@ protected:
    * \param symOfBeam the number of symbols assigned to the beam
    */
   virtual void
-  ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override
+  ChangeDlBeam ([[maybe_unused]] PointInFTPlane *spoint, [[maybe_unused]] uint32_t symOfBeam) const override
   {
-    NS_UNUSED (spoint);
-    NS_UNUSED (symOfBeam);
   }
 
   /**
@@ -118,10 +116,8 @@ protected:
    * \param symOfBeam the number of symbols assigned to the beam
    */
   virtual void
-  ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override
+  ChangeUlBeam ([[maybe_unused]] PointInFTPlane *spoint, [[maybe_unused]] uint32_t symOfBeam) const override
   {
-    NS_UNUSED (spoint);
-    NS_UNUSED (symOfBeam);
   }
 
   virtual uint8_t GetTpc () const override;

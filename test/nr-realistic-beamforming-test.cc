@@ -206,7 +206,7 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   propagationLossModel->AssignStreams (1);
                   Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
                   channelConditionModel->AssignStreams (1);
-                  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+                  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel());
                   NS_ASSERT (spectrumLossModel != nullptr);
                   Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel ());
                   channel->AssignStreams (1);

@@ -55,7 +55,7 @@
  * To run the simulation with the default configuration one shall run the
  * following in the command line:
  *
- * ./waf --run cttc-error-model-comparison
+ * ./ns3 run cttc-error-model-comparison
  *
  */
 

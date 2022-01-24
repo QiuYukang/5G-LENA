@@ -53,24 +53,20 @@ NrMacSchedulerTdmaRR::CreateUeRepresentation (const NrMacCschedSapProvider::Csch
 
 void
 NrMacSchedulerTdmaRR::AssignedDlResources (const UePtrAndBufferReq &ue,
-                                               const FTResources &assigned,
-                                               const FTResources &totAssigned) const
+                                           [[maybe_unused]] const FTResources &assigned,
+                                           [[maybe_unused]] const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
-  NS_UNUSED (totAssigned);
   GetFirst GetUe;
   GetUe (ue)->UpdateDlMetric (m_dlAmc);
 }
 
 void
 NrMacSchedulerTdmaRR::AssignedUlResources (const UePtrAndBufferReq &ue,
-                                               const FTResources &assigned,
-                                               const FTResources &totAssigned) const
+                                           [[maybe_unused]] const FTResources &assigned,
+                                           [[maybe_unused]] const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
-  NS_UNUSED (totAssigned);
   GetFirst GetUe;
   GetUe (ue)->UpdateUlMetric (m_ulAmc);
 }

@@ -49,8 +49,8 @@ To test the installation, after following one of the previous point, you can do
 a simple configuration and compile test (more options for that later):
 
 ```
-$ ./waf configure --enable-examples --enable-tests
-$ ./waf
+$ ./ns3 configure --enable-examples --enable-tests
+$ ./ns3 build
 ```
 
 A success for both previous commands indicates an overall success.
@@ -82,7 +82,7 @@ to the `5g-lena-v1.1.y` branch.
 Let's configure the project:
 
 ```
-$ ./waf configure --enable-examples --enable-tests
+$ ./ns3 configure --enable-examples --enable-tests
 ```
 
 If the NR module is recognized correctly, you should see "nr" in the list of
@@ -90,7 +90,7 @@ built modules. If that is not the case, then most probably the previous
 point failed. Otherwise, you could compile it:
 
 ```
-$ ./waf
+$ ./ns3
 ```
 
 If that command returns successfully, Welcome to the NR world !
@@ -110,7 +110,7 @@ apt-get install sqlite sqlite3 libsqlite3-dev
 ```
 
 For more details, related to the prerequisites for ns-3 please visit: `https://www.nsnam.org/wiki/Installation#Ubuntu.2FDebian.2FMint`.
-After the installation of the missing packages run again `./waf configure --enable-tests --enable-examples`.
+After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
 You should see: `SQLite stats support: enabled`
 
 

@@ -170,6 +170,19 @@ NrGnbNetDevice::GetCellId () const
   return m_cellId;
 }
 
+std::vector<uint16_t>
+NrGnbNetDevice::GetCellIds () const
+{
+  std::vector<uint16_t> cellIds;
+
+  for (auto &it: m_ccMap)
+    {
+      cellIds.push_back (it.second->GetCellId ());
+    }
+  return cellIds;
+}
+
+
 void
 NrGnbNetDevice::SetCellId (uint16_t cellId)
 {

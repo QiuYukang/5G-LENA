@@ -66,7 +66,7 @@
  * To run the simulation with the default configuration one shall run the
  * following in the command line:
  *
- * ./waf --run cttc-error-model
+ * ./ns3 run cttc-error-model
  *
  */
 
@@ -96,11 +96,9 @@ GetUePositions (double ueY, double ueHeight = 1.5)
 static std::vector<uint64_t> packetsTime;
 
 static void
-PrintRxPkt (std::string context, Ptr<const Packet> pkt)
+PrintRxPkt ([[maybe_unused]] std::string context, Ptr<const Packet> pkt)
 {
-  NS_UNUSED (context);
   // ASSUMING ONE UE
-
   SeqTsHeader seqTs;
   pkt->PeekHeader (seqTs);
   packetsTime.push_back ((Simulator::Now () - seqTs.GetTs ()).GetMicroSeconds ());

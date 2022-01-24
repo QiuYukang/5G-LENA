@@ -100,7 +100,7 @@ public:
    * \brief Get a pointer to the current antenna
    * \return the antenna
    */
-  Ptr<const UniformPlanarArray> GetAntennaArray () const;
+  Ptr<const UniformPlanarArray> GetAntenna () const;
 
 
   typedef std::map<const Ptr<const NetDevice>, BeamformingVector> BeamformingStorage; //!< BeamformingStorage type used to save the map of beamforming vectors per device

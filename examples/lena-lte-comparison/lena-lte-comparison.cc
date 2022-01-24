@@ -741,8 +741,8 @@ LenaLteComparison (const Parameters &params)
 
       if (params.ulRem)
         {
-          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy ()->GetAntennaArray ();
-          auto antenna = ConstCast<UniformPlanarArray> (antArray);
+          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy ()->GetAntenna ();
+          auto antenna = DynamicCast<UniformPlanarArray> (antArray);
           antenna->SetAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
         }
 

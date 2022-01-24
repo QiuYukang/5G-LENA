@@ -659,14 +659,12 @@ NrMacSchedulerNs3::DoCschedLcReleaseReq (const NrMacCschedSapProvider::CschedLcR
 {
   NS_LOG_FUNCTION (this);
 
-  for (const auto & lcId : params.m_logicalChannelIdentity)
+  for ([[maybe_unused]] const auto & lcId : params.m_logicalChannelIdentity)
     {
       auto itUe = m_ueMap.find (params.m_rnti);
       NS_ABORT_IF (itUe == m_ueMap.end ());
 
       // TODO !!!!
-
-      NS_UNUSED (lcId);
       //UeInfoOf(itUe)->ReleaseLC (lcId);
     }
 }
@@ -844,7 +842,7 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
     {
     case UlCqiInfo::PUSCH:
       {
-        bool found = false;
+        [[maybe_unused]] bool found = false;
         uint8_t symStart = params.m_symStart;
         SfnSf ulSfnSf = params.m_sfnSf;
 
@@ -882,7 +880,6 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq (const NrMacSchedSapProvider::SchedUlCqiI
               }
           }
         NS_ASSERT (found);
-        NS_UNUSED (found);
 
         if (ulAllocations.size () == 0)
           {

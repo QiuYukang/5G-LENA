@@ -35,7 +35,7 @@
  * The rest of parameters are for REM map configuration, such as parameters for
  * resolution and REM area.
  *
- * ./waf --run "rem-beam-example"
+ * ./ns3 run "rem-beam-example"
  *
  * The output of this example are REM csv files from which REM figures can be
  * generated with the following command:

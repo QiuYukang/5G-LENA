@@ -56,7 +56,7 @@ BeamManager::GetBeamId (const BeamformingVector&v) const
 }
 
 Ptr<const UniformPlanarArray>
-BeamManager::GetAntennaArray() const
+BeamManager::GetAntenna () const
 {
   return m_antennaArray;
 }

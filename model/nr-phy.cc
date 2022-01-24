@@ -869,12 +869,6 @@ NrPhy::GetSymbolPeriod () const
   return m_symbolPeriod;
 }
 
-Ptr<const UniformPlanarArray>
-NrPhy::GetAntennaArray() const
-{
-  return m_beamManager->GetAntennaArray ();
-}
-
 void
 NrPhy::SetNoiseFigure (double d)
 {

@@ -124,12 +124,10 @@ NrPhyRxTrace::SetSimTag (const std::string &simTag)
 }
 
 void
-NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
+NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats, std::string path,
                                                  uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId)
 {
   NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
-  NS_UNUSED (phyStats);
-  NS_UNUSED (path);
   //phyStats->ReportInterferenceTrace (imsi, sinr);
   //phyStats->ReportPowerTrace (imsi, power);
 

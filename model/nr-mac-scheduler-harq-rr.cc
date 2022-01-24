@@ -339,10 +339,9 @@ NrMacSchedulerHarqRr::SortDlHarq (NrMacSchedulerNs3::ActiveHarqMap *activeDlHarq
  * for the next slot.
  */
 void
-NrMacSchedulerHarqRr::SortUlHarq (NrMacSchedulerNs3::ActiveHarqMap *activeUlHarq) const
+NrMacSchedulerHarqRr::SortUlHarq ([[maybe_unused]] NrMacSchedulerNs3::ActiveHarqMap *activeUlHarq) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (activeUlHarq);
 }
 
 /**

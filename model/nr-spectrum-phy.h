@@ -159,13 +159,13 @@ public:
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
   /**
    * \brief Inherited from SpectrumPhy
-   * Note: Implements GetRxAntenna function from SpectrumPhy. This
+   * Note: Implements GetAntenna function from SpectrumPhy. This
    * function should not be called for NR devices, since NR devices do not use
    * AntennaModel. This is because 3gpp channel model implementation only
    * supports PhasedArrayModel antenna type.
    * \return should not return anything
    */
-  virtual Ptr<AntennaModel> GetRxAntenna () const override;
+  virtual Ptr<Object> GetAntenna () const override;
   /**
    * \brief Inherited from SpectrumPhy. When this function is called
    * this spectrum phy starts receiving a signal from its spectrum channel.
@@ -280,11 +280,13 @@ public:
    * \brief Set NrPhy of this spectrum phy in order to be able
    * to obtain information such as cellId, bwpId, etc.
    */
-  void InstallPhy (const Ptr<const NrPhy> &phyModel);
+  void InstallPhy (const Ptr<NrPhy> &phyModel);
   /**
-   * \return Returns UniformPlanarArray instance of this spectrum phy
+   * \brief Sets the antenna of this NrSpectrumPhy instance,
+   * currently in NR module it is expected to be of type UniformPlannarArray
+   * \param antenna the antenna to be set to this NrSpectrumPhy instance
    */
-  Ptr<const UniformPlanarArray> GetAntennaArray (void) const;
+  void SetAntenna (Ptr<Object> antenna);
   /**
    * \brief Returns spectrum channel object to which is attached this spectrum phy instance
    */
@@ -512,7 +514,8 @@ private:
   Ptr<const SpectrumModel> m_rxSpectrumModel {nullptr}; //!< the spectrum model of this spectrum phy
   Ptr<MobilityModel> m_mobility {nullptr}; //!< the mobility model of the node to which belongs this spectrum phy
   Ptr<NetDevice> m_device {nullptr}; //!< the device to which belongs this spectrum phy
-  Ptr<const NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
+  Ptr<NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
+  Ptr<Object> m_antenna {nullptr}; //!< antenna object of this NrSpectrumPhy, currently supported UniformPlannarArray type of antenna
   Ptr<NrHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
   Ptr<NrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
   Ptr<NrInterference> m_interferenceCtrl {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy

@@ -263,14 +263,12 @@ NrSpectrumPhy::GetRxSpectrumModel () const
   return m_rxSpectrumModel;
 }
 
-Ptr<AntennaModel>
-NrSpectrumPhy::GetRxAntenna () const
+Ptr<Object>
+NrSpectrumPhy::GetAntenna () const
 {
-   NS_LOG_INFO ("In NR module can be used only UniformPlanarArray antenna type.");
-   return nullptr;
+  NS_LOG_FUNCTION (this);
+  return m_antenna;
 }
-
-
 // set/get attributes
 
 
@@ -665,15 +663,15 @@ NrSpectrumPhy::InstallHarqPhyModule (const Ptr<NrHarqPhy>& harq)
 }
 
 void
-NrSpectrumPhy::InstallPhy (const Ptr<const NrPhy> &phyModel)
+NrSpectrumPhy::InstallPhy (const Ptr<NrPhy> &phyModel)
 {
   m_phy = phyModel;
 }
 
-Ptr<const UniformPlanarArray>
-NrSpectrumPhy::GetAntennaArray (void) const
+void
+NrSpectrumPhy::SetAntenna (const Ptr<Object> antenna)
 {
-  return m_phy->GetAntennaArray ();
+  m_antenna = antenna;
 }
 
 Ptr<SpectrumChannel>

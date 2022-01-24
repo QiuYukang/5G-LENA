@@ -110,9 +110,8 @@ NrNetDevice::IsLinkUp (void) const
   return m_linkUp;
 }
 void
-NrNetDevice::AddLinkChangeCallback (Callback<void> callback)
+NrNetDevice::AddLinkChangeCallback ([[maybe_unused]] Callback<void> callback)
 {
-  NS_UNUSED (callback);
 }
 bool
 NrNetDevice::IsBroadcast (void) const
@@ -130,9 +129,8 @@ NrNetDevice::IsMulticast (void) const
   return false;
 }
 Address
-NrNetDevice::GetMulticast (Ipv4Address multicastGroup) const
+NrNetDevice::GetMulticast ([[maybe_unused]] Ipv4Address multicastGroup) const
 {
-  NS_UNUSED (multicastGroup);
   return Mac48Address ("01:00:5e:00:00:00");
 }
 bool
@@ -147,12 +145,8 @@ NrNetDevice::IsPointToPoint (void) const
 }
 
 bool
-NrNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber)
+NrNetDevice::SendFrom ([[maybe_unused]] Ptr<Packet> packet, [[maybe_unused]] const Address& source, [[maybe_unused]] const Address& dest, [[maybe_unused]] uint16_t protocolNumber)
 {
-  NS_UNUSED (packet);
-  NS_UNUSED (source);
-  NS_UNUSED (dest);
-  NS_UNUSED (protocolNumber);
   NS_FATAL_ERROR ("Send from not supported");
   return false;
 }
@@ -176,9 +170,8 @@ NrNetDevice::NeedsArp (void) const
 }
 
 Address
-NrNetDevice::GetMulticast (Ipv6Address addr) const
+NrNetDevice::GetMulticast ([[maybe_unused]] Ipv6Address addr) const
 {
-  NS_UNUSED (addr);
   return Address ();
 }
 
@@ -190,9 +183,8 @@ NrNetDevice::SetReceiveCallback (ReceiveCallback cb)
 }
 
 void
-NrNetDevice::SetPromiscReceiveCallback (PromiscReceiveCallback cb)
+NrNetDevice::SetPromiscReceiveCallback ([[maybe_unused]] PromiscReceiveCallback cb)
 {
-  NS_UNUSED (cb);
 }
 
 bool

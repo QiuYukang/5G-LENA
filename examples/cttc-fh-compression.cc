@@ -40,7 +40,7 @@
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-fh-compression --Help"
+$ ./ns3 run "cttc-fh-compression --PrintHelp"
     \endcode
  *
  */
@@ -648,7 +648,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna =
-            ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
+            DynamicCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntenna ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -678,11 +678,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna0 =
-            ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+            DynamicCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntenna ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<UniformPlanarArray> antenna1 =
-            ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
+            DynamicCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntenna ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -717,7 +717,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna =
-            ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
+            DynamicCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntenna ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -747,11 +747,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna0 =
-            ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+            DynamicCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntenna ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<UniformPlanarArray> antenna1 =
-            ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
+            DynamicCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntenna ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -787,7 +787,7 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna =
-            ConstCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntennaArray ());
+              DynamicCast<UniformPlanarArray> (phy->GetSpectrumPhy ()->GetAntenna ());
           antenna->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology
@@ -817,11 +817,11 @@ void Set5gLenaSimulatorParameters (HexagonalGridScenarioHelper gridScenario,
           // Change the antenna orientation
           Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);
           Ptr<UniformPlanarArray> antenna0 =
-            ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+              DynamicCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntenna ());
           antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
           Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy (gnb, 1);
           Ptr<UniformPlanarArray> antenna1 =
-            ConstCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntennaArray ());
+              DynamicCast<UniformPlanarArray> (phy1->GetSpectrumPhy ()->GetAntenna ());
           antenna1->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
           // Set numerology

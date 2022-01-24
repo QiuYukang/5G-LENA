@@ -282,7 +282,7 @@ private:
   virtual void DoRun (void) override;
   Ptr<NrMacSchedulerNs3> CreateScheduler (const std::string &schedulerType) const;
   Ptr<TestNotchingGnbMac> CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
-                                     NrMacCschedSapProvider::CschedCellConfigReqParameters params) const;
+                                     NrMacCschedSapProvider::CschedCellConfigReqParameters &params) const;
 
   bool m_verbose = false;
   const std::vector<uint8_t> m_mask;
@@ -308,7 +308,7 @@ NrNotchingTestCase::CreateScheduler (const std::string &schedulerType) const
 
 Ptr<TestNotchingGnbMac>
 NrNotchingTestCase::CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
-                               NrMacCschedSapProvider::CschedCellConfigReqParameters params) const
+                               NrMacCschedSapProvider::CschedCellConfigReqParameters &params) const
 {
   Ptr<TestNotchingGnbMac> mac = CreateObject<TestNotchingGnbMac> (m_mask);
 

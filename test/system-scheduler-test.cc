@@ -29,9 +29,8 @@
 namespace ns3 {
 
 void
-SystemSchedulerTest::CountPkts (Ptr<const Packet> pkt)
+SystemSchedulerTest::CountPkts ([[maybe_unused]] Ptr<const Packet> pkt)
 {
-  NS_UNUSED (pkt);
   m_packets++;
   if (m_packets == m_limit)
     {

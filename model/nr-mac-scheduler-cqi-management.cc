@@ -35,18 +35,15 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("NrMacSchedulerCQIManagement");
 
 void
-NrMacSchedulerCQIManagement::DlSBCQIReported (const DlCqiInfo &info,
-                                                  const std::shared_ptr<NrMacSchedulerUeInfo>&ueInfo) const
+NrMacSchedulerCQIManagement::DlSBCQIReported ([[maybe_unused]]const DlCqiInfo &info,
+                                              [[maybe_unused]] const std::shared_ptr<NrMacSchedulerUeInfo>&ueInfo) const
 {
   NS_LOG_INFO (this);
-  NS_UNUSED (info);
-  NS_UNUSED (ueInfo);
-
   // TODO
 }
 
 void
-NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t tbs,
+NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, [[maybe_unused]] uint32_t tbs,
                                               const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
                                               const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
                                               const std::vector<uint8_t> &rbgMask,
@@ -54,7 +51,6 @@ NrMacSchedulerCQIManagement::UlSBCQIReported (uint32_t expirationTime, uint32_t 
                                               const Ptr<const SpectrumModel> &model) const
 {
   NS_LOG_INFO (this);
-  NS_UNUSED (tbs);
   NS_ASSERT (rbgMask.size () > 0);
 
   NS_LOG_INFO ("Computing SB CQI for UE " << ueInfo->m_rnti);

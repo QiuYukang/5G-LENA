@@ -57,7 +57,7 @@
  * To run the simulation with the default configuration one shall run the
  * following in the command line:
  *
- * ./waf --run cttc-3gpp-channel-nums
+ * ./ns3 run cttc-3gpp-channel-nums
  *
  */
 

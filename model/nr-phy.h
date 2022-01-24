@@ -207,12 +207,6 @@ public:
    */
   Time GetSymbolPeriod () const;
 
-  // Attributes
-  /**
-   * \return The antena array that is being used by this PHY
-   */
-  Ptr<const UniformPlanarArray> GetAntennaArray () const;
-
   /**
    * \brief Set the NoiseFigure value
    * \param d the Noise figure value

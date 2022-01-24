@@ -130,12 +130,8 @@ static const std::unordered_map <NrControlMessage::messageType, std::string, std
 };
 
 void
-NrTimingsTest::GnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::GnbPhyTx (SfnSf sfn, [[maybe_unused]]  uint16_t nodeId, [[maybe_unused]]  uint16_t rnti, [[maybe_unused]]  uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
-
   static NumerologyToType res =
   {
     {
@@ -206,11 +202,8 @@ NrTimingsTest::GnbPhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 }
 
 void
-NrTimingsTest::GnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::GnbPhyRx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -291,11 +284,8 @@ NrTimingsTest::GnbPhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 }
 
 void
-NrTimingsTest::GnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::GnbMacTx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -346,11 +336,8 @@ NrTimingsTest::GnbMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 }
 
 void
-NrTimingsTest::GnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::GnbMacRx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -428,11 +415,8 @@ NrTimingsTest::GnbMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId
 // UE
 
 void
-NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::UePhyTx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -513,11 +497,8 @@ NrTimingsTest::UePhyTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 }
 
 void
-NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::UePhyRx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -588,11 +569,8 @@ NrTimingsTest::UePhyRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 }
 
 void
-NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::UeMacTx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {
@@ -663,11 +641,8 @@ NrTimingsTest::UeMacTx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId,
 }
 
 void
-NrTimingsTest::UeMacRx (SfnSf sfn, uint16_t nodeId, uint16_t rnti, uint8_t ccId, Ptr<const NrControlMessage> msg)
+NrTimingsTest::UeMacRx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unused]] uint16_t rnti, [[maybe_unused]] uint8_t ccId, Ptr<const NrControlMessage> msg)
 {
-  NS_UNUSED (rnti);
-  NS_UNUSED (ccId);
-  NS_UNUSED (nodeId);
 
   static NumerologyToType res =
   {

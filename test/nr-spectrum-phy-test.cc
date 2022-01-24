@@ -24,6 +24,7 @@
 #include "ns3/nr-interference.h"
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/nr-gnb-phy.h"
+#include "ns3/beam-manager.h"
 
 namespace ns3 {
 
@@ -104,6 +105,12 @@ SetNoisePsdTestCase::DoRun (void)
   spectrumChannel->AddSpectrumPropagationLossModel (CreateObject<NoLossSpectrumPropagationLossModel>());
   rxPhy->SetChannel (spectrumChannel);
   Ptr<NrGnbPhy> phy = CreateObject<NrGnbPhy>();
+  Ptr<BeamManager> beamManager = CreateObject <BeamManager>();
+  phy->InstallSpectrumPhy (rxPhy);
+  rxPhy->InstallPhy (phy);
+  Ptr<UniformPlanarArray> antenna = CreateObject <UniformPlanarArray> ();
+  rxPhy->SetAntenna(antenna);
+  beamManager->Configure (antenna);
   phy->DoSetCellId (99);
   rxPhy->InstallPhy (phy);
   double subcarrierSpacing = 15000 * static_cast<uint32_t> (std::pow (2, m_numerology));
@@ -126,6 +133,15 @@ SetNoisePsdTestCase::DoRun (void)
   params1->cellId = 99;
   Ptr<NrSpectrumPhy> txPhy = CreateObject<NrSpectrumPhy>();
   txPhy->SetMobility (CreateObject<ConstantPositionMobilityModel>());
+  Ptr<UniformPlanarArray> ueAntenna = CreateObject <UniformPlanarArray> ();
+  Ptr<NrGnbPhy> uePhy = CreateObject<NrGnbPhy>();
+  uePhy->InstallSpectrumPhy(txPhy);
+  txPhy->InstallPhy (uePhy);
+  txPhy->SetAntenna(ueAntenna);
+  Ptr<BeamManager> ueBeamManager = CreateObject <BeamManager>();
+  ueBeamManager->Configure (ueAntenna);
+  uePhy->DoSetCellId (99);
+
   params1->txPhy = txPhy;
 
   rxPhy->GetNrInterference ()->TraceConnectWithoutContext ("SnrPerProcessedChunk",

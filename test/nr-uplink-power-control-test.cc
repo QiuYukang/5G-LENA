@@ -320,7 +320,7 @@ NrUplinkPowerControlTestCase::DoRun (void)
   propagationLossModel->AssignStreams (1);
   Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
   channelConditionModel->AssignStreams (1);
-  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel ());
   NS_ASSERT_MSG (spectrumLossModel == nullptr, "3GPP spectrum model should be disabled in this test to have deterministic behaviour.");
 
   // When all the configuration is done, explicitly call UpdateConfig ()

@@ -95,7 +95,7 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
   // Change the antenna orientation
   Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
   Ptr<UniformPlanarArray> antenna0 =
-    ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+    DynamicCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntenna ());
   antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
   // configure the beam that points toward the center of hexagonal

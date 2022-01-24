@@ -981,10 +981,9 @@ NrUeMac::SetPhySapProvider (NrPhySapProvider* ptr)
 }
 
 void
-NrUeMac::DoConfigureRach (LteUeCmacSapProvider::RachConfig rc)
+NrUeMac::DoConfigureRach ([[maybe_unused]] LteUeCmacSapProvider::RachConfig rc)
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (rc);
 }
 
 void
@@ -1003,10 +1002,9 @@ NrUeMac::RandomlySelectAndSendRaPreamble ()
 }
 
 void
-NrUeMac::SendRaPreamble (bool contention)
+NrUeMac::SendRaPreamble ([[maybe_unused]] bool contention)
 {
   NS_LOG_INFO (this);
-  NS_UNUSED (contention);
   //m_raPreambleId = m_raPreambleUniformVariable->GetInteger (0, 64 - 1);
   m_raPreambleId = g_raPreambleId++;
   /*raRnti should be subframeNo -1 */
@@ -1020,10 +1018,9 @@ NrUeMac::SendRaPreamble (bool contention)
 }
 
 void
-NrUeMac::DoStartNonContentionBasedRandomAccessProcedure (uint16_t rnti, uint8_t preambleId, uint8_t prachMask)
+NrUeMac::DoStartNonContentionBasedRandomAccessProcedure (uint16_t rnti, [[maybe_unused]] uint8_t preambleId, uint8_t prachMask)
 {
   NS_LOG_FUNCTION (this << " rnti" << rnti);
-  NS_UNUSED (preambleId);
   NS_ASSERT_MSG (prachMask == 0, "requested PRACH MASK = " << (uint32_t) prachMask << ", but only PRACH MASK = 0 is supported");
   m_rnti = rnti;
 }

@@ -44,39 +44,32 @@ class TestCschedSapUser : public NrMacCschedSapUser
 {
 public:
   TestCschedSapUser () : NrMacCschedSapUser () { }
-  virtual void CschedCellConfigCnf (const struct CschedCellConfigCnfParameters& params) override
+  virtual void CschedCellConfigCnf ([[maybe_unused]] const struct CschedCellConfigCnfParameters& params) override
   {
-    NS_UNUSED (params);
   }
 
-  virtual void CschedUeConfigCnf (const struct CschedUeConfigCnfParameters& params) override
+  virtual void CschedUeConfigCnf ([[maybe_unused]] const struct CschedUeConfigCnfParameters& params) override
   {
-    NS_UNUSED (params);
   }
 
-  virtual void CschedLcConfigCnf (const struct CschedLcConfigCnfParameters& params) override
+  virtual void CschedLcConfigCnf ([[maybe_unused]] const struct CschedLcConfigCnfParameters& params) override
   {
-    NS_UNUSED (params);
   }
 
-  virtual void CschedLcReleaseCnf (const struct CschedLcReleaseCnfParameters& params) override
+  virtual void CschedLcReleaseCnf ([[maybe_unused]] const struct CschedLcReleaseCnfParameters& params) override
   {
-    NS_UNUSED (params);
   }
 
-  virtual void CschedUeReleaseCnf (const struct CschedUeReleaseCnfParameters& params) override
+  virtual void CschedUeReleaseCnf ([[maybe_unused]] const struct CschedUeReleaseCnfParameters& params) override
   {
-    NS_UNUSED (params);
   }
 
-  virtual void CschedUeConfigUpdateInd (const struct CschedUeConfigUpdateIndParameters& params) override
+  virtual void CschedUeConfigUpdateInd ([[maybe_unused]] const struct CschedUeConfigUpdateIndParameters& params) override
   {
-    NS_UNUSED (params);
   }
 
-  virtual void CschedCellConfigUpdateInd (const struct CschedCellConfigUpdateIndParameters& params) override
+  virtual void CschedCellConfigUpdateInd ([[maybe_unused]] const struct CschedCellConfigUpdateIndParameters& params) override
   {
-    NS_UNUSED (params);
   }
 };
 
@@ -189,9 +182,8 @@ NrSchedGeneralTestCase::TestSAPInterface (const Ptr<NrMacScheduler> &sched)
 }
 
 void
-NrSchedGeneralTestCase::SchedConfigInd (const struct NrMacSchedSapUser::SchedConfigIndParameters& params)
+NrSchedGeneralTestCase::SchedConfigInd ([[maybe_unused]] const struct NrMacSchedSapUser::SchedConfigIndParameters& params)
 {
-  NS_UNUSED (params);
 }
 
 void

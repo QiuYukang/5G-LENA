@@ -317,7 +317,7 @@ NrHelper::InitializeOperationBand (OperationBandInfo *band, uint8_t flags)
             {
               bwp->m_channel = m_channelFactory.Create<SpectrumChannel> ();
               bwp->m_channel->AddPropagationLossModel (bwp->m_propagation);
-              bwp->m_channel->AddSpectrumPropagationLossModel (bwp->m_3gppChannel);
+              bwp->m_channel->AddPhasedArraySpectrumPropagationLossModel (bwp->m_3gppChannel);
             }
         }
     }
@@ -549,19 +549,12 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   channelPhy->SetPhyRxDataEndOkCallback (MakeCallback (&NrUePhy::PhyDataPacketReceived, phy));
   channelPhy->SetPhyRxCtrlEndOkCallback (phyRxCtrlCallback);
 
+  channelPhy->SetAntenna (antenna);
+
   phy->InstallSpectrumPhy (channelPhy);
 
   Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
   phy->InstallAntenna (beamManager,antenna);
-
-  // TODO: If antenna changes, this will be broken
-  auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
-  if (channel)
-    {
-      channel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
-    }
-
-
   return phy;
 }
 
@@ -740,6 +733,7 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
     }
   channelPhy->AddDataSinrChunkProcessor (pData);
   channelPhy->AddSrsSinrChunkProcessor (pSrs);
+  channelPhy->SetAntenna (antenna);
 
   Ptr<MobilityModel> mm = n->GetObject<MobilityModel> ();
   NS_ASSERT_MSG (mm, "MobilityModel needs to be set on node before calling NrHelper::InstallEnbDevice ()");
@@ -752,14 +746,6 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
 
   Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
   phy->InstallAntenna (beamManager, antenna);
-
-  auto channel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (bwp->m_3gppChannel);
-  // TODO: NOTE: if changing the Antenna Array, this will broke
-  if (channel)
-    {
-      channel->AddDevice (dev, phy->GetSpectrumPhy()->GetAntennaArray());
-    }
-
   return phy;
 }
 
@@ -943,7 +929,7 @@ NrHelper::InstallSingleGnbDevice (const Ptr<Node> &n,
   if (m_epcHelper != nullptr)
     {
       NS_LOG_INFO ("adding this eNB to the EPC");
-      m_epcHelper->AddEnb (n, dev, dev->GetCellId ());
+      m_epcHelper->AddEnb (n, dev, dev->GetCellIds ());
       Ptr<EpcEnbApplication> enbApp = n->GetApplication (0)->GetObject<EpcEnbApplication> ();
       NS_ASSERT_MSG (enbApp != nullptr, "cannot retrieve EpcEnbApplication");
 
@@ -1311,7 +1297,7 @@ NrHelper::DoAssignStreamsToChannelObjects (Ptr<NrSpectrumPhy> phy, int64_t curre
       m_channelObjectsWithAssignedStreams.push_back (channelConditionModel);
     }
 
-  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (phy->GetSpectrumChannel ()->GetSpectrumPropagationLossModel ());
+  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (phy->GetSpectrumChannel ()->GetPhasedArraySpectrumPropagationLossModel ());
 
   if (spectrumLossModel)
     {

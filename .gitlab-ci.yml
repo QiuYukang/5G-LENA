@@ -18,12 +18,14 @@ stages:
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
     - mkdir -p ns-3-dev/contrib/nr
     - cp -r doc examples helper model test utils ns-3-dev/contrib/nr/
-    - cp -r wscript ns-3-dev/contrib/nr/
+    - cp -r CMakeLists.txt ns-3-dev/contrib/nr/
     - cd ns-3-dev
     - git log -1
-    - CXX="ccache $COMPILER" ./waf configure --enable-examples --enable-tests -d $MODE
-    - ./waf
-    - ./test.py
+    - export MPI_CI=1
+    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
+    - cmake --version
+    - ./ns3 build
+    - ./test.py -n
     - cd ../
     - rm -rf ns-3-dev
   tags:
@@ -45,29 +47,40 @@ stages:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
 
 # Defines the per-commit jobs. They are executed for any branch
-per-commit-compile-debug:
+gcc-debug:
   extends: .base-build
-  image: natalep/archlinux-nr-environment
+  image: archlinux
   variables:
     COMPILER: g++
     MODE: debug
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-per-commit-compile-release:
+gcc-release:
   extends: .base-build
-  image: natalep/archlinux-nr-environment
+  image: archlinux
   variables:
     COMPILER: g++
     MODE: release
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-per-commit-compile-optimized:
+gcc-optimized:
   extends: .base-build
-  image: natalep/archlinux-nr-environment
+  image: archlinux
   variables:
     COMPILER: g++
     MODE: optimized
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
 pages:
   stage: build
+  tags:
+    - cttc
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata

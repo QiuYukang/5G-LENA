@@ -233,8 +233,8 @@ private:
   UniformPlanarArray::ComplexVector GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
                                                                           const UniformPlanarArray::ComplexVector &aW,
                                                                           const UniformPlanarArray::ComplexVector &bW,
-                                                                          Ptr<const MobilityModel> a,
-                                                                          Ptr<const MobilityModel> b,
+                                                                          Ptr<MobilityModel> a,
+                                                                          Ptr<MobilityModel> b,
                                                                           double srsSinr) const;
 
   /*

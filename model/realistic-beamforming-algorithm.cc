@@ -40,7 +40,6 @@ NS_OBJECT_ENSURE_REGISTERED (RealisticBeamformingAlgorithm);
 
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm ()
 {
-  NS_UNUSED(this);
   m_normalRandomVariable = CreateObject<NormalRandomVariable> ();
   m_gNbDevice = nullptr;
   m_ueDevice = nullptr;
@@ -257,9 +256,7 @@ RealisticBeamformingAlgorithm::GetChannelMatrix () const
   Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel (); // SpectrumChannel should be const.. but need to change ns-3-dev
   Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel ();
 
-  Ptr<SpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetSpectrumPropagationLossModel ();
-  Ptr<SpectrumPropagationLossModel> ueThreeGppSpectrumPropModel = ueSpectrumChannel->GetSpectrumPropagationLossModel ();
-
+  Ptr<PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
   Ptr<ThreeGppSpectrumPropagationLossModel> threeGppSplm = DynamicCast<ThreeGppSpectrumPropagationLossModel>(gnbThreeGppSpectrumPropModel);
   Ptr<MatrixBasedChannelModel> matrixBasedChannelModel = threeGppSplm -> GetChannelModel();
   Ptr<ThreeGppChannelModel> channelModel = DynamicCast<ThreeGppChannelModel>(matrixBasedChannelModel);
@@ -268,9 +265,8 @@ RealisticBeamformingAlgorithm::GetChannelMatrix () const
 
   Ptr<const MatrixBasedChannelModel::ChannelMatrix> originalChannelMatrix = channelModel-> GetChannel (m_gNbDevice->GetNode()->GetObject<MobilityModel>(),
                                                                                                        m_ueDevice->GetNode()->GetObject<MobilityModel>(),
-                                                                                                       gnbPhy->GetAntennaArray (),
-                                                                                                       uePhy->GetAntennaArray ());
-
+                                                                                                       gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
+                                                                                                       ueSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>());
   Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrixCopy = Copy <const MatrixBasedChannelModel::ChannelMatrix> (originalChannelMatrix);
   return channelMatrixCopy;
 }
@@ -292,11 +288,16 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
   complexVector_t maxTxW, maxRxW;
+  
+  Ptr<const NrSpectrumPhy> gnbSpectrumPhy = gnbPhy->GetSpectrumPhy ();
+  Ptr<const NrSpectrumPhy> ueSpectrumPhy = uePhy->GetSpectrumPhy ();
+  NS_ASSERT (gnbSpectrumPhy -> GetMobility());
+  NS_ASSERT (ueSpectrumPhy -> GetMobility());
 
   UintegerValue uintValue;
-  gnbPhy->GetAntennaArray ()->GetAttribute ("NumRows", uintValue);
+  gnbSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
   uint32_t gnbNumRows = static_cast<uint32_t> (uintValue.Get ());
-  uePhy->GetAntennaArray ()->GetAttribute ("NumRows", uintValue);
+  ueSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
   uint32_t ueNumRows = static_cast<uint32_t> (uintValue.Get ());
 
   TriggerEventConf conf = GetTriggerEventConf ();
@@ -337,9 +338,9 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors (const Ptr<const NrGnbNetDe
                                    "Beamforming vectors must be initialized in order to calculate the long term matrix.");
 
                   const UniformPlanarArray::ComplexVector estimatedLongTermComponent = GetEstimatedLongTermComponent (channelMatrix, gnbW, ueW,
-                                                                                                                             gnbDev->GetNode()->GetObject<MobilityModel>(),
-                                                                                                                             ueDev->GetNode()->GetObject<MobilityModel>(),
-                                                                                                                             srsSinr);
+                                                                                                                      gnbSpectrumPhy->GetMobility (),
+                                                                                                                      ueSpectrumPhy->GetMobility (),
+                                                                                                                      srsSinr);
 
                   double estimatedLongTermMetric = CalculateTheEstimatedLongTermMetric (estimatedLongTermComponent);
 
@@ -393,8 +394,8 @@ UniformPlanarArray::ComplexVector
 RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
                                                               const UniformPlanarArray::ComplexVector &aW,
                                                               const UniformPlanarArray::ComplexVector &bW,
-                                                              Ptr<const MobilityModel> a,
-                                                              Ptr<const MobilityModel> b,
+                                                              Ptr<MobilityModel> a,
+                                                              Ptr<MobilityModel> b,
                                                               double srsSinr) const
 {
   NS_LOG_FUNCTION (this);

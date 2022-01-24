@@ -37,6 +37,7 @@
 #include <ns3/nr-spectrum-phy.h>
 #include "nr-spectrum-value-helper.h"
 #include <ns3/beamforming-vector.h>
+#include <ns3/spectrum-propagation-loss-model.h>
 
 #include <chrono>
 #include <ctime>
@@ -393,7 +394,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
   /***** configure pathloss model factory *****/
   m_propagationLossModel = txSpectrumChannel->GetPropagationLossModel ();
   /***** configure spectrum model factory *****/
-  m_spectrumLossModel = txSpectrumChannel->GetSpectrumPropagationLossModel ();
+  m_phasedArraySpectrumLossModel = txSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel ();
 
   /***** configure ChannelConditionModel factory if ThreeGppPropagationLossModel propagation model is being used ****/
   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
@@ -415,7 +416,7 @@ NrRadioEnvironmentMapHelper::ConfigurePropagationModelsFactories (const Ptr<cons
     }
 
   /***** configure ThreeGppChannelModel (MatrixBasedChannelModel) factory if spectrumLossModel is ThreeGppSpectrumPropagationLossModel *****/
-  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel());
   if (spectrumLossModel)
     {
       if (spectrumLossModel->GetChannelModel ())
@@ -560,13 +561,13 @@ void
 NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &rtdNetDev,
                                                                const Ptr<NetDevice> &rrdDevice)
 {
-  m_deviceToAntenna.insert (std::make_pair (rrdDevice, Copy (m_rrdPhy->GetAntennaArray ())));
+  m_deviceToAntenna.insert (std::make_pair (rrdDevice, Copy (m_rrdPhy->GetSpectrumPhy()->GetAntenna ()->GetObject<UniformPlanarArray>())));
   for (NetDeviceContainer::Iterator rtdNetDevIt = rtdNetDev.Begin ();
        rtdNetDevIt != rtdNetDev.End ();
        ++rtdNetDevIt)
       {
         Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find (*rtdNetDevIt)->second;
-        m_deviceToAntenna.insert (std::make_pair (*rtdNetDevIt, Copy (rtdPhy->GetAntennaArray ())));
+        m_deviceToAntenna.insert (std::make_pair (*rtdNetDevIt, Copy (rtdPhy->GetSpectrumPhy()->GetAntenna ()->GetObject<UniformPlanarArray>())));
       }
 }
 
@@ -675,10 +676,6 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
 {
   PropagationModels tempPropModels = CreateTemporalPropagationModels ();
 
-  // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-  tempPropModels.remSpectrumLossModelCopy->AddDevice (device.dev, device.antenna);
-  tempPropModels.remSpectrumLossModelCopy->AddDevice (otherDevice.dev, otherDevice.antenna);
-
   std::vector<int> activeRbs;
   for (size_t rbId = 0; rbId < device.spectrumModel->GetNumBands(); rbId++)
     {
@@ -721,7 +718,7 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
   NS_LOG_DEBUG ("RX power in dBm after pathloss:" << WToDbm (Integral (*rxPsd)));
 
   // Now we call spectrum model, which in this keys add a beamforming gain
-  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, device.mob, otherDevice.mob);
+  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, device.mob, otherDevice.mob, device.antenna, otherDevice.antenna);
 
   NS_LOG_DEBUG ("RX power in dBm after fading: " << WToDbm (Integral (*rxPsd)));
 
@@ -1144,7 +1141,7 @@ NrRadioEnvironmentMapHelper::CreateTemporalPropagationModels () const
   propModels.remPropagationLossModelCopy->SetChannelConditionModel (condModelCopy);
 
   //create rem copy of spectrum loss model
-  ObjectFactory spectrumLossModelFactory = ConfigureObjectFactory (m_spectrumLossModel);
+  ObjectFactory spectrumLossModelFactory = ConfigureObjectFactory (m_phasedArraySpectrumLossModel);
   if (spectrumLossModelFactory.IsTypeIdSet())
     {
       Ptr<MatrixBasedChannelModel> channelModelCopy = m_matrixBasedChannelModelFactory.Create<MatrixBasedChannelModel>();

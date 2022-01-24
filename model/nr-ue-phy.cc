@@ -161,10 +161,9 @@ NrUePhy::GetTypeId (void)
 }
 
 void
-NrUePhy::ChannelAccessGranted (const Time &time)
+NrUePhy::ChannelAccessGranted ([[maybe_unused]] const Time &time)
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (time);
   // That will be granted only till the end of the slot
   m_channelStatus = GRANTED;
 }
@@ -281,11 +280,9 @@ NrUePhy::ProcessDataDci (const SfnSf &ulSfnSf,
 }
 
 void
-NrUePhy::ProcessSrsDci (const SfnSf &ulSfnSf, const std::shared_ptr<DciInfoElementTdma> &dciInfoElem)
+NrUePhy::ProcessSrsDci ([[maybe_unused]] const SfnSf &ulSfnSf, [[maybe_unused]] const std::shared_ptr<DciInfoElementTdma> &dciInfoElem)
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (ulSfnSf);
-  NS_UNUSED (dciInfoElem);
   // Instruct PHY for transmitting the SRS
   if (ulSfnSf == m_currentSlot)
     {
@@ -1163,12 +1160,12 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   DoSetInitialBandwidth ();
 }
 
+
 BeamId
-NrUePhy::GetBeamId (uint16_t rnti) const
+NrUePhy::GetBeamId ([[maybe_unused]] uint16_t rnti) const
 {
   NS_LOG_FUNCTION (this);
   // That's a bad specification: the UE PHY doesn't know anything about its beam id.
-  NS_UNUSED (rnti);
   NS_FATAL_ERROR ("ERROR");
 }
 
@@ -1238,6 +1235,23 @@ NrUePhy::DoSetInitialBandwidth ()
 
   DoSetDlBandwidth (initialBandwidthWithOverhead);
 }
+
+uint16_t
+NrUePhy::DoGetCellId ()
+{
+  return GetCellId ();
+}
+
+uint32_t
+NrUePhy::DoGetDlEarfcn ()
+{
+  // TBD See how to get rid of this function in future
+  // Added for the compatibility with 810 MR to LTE.
+  NS_LOG_FUNCTION (this);
+  NS_LOG_WARN ("DoGetDlEarfcn function is called. This function should be removed in future once NR has its own RRC.");
+  return 0;
+}
+
 
 void
 NrUePhy::DoSetDlBandwidth (uint16_t dlBandwidth)

@@ -32,10 +32,10 @@
  * The user can also specify the type of REM map (BeamShape/CoverageArea/UeCoverage)
  * he wishes to generate with some of the following commands:
  * \code{.unparsed}
-   $ ./waf --run "rem-example --simTag=d --remMode=CoverageArea"
-   $ ./waf --run "rem-example --simTag=u --remMode=UeCoverage"
-   $ ./waf --run "rem-example --simTag=b1 --remMode=BeamShape --typeOfRem=DlRem"
-   $ ./waf --run "rem-example --simTag=b2 --remMode=BeamShape --typeOfRem=UlRem"
+   $ ./ns3 run "rem-example --simTag=d --remMode=CoverageArea"
+   $ ./ns3 run "rem-example --simTag=u --remMode=UeCoverage"
+   $ ./ns3 run "rem-example --simTag=b1 --remMode=BeamShape --typeOfRem=DlRem"
+   $ ./ns3 run "rem-example --simTag=b2 --remMode=BeamShape --typeOfRem=UlRem"
    \endcode
  *
  * DL or UL REM map can be selected by passing to the rem helper the desired

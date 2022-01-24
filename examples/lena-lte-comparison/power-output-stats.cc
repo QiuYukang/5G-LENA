@@ -54,11 +54,9 @@ PowerOutputStats::SetDb (SQLiteOutput *db, const std::string & tableName)
 }
 
 void PowerOutputStats::SavePower (const SfnSf &sfnSf, Ptr<const SpectrumValue> txPsd,
-                                  const Time &t, uint16_t rnti, uint64_t imsi,
+                                  [[maybe_unused]] const Time &t, uint16_t rnti, uint64_t imsi,
                                   uint16_t bwpId, uint16_t cellId)
 {
-  NS_UNUSED (t);
-
   PowerResultCache c;
   c.frame = sfnSf.GetFrame ();
   c.subFrame = sfnSf.GetSubframe ();

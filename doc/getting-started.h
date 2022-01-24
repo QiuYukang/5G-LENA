@@ -77,8 +77,8 @@ To test the installation, after following one of the previous point, you can do
 a simple configuration and compile test (more options for that later):
 
 \code{.sh}
-$ ./waf configure --enable-examples --enable-tests
-$ ./waf
+$ ./ns3 configure --enable-examples --enable-tests
+$ ./ns3 build
 \endcode
 
 A success for both previous commands indicates an overall success.
@@ -103,7 +103,7 @@ contrib/ directory, as per standard ns-3 rules.
 
 To test the resulting repository, let's configure the project again:
 \code{.sh}
-$ ./waf configure --enable-examples --enable-tests
+$ ./ns3 configure --enable-examples --enable-tests
 \endcode
 
 If the NR module is recognized correctly, you should see "nr" in the list of
@@ -111,7 +111,7 @@ built modules. If that is not the case, then most probably the previous
 point failed. Otherwise, you could compile it:
 
 \code{sh}
-$ ./waf
+$ ./ns3 build
 \endcode
 
 If that command returns successfully, Welcome to the NR world !

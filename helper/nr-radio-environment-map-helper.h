@@ -28,6 +28,7 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-channel-model.h>
+#include <ns3/phased-array-spectrum-propagation-loss-model.h>
 #include <fstream>
 #include <ns3/mobility-helper.h>
 
@@ -553,7 +554,7 @@ private:
   std::map <const Ptr<NetDevice>, Ptr<UniformPlanarArray>> m_deviceToAntenna;
 
   Ptr<PropagationLossModel> m_propagationLossModel;
-  Ptr<SpectrumPropagationLossModel> m_spectrumLossModel;
+  Ptr<PhasedArraySpectrumPropagationLossModel> m_phasedArraySpectrumLossModel;
   ObjectFactory m_channelConditionModelFactory;
   ObjectFactory m_matrixBasedChannelModelFactory;
 

@@ -300,10 +300,9 @@ NrMacSchedulerTdma::AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl)
 std::shared_ptr<DciInfoElementTdma>
 NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
                                      const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                     uint32_t maxSym) const
+                                     [[maybe_unused]] uint32_t maxSym) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (maxSym);
   uint32_t tbs = m_dlAmc->CalculateTbSize (ueInfo->m_dlMcs,
                                            ueInfo->m_dlRBG * GetNumRbPerRbg ());
   // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't

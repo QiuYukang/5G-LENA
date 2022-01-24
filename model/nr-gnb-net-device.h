@@ -66,6 +66,11 @@ public:
   uint16_t GetCellId () const;
 
   /**
+   * \return the cell ids belonging to this gNB
+   */
+  std::vector<uint16_t> GetCellIds () const;
+
+  /**
    * \brief Set this gnb cell id
    * \param cellId the cell id
    */
