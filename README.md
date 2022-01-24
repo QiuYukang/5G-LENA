@@ -22,7 +22,7 @@ $ git clone https://gitlab.com/nsnam/ns-3-dev.git
 $ cd ns-3-dev
 ```
 
-At this step, you should check in README.md which is the recommended ns-3 
+At this step, you should check in RELEASE_NOTES.md which is the recommended ns-3 
 release to use for the specific NR release, and then you can switch to the 
 corresponding ns-3 release branch, e.g., in the following way:
 
@@ -32,6 +32,10 @@ $ git checkout ns-3.36
 ```
 
 You can replace "36" with the specific release that you want to use. 
+
+If the recommended ns-3 release is not available yet (such in the case that NR is 
+released before the recommended ns-3 release), 
+then you can use ns-3 master until ns-3 recommended release is ready.
 
 Provide your username and password when asked.
 

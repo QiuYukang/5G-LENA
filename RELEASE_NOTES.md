@@ -10,12 +10,12 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
-Release NR-v1.3
----------------
+Release NR-v2.0
+--------------
 
 Availability
 ------------
-Available since Abril 7, 2022.
+Available since April 21, 2022
 
 Supported platforms
 -------------------
@@ -28,7 +28,64 @@ requirements (Note: not all features available on all platforms):
 This release has been tested on the following platforms:
 - ArchLinux with g++-9 and 10 clang-8, 9, 10, and 11
 
-Recomended ns-3 release: ns-3.36.
+Recommended ns-3 release: ns-3.36. (If ns-3.36 is not available yet, use ns-3 
+master branch.)
+
+Important news
+--------------
+This module can be updated with the usual
+
+```
+$ git pull
+```
+
+command. We hope you will have fun and good times in using our module!
+
+New user-visible features (old first)
+-------------------------
+- The NR module now supports DP-MIMO spatial multiplexing. The NR DP-MIMO model 
+currently supports MIMO with 2 streams for the downlink, however, in the future, 
+the MIMO model will be extended to support more streams and the operation in the 
+uplink. 
+The current, NR DP-MIMO model exploits dual-polarized antennas and their 
+orthogonality to send the two data streams, by exploiting polarization diversity. 
+The model does not rely on abstraction, as is it case with LTE MIMO, 
+and thus can more properly model the propagation differences between the two 
+streams and account for rank adaptation. So, one of the important new features 
+that enters with this release along the NR DP-MIMO is the rank adaptation. 
+The major modifications to support the DP-MIMO feature are inside the PHY and 
+MAC layers of the NR module.
+
+
+Bugs fixed
+----------
+
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+Release NR-v1.3
+---------------
+
+Availability
+------------
+Available since April 7, 2022.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-9 or later
+- clang-8 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9 and 10 clang-8, 9, 10, and 11
+
+Recommended ns-3 release: ns-3.36.
 
 Important news
 --------------
