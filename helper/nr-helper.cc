@@ -42,7 +42,7 @@
 #include <ns3/epc-x2.h>
 #include <ns3/nr-phy-rx-trace.h>
 #include <ns3/nr-mac-rx-trace.h>
-#include <ns3/nr-bearer-stats-calculator.h>
+#include "nr-bearer-stats-calculator.h"
 #include <ns3/bandwidth-part-ue.h>
 #include <ns3/beam-manager.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
@@ -1500,8 +1500,10 @@ NrHelper::EnableTraces (void)
   //EnableEnbPacketCountTrace ();
   //EnableUePacketCountTrace ();
   //EnableTransportBlockTrace ();
-  EnableRlcTraces ();
-  EnablePdcpTraces ();
+  EnableRlcSimpleTraces ();
+  EnableRlcE2eTraces ();
+  EnablePdcpSimpleTraces ();
+  EnablePdcpE2eTraces ();
   EnableGnbPhyCtrlMsgsTraces ();
   EnableUePhyCtrlMsgsTraces ();
   EnableGnbMacCtrlMsgsTraces ();
@@ -1614,31 +1616,46 @@ NrHelper::EnableTransportBlockTrace ()
 
 
 void
-NrHelper::EnableRlcTraces (void)
+NrHelper::EnableRlcSimpleTraces (void)
 {
-  NS_ASSERT_MSG (m_rlcStats == 0, "please make sure that NrHelper::EnableRlcTraces is called at most once");
-  m_rlcStats = CreateObject<NrBearerStatsCalculator> ("RLC");
-  m_radioBearerStatsConnector.EnableRlcStats (m_rlcStats);
-}
-
-Ptr<NrBearerStatsCalculator>
-NrHelper::GetRlcStats (void)
-{
-  return m_rlcStats;
+  Ptr<NrBearerStatsSimple> rlcStats = CreateObject<NrBearerStatsSimple> ("RLC");
+  m_radioBearerStatsConnectorSimpleTraces.EnableRlcStats (rlcStats);
 }
 
 void
-NrHelper::EnablePdcpTraces (void)
+NrHelper::EnablePdcpSimpleTraces (void)
 {
-  NS_ASSERT_MSG (m_pdcpStats == 0, "please make sure that NrHelper::EnablePdcpTraces is called at most once");
-  m_pdcpStats = CreateObject<NrBearerStatsCalculator> ("PDCP");
-  m_radioBearerStatsConnector.EnablePdcpStats (m_pdcpStats);
+  Ptr<NrBearerStatsSimple> pdcpStats = CreateObject<NrBearerStatsSimple> ("PDCP");
+  m_radioBearerStatsConnectorSimpleTraces.EnablePdcpStats (pdcpStats);
 }
 
-Ptr<NrBearerStatsCalculator>
-NrHelper::GetPdcpStats (void)
+void
+NrHelper::EnableRlcE2eTraces (void)
 {
-  return m_pdcpStats;
+  Ptr<NrBearerStatsCalculator> rlcStats = CreateObject<NrBearerStatsCalculator> ("RLC");
+  m_radioBearerStatsConnectorCalculator.EnableRlcStats (rlcStats);
+}
+
+void
+NrHelper::EnablePdcpE2eTraces (void)
+{
+  Ptr<NrBearerStatsCalculator> pdcpStats = CreateObject<NrBearerStatsCalculator> ("PDCP");
+  m_radioBearerStatsConnectorCalculator.EnablePdcpStats (pdcpStats);
+}
+
+
+
+Ptr<NrBearerStatsCalculator>
+NrHelper::GetRlcStatsCalculator (void)
+{
+  return DynamicCast<NrBearerStatsCalculator> (m_radioBearerStatsConnectorCalculator.GetRlcStats ());
+}
+
+
+Ptr<NrBearerStatsCalculator>
+NrHelper::GetPdcpStatsCalculator (void)
+{
+  return DynamicCast<NrBearerStatsCalculator> (m_radioBearerStatsConnectorCalculator.GetPdcpStats ());
 }
 
 void

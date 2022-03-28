@@ -40,7 +40,7 @@
 
 namespace ns3 {
 
-class NrBearerStatsCalculator;
+class NrBearerStatsBase;
 
 /**
  * \ingroup utils
@@ -60,18 +60,16 @@ public:
   NrBearerStatsConnector ();
 
   /**
-   * Enables trace sinks for RLC layer. Usually, this function
-   * is called by LteHelper::EnableRlcTraces().
+   * Enables trace sinks for RLC layer.
    * \param rlcStats statistics calculator for RLC layer
    */
-  void EnableRlcStats (Ptr<NrBearerStatsCalculator> rlcStats);
+  void EnableRlcStats (Ptr<NrBearerStatsBase> rlcStats);
 
   /**
-   * Enables trace sinks for PDCP layer. Usually, this function
-   * is called by LteHelper::EnablePdcpTraces().
+   * Enables trace sinks for PDCP layer.
    * \param pdcpStats statistics calculator for PDCP layer
    */
-  void EnablePdcpStats (Ptr<NrBearerStatsCalculator> pdcpStats);
+  void EnablePdcpStats (Ptr<NrBearerStatsBase> pdcpStats);
 
   /**
    * Connects trace sinks to appropriate trace sources
@@ -179,6 +177,15 @@ public:
    */
   static void NotifyHandoverEndOkEnb (NrBearerStatsConnector* c, std::string context, uint64_t imsi, uint16_t cellid, uint16_t rnti);
 
+  /**
+   * \return RLC stats
+   */
+  Ptr<NrBearerStatsBase> GetRlcStats ();
+  /**
+   * \return PDCP stats
+   */
+  Ptr<NrBearerStatsBase> GetPdcpStats ();
+
 private:
   /**
    * Creates UE Manager path and stores it in m_ueManagerPathByCellIdRnti
@@ -265,9 +272,8 @@ private:
    */
   void DisconnectTracesEnb (std::string context, uint64_t imsi, uint16_t cellid, uint16_t rnti);
 
-
-  Ptr<NrBearerStatsCalculator> m_rlcStats; //!< Calculator for RLC Statistics
-  Ptr<NrBearerStatsCalculator> m_pdcpStats; //!< Calculator for PDCP Statistics
+  Ptr<NrBearerStatsBase> m_rlcStats; //!< Calculator for RLC Statistics
+  Ptr<NrBearerStatsBase> m_pdcpStats; //!< Calculator for PDCP Statistics
 
   bool m_connected; //!< true if traces are connected to sinks, initially set to false
   std::set<uint64_t> m_imsiSeenUe; //!< stores all UEs for which RLC and PDCP traces were connected

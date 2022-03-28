@@ -20,9 +20,9 @@
 *           Nicola Baldo  <nbaldo@cttc.es>
 *
 *   Modified by: Marco Mezzavilla < mezzavilla@nyu.edu>
-*                         Sourjya Dutta <sdutta@nyu.edu>
-*                         Russell Ford <russell.ford@nyu.edu>
-*                         Menglei Zhang <menglei@nyu.edu>
+*                Sourjya Dutta <sdutta@nyu.edu>
+*                Russell Ford <russell.ford@nyu.edu>
+*                Menglei Zhang <menglei@nyu.edu>
 */
 
 
@@ -59,7 +59,7 @@ operator < (const NrBearerStatsConnector::CellIdRnti& a, const NrBearerStatsConn
 struct NrBoundCallbackArgument : public SimpleRefCount<NrBoundCallbackArgument>
 {
 public:
-  Ptr<NrBearerStatsCalculator> stats;  //!< statistics calculator
+  Ptr<NrBearerStatsBase> stats;  //!< statistics calculator
   uint64_t imsi; //!< imsi
   uint16_t cellId; //!< cellId
 };
@@ -140,14 +140,14 @@ NrBearerStatsConnector::NrBearerStatsConnector ()
 }
 
 void
-NrBearerStatsConnector::EnableRlcStats (Ptr<NrBearerStatsCalculator> rlcStats)
+NrBearerStatsConnector::EnableRlcStats (Ptr<NrBearerStatsBase> rlcStats)
 {
   m_rlcStats = rlcStats;
   EnsureConnected ();
 }
 
 void
-NrBearerStatsConnector::EnablePdcpStats (Ptr<NrBearerStatsCalculator> pdcpStats)
+NrBearerStatsConnector::EnablePdcpStats (Ptr<NrBearerStatsBase> pdcpStats)
 {
   m_pdcpStats = pdcpStats;
   EnsureConnected ();
@@ -452,6 +452,18 @@ NrBearerStatsConnector::DisconnectTracesEnb (std::string context, uint64_t imsi,
   NS_LOG_FUNCTION (this);
 }
 
+
+Ptr<NrBearerStatsBase>
+NrBearerStatsConnector::GetRlcStats ()
+{
+  return m_rlcStats;
+}
+
+Ptr<NrBearerStatsBase>
+NrBearerStatsConnector::GetPdcpStats ()
+{
+  return m_pdcpStats;
+}
 
 
 } // namespace ns3
