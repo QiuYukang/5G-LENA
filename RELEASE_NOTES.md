@@ -10,6 +10,77 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+Release NR-v1.3
+---------------
+
+Availability
+------------
+Available since Abril 7, 2022.
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-9 or later
+- clang-8 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9 and 10 clang-8, 9, 10, and 11
+
+Recomended ns-3 release: ns-3.36.
+
+Important news
+--------------
+In past, the NR module releases were not bound to any particular ns-3 release 
+because we were trying to keep in sync with the latest advancements in ns-3-dev 
+(master). Since ns-3 has had many disruptive API changes since its release 3.35 
+towards the upcoming release 3.36, and it also changed the build system from waf to 
+cmake, many 5G-LENA users have reported issues related to the unsuccessful 
+compilation of NR v1.2 with the latest ns-3 master. 
+
+Hence, starting from this NR release we decided to bind each NR release to 
+the specific ns-3 release by recommending the ns-3 release with which has been 
+tested the specific NR release.
+
+Additionally, due to many accumulated changes in the NR module, that were waiting 
+for the next ns-3 release, we have decided to split all these upcoming changes into 
+several incremental releases to facilitate the 5G-LENA users to upgrade 
+their code gradually.
+
+As a first step towards that goal, we have created this NR release v1.3 to 
+provide to the 5G-LENA users a version of the NR module that is compatible with 
+the upcoming ns.3-36. 
+
+(This release has been tested with ns-3-dev master with commit 4a98f050, and is 
+expected to be fully compatible with ns-3.36).
+
+This module can be updated with the usual
+
+```
+$ git pull
+```
+
+command. 
+
+We hope you will have fun and good times in using our module!
+
+New user-visible features (old first)
+-------------------------
+- Switch to cmake build system
+- Upgrade nr to spectrum changes that entered with the MR 686
+- Upgrade nr to lte changes that entered with the MR 810
+
+Bugs fixed
+----------
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+
 Release NR-v1.2
 --------------
 

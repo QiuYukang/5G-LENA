@@ -43,6 +43,27 @@ to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
 ---
+## Changes from NR-v1.2 to v1.3
+
+### New API:
+
+* `NrGnbNetDevice` now has function `GetCellIds` that returns the list of 
+cell IDs belonging to that gNB. This function is added for the 
+compatibility with the ns-3 LTE 810 MR.
+* `NrUePhy` implements `DoGetCellId` and `DoGetDlEarfcn` for the API 
+compatibility with the ns-3 LTE 810 MR.
+
+### Changes to existing API:
+
+* `NrSpectrumPhy` and `BeamManager` have a function called `GetAntenna` 
+instead of `GetAntennaArray` that they had previously.
+* `NrPhy`, `NrUePhy`, `NrGnbPhy`, do not have any more function called 
+`GetAntennaArray`.
+
+### Changed behavior:
+
+---
+
 ## Changes from NR-v1.1 to v1.2
 
 ### New API:
