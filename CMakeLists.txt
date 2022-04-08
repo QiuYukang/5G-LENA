@@ -37,6 +37,8 @@ set(source_files
     model/nr-mac-scheduler-tdma-pf.cc
     model/nr-mac-scheduler-ofdma-rr.cc
     model/nr-mac-scheduler-ofdma-pf.cc
+    model/nr-mac-scheduler-tdma-qos.cc
+    model/nr-mac-scheduler-ofdma-qos.cc
     model/nr-control-messages.cc
     model/nr-spectrum-signal-parameters.cc
     model/nr-radio-bearer-tag.cc
@@ -70,6 +72,7 @@ set(source_files
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-ofdma-mr.cc
     model/nr-mac-scheduler-tdma-mr.cc
+    model/nr-mac-scheduler-ue-info-qos.cc
     model/nr-mac-scheduler-ue-info.cc
     model/nr-mac-scheduler-ue-info-pf.cc
     model/nr-eesm-error-model.cc
@@ -153,6 +156,8 @@ set(header_files
     model/nr-mac-scheduler-tdma-pf.h
     model/nr-mac-scheduler-ofdma-rr.h
     model/nr-mac-scheduler-ofdma-pf.h
+    model/nr-mac-scheduler-tdma-qos.h
+    model/nr-mac-scheduler-ofdma-qos.h
     model/nr-control-messages.h
     model/nr-spectrum-signal-parameters.h
     model/nr-radio-bearer-tag.h
@@ -184,6 +189,7 @@ set(header_files
     model/nr-mac-scheduler-ue-info-mr.h
     model/nr-mac-scheduler-ue-info-rr.h
     model/nr-mac-scheduler-ue-info-pf.h
+    model/nr-mac-scheduler-ue-info-qos.h
     model/nr-eesm-error-model.h
     model/nr-eesm-t1.h
     model/nr-eesm-t2.h

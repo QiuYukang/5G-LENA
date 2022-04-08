@@ -24,6 +24,7 @@ set(base_examples
     cttc-nr-traffic-ngmn-mixed
     cttc-nr-traffic-3gpp-xr
     traffic-generator-example
+    cttc-nr-simple-qos-sched
 )
 foreach(
   example
