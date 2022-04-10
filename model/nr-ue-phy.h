@@ -262,6 +262,60 @@ public:
   void EnqueueDlHarqFeedback (const DlHarqInfo &m);
 
   /**
+   * \brief Set the rank indicator value.
+   *
+   * The is value will be used when a UE is configured
+   * to use a fixed rank indicator value instead of the
+   * adaptive rank indicator value.
+   *
+   * \param ri The rank indicator value.
+   */
+  void SetFixedRankIndicator (uint8_t ri);
+
+  /**
+   * \brief Get the value of fixed rank indicator.
+   *
+   * \return The rank indicator value.
+   */
+  uint8_t GetFixedRankIndicator () const;
+
+  /**
+   * \brief Use the fixed value of rank indicator
+   *
+   * \param useFixedRi Flag to indicate if a UE should use a fixed or adaptive
+   *        rank indicator value.
+   */
+  void UseFixedRankIndicator (bool useFixedRi);
+
+  /**
+   * \brief Set SINR threshold in dB that is used to adaptively choose the rank indicator value.
+   *
+   * \param sinrThold The SINR threshold in dB.
+   */
+  void SetRiSinrThold1 (double sinrThold);
+
+  /**
+   * \brief Get the SINR threshold that is used to adaptively choose the rank indicator value.
+   *
+   * \return The SINR threshold value in dB.
+   */
+  double GetRiSinrThold1 () const;
+
+  /**
+   * \brief Set SINR threshold in dB that is used to adaptively choose the rank indicator value.
+   *
+   * \param sinrThold The SINR threshold in dB.
+   */
+  void SetRiSinrThold2 (double sinrThold);
+
+  /**
+   * \brief Get the SINR threshold that is used to adaptively choose the rank indicator value.
+   *
+   * \return The SINR threshold value in dB.
+   */
+  double GetRiSinrThold2 () const;
+
+  /**
    *  TracedCallback signature for Ue Phy Received Control Messages.
    *
    * \param [in] frame Frame number.
@@ -674,6 +728,18 @@ private:
    */
   void InsertFutureAllocation (const SfnSf &sfnSf, const std::shared_ptr<DciInfoElementTdma> &dci);
 
+  /**
+   * \brief Select the rank indicator to be reported to gNB
+   *
+   * If the UE is configured to report a fixed RI value, this method
+   * will return the configured fixed RI value. Otherwise, RI is
+   * selected adaptively based on the average SINR of the streams.
+   * <b>Note: This method is designed to handle only 2 streams</b>
+   *
+   * \return The rank indicator
+   */
+  uint8_t SelectRi (const std::vector<double> &avrgSinr);
+
   NrUePhySapUser* m_phySapUser;             //!< SAP pointer
   LteUeCphySapProvider* m_ueCphySapProvider;    //!< SAP pointer
   LteUeCphySapUser* m_ueCphySapUser;            //!< SAP pointer
@@ -767,6 +833,22 @@ private:
                                            receiving SINR from underlying one or
                                            multiple SpectrumPhy instances
                                            */
+  uint8_t m_fixedRi {0}; //!< The rank indicator
+  bool m_useFixedRi {false}; /**< If true, UE will use a fixed RI, otherwise,
+                                  an adaptive one. It is set using the
+                                  attribute UseFixedRi.
+                                  */
+  double m_riSinrThold1 {UINT32_MAX}; /**< SINR threshold in dB that is used to
+                                       adaptively choose the rank indicator value
+                                       */
+
+  double m_riSinrThold2 {UINT32_MAX}; /**< SINR threshold in dB that is used to
+                                       adaptively choose the rank indicator value
+                                       */
+
+  bool m_reportedRi2 {false}; /**< Flag to keep track of an event when a UE
+                                   first time reports RI equal to 2.
+                                   */
 };
 
 }

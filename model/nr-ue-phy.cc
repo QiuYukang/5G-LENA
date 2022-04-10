@@ -120,6 +120,43 @@ NrUePhy::GetTypeId (void)
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrUePhy::SetEnableUplinkPowerControl),
                     MakeBooleanChecker ())
+    .AddAttribute ("FixedRankIndicator",
+                   "The rank indicator",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&NrUePhy::SetFixedRankIndicator,
+                                         &NrUePhy::GetFixedRankIndicator),
+                   MakeUintegerChecker<uint8_t> (1, 2))
+    .AddAttribute ("UseFixedRi",
+                   "If true, UE will use a fixed configured RI value; otherwise,"
+                   "it will use an adaptive RI value based on the SINR of the"
+                   "streams",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrUePhy::UseFixedRankIndicator),
+                   MakeBooleanChecker ())
+    .AddAttribute ("RiSinrThreshold1",
+                   "The SINR threshold 1 in dB. It is used to adaptively choose"
+                   "the rank indicator value when a UE is trying to switch from"
+                   "one stream to two. The UE will report RI = 2 if the average"
+                   "SINR of the measured stream is above this threshold; otherwise,"
+                   "it will report RI = 1. The initial threshold value of 10 dB"
+                   "is selected according to: https://ieeexplore.ieee.org/abstract/document/6364098 Figure 2",
+                   DoubleValue (10.0),
+                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThold1,
+                                       &NrUePhy::GetRiSinrThold1),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("RiSinrThreshold2",
+                   "The SINR threshold 2 in dB. It is used to adaptively choose"
+                   "the rank indicator value once a UE has already switched to"
+                   "two streams, i.e., it has already received the data on the"
+                   "second stream and has measured its average SINR. The UE will"
+                   "report RI = 2 if the average SINR of both the stream is"
+                   "above this threshold; otherwise, it will report RI = 1."
+                   "The initial threshold value of 10 dB is selected according to: "
+                   "https://ieeexplore.ieee.org/abstract/document/6364098 Figure 2",
+                   DoubleValue (10.0),
+                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThold2,
+                                       &NrUePhy::GetRiSinrThold2),
+                   MakeDoubleChecker<double> ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
@@ -1096,14 +1133,19 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
           // Remember, scheduler uses MCS 0 for CQI 0.
           // See, NrMacSchedulerCQIManagement::DlWBCQIReported
           m_prevDlWbCqi = std::vector <uint8_t> (m_spectrumPhys.size (), 0);
+          m_reportedRi2 = false; // already initialized to false in the header, added here for readability
         }
 
       uint8_t mcs; // it is initialized by AMC in the following call
       uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (sinr, mcs);
 
+      std::vector <double> avrgSinr = std::vector <double> (m_spectrumPhys.size (), UINT32_MAX);
+
       NS_ASSERT (panelIndex < m_prevDlWbCqi.size ());
       m_prevDlWbCqi [panelIndex] = wbCqi;
-      NS_LOG_DEBUG ("Stream " << +panelIndex << " WB CQI " << +wbCqi << " avrg MCS " << +mcs);
+      double avrgSinrdB = 10 * log10 (ComputeAvgSinr (sinr));
+      avrgSinr [panelIndex] = avrgSinrdB;
+      NS_LOG_DEBUG ("Stream " << +panelIndex << " WB CQI " << +wbCqi << " avrg MCS " << +mcs << " avrg SINR (dB) " << avrgSinrdB);
       m_dlCqiFeedbackCounter++;
 
       // if we received SINR from all the active panels,
@@ -1113,11 +1155,15 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t panelIndex)
           DlCqiInfo dlcqi;
           dlcqi.m_rnti = m_rnti;
           dlcqi.m_cqiType = DlCqiInfo::WB;
-          //Rank indicator must be chosen based on the channel quality
-          //measured for the two streams. For now, I am fixing it to 1
-          //to check if all the previously written tests and examples
-          //for single stream work with the new implementation.
-          dlcqi.m_ri = 1;
+          if (m_spectrumPhys.size () == 1)
+            {
+              dlcqi.m_ri = 1;
+            }
+          else
+            {
+              dlcqi.m_ri = SelectRi (avrgSinr);
+              NS_LOG_DEBUG ("At " << Simulator::Now ().As (Time::S) << " UE PHY reporting RI = " << static_cast<uint16_t> (dlcqi.m_ri));
+            }
 
           //In MIMO, once the UE starts reporting RI = 2, both the CQI
           //must be reported even though one is measured, the other for
@@ -1464,6 +1510,132 @@ NrUePhy::DoSetImsi (uint64_t imsi)
   m_imsi = imsi;
 }
 
+void
+NrUePhy::SetFixedRankIndicator (uint8_t ri)
+{
+  NS_LOG_FUNCTION (this);
+  m_fixedRi = ri;
+}
+
+uint8_t
+NrUePhy::GetFixedRankIndicator () const
+{
+ return m_fixedRi;
+}
+
+void
+NrUePhy::UseFixedRankIndicator (bool useFixedRi)
+{
+  NS_LOG_FUNCTION (this);
+  m_useFixedRi = useFixedRi;
+}
+
+void
+NrUePhy::SetRiSinrThold1 (double sinrThold)
+{
+  NS_LOG_FUNCTION (this);
+  m_riSinrThold1 = sinrThold;
+}
+
+double
+NrUePhy::GetRiSinrThold1 () const
+{
+  return m_riSinrThold1;
+}
+
+void
+NrUePhy::SetRiSinrThold2 (double sinrThold)
+{
+  NS_LOG_FUNCTION (this);
+  m_riSinrThold2 = sinrThold;
+}
+
+double
+NrUePhy::GetRiSinrThold2 () const
+{
+  return m_riSinrThold2;
+}
+
+uint8_t
+NrUePhy::SelectRi (const std::vector<double> &avrgSinr)
+{
+  NS_LOG_FUNCTION (this);
+  uint8_t ri = 0;
+  if (m_useFixedRi)
+    {
+      return m_fixedRi;
+    }
+
+  if (!m_reportedRi2)
+    {
+      // UE supports two stream but it has not yet reported RI equal to 2.
+      // Let's check the average SINR of the first stream. If it is
+      // above m_riSinrThold1 then we report RI equal to 2; otherwise, RI
+      // equal to 1.
+      if (avrgSinr [0] > m_riSinrThold1)
+        {
+          ri = 2;
+          m_reportedRi2 = true;
+        }
+      else
+        {
+          ri = 1;
+        }
+    }
+  else
+    {
+      std::vector <uint8_t> indexValidSinr;
+      for (uint8_t i = 0; i < avrgSinr.size (); i++)
+        {
+          if (avrgSinr [i] != UINT32_MAX)
+            {
+              indexValidSinr.push_back (i);
+            }
+        }
+
+      NS_ABORT_MSG_IF (indexValidSinr.size () == 0, "Unable to find valid average SINR");
+
+      if (indexValidSinr.size () == avrgSinr.size ())
+        {
+          // UE is able to measure both the streams
+          // UE supports two stream and it has already reported RI equal to 2.
+          // Meaning, that this UE has already received the data on stream 2
+          // and has measured its average SINR. Let's check the average SINR
+          // of both the streams. If the average SINR of both the streams is
+          // above m_riSinrThold2 then we report RI equal to 2; otherwise, RI
+          // equal to 1.
+          if (avrgSinr [0] > m_riSinrThold2 && avrgSinr [1] > m_riSinrThold2)
+            {
+              ri = 2;
+            }
+          else
+            {
+              ri = 1;
+            }
+        }
+      else
+        {
+          // There is at least one stream that UE is unable to measure.
+          // If the average SINR of the measured stream is above
+          // m_riSinrThold1, report RI equal to 2; otherwise, RI equal to 1.
+          // This else was implemented to handle the situations when a UE
+          // switches from 2 streams to 1, and unable to measure one of
+          // the streams. In that case, following code would help us
+          // not to get stuck with one stream till the end of simulation.
+          if (avrgSinr [indexValidSinr.at (0)] > m_riSinrThold1)
+            {
+              ri = 2;
+            }
+          else
+            {
+              ri = 1;
+            }
+        }
+    }
+
+  NS_ASSERT_MSG (ri != 0, "UE is trying to report invalid RI value of 0");
+  return ri;
+}
 
 }
 
