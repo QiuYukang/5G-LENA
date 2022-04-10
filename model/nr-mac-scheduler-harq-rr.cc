@@ -27,7 +27,7 @@
 #include "nr-mac-scheduler-harq-rr.h"
 #include <algorithm>
 #include <ns3/log.h>
-#include "beam-id.h"
+#include "beam-conf-id.h"
 
 namespace ns3 {
 
@@ -90,9 +90,7 @@ uint8_t NrMacSchedulerHarqRr::ScheduleDlHarq (NrMacSchedulerNs3::PointInFTPlane 
   for (const auto & beam : activeDlHarq)
     {
       std::vector<uint16_t> allocatedUe;
-      NS_LOG_INFO (" Try to assign HARQ resource for Beam sector: " <<
-    		       static_cast<uint32_t> (beam.first.GetSector()) <<
-    		       " Beam theta:  " << static_cast<uint32_t> (beam.first.GetElevation ()) <<
+      NS_LOG_INFO (" Try to assign HARQ resource for BeamConfId: " << beam.first <<
                    " # HARQ to Retx=" << beam.second.size ());
 
       for (auto it = beam.second.cbegin (); it != beam.second.cend (); ++it)

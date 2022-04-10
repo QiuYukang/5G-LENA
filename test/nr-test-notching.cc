@@ -24,6 +24,7 @@
 #include <ns3/nr-mac-sched-sap.h>
 #include <ns3/nr-phy-sap.h>
 #include <ns3/nr-control-messages.h>
+#include <ns3/beam-conf-id.h>
 #include <algorithm>
 
 /**
@@ -56,7 +57,7 @@ public:
   virtual void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo) override;
   virtual void NotifyConnectionSuccessful () override;
   virtual uint32_t GetRbNum () const override;
-  virtual BeamId GetBeamId (uint8_t rnti) const override;
+  virtual BeamConfId GetBeamConfId (uint8_t rnti) const override;
   void SetParams (uint32_t numOfUesPerBeam, uint32_t numOfBeams);
 
 private:
@@ -138,8 +139,8 @@ TestNotchingPhySapProvider::GetRbNum () const
   return 53;
 }
 
-BeamId
-TestNotchingPhySapProvider::GetBeamId (uint8_t rnti) const
+BeamConfId
+TestNotchingPhySapProvider::GetBeamConfId (uint8_t rnti) const
 {
   BeamId beamId = BeamId (0, 0.0);
   uint8_t rntiCnt = 1;
@@ -162,7 +163,7 @@ TestNotchingPhySapProvider::GetBeamId (uint8_t rnti) const
           rntiCnt++;
         }
     }
-  return beamId;
+  return BeamConfId (beamId, BeamId::GetEmptyBeamId());
 }
 
 
@@ -353,13 +354,13 @@ NrNotchingTestCase::DoRun ()
         {
           NrMacCschedSapProvider::CschedUeConfigReqParameters paramsUe;
           paramsUe.m_rnti = rntiCnt;
-          paramsUe.m_beamId = m_phySapProvider->GetBeamId (rntiCnt);
+          paramsUe.m_beamConfId = m_phySapProvider->GetBeamConfId (rntiCnt);
 
           if (m_verbose)
             {
               std::cout << "beam: " << beam << " ue: " << u <<
                 " rnti: " << paramsUe.m_rnti <<
-                " beam Id: " << paramsUe.m_beamId <<
+                " beam Id: " << paramsUe.m_beamConfId <<
                 " scheduler: " << m_schedulerType << std::endl;
               if (beam == (m_beamsNum - 1) && u == (m_numOfUesPerBeam - 1))
                 {

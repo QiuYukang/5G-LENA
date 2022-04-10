@@ -1260,11 +1260,11 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   DoSetInitialBandwidth ();
 }
 
-BeamId
-NrUePhy::GetBeamId ([[maybe_unused]] uint16_t rnti) const
+BeamConfId
+NrUePhy::GetBeamConfId ([[maybe_unused]] uint16_t rnti) const
 {
   NS_LOG_FUNCTION (this);
-  // That's a bad specification: the UE PHY doesn't know anything about its beam id.
+  // That's a bad specification: the UE PHY doesn't know anything about its beam conf id.
   NS_FATAL_ERROR ("ERROR");
 }
 

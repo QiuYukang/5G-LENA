@@ -158,7 +158,7 @@ public:
 
   virtual void UlHarqFeedback (UlHarqInfo params) override;
 
-  virtual void BeamChangeReport (BeamId beamId, uint8_t rnti) override;
+  virtual void BeamChangeReport (BeamConfId beamConfId, uint8_t rnti) override;
 
   virtual uint32_t GetNumRbPerRbg () const override;
 
@@ -224,9 +224,9 @@ NrMacEnbMemberPhySapUser::UlHarqFeedback (UlHarqInfo params)
 }
 
 void
-NrMacEnbMemberPhySapUser::BeamChangeReport (BeamId beamId, uint8_t rnti)
+NrMacEnbMemberPhySapUser::BeamChangeReport (BeamConfId beamConfId, uint8_t rnti)
 {
-  m_mac->BeamChangeReport (beamId, rnti);
+  m_mac->BeamChangeReport (beamConfId, rnti);
 }
 
 uint32_t
@@ -625,7 +625,7 @@ NrGnbMac::DoSlotDlIndication (const SfnSf &sfnSf, LteNrTddSlotType type)
       {
         NrMacCschedSapProvider::CschedUeConfigReqParameters params;
         params.m_rnti = ue.first;
-        params.m_beamId = m_phySapProvider->GetBeamId (ue.first);
+        params.m_beamConfId = m_phySapProvider->GetBeamConfId (ue.first);
         params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
         m_macCschedSapProvider->CschedUeConfigReq (params);
       }
@@ -1254,11 +1254,11 @@ NrGnbMac::DoConfigureMac (uint16_t ulBandwidth, uint16_t dlBandwidth)
 }
 
 void
-NrGnbMac::BeamChangeReport (BeamId beamId, uint8_t rnti)
+NrGnbMac::BeamChangeReport (BeamConfId beamConfId, uint8_t rnti)
 {
   NrMacCschedSapProvider::CschedUeConfigReqParameters params;
   params.m_rnti = rnti;
-  params.m_beamId = beamId;
+  params.m_beamConfId = beamConfId;
   params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
   m_macCschedSapProvider->CschedUeConfigReq (params);
 }
@@ -1330,7 +1330,7 @@ NrGnbMac::DoAddUe (uint16_t rnti)
 
   NrMacCschedSapProvider::CschedUeConfigReqParameters params;
   params.m_rnti = rnti;
-  params.m_beamId = m_phySapProvider->GetBeamId (rnti);
+  params.m_beamConfId = m_phySapProvider->GetBeamConfId (rnti);
   params.m_transmissionMode = 0;   // set to default value (SISO) for avoiding random initialization (valgrind error)
   m_macCschedSapProvider->CschedUeConfigReq (params);
 
@@ -1438,7 +1438,7 @@ NrGnbMac::UeUpdateConfigurationReq (LteEnbCmacSapProvider::UeConfig params)
   NrMacCschedSapProvider::CschedUeConfigReqParameters req;
   req.m_rnti = params.m_rnti;
   req.m_transmissionMode = params.m_transmissionMode;
-  req.m_beamId = m_phySapProvider->GetBeamId (params.m_rnti);
+  req.m_beamConfId = m_phySapProvider->GetBeamConfId (params.m_rnti);
   req.m_reconfigureFlag = true;
   m_macCschedSapProvider->CschedUeConfigReq (req);
 }

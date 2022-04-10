@@ -25,6 +25,7 @@
 #include <ns3/nr-harq-phy.h>
 #include <functional>
 #include "ns3/ideal-beamforming-algorithm.h"
+#include "beam-conf-id.h"
 
 namespace ns3 {
 
@@ -180,11 +181,11 @@ public:
   uint32_t GetN2Delay (void) const;
 
   /**
-   * \brief Get the BeamId for the selected user
-   * \param rnti the selected user
-   * \return the beam id of the user
+   * \brief Get the BeamConfId for the selected user
+   * \param rnti the selected UE
+   * \return the BeamConfId of the UE
    */
-  BeamId GetBeamId (uint16_t rnti) const override;
+  BeamConfId GetBeamConfId (uint16_t rnti) const override;
 
   /**
    * \brief Set the channel access manager interface for this instance of the PHY

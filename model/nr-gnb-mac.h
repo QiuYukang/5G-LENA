@@ -37,7 +37,7 @@ namespace ns3 {
 
 class NrControlMessage;
 class NrRarMessage;
-class BeamId;
+class BeamConfId;
 
 /**
  * \ingroup gnb-mac
@@ -185,11 +185,11 @@ public:
   void SetLteCcmMacSapUser (LteCcmMacSapUser* s);
 
   /**
-   * \brief A Beam for a user has changed
-   * \param beamId new beam ID
+   * \brief A BeamConf for a user has changed
+   * \param beamConfId new beam ID
    * \param rnti RNTI of the user
    */
-  void BeamChangeReport (BeamId beamId, uint8_t rnti);
+  void BeamChangeReport (BeamConfId beamConfId, uint8_t rnti);
 
   /**
    * TracedCallback signature for DL scheduling events.

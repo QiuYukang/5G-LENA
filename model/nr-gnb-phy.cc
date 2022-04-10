@@ -553,7 +553,8 @@ NrGnbPhy::SetN2Delay (uint32_t delay)
   SetTddPattern (m_tddPattern); // Update the generate/send structures
 }
 
-BeamId NrGnbPhy::GetBeamId (uint16_t rnti) const
+BeamConfId
+NrGnbPhy::GetBeamConfId (uint16_t rnti) const
 {
   for (uint8_t i = 0; i < m_deviceMap.size (); i++)
     {
@@ -562,10 +563,12 @@ BeamId NrGnbPhy::GetBeamId (uint16_t rnti) const
 
       if (ueRnti == rnti)
         {
-          return m_beamManager->GetBeamId (m_deviceMap.at(i));
+          // TODO
+          // Return the correct BeamIds
+          return BeamConfId (m_beamManager->GetBeamId (m_deviceMap.at (i)), BeamId::GetEmptyBeamId ());
         }
     }
-  return BeamId (0,0);
+  return BeamConfId (BeamId (0,0), BeamId::GetEmptyBeamId ());
 }
 
 void

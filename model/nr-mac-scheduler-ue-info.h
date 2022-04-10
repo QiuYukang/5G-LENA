@@ -24,7 +24,7 @@
 #include "nr-amc.h"
 #include <unordered_map>
 #include <functional>
-#include "beam-id.h"
+#include "beam-conf-id.h"
 #include <algorithm>
 
 namespace ns3 {
@@ -72,9 +72,9 @@ public:
   /**
    * \brief Create a new UE representation
    * \param rnti the RNTI of the UE
-   * \param beamId the BeamID of the UE (can be updated later)
+   * \param beamConfId the BeamConfId of the UE (can be updated later)
    */
-  NrMacSchedulerUeInfo (uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn);
+  NrMacSchedulerUeInfo (uint16_t rnti, BeamConfId beamConfId, const GetRbPerRbgFn &fn);
 
   /**
    * \brief ~NrMacSchedulerUeInfo deconstructor
@@ -246,7 +246,7 @@ public:
   };
 
   uint16_t m_rnti            {0};             //!< RNTI of the UE
-  BeamId   m_beamId;       //!< Beam ID of the UE (kept updated as much as possible by MAC)
+  BeamConfId   m_beamConfId;    //!< Beam ID of the UE (kept updated as much as possible by MAC)
 
   std::unordered_map<uint8_t, LCGPtr> m_dlLCG;//!< DL LCG
   std::unordered_map<uint8_t, LCGPtr> m_ulLCG;//!< UL LCG

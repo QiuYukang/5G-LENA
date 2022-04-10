@@ -25,9 +25,9 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("NrMacSchedulerUeInfo");
 
-NrMacSchedulerUeInfo::NrMacSchedulerUeInfo (uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn) :
+NrMacSchedulerUeInfo::NrMacSchedulerUeInfo (uint16_t rnti, BeamConfId beamConfId, const GetRbPerRbgFn &fn) :
         m_rnti (rnti),
-        m_beamId (beamId),
+        m_beamConfId (beamConfId),
         m_getNumRbPerRbg (fn)
 {
 }

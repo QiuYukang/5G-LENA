@@ -506,14 +506,14 @@ NrMacSchedulerNs3::DoCschedUeConfigReq (const NrMacCschedSapProvider::CschedUeCo
           UeInfoOf (*itUe)->m_srsOffset = srs.m_offset;
         }
 
-      NS_LOG_INFO ("Creating user, beam " << params.m_beamId << " and ue " << params.m_rnti <<
+      NS_LOG_INFO ("Creating user, beam " << params.m_beamConfId << " and ue " << params.m_rnti <<
                    " assigned SRS periodicity " << srs.m_periodicity << " and offset " <<
                    srs.m_offset);
     }
   else
     {
-      NS_LOG_LOGIC ("Updating Beam for UE " << params.m_rnti << " beam " << params.m_beamId);
-      UeInfoOf (*itUe)->m_beamId = params.m_beamId;
+      NS_LOG_LOGIC ("Updating Beam for UE " << params.m_rnti << " beam " << params.m_beamConfId);
+      UeInfoOf (*itUe)->m_beamConfId = params.m_beamConfId;
     }
 }
 
@@ -1132,7 +1132,7 @@ NrMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeDlHarq,
     {
       uint16_t rnti = feedback.m_rnti;
       auto &schedInfo = m_ueMap.find (rnti)->second;
-      auto beamIterator = activeDlHarq->find (schedInfo->m_beamId);
+      auto beamIterator = activeDlHarq->find (schedInfo->m_beamConfId);
 
       if (beamIterator == activeDlHarq->end ())
         {
@@ -1140,7 +1140,7 @@ NrMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeDlHarq,
           NS_ASSERT (schedInfo->m_dlHarq.Find (feedback.m_harqProcessId)->second.m_active);
 
           harqVector.emplace_back (schedInfo->m_dlHarq.Find (feedback.m_harqProcessId));
-          activeDlHarq->emplace (std::make_pair (schedInfo->m_beamId, harqVector));
+          activeDlHarq->emplace (std::make_pair (schedInfo->m_beamConfId, harqVector));
         }
       else
         {
@@ -1176,14 +1176,14 @@ NrMacSchedulerNs3::ComputeActiveHarq (ActiveHarqMap *activeUlHarq,
     {
       uint16_t rnti = feedback.m_rnti;
       auto &schedInfo = m_ueMap.find (rnti)->second;
-      auto beamIterator = activeUlHarq->find (schedInfo->m_beamId);
+      auto beamIterator = activeUlHarq->find (schedInfo->m_beamConfId);
 
       if (beamIterator == activeUlHarq->end ())
         {
           std::vector<NrMacHarqVector::iterator> harqVector;
           NS_ASSERT (schedInfo->m_ulHarq.Find (feedback.m_harqProcessId)->second.m_active);
           harqVector.emplace_back (schedInfo->m_ulHarq.Find (feedback.m_harqProcessId));
-          activeUlHarq->emplace (std::make_pair (schedInfo->m_beamId, harqVector));
+          activeUlHarq->emplace (std::make_pair (schedInfo->m_beamConfId, harqVector));
         }
       else
         {
@@ -1235,12 +1235,12 @@ NrMacSchedulerNs3::ComputeActiveUe (ActiveUeMap *activeUe,
 
       if (totBuffer > 0 && harqV.CanInsert ())
         {
-          auto it = activeUe->find (ue->m_beamId);
+          auto it = activeUe->find (ue->m_beamConfId);
           if (it == activeUe->end ())
             {
               std::vector<std::pair<std::shared_ptr<NrMacSchedulerUeInfo>, uint32_t> > tmp;
               tmp.emplace_back (ue, totBuffer);
-              activeUe->insert (std::make_pair (ue->m_beamId, tmp));
+              activeUe->insert (std::make_pair (ue->m_beamConfId, tmp));
             }
           else
             {
@@ -1334,7 +1334,7 @@ NrMacSchedulerNs3::AssignBytesToLC (const std::unordered_map<uint8_t, LCGPtr> &u
  * - How to place the blocks in the 2D plan (in other words, how to create the DCIs)?
  *
  * The first two phases are managed by the function AssignDLRBG. Once the map
- * between the beamId and the symbols assigned to it has been returned, the
+ * between the beamConfId and the symbols assigned to it has been returned, the
  * active user list has been updated by assigning to each user an amount of
  * RBG. Then, it is necessary to iterate through the beams, and for each beam,
  * iterating through the users of that beam, creating a DCI (function CreateDlDci).
@@ -1565,7 +1565,7 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
  * - How to place the blocks in the 2D plan (in other words, how to create the DCIs)?
  *
  * The first two phases are managed by the function AssignULRBG. Once the map
- * between the beamId and the symbols assigned to it has been returned, the
+ * between the beamConfId and the symbols assigned to it has been returned, the
  * active user list has been updated by assigning to each user an amount of
  * RBG. Then, it is necessary to iterate through the beams, and for each beam,
  * iterating through the users of that beam, creating a DCI (function CreateUlDci).
@@ -1826,7 +1826,7 @@ NrMacSchedulerNs3::ScheduleDl (const NrMacSchedSapProvider::SchedDlTriggerReqPar
     }
   m_rachList.clear ();
 
-  // compute active ue in the current subframe, group them by BeamId
+  // compute active ue in the current subframe, group them by BeamConfId
   ActiveHarqMap activeDlHarq;
   ComputeActiveHarq (&activeDlHarq, dlHarqFeedback);
 

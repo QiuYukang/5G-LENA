@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <vector>
 #include <ns3/ff-mac-common.h>
-#include "beam-id.h"
+#include "beam-conf-id.h"
 
 namespace ns3 {
 
@@ -138,7 +138,7 @@ public:
   struct CschedUeConfigReqParameters
   {
     uint16_t  m_rnti;
-    BeamId   m_beamId; //!< Beam Id
+    BeamConfId   m_beamConfId; //!< Beam Id
     bool      m_reconfigureFlag;
     bool      m_drxConfigPresent;
     struct DrxConfig_s m_drxConfig;

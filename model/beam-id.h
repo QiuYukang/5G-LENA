@@ -89,6 +89,11 @@ public:
    */
   static BeamId GetEmptyBeamId ();
 
+  /**
+   * \return Returns the Cantor function value of this BeamId
+   */
+  uint32_t GetCantor () const;
+
 private:
 
   uint16_t m_sector {0};  //!< sector of the beam

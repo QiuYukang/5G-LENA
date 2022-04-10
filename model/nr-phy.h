@@ -32,6 +32,7 @@ class NrSpectrumPhy;
 class AntennaArrayBasicModel;
 class BeamManager;
 class UniformPlanarArray;
+class BeamConfId;
 
 /**
  * \ingroup ue-phy
@@ -158,11 +159,11 @@ public:
   virtual Time GetTbDecodeLatency (void) const;
 
   /**
-   * \brief Get the beam id for the specified user
+   * \brief Get the beam conf id for the specified user
    * \param rnti RNTI
-   * \return the BeamId associated to the specified RNTI
+   * \return the BeamConfId associated to the specified RNTI
    */
-  virtual BeamId GetBeamId (uint16_t rnti) const = 0;
+  virtual BeamConfId GetBeamConfId (uint16_t rnti) const = 0;
 
   /**
    * \brief Install the antenna in the PHY

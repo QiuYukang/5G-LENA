@@ -39,11 +39,11 @@ public:
   /**
    * \brief NrMacSchedulerUeInfoMR constructor
    * \param rnti RNTI of the UE
-   * \param beamId Beam ID of the UE
+   * \param beamConfId BeamConfId of the UE
    * \param fn A function that tells how many RB per RBG
    */
-  NrMacSchedulerUeInfoMR (uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn)
-    : NrMacSchedulerUeInfo (rnti, beamId, fn)
+  NrMacSchedulerUeInfoMR (uint16_t rnti, BeamConfId beamConfId, const GetRbPerRbgFn &fn)
+    : NrMacSchedulerUeInfo (rnti, beamConfId, fn)
   {
   }
 

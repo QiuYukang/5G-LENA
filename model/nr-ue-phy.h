@@ -358,7 +358,7 @@ public:
   const SfnSf & GetCurrentSfnSf () const override;
 
   // From nr phy. Not used in the UE
-  virtual BeamId GetBeamId (uint16_t rnti) const override;
+  virtual BeamConfId GetBeamConfId (uint16_t rnti) const override;
 
   /**
    * \brief Start the ue Event Loop

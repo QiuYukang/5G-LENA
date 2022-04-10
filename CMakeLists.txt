@@ -87,6 +87,7 @@ set(source_files
     model/nr-mac-scheduler-srs-default.cc
     model/nr-ue-power-control.cc
     model/realistic-bf-manager.cc
+    model/beam-conf-id.cc
     utils/file-transfer-helper.cc
     utils/file-transfer-application.cc
 )
@@ -186,6 +187,7 @@ set(header_files
     model/nr-mac-scheduler-srs-default.h
     model/nr-ue-power-control.h
     model/realistic-bf-manager.h
+    model/beam-conf-id.h
     utils/file-transfer-helper.h
     utils/file-transfer-application.h
 )

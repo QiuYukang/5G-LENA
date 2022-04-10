@@ -56,7 +56,7 @@ public:
 
   virtual void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo) override;
 
-  virtual BeamId GetBeamId (uint8_t rnti) const override;
+  virtual BeamConfId GetBeamConfId (uint8_t rnti) const override;
 
   virtual Ptr<const SpectrumModel> GetSpectrumModel () override;
 
@@ -106,10 +106,10 @@ NrMemberPhySapProvider::SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo)
   m_phy->PushBackSlotAllocInfo (slotAllocInfo);
 }
 
-BeamId
-NrMemberPhySapProvider::GetBeamId (uint8_t rnti) const
+BeamConfId
+NrMemberPhySapProvider::GetBeamConfId (uint8_t rnti) const
 {
-  return m_phy->GetBeamId (rnti);
+  return m_phy->GetBeamConfId (rnti);
 }
 
 Ptr<const SpectrumModel>
