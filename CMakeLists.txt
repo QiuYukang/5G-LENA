@@ -92,6 +92,7 @@ set(source_files
     model/beam-conf-id.cc
     utils/file-transfer-helper.cc
     utils/file-transfer-application.cc
+    utils/three-gpp-channel-model-param.cc
 )
 
 set(header_files
@@ -194,6 +195,7 @@ set(header_files
     model/beam-conf-id.h
     utils/file-transfer-helper.h
     utils/file-transfer-application.h
+    utils/three-gpp-channel-model-param.h
 )
 
 
