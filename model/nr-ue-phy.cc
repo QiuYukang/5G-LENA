@@ -1164,7 +1164,10 @@ NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeed
     {
       m_dlHarqInfo.m_rnti = m_rnti;
       m_dlHarqInfo.m_bwpIndex = GetBwpId();
-      m_dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);// (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all panels with NONE
+      // (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all panels with NONE
+      m_dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);
+      //above initialization logic also applies to m_numRetx vector
+      m_dlHarqInfo.m_numRetx = std::vector <uint8_t> (m_spectrumPhys.size(), UINT8_MAX);
       m_dlHarqInfo.m_harqProcessId = harqProcessId;
     }
   else
@@ -1174,10 +1177,7 @@ NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeed
 
   NS_ASSERT (streamId < m_dlHarqInfo.m_harqStatus.size () && m_dlHarqInfo.m_harqStatus.at (streamId) == DlHarqInfo::HarqStatus::NONE);
   m_dlHarqInfo.m_harqStatus [streamId] = harqFeedback;
-
-  // TODO
-  // convert m_dlHarqInfo.m_numRetx to be a vector and then add corresponding code to set it
-  // m_dlHarqInfo.m_numRetx = rv
+  m_dlHarqInfo.m_numRetx [streamId] = rv;
 
   uint8_t feedbackCounter = 0;
   for (const auto& i : m_dlHarqInfo.m_harqStatus)

@@ -133,8 +133,14 @@ std::ostream &operator<< (std::ostream &os, const DlHarqInfo &item)
       os << "NACK feedback ";
     }
   os << "for ProcessID: " << static_cast<uint32_t> (item.m_harqProcessId) << " of UE "
-     << static_cast<uint32_t> (item.m_rnti) << " Num Retx: " << static_cast<uint32_t> (item.m_numRetx)
-     << " BWP index: " << static_cast<uint32_t> (item.m_bwpIndex);
+     << static_cast<uint32_t> (item.m_rnti);
+  for (uint8_t stream = 0; stream < item.m_numRetx.size (); stream++)
+    {
+      os << "stream " << static_cast<uint32_t> (stream) << " Num Retx: " << static_cast<uint32_t> (item.m_numRetx [stream]);
+    }
+
+  os << " BWP index: " << static_cast<uint32_t> (item.m_bwpIndex);
+
   return os;
 }
 

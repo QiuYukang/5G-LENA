@@ -493,10 +493,9 @@ struct HarqInfo
   virtual ~HarqInfo ()
   {
   }
-  uint16_t m_rnti          {55};   //!< RNTI
-  uint8_t m_harqProcessId  {15};   //!< ProcessId
-  uint8_t m_numRetx        {5};    //!< Num of Retx
-  uint8_t m_bwpIndex       {8};    //!< BWP identifier, uniquely identifies BWP within the UE
+  uint16_t m_rnti          {UINT16_MAX};  //!< RNTI
+  uint8_t m_harqProcessId  {UINT8_MAX};   //!< ProcessId
+  uint8_t m_bwpIndex       {UINT8_MAX};   //!< BWP identifier, uniquely identifies BWP within the UE
 
   /**
    * \return true if the HARQ should be eliminated, since the info has been
@@ -523,6 +522,7 @@ struct DlHarqInfo : public HarqInfo
   };
 
   std::vector<enum HarqStatus> m_harqStatus;   //!< HARQ status
+  std::vector<uint8_t> m_numRetx;              //!< Num of Retx
 
   virtual bool IsReceivedOk () const override
   {
@@ -579,11 +579,14 @@ struct DlHarqInfo : public HarqInfo
 struct UlHarqInfo : public HarqInfo
 {
   std::vector<uint16_t> m_ulReception;
+
   enum ReceptionStatus
   {
     Ok, NotOk, NotValid
   } m_receptionStatus;
-  uint8_t m_tpc;
+
+  uint8_t m_tpc {UINT8_MAX};       //!< Transmit Power Control
+  uint8_t m_numRetx {UINT8_MAX};   //!< Num of Retx
 
   virtual bool IsReceivedOk () const override
   {
