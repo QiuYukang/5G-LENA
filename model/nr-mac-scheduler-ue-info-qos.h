@@ -178,9 +178,9 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
         NS_ABORT_IF(leftP == 0);
         NS_ABORT_IF(rightP == 0);
 
-        double lQoSMetric = leftP * std::pow(luePtr->m_potentialTputDl, luePtr->m_alpha) /
+        double lQoSMetric = (100 - leftP) * std::pow(luePtr->m_potentialTputDl, luePtr->m_alpha) /
                             std::max(1E-9, luePtr->m_avgTputDl);
-        double rQoSMetric = rightP * std::pow(ruePtr->m_potentialTputDl, ruePtr->m_alpha) /
+        double rQoSMetric = (100 - rightP) * std::pow(ruePtr->m_potentialTputDl, ruePtr->m_alpha) /
                             std::max(1E-9, ruePtr->m_avgTputDl);
 
         return (lQoSMetric > rQoSMetric);
@@ -216,9 +216,9 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
         NS_ABORT_IF(leftP == 0);
         NS_ABORT_IF(rightP == 0);
 
-        double lQoSMetric = leftP * std::pow(luePtr->m_potentialTputUl, luePtr->m_alpha) /
+        double lQoSMetric = (100 - leftP) * std::pow(luePtr->m_potentialTputUl, luePtr->m_alpha) /
                             std::max(1E-9, luePtr->m_avgTputUl);
-        double rQoSMetric = rightP * std::pow(ruePtr->m_potentialTputUl, ruePtr->m_alpha) /
+        double rQoSMetric = (100 - rightP) * std::pow(ruePtr->m_potentialTputUl, ruePtr->m_alpha) /
                             std::max(1E-9, ruePtr->m_avgTputUl);
 
         return (lQoSMetric > rQoSMetric);
