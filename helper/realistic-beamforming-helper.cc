@@ -28,6 +28,8 @@
 #include <ns3/uinteger.h>
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/nr-phy-mac-common.h>
+#include <ns3/nr-spectrum-phy.h>
+#include <ns3/nr-mac-scheduler.h>
 
 namespace ns3{
 
@@ -51,43 +53,53 @@ RealisticBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDe
                                                 const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
-
-  auto itAlgorithms = m_devicePairToAlgorithmsPerCcId.find(std::make_pair(gNbDev, ueDev));
-  NS_ABORT_MSG_IF ( itAlgorithms != m_devicePairToAlgorithmsPerCcId.end(), "Realistic beamforming task already created for the provided devices");
-
-  // create new element in the map that
-  m_devicePairToAlgorithmsPerCcId [std::make_pair(gNbDev, ueDev)] = CcIdToBeamformingAlgorithm ();
-
   for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
     {
-      Ptr<RealisticBeamformingAlgorithm> beamformingAlgorithm = m_algorithmFactory.Create<RealisticBeamformingAlgorithm> ();
-      beamformingAlgorithm->Install (gNbDev, ueDev, ccId);
-      m_devicePairToAlgorithmsPerCcId [std::make_pair(gNbDev, ueDev)] [ccId] = beamformingAlgorithm;
-      //connect trace of the corresponding gNB PHY to the RealisticBeamformingAlgorithm funcition
-      gNbDev->GetPhy (ccId)->GetSpectrumPhy ()->AddSrsSinrReportCallback (MakeCallback (&RealisticBeamformingAlgorithm::NotifySrsSinrReport, beamformingAlgorithm));
-      gNbDev->GetPhy (ccId)->GetSpectrumPhy ()->AddSrsSnrReportCallback (MakeCallback (&RealisticBeamformingAlgorithm::NotifySrsSnrReport, beamformingAlgorithm));
-      beamformingAlgorithm->SetTriggerCallback (MakeCallback (&RealisticBeamformingHelper::RunTask, this));
-    }
+      uint8_t gnbAntennaArrays = gNbDev->GetPhy (ccId)->GetNumberOfStreams ();
+      uint8_t ueAntennaArrays = ueDev->GetPhy (ccId)->GetNumberOfStreams ();
+      uint8_t arrays = std::min (gnbAntennaArrays, ueAntennaArrays);
+      NS_ASSERT (arrays);
 
-  BeamformingHelperBase ::AddBeamformingTask (gNbDev, ueDev);
+      //TODO add assert to check if they are of the same polarization
+
+      for (uint8_t arrayIndex = 0; arrayIndex < arrays; arrayIndex++)
+        {
+          Ptr<NrSpectrumPhy> gnbSpectrumPhy = gNbDev->GetPhy (ccId)->GetSpectrumPhy (arrayIndex);
+          Ptr<NrSpectrumPhy> ueSpectrumPhy = ueDev->GetPhy (ccId)->GetSpectrumPhy (arrayIndex);
+
+          auto itAlgorithms = m_antennaPairToAlgorithm.find(std::make_pair (gnbSpectrumPhy, ueSpectrumPhy));
+          NS_ABORT_MSG_IF ( itAlgorithms != m_antennaPairToAlgorithm.end(),
+                            "Realistic beamforming task already created for the provided devices");
+
+          // for each pair of antenna arrays of transmiter and receiver create an instance of beamforming algorithm
+          Ptr<RealisticBeamformingAlgorithm> beamformingAlgorithm = m_algorithmFactory.Create<RealisticBeamformingAlgorithm> ();
+
+          Ptr<NrMacScheduler> sched = gNbDev ->GetScheduler (ccId);
+
+          beamformingAlgorithm->Install (gNbDev,
+                                         ueDev,
+                                         gnbSpectrumPhy,
+                                         ueSpectrumPhy,
+                                         sched
+                                         );
+
+          m_antennaPairToAlgorithm [std::make_pair(gnbSpectrumPhy, ueSpectrumPhy)] = beamformingAlgorithm;
+          //connect trace of the corresponding gNB PHY to the RealisticBeamformingAlgorithm funcition
+          gnbSpectrumPhy->AddSrsSinrReportCallback (MakeCallback (&RealisticBeamformingAlgorithm::NotifySrsSinrReport, beamformingAlgorithm));
+          gnbSpectrumPhy->AddSrsSnrReportCallback (MakeCallback (&RealisticBeamformingAlgorithm::NotifySrsSnrReport, beamformingAlgorithm));
+          beamformingAlgorithm->SetTriggerCallback (MakeCallback (&RealisticBeamformingHelper::RunTask, this));
+        }
+    }
 }
 
 
-void
-RealisticBeamformingHelper::GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
-                                                   const Ptr<NrUeNetDevice>& ueDev,
-                                                   BeamformingVector* gnbBfv,
-                                                   BeamformingVector* ueBfv,
-                                                   uint16_t ccId) const
+BeamformingVectorPair
+RealisticBeamformingHelper::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                   const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
 {
-
-  auto itDevPair = m_devicePairToAlgorithmsPerCcId.find(std::make_pair(gnbDev, ueDev));
-  NS_ABORT_MSG_IF (itDevPair == m_devicePairToAlgorithmsPerCcId.end(), "There is no task for the specified pair of devices.");
-
-  auto itAlgorithm = (itDevPair->second).find (ccId);;
-  NS_ABORT_MSG_IF (itAlgorithm == (itDevPair->second).end (), "There is no BF task for the specified component carrier ID.");
-
-  itAlgorithm->second->GetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
+  auto itAlgo = m_antennaPairToAlgorithm.find(std::make_pair(gnbSpectrumPhy, ueSpectrumPhy));
+  NS_ABORT_MSG_IF (itAlgo == m_antennaPairToAlgorithm.end(), "There is no created task/algorithm for the specified pair of antenna arrays.");
+  return itAlgo->second->GetBeamformingVectors ();
 }
 
 void

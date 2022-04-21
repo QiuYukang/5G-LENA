@@ -48,6 +48,12 @@ cpp_examples = [
     ("rem-beam-example", "True", "True"),
     ("rem-example", "True", "True"),
     ("cttc-nr-demo --ueNumPergNb=9", "True", "True"),
+    ("cttc-nr-mimo-demo", "True", "True"),
+    ("cttc-nr-mimo-demo --useFixedRi=0", "True", "True"),
+    ("cttc-nr-mimo-demo --polSlantAngle1=0 --polSlantAngle2=90", "True", "True"),
+    ("cttc-nr-mimo-demo --polSlantAngle1=0 --polSlantAngle2=90 --fixedRankIndicator=1", "True", "True"),
+    ("cttc-nr-mimo-demo --polSlantAngle1=0 --polSlantAngle2=90 --useFixedRi=0", "True", "True"),
+    ("cttc-nr-mimo-demo --crossPolarizedGnb=0 --crossPolarizedUe=0", "True", "True"),
     ]
 
 # A list of Python examples to run in order to ensure that they remain

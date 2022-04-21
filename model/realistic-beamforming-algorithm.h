@@ -57,7 +57,7 @@ class NrRealisticBeamformingTestCase;
  * path, and so, the proposed method is not valid for it. Currently, it is
  * only compatible with the beam search method."
  */
-class RealisticBeamformingAlgorithm: public BeamformingAlgorithm
+class RealisticBeamformingAlgorithm: public Object
 {
 
   friend RealisticBeamformingHelper;
@@ -93,7 +93,11 @@ public:
    * \param ueDevice UE instance of devicePair for which will work this algorithm
    * \param ccId CC ID of the PHY of gNB/UE for which will work this algorithm
    */
-  void Install (const Ptr<NrGnbNetDevice>& gNbDevice, const Ptr<NrUeNetDevice>& ueDevice, uint8_t ccId);
+  void Install (const Ptr<NrGnbNetDevice>& gnbDevice,
+                const Ptr<NrUeNetDevice>& ueDevice,
+                const Ptr<NrSpectrumPhy> & gnbSpectrumPhy,
+                const Ptr<NrSpectrumPhy>& ueSpectrumPhy,
+                const Ptr<NrMacScheduler>& scheduler);
 
   /**
    * \brief destructor
@@ -125,11 +129,7 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors ();
   /**
    * \return Gets value of BeamSearchAngleStep attribute
    */
@@ -166,8 +166,13 @@ public:
 
   /**
    * \brief RunTask callback will be triggered when the event for updating the beamforming vectors occurs
+   * The parameters are: gnb device, ue device, gnb spectrum phy, ue spectrum phy.
    */
-  typedef Callback<void, const Ptr<NrGnbNetDevice>&, const Ptr<NrUeNetDevice>&, uint8_t> RealisticBfHelperCallback;
+  typedef Callback<void,
+                   const Ptr<NrGnbNetDevice>&,
+                   const Ptr<NrUeNetDevice>&,
+                   const Ptr<NrSpectrumPhy>&,
+                   const Ptr<NrSpectrumPhy>&> RealisticBfHelperCallback;
 
   void SetUseSnrSrs (bool v);
 
@@ -233,9 +238,11 @@ private:
   UniformPlanarArray::ComplexVector GetEstimatedLongTermComponent (const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
                                                                           const UniformPlanarArray::ComplexVector &aW,
                                                                           const UniformPlanarArray::ComplexVector &bW,
-                                                                          Ptr<MobilityModel> a,
-                                                                          Ptr<MobilityModel> b,
-                                                                          double srsSinr) const;
+                                                                          Ptr<const MobilityModel> a,
+                                                                          Ptr<const MobilityModel> b,
+                                                                          double srsSinr,
+                                                                          Ptr<const PhasedArrayModel> aArray,
+                                                                          Ptr<const PhasedArrayModel> bArray) const;
 
   /*
    * \brief Calculates the total metric based on the each element of the long term component
@@ -264,9 +271,11 @@ private:
   /*
    * \brief Parameters needed to pass to helper once that the helpers callback functions is being called
    */
-  Ptr<NrGnbNetDevice> m_gNbDevice; //!< pointer to gNB device
-  Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device
-  uint8_t m_ccId; //!< ccID index of PHY of gNB and UE for which this algorithm applies
+  Ptr<NrGnbNetDevice> m_gnbDevice; //!< pointer to gNB device
+  Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device 
+  Ptr<NrSpectrumPhy> m_gnbSpectrumPhy; //!< pointer to gNB spectrum phy
+  Ptr<NrSpectrumPhy> m_ueSpectrumPhy;  //!< pointer to UE spectrum phy
+  Ptr<NrMacScheduler> m_scheduler; //!< pointer to gNB MAC scheduler
 
 };
 

@@ -40,11 +40,16 @@ struct NrMacPduInfo
   NrMacPduInfo (SfnSf sfn, std::shared_ptr<DciInfoElementTdma> dci) :
     m_sfnSf (sfn), m_dci (dci)
   {
+    for (const auto &it:dci->m_tbSize)
+      {
+        m_maxBytes += it;
+      }
   }
 
   SfnSf m_sfnSf;                  //!< SfnSf of the PDU
   std::shared_ptr<DciInfoElementTdma> m_dci; //!< The DCI
   uint32_t m_used {0};  //!< Bytes sent down to PHY for this PDU
+  uint32_t m_maxBytes {0};
 };
 
 } // namespace ns3

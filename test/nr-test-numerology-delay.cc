@@ -47,7 +47,9 @@ class NrTestNumerologyDelayCase1 : public TestCase
 public:
   NrTestNumerologyDelayCase1 (std::string name, uint32_t numerology);
   virtual ~NrTestNumerologyDelayCase1 ();
-  void DlScheduling (uint32_t frameNo, uint32_t subframeNo, uint32_t slotNum, uint32_t tbSize, uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId);
+  void DlScheduling (uint32_t frameNo, uint32_t subframeNo, uint32_t slotNum,
+                     uint8_t streamId, uint32_t tbSize, uint32_t mcs,
+                     uint32_t rnti, uint8_t componentCarrierId);
   void DlSpectrumUeEndRx (RxPacketTraceParams params);
   void DlSpectrumEnbStartTx (GnbPhyPacketCountParameter params);
   void TxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t bytes);
@@ -91,10 +93,11 @@ NrTestNumerologyDelayCase1::~NrTestNumerologyDelayCase1 ()
 
 void
 LteTestDlSchedCallback (NrTestNumerologyDelayCase1 *testcase, std::string path,
-                        uint32_t frameNo, uint32_t subframeNo,
-                        uint32_t slotNum, uint32_t tbSize, uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId)
+                        NrSchedulingCallbackInfo info)
 {
-  testcase->DlScheduling (frameNo, subframeNo, slotNum, tbSize, mcs, rnti, componentCarrierId);
+  testcase->DlScheduling (info.m_frameNum, info.m_subframeNum, info.m_slotNum,
+                          info.m_streamId, info.m_tbSize, info.m_mcs,
+                          info.m_rnti, info.m_bwpId);
 }
 
 void
@@ -272,10 +275,10 @@ NrTestNumerologyDelayCase1::DoRun (void)
   Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
                    MakeBoundCallback (&LteTestDlSchedCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPacketTraceUe",
                    MakeBoundCallback (&LteTestRxPacketUeCallback, this));
 
-  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/TxPacketTraceEnb",
+  Config::Connect ("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/TxPacketTraceEnb",
                    MakeBoundCallback (&LteTestTxPacketEnbCallback, this));
 
   Simulator::Schedule (MilliSeconds (200), &ConnectRlcPdcpTraces, this);
@@ -328,7 +331,7 @@ NrTestNumerologyDelayCase1::TxRlcPDU (uint16_t rnti, uint8_t lcid, uint32_t byte
 
 void
 NrTestNumerologyDelayCase1::DlScheduling (uint32_t frameNo, uint32_t subframeNo,
-                                          uint32_t slotNum, uint32_t tbSize,
+                                          uint32_t slotNum, uint8_t streamId, uint32_t tbSize,
                                           uint32_t mcs, uint32_t rnti, uint8_t componentCarrierId)
 {
 /*  std::cout<<"\n\n\n MAC sends PDU to PHY at:"<<Simulator::Now()<<std::endl;

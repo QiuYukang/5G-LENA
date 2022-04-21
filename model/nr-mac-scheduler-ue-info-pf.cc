@@ -32,12 +32,16 @@ NrMacSchedulerUeInfoPF::UpdateDlPFMetric (const NrMacSchedulerNs3::FTResources &
   NS_LOG_FUNCTION (this);
 
   NrMacSchedulerUeInfo::UpdateDlMetric (amc);
-
-  m_currTputDl = static_cast<double> (m_dlTbSize) / (totAssigned.m_sym);
+  uint32_t tbSize = 0;
+  for (const auto &it:m_dlTbSize)
+    {
+      tbSize += it;
+    }
+  m_currTputDl = static_cast<double> (tbSize) / (totAssigned.m_sym);
   m_avgTputDl = ((1.0 - (1.0 / static_cast<double> (timeWindow))) * m_lastAvgTputDl) +
     ((1.0 / timeWindow) * m_currTputDl);
 
-  NS_LOG_DEBUG ("Update DL PF Metric for UE " << m_rnti << " DL TBS: " << m_dlTbSize <<
+  NS_LOG_DEBUG ("Update DL PF Metric for UE " << m_rnti << " DL TBS: " << tbSize <<
                 " Updated currTputDl " << m_currTputDl << " avgTputDl " << m_avgTputDl <<
                 " over n. of syms: " << +totAssigned.m_sym <<
                 ", last Avg TH Dl " << m_lastAvgTputDl <<
@@ -73,7 +77,27 @@ NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl (const NrMacSchedulerNs3::FTRes
   NS_LOG_FUNCTION (this);
 
   uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg ();
-  m_potentialTputDl =  amc->CalculateTbSize (m_dlMcs, rbsAssignable);
+  // Since we compute a new potential throughput every time, there is no harm
+  // in initializing it to zero here.
+  m_potentialTputDl = 0.0;
+
+  if (this->m_dlCqi.m_ri == 1)
+    {
+      std::vector<uint8_t>::const_iterator mcsIt;
+      mcsIt = std::max_element (m_dlMcs.begin(), m_dlMcs.end());
+      m_potentialTputDl =  amc->CalculateTbSize (*mcsIt, rbsAssignable);
+    }
+
+  if (this->m_dlCqi.m_ri == 2)
+    {
+      //if the UE supports two streams potential throughput is the sum of
+      //both the TBs.
+      for (const auto &it:m_dlMcs)
+        {
+          m_potentialTputDl +=  amc->CalculateTbSize (it, rbsAssignable);
+        }
+    }
+
   m_potentialTputDl /= assignableInIteration.m_sym;
 
   NS_LOG_INFO ("UE " << m_rnti << " potentialTputDl " << m_potentialTputDl <<

@@ -25,11 +25,13 @@
 #include <ns3/nr-harq-phy.h>
 #include <functional>
 #include "ns3/ideal-beamforming-algorithm.h"
+#include "beam-conf-id.h"
 
 namespace ns3 {
 
-class PacketBurst;
+class NetDevice;
 class NrNetDevice;
+class PacketBurst;
 class NrUePhy;
 class NrGnbMac;
 class NrChAccessManager;
@@ -180,11 +182,11 @@ public:
   uint32_t GetN2Delay (void) const;
 
   /**
-   * \brief Get the BeamId for the selected user
-   * \param rnti the selected user
-   * \return the beam id of the user
+   * \brief Get the BeamConfId for the selected user
+   * \param rnti the selected UE
+   * \return the BeamConfId of the UE
    */
-  BeamId GetBeamId (uint16_t rnti) const override;
+  BeamConfId GetBeamConfId (uint16_t rnti) const override;
 
   /**
    * \brief Set the channel access manager interface for this instance of the PHY
@@ -218,8 +220,9 @@ public:
    * \brief Set the Tx power spectral density based on the RB index vector
    * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
    * in which there is a transmission
+   * \param activeStreams the number of active streams
    */
-  void SetSubChannels (const std::vector<int> &rbIndexVector);
+  void SetSubChannels (const std::vector<int> &rbIndexVector, uint8_t activeStreams);
 
   /**
    * \brief Add the UE to the list of this gnb UEs.
@@ -246,8 +249,9 @@ public:
    * Connected by the helper to a callback in corresponding ChunkProcessor
    *
    * \param sinr the SINR
+   * \param streamId the index of the stream
    */
-  void GenerateDataCqiReport (const SpectrumValue& sinr);
+  void GenerateDataCqiReport (const SpectrumValue& sinr, uint8_t streamId) const;
 
   /**
    * \brief Receive a list of CTRL messages
@@ -391,6 +395,15 @@ public:
 
   const SfnSf & GetCurrentSfnSf () const override;
 
+  /**
+   * TODO change to private and add documentation
+   */
+  void ChangeBeamformingVector (Ptr<NetDevice> dev);
+  /**
+   * TODO change to private and add documentation
+   */
+  void ChangeToQuasiOmniBeamformingVector ();
+
 protected:
   /**
    * \brief DoDispose method inherited from Object
@@ -465,9 +478,12 @@ private:
    * \param pb Data to transmit
    * \param varTtiPeriod period of transmission
    * \param dci DCI of the transmission
+   * \param streamId The id of the stream, which identifies the instance of the
+   *        NrSpecturmPhy to be used to transmit the packet burst
    */
   void SendDataChannels (const Ptr<PacketBurst> &pb, const Time &varTtiPeriod,
-                         const std::shared_ptr<DciInfoElementTdma> &dci);
+                         const std::shared_ptr<DciInfoElementTdma> &dci,
+                         const uint8_t &streamId);
 
   /**
    * \brief Transmit the control channel

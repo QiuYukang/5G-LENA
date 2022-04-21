@@ -65,7 +65,8 @@ NrBearerStatsCalculator::GetTypeId (void)
 {
   static TypeId tid =
     TypeId ("ns3::NrBearerStatsCalculator")
-    .SetParent<LteStatsCalculator> ().AddConstructor<NrBearerStatsCalculator> ()
+    .SetParent<LteStatsCalculator> ()
+    .AddConstructor<NrBearerStatsCalculator> ()
     .SetGroupName ("Lte")
     .AddAttribute ("StartTime", "Start time of the on going epoch.",
                    TimeValue (Seconds (0.)),

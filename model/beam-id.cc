@@ -80,10 +80,16 @@ static constexpr uint32_t Cantor (uint16_t x1, uint16_t x2)
   return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
 }
 
+uint32_t
+BeamId::GetCantor () const
+{
+  return Cantor (m_sector, static_cast<uint16_t> (m_elevation));
+}
+
 
 size_t BeamIdHash::operator() (const BeamId &x) const
 {
-  return std::hash<uint32_t>()(Cantor (x.GetSector(), static_cast<uint16_t> (x.GetElevation())));
+  return std::hash<uint32_t> () (x.GetCantor ());
 }
 
 } /* namespace ns3 */

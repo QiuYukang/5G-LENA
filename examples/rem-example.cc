@@ -630,18 +630,18 @@ main (int argc, char *argv[])
   remHelper->SetZ (z);
   remHelper->SetSimTag (simTag);
 
-  gnbNetDev.Get (0)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (0));
+  gnbNetDev.Get (0)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetSpectrumPhy(0)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (0));
 
   if (deploymentScenario.compare ("TwoGnbs") == 0)
     {
-      gnbNetDev.Get (1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
+      gnbNetDev.Get (1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetSpectrumPhy(0)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
     }
 
   if (deploymentScenario.compare ("FourGnbs") == 0)
     {
-      gnbNetDev.Get (1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
-      gnbNetDev.Get (2)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (2));
-      gnbNetDev.Get (3)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (3));
+      gnbNetDev.Get (1)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetSpectrumPhy(0)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (1));
+      gnbNetDev.Get (2)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetSpectrumPhy(0)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (2));
+      gnbNetDev.Get (3)->GetObject<NrGnbNetDevice> ()->GetPhy (remBwpId)->GetSpectrumPhy(0)->GetBeamManager ()->ChangeBeamformingVector (ueNetDev.Get (3));
     }
 
   if (remMode == "BeamShape")

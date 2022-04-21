@@ -23,7 +23,6 @@
 #include <ns3/object.h>
 #include "beam-id.h"
 #include "beamforming-vector.h"
-#include "beamforming-algorithm.h"
 
 namespace ns3 {
 
@@ -31,6 +30,7 @@ class SpectrumModel;
 class SpectrumValue;
 class NrGnbNetDevice;
 class NrUeNetDevice;
+class NrSpectrumPhy;
 
 /**
  * \ingroup gnb-phy
@@ -42,7 +42,7 @@ class NrUeNetDevice;
  * Algorithms that inherit this class assume a perfect knowledge of the channel,
  * because of which this group of algorithms is called "ideal".
  */
-class IdealBeamformingAlgorithm: public BeamformingAlgorithm
+class IdealBeamformingAlgorithm: public Object
 {
 
 public:
@@ -51,6 +51,14 @@ public:
    * \return the type id of the class
    */
   static TypeId GetTypeId (void);
+
+  /**
+   * \brief Function that generates the beamforming vectors for a pair of communicating devices
+   * \param [in] gnbSpectrumPhy gNb spectrum phy instance
+   * \param [in] ueSpectrumPhy UE spectrum phy instance
+   */
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const = 0;
 };
 
 /**
@@ -95,11 +103,8 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
 private:
 
@@ -149,11 +154,8 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
 private:
 
@@ -183,11 +185,8 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };
 
 /**
@@ -213,11 +212,8 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
 };
 
@@ -245,11 +241,8 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
 };
 
@@ -281,11 +274,8 @@ public:
    * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
    * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
    */
-  virtual void GetBeamformingVectors (const Ptr<const NrGnbNetDevice>& gnbDev,
-                                      const Ptr<const NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };
 
 

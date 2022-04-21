@@ -44,7 +44,7 @@ std::shared_ptr<NrMacSchedulerUeInfo>
 NrMacSchedulerOfdmaMR::CreateUeRepresentation (const NrMacCschedSapProvider::CschedUeConfigReqParameters &params) const
 {
   NS_LOG_FUNCTION (this);
-  return std::make_shared <NrMacSchedulerUeInfoMR> (params.m_rnti, params.m_beamId,
+  return std::make_shared <NrMacSchedulerUeInfoMR> (params.m_rnti, params.m_beamConfId,
                                                         std::bind (&NrMacSchedulerOfdmaMR::GetNumRbPerRbg, this));
 }
 

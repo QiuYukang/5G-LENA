@@ -27,6 +27,7 @@
 #include <ns3/nr-ue-phy.h>
 #include <ns3/beam-manager.h>
 #include <ns3/vector.h>
+#include <ns3/nr-spectrum-phy.h>
 
 namespace ns3{
 
@@ -76,7 +77,7 @@ IdealBeamformingHelper::GetTypeId (void)
 }
 
 void
-IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
+IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gnbDev,
                                             const Ptr<NrUeNetDevice>& ueDev)
 {
   NS_LOG_FUNCTION (this);
@@ -86,12 +87,24 @@ IdealBeamformingHelper::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
       m_beamformingAlgorithm = m_algorithmFactory.Create<IdealBeamformingAlgorithm> ();
     }
 
-  BeamformingHelperBase::AddBeamformingTask (gNbDev, ueDev);
+  for (uint8_t ccId = 0; ccId < gnbDev->GetCcMapSize () ; ccId++)
+     {
+       uint8_t gnbAntennaArrays = gnbDev->GetPhy (ccId)->GetNumberOfStreams ();
+       uint8_t ueAntennaArrays = ueDev->GetPhy (ccId)->GetNumberOfStreams ();
+       uint8_t arrays = std::min (gnbAntennaArrays, ueAntennaArrays);
+       NS_ASSERT (arrays);
+       //TODO add assert to check if they are of the same polarization
+       for (uint8_t arrayIndex = 0; arrayIndex < arrays; arrayIndex++)
+         {
+           Ptr<NrSpectrumPhy> gnbSpectrumPhy = gnbDev->GetPhy (ccId)->GetSpectrumPhy (arrayIndex);
+           Ptr<NrSpectrumPhy> ueSpectrumPhy = ueDev->GetPhy (ccId)->GetSpectrumPhy (arrayIndex);
 
-  for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
-    {
-      RunTask (gNbDev, ueDev, ccId); // run immediately the task, and next time will be according to configured periodicity
-    }
+           m_spectrumPhyPairToDevicePair [std::make_pair (gnbSpectrumPhy, ueSpectrumPhy)] = std::make_pair (gnbDev, ueDev);
+
+           RunTask (gnbDev, ueDev, gnbSpectrumPhy, ueSpectrumPhy);
+         }
+
+     }
 }
 
 void
@@ -99,31 +112,20 @@ IdealBeamformingHelper::Run () const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO ("Running the beamforming method. There are :" <<
-               m_beamformingTasks.size()<<" tasks.");
+               m_spectrumPhyPairToDevicePair.size()<<" tasks.");
 
-  for (const auto& task : m_beamformingTasks)
+  for (const auto& task : m_spectrumPhyPairToDevicePair)
     {
-      NS_LOG_INFO ("There are :" << task.first->GetCcMapSize ()<< " antennas per device.");
-      Ptr<NrGnbNetDevice> gNbDev = task.first;
-      Ptr<NrUeNetDevice> ueDev = task.second;
-
-      for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize () ; ccId++)
-        {
-          RunTask (gNbDev, ueDev, ccId);
-        }
+      RunTask (task.second.first, task.second.second, task.first.first, task.first.second);
     }
 }
 
-
-void
-IdealBeamformingHelper::GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
-                                              const Ptr<NrUeNetDevice>& ueDev,
-                                              BeamformingVector* gnbBfv,
-                                              BeamformingVector* ueBfv,
-                                              uint16_t ccId) const
+BeamformingVectorPair
+IdealBeamformingHelper::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                               const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
 {
   NS_LOG_FUNCTION (this);
-  m_beamformingAlgorithm->GetBeamformingVectors (gnbDev, ueDev, gnbBfv, ueBfv, ccId);
+  return m_beamformingAlgorithm->GetBeamformingVectors (gnbSpectrumPhy, ueSpectrumPhy);
 }
 
 void

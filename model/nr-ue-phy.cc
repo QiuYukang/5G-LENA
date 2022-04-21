@@ -41,6 +41,7 @@
 #include "nr-ue-net-device.h"
 #include "nr-ch-access-manager.h"
 #include "nr-ue-power-control.h"
+#include <ns3/object-vector.h>
 
 namespace ns3 {
 
@@ -65,6 +66,7 @@ NrUePhy::DoDispose ()
 {
   NS_LOG_FUNCTION (this);
   delete m_ueCphySapProvider;
+  m_phyDlHarqFeedbackCallback = MakeNullCallback< void, const DlHarqInfo&> ();
   NrPhy::DoDispose ();
 }
 
@@ -88,9 +90,10 @@ NrUePhy::GetTypeId (void)
                    " are connected to sources at the standard noise temperature T0.\" "
                   "In this model, we consider T0 = 290K.",
                    DoubleValue (5.0), // nr code from NYU and UniPd assumed in the code the value of 5dB, thats why we configure the default value to that
-                   MakeDoubleAccessor (&NrUePhy::m_noiseFigure),
+                   MakeDoubleAccessor (&NrPhy::SetNoiseFigure,
+                                       &NrPhy::GetNoiseFigure),
                    MakeDoubleChecker<double> ())
-     .AddAttribute ("PowerAllocationType",
+    .AddAttribute ("PowerAllocationType",
                     "Defines the type of the power allocation. Currently are supported "
                     "two types: \"UniformPowerAllocBw\", which is a uniform power allocation over all "
                     "bandwidth (over all RBs), and \"UniformPowerAllocBw\", which is a uniform "
@@ -102,12 +105,6 @@ NrUePhy::GetTypeId (void)
                     MakeEnumChecker ( NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW, "UniformPowerAllocBw",
                                       NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED, "UniformPowerAllocUsed"
                                     ))
-    .AddAttribute ("SpectrumPhy",
-                   "The SpectrumPhy associated to this NrPhy",
-                   TypeId::ATTR_GET,
-                   PointerValue (),
-                   MakePointerAccessor (&NrPhy::GetSpectrumPhy),
-                   MakePointerChecker <NrSpectrumPhy> ())
     .AddAttribute ("LBTThresholdForCtrl",
                    "After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted",
                    TimeValue (MicroSeconds (25)),
@@ -124,10 +121,51 @@ NrUePhy::GetTypeId (void)
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrUePhy::SetEnableUplinkPowerControl),
                     MakeBooleanChecker ())
+    .AddAttribute ("FixedRankIndicator",
+                   "The rank indicator",
+                   UintegerValue (1),
+                   MakeUintegerAccessor (&NrUePhy::SetFixedRankIndicator,
+                                         &NrUePhy::GetFixedRankIndicator),
+                   MakeUintegerChecker<uint8_t> (1, 2))
+    .AddAttribute ("UseFixedRi",
+                   "If true, UE will use a fixed configured RI value; otherwise,"
+                   "it will use an adaptive RI value based on the SINR of the"
+                   "streams",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrUePhy::UseFixedRankIndicator),
+                   MakeBooleanChecker ())
+    .AddAttribute ("RiSinrThreshold1",
+                   "The SINR threshold 1 in dB. It is used to adaptively choose"
+                   "the rank indicator value when a UE is trying to switch from"
+                   "one stream to two. The UE will report RI = 2 if the average"
+                   "SINR of the measured stream is above this threshold; otherwise,"
+                   "it will report RI = 1. The initial threshold value of 10 dB"
+                   "is selected according to: https://ieeexplore.ieee.org/abstract/document/6364098 Figure 2",
+                   DoubleValue (10.0),
+                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThreshold1,
+                                       &NrUePhy::GetRiSinrThreshold1),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("RiSinrThreshold2",
+                   "The SINR threshold 2 in dB. It is used to adaptively choose"
+                   "the rank indicator value once a UE has already switched to"
+                   "two streams, i.e., it has already received the data on the"
+                   "second stream and has measured its average SINR. The UE will"
+                   "report RI = 2 if the average SINR of both the stream is"
+                   "above this threshold; otherwise, it will report RI = 1."
+                   "The initial threshold value of 10 dB is selected according to: "
+                   "https://ieeexplore.ieee.org/abstract/document/6364098 Figure 2",
+                   DoubleValue (10.0),
+                   MakeDoubleAccessor (&NrUePhy::SetRiSinrThreshold2,
+                                       &NrUePhy::GetRiSinrThreshold2),
+                   MakeDoubleChecker<double> ())
     .AddTraceSource ("ReportCurrentCellRsrpSinr",
                      "RSRP and SINR statistics.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
                      "ns3::CurrentCellRsrpSinr::TracedCallback")
+    .AddAttribute ("NrSpectrumPhyList", "List of all SpectrumPhy instances of this NrUePhy.",
+                    ObjectVectorValue (),
+                    MakeObjectVectorAccessor (&NrUePhy::m_spectrumPhys),
+                    MakeObjectVectorChecker<NrSpectrumPhy> ())
     .AddTraceSource ("ReportUplinkTbSize",
                      "Report allocated uplink TB size for trace.",
                      MakeTraceSourceAccessor (&NrUePhy::m_reportUlTbSize),
@@ -233,13 +271,17 @@ NrUePhy::SetDlAmc(const Ptr<const NrAmc> &amc)
 }
 
 void
-NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t numSym)
+NrUePhy::SetSubChannelsForTransmission (const std::vector <int> &mask, uint32_t numSym, uint8_t activeStreams)
 {
-  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask);
+  // in uplink we currently support maximum 1 stream for DATA and CTRL, only SRS will be sent using more than 1 stream
+  Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity (mask, activeStreams);
   NS_ASSERT (txPsd);
 
   m_reportPowerSpectralDensity (m_currentSlot, txPsd, numSym * GetSymbolPeriod (), m_rnti, m_imsi, GetBwpId (), GetCellId ());
-  m_spectrumPhy->SetTxPowerSpectralDensity (txPsd);
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    {
+      m_spectrumPhys.at(streamIndex)->SetTxPowerSpectralDensity (txPsd);
+    }
 }
 
 void
@@ -266,7 +308,7 @@ NrUePhy::ProcessDataDci (const SfnSf &ulSfnSf,
                 " UL-DCI received for slot " << ulSfnSf <<
                 " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
                 " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                " tbs " << dciInfoElem->m_tbSize <<
+                " tbs " << dciInfoElem->m_tbSize.at (0) <<
                 " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
 
   if (ulSfnSf == m_currentSlot)
@@ -430,11 +472,15 @@ NrUePhy::PhyCtrlMessagesReceived (const Ptr<NrControlMessage> &msg)
       uint32_t k0Delay = dciMsg->GetKDelay ();
       dciSfn.Add (k0Delay);
 
-      NS_LOG_DEBUG ("UE" << m_rnti << " DL-DCI received for slot " << dciSfn <<
-                    " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
-                    " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
-                    " tbs " << dciInfoElem->m_tbSize <<
-                    " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+      for (uint8_t stream = 0; stream < dciInfoElem->m_tbSize.size (); stream++)
+        {
+          NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +stream <<
+                        " DL-DCI received for slot " << dciSfn <<
+                        " symStart " << static_cast<uint32_t> (dciInfoElem->m_symStart) <<
+                        " numSym " << static_cast<uint32_t> (dciInfoElem->m_numSym) <<
+                        " tbs " << dciInfoElem->m_tbSize.at (stream) <<
+                        " harqId " << static_cast<uint32_t> (dciInfoElem->m_harqProcess));
+        }
 
       /* BIG ASSUMPTION: We assume that K0 is always 0 */
 
@@ -771,7 +817,8 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       channelRbs.push_back (static_cast<int> (i));
     }
-  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
+  // SRS is currently the only tranmsision in the uplink that is sent over all streams
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym, m_spectrumPhys.size());
 
   std::list <Ptr<NrControlMessage>> srsMsg;
   Ptr<NrSrsMessage> srs = Create<NrSrsMessage> ();
@@ -779,7 +826,12 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
   srsMsg.push_back (srs);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+  // SRS will be transmitted over all streams/streams
+  for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    {
+      m_phyTxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), dci->m_rnti, GetBwpId (), *srsMsg.begin ());
+      m_spectrumPhys.at (streamIndex)->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+    }
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL SRS frame for symbols " <<
                   +dci->m_symStart << "-" <<
@@ -844,7 +896,8 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       m_txPower = m_powerControl->GetPucchTxPower (channelRbs.size());
     }
-  SetSubChannelsForTransmission (channelRbs, dci->m_numSym);
+  // Currently uplink CTRLis transmitted only over 1 stream
+  SetSubChannelsForTransmission (channelRbs, dci->m_numSym, 1);
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL CTRL frame for symbols " <<
                 +dci->m_symStart << "-" <<
@@ -866,18 +919,33 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   m_receptionEnabled = true;
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
 
-  m_spectrumPhy->AddExpectedTb (dci->m_rnti, dci->m_ndi, dci->m_tbSize, dci->m_mcs,
-                                        FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
-                                        dci->m_harqProcess, dci->m_rv, true,
-                                        dci->m_symStart, dci->m_numSym, m_currentSlot);
-  m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
-  NS_LOG_DEBUG ("UE" << m_rnti <<
-                " RXing DL DATA frame for"
-                " symbols "  << +dci->m_symStart <<
-                "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
-                " num of rbg assigned: " << FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask).size () <<
-                "\t start " << Simulator::Now () <<
-                " end " << (Simulator::Now () + varTtiPeriod));
+  m_activeDlDataStreams = 0;
+
+  for (uint8_t streamIndex = 0; streamIndex < dci->m_tbSize.size(); streamIndex++)
+    {
+      if (dci->m_tbSize.at (streamIndex) > 0)
+        {
+          m_activeDlDataStreams ++;
+          //Here we need to call the AddExpectedTb of a NrSpectrumPhy
+          //responsible to receive the expected TB of the stream we
+          //are iterating over
+          m_spectrumPhys.at (streamIndex)->AddExpectedTb (dci->m_rnti, dci->m_ndi.at (streamIndex),
+                                                         dci->m_tbSize.at (streamIndex),
+                                                         dci->m_mcs.at (streamIndex),
+                                                         FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
+                                                         dci->m_harqProcess, dci->m_rv.at (streamIndex), true,
+                                                         dci->m_symStart, dci->m_numSym, m_currentSlot);
+                                                         
+          m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (streamIndex));
+          NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +streamIndex <<
+                        " RXing DL DATA frame for"
+                        " symbols "  << +dci->m_symStart <<
+                        "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
+                        " num of rbg assigned: " << FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask).size () <<
+                        "\t start " << Simulator::Now () <<
+                        " end " << (Simulator::Now () + varTtiPeriod));
+        }
+    }
 
   return varTtiPeriod;
 }
@@ -890,10 +958,15 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     {
       m_txPower = m_powerControl->GetPuschTxPower ((FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask)).size());
     }
-  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym);
+  // Currently uplink DATA is transmitted over only 1 stream
+  SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym, 1);
   Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
-  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart);
+  //MIMO is not supported for UL yet.
+  //Therefore, there will be only
+  //one stream with stream Id 0.
+  uint8_t streamId = 0;
+  Ptr<PacketBurst> pktBurst = GetPacketBurst (m_currentSlot, dci->m_symStart, streamId);
   if (pktBurst && pktBurst->GetNPackets () > 0)
     {
       std::list< Ptr<Packet> > pkts = pktBurst->GetPackets ();
@@ -909,7 +982,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
       // if there is no data for him...
       NS_FATAL_ERROR ("The UE " << dci->m_rnti << " has been scheduled without data");
     }
-  m_reportUlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize);
+  m_reportUlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (0));
 
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " TXing UL DATA frame for" <<
@@ -929,7 +1002,11 @@ NrUePhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
   Time varTtiPeriod;
 
-  m_currTbs = dci->m_tbSize;
+  for (auto const &it:dci->m_tbSize)
+    {
+      m_currTbs = it;
+    }
+
   m_receptionEnabled = false;
 
   if (dci->m_type == DciInfoElementTdma::CTRL && dci->m_format == DciInfoElementTdma::DL)
@@ -1018,55 +1095,99 @@ NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
         }
     }
 
-  m_spectrumPhy->StartTxDataFrames (pb, ctrlMsg, duration);
+  // Uplink data is sent only through a single stream, the first is assumed
+  m_spectrumPhys.at (0)->StartTxDataFrames (pb, ctrlMsg, duration);
 }
 
 void
 NrUePhy::SendCtrlChannels (Time prd)
 {
-  m_spectrumPhy->StartTxUlControlFrames (m_ctrlMsgs, prd);
+  // Uplink CTRL is sent only through a single stream, the first is assumed
+  m_spectrumPhys.at (0)->StartTxUlControlFrames (m_ctrlMsgs, prd);
   m_ctrlMsgs.clear ();
 }
 
 Ptr<NrDlCqiMessage>
-NrUePhy::CreateDlCqiFeedbackMessage (const SpectrumValue& sinr)
+NrUePhy::CreateDlCqiFeedbackMessage (const DlCqiInfo& dlcqi)
 {
   NS_LOG_FUNCTION (this);
-  SpectrumValue newSinr = sinr;
-  // CREATE DlCqiLteControlMessage
+  // Create DL CQI CTRL message
   Ptr<NrDlCqiMessage> msg = Create<NrDlCqiMessage> ();
   msg->SetSourceBwp (GetBwpId ());
-  DlCqiInfo dlcqi;
-
-  dlcqi.m_rnti = m_rnti;
-  dlcqi.m_cqiType = DlCqiInfo::WB;
-
-  std::vector<int> cqi;
-
-  uint8_t mcs;
-  dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma (newSinr, mcs);
-
   msg->SetDlCqi (dlcqi);
   return msg;
 }
 
 void
-NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr)
+NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t streamId)
 {
   NS_LOG_FUNCTION (this);
+
   // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
-      if (Simulator::Now () > m_wbCqiLast)
-        {
-          SpectrumValue newSinr = sinr;
-          Ptr<NrDlCqiMessage> msg = CreateDlCqiFeedbackMessage (newSinr);
+      m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId (), streamId);
 
+      // TODO
+      // Not sure what this IF is about, seems that it can be removed,
+      // if not, then we have to support wbCqiLast time per stream
+      // if (Simulator::Now () > m_wbCqiLast)
+      if (m_prevDlWbCqi.empty ()) // No DL CQI reported yet, initialize the vector
+        {
+          // Remember, scheduler uses MCS 0 for CQI 0.
+          // See, NrMacSchedulerCQIManagement::DlWBCQIReported
+          m_prevDlWbCqi = std::vector <uint8_t> (m_spectrumPhys.size (), 0);
+          m_reportedRi2 = false; // already initialized to false in the header, added here for readability
+        }
+
+      uint8_t mcs; // it is initialized by AMC in the following call
+      uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (sinr, mcs);
+
+      std::vector <double> avrgSinr = std::vector <double> (m_spectrumPhys.size (), UINT32_MAX);
+
+      NS_ASSERT (streamId < m_prevDlWbCqi.size ());
+      m_prevDlWbCqi [streamId] = wbCqi;
+      double avrgSinrdB = 10 * log10 (ComputeAvgSinr (sinr));
+      avrgSinr [streamId] = avrgSinrdB;
+      NS_LOG_DEBUG ("Stream " << +streamId << " WB CQI " << +wbCqi << " avrg MCS " << +mcs << " avrg SINR (dB) " << avrgSinrdB);
+      m_dlCqiFeedbackCounter++;
+
+      // if we received SINR from all the active streams,
+      // we can proceed to trigger the corresponding callback
+      if (m_dlCqiFeedbackCounter == m_activeDlDataStreams)
+        {
+          DlCqiInfo dlcqi;
+          dlcqi.m_rnti = m_rnti;
+          dlcqi.m_cqiType = DlCqiInfo::WB;
+          if (m_spectrumPhys.size () == 1)
+            {
+              dlcqi.m_ri = 1;
+            }
+          else
+            {
+              dlcqi.m_ri = SelectRi (avrgSinr);
+              NS_LOG_DEBUG ("At " << Simulator::Now ().As (Time::S) << " UE PHY reporting RI = " << static_cast<uint16_t> (dlcqi.m_ri));
+            }
+
+          //In MIMO, once the UE starts reporting RI = 2, both the CQI
+          //must be reported even though one is measured, the other for
+          //which we couldn't measure we will report a previously
+          //computed CQI or if not computed at all then CQI 0. This choice is
+          //made to keep the scheduler informed about the channel state in MIMO
+          //when only one of the stream's TB is retransmitted. Also, remember,
+          //if UE reports RI = 2 and one of the stream's CQI is 0, scheduler will
+          //use MCS 0 to compute its TB size.
+          dlcqi.m_wbCqi = m_prevDlWbCqi; // set DL CQI feedbacks
+
+          NS_ASSERT_MSG (dlcqi.m_ri <= dlcqi.m_wbCqi.size (), "Mismatch between the RI and the number of CQIs in a CQI report");
+
+          Ptr<NrDlCqiMessage> msg = CreateDlCqiFeedbackMessage (dlcqi);
           if (msg)
             {
               DoSendControlMessage (msg);
             }
-          m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId ());
+          // reset the key variables
+          m_dlCqiFeedbackCounter = 0;
         }
     }
 }
@@ -1094,6 +1215,55 @@ NrUePhy::EnqueueDlHarqFeedback (const DlHarqInfo &m)
   else
     {
       Simulator::Schedule (event - Simulator::Now (), &NrUePhy::DoSendControlMessageNow, this, msg);
+    }
+}
+
+void
+NrUePhy::SetPhyDlHarqFeedbackCallback (const NrPhyDlHarqFeedbackCallback& c)
+{
+  NS_LOG_FUNCTION (this);
+  m_phyDlHarqFeedbackCallback = c;
+}
+
+void
+NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeedback,
+                               uint8_t harqProcessId, uint8_t rv)
+{
+
+  if (m_dlHarqInfo.m_harqStatus.empty()) // No Harq reported yet, initialize the structure
+    {
+      m_dlHarqInfo.m_rnti = m_rnti;
+      m_dlHarqInfo.m_bwpIndex = GetBwpId();
+      // (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all streams with NONE
+      m_dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);
+      //above initialization logic also applies to m_numRetx vector
+      m_dlHarqInfo.m_numRetx = std::vector <uint8_t> (m_spectrumPhys.size(), UINT8_MAX);
+      m_dlHarqInfo.m_harqProcessId = harqProcessId;
+    }
+  else
+    {
+      NS_ASSERT (m_dlHarqInfo.m_harqProcessId == harqProcessId);
+    }
+
+  NS_ASSERT (streamId < m_dlHarqInfo.m_harqStatus.size () && m_dlHarqInfo.m_harqStatus.at (streamId) == DlHarqInfo::HarqStatus::NONE);
+  m_dlHarqInfo.m_harqStatus [streamId] = harqFeedback;
+  m_dlHarqInfo.m_numRetx [streamId] = rv;
+
+  uint8_t feedbackCounter = 0;
+  for (const auto& i : m_dlHarqInfo.m_harqStatus)
+    {
+      if (i != DlHarqInfo::HarqStatus::NONE)
+        {
+          feedbackCounter++;
+        }
+    }
+
+  // if we received the feedback from all the active streams, we
+  // can proceed to trigger the corresponding callback
+  if (feedbackCounter == m_activeDlDataStreams)
+    {
+      m_phyDlHarqFeedbackCallback (m_dlHarqInfo);
+      m_dlHarqInfo = DlHarqInfo (); // reset DL harq after reporting it through callback
     }
 }
 
@@ -1160,12 +1330,11 @@ NrUePhy::DoSynchronizeWithEnb (uint16_t cellId)
   DoSetInitialBandwidth ();
 }
 
-
-BeamId
-NrUePhy::GetBeamId ([[maybe_unused]] uint16_t rnti) const
+BeamConfId
+NrUePhy::GetBeamConfId ([[maybe_unused]] uint16_t rnti) const
 {
   NS_LOG_FUNCTION (this);
-  // That's a bad specification: the UE PHY doesn't know anything about its beam id.
+  // That's a bad specification: the UE PHY doesn't know anything about its beam conf id.
   NS_FATAL_ERROR ("ERROR");
 }
 
@@ -1178,9 +1347,12 @@ NrUePhy::ScheduleStartEventLoop (uint32_t nodeId, uint16_t frame, uint8_t subfra
 }
 
 void
-NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower)
+NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t streamIndex)
 {
   NS_LOG_FUNCTION (this << rsReceivedPower);
+
+  // TODO use streamIndex
+
   m_rsrp = 10 * log10 (Integral (rsReceivedPower)) + 30;
   NS_LOG_INFO ("RSRP value updated: " << m_rsrp);
   if (m_enableUplinkPowerControl)
@@ -1342,6 +1514,132 @@ NrUePhy::DoSetImsi (uint64_t imsi)
   m_imsi = imsi;
 }
 
+void
+NrUePhy::SetFixedRankIndicator (uint8_t ri)
+{
+  NS_LOG_FUNCTION (this);
+  m_fixedRi = ri;
+}
+
+uint8_t
+NrUePhy::GetFixedRankIndicator () const
+{
+ return m_fixedRi;
+}
+
+void
+NrUePhy::UseFixedRankIndicator (bool useFixedRi)
+{
+  NS_LOG_FUNCTION (this);
+  m_useFixedRi = useFixedRi;
+}
+
+void
+NrUePhy::SetRiSinrThreshold1 (double sinrThreshold)
+{
+  NS_LOG_FUNCTION (this);
+  m_riSinrThreshold1 = sinrThreshold;
+}
+
+double
+NrUePhy::GetRiSinrThreshold1 () const
+{
+  return m_riSinrThreshold1;
+}
+
+void
+NrUePhy::SetRiSinrThreshold2 (double sinrThreshold)
+{
+  NS_LOG_FUNCTION (this);
+  m_riSinrThreshold2 = sinrThreshold;
+}
+
+double
+NrUePhy::GetRiSinrThreshold2 () const
+{
+  return m_riSinrThreshold2;
+}
+
+uint8_t
+NrUePhy::SelectRi (const std::vector<double> &avrgSinr)
+{
+  NS_LOG_FUNCTION (this);
+  uint8_t ri = 0;
+  if (m_useFixedRi)
+    {
+      return m_fixedRi;
+    }
+
+  if (!m_reportedRi2)
+    {
+      // UE supports two stream but it has not yet reported RI equal to 2.
+      // Let's check the average SINR of the first stream. If it is
+      // above m_riSinrThreshold1 then we report RI equal to 2; otherwise, RI
+      // equal to 1.
+      if (avrgSinr [0] > m_riSinrThreshold1)
+        {
+          ri = 2;
+          m_reportedRi2 = true;
+        }
+      else
+        {
+          ri = 1;
+        }
+    }
+  else
+    {
+      std::vector <uint8_t> indexValidSinr;
+      for (uint8_t i = 0; i < avrgSinr.size (); i++)
+        {
+          if (avrgSinr [i] != UINT32_MAX)
+            {
+              indexValidSinr.push_back (i);
+            }
+        }
+
+      NS_ABORT_MSG_IF (indexValidSinr.size () == 0, "Unable to find valid average SINR");
+
+      if (indexValidSinr.size () == avrgSinr.size ())
+        {
+          // UE is able to measure both the streams
+          // UE supports two stream and it has already reported RI equal to 2.
+          // Meaning, that this UE has already received the data on stream 2
+          // and has measured its average SINR. Let's check the average SINR
+          // of both the streams. If the average SINR of both the streams is
+          // above m_riSinrThreshold2 then we report RI equal to 2; otherwise, RI
+          // equal to 1.
+          if (avrgSinr [0] > m_riSinrThreshold2 && avrgSinr [1] > m_riSinrThreshold2)
+            {
+              ri = 2;
+            }
+          else
+            {
+              ri = 1;
+            }
+        }
+      else
+        {
+          // There is at least one stream that UE is unable to measure.
+          // If the average SINR of the measured stream is above
+          // m_riSinrThreshold1, report RI equal to 2; otherwise, RI equal to 1.
+          // This else was implemented to handle the situations when a UE
+          // switches from 2 streams to 1, and unable to measure one of
+          // the streams. In that case, following code would help us
+          // not to get stuck with one stream till the end of simulation.
+          if (avrgSinr [indexValidSinr.at (0)] > m_riSinrThreshold1)
+            {
+              ri = 2;
+            }
+          else
+            {
+              ri = 1;
+            }
+        }
+    }
+
+  NS_ASSERT_MSG (ri != 0, "UE is trying to report invalid RI value of 0");
+  return ri;
+}
 
 }
 

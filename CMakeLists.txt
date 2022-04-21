@@ -17,6 +17,8 @@ set(source_files
     helper/nr-spectrum-value-helper.cc
     helper/scenario-parameters.cc
     helper/three-gpp-ftp-m1-helper.cc
+    helper/nr-stats-calculator.cc
+    helper/nr-mac-scheduling-stats.cc
     model/nr-net-device.cc
     model/nr-gnb-net-device.cc
     model/nr-ue-net-device.cc
@@ -63,6 +65,7 @@ set(source_files
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-ofdma-mr.cc
     model/nr-mac-scheduler-tdma-mr.cc
+    model/nr-mac-scheduler-ue-info.cc
     model/nr-mac-scheduler-ue-info-pf.cc
     model/nr-eesm-error-model.cc
     model/nr-eesm-t1.cc
@@ -77,7 +80,6 @@ set(source_files
     model/nr-ch-access-manager.cc
     model/beam-id.cc
     model/beamforming-vector.cc
-    model/beamforming-algorithm.cc
     model/beam-manager.cc
     model/ideal-beamforming-algorithm.cc
     model/realistic-beamforming-algorithm.cc
@@ -86,8 +88,10 @@ set(source_files
     model/nr-mac-scheduler-srs-default.cc
     model/nr-ue-power-control.cc
     model/realistic-bf-manager.cc
+    model/beam-conf-id.cc
     utils/file-transfer-helper.cc
     utils/file-transfer-application.cc
+    utils/three-gpp-channel-model-param.cc
 )
 
 set(header_files
@@ -109,6 +113,8 @@ set(header_files
     helper/nr-spectrum-value-helper.h
     helper/scenario-parameters.h
     helper/three-gpp-ftp-m1-helper.h
+    helper/nr-stats-calculator.h
+    helper/nr-mac-scheduling-stats.h
     model/nr-net-device.h
     model/nr-gnb-net-device.h
     model/nr-ue-net-device.h
@@ -158,10 +164,10 @@ set(header_files
     model/nr-mac-scheduler-ofdma.h
     model/nr-mac-scheduler-ofdma-mr.h
     model/nr-mac-scheduler-tdma-mr.h
+    model/nr-mac-scheduler-ue-info.h
     model/nr-mac-scheduler-ue-info-mr.h
     model/nr-mac-scheduler-ue-info-rr.h
     model/nr-mac-scheduler-ue-info-pf.h
-    model/nr-mac-scheduler-ue-info.h
     model/nr-eesm-error-model.h
     model/nr-eesm-t1.h
     model/nr-eesm-t2.h
@@ -176,7 +182,6 @@ set(header_files
     model/beam-id.h
     model/beamforming-vector.h
     model/beam-manager.h
-    model/beamforming-algorithm.h
     model/ideal-beamforming-algorithm.h
     model/realistic-beamforming-algorithm.h
     model/sfnsf.h
@@ -185,8 +190,10 @@ set(header_files
     model/nr-mac-scheduler-srs-default.h
     model/nr-ue-power-control.h
     model/realistic-bf-manager.h
+    model/beam-conf-id.h
     utils/file-transfer-helper.h
     utils/file-transfer-application.h
+    utils/three-gpp-channel-model-param.h
 )
 
 

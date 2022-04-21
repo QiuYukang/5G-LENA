@@ -31,6 +31,7 @@
 #include "nr-spectrum-signal-parameters.h"
 #include "nr-control-messages.h"
 #include <ns3/lte-chunk-processor.h>
+#include "beam-manager.h"
 
 namespace ns3 {
 
@@ -120,11 +121,7 @@ public:
    * \brief This callback method type is used to notify that CTRL is received
    */
   typedef std::function<void (const std::list<Ptr<NrControlMessage> > &, uint8_t)> NrPhyRxCtrlEndOkCallback;
-  /**
-   * This callback method type is used by the NrSpectrumPhy to notify the PHY about
-   * the status of a DL HARQ feedback
-   */
-  typedef Callback< void, const DlHarqInfo& > NrPhyDlHarqFeedbackCallback;
+
   /**
    * This callback method type is used by the NrSpectrumPhy to notify the PHY about
    * the status of a UL HARQ feedback
@@ -141,10 +138,7 @@ public:
    * \param c the callback function
    */
   void SetPhyRxCtrlEndOkCallback (const NrPhyRxCtrlEndOkCallback& c);
-  /**
-   * \brief Sets the callback to be called when DL HARQ feedback is generated
-   */
-  void SetPhyDlHarqFeedbackCallback (const NrPhyDlHarqFeedbackCallback& c);
+
   /**
    * \brief Sets the callback to be called when UL HARQ feedback is generated
    */
@@ -157,15 +151,24 @@ public:
   Ptr<MobilityModel> GetMobility () const override;
   void SetChannel (Ptr<SpectrumChannel> c) override;
   Ptr<const SpectrumModel> GetRxSpectrumModel () const override;
+  /*
+   * \brief Sets the beam manager of this spectrum phy, and that beam manager
+   * is responsible of the antena array of this spectrum phy
+   */
+  void SetBeamManager (Ptr<BeamManager> b);
+
+  /*
+   * \brief Gets the beam manager of this spectrum phy.
+   */
+  Ptr<BeamManager> GetBeamManager ();
+
   /**
    * \brief Inherited from SpectrumPhy
-   * Note: Implements GetAntenna function from SpectrumPhy. This
-   * function should not be called for NR devices, since NR devices do not use
-   * AntennaModel. This is because 3gpp channel model implementation only
-   * supports PhasedArrayModel antenna type.
-   * \return should not return anything
+   * Note: Implements GetAntenna function from SpectrumPhy.
+   * \return Antenna of this NrSpectrumPhy
    */
   virtual Ptr<Object> GetAntenna () const override;
+
   /**
    * \brief Inherited from SpectrumPhy. When this function is called
    * this spectrum phy starts receiving a signal from its spectrum channel.
@@ -259,18 +262,42 @@ public:
   void UpdateSinrPerceived (const SpectrumValue& sinr);
 
   /**
+   * \brief Generate a DL CQI report
+   *
+   * Connected by the helper to a callback in corresponding ChunkProcessor
+   *
+   * \param sinr the SINR
+   */
+  void GenerateDataCqiReport (const SpectrumValue& sinr);
+
+  /**
+   * \brief Called when rsReceivedPower is fired
+   * \param power the power received
+   */
+  void ReportRsReceivedPower (const SpectrumValue& power);
+
+  /**
+   * \brief Generates a DL CQI report at this NrSpectrumPhy
+   *
+   * Connected by the helper to a callback in corresponding ChunkProcessor
+   *
+   * \param sinr the SINR
+   */
+  void GenerateDlCqiReport (const SpectrumValue& sinr);
+
+  /**
     * \brief SpectrumPhy that will be called when the SINR for the received
     * SRS at gNB is being calculated by the interference object over SRS chunk
     * processor
     * \param sinr the resulting SRS SINR spectrum value
     */
-   void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
+  void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
    /**
      * \brief SpectrumPhy that will be called when the SNR for the received
      * SRS at gNB is being calculated
      * \param snr the resulting SRS SNR
      */
-    void UpdateSrsSnrPerceived (const double srsSnr);
+  void UpdateSrsSnrPerceived (const double srsSnr);
   /**
    * \brief Install HARQ phy module of this spectrum phy
    * \param harq Harq module of this spectrum phy
@@ -360,6 +387,42 @@ public:
    * \param callback callback to be added to the list of callbacks
    */
   void AddSrsSnrReportCallback (SrsSnrReportCallback callback);
+  /**
+   * \brief Set stream id of this NrSpectrumPhy
+   *
+   * Stream id is introduced to support MIMO. In MIMO, there will be one
+   * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
+   * to assign the stream id to each new instance. Stream id, starts from
+   * 0 and ends at "total number of streams - 1".
+   *
+   * \param streamId The stream id
+   */
+  void SetStreamId (uint8_t streamId);
+  /**
+   * \brief Get stream id of this NrSpectrumPhy
+   *
+   * Stream id is introduced to support MIMO. In MIMO, there will be one
+   * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
+   * to assign the stream id to each new instance. Stream id, starts from
+   * 0 and ends at "total number of streams - 1".
+   *
+   * \return streamId The stream id
+   */
+  uint8_t GetStreamId () const;
+  /**
+   * \return the cell id
+   */
+  uint16_t GetCellId () const;
+  /**
+   * \return the bwp id
+   */
+  uint16_t GetBwpId () const;
+  /**
+   * \brief Set the inter-stream interference ratio
+   *
+   * \param ratio The inter-stream interference ratio
+   */
+  void SetInterStreamInterferenceRatio (double ratio);
 
 protected:
   /**
@@ -390,14 +453,6 @@ private:
    * one CTRL message which should be of type SRS
    */
   void StartRxSrs (const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
-  /**
-   * \return the cell id
-   */
-  uint16_t GetCellId () const;
-  /**
-   * \return the bwp id
-   */
-  uint16_t GetBwpId () const;
   /**
    * \return true if this class is inside an enb/gnb
    */
@@ -512,6 +567,7 @@ private:
 
   Ptr<SpectrumChannel> m_channel {nullptr}; //!< channel is needed to be able to connect listener spectrum phy (AddRx) or to start transmission StartTx
   Ptr<const SpectrumModel> m_rxSpectrumModel {nullptr}; //!< the spectrum model of this spectrum phy
+  Ptr<BeamManager> m_beamManager {nullptr}; //!< the beam manager corresponding to the antenna of this spectrum phy
   Ptr<MobilityModel> m_mobility {nullptr}; //!< the mobility model of the node to which belongs this spectrum phy
   Ptr<NetDevice> m_device {nullptr}; //!< the device to which belongs this spectrum phy
   Ptr<NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
@@ -540,7 +596,6 @@ private:
   //callbacks for CTRL and DATA, and UL/DL HARQ
   NrPhyRxCtrlEndOkCallback m_phyRxCtrlEndOkCallback; //!< callback that is notified when the CTRL is received
   NrPhyRxDataEndOkCallback m_phyRxDataEndOkCallback; //!< callback that is notified when the DATA is received
-  NrPhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is being generated
   NrPhyUlHarqFeedbackCallback m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is being generated
 
   //traces
@@ -551,6 +606,10 @@ private:
   TracedCallback<RxPacketTraceParams> m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
   TracedCallback<GnbPhyPacketCountParameter > m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint16_t> m_rxDataTrace;
+
+  uint8_t m_streamId {UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
+
+  double m_interStrInerfRatio {0.0}; //!< The inter-stream interference ratio.
 };
 
 }
