@@ -1420,8 +1420,7 @@ NrUePhy::ReceivePss (uint16_t cellId, const Ptr<SpectrumValue> &p)
   double rsrp = 10 * log10 (1000 * (sum / static_cast<double> (nRB)));
 
   NS_LOG_DEBUG ("RSRP value updated: " << rsrp << " dBm" <<
-                " for Cell Id: " << cellId << " RNTI: " << m_rnti <<
-                " physical Cell Id: " << GetPhysCellId ());
+                " for Cell Id: " << cellId << " RNTI: " << m_rnti);
 
   // store RSRP measurements
   std::map <uint16_t, UeMeasurementsElement>::iterator itMeasMap = m_ueMeasurementsMap.find (cellId);
@@ -1458,13 +1457,13 @@ NrUePhy::ReportUeMeasurements ()
 {
   NS_LOG_FUNCTION (this);
 
-  LteUeCphySapUser::UeMeasurementsParameters ret;
+  //LteUeCphySapUser::UeMeasurementsParameters ret;
 
   std::map <uint16_t, UeMeasurementsElement>::iterator it;
   for (it = m_ueMeasurementsMap.begin (); it != m_ueMeasurementsMap.end (); it++)
     {
       double avg_rsrp;
-      double avg_rsrq = 0;
+      //double avg_rsrq = 0;
       if ((*it).second.rsrpNum != 0)
       {
         avg_rsrp = (*it).second.rsrpSum / static_cast<double>((*it).second.rsrpNum);
@@ -1481,16 +1480,16 @@ NrUePhy::ReportUeMeasurements ()
                     " (nSamples " << +((*it).second.rsrpNum) << ")" <<
                     " BwpID " << GetBwpId ());
 
-      LteUeCphySapUser::UeMeasurementsElement newEl;
+      /*LteUeCphySapUser::UeMeasurementsElement newEl;
       newEl.m_cellId = (*it).first;
       newEl.m_rsrp = avg_rsrp;
       newEl.m_rsrq = avg_rsrq;  //LEAVE IT 0 FOR THE MOMENT
       ret.m_ueMeasurementsList.push_back (newEl);
-      ret.m_componentCarrierId = GetBwpId ();
+      ret.m_componentCarrierId = GetBwpId ();*/
     }
 
   // report to RRC
-  m_ueCphySapUser->ReportUeMeasurements (ret);
+  //m_ueCphySapUser->ReportUeMeasurements (ret);
 
   m_ueMeasurementsMap.clear ();
   Simulator::Schedule (m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);

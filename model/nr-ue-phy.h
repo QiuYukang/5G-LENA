@@ -476,6 +476,7 @@ public:
    */
   uint8_t ComputeCqi (const SpectrumValue& sinr);
 
+  /**
    * \brief Receive PSS and calculate RSRQ in dBm
    *
    * \param cellId the cell ID
@@ -512,6 +513,8 @@ private:
 
   /**
    * \brief Layer-1 filtering of RSRP measurements and reporting to the RRC entity.
+   * Fo the moment we don't report to RRC but the function is prepared to be
+   * extended once RRC is ported.
    *
    * Initially executed at +0.200s, and then repeatedly executed with
    * periodicity as indicated by the *UeMeasFilterPeriod* attribute.
@@ -874,6 +877,12 @@ private:
    * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
    */
   TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlCtrlSinrTrace;
+  /**
+   * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding
+   * RSRP and average SINR (see TS 36.214). Exporting cell ID, RNTI, RSRP, and
+   * SINR, BWP id, and stream id.
+   */
+  TracedCallback<uint16_t, uint16_t, double, double, uint16_t, uint8_t> m_reportCurrentCellRsrpSinrTrace;
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint64_t, uint16_t, uint16_t> m_reportPowerSpectralDensity; //!< Report the Tx power
