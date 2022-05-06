@@ -158,10 +158,14 @@ NrUePhy::GetTypeId (void)
                    MakeDoubleAccessor (&NrUePhy::SetRiSinrThreshold2,
                                        &NrUePhy::GetRiSinrThreshold2),
                    MakeDoubleChecker<double> ())
-    .AddTraceSource ("ReportCurrentCellRsrpSinr",
-                     "RSRP and SINR statistics.",
-                     MakeTraceSourceAccessor (&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
-                     "ns3::CurrentCellRsrpSinr::TracedCallback")
+    .AddTraceSource ("DlDataSinr",
+                     "DL DATA SINR statistics.",
+                     MakeTraceSourceAccessor (&NrUePhy::m_dlDataSinrTrace),
+                     "ns3::NrUePhy::DlDataSinrTracedCallback")
+    .AddTraceSource ("DlCtrlSinr",
+                     "Report the SINR computed for DL CTRL",
+                     MakeTraceSourceAccessor (&NrUePhy::m_dlCtrlSinrTrace),
+                     "ns3::NrUePhy::DlCtrlSinrTracedCallback")
     .AddAttribute ("NrSpectrumPhyList", "List of all SpectrumPhy instances of this NrUePhy.",
                     ObjectVectorValue (),
                     MakeObjectVectorAccessor (&NrUePhy::m_spectrumPhys),
@@ -1126,7 +1130,7 @@ NrUePhy::GenerateDlCqiReport (const SpectrumValue& sinr, uint8_t streamId)
   // Not totally sure what this is about. We have to check.
   if (m_ulConfigured && (m_rnti > 0) && m_receptionEnabled)
     {
-      m_reportCurrentCellRsrpSinrTrace (GetCellId (), m_rnti, 0.0, ComputeAvgSinr (sinr), GetBwpId (), streamId);
+      m_dlDataSinrTrace (GetCellId (), m_rnti, ComputeAvgSinr (sinr), GetBwpId (), streamId);
 
       // TODO
       // Not sure what this IF is about, seems that it can be removed,
@@ -1360,6 +1364,36 @@ NrUePhy::ReportRsReceivedPower (const SpectrumValue& rsReceivedPower, uint8_t st
       m_powerControl->SetLoggingInfo (GetCellId(), m_rnti);
       m_powerControl->SetRsrp (m_rsrp);
     }
+}
+
+void
+NrUePhy::ReportDlCtrlSinr (const SpectrumValue& sinr, uint8_t streamId)
+{
+  NS_LOG_FUNCTION (this);
+  uint32_t rbUsed = 0;
+  double sinrSum = 0.0;
+
+  for (uint32_t i =  0; i < sinr.GetValuesN(); i++)
+    {
+      double currentSinr = sinr.ValuesAt(i);
+      if ( currentSinr != 0)
+        {
+          rbUsed++;
+          sinrSum += currentSinr;
+        }
+    }
+
+  NS_ASSERT (rbUsed);
+  m_dlCtrlSinrTrace (GetCellId (), m_rnti, sinrSum/rbUsed, GetBwpId (), streamId);
+}
+
+uint8_t
+NrUePhy::ComputeCqi (const SpectrumValue& sinr)
+{
+  NS_LOG_FUNCTION (this);
+  uint8_t mcs; // it is initialized by AMC in the following call
+  uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma (sinr, mcs);
+  return wbCqi;
 }
 
 void

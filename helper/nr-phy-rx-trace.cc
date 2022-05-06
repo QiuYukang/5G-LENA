@@ -41,8 +41,11 @@ NS_LOG_COMPONENT_DEFINE ("NrPhyRxTrace");
 
 NS_OBJECT_ENSURE_REGISTERED (NrPhyRxTrace);
 
-std::ofstream NrPhyRxTrace::m_rsrpSinrFile;
-std::string NrPhyRxTrace::m_rsrpSinrFileName;
+std::ofstream NrPhyRxTrace::m_dlDataSinrFile;
+std::string NrPhyRxTrace::m_dlDataSinrFileName;
+
+std::ofstream NrPhyRxTrace::m_dlCtrlSinrFile;
+std::string NrPhyRxTrace::m_dlCtrlSinrFileName;
 
 std::ofstream NrPhyRxTrace::m_rxPacketTraceFile;
 std::string NrPhyRxTrace::m_rxPacketTraceFilename;
@@ -72,9 +75,14 @@ NrPhyRxTrace::NrPhyRxTrace ()
 
 NrPhyRxTrace::~NrPhyRxTrace ()
 {
-  if (m_rsrpSinrFile.is_open ())
+  if (m_dlDataSinrFile.is_open ())
     {
-      m_rsrpSinrFile.close ();
+      m_dlDataSinrFile.close ();
+    }
+
+  if (m_dlCtrlSinrFile.is_open ())
+    {
+      m_dlCtrlSinrFile.close ();
     }
 
   if (m_rxPacketTraceFile.is_open ())
@@ -141,30 +149,55 @@ NrPhyRxTrace::SetSimTag (const std::string &simTag)
 }
 
 void
-NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats, std::string path,
-                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId, uint8_t streamId)
+NrPhyRxTrace::DlDataSinrCallback ([[maybe_unused]]Ptr<NrPhyRxTrace> phyStats, [[maybe_unused]] std::string path,
+                                  uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId, uint8_t streamId)
 {
   NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
-  //phyStats->ReportInterferenceTrace (imsi, sinr);
-  //phyStats->ReportPowerTrace (imsi, power);
-
-  if (!m_rsrpSinrFile.is_open ())
+  if (!m_dlDataSinrFile.is_open ())
       {
         std::ostringstream oss;
-        oss << "DlSinrTrace" << m_simTag.c_str () << ".txt";
-        m_rsrpSinrFileName = oss.str ();
-        m_rsrpSinrFile.open (m_rsrpSinrFileName.c_str ());
+        oss << "DlDataSinr" << m_simTag.c_str () << ".txt";
+        m_dlDataSinrFileName = oss.str ();
+        m_dlDataSinrFile.open (m_dlDataSinrFileName.c_str ());
 
-        m_rsrpSinrFile << "Time" << "\t" << "CellId" << "\t" << "RNTI" << "\t" << "BWPId"
+        m_dlDataSinrFile << "Time" << "\t" << "CellId" << "\t" << "RNTI" << "\t" << "BWPId"
                        << "\t" << "StreamId" << "\t" << "SINR(dB)" << std::endl;
 
-        if (!m_rsrpSinrFile.is_open ())
+        if (!m_dlDataSinrFile.is_open ())
           {
             NS_FATAL_ERROR ("Could not open tracefile");
           }
       }
 
-  m_rsrpSinrFile << Simulator::Now ().GetSeconds () <<
+  m_dlDataSinrFile << Simulator::Now ().GetSeconds () <<
+                    "\t" << cellId << "\t" << rnti << "\t" << bwpId <<
+                    "\t" << +streamId << "\t" << 10 * log10 (avgSinr) << std::endl;
+}
+
+
+void
+NrPhyRxTrace::DlCtrlSinrCallback ([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats, [[maybe_unused]] std::string path,
+                                  uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId, uint8_t streamId)
+{
+  NS_LOG_INFO ("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId << "->Generate RsrpSinrTrace");
+
+  if (!m_dlCtrlSinrFile.is_open ())
+      {
+        std::ostringstream oss;
+        oss << "DlCtrlSinr" << m_simTag.c_str () << ".txt";
+        m_dlCtrlSinrFileName = oss.str ();
+        m_dlCtrlSinrFile.open (m_dlCtrlSinrFileName.c_str ());
+
+        m_dlCtrlSinrFile << "Time" << "\t" << "CellId" << "\t" << "RNTI" << "\t" << "BWPId"
+                       << "\t" << "StreamId" << "\t" << "SINR(dB)" << std::endl;
+
+        if (!m_dlCtrlSinrFile.is_open ())
+          {
+            NS_FATAL_ERROR ("Could not open tracefile");
+          }
+      }
+
+  m_dlCtrlSinrFile << Simulator::Now ().GetSeconds () <<
                     "\t" << cellId << "\t" << rnti << "\t" << bwpId <<
                     "\t" << +streamId << "\t" << 10 * log10 (avgSinr) << std::endl;
 }
@@ -633,7 +666,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                              "\t" << "cellId" << "\t" << "bwpId" <<
                              "\t" << "streamId" << "\t" << "rnti" <<
                              "\t" << "tbSize" << "\t" << "mcs" <<
-                             "\t" << "rv" << "\t" << "SINR(dB)" <<
+                             "\t" << "rv" << "\t" << "SINR(dB)" << "\t" << "CQI" <<
                              "\t" << "corrupt" << "\t" << "TBler" << std::endl;
 
       if (!m_rxPacketTraceFile.is_open ())
@@ -657,6 +690,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                          "\t" << (unsigned)params.m_mcs <<
                          "\t" << (unsigned)params.m_rv <<
                          "\t" << 10 * log10 (params.m_sinr) <<
+                         "\t" << (unsigned)params.m_cqi <<
                          "\t" << params.m_corrupt <<
                          "\t" << params.m_tbler << std::endl;
 
@@ -672,6 +706,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string p
                     "\t" << (unsigned)params.m_mcs <<
                     "\t" << (unsigned)params.m_rv <<
                     "\t" << params.m_sinr <<
+                    "\t" << (unsigned)params.m_cqi <<
                     "\t" << params.m_tbler <<
                     "\t" << params.m_corrupt <<
                     "\t" << (unsigned)params.m_bwpId);

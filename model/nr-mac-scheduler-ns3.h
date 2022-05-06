@@ -513,6 +513,26 @@ public:
    * \return true if F slots are available for SRS, false otherwise
    */
   bool IsSrsInFSlots () const;
+  /**
+   * \brief Enable HARQ ReTx function
+   *
+   * Remember we introduced the EnableHarqReTx attribute only
+   * for FB calibration example. We want to disable HARQ ReTx
+   * because ReTx are scheduled in OFDMA fashion. In a TDMA simulation,
+   * such retransmissions change the SINR trends in a scenario. Also,
+   * REMEMBER that this solution of disabling the HARQ ReTx not very
+   * optimized because gNB MAC will still buffer the packet and UE
+   * would still transmit the HARQ feedback for the first transmission.
+   *
+   * \param enableFlag If true, it would set the max HARQ ReTx to 3; otherwise it set it to 0
+   */
+  void EnableHarqReTx (bool enableFlag);
+  /**
+   * \brief Is HARQ ReTx enable function
+   *
+   * \return Returns true if HARQ ReTx are enabled; otherwise false
+   */
+  bool IsHarqReTxEnable () const;
 
 protected:
   /**
@@ -902,6 +922,8 @@ private:
   uint32_t m_srsSlotCounter {0}; //!< Counter for UL slots
 
   friend NrSchedGeneralTestCase;
+
+  bool m_enableHarqReTx  {true}; //!< Flag to enable or disable HARQ ReTx (attribute)
 };
 
 } //namespace ns3

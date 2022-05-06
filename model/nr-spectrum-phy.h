@@ -253,6 +253,12 @@ public:
    * \param p the chunk processor
    */
   void AddRsPowerChunkProcessor (const Ptr<LteChunkProcessor>& p);
+
+  /**
+   * \brief Adds the chunk processor that will process the received power
+   * \param p the chunk processor
+   */
+  void AddDlCtrlSinrChunkProcessor (const Ptr<LteChunkProcessor>& p);
   /**
    * \brief SpectrumPhy that will be called when the SINR for the received
    * DATA is being calculated by the interference object over DATA chunk
@@ -275,6 +281,12 @@ public:
    * \param power the power received
    */
   void ReportRsReceivedPower (const SpectrumValue& power);
+
+  /**
+   * \brief Called when DlCtrlSinr is fired
+   * \param sinr the sinr PSD
+   */
+  void ReportDlCtrlSinr (const SpectrumValue& sinr);
 
   /**
    * \brief Generates a DL CQI report at this NrSpectrumPhy

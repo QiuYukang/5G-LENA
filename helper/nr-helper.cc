@@ -42,7 +42,7 @@
 #include <ns3/epc-x2.h>
 #include <ns3/nr-phy-rx-trace.h>
 #include <ns3/nr-mac-rx-trace.h>
-#include <ns3/nr-bearer-stats-calculator.h>
+#include "nr-bearer-stats-calculator.h"
 #include <ns3/bandwidth-part-ue.h>
 #include <ns3/beam-manager.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
@@ -530,7 +530,6 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
   for (uint8_t streamIndex = 0 ; streamIndex < numberOfStreams; streamIndex++)
     {
       Ptr<NrSpectrumPhy> channelPhy = m_ueSpectrumFactory.Create <NrSpectrumPhy> (); // Create NrSpectrumPhy per stream
-      
       channelPhy->SetStreamId (streamIndex);
 
       Ptr<NrHarqPhy> harq = Create<NrHarqPhy> (); // Create HARQ instance per stream
@@ -538,7 +537,7 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
 
       channelPhy->SetDevice (dev); // each NrSpectrumPhy should have a pointer to device
 
-      Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per panel
+      Ptr<UniformPlanarArray> antenna = m_ueAntennaFactory.Create <UniformPlanarArray> (); // Create antenna per stream
       channelPhy->SetAntenna (antenna);
 
       if (streamIndex == 0)
@@ -554,6 +553,11 @@ NrHelper::CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartIn
       Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor> ();
       pRs->AddCallback (MakeCallback (&NrSpectrumPhy::ReportRsReceivedPower, channelPhy));
       channelPhy->AddRsPowerChunkProcessor (pRs);
+
+      Ptr<LteChunkProcessor> pSinr = Create<LteChunkProcessor> ();
+      pSinr->AddCallback (MakeCallback (&NrSpectrumPhy::ReportDlCtrlSinr, channelPhy));
+      channelPhy->AddDlCtrlSinrChunkProcessor (pSinr);
+
       channelPhy->SetChannel (bwp->m_channel);
       channelPhy->InstallPhy (phy);
       channelPhy->SetMobility (mm);
@@ -725,7 +729,6 @@ NrHelper::CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartI
 
   // PHY <--> CAM
   Ptr<NrChAccessManager> cam = DynamicCast<NrChAccessManager> (m_gnbChannelAccessManagerFactory.Create ());
-
   phy->SetCam (cam);
   phy->SetDevice (dev);
 
@@ -1491,13 +1494,16 @@ NrHelper::ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer)
 void
 NrHelper::EnableTraces (void)
 {
-  EnableDlPhyTraces ();
+  EnableDlDataPhyTraces ();
+  EnableDlCtrlPhyTraces ();
   EnableUlPhyTraces ();
   //EnableEnbPacketCountTrace ();
   //EnableUePacketCountTrace ();
   //EnableTransportBlockTrace ();
-  EnableRlcTraces ();
-  EnablePdcpTraces ();
+  EnableRlcSimpleTraces ();
+  EnableRlcE2eTraces ();
+  EnablePdcpSimpleTraces ();
+  EnablePdcpE2eTraces ();
   EnableGnbPhyCtrlMsgsTraces ();
   EnableUePhyCtrlMsgsTraces ();
   EnableGnbMacCtrlMsgsTraces ();
@@ -1507,15 +1513,30 @@ NrHelper::EnableTraces (void)
   EnablePathlossTraces ();
 }
 
+Ptr<NrPhyRxTrace>
+NrHelper::GetPhyRxTrace (void)
+{
+  return m_phyStats;
+}
+
 void
-NrHelper::EnableDlPhyTraces (void)
+NrHelper::EnableDlDataPhyTraces (void)
 {
   //NS_LOG_FUNCTION_NOARGS ();
-  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/ReportCurrentCellRsrpSinr",
-                   MakeBoundCallback (&NrPhyRxTrace::ReportCurrentCellRsrpSinrCallback, m_phyStats));
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr",
+                   MakeBoundCallback (&NrPhyRxTrace::DlDataSinrCallback, m_phyStats));
 
   Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPacketTraceUe",
                    MakeBoundCallback (&NrPhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
+}
+
+
+void
+NrHelper::EnableDlCtrlPhyTraces (void)
+{
+  //NS_LOG_FUNCTION_NOARGS ();
+  Config::Connect ("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlCtrlSinr",
+                   MakeBoundCallback (&NrPhyRxTrace::DlCtrlSinrCallback, m_phyStats));
 }
 
 void
@@ -1595,31 +1616,46 @@ NrHelper::EnableTransportBlockTrace ()
 
 
 void
-NrHelper::EnableRlcTraces (void)
+NrHelper::EnableRlcSimpleTraces (void)
 {
-  NS_ASSERT_MSG (m_rlcStats == 0, "please make sure that NrHelper::EnableRlcTraces is called at most once");
-  m_rlcStats = CreateObject<NrBearerStatsCalculator> ("RLC");
-  m_radioBearerStatsConnector.EnableRlcStats (m_rlcStats);
-}
-
-Ptr<NrBearerStatsCalculator>
-NrHelper::GetRlcStats (void)
-{
-  return m_rlcStats;
+  Ptr<NrBearerStatsSimple> rlcStats = CreateObject<NrBearerStatsSimple> ("RLC");
+  m_radioBearerStatsConnectorSimpleTraces.EnableRlcStats (rlcStats);
 }
 
 void
-NrHelper::EnablePdcpTraces (void)
+NrHelper::EnablePdcpSimpleTraces (void)
 {
-  NS_ASSERT_MSG (m_pdcpStats == 0, "please make sure that NrHelper::EnablePdcpTraces is called at most once");
-  m_pdcpStats = CreateObject<NrBearerStatsCalculator> ("PDCP");
-  m_radioBearerStatsConnector.EnablePdcpStats (m_pdcpStats);
+  Ptr<NrBearerStatsSimple> pdcpStats = CreateObject<NrBearerStatsSimple> ("PDCP");
+  m_radioBearerStatsConnectorSimpleTraces.EnablePdcpStats (pdcpStats);
 }
 
-Ptr<NrBearerStatsCalculator>
-NrHelper::GetPdcpStats (void)
+void
+NrHelper::EnableRlcE2eTraces (void)
 {
-  return m_pdcpStats;
+  Ptr<NrBearerStatsCalculator> rlcStats = CreateObject<NrBearerStatsCalculator> ("RLC");
+  m_radioBearerStatsConnectorCalculator.EnableRlcStats (rlcStats);
+}
+
+void
+NrHelper::EnablePdcpE2eTraces (void)
+{
+  Ptr<NrBearerStatsCalculator> pdcpStats = CreateObject<NrBearerStatsCalculator> ("PDCP");
+  m_radioBearerStatsConnectorCalculator.EnablePdcpStats (pdcpStats);
+}
+
+
+
+Ptr<NrBearerStatsCalculator>
+NrHelper::GetRlcStatsCalculator (void)
+{
+  return DynamicCast<NrBearerStatsCalculator> (m_radioBearerStatsConnectorCalculator.GetRlcStats ());
+}
+
+
+Ptr<NrBearerStatsCalculator>
+NrHelper::GetPdcpStatsCalculator (void)
+{
+  return DynamicCast<NrBearerStatsCalculator> (m_radioBearerStatsConnectorCalculator.GetPdcpStats ());
 }
 
 void

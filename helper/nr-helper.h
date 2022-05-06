@@ -718,14 +718,26 @@ public:
   void SetDlErrorModel (const std::string & errorModelTypeId);
 
   /**
-   * \brief Enable DL PHY traces
+   * \brief Enable DL DATA PHY traces
    */
-  void EnableDlPhyTraces ();
+  void EnableDlDataPhyTraces ();
+
+  /**
+   * \brief Enable DL CTRL PHY traces
+   */
+  void EnableDlCtrlPhyTraces ();
 
   /**
    * \brief Enable UL PHY traces
    */
   void EnableUlPhyTraces ();
+
+  /**
+   * \brief Get the phy traces object
+   *
+   * \return The NrPhyRxTrace object to write PHY traces
+   */
+  Ptr<NrPhyRxTrace> GetPhyRxTrace (void);
 
   /**
    * \brief Enable gNB packet count trace
@@ -772,24 +784,34 @@ public:
    *
    * \return The NrBearerStatsCalculator stats calculator object to write RLC traces
    */
-  Ptr<NrBearerStatsCalculator> GetRlcStats (void);
+  Ptr<NrBearerStatsCalculator> GetRlcStatsCalculator (void);
 
   /**
-   * \brief Enable RLC traces
+   * \brief Enable RLC simple traces (DL RLC TX, DL RLC RX, UL DL TX, UL DL RX)
    */
-  void EnableRlcTraces (void);
+  void EnableRlcSimpleTraces (void);
 
   /**
-   * \brief Enable PDCP traces
+   * \brief Enable PDCP traces (DL PDCP TX, DL PDCP RX, UL PDCP TX, UL PDCP RX)
    */
-  void EnablePdcpTraces (void);
+  void EnablePdcpSimpleTraces (void);
+
+  /**
+   * \brief Enable RLC calculator and end-to-end RCL traces to file
+   */
+  void EnableRlcE2eTraces (void);
+
+  /**
+   * \brief Enable PDCP calculator and end-to-end PDCP traces to file
+   */
+  void EnablePdcpE2eTraces (void);
 
   /**
    * \brief Get the PDCP stats calculator object
    *
    * \return The NrBearerStatsCalculator stats calculator object to write PDCP traces
    */
-  Ptr<NrBearerStatsCalculator> GetPdcpStats (void);
+  Ptr<NrBearerStatsCalculator> GetPdcpStatsCalculator (void);
 
   /**
    * Enable trace sinks for DL MAC layer scheduling.
@@ -900,18 +922,18 @@ private:
   uint64_t m_imsiCounter {0};    //!< Imsi counter
   uint16_t m_cellIdCounter {1};  //!< CellId Counter
 
-  Ptr<NrPhyRxTrace> m_phyStats; //!< Pointer to the PhyRx stats
-  Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
-
   Ptr<EpcHelper> m_epcHelper {nullptr};                           //!< Ptr to the EPC helper (optional)
   Ptr<BeamformingHelperBase> m_beamformingHelper {nullptr}; //!< Ptr to the beamforming helper
 
   bool m_harqEnabled {false};
   bool m_snrTest {false};
 
-  Ptr<NrBearerStatsCalculator> m_rlcStats;  //!< ?
-  Ptr<NrBearerStatsCalculator> m_pdcpStats; //!< ?
-  NrBearerStatsConnector m_radioBearerStatsConnector; //!< ?
+  Ptr<NrPhyRxTrace> m_phyStats; //!< Pointer to the PhyRx stats
+  Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
+
+  NrBearerStatsConnector m_radioBearerStatsConnectorSimpleTraces; //!< RLC and PDCP statistics connector for simple file statistics
+  NrBearerStatsConnector m_radioBearerStatsConnectorCalculator; //!< RLC and PDCP statistics connector for complex calculator statistics
+
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
   std::vector< Ptr <Object> > m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper has assigned streams in order to avoid double assignments
   Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator

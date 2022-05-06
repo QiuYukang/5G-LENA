@@ -37,7 +37,7 @@ NrMacSchedulerLC::NrMacSchedulerLC (const LogicalChannelConfigListElement_s &con
 }
 
 void
-NrMacSchedulerLCG::AssignedData (uint8_t lcId, uint32_t size)
+NrMacSchedulerLCG::AssignedData (uint8_t lcId, uint32_t size, std::string type)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_lcMap.size () > 0);
@@ -52,37 +52,74 @@ NrMacSchedulerLCG::AssignedData (uint8_t lcId, uint32_t size)
   if ((m_lcMap.at (lcId)->m_rlcStatusPduSize > 0) && (size >= m_lcMap.at (lcId)->m_rlcStatusPduSize))
     {
       // Update status queue
+      m_totalSize -= m_lcMap.at (lcId)->m_rlcStatusPduSize;
       m_lcMap.at (lcId)->m_rlcStatusPduSize = 0;
     }
   else if ((m_lcMap.at (lcId)->m_rlcRetransmissionQueueSize > 0) && (size >= m_lcMap.at (lcId)->m_rlcRetransmissionQueueSize))
     {
-      // update retx queue
-      m_lcMap.at (lcId)->m_rlcRetransmissionQueueSize = 0;
-    }
-  else if (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize > 0)
-    {
-      // uint32_t rlcOverhead = 4; // TODO: What's that value? it was 4 for LCI 1 and 2 for others
-      // update transmission queue without overhead, that I don't understand
-      if (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize <= size) // - overhead)
+      if (m_totalSize < m_lcMap.at (lcId)->m_rlcRetransmissionQueueSize)
         {
+          NS_LOG_WARN ("Total ReTx queue size lower than it should be at this point. Reseting it.");
+          m_totalSize = 0;
+        }
+      else
+        {
+          m_totalSize -= m_lcMap.at (lcId)->m_rlcRetransmissionQueueSize;
+        }
+        m_lcMap.at (lcId)->m_rlcRetransmissionQueueSize = 0;
+    }
+  else if (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize > 0) // if not enough size for retransmission use if for transmission if there is any data to be transmitted
+    {
+      uint32_t rlcOverhead = 0;
+      // The following logic of selecting the overhead is
+      // inherited from the LTE module scheduler API
+      if (lcId == 1 && type == "DL")
+        {
+          // for SRB1 (using RLC AM) it's better to
+          // overestimate RLC overhead rather than
+          // underestimate it and risk unneeded
+          // segmentation which increases delay
+          rlcOverhead = 4;
+        }
+      else
+        {
+          // minimum RLC overhead due to header
+          rlcOverhead = 2;
+        }
+
+      if (m_totalSize < m_lcMap.at (lcId)->m_rlcTransmissionQueueSize)
+        {
+          NS_LOG_WARN ("Total Tx queue size lower than it should be at this point. Reseting it.");
+          m_totalSize = 0;
+        }
+      else
+        {
+          if (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize <= size)
+            {
+              m_totalSize -= m_lcMap.at (lcId)->m_rlcTransmissionQueueSize;
+            }
+          else
+            {
+              m_totalSize -= std::min (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize, size - rlcOverhead);
+            }
+        }
+      if (size - rlcOverhead >= m_lcMap.at (lcId)->m_rlcTransmissionQueueSize)
+        {
+          // we can transmit everything from the queue, reset it
           m_lcMap.at (lcId)->m_rlcTransmissionQueueSize = 0;
         }
       else
         {
-          NS_ASSERT (m_lcMap.at (lcId)->m_rlcTransmissionQueueSize > size);
-          m_lcMap.at (lcId)->m_rlcTransmissionQueueSize -= size; //- rlcOverhead;
+          // not enough to empty all queue, but send what you can, this is normal situation to happen
+          m_lcMap.at (lcId)->m_rlcTransmissionQueueSize -= size - rlcOverhead;
         }
-    }
-
-  if (m_totalSize >= size)
-    {
-      m_totalSize -= size;
     }
   else
     {
-      m_totalSize = 0;
+      NS_LOG_WARN (" Not reducing m_totalSize since this opportunity cannot be used, not enough bytes to perform retransmission or not active flows.");
     }
 
+  SanityCheck ();
 }
 
 } // namespace ns3

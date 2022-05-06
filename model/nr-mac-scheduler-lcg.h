@@ -68,9 +68,18 @@ public:
 
     int ret = 0;
 
-    ret += params.m_rlcTransmissionQueueSize - m_rlcTransmissionQueueSize;
-    ret += params.m_rlcRetransmissionQueueSize - m_rlcRetransmissionQueueSize;
-    ret += params.m_rlcStatusPduSize - m_rlcStatusPduSize;
+    if (params.m_rlcTransmissionQueueSize > m_rlcTransmissionQueueSize)
+      {
+        ret += params.m_rlcTransmissionQueueSize - m_rlcTransmissionQueueSize;
+      }
+    if (params.m_rlcRetransmissionQueueSize > m_rlcRetransmissionQueueSize)
+      {
+        ret += params.m_rlcRetransmissionQueueSize - m_rlcRetransmissionQueueSize;
+      }
+    if (params.m_rlcStatusPduSize - m_rlcStatusPduSize)
+      {
+        ret += params.m_rlcStatusPduSize - m_rlcStatusPduSize;
+      }
 
     m_rlcTransmissionQueueSize = params.m_rlcTransmissionQueueSize;
     m_rlcTransmissionQueueHolDelay = params.m_rlcTransmissionQueueHolDelay;
@@ -212,8 +221,31 @@ public:
         NS_ASSERT_MSG (m_totalSize >= static_cast<uint32_t> (std::abs (ret)),
                        "totSize: " << m_totalSize << " ret: " << ret);
       }
+    // Update m_totalSize to include the sizes of the buffers
     m_totalSize += ret;
   }
+
+  /**
+   * Checks if m_totalSize is in correct state, and if not resets it.
+   * If m_totalSize is higher than it should at this point, i.e.,
+   * some overheads were not taken into account when it was being updated.
+   */
+  void
+  SanityCheck ()
+  {
+    //sanity check of m_totalSize
+    uint32_t size = 0;
+    for (const auto & lc : m_lcMap)
+      {
+        size += lc. second->m_rlcStatusPduSize + lc.second -> m_rlcRetransmissionQueueSize + lc.second ->m_rlcTransmissionQueueSize;
+      }
+
+    if (size == 0)
+      {
+        m_totalSize = 0;
+      }
+  }
+
 
   /**
    * \brief Update the LCG with just the LCG occupancy. Used in UL case when a BSR is received.
@@ -279,8 +311,9 @@ public:
    * \brief Inform the LCG of the assigned data to a LC id
    * \param lcId the LC id to which the data was assigned
    * \param size amount of assigned data
+   * \param type String representing the type of allocation currently in act (DL or UL)
    */
-  void AssignedData (uint8_t lcId, uint32_t size);
+  void AssignedData (uint8_t lcId, uint32_t size, std::string type);
 
 private:
   uint32_t m_totalSize {0};                  //!< Total size

@@ -28,9 +28,9 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-channel-model.h>
-#include <ns3/phased-array-spectrum-propagation-loss-model.h>
 #include <fstream>
 #include <ns3/mobility-helper.h>
+#include <chrono>
 
 namespace ns3 {
 
@@ -294,6 +294,7 @@ private:
     Vector pos {0,0,0};
     double avgSnrDb {0};
     double avgSinrDb {0};
+    double avgSirDb {0};
     double avRxPowerDbm {0};
   };
 
@@ -434,6 +435,14 @@ private:
   double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
 
   /**
+   * \brief This function finds the max value in a space of frequency-dependent
+   * values (such as PSD).
+   * \param values The list of spectrumValues for which we want to find the max
+   * \return The max value (sinr)
+   */
+  double CalculateMaxSir (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
+
+  /**
    * \brief This function calculates the SINR for a given space of frequency-dependent
    * values (such as PSD).
    * \param usefulSignal The spectrumValue considered as useful signal
@@ -442,6 +451,16 @@ private:
    */
   double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
                         const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
+
+  /**
+   * \brief This function calculates the SIR for a given space of frequency-dependent
+   * values (such as PSD).
+   * \param usefulSignal The spectrumValue considered as useful signal
+   * \param interferenceSignals The list of spectrumValues considered as interference
+   * \return The max value (sir)
+   */
+  double CalculateSir (const Ptr<SpectrumValue>& usefulSignal,
+                       const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
 
   /**
    * \brief This function finds the max value in a list of double values.
@@ -481,6 +500,11 @@ private:
    * rem point)
    */
   PropagationModels CreateTemporalPropagationModels () const;
+
+  /**
+   * \brief Prints REM generation progress report
+   */
+  void PrintProgressReport (uint32_t* remSizeNextReport);
 
   /**
    * \brief Prints the position of the RTDs.
@@ -530,6 +554,8 @@ private:
 
   std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
   std::list<RemPoint> m_rem; ///< List of REM points.
+
+  std::chrono::system_clock::time_point m_remStartTime; //!< Time at which REM generation has started
 
   enum RemMode m_remMode;
 

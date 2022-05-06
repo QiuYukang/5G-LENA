@@ -37,6 +37,7 @@ namespace ns3{
 
 NS_LOG_COMPONENT_DEFINE ("IdealBeamformingAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED (CellScanBeamforming);
+NS_OBJECT_ENSURE_REGISTERED (CellScanBeamformingAzimuthZenith);
 NS_OBJECT_ENSURE_REGISTERED (DirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (QuasiOmniDirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED (OptimalCovMatrixBeamforming);
@@ -181,6 +182,128 @@ CellScanBeamforming::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectru
                 " are txTheta " << maxTxTheta << " rxTheta " << maxRxTheta <<
                 " tx sector " << (M_PI * static_cast<double> (maxTxSector) / static_cast<double> (txNumRows) - 0.5 * M_PI) / (M_PI) * 180 <<
                 " rx sector " << (M_PI * static_cast<double> (maxRxSector) / static_cast<double> (rxNumRows) - 0.5 * M_PI) / (M_PI) * 180);
+
+  NS_ASSERT (maxTxW.size () && maxRxW.size ());
+
+  return BeamformingVectorPair (std::make_pair (gnbBfv, ueBfv));
+}
+
+TypeId
+CellScanBeamformingAzimuthZenith::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::CellScanBeamformingAzimuthZenith")
+                     .SetParent<IdealBeamformingAlgorithm> ()
+                     .AddConstructor<CellScanBeamformingAzimuthZenith> ();
+
+  return tid;
+}
+
+BeamformingVectorPair
+CellScanBeamformingAzimuthZenith::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
+{
+  NS_ABORT_MSG_IF (gnbSpectrumPhy == nullptr || ueSpectrumPhy == nullptr,
+                   "Something went wrong, gnb or UE PHY layer not set.");
+  double distance = gnbSpectrumPhy->GetMobility ()->GetDistanceFrom (ueSpectrumPhy->GetMobility ());
+  NS_ABORT_MSG_IF (distance == 0, "Beamforming method cannot be performed between "
+                                  "two devices that are placed in the same position.");
+
+  Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel (); // SpectrumChannel should be const.. but need to change ns-3-dev
+  Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel ();
+
+  Ptr<const PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel = gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel ();
+  Ptr<const PhasedArraySpectrumPropagationLossModel> ueThreeGppSpectrumPropModel = ueSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel ();
+  NS_ASSERT_MSG (gnbThreeGppSpectrumPropModel == ueThreeGppSpectrumPropModel,
+                 "Devices should be connected on the same spectrum channel");
+
+  std::vector<int> activeRbs;
+  for (size_t rbId = 0; rbId < gnbSpectrumPhy->GetRxSpectrumModel ()->GetNumBands (); rbId++)
+    {
+      activeRbs.push_back (rbId);
+    }
+
+  Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, activeRbs, gnbSpectrumPhy->GetRxSpectrumModel (),
+                                                                                          NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+
+  double max = 0, maxTxAzimuth = 0, maxRxAzimuth = 0, maxTxZenith = 0, maxRxZenith = 0;
+  complexVector_t  maxTxW, maxRxW;
+
+  UintegerValue uintValue;
+  gnbSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
+  ueSpectrumPhy->GetAntenna ()->GetAttribute ("NumRows", uintValue);
+
+  NS_ASSERT (gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel> ()->GetNumberOfElements () && ueSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel> ()->GetNumberOfElements ());
+
+  for (uint i = 0; i < m_azimuth.size (); i++)
+    {
+      double azimuthTx = m_azimuth [i];
+      for (uint ii = 0; ii < m_zenith.size (); ii++)
+        {
+          double zenithTx = m_zenith [ii];
+
+          gnbSpectrumPhy->GetBeamManager ()->SetSectorAz (azimuthTx, zenithTx);
+          complexVector_t txW = gnbSpectrumPhy->GetBeamManager ()->GetCurrentBeamformingVector ();
+
+          if (maxTxW.size () == 0)
+            {
+              maxTxW = txW; // initialize maxTxW
+            }
+
+          for (uint iii = 0; iii < m_azimuth.size (); iii++)
+            {
+              double azimuthRx = m_azimuth[iii];
+              for (uint iiii = 0; iiii < m_zenith.size (); iiii++)
+                {
+                  double zenithRx = m_zenith [iiii];
+
+                  ueSpectrumPhy->GetBeamManager ()->SetSectorAz (azimuthRx, zenithRx);
+                  complexVector_t rxW = ueSpectrumPhy->GetBeamManager ()->GetCurrentBeamformingVector ();
+
+                  if (maxRxW.size () == 0)
+                    {
+                      maxRxW = rxW; // initialize maxRxW
+                    }
+
+                  NS_ABORT_MSG_IF (txW.size ()==0 || rxW.size ()==0,
+                                   "Beamforming vectors must be initialized in "
+                                   "order to calculate the long term matrix.");
+
+                  Ptr<SpectrumValue> rxPsd = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd,
+                                                                                                       gnbSpectrumPhy->GetMobility (),
+                                                                                                       ueSpectrumPhy->GetMobility (),
+                                                                                                       gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
+                                                                                                       ueSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>());
+
+                  size_t nbands = rxPsd->GetSpectrumModel ()->GetNumBands ();
+                  double power = Sum (*rxPsd) / nbands;
+
+                  NS_LOG_LOGIC (" Rx power: " << power << " azimuthTx " << azimuthTx <<
+                                " zenithTx " << zenithTx << " azimuthRx " << azimuthRx <<
+                                " zenithRx " << zenithRx);
+
+                if (max < power)
+                  {
+                    max = power;
+                    maxTxAzimuth = azimuthTx;
+                    maxRxAzimuth = azimuthRx;
+                    maxTxZenith = zenithTx;
+                    maxRxZenith = zenithRx;
+                    maxTxW = txW;
+                    maxRxW = rxW;
+                  }
+              }
+           }
+        }
+    }
+
+  BeamformingVector gnbBfv = BeamformingVector (std::make_pair (maxTxW, BeamId (static_cast<uint16_t> (maxTxAzimuth), maxTxZenith)));
+  BeamformingVector ueBfv = BeamformingVector (std::make_pair (maxRxW, BeamId (static_cast<uint16_t> (maxRxAzimuth), maxRxZenith)));
+
+  NS_LOG_DEBUG ("Beamforming vectors for gNB with node id: " <<
+                gnbSpectrumPhy->GetMobility ()->GetObject<Node> ()->GetId () <<
+                " and UE with node id: " << ueSpectrumPhy->GetMobility ()->GetObject<Node> ()->GetId () <<
+                " are azimuthTx " << maxTxAzimuth << " zenithTx " << maxTxZenith <<
+                " azimuthRx " << maxRxAzimuth << " zenithRx " << maxRxZenith);
 
   NS_ASSERT (maxTxW.size () && maxRxW.size ());
 

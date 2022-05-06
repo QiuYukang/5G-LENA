@@ -118,6 +118,13 @@ public:
    */
   static uint8_t & GetUlMcs (const UePtr &ue);
   /**
+   * \brief GetDlTBSPerStream
+   * \param ue UE pointer from which obtain the value
+   * \param stream The stream id UE pointer from which obtain the value
+   * \return The TB size of the stream whose id is passed as an argument
+   */
+  static uint32_t & GetDlTBSPerStream (const UePtr &ue, uint8_t stream);
+  /**
    * \brief GetDlTBS
    * \param ue UE pointer from which obtain the value
    * \return
@@ -128,7 +135,7 @@ public:
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint32_t & GetUlTBS (const UePtr &ue);
+  static uint32_t GetUlTBS (const UePtr &ue);
   /**
    * \brief GetDlLCG
    * \param ue UE pointer from which obtain the value

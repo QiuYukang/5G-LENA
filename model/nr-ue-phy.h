@@ -316,6 +316,31 @@ public:
   double GetRiSinrThreshold2 () const;
 
   /**
+   *  TracedCallback signature for DL CTRL SINR trace callback
+   *
+   * \param [in] cellId
+   * \param [in] rnti
+   * \param [in] sinr
+   * \param [in] bwpId
+   * \param [in] streamId
+   */
+  typedef void (* DlCtrlSinrTracedCallback)
+      (uint16_t, uint16_t, double, uint16_t, uint8_t);
+
+  /**
+   *  TracedCallback signature for DL DATA SINR trace callback
+   *
+   * \param [in] cellId
+   * \param [in] rnti
+   * \param [in] sinr
+   * \param [in] bwpId
+   * \param [in] streamId
+   */
+  typedef void (* DlDataSinrTracedCallback)
+      (uint16_t, uint16_t, double, uint16_t, uint8_t);
+
+
+  /**
    *  TracedCallback signature for Ue Phy Received Control Messages.
    *
    * \param [in] frame Frame number.
@@ -432,6 +457,24 @@ public:
    * \param streamIndex the index of the stream from which is called this function
    */
   void ReportRsReceivedPower (const SpectrumValue& power, uint8_t streamIndex);
+
+  /**
+   * \brief Called when DlCtrlSinr is fired
+   * \param sinr the sinr PSD
+   * \param streamId the stream ID
+   */
+  void ReportDlCtrlSinr (const SpectrumValue& sinr, uint8_t streamId);
+
+  /**
+   * \brief Compute the CQI based on the SINR
+   *
+   * The function was implemented to assist mainly the NrSpectrumPhy class
+   * to include the CQI in RxPacketTraceUe trace.
+   *
+   * \param sinr the sinr PSD
+   * \return The CQI
+   */
+  uint8_t ComputeCqi (const SpectrumValue& sinr);
 
   /**
    * \brief TracedCallback signature for power trace source
@@ -785,11 +828,15 @@ private:
   double m_rsrp {0}; //!< The latest measured RSRP value
 
   /**
-   * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding
-   * RSRP and average SINR (see TS 36.214). Exporting cell ID, RNTI, RSRP, and
-   * SINR, BWP id, and stream id.
+   * The `DlDataSinr` trace source. Trace information regarding
+   * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
    */
-  TracedCallback<uint16_t, uint16_t, double, double, uint16_t, uint8_t> m_reportCurrentCellRsrpSinrTrace;
+  TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlDataSinrTrace;
+   /**
+   * The `DlCtrlSinrTracedCallback` trace source. Trace information regarding
+   * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
+   */
+  TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlCtrlSinrTrace; 
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint64_t, uint16_t, uint16_t> m_reportPowerSpectralDensity; //!< Report the Tx power

@@ -64,6 +64,17 @@ complexVector_t CreateDirectionalBfv (const Ptr<const UniformPlanarArray>& anten
                                       uint16_t sector, double elevation);
 
 /**
+ * \brief Creates a beamforming vector for a given azimuth and zenith
+ * \ingroup utils
+ * \param antenna Antenna array for which will be created the beamforming vector
+ * \param azimuth azimuth to be used
+ * \param zenith zenith to be used
+ * \return the beamforming vector
+ */
+complexVector_t CreateDirectionalBfvAz (const Ptr<const UniformPlanarArray>& antenna,
+                                        double azimuth, double zenith);
+
+/**
  * \brief Get directs path beamforming vector bfv for a device with the mobility model
  * a for transmission toward device with a mobility model b, by using antenna aAntenna.
  * \param [in] a mobility model of the first device

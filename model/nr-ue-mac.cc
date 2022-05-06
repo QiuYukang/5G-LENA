@@ -725,32 +725,34 @@ NrUeMac::SendRetxData (uint32_t usefulTbs, uint32_t activeLcsRetx)
     {
       auto &bsr = itBsr.second;
 
-      // Check if we have room to transmit the retxData
-      uint32_t assignedBytes = std::min (bytesPerLcId, bsr.retxQueueSize);
-      if (assignedBytes > 0 && m_ulDciTotalUsed + assignedBytes <= usefulTbs)
+      if (m_ulDciTotalUsed + bytesPerLcId <= usefulTbs)
         {
           LteMacSapUser::TxOpportunityParameters txParams;
           txParams.lcid = bsr.lcid;
           txParams.rnti = m_rnti;
-          txParams.bytes = assignedBytes;
+          txParams.bytes = bytesPerLcId;
           txParams.layer = 0;
           txParams.harqId = m_ulDci->m_harqProcess;
           txParams.componentCarrierId = GetBwpId ();
 
           NS_LOG_INFO ("Notifying RLC of LCID " << +bsr.lcid << " of a TxOpp "
-                       "of " << assignedBytes << " B for a RETX PDU");
+                       "of " << bytesPerLcId << " B for a RETX PDU");
 
           m_lcInfoMap.at (bsr.lcid).macSapUser->NotifyTxOpportunity (txParams);
           // After this call, m_ulDciTotalUsed has been updated with the
           // correct amount of bytes... but it is up to us in updating the BSR
           // value, substracting the amount of bytes transmitted
-          bsr.retxQueueSize -= assignedBytes;
+
+          // We need to use std::min here because bytesPerLcId can be
+          // greater than bsr.txQueueSize because scheduler can assign
+          // more bytes than needed due to how TB size is computed.
+          bsr.retxQueueSize -= std::min (bytesPerLcId, bsr.retxQueueSize);
         }
       else
         {
           NS_LOG_DEBUG ("Something wrong with the calculation of overhead."
                         "Active LCS Retx: " << activeLcsRetx << " assigned to this: " <<
-                        assignedBytes << ", with TBS of " << m_ulDci->m_tbSize.at (0) <<
+                        bytesPerLcId << ", with TBS of " << m_ulDci->m_tbSize.at (0) <<
                         " usefulTbs " << usefulTbs << " and total used " << m_ulDciTotalUsed);
         }
     }
@@ -772,32 +774,34 @@ NrUeMac::SendTxData(uint32_t usefulTbs, uint32_t activeTx)
     {
       auto &bsr = itBsr.second;
 
-      // Check if we have room to transmit the retxData
-      uint32_t assignedBytes = std::min (bytesPerLcId, bsr.txQueueSize);
-      if (assignedBytes > 0 && m_ulDciTotalUsed + assignedBytes <= usefulTbs)
+      if (m_ulDciTotalUsed + bytesPerLcId <= usefulTbs)
         {
           LteMacSapUser::TxOpportunityParameters txParams;
           txParams.lcid = bsr.lcid;
           txParams.rnti = m_rnti;
-          txParams.bytes = assignedBytes;
+          txParams.bytes = bytesPerLcId;
           txParams.layer = 0;
           txParams.harqId = m_ulDci->m_harqProcess;
           txParams.componentCarrierId = GetBwpId ();
 
           NS_LOG_INFO ("Notifying RLC of LCID " << +bsr.lcid << " of a TxOpp "
-                       "of " << assignedBytes << " B for a TX PDU");
+                       "of " << bytesPerLcId << " B for a TX PDU");
 
           m_lcInfoMap.at (bsr.lcid).macSapUser->NotifyTxOpportunity (txParams);
           // After this call, m_ulDciTotalUsed has been updated with the
           // correct amount of bytes... but it is up to us in updating the BSR
           // value, substracting the amount of bytes transmitted
-          bsr.txQueueSize -= assignedBytes;
+
+          // We need to use std::min here because bytesPerLcId can be
+          // greater than bsr.txQueueSize because scheduler can assign
+          // more bytes than needed due to how TB size is computed.
+          bsr.txQueueSize -= std::min (bytesPerLcId, bsr.txQueueSize);
         }
       else
         {
           NS_LOG_DEBUG ("Something wrong with the calculation of overhead."
                         "Active LCS Retx: " << activeTx << " assigned to this: " <<
-                        assignedBytes << ", with TBS of " << m_ulDci->m_tbSize.at (0) <<
+                        bytesPerLcId << ", with TBS of " << m_ulDci->m_tbSize.at (0) <<
                         " usefulTbs " << usefulTbs << " and total used " << m_ulDciTotalUsed);
         }
     }

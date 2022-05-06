@@ -190,6 +190,12 @@ NrMacSchedulerNs3::GetTypeId (void)
                    MakeIntegerAccessor (&NrMacSchedulerNs3::SetMaxDlMcs,
                                          &NrMacSchedulerNs3::GetMaxDlMcs),
                    MakeIntegerChecker<int8_t> (-1,30))
+    .AddAttribute ("EnableHarqReTx",
+                   "If true, it would set the max HARQ ReTx to 3; otherwise it set it to 0",
+                   BooleanValue (true),
+                   MakeBooleanAccessor (&NrMacSchedulerNs3::EnableHarqReTx,
+                                        &NrMacSchedulerNs3::IsHarqReTxEnable),
+                                        MakeBooleanChecker ())
   ;
 
   return tid;
@@ -399,6 +405,19 @@ NrMacSchedulerNs3::IsSrsInFSlots () const
 {
   return m_enableSrsInFSlots;
 }
+
+void
+NrMacSchedulerNs3::EnableHarqReTx (bool enableFlag)
+{
+  m_enableHarqReTx = enableFlag;
+}
+
+bool
+NrMacSchedulerNs3::IsHarqReTxEnable () const
+{
+  return m_enableHarqReTx;
+}
+
 
 uint8_t
 NrMacSchedulerNs3::ScheduleDlHarq (PointInFTPlane *startingPoint,
@@ -979,8 +998,9 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks (std::vector<T> *harqInfo,
       //RV number should not be greater than 3. An unscheduled stream should
       //be assigned RV = 0 in MIMO.
       NS_ASSERT (*rvIt < 4);
+      uint8_t maxHarqReTx = m_enableHarqReTx == true ? 3 : 0;
 
-      if (harqFeedbackIt->IsReceivedOk () || *rvIt == 3)
+      if (harqFeedbackIt->IsReceivedOk () || *rvIt == maxHarqReTx)
         {
           ueHarqVector.Erase (harqId);
           harqFeedbackIt = harqInfo->erase (harqFeedbackIt);
@@ -1492,7 +1512,7 @@ NrMacSchedulerNs3::DoScheduleDlData (PointInFTPlane *spoint, uint32_t symAvail,
                       uint32_t bytes = bytesPerStream.m_bytes - 3; // Consider the subPdu overhead
                       RlcPduInfo newRlcPdu (lcId, bytes);
                       rlcPdusInfoPerStream.push_back (newRlcPdu);
-                      ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes);
+                      ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes, "DL");
 
                       NS_LOG_DEBUG ("DL LCG " << static_cast<uint32_t> (lcgId) <<
                                     " LCID " << static_cast<uint32_t> (lcId) <<
@@ -1698,7 +1718,7 @@ NrMacSchedulerNs3::DoScheduleUlData (PointInFTPlane *spoint, uint32_t symAvail,
           for (const auto & byteDistribution : distributedBytes)
             {
               assignedToLC = true;
-              ue.first->m_ulLCG.at (byteDistribution.m_lcg)->AssignedData (byteDistribution.m_lcId, byteDistribution.m_bytes);
+              ue.first->m_ulLCG.at (byteDistribution.m_lcg)->AssignedData (byteDistribution.m_lcId, byteDistribution.m_bytes, "UL");
               NS_LOG_DEBUG ("UL LCG " << static_cast<uint32_t> (byteDistribution.m_lcg) <<
                             " assigned bytes " << byteDistribution.m_bytes << " to LCID " <<
                             static_cast<uint32_t> (byteDistribution.m_lcId));

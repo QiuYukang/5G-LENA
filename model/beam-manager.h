@@ -154,6 +154,13 @@ public:
    */
   void SetSector (uint16_t sector, double elevation) const;
 
+  /**
+   * \brief Set the Sector
+   * \param azimuth azimuth
+   * \param zenith zenith
+   */
+  void SetSectorAz (double azimuth, double zenith) const;
+
 private:
 
   Ptr<UniformPlanarArray> m_antennaArray;  //!< the antenna array instance for which is responsible this BeamManager

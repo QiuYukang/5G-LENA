@@ -4,6 +4,7 @@ set(source_files
     helper/nr-mac-rx-trace.cc
     helper/nr-point-to-point-epc-helper.cc
     helper/nr-bearer-stats-calculator.cc
+    helper/nr-bearer-stats-simple.cc
     helper/nr-bearer-stats-connector.cc
     helper/beamforming-helper-base.cc
     helper/ideal-beamforming-helper.cc
@@ -92,6 +93,7 @@ set(source_files
     utils/file-transfer-helper.cc
     utils/file-transfer-application.cc
     utils/three-gpp-channel-model-param.cc
+    utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
 )
 
 set(header_files
@@ -101,6 +103,7 @@ set(header_files
     helper/nr-point-to-point-epc-helper.h
     helper/nr-bearer-stats-calculator.h
     helper/nr-bearer-stats-connector.h
+    helper/nr-bearer-stats-simple.h
     helper/beamforming-helper-base.h
     helper/ideal-beamforming-helper.h
     helper/realistic-beamforming-helper.h
@@ -194,6 +197,7 @@ set(header_files
     utils/file-transfer-helper.h
     utils/file-transfer-application.h
     utils/three-gpp-channel-model-param.h
+    utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
 )
 
 
