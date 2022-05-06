@@ -44,6 +44,40 @@ us a note on ns-developers mailing list.
 
 ---
 
+
+## Changes from NR-v2.0 to v2.1
+
+### New API:
+- Added new distance-based 3GPP spectrum propagation loss model
+- Added the Get function to obtain the pointer to PHY traces
+- Added scenario with UE mobility in `HexagonalGridScenarioHelper` class
+- Added option to set random antenna height in centrain percentage of UEs in 
+`HexagonalGriScenarioHelper`
+- Extended `HexagonalGridScenarioHelper` to allow installing the hexagonal scenario 
+with the 4th and the 5th ring (needed for the wrap around calibration)
+- Added new attribute to `NrMacSchedulerNs` to allow enabling or disabling HARQ ReTx
+- `NrRadioEnvironmentMapHelper` is extended to provide the progress report at std::
+cout, i.e., 1%, 10%, ..., 100%, and provides the estimation of the time left
+- Added CQI column in RxPacketTraceUe
+- Added SIR calculation and plot in `NrRadioEnvironmentMapHelper`
+- Added CellScan algorithm based on azimuth and zenith in class called 
+`CellScanBeamformingAzimuthZenith` in `ideal-beamforming-algorithm.h/cc`
+- Added new trace for reporting DL SINR CTRL 
+- Extended and improved RLC and PDCP traces to include simple traces per RX/TX 
+side, and combined/merged end-to-end traces.
+
+### Changes to existing API:
+
+### Changed behavior:
+- Calculate CQI based on Average Spectral Efficiency in `nr-amc.cc`
+- Stop assigning resources in UL TDMA if TB size >= buffSize in `nr-mac-scheduler-ue-info.cc`
+- Changed how to consider RLC overhead when updating the TX queues in MAC scheduler
+- Changed the buffer size calculation in `NrMacSchedulerLcg` to consider correctly the 
+RLC overhead
+
+---
+
+
 ## Changes from NR-v1.3 to v2.0
 
 ### New API:

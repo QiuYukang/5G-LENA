@@ -10,6 +10,76 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+Release NR-v2.1
+---------------
+
+Availability
+------------
+Available since May 06, 2022
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-9 or later
+- clang-8 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9 and 10 clang-8, 9, 10, and 11
+
+Recommended ns-3 release: ns-3.36.
+
+Important news
+--------------
+This module can be updated with the usual
+
+```
+$ git pull
+```
+
+command. We hope you will have fun and good times in using our module!
+
+New user-visible features (old first)
+-------------------------
+- Added new distance-based 3GPP spectrum propagation loss model
+- Added the Get function to obtain the pointer to PHY traces
+- Added scenario with UE mobility in `HexagonalGridScenarioHelper` class
+- Added option to set random antenna height in centrain percentage of UEs in 
+`HexagonalGriScenarioHelper`
+- Extended `HexagonalGridScenarioHelper` to allow installing the hexagonal scenario 
+with the 4th and the 5th ring (needed for the wrap around calibration)
+- Added new attribute to `NrMacSchedulerNs` to allow enabling or disabling HARQ ReTx
+- `NrRadioEnvironmentMapHelper` is extended to provide the progress report at std::
+cout, i.e., 1%, 10%, ..., 100%, and provides the estimation of the time left
+- Added CQI column in RxPacketTraceUe
+- Added SIR calculation and plot in `NrRadioEnvironmentMapHelper`
+- Added CellScan algorithm based on azimuth and zenith in class called 
+`CellScanBeamformingAzimuthZenith` in `ideal-beamforming-algorithm.h/cc`
+- Added new trace for reporting DL SINR CTRL 
+- Extended and improved RLC and PDCP traces to include simple traces per RX/TX 
+side, and combined/merged end-to-end traces.
+
+
+
+Bugs fixed
+----------
+- Fixed how to consider RLC overhead when updating the TX queues in MAC scheduler
+- Fixed attachment for loop in `lena-lte-comparison` example 
+- Fixed wrong assignation of NetDeviceContainer vector for REM in `lena-lte-comparison` 
+example
+- Fixed REM sector index bug in lena-lte-comparison.cc example
+- Fix the buffer size calculation in `NrMacSchedulerLcg` to consider correctly the 
+RLC overhead
+- Improved formatting of the RLC/PDCP traces
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+
 Release NR-v2.0
 --------------
 
