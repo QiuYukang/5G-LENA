@@ -98,17 +98,16 @@ public:
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using cell scan method
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE device
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
 private:
 
-  double m_beamSearchAngleStep {30};
+  double m_beamSearchAngleStep {30};//!< the beam search angle step attribute
 
 };
 
@@ -139,10 +138,9 @@ public:
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using cell scan method
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
@@ -189,11 +187,10 @@ public:
 
   /**
    * \brief Function that generates the beamforming vectors for a pair of
-   * communicating devices by using cell scan method at gnbDev and a fixed quasi-omni beamforming vector at UE
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * communicating devices by using cell scan method at gNB and a fixed quasi-omni beamforming vector at UE
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
@@ -221,10 +218,9 @@ public:
   /**
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the direct path direction
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
@@ -248,10 +244,9 @@ public:
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the quasi omni beamforming vector for gNB
    * and direct path beamforming vector for UEs
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
@@ -277,10 +272,10 @@ public:
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the direct-path beamforming vector for gNB
    * and quasi-omni beamforming vector for UEs
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
+   *
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
@@ -310,10 +305,9 @@ public:
    * \brief Function that generates the beamforming vectors for a pair of
    * communicating devices by using the direct-path beamforming vector for gNB
    * and quasi-omni beamforming vector for UEs
-   * \param [in] gnbDev gNb beamforming device
-   * \param [in] ueDev UE beamforming device
-   * \param [out] gnbBfv the best beamforming vector for gNbDev device antenna array to communicate with ueDev according to this algorithm criteria
-   * \param [out] ueBfv the best beamforming vector for ueDev device antenna array to communicate with gNbDev device according to this algorithm criteria
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;

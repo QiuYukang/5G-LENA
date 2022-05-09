@@ -71,7 +71,7 @@ public:
   /**
    * \brief Set the beamforming method that will be executed each
    * time when is necessary to update the beamforming algorithms
-   * \param beamformingMethod
+   * \param beamformingMethod the beamforming method to be set
    */
   virtual void SetBeamformingMethod (const TypeId &beamformingMethod) = 0;
 
@@ -89,7 +89,8 @@ protected:
    * device, and for a specified bwp index
    * \param gNbDev a pointer to a gNB device
    * \param ueDev a pointer to a UE device
-   * \param ccId bwp index
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
    */
   virtual void RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
                         const Ptr<NrUeNetDevice>& ueDev,
@@ -99,11 +100,9 @@ protected:
   /**
    * \brief Function that will call the configured algorithm for the specified devices and obtain
    * the beamforming vectors for each of them.
-   * \param gnbDev gNB device
-   * \param ueDev UE device
-   * \param gnbBfv gNB beamforming vector
-   * \param ueBfv UE beamforming vector
-   * \param ccId CC ID
+   * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+   * \param [in] ueSpectrumPhy the spectrum phy of the UE
+   * \return the beamforming vector pair of the gNB and the UE
    */
   virtual BeamformingVectorPair  GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const = 0;
