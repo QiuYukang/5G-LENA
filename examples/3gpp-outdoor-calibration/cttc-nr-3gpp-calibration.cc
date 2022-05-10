@@ -158,10 +158,8 @@ Parameters::Validate (void) const
                    "Flow direction can only be DL or UL: " << direction);
   NS_ABORT_MSG_IF (operationMode != "TDD" && operationMode != "FDD",
                    "Operation mode can only be TDD or FDD: " << operationMode);
-  NS_ABORT_MSG_IF (radioNetwork != "LTE" && radioNetwork != "NR",
-                   "Unrecognized radio network technology: " << radioNetwork);
-  NS_ABORT_MSG_IF (radioNetwork == "LTE" && operationMode != "FDD",
-                   "Operation mode must be FDD in a 4G LTE network: " << operationMode);
+  //NS_ABORT_MSG_IF (radioNetwork == "LTE" && operationMode != "FDD",
+  //                 "Operation mode must be FDD in a 4G LTE network: " << operationMode);
   NS_ABORT_MSG_IF (simulator != "LENA" && simulator != "5GLENA",
                    "Unrecognized simulator: " << simulator);
   NS_ABORT_MSG_IF (scheduler != "PF" && scheduler != "RR",
@@ -172,11 +170,25 @@ Parameters::Validate (void) const
                    "Shadowing must be disabled fading is disabled mode");
   NS_ABORT_MSG_IF (bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam" ,
                    "For bfMethod you can choose among Omni, CellScan and FixedBeam");
+
   NS_ABORT_MSG_IF (confType != "customConf" && confType != "calibrationConf",
-                   "Urecognized Configuration type: " << confType);
-  NS_ABORT_MSG_IF (configurationScenario != "DenseA" && configurationScenario != "DenseB"
-                   && configurationScenario != "RuralA" && configurationScenario != "RuralB",
-                   "Urecognized Configuration scenario: " << configurationScenario);
+                   "Unrecognized Configuration type: " << confType);
+
+  if (radioNetwork == "LTE")
+    {
+      NS_ABORT_MSG_IF ("LTE is not supported currently");
+    }
+  else if (radioNetwork == "NR")
+    {
+      NS_ABORT_MSG_IF ((nrConfigurationScenario != "DenseA" && nrConfigurationScenario != "DenseB"
+                       && nrConfigurationScenario != "RuralA" && nrConfigurationScenario != "RuralB"),
+                       "NR needs one of the NR pre-defined scenarios to be specified");
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Unrecognized radio network technology: " << radioNetwork);
+    }
+
   NS_ABORT_MSG_IF (attachToClosest == true && freqScenario == 0,
                    "attachToClosest option should be activated only in overlapping frequency scenario");
 
@@ -201,153 +213,115 @@ ChooseCalibrationScenario (Parameters &params)
 {
   if (params.confType == "calibrationConf")
     {
-      if (params.configurationScenario == "DenseA")
+      params.utHeight = 1.5;
+
+      if (params.radioNetwork == "NR")
         {
-          params.scenario = "UMa";
-          params.startingFreq = 4e9;
-          params.bandwidthMHz = 10;
-          params.gnbTxPower = 41;
-          params.ueTxPower = 23;
-          params.bsHeight = 25;
-          params.utHeight = 1.5;
-          params.uesWithRandomUtHeight = 0.8;
-          params.isd = 200;
-          params.o2iThreshold = 0.8;
-
-          params.gnbNumRows = 4;
-          params.gnbNumColumns = 8;
-          params.ueNumRows = 1;
-          params.ueNumColumns = 1;
-
-          params.gnbHSpacing = 0.5;
-          params.gnbVSpacing = 0.8;
-          params.ueHSpacing = 0.5;
-          params.ueVSpacing = 0.5;
-
-          params.gnbEnable3gppElement = true;
-          params.ueEnable3gppElement = false;
-
-          params.downtiltAngle = 90;
-
-          params.gnbNoiseFigure = 5;
-          params.ueNoiseFigure = 7;
-
+          params.freqScenario = 1;
           params.trafficScenario = 0; //full buffer
-          //params.speed = 8.33333; // in m/s (30 km/h)
-          params.speed = 0.833; // in m/s (3 km/h)
-
-          params.scheduler = "RR";
-        }
-      else if (params.configurationScenario == "DenseB")
-        {
-          params.scenario = "UMa";
-          params.startingFreq = 30e9;
-          params.bandwidthMHz = 40;
-          params.gnbTxPower = 37;
           params.ueTxPower = 23;
-          params.uesWithRandomUtHeight = 0.8;
-          params.bsHeight = 25;
-          params.utHeight = 1.5;
-          params.isd = 200;
-          params.o2iThreshold = 0.8;
-
-          params.gnbNumRows = 4;
-          params.gnbNumColumns = 8;
-          params.ueNumRows = 2;
-          params.ueNumColumns = 4;
-
-          params.gnbHSpacing = 0.5;
-          params.gnbVSpacing = 0.5;
-          params.ueHSpacing = 0.5;
-          params.ueVSpacing = 0.5;
-
-          params.gnbEnable3gppElement = true;
-          params.ueEnable3gppElement = true;
-
-          params.downtiltAngle = 90;
-
-          params.gnbNoiseFigure = 7;
-          params.ueNoiseFigure = 10;
-
-          params.trafficScenario = 0; //full buffer
-          //params.speed = 8.33333; // in m/s (30 km/h)
           params.speed = 0.8333; // in m/s (3 km/h)
 
-          params.scheduler = "RR";
-        }
-      else if (params.configurationScenario == "RuralA")
-        {
-          params.scenario = "RMa";
-          params.startingFreq = 700e6;
-          params.bandwidthMHz = 10;
-          params.gnbTxPower = 46;
-          params.ueTxPower = 23;
-          params.bsHeight = 35;
-          params.utHeight = 1.5;
-          params.isd = 1732;
-          params.o2iThreshold = 0.5;
-
-          params.gnbNumRows = 8;
-          params.gnbNumColumns = 1;
-          params.ueNumRows = 1;
+          params.ueNumRows = 1; //only in DenseB we have 2x4
           params.ueNumColumns = 1;
 
-          params.gnbHSpacing = 0.5;
-          params.gnbVSpacing = 0.8;
+          params.downtiltAngle = 90;
+          params.gnbEnable3gppElement = true;
           params.ueHSpacing = 0.5;
           params.ueVSpacing = 0.5;
 
-          params.gnbEnable3gppElement = true;
-          params.ueEnable3gppElement = false;
-
-          params.downtiltAngle = 90;
-
-          params.gnbNoiseFigure = 5;
-          params.ueNoiseFigure = 7;
-
-          params.trafficScenario = 0; //full buffer
-          //params.speed = 33.33; // in m/s (120 km/h)
-          params.speed = 0.8333; // in m/s (3 km/h)
-
           params.scheduler = "RR";
+
+          if (params.nrConfigurationScenario == "DenseA")
+            {
+              params.scenario = "UMa";
+              params.startingFreq = 4e9;
+              params.bandwidthMHz = 10;
+              params.gnbTxPower = 41;
+              params.bsHeight = 25;
+              params.uesWithRandomUtHeight = 0.8;
+              params.isd = 200;
+              params.o2iThreshold = 0.8;
+
+              params.gnbNumRows = 4;
+              params.gnbNumColumns = 8;
+
+              params.gnbHSpacing = 0.5;
+              params.gnbVSpacing = 0.8;
+
+              params.ueEnable3gppElement = false;
+
+              params.gnbNoiseFigure = 5;
+              params.ueNoiseFigure = 7;
+            }
+          else if (params.nrConfigurationScenario == "DenseB")
+            {
+              params.scenario = "UMa";
+              params.startingFreq = 30e9;
+              params.bandwidthMHz = 40;
+              params.gnbTxPower = 37;
+              params.uesWithRandomUtHeight = 0.8;
+              params.bsHeight = 25;
+              params.isd = 200;
+              params.o2iThreshold = 0.8;
+
+              params.gnbNumRows = 4;
+              params.gnbNumColumns = 8;
+              params.ueNumRows = 2;
+              params.ueNumColumns = 4;
+
+              params.gnbHSpacing = 0.5;
+              params.gnbVSpacing = 0.5;
+
+              params.ueEnable3gppElement = true;
+
+              params.gnbNoiseFigure = 7;
+              params.ueNoiseFigure = 10;
+            }
+          else if (params.nrConfigurationScenario == "RuralA")
+            {
+              params.scenario = "RMa";
+              params.startingFreq = 700e6;
+              params.bandwidthMHz = 10;
+              params.gnbTxPower = 46;
+              params.bsHeight = 35;
+              params.isd = 1732;
+              params.o2iThreshold = 0.5;
+
+              params.gnbNumRows = 8;
+              params.gnbNumColumns = 1;
+
+              params.gnbHSpacing = 0.5;
+              params.gnbVSpacing = 0.8;
+
+              params.ueEnable3gppElement = false;
+
+              params.gnbNoiseFigure = 5;
+              params.ueNoiseFigure = 7;
+            }
+          else if (params.nrConfigurationScenario == "RuralB")
+            {
+              params.scenario = "RMa";
+              params.startingFreq = 4e9;
+              params.bandwidthMHz = 10;
+              params.gnbTxPower = 46;
+              params.bsHeight = 35;
+              params.isd = 1732;
+              params.o2iThreshold = 0.5;
+
+              params.gnbNumRows = 8;
+              params.gnbNumColumns = 1;
+
+              params.gnbHSpacing = 0.5;
+              params.gnbVSpacing = 0.8;
+
+              params.ueEnable3gppElement = false;
+
+              params.gnbNoiseFigure = 5;
+              params.ueNoiseFigure = 7;
+            }
         }
-      else if (params.configurationScenario == "RuralB")
-        {
-          params.scenario = "RMa";
-          params.startingFreq = 4e9;
-          params.bandwidthMHz = 10;
-          params.gnbTxPower = 46;
-          params.ueTxPower = 23;
-          params.bsHeight = 35;
-          params.utHeight = 1.5;
-          params.isd = 1732;
-          params.o2iThreshold = 0.5;
-
-          params.gnbNumRows = 8;
-          params.gnbNumColumns = 1;
-          params.ueNumRows = 1;
-          params.ueNumColumns = 1;
-
-          params.gnbHSpacing = 0.5;
-          params.gnbVSpacing = 0.8;
-          params.ueHSpacing = 0.5;
-          params.ueVSpacing = 0.5;
-
-          params.gnbEnable3gppElement = true;
-          params.ueEnable3gppElement = false;
-
-          params.downtiltAngle = 90;
-
-          params.gnbNoiseFigure = 5;
-          params.ueNoiseFigure = 7;
-
-          params.trafficScenario = 0; //full buffer
-          //params.speed = 33.33; // in m/s (120 km/h)
-          params.speed = 0.8333; // in m/s (3 km/h)
-
-          params.scheduler = "RR";
-        }
-      }
+  }
 }
 
 void
@@ -671,7 +645,7 @@ Nr3gppCalibration (Parameters &params)
       LenaV1Utils::SetLenaV1SimulatorParameters (sector0AngleRad,
                                                  params.scenario,
                                                  params.confType,
-                                                 params.configurationScenario,
+                                                 params.nrConfigurationScenario,
                                                  gnbSector1Container,
                                                  gnbSector2Container,
                                                  gnbSector3Container,
@@ -706,7 +680,7 @@ Nr3gppCalibration (Parameters &params)
       LenaV2Utils::SetLenaV2SimulatorParameters (sector0AngleRad,
                                                  params.scenario,
                                                  params.confType,
-                                                 params.configurationScenario,
+                                                 params.nrConfigurationScenario,
                                                  params.radioNetwork,
                                                  params.errorModel,
                                                  params.operationMode,
@@ -816,8 +790,8 @@ Nr3gppCalibration (Parameters &params)
       Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting ((*ue)->GetObject<Ipv4> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
-    
-   
+
+
    if (nrHelper != nullptr && params.attachToClosest == true)
      {
        nrHelper->AttachToClosestEnb (ueNetDevs, gnbNetDevs);
@@ -1197,11 +1171,11 @@ operator << (std::ostream & os, const Parameters & parameters)
 
   if (p.confType == "calibrationConf")
     {
-      if (p.configurationScenario == "DenseA")
+      if (p.nrConfigurationScenario == "DenseA")
         {
           MSG ("Dense A");
         }
-      else if (p.configurationScenario == "DenseB")
+      else if (p.nrConfigurationScenario == "DenseB")
         {
           MSG ("Dense B ");
         }

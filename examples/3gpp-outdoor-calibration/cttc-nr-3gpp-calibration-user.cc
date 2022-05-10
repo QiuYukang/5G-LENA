@@ -52,10 +52,11 @@ main (int argc, char *argv[])
                 "calibration scenarios. Please notice that if b) is selected"
                 "custom parameters should not be set through the command line",
                 params.confType);
-  cmd.AddValue ("configurationScenario",
-                "The calibration scenario string (DenseA, DenseB, RuralA, RuralB)."
+  cmd.AddValue ("nrConfigurationScenario",
+                "The NR calibration scenario string. Choose among:"
+                "DenseA, DenseB, RuralA, RuralB"
                 "This variable must be set when calibrationConf is choosen",
-                params.configurationScenario);
+                params.nrConfigurationScenario);
   cmd.AddValue ("scenario",
                 "The urban scenario string (UMa,UMi,RMa)",
                 params.scenario);
@@ -134,7 +135,8 @@ main (int argc, char *argv[])
                 "accordingly based on the configured BW",
                 params.startingFreq);
   cmd.AddValue ("freqScenario",
-                "0: NON_OVERLAPPING (each sector in different freq), 1: OVERLAPPING (same freq for all sectors)",
+                "0: NON_OVERLAPPING (each sector in different freq), "
+                "1: OVERLAPPING (same freq for all sectors)",
                 params.freqScenario);
   cmd.AddValue ("attachToClosest",
                 "When freqScenario is set to 1 (OVERLAPPING) then attachToClosest can be set to true to allow the attachment to closest gNBs",
@@ -184,7 +186,6 @@ main (int argc, char *argv[])
   cmd.AddValue ("progressInterval",
                 "Progress reporting interval",
                 params.progressInterval);
-  //Newly added parameters
   cmd.AddValue ("gnbTxPower",
                 "The transmit power of the gNB",
                 params.gnbTxPower);

@@ -135,7 +135,7 @@ void
 LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                                            const std::string &scenario,
                                            const std::string &confType,
-                                           const std::string &configurationScenario,
+                                           const std::string &nrConfigurationScenario,
                                            const std::string &radioNetwork,
                                            std::string errorModel,
                                            const std::string &operationMode,
@@ -202,6 +202,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   uint32_t harqProcesses = 20;
   uint32_t n1Delay = 2;
   uint32_t n2Delay = 2;
+  uint8_t dlCtrlSymbols = 1;
 
   if (radioNetwork == "LTE")
     {
@@ -209,6 +210,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       harqProcesses = 8;
       n1Delay = 4;
       n2Delay = 4;
+      //dlCtrlSymbols = 3;
+
       if (errorModel == "")
         {
           errorModel = "ns3::LenaErrorModel";
@@ -305,6 +308,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
         {
           scene = BandwidthPartInfo::RMa;
         }
+      else if (scenario == "UMi-StreetCanyon")
+        {
+          scene = BandwidthPartInfo::UMi_StreetCanyon;
+        }
 
       txPowerBs = gnbTxPower;
     }
@@ -334,6 +341,14 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   // Noise figure for the UE
   nrHelper->SetUePhyAttribute ("NoiseFigure", DoubleValue (ueNoiseFigure));
   nrHelper->SetUePhyAttribute ("EnableUplinkPowerControl", BooleanValue (enableUlPc));
+
+  if (radioNetwork == "LTE" && confType == "calibrationConf" && enableUlPc == true)
+    {
+      Config::SetDefault ("ns3::NrUePowerControl::ClosedLoop", BooleanValue (false));
+      Config::SetDefault ("ns3::NrUePowerControl::PoNominalPucch", IntegerValue (-106));
+      Config::SetDefault ("ns3::NrUePowerControl::PoNominalPusch", IntegerValue (-106));
+      Config::SetDefault ("ns3::NrUePowerControl::Alpha", DoubleValue (1.0)); //well this is the default value also
+    }
 
   Config::SetDefault ("ns3::NrMacSchedulerSrsDefault::StartingPeriodicity", UintegerValue (16));
   nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
@@ -439,24 +454,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   band1.m_bandId = 1;
   band2.m_bandId = 2;
 
+  uint8_t numBwp = operationMode == "FDD" ? 2 : 1;
+
   if (freqScenario == 0) // NON_OVERLAPPING
     {
-      uint8_t numBwp;
-
-      if (operationMode == "FDD")
-        {
-          // FDD uses two BWPs per CC, one CC per band
-          //double the BW for FDD (e.g. BW = 10 MHz --> 10 MHz DL and 10 MHz UL)
-          bandwidthBwp *= 2;
-          numBwp = 2;
-        }
-      else // if (operationMode = "TDD")
-        {
-          // Use double with BWP, to match total bandwidth for FDD in UL and DL
-          //bandwidthBwp *= 2;
-          numBwp = 1;
-        }
-
       double bandwidthCc = numBwp * bandwidthBwp;
       uint8_t numCcPerBand = 1;
       double bandwidthBand = numCcPerBand * bandwidthCc;
@@ -537,22 +538,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
 
   else if (freqScenario == 1) // OVERLAPPING
     {
-      uint8_t numBwp;
-
-      if (operationMode == "FDD")
-        {
-          // FDD uses two BWPs per CC, one CC per band
-          //double the BW for FDD (e.g. BW = 10 MHz --> 10 MHz DL and 10 MHz UL)
-          bandwidthBwp *= 2;
-          numBwp = 2;
-        }
-      else // if (operationMode = "TDD")
-        {
-          // Use double with BWP, to match total bandwidth for FDD in UL and DL
-          //bandwidthBwp *= 2;
-          numBwp = 1;
-        }
-
       double bandwidthCc = numBwp * bandwidthBwp;
       uint8_t numCcPerBand = 1;
       double bandwidthBand = numCcPerBand * bandwidthCc;
@@ -675,18 +660,37 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
                 }
             }
         }
+      else if (radioNetwork == "LTE")   //Omni for LTE
+        {
+          beamformingHelper->SetBeamformingMethod (QuasiOmniDirectPathBeamforming::GetTypeId ());
+        }
     }
 
   // Scheduler type
 
-  if (scheduler == "PF")
+  if (radioNetwork == "NR")
     {
-      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaPF"));
+      if (scheduler == "PF")
+        {
+          nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaPF"));
+        }
+      else if (scheduler == "RR")
+        {
+          nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaRR"));
+        }
     }
-  else if (scheduler == "RR")
+  else
     {
-      nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerTdmaRR"));
+      if (scheduler == "PF")
+        {
+          nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaPF"));
+        }
+      else if (scheduler == "RR")
+        {
+          nrHelper->SetSchedulerTypeId (TypeId::LookupByName ("ns3::NrMacSchedulerOfdmaRR"));
+        }
     }
+
 
   // configure SRS symbols
   nrHelper->SetSchedulerAttribute ("SrsSymbols", UintegerValue (1));
@@ -694,7 +698,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
   nrHelper->SetSchedulerAttribute ("EnableSrsInFSlots", BooleanValue (false));
 
   // configure CTRL symbols
-  nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (1));
+  nrHelper->SetSchedulerAttribute ("DlCtrlSymbols", UintegerValue (dlCtrlSymbols));
 
   // Core latency
   epcHelper->SetAttribute ("S1uLinkDelay", TimeValue (MilliSeconds (0)));

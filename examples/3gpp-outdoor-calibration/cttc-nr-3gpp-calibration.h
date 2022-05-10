@@ -35,8 +35,7 @@ struct Parameters
   bool Validate (void) const;
 
   std::string confType = "customConf"; //calibrationConf
-  std::string configurationScenario = "DenseA"; //DenseA, DenseB, RuralA, RuralB
-
+  std::string nrConfigurationScenario = "DenseA"; //DenseA, DenseB, RuralA, RuralB
   uint16_t numOuterRings = 3;
   uint16_t ueNumPergNb = 10;
   double uesWithRandomUtHeight = 0;
@@ -45,7 +44,7 @@ struct Parameters
   bool extendedTraces = false;
   std::string simulator = "5GLENA";
   std::string scenario = "UMa";
-  std::string radioNetwork = "NR";  // LTE or NR
+  std::string radioNetwork = ""; // It must be set to NR
   std::string operationMode = "TDD";  // TDD or FDD
   std::string baseStationFile = ""; // path to file of tower/site coordinates
   bool useSiteFile = false; // whether to use baseStationFile parameter,
@@ -102,8 +101,8 @@ struct Parameters
   uint32_t freqScenario = 0;
   bool attachToClosest = false;
 
-  double gnbNoiseFigure = 7.0;
-  double ueNoiseFigure = 5.0;
+  double gnbNoiseFigure = 5.0;
+  double ueNoiseFigure = 7.0;
 
   double xMinRem = -2000.0;
   double xMaxRem = 2000.0;
