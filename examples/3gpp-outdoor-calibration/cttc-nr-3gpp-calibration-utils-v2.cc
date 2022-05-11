@@ -100,7 +100,7 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
   // Change the antenna orientation
   Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
   Ptr<UniformPlanarArray> antenna0 =
-    ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy (0)->GetAntennaArray ());
+    ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy (0)->GetAntenna ()->GetObject<UniformPlanarArray>());
   antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
   // configure the beam that points toward the center of hexagonal
@@ -121,12 +121,12 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
   Ptr<NrSpectrumPhy> nrSpectrumPhy;
   phy0->GetAttribute ("NrSpectrumPhyList", gnbSpectrumPhys);
   nrSpectrumPhy = gnbSpectrumPhys.Get (0)->GetObject <NrSpectrumPhy> ();
-  phy0->GetSpectrumPhy (0)->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
+  phy0->GetSpectrumPhy (0)->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
                                                                                                 DoubleValue (gnbFirstSubArray));
   if (gnbSpectrumPhys.GetN () == 2)
     {
       nrSpectrumPhy = gnbSpectrumPhys.Get (1)->GetObject <NrSpectrumPhy> ();
-      nrSpectrumPhy->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
+      nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
                                                                                          DoubleValue (gnbSecondSubArray));
     }
 
@@ -924,7 +924,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
       Ptr<NrSpectrumPhy> nrSpectrumPhy;
       uePhyFirst->GetAttribute ("NrSpectrumPhyList", ueSpectrumPhysFirstBwp);
       nrSpectrumPhy = ueSpectrumPhysFirstBwp.Get (0)->GetObject <NrSpectrumPhy> ();
-      nrSpectrumPhy->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
+      nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
                                                                                          DoubleValue (ueFirstSubArray));
 
       if (ueBearingAngle)
@@ -932,13 +932,13 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           //For each UE throw a uniform random variable btw -180 and 180
           double ueBearingAngleValue = m_uniformUeBearingAngle->GetValue (-180, 180);
           ueBearingAngleValue = (ueBearingAngleValue * M_PI) / 180.0; //convert to radians
-          nrSpectrumPhy->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("BearingAngle",
+          nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("BearingAngle",
                                                                                              DoubleValue (ueBearingAngleValue));
         }
      if (ueSpectrumPhysFirstBwp.GetN () == 2)
       {
         nrSpectrumPhy = ueSpectrumPhysFirstBwp.Get (1)->GetObject <NrSpectrumPhy> ();
-        nrSpectrumPhy->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
+        nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
                                                                                            DoubleValue (ueSecondSubArray));
       }
 
@@ -951,12 +951,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           ObjectVectorValue ueSpectrumPhysSecondBwp;
           uePhySecond->GetAttribute ("NrSpectrumPhyList", ueSpectrumPhysSecondBwp);
           nrSpectrumPhy = ueSpectrumPhysSecondBwp.Get (0)->GetObject <NrSpectrumPhy> ();
-          nrSpectrumPhy->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
+          nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
                                                                                              DoubleValue (ueFirstSubArray));
           if (ueSpectrumPhysSecondBwp.GetN () == 2)
            {
              nrSpectrumPhy = ueSpectrumPhysSecondBwp.Get (1)->GetObject <NrSpectrumPhy> ();
-             nrSpectrumPhy->GetAntennaArray ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
+             nrSpectrumPhy->GetAntenna ()->GetObject<UniformPlanarArray> ()->SetAttribute ("PolSlantAngle",
                                                                                                 DoubleValue (ueSecondSubArray));
            }
         }

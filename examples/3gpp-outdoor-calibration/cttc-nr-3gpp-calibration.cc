@@ -1041,7 +1041,7 @@ Nr3gppCalibration (Parameters &params)
 
       if (params.ulRem)
         {
-          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy (0)->GetAntennaArray ();
+          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy (0)->GetAntenna ()->GetObject<UniformPlanarArray> ();
           auto antenna = ConstCast<UniformPlanarArray> (antArray);
           antenna->SetAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
         }
