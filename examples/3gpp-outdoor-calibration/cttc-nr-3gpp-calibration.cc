@@ -1025,7 +1025,17 @@ Nr3gppCalibration (Parameters &params)
             {
               sectorIndex = sector-1;
               remNd.Add (*remNdBySector[sectorIndex]);
-              remDevice = remDevBySector[sectorIndex]->Get (0);
+
+              uint32_t remUe;
+              if (params.useLastUeForRem)
+                {
+                  remUe = (remDevBySector[sectorIndex]->GetN () - 1);
+                  remDevice = remDevBySector[sectorIndex]->Get (remUe);
+                }
+              else
+                {
+                  remDevice = remDevBySector[sectorIndex]->Get (0);
+                }
             }
         }
 

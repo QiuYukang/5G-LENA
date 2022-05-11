@@ -277,11 +277,15 @@ main (int argc, char *argv[])
   cmd.AddValue ("bfConfElevation",
                 "Beamforming fixed beam elevation value.",
                 params.bfConfElevation);
+  cmd.AddValue ("useLastUeForRem",
+                "If true, last UE will be passed as rrd to REM. This can be useful"
+                "when there are UEs with random antenna heights, so instead of "
+                "passing to REM a UE with random hUT, we pass one with 1.5m.",
+                params.useLastUeForRem);
   cmd.AddValue ("useFixedRi",
                 "If true, UE will use a fixed configured RI value; otherwise, "
                 "it will use an adaptive RI value based on the SINR of the streams",
                 params.useFixedRi);
-
 
 
   // Parse the command line

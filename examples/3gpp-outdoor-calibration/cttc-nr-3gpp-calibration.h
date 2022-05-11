@@ -120,6 +120,7 @@ struct Parameters
   bool dlRem = false;
   bool ulRem = false;
   uint32_t remSector = 0;
+  bool useLastUeForRem = false;
 
   Time progressInterval = Seconds (1);
 
