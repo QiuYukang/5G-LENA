@@ -170,9 +170,9 @@ Parameters::Validate (void) const
                    "Realistic BF should not be enabled in when fading is disabled");
   //NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
   //                 "Shadowing must be disabled fading is disabled mode");
-  NS_ABORT_MSG_IF (bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam" ,
-                   "For bfMethod you can choose among Omni, CellScan and FixedBeam");
-
+  NS_ABORT_MSG_IF (bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam"
+                   && bfMethod != "CellScanAzimuth",
+                   "For bfMethod you can choose among Omni, CellScan, CellScanAzimuth and FixedBeam");
   NS_ABORT_MSG_IF (confType != "customConf" && confType != "calibrationConf",
                    "Unrecognized Configuration type: " << confType);
 
@@ -255,7 +255,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.gnbVSpacing = 0.8;
 
               params.ueEnable3gppElement = false;
-              params.downtiltAngle = 10;
+              params.downtiltAngle = 0;
               params.gnbNoiseFigure = 5;
               params.ueNoiseFigure = 7;
             }
@@ -281,7 +281,7 @@ ChooseCalibrationScenario (Parameters &params)
               params.gnbVSpacing = 0.5;
 
               params.ueEnable3gppElement = true;
-              params.downtiltAngle = 10;
+              params.downtiltAngle = 0;
               params.gnbNoiseFigure = 7;
               params.ueNoiseFigure = 10;
             }
