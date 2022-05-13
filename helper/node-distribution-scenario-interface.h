@@ -98,7 +98,7 @@ public:
    * for the given cellId.
    * The orientation is the azimuth angle of the antenna bore sight.
    * \param cellId Cell Id
-   * \return The antenna orientation in degrees [0°, 360°]
+   * \return The antenna orientation in degrees [0, 360]
    */
   double GetAntennaOrientationDegrees (std::size_t cellId) const;
 
