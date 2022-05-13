@@ -9,10 +9,6 @@
 
 .build-gcc:
   extends: .base-build
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
   before_script:
     - apt-get --quiet update --yes
     - update-alternatives --install /usr/bin/gfortran gfortran /usr/local/bin/gfortran 999
@@ -23,18 +19,30 @@
 # GCC 9
 gcc-9-debug:
   extends: .build-gcc
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $GCC_BUILD_ENABLE == "True"
   image: gcc:9
   variables:
     MODE: debug
 
 gcc-9-release:
   extends: .build-gcc
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $GCC_BUILD_ENABLE == "True"
   image: gcc:9
   variables:
     MODE: release
 
 gcc-9-optimized:
   extends: .build-gcc
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $GCC_BUILD_ENABLE == "True"
   image: gcc:9
   variables:
     MODE: optimized
