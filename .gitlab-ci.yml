@@ -93,9 +93,9 @@ pages:
     - mkdir -p public/
     - git submodule sync --recursive
     - git submodule update --init --recursive
+    - cd doc && make latexpdf
     - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
     - mv doc/doc/html/ public/
-    - cd doc && make latexpdf
     - cd ..
     - mv doc/build/latex/*.pdf public/
   artifacts:
