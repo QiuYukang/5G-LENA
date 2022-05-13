@@ -295,8 +295,7 @@ ReturnDciSlot (const std::vector<LteNrTddSlotType> &pattern, uint32_t pos, uint3
 /**
  * \brief Generates the map tosendDl/Ul that holds the information of the DCI Slot and the
  * corresponding k0/k2 value, and the generateDl/Ul that includes the L1L2CtrlLatency.
- * \param pattern The TDD pattern
- * \param pattern The pattern to analyze
+ * \param pattern The TDD pattern, the pattern to analyze
  * \param toSend The structure toSendDl/tosendUl to fill
  * \param generate The structure generateDl/generateUl to fill
  * \param pos The position inside the pattern for which we want to check where the DCI should be sent

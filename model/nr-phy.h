@@ -404,7 +404,7 @@ public:
    * \brief Set power allocation type. There are currently supported two types:
    * one that distributes uniformly energy among all bandwidth (all RBs),
    * and another only over used or active RBs
-   * \param powerAlocationType a type of power allocation to be used
+   * \param powerAllocationType a type of power allocation to be used
    */
   void SetPowerAllocationType (enum NrSpectrumValueHelper::PowerAllocationType powerAllocationType);
 

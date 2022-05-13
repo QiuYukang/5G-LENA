@@ -52,8 +52,8 @@ public:
    *  if there is only the beamId2
    *  BeamConfig (BeamId::GetEmptyBeamId(), beamId2 )
    *
-   * \param sector species the sector of the beam
-   * \param elevation specifies the elevation of the beam
+   * \param firstBeam the first beam
+   * \param secondBeam the second beam
    */
   BeamConfId (BeamId firstBeam, BeamId secondBeam);
 
@@ -74,14 +74,12 @@ public:
   /**
    * \brief Extract the sector from the beam id
    * \return The sector of the beam
-   * \param b beam
    */
   BeamId GetFirstBeam () const;
 
   /**
    * \brief Extract the elevation from the beam id
    * \return the elevation of the beam
-   * \param b the beam
    */
   BeamId GetSecondBeam () const;
 

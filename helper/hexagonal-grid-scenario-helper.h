@@ -84,8 +84,6 @@ public:
    * \brief Returns the cell center coordinates
    * \param sitePos Site position coordinates
    * \param cellId Cell Id
-   * \param numSecors The number of sectors of a site
-   * \param hexagonRadius Radius of the hexagonal cell
    */
   Vector GetHexagonalCellCenter (const Vector &sitePos,
                                  uint16_t cellId) const;

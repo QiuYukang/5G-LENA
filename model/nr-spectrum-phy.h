@@ -301,13 +301,13 @@ public:
     * \brief SpectrumPhy that will be called when the SINR for the received
     * SRS at gNB is being calculated by the interference object over SRS chunk
     * processor
-    * \param sinr the resulting SRS SINR spectrum value
+    * \param srsSinr the resulting SRS SINR spectrum value
     */
   void UpdateSrsSinrPerceived (const SpectrumValue& srsSinr);
    /**
      * \brief SpectrumPhy that will be called when the SNR for the received
      * SRS at gNB is being calculated
-     * \param snr the resulting SRS SNR
+     * \param srsSnr the resulting SRS SNR
      */
   void UpdateSrsSnrPerceived (const double srsSnr);
   /**

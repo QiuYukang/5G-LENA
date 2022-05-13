@@ -454,7 +454,7 @@ public:
 
   /**
    * \brief Set the notched (blank) RBGs Mask for the DL
-   * \param notchedRbgsMask The mask of notched RBGs
+   * \param dlNotchedRbgsMask The mask of notched RBGs
    */
   void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
 
@@ -466,7 +466,7 @@ public:
 
   /**
    * \brief Set the notched (blank) RBGs Mask for the UL
-   * \param notchedRbgsMask The mask of notched RBGs
+   * \param ulNotchedRbgsMask The mask of notched RBGs
    */
   void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
 

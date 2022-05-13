@@ -192,18 +192,17 @@ public:
      const uint8_t bwpId, Ptr<NrControlMessage> ctrlMessage);
 
   /**
-   * \brief Sets the number of HARQ processes
-   * \param numHarqProcesses the maximum number of harq processes
-   *
+   * \brief Sets the number of HARQ processes.
    * Called by the helper at the moment of UE attachment
+   * \param numHarqProcesses the maximum number of harq processes
    */
   void SetNumHarqProcess (uint8_t numHarqProcesses);
 
   /**
-   * \return number of HARQ processes
-   *
-   * Please remember that this number is obtained by the GNB, the UE
+   * \brief Please remember that this number is obtained by the GNB, the UE
    * cannot configure it.
+   *
+   * \return number of HARQ processes
    */
   uint8_t GetNumHarqProcess () const;
 

@@ -124,14 +124,9 @@ public:
   /**
    * Trace sink for the ns3::NrGnbMac::UlScheduling trace source
    *
-   * \param macStats
-   * \param path
-   * \param frameNo
-   * \param subframeNo
-   * \param rnti
-   * \param mcs
-   * \param size
-   * \param componentCarrierId
+   * \param macStats the pointer to the MAC stats
+   * \param path the trace source path
+   * \param traceInfo - all the traces information in a single structure
    */
   static void UlSchedulingCallback (Ptr<NrMacSchedulingStats> macStats, std::string path, NrSchedulingCallbackInfo traceInfo);
 

@@ -36,7 +36,10 @@ namespace {
  * radius must be given in meters
  *
  * \param sitePositioner Site position allocator
- * \param utPosVector Vector of user terminals positions
+ * \param utPositioner Vector of user terminals positions
+ * \param numSectors the plot deployment sector parameter
+ * \param maxRadius the plot deployment max radius
+ * \param effIsd the plot deployment ISD
  */
 static void
 PlotDeployment (const Ptr<const ListPositionAllocator> &sitePositioner,

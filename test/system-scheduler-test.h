@@ -53,7 +53,7 @@ public:
    * \param beamsNum Into how many beams of gNB will be distributed UEs attached to it. The maximum for this test case is 4.
    * \param numerology The numerology to be used in the simulation
    * \param bw1 The system bandwidth
-   * \param isDownlnk Is the downlink traffic going to be present in the test case
+   * \param isDownlink Is the downlink traffic going to be present in the test case
    * \param isUplink Is the uplink traffic going to be present in the test case
    * \param schedulerType Which scheduler is going to be used in the test case Ofdma/Tdma" and the scheduling logic RR, PF, of MR
    */

@@ -72,14 +72,12 @@ public:
   /**
    * \brief Extract the sector from the beam id
    * \return The sector of the beam
-   * \param b beam
    */
   uint16_t GetSector () const;
 
   /**
    * \brief Extract the elevation from the beam id
    * \return the elevation of the beam
-   * \param b the beam
    */
   double GetElevation () const;
 

@@ -32,11 +32,11 @@
  * The user can also specify the type of REM map (BeamShape/CoverageArea/UeCoverage)
  * he wishes to generate with some of the following commands:
  * \code{.unparsed}
-   $ ./ns3 run "rem-example --simTag=d --remMode=CoverageArea"
-   $ ./ns3 run "rem-example --simTag=u --remMode=UeCoverage"
-   $ ./ns3 run "rem-example --simTag=b1 --remMode=BeamShape --typeOfRem=DlRem"
-   $ ./ns3 run "rem-example --simTag=b2 --remMode=BeamShape --typeOfRem=UlRem"
-   \endcode
+ *  $ ./ns3 run "rem-example --simTag=d --remMode=CoverageArea"
+ *  $ ./ns3 run "rem-example --simTag=u --remMode=UeCoverage"
+ *  $ ./ns3 run "rem-example --simTag=b1 --remMode=BeamShape --typeOfRem=DlRem"
+ *  $ ./ns3 run "rem-example --simTag=b2 --remMode=BeamShape --typeOfRem=UlRem"
+ * \endcode
  *
  * DL or UL REM map can be selected by passing to the rem helper the desired
  * transmitting device(s) (RTD(s)) and receiving device (RRD), which for the DL
@@ -49,14 +49,14 @@
  * The output of this example are REM csv files from which can be generated REM
  * figures with the following command:
  * \code{.unparsed}
-   $ gnuplot -p nr-rem-{simTag}-gnbs.txt nr-rem-{simTag}-ues.txt nr-rem-{simTag}-buildings.txt nr-rem-{simTag}-plot-rem.gnuplot
-   \endcode
+ * $ gnuplot -p nr-rem-{simTag}-gnbs.txt nr-rem-{simTag}-ues.txt nr-rem-{simTag}-buildings.txt nr-rem-{simTag}-plot-rem.gnuplot
+ * \endcode
  *
  * If no simTag is specified then to plot run the following command:
  *
  * \code{.unparsed}
-   $ gnuplot -p nr-rem--gnbs.txt nr-rem--ues.txt nr-rem--buildings.txt nr-rem--plot-rem.gnuplot
-   \endcode
+ * $ gnuplot -p nr-rem--gnbs.txt nr-rem--ues.txt nr-rem--buildings.txt nr-rem--plot-rem.gnuplot
+ * \endcode
  *
  * And the following files will be generated (in the root project folder if not specified
  * differently): nr-rem--sinr.png, nr-rem--snr.png and nr-rem--ipsd.png

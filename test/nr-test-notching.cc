@@ -268,7 +268,6 @@ public:
    * \param schedulerType The type of the scheduler to be tested
    * \param numOfUesPerBeam The number of UEs per beam to be tested
    * \param beamsNum The number beams to be tested
-   * \param numerology The numerology to be tested
    */
   NrNotchingTestCase (const std::string &name, const std::vector<uint8_t> &mask,
                       const std::string &schedulerType,

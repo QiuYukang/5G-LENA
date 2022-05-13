@@ -146,6 +146,7 @@ public:
     * flexible K1 timing that is measured in slots. For UE Capability 1,
     * it can take 1 or 2 slots. For UE Capability 2, it is not
     * larger than 1 slot.
+    * \param delay the N1 delay
     */
    void SetN1Delay (uint32_t delay);
 
@@ -160,6 +161,7 @@ public:
     * flexible K2 timing that is measured in slots. For UE Capability 1,
     * it can take 1, 2 or 3 slots. For UE Capability 2, it is not
     * larger than 1 slot.
+    * \param delay the N2 delay
     */
    void SetN2Delay (uint32_t delay);
 

@@ -119,7 +119,7 @@ protected:
    * \brief Update DL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFDlMetric
    * \param ue UE to update (ue that didn't get any resources)
    * \param notAssigned the amount of resources not assigned
-   * \param totAssigned the total amount of resources assigned in the slot
+   * \param totalAssigned the total amount of resources assigned in the slot
    *
    * Even if the UE did not get any resource assigned, change its current throughput
    * over the total number of symbols assigned.
@@ -155,7 +155,7 @@ protected:
    * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
    * \param ue UE to update (ue that didn't get any resources)
    * \param notAssigned the amount of resources not assigned
-   * \param totAssigned the total amount of resources assigned in the slot
+   * \param totalAssigned the total amount of resources assigned in the slot
    *
    * Even if the UE did not get any resource assigned, change its current throughput
    * over the total number of symbols assigned.

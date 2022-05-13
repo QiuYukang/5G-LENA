@@ -134,7 +134,7 @@ public:
 
   /**
    * \brief Set the type of REM Map to be generated
-   * \param the desired type (BeamShape/CoverageArea/UeCoverage)
+   * \param remType the desired type (BeamShape/CoverageArea/UeCoverage)
    */
   void SetRemMode (enum RemMode remType);
 
@@ -258,7 +258,7 @@ public:
 
   /**
    * \brief Convert from dB to ratio.
-   * \param db the value in dB
+   * \param dB the value in dB
    * \return ratio in linear scale
    */
   double DbToRatio (double dB) const;

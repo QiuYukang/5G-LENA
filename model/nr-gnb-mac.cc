@@ -476,10 +476,6 @@ NrGnbMac::GetNumRbPerRbg (void) const
   return m_numRbPerRbg;
 }
 
-/**
- * \brief Sets the number of HARQ processes
- * \param numHarqProcesses the maximum number of harq processes
- */
 void
 NrGnbMac::SetNumHarqProcess (uint8_t numHarqProcess)
 {
