@@ -48,35 +48,35 @@ stages:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
 
 # Defines the per-commit jobs. They are executed for any branch
-gcc-debug:
-  extends: .base-build
-  image: archlinux
-  variables:
-    COMPILER: g++
-    MODE: debug
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+#gcc-debug:
+#  extends: .base-build
+#  image: archlinux
+#  variables:
+#    COMPILER: g++
+#    MODE: debug
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-gcc-release:
-  extends: .base-build
-  image: archlinux
-  variables:
-    COMPILER: g++
-    MODE: release
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+#gcc-release:
+#  extends: .base-build
+#  image: archlinux
+#  variables:
+#    COMPILER: g++
+#    MODE: release
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-gcc-optimized:
-  extends: .base-build
-  image: archlinux
-  variables:
-    COMPILER: g++
-    MODE: optimized
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+#gcc-optimized:
+#  extends: .base-build
+#  image: archlinux
+#  variables:
+#    COMPILER: g++
+#    MODE: optimized
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
 pages:
   stage: build
