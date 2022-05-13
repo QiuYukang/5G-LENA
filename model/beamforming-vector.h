@@ -79,8 +79,8 @@ complexVector_t CreateDirectionalBfvAz (const Ptr<const UniformPlanarArray>& ant
  * a for transmission toward device with a mobility model b, by using antenna aAntenna.
  * \param [in] a mobility model of the first device
  * \param [in] b mobility model of the second device
- * \param [in] aAntenna antenaArray of the first device
- * \param [out] bfv resulting beamforming vector for antenna array for the first device
+ * \param [in] antenna antenaArray of the first device
+ * \return the resulting beamforming vector for antenna array for the first device
  */
 complexVector_t CreateDirectPathBfv(const Ptr<MobilityModel>& a,
                                     const Ptr<MobilityModel>& b,

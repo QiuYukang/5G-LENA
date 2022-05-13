@@ -164,7 +164,7 @@ RealisticBeamformingAlgorithm::NotifySrsSnrReport (uint16_t cellId, uint16_t rnt
 }
 
 void
-RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsSinr)
+RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, double srsReport)
 {
   NS_LOG_FUNCTION (this);
   NS_ABORT_MSG_UNLESS (m_ueDevice && m_gnbDevice, "Function install must be called to install gNB and UE pair, and set ccId.");
@@ -180,7 +180,7 @@ RealisticBeamformingAlgorithm::NotifySrsReport (uint16_t cellId, uint16_t rnti, 
   m_srsSymbolsCounter++;
 
   // update max SRS SINR/SNR, i.e., reset when m_srsSymbolsCounter == 1, otherwise do max
-  m_maxSrsSinrPerSlot = (m_srsSymbolsCounter > 1) ? std::max(srsSinr, m_maxSrsSinrPerSlot):srsSinr;
+  m_maxSrsSinrPerSlot = (m_srsSymbolsCounter > 1) ? std::max(srsReport, m_maxSrsSinrPerSlot):srsReport;
 
   // if we reached the last SRS symbol, check whether some event should be triggered
   if (m_srsSymbolsCounter == GetSrsSymbolsPerSlot ())
