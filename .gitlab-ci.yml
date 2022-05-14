@@ -91,13 +91,13 @@ pages:
   image: ubuntu
   script:
     - mkdir -p public/
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
     - cd doc && make latexpdf
     - cd ..
+    - mv doc/build/latex/*.pdf public/
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
     - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
     - mv doc/doc/html/ public/
-    - mv doc/build/latex/*.pdf public/
   artifacts:
     paths:
       - public
