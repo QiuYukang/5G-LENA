@@ -94,10 +94,10 @@ pages:
     - cd doc && make latexpdf
     - cd ..
     - mv doc/build/latex/*.pdf public/
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
-    - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
-    - mv doc/doc/html/ public/
+#    - git submodule sync --recursive
+#    - git submodule update --init --recursive
+#    - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
+#    - mv doc/doc/html/ public/
   artifacts:
     paths:
       - public
