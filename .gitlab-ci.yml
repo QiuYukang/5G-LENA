@@ -96,14 +96,56 @@ pages:
     - mv doc/build/latex/*.pdf public/
 #    - git submodule sync --recursive
 #    - git submodule update --init --recursive
-#    - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
+#    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
 #    - mv doc/doc/html/ public/
   artifacts:
     paths:
       - public
-  only:
-    - master
+    
+#doxygen-linux:
+#  stage: build
+#  tags:
+#    - cttc
+#  image: archlinux
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel ninja cmake python ccache gsl gtk3 boost --noconfirm
+#    - pacman -Sy git doxygen graphviz imagemagick dia texlive-core texlive-bin texlive-latexextra python-sphinx --noconfirm
+#    - mv /etc/ImageMagick-7/policy.xml /etc/ImageMagick-7/policy.xml.bak
+#  script:
+#    - mkdir -p public/
+#    - git submodule sync --recursive
+#    - git submodule update --init --recursive
+#    - doxygen --version
+#    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+#    - mv doc/doc/html/ public/
+#  artifacts:
+#    paths:
+#      - public
 
+doxygen-ubuntu:
+  stage: build
+  tags:
+    - cttc
+  before_script:
+    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+    - apt-get install -y doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments texlive-fonts-extra git
+    - sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
+    - sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
+  image: ubuntu
+  script:
+    - mkdir -p public/
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
+    - doxygen --version
+    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+    - mv doc/doc/html/ public/
+  artifacts:
+    paths:
+      - public
+ 
+ 
 include:
   - '.gitlab-ci-clang.yml'
   - '.gitlab-ci-gcc.yml'
