@@ -173,7 +173,7 @@ can find the list of packages for any Ubuntu-based distribution in the file
 To build the doxygen documentation, please do:
 
 ```
-$ python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
+$ python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
 ```
 
 And then you will find the doxygen documentation inside `doc/doc/html/`.
