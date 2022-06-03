@@ -19,5 +19,5 @@ add_function_parentheses = True
 project = u'NR Module'
 copyright = u'2022'
 
-version = '2.1'
-release = '2.1'
+version = '2.2'
+release = '2.2'
