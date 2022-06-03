@@ -45,6 +45,25 @@ us a note on ns-developers mailing list.
 ---
 
 
+## Changes from NR-v2.1 to v2.2
+
+This release contains only the upgrade of the supported ns-3 release, 
+i.e., upgrade from ns-3.36 to ns-3.36.1.
+
+### New API:
+
+None.
+
+### Changes to existing API:
+
+None.
+
+### Changed behavior:
+
+None.
+
+---
+
 ## Changes from NR-v2.0 to v2.1
 
 ### New API:

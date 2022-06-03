@@ -10,6 +10,55 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+
+Release NR-v2.2
+----------------
+
+Availability
+------------
+Available since June 03, 2022
+
+Supported platforms
+-------------------
+The supported platforms are the same as for the NR-v2.1 release, except that 
+the recommended ns-3 release is ns-3.36.1.
+
+Important news
+--------------
+This module can be updated with the usual
+
+```
+$ git pull
+```
+
+command.
+
+Remember to follow the instructions from the README.md file, i.e., to checkout 
+the correct release branch of both, ns-3 and the NR module. E.g., the NR module 
+Release 2.1 is compatible with the ns-3.36 release branch, while the NR module 
+Release 2.2 is compatible with the ns-3.36.1 release branch.
+
+The information about compatibility with the corresponding ns-3 release branch 
+is stated in this (RELEASE_NOTES.md) document in the "Supported platforms" 
+section for each NR release (starting from the NR Release 1.3).
+
+New user-visible features (old first)
+-------------------------
+
+None.
+
+Bugs fixed
+----------
+
+None.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+
 Release NR-v2.1
 ---------------
 
