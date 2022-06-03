@@ -252,7 +252,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   std::cout << "  statistics\n";
-  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
+  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db");
   SinrOutputStats sinrStats;
   PowerOutputStats ueTxPowerStats;
   PowerOutputStats gnbRxPowerStats;
