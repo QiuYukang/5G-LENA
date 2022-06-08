@@ -226,7 +226,7 @@ NrUePowerControl::SetRsrp (double value)
   m_rsrp = (1 - alphaRsrp) * m_rsrp + alphaRsrp * value;
   m_pathLoss = m_referenceSignalPower - m_rsrp;
   NS_LOG_INFO ("Pathloss updated to: " << m_pathLoss <<
-               " , rsrp updated to:" << m_rsrp << 
+               " , rsrp updated to:" << m_rsrp <<
                " for cellId/rnti: " << m_cellId << "," << m_rnti);
 }
 

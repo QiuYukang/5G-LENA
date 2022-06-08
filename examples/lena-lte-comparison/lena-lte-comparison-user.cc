@@ -153,11 +153,11 @@ main (int argc, char *argv[])
   // Parse the command line
   cmd.Parse (argc, argv);
   params.Validate ();
-  
+
   std::cout << params;
 
   ShowProgress spinner (params.progressInterval);
-  
+
   LenaLteComparison (params);
 
   return 0;

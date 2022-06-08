@@ -139,7 +139,7 @@ public:
   uint16_t GetCellIndex (std::size_t ueId) const;
 
 protected:
-  
+
   std::size_t m_numSites; //!< Number of sites with base stations
   std::size_t m_numBs; //!< Number of base stations to create
   std::size_t m_numUt; //!< Number of user terminals to create

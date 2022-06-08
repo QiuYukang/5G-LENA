@@ -92,7 +92,7 @@ public:
    * return the total number of bytes that have been sent
    */
   uint32_t GetTotalBytes (void) const;
- 
+
   /**
    * \brief Send another file
    *

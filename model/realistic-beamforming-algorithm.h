@@ -278,7 +278,7 @@ private:
    * \brief Parameters needed to pass to helper once that the helpers callback functions is being called
    */
   Ptr<NrGnbNetDevice> m_gnbDevice; //!< pointer to gNB device
-  Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device 
+  Ptr<NrUeNetDevice> m_ueDevice;  //!< pointer to UE device
   Ptr<NrSpectrumPhy> m_gnbSpectrumPhy; //!< pointer to gNB spectrum phy
   Ptr<NrSpectrumPhy> m_ueSpectrumPhy;  //!< pointer to UE spectrum phy
   Ptr<NrMacScheduler> m_scheduler; //!< pointer to gNB MAC scheduler

@@ -67,7 +67,7 @@ namespace
   std::string commentStart;        ///< start of code comment
   std::string commentStop;         ///< end of code comment
   std::string copyDoc;             ///< copy (or refer) to docs elsewhere
-  std::string file;                ///< file 
+  std::string file;                ///< file
   std::string flagSpanStart;       ///< start of Attribute flag value
   std::string flagSpanStop;        ///< end of Attribute flag value
   std::string functionStart;       ///< start of a method/function
@@ -273,11 +273,11 @@ private:
    * before returning it.
    */
   mutable std::vector<std::string> m_noTids;
-  
+
 };  // class StaticInformation
 
 
-void 
+void
 StaticInformation::RecordAggregationInfo (std::string a, std::string b)
 {
   NS_LOG_FUNCTION (this << a << b);
@@ -300,7 +300,7 @@ StaticInformation::RecordAggregationInfo (std::string a, std::string b)
 }
 
 
-void 
+void
 StaticInformation::Print (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -347,7 +347,7 @@ StaticInformation::HasAlreadyBeenProcessed (TypeId tid) const
 }
 
 
-std::vector<std::string> 
+std::vector<std::string>
 StaticInformation::Get (TypeId tid) const
 {
   NS_LOG_FUNCTION (this << tid);
@@ -403,7 +403,7 @@ StaticInformation::Gather (TypeId tid)
 }
 
 
-void 
+void
 StaticInformation::DoGather (TypeId tid)
 {
   NS_LOG_FUNCTION (this << tid);
@@ -483,7 +483,7 @@ StaticInformation::DoGather (TypeId tid)
           m_alreadyProcessed.push_back (tid);
           DoGather (other);
           m_alreadyProcessed.pop_back ();
-          m_currentPath.pop_back ();	  
+          m_currentPath.pop_back ();
         }
     }
 }  // StaticInformation::DoGather ()
@@ -579,7 +579,7 @@ GetNameMap (void)
 
   // Short circuit next call
   mapped = true;
-  
+
   // Get typical aggregation relationships.
   // StaticInformation info = GetTypicalAggregations ();
 
@@ -636,12 +636,12 @@ GetNameMap (void)
 	{
 	  continue;
 	}
-      
+
       // Capitalize all of letters in the name so that it sorts
       // correctly in the map.
       std::string name = tid.GetName ();
       std::transform (name.begin (), name.end (), name.begin (), ::toupper);
-      
+
       // Save this name's index.
       for (uint32_t i = 0; i < TypeId::GetRegisteredN (); i++)
         {
@@ -696,14 +696,14 @@ PrintConfigPaths (std::ostream & os, const TypeId tid)
 	{
 	  os << listLineStart
 	     <<   "`" << path << "`"
-	     <<  listLineStop 
+	     <<  listLineStop
 	     << breakTextOnly
 	     << std::endl;
 	}
       os << listStop << std::endl;
     }
 }  // PrintConfigPaths ()
-      
+
 
 /**
  * Print direct Attributes for this TypeId.
@@ -738,14 +738,14 @@ PrintAttributesTid (std::ostream &os, const TypeId tid)
 	  os << "    "
 	     << listLineStart
 	     <<   "Underlying type: ";
-          
+
           std::string valType = info.checker->GetValueTypeName ();
           std::string underType = info.checker->GetUnderlyingTypeInformation ();
 	  if ((valType   != "ns3::EnumValue") && (underType != "std::string"))
 	    {
 	      // Indirect cases to handle
 	      bool handled = false;
-              
+
 	      if (valType == "ns3::PointerValue")
 		{
 		  const PointerChecker *ptrChecker =
@@ -785,7 +785,7 @@ PrintAttributesTid (std::ostream &os, const TypeId tid)
                 std::string m_string;
               };
               StringBeginMatcher match (underType);
-                  
+
               if ( match ("bool")     || match ("double")   ||
                    match ("int8_t")   || match ("uint8_t")  ||
                    match ("int16_t")  || match ("uint16_t") ||
@@ -829,7 +829,7 @@ PrintAttributesTid (std::ostream &os, const TypeId tid)
       os << "  "
 	 << listStop
 	 << " " << std::endl;
-      
+
     }
   os << listStop << std::endl;
 }  // PrintAttributesTid ()
@@ -903,7 +903,7 @@ PrintTraceSourcesTid (std::ostream & os, const TypeId tid)
 	 <<   boldStart << info.name << boldStop << ": "
 	 <<   info.help << breakBoth
 	//    '%' prevents doxygen from linking to the Callback class...
-	 <<   "%Callback signature: " 
+	 <<   "%Callback signature: "
 	 <<   info.callback
 	 <<   std::endl;
       os << listLineStop << std::endl;
@@ -967,9 +967,9 @@ void PrintSize (std::ostream & os, const TypeId tid)
 {
   NS_LOG_FUNCTION (tid);
   NS_ASSERT_MSG (CHAR_BIT != 0, "CHAR_BIT is zero");
-  
+
   std::size_t arch = (sizeof (void *) * CHAR_BIT);
-  
+
   os << boldStart << "Size" << boldStop
      << " of this type is " << tid.GetSize ()
      << " bytes (on a " << arch << "-bit architecture)."
@@ -1001,9 +1001,9 @@ PrintTypeIdBlocks (std::ostream & os)
       // Get the class's index out of the map;
       TypeId tid = TypeId::GetRegistered (item.second);
       std::string name = tid.GetName ();
-      
+
       std::cout << commentStart << std::endl;
-      
+
       std::cout << classStart << name << std::endl;
       std::cout << std::endl;
 
@@ -1011,7 +1011,7 @@ PrintTypeIdBlocks (std::ostream & os)
       PrintAttributes (std::cout, tid);
       PrintTraceSources (std::cout, tid);
       PrintSize (std::cout, tid);
-      
+
       std::cout << commentStop << std::endl;
     }  // for class documentation
 
@@ -1040,7 +1040,7 @@ PrintAllTypeIds (std::ostream & os)
      << std::endl;
 
   os << listStart << std::endl;
-  
+
   NameMap nameMap = GetNameMap ();
   // Iterate over the map, which will print the class names in
   // alphabetical order.
@@ -1053,7 +1053,7 @@ PrintAllTypeIds (std::ostream & os)
         }
       // Get the class's index out of the map;
       TypeId tid = TypeId::GetRegistered (item.second);
-      
+
       os << indentHtmlOnly
 	 <<   listLineStart
          <<     boldStart
@@ -1061,7 +1061,7 @@ PrintAllTypeIds (std::ostream & os)
          <<     boldStop
 	 <<   listLineStop
 	 << std::endl;
-      
+
     }
   os << commentStop << std::endl;
 
@@ -1100,14 +1100,14 @@ PrintAllAttributes (std::ostream & os)
         }
       // Get the class's index out of the map;
       TypeId tid = TypeId::GetRegistered (item.second);
-      
+
       if (tid.GetAttributeN () == 0 )
 	{
 	  continue;
 	}
       os << boldStart << tid.GetName () << boldStop << breakHtmlOnly
 	 << std::endl;
-      
+
       os << listStart << std::endl;
       for (uint32_t j = 0; j < tid.GetAttributeN (); ++j)
 	{
@@ -1138,7 +1138,7 @@ PrintAllGlobals (std::ostream & os)
      << std::endl;
   os << "This is a list of all" << reference << "ns3::GlobalValue instances.\n"
      << std::endl;
-  
+
   os << listStart << std::endl;
   for (GlobalValue::Iterator i = GlobalValue::Begin ();
        i != GlobalValue::End ();
@@ -1204,7 +1204,7 @@ PrintAllLogComponents (std::ostream & os)
      << std::setw (widthR) << std::left << "File " << std::endl;
   os << ":" << std::string (widthL - 1, '-') << sep
      << ":" << std::string (widthR - 1, '-') << std::endl;
-  
+
   LogComponent::ComponentList::const_iterator it;
   for (auto it : (*logs))
     {
@@ -1215,7 +1215,7 @@ PrintAllLogComponents (std::ostream & os)
         {
           file = file.substr (3);
         }
-      
+
       os << std::setw (widthL) << std::left << it.first << sep << file << std::endl;
     }
   os << std::right << std::endl;
@@ -1263,12 +1263,12 @@ PrintAllTraceSources (std::ostream & os)
 	}
       os << boldStart << tid.GetName () << boldStop  << breakHtmlOnly
 	 << std::endl;
-      
+
       os << listStart << std::endl;
       for (uint32_t j = 0; j < tid.GetTraceSourceN (); ++j)
 	{
 	  struct TypeId::TraceSourceInformation info = tid.GetTraceSource(j);
-	  os << listLineStart 
+	  os << listLineStart
 	     <<   boldStart << info.name << boldStop
 	     <<   ": "      << info.help
 	     << listLineStop
@@ -1348,12 +1348,12 @@ PrintAttributeValueWithName (std::ostream & os,
 {
   NS_LOG_FUNCTION (name << type << header);
   std::string sectAttr = sectionStart + "attribute_" + name;
-  
+
   // \ingroup attribute_<name>Value
   // \class ns3::<name>Value "header"
   std::string valClass  = name + "Value";
   std::string qualClass = " ns3::" + valClass;
-  
+
   os << commentStart << sectAttr << std::endl;
   os <<   classStart << qualClass << " \"" << header << "\"" << std::endl;
   os <<   "AttributeValue implementation for " << name << "." << std::endl;
@@ -1411,11 +1411,11 @@ PrintAttributeValueWithName (std::ostream & os,
   // <name>Value::m_value
   os << commentStart
      <<   variable << type
-     <<     qualClass << "::m_value\n" 
+     <<     qualClass << "::m_value\n"
      <<   "The stored " << name << " instance.\n"
      << commentStop
      << std::endl;
-  
+
 }  // PrintAttributeValueWithName ()
 
 
@@ -1433,7 +1433,7 @@ PrintMakeAccessors (std::ostream & os, const std::string & name)
   NS_LOG_FUNCTION (name);
   std::string sectAttr = sectionStart + "attribute_" + name + "\n";
   std::string make = "ns3::Make" + name + "Accessor ";
-  
+
   // \ingroup attribute_<name>Value
   // Make<name>Accessor (T1 a1)
   os << commentStart << sectAttr
@@ -1480,7 +1480,7 @@ PrintMakeChecker (std::ostream & os,
   os <<   "AttributeChecker implementation for " << name << "Value." << std::endl;
   os <<   seeAlso << "AttributeChecker" << std::endl;
   os << commentStop;
-    
+
   // \ingroup attribute_<name>Value
   // Make<name>Checker (void)
   os << commentStart << sectAttr
@@ -1573,7 +1573,7 @@ PrintAttributeImplementations (std::ostream & os)
       { "HtOperation",    "HtOperation",    true,  "ht-operation.h"  },
       { "Waypoint",       "Waypoint",       true,  "waypoint.h"         },
       { "WifiMode",       "WifiMode",       true,  "wifi-mode.h"        },
-      
+
       // All three (Value, Access and Checkers) defined, but custom
       { "Boolean",        "Boolean",        false, "boolean.h"          },
       { "Callback",       "Callback",       true,  "callback.h"         },
@@ -1611,7 +1611,7 @@ PrintAttributeImplementations (std::ostream & os)
   PrintAttributeValueSection  (os, "ObjectMap", false);
   PrintMakeAccessors          (os, "ObjectMap");
   PrintMakeChecker            (os, "ObjectMap", "object-map.h");
-  
+
 }  // PrintAttributeImplementations ()
 
 
@@ -1629,7 +1629,7 @@ int main (int argc, char *argv[])
 	     "trace sources, attributes and global variables.");
   cmd.AddValue ("output-text", "format output as plain text", outputText);
   cmd.Parse (argc, argv);
-    
+
   SetMarkup (outputText);
 
 
@@ -1661,7 +1661,7 @@ int main (int argc, char *argv[])
             << std::endl;
 
   PrintTypeIdBlocks (std::cout);
-  
+
   PrintAllTypeIds (std::cout);
   PrintAllAttributes (std::cout);
   PrintAllGlobals (std::cout);

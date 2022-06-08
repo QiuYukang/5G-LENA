@@ -139,7 +139,7 @@ NrSpectrumPhy::GetTypeId (void)
                     MakeTypeIdAccessor (&NrSpectrumPhy::SetErrorModelType),
                     MakeTypeIdChecker ())
     .AddAttribute ("UnlicensedMode",
-                   "Activate/Deactivate unlicensed mode in which energy detection is performed" 
+                   "Activate/Deactivate unlicensed mode in which energy detection is performed"
                    " and PHY state machine has an additional state CCA_BUSY.",
                     BooleanValue (false),
                     MakeBooleanAccessor (&NrSpectrumPhy::SetUnlicensedMode),
@@ -596,7 +596,7 @@ NrSpectrumPhy::StartTxUlControlFrames (const std::list<Ptr<NrControlMessage> > &
     case RX_DATA:
       /* no break */
     case RX_DL_CTRL:
-      /* no break */ 
+      /* no break */
     case RX_UL_CTRL:
       /* no break */
     case RX_UL_SRS:

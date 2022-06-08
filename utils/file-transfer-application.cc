@@ -43,7 +43,7 @@ FileTransferApplication::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::FileTransferApplication")
     .SetParent<Application> ()
-    .SetGroupName("Applications") 
+    .SetGroupName("Applications")
     .AddConstructor<FileTransferApplication> ()
     .AddAttribute ("SendSize", "The number of bytes to write per socket send",
                    UintegerValue (512),

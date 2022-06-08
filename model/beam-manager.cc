@@ -127,7 +127,7 @@ BeamManager::ChangeBeamformingVector (const Ptr<const NetDevice>& device)
     {
       NS_LOG_INFO ("Could not find the beamforming vector for the provided device");
 
-      // if there is no beam defined for this specific device then use a 
+      // if there is no beam defined for this specific device then use a
       // predefined beam if specified and if not, then use quasi omni
       if (m_predefinedDirTxRxW.first.size() != 0)
         {

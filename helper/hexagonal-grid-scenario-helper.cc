@@ -260,7 +260,7 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter (const Vector &sitePos,
           center.x += m_hexagonalRadius * std::sqrt (0.75);
           center.y += m_hexagonalRadius / 2;
           break;
-          
+
         case 1:
           center.x -= m_hexagonalRadius * std::sqrt (0.75);
           center.y += m_hexagonalRadius / 2;
@@ -288,7 +288,7 @@ void
 HexagonalGridScenarioHelper::CreateScenario ()
 {
   m_hexagonalRadius = m_isd / 3;
-  
+
   m_bs.Create (m_numBs);
   m_ut.Create (m_numUt);
 
@@ -352,7 +352,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
   m_theta->SetAttribute ("Max", DoubleValue (M_PI));
 
   // UT position
-  
+
   for (uint32_t utId = 0; utId < m_ut.GetN(); ++utId)
     {
       double d = std::sqrt (m_r->GetValue ());
@@ -363,7 +363,7 @@ HexagonalGridScenarioHelper::CreateScenario ()
       utPos.x += d * cos (t);
       utPos.y += d * sin (t);
       utPos.z = m_utHeight;
-      
+
       utPosVector->Add (utPos);
     }
 

@@ -92,9 +92,9 @@ compiler errors: but we are sure you can fix them.
 1. Reduce compile times;
 2. Break cyclic references when two definitions both uses each other.
 
-Note that the files from the local folder are included by using "", 
-while the files from the other folders are included with <>, 
-i.e., files that are included with "ns3/" prefix. E.g.,: 
+Note that the files from the local folder are included by using "",
+while the files from the other folders are included with <>,
+i.e., files that are included with "ns3/" prefix. E.g.,:
 
 ```
 #include <ns3/log.h> // inclusion of a header from another folder
@@ -266,12 +266,12 @@ caused other part of the code to fail. This script can be run from the
 ./test.py
 ```
 
-Please note that if your branch contains some newly added examples, 
-these examples should be added to the list of examples in 
-"nr/test/examples-to-run.py" script. 
-If an example has very different modes of executions, 
-it is recommended to provide different configurations that would configure 
-the example for these different cases. See, for example, configurations for 
+Please note that if your branch contains some newly added examples,
+these examples should be added to the list of examples in
+"nr/test/examples-to-run.py" script.
+If an example has very different modes of executions,
+it is recommended to provide different configurations that would configure
+the example for these different cases. See, for example, configurations for
 "cttc-nr-cc-bwp-demo":
 
 ```
@@ -279,9 +279,9 @@ the example for these different cases. See, for example, configurations for
 ("cttc-nr-cc-bwp-demo --tddPattern=\"F|F|F|F|F|F|F|F|F|F|\"", "True", "True"),
 ```
 
-It is important to add all examples to "examples-to-run.py" script because this 
-script is used by "test.py" to fetch the list of examples for each module that will 
-be run along with the tests (when running test.py) in order to check the correct 
+It is important to add all examples to "examples-to-run.py" script because this
+script is used by "test.py" to fetch the list of examples for each module that will
+be run along with the tests (when running test.py) in order to check the correct
 functioning of each module.
 
 ### 2. Fix code style
@@ -405,7 +405,7 @@ Finally, we are now ready to create a merge request.
 
 Every merge request starts by creating a branch. So, if you are reading this
 section we believe that you have commit your changes in your new shiny branch,
-and have rebased it over master (If master branch has progressed). 
+and have rebased it over master (If master branch has progressed).
 
 Once you have pushed a new branch to GitLab, visit your repository in GitLab
 and to see a call-to-action at the top of your screen from which you can click
@@ -479,7 +479,7 @@ update our remote feature branch by doing a force push.
 git push -f
 ```
 
-##### What if the master branch has progressed after creating the merge request? 
+##### What if the master branch has progressed after creating the merge request?
 
 This is a very usual case during an active development project. If this happens,
 we need to rebase our feature branch following the [Step 4](#4-rebase-your-branch),

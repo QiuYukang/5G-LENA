@@ -30,7 +30,7 @@
 namespace ns3 {
 
 // Forward declaration
-class ListPositionAllocator;  
+class ListPositionAllocator;
 
 /**
  * @brief The FileScenarioHelper class
@@ -67,7 +67,7 @@ public:
    */
   void Add (const std::string filePath,
             char delimiter = ',');
-  
+
   /**
    * \brief Get the site position corresponding to a given cell.
    * \param cellId the cell ID of the antenna
@@ -86,11 +86,11 @@ private:
    * Asserts if CheckScenario hasn't been run.
    * \param where The function doing the check.
    */
-  void CheckScenario (const char * where) const;  
-  
+  void CheckScenario (const char * where) const;
+
   /** Have we created the scenario yet? */
   bool m_scenarioCreated {false};
-  
+
   /**
    * The position allocator holding the actual site positions
    * read from the file.

@@ -58,7 +58,7 @@ public:
    * Destructor
    */
   ~ThreeGppChannelModelParam ();
-  
+
   void DoDispose () override;
 
   /**
@@ -69,7 +69,7 @@ public:
 
   void SetRo (double ro);
 
-  
+
 private:
 
   /**

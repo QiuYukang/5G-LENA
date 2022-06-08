@@ -49,7 +49,7 @@ NodeDistributionScenarioInterface::SetSitesNumber (std::size_t n)
   auto sectors = static_cast<std::size_t> (m_sectorization);
   m_numBs = m_numSites * sectors;
 }
-  
+
 void
 NodeDistributionScenarioInterface::SetBsNumber (std::size_t n)
 {

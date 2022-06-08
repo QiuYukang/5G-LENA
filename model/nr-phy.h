@@ -590,7 +590,7 @@ private:
 
   Time m_tbDecodeLatencyUs {MicroSeconds(100)}; //!< transport block decode latency
   double m_centralFrequency {-1.0};             //!< Channel central frequency -- set by the helper
-  uint16_t m_channelBandwidth {0};  //!< Value in kHz * 100. Set by RRC. 
+  uint16_t m_channelBandwidth {0};  //!< Value in kHz * 100. Set by RRC.
                                     // E.g. if set to 200, the bandwidth will be 20 MHz (= 200 * 100 KHz)
 
   uint16_t m_cellId {0};             //!< Cell ID which identify this BWP.

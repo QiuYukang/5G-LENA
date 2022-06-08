@@ -140,7 +140,7 @@ NrInterference::ConditionallyEvaluateChunk ()
       m_rssiPerProcessedChunk(rssidBm);
 
       NS_LOG_DEBUG ("All signals: " << (*m_allSignals)[0] << ", rxSingal:" << (*m_rxSignal)[0] << " , noise:" << (*m_noise)[0]);
-      
+
       Time duration = Now () - m_lastChangeTime;
       for (std::list<Ptr<LteChunkProcessor> >::const_iterator it = m_rsPowerChunkProcessorList.begin (); it != m_rsPowerChunkProcessorList.end (); ++it)
         {
@@ -190,7 +190,7 @@ NrInterference::IsChannelBusyNow (double energyW)
   double powerDbm = 10 * log10 (detectedPowerW * 1000);
 
   NS_LOG_INFO("IsChannelBusyNow detected power is: "<<powerDbm <<
-              "  detectedPowerW: "<< detectedPowerW << " length spectrum: "<< 
+              "  detectedPowerW: "<< detectedPowerW << " length spectrum: "<<
               (*m_allSignals).GetValuesN() <<" thresholdW:"<< energyW);
 
   if (detectedPowerW > energyW)
@@ -234,7 +234,7 @@ NrInterference::GetEnergyDuration (double energyW)
           break;
         }
     }
-    
+
   NS_LOG_INFO("Future power dBm:"<<10 * log10 (noiseInterferenceW*1000)<<" W:"<<noiseInterferenceW <<
   " and energy threshold in W is: "<< energyW);
 
@@ -274,12 +274,12 @@ void
 NrInterference::AppendEvent (Time startTime, Time endTime, double rxPowerW)
 {
   Time now = Simulator::Now ();
-  
+
   if (!m_receiving)
     {
       NiChanges::iterator nowIterator = GetPosition (now);
-      // We empty the list until the current moment. To do so we 
-      // first we sum all the energies until the current moment 
+      // We empty the list until the current moment. To do so we
+      // first we sum all the energies until the current moment
       // and save it in m_firstPower.
       for (NiChanges::iterator i = m_niChanges.begin (); i != nowIterator; i++)
         {

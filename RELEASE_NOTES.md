@@ -1,7 +1,7 @@
 5G-LENA Release Notes                         {#releasenotes}
 =====================
 
-This file contains release notes for the NR module (most recent releases first).  
+This file contains release notes for the NR module (most recent releases first).
 
 All of the ns-3 documentation is accessible from the ns-3 website:
 http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
@@ -20,7 +20,7 @@ Available since June 03, 2022
 
 Supported platforms
 -------------------
-The supported platforms are the same as for the NR-v2.1 release, except that 
+The supported platforms are the same as for the NR-v2.1 release, except that
 the recommended ns-3 release is ns-3.36.1.
 
 Important news
@@ -33,13 +33,13 @@ $ git pull
 
 command.
 
-Remember to follow the instructions from the README.md file, i.e., to checkout 
-the correct release branch of both, ns-3 and the NR module. E.g., the NR module 
-Release 2.1 is compatible with the ns-3.36 release branch, while the NR module 
+Remember to follow the instructions from the README.md file, i.e., to checkout
+the correct release branch of both, ns-3 and the NR module. E.g., the NR module
+Release 2.1 is compatible with the ns-3.36 release branch, while the NR module
 Release 2.2 is compatible with the ns-3.36.1 release branch.
 
-The information about compatibility with the corresponding ns-3 release branch 
-is stated in this (RELEASE_NOTES.md) document in the "Supported platforms" 
+The information about compatibility with the corresponding ns-3 release branch
+is stated in this (RELEASE_NOTES.md) document in the "Supported platforms"
 section for each NR release (starting from the NR Release 1.3).
 
 New user-visible features (old first)
@@ -94,19 +94,19 @@ New user-visible features (old first)
 - Added new distance-based 3GPP spectrum propagation loss model
 - Added the Get function to obtain the pointer to PHY traces
 - Added scenario with UE mobility in `HexagonalGridScenarioHelper` class
-- Added option to set random antenna height in centrain percentage of UEs in 
+- Added option to set random antenna height in centrain percentage of UEs in
 `HexagonalGriScenarioHelper`
-- Extended `HexagonalGridScenarioHelper` to allow installing the hexagonal scenario 
+- Extended `HexagonalGridScenarioHelper` to allow installing the hexagonal scenario
 with the 4th and the 5th ring (needed for the wrap around calibration)
 - Added new attribute to `NrMacSchedulerNs` to allow enabling or disabling HARQ ReTx
 - `NrRadioEnvironmentMapHelper` is extended to provide the progress report at std::
 cout, i.e., 1%, 10%, ..., 100%, and provides the estimation of the time left
 - Added CQI column in RxPacketTraceUe
 - Added SIR calculation and plot in `NrRadioEnvironmentMapHelper`
-- Added CellScan algorithm based on azimuth and zenith in class called 
+- Added CellScan algorithm based on azimuth and zenith in class called
 `CellScanBeamformingAzimuthZenith` in `ideal-beamforming-algorithm.h/cc`
-- Added new trace for reporting DL SINR CTRL 
-- Extended and improved RLC and PDCP traces to include simple traces per RX/TX 
+- Added new trace for reporting DL SINR CTRL
+- Extended and improved RLC and PDCP traces to include simple traces per RX/TX
 side, and combined/merged end-to-end traces.
 
 
@@ -114,11 +114,11 @@ side, and combined/merged end-to-end traces.
 Bugs fixed
 ----------
 - Fixed how to consider RLC overhead when updating the TX queues in MAC scheduler
-- Fixed attachment for loop in `lena-lte-comparison` example 
-- Fixed wrong assignation of NetDeviceContainer vector for REM in `lena-lte-comparison` 
+- Fixed attachment for loop in `lena-lte-comparison` example
+- Fixed wrong assignation of NetDeviceContainer vector for REM in `lena-lte-comparison`
 example
 - Fixed REM sector index bug in lena-lte-comparison.cc example
-- Fix the buffer size calculation in `NrMacSchedulerLcg` to consider correctly the 
+- Fix the buffer size calculation in `NrMacSchedulerLcg` to consider correctly the
 RLC overhead
 - Improved formatting of the RLC/PDCP traces
 
@@ -147,7 +147,7 @@ requirements (Note: not all features available on all platforms):
 This release has been tested on the following platforms:
 - ArchLinux with g++-9 and 10 clang-8, 9, 10, and 11
 
-Recommended ns-3 release: ns-3.36. (If ns-3.36 is not available yet, use ns-3 
+Recommended ns-3 release: ns-3.36. (If ns-3.36 is not available yet, use ns-3
 master branch.)
 
 Important news
@@ -162,17 +162,17 @@ command. We hope you will have fun and good times in using our module!
 
 New user-visible features (old first)
 -------------------------
-- The NR module now supports DP-MIMO spatial multiplexing. The NR DP-MIMO model 
-currently supports MIMO with 2 streams for the downlink, however, in the future, 
-the MIMO model will be extended to support more streams and the operation in the 
-uplink. 
-The current, NR DP-MIMO model exploits dual-polarized antennas and their 
-orthogonality to send the two data streams, by exploiting polarization diversity. 
-The model does not rely on abstraction, as is it case with LTE MIMO, 
-and thus can more properly model the propagation differences between the two 
-streams and account for rank adaptation. So, one of the important new features 
-that enters with this release along the NR DP-MIMO is the rank adaptation. 
-The major modifications to support the DP-MIMO feature are inside the PHY and 
+- The NR module now supports DP-MIMO spatial multiplexing. The NR DP-MIMO model
+currently supports MIMO with 2 streams for the downlink, however, in the future,
+the MIMO model will be extended to support more streams and the operation in the
+uplink.
+The current, NR DP-MIMO model exploits dual-polarized antennas and their
+orthogonality to send the two data streams, by exploiting polarization diversity.
+The model does not rely on abstraction, as is it case with LTE MIMO,
+and thus can more properly model the propagation differences between the two
+streams and account for rank adaptation. So, one of the important new features
+that enters with this release along the NR DP-MIMO is the rank adaptation.
+The major modifications to support the DP-MIMO feature are inside the PHY and
 MAC layers of the NR module.
 
 
@@ -208,27 +208,27 @@ Recommended ns-3 release: ns-3.36.
 
 Important news
 --------------
-In past, the NR module releases were not bound to any particular ns-3 release 
-because we were trying to keep in sync with the latest advancements in ns-3-dev 
-(master). Since ns-3 has had many disruptive API changes since its release 3.35 
-towards the upcoming release 3.36, and it also changed the build system from waf to 
-cmake, many 5G-LENA users have reported issues related to the unsuccessful 
-compilation of NR v1.2 with the latest ns-3 master. 
+In past, the NR module releases were not bound to any particular ns-3 release
+because we were trying to keep in sync with the latest advancements in ns-3-dev
+(master). Since ns-3 has had many disruptive API changes since its release 3.35
+towards the upcoming release 3.36, and it also changed the build system from waf to
+cmake, many 5G-LENA users have reported issues related to the unsuccessful
+compilation of NR v1.2 with the latest ns-3 master.
 
-Hence, starting from this NR release we decided to bind each NR release to 
-the specific ns-3 release by recommending the ns-3 release with which has been 
+Hence, starting from this NR release we decided to bind each NR release to
+the specific ns-3 release by recommending the ns-3 release with which has been
 tested the specific NR release.
 
-Additionally, due to many accumulated changes in the NR module, that were waiting 
-for the next ns-3 release, we have decided to split all these upcoming changes into 
-several incremental releases to facilitate the 5G-LENA users to upgrade 
+Additionally, due to many accumulated changes in the NR module, that were waiting
+for the next ns-3 release, we have decided to split all these upcoming changes into
+several incremental releases to facilitate the 5G-LENA users to upgrade
 their code gradually.
 
-As a first step towards that goal, we have created this NR release v1.3 to 
-provide to the 5G-LENA users a version of the NR module that is compatible with 
-the upcoming ns.3-36. 
+As a first step towards that goal, we have created this NR release v1.3 to
+provide to the 5G-LENA users a version of the NR module that is compatible with
+the upcoming ns.3-36.
 
-(This release has been tested with ns-3-dev master with commit 4a98f050, and is 
+(This release has been tested with ns-3-dev master with commit 4a98f050, and is
 expected to be fully compatible with ns-3.36).
 
 This module can be updated with the usual
@@ -237,7 +237,7 @@ This module can be updated with the usual
 $ git pull
 ```
 
-command. 
+command.
 
 We hope you will have fun and good times in using our module!
 
@@ -357,8 +357,8 @@ New user-visible features (old first)
   allocation is signaled to the UE through a DCI. This is used by the UE to
   transmit SRS.
 - `RealisticBeamformingAlgorithm` class is added. It implements a
-  beamforming algorithm that determines the beamforming vectors of the transmitter 
-  and the receiver based on the SINR SRS. 
+  beamforming algorithm that determines the beamforming vectors of the transmitter
+  and the receiver based on the SINR SRS.
 - Uplink power control functionality implemented through the `NrUePowerControl`
   class, supporting UL power control for PUSCH, PUCCH, and SRS.
 - IPV6 is now supported. That is, the end-to-end connections between the UEs
@@ -450,7 +450,7 @@ New user-visible features (old first)
   periodicity to generate beamforming vectors for pairs of gNBs and UEs.
   BeamManager class is then responsible to cache beamforming vectors for
   antenna. For example, at gNB BeamManager for each connected UE device
-  there will be cached the beamforming vector that will be used for  
+  there will be cached the beamforming vector that will be used for
   communication with that UE. In the same way, the BeamManager at UE
   serves the same purpose, with the difference that it will be normally just one
   element in the map and that is toward its own gNB.

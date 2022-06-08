@@ -143,12 +143,12 @@ public:
 
   /**
    * \brief Allow configuration of uplink power control algorithm.
-   * E.g. necessary in FDD, when measurements are received in 
+   * E.g. necessary in FDD, when measurements are received in
    * downlink BWP, but they are used in uplink BWP
-   * NOTE: This way of configuring is a temporal solution until 
-   * BWP manager has this function implemented for UL PC, FFR, 
-   * algorithm and simillar algorithms, in which is needed to have 
-   * a pair of DL and UL BWPs. In future this function will be called 
+   * NOTE: This way of configuring is a temporal solution until
+   * BWP manager has this function implemented for UL PC, FFR,
+   * algorithm and simillar algorithms, in which is needed to have
+   * a pair of DL and UL BWPs. In future this function will be called
    * only by a friend class.
    * \param pc Pointer to NrUePowerControl
    */
@@ -836,7 +836,7 @@ private:
    * The `DlCtrlSinrTracedCallback` trace source. Trace information regarding
    * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
    */
-  TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlCtrlSinrTrace; 
+  TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlCtrlSinrTrace;
   TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
   TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
   TracedCallback<const SfnSf &, Ptr<const SpectrumValue>, const Time &, uint16_t, uint64_t, uint16_t, uint16_t> m_reportPowerSpectralDensity; //!< Report the Tx power

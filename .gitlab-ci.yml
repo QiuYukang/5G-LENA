@@ -101,7 +101,7 @@ pages:
   artifacts:
     paths:
       - public
-    
+
 #doxygen-linux:
 #  stage: build
 #  tags:
@@ -123,7 +123,7 @@ pages:
 #    paths:
 #      - public
 
- 
+
 include:
   - '.gitlab-ci-clang.yml'
   - '.gitlab-ci-gcc.yml'

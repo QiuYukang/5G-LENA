@@ -39,7 +39,7 @@ public:
     SINGLE = 1, //!< Site with a 360º-width sector
     TRIPLE = 3  //!< Site with 3 120º-width sectors
   };
-  
+
   /**
    * \brief ~ScenarioParameters
    */
@@ -81,7 +81,7 @@ public:
    * \param scenario Scenario to simulate
    */
   void SetScenarioParameters (const ScenarioParameters &scenario);
-  
+
   /**
    * \brief Sets the Urban Macro (UMa) scenario parameters
    */
@@ -97,7 +97,7 @@ public:
    */
   void SetRMaParameters (void);
 
-  // Keep the data members public to facilitate defining custom scenarios  
+  // Keep the data members public to facilitate defining custom scenarios
   double m_isd {-1.0};  //!< Inter-site distance (ISD) in meters
   double m_bsHeight {-1.0}; //!< Height of gNB nodes
   double m_utHeight {-1.0}; //!< Height of UE nodes

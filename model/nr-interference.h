@@ -159,7 +159,7 @@ private:
    * anymore to the total energy received.
    */
   NrInterference::NiChanges::iterator GetPosition (Time moment);
-  
+
   //inherited from LteInterference
   virtual void ConditionallyEvaluateChunk () override;
 
