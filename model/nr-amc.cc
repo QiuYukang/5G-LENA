@@ -171,8 +171,6 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
   //std::vector<int> cqi;
   uint8_t cqi = 0;
   double seAvg = 0;
-  double mcsAvg = 0;
-  double cqiAvg = 0;
 
   Values::const_iterator it;
   if (m_amcModel == ShannonModel)
@@ -201,8 +199,6 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
               seAvg += s;
 
               int cqi_ = GetCqiFromSpectralEfficiency (s);
-              mcsAvg += GetMcsFromSpectralEfficiency (s);
-              cqiAvg += cqi_;
               rbNum++;
 
               NS_LOG_LOGIC (" PRB =" << sinr.GetSpectrumModel ()->GetNumBands ()
@@ -216,8 +212,6 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
       if (rbNum != 0)
         {
           seAvg /= rbNum;
-          mcsAvg /= rbNum;
-          cqiAvg /= rbNum;
         }
       cqi = GetCqiFromSpectralEfficiency (seAvg);   //ceil (cqiAvg);
       mcs = GetMcsFromSpectralEfficiency (seAvg);   //ceil(mcsAvg);
@@ -226,17 +220,14 @@ NrAmc::CreateCqiFeedbackWbTdma (const SpectrumValue& sinr, uint8_t &mcs) const
     {
       std::vector <int> rbMap;
       int rbId = 0;
-      double sinrAvg = 0;
       for (it = sinr.ConstValuesBegin (); it != sinr.ConstValuesEnd (); it++)
         {
           if (*it != 0.0)
             {
               rbMap.push_back (rbId);
-              sinrAvg += *it;
             }
           rbId += 1;
         }
-      sinrAvg /= rbMap.size ();
 
       mcs = 0;
       Ptr<NrErrorModelOutput> output;
