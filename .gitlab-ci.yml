@@ -102,6 +102,22 @@ pages:
     paths:
       - public
 
+whitespaces:
+  stage: build
+  tags:
+    - cttc
+  before_script:
+    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+    - apt-get install -y git python3
+  image: ubuntu
+  script:
+    - mkdir -p nr/
+    - mv doc/m.css doc/.m.css
+    - cp -r CMakeLists.txt  doc  examples  helper  model  README.md  RELEASE_NOTES.md  test  utils nr/
+    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - python3 ns-3-dev/utils/trim-trailing-whitespace.py --check nr/
+
 #doxygen-linux:
 #  stage: build
 #  tags:
