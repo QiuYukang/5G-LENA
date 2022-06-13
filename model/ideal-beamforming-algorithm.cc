@@ -154,7 +154,7 @@ CellScanBeamforming::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectru
 
                   size_t nbands = rxPsd->GetSpectrumModel ()->GetNumBands ();
                   double power = Sum (*rxPsd) / nbands;
-                  
+
                   NS_LOG_LOGIC (" Rx power: "<< power << "txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector " <<
                                 (M_PI *  static_cast<double> (txSector) / static_cast<double> (txNumRows) - 0.5 * M_PI) / (M_PI) * 180 << " rx sector " <<
                                 (M_PI * static_cast<double> (rxSector) / static_cast<double> (rxNumRows) - 0.5 * M_PI) / (M_PI) * 180);

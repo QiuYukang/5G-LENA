@@ -47,7 +47,7 @@ public:
    * Destructor
    */
   virtual ~DistanceBasedThreeGppSpectrumPropagationLossModel ();
-  
+
   /**
    * Get the type ID.
    * \return the object TypeId

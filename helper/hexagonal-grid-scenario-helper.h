@@ -87,7 +87,7 @@ public:
    */
   Vector GetHexagonalCellCenter (const Vector &sitePos,
                                  uint16_t cellId) const;
-  
+
   // inherited
   virtual void CreateScenario () override;
 

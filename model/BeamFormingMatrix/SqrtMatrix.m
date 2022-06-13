@@ -1,7 +1,7 @@
 %For LOS, LSP is following the order of [SF,K,DS,ASD,ASA,ZSD,ZSA].
 %For NLOS, LSP is following the order of [SF,DS,ASD,ASA,ZSD,ZSA].
 
-%LSP = [ASDvsDS, ASAvsDS, ASAvsSF, ASDvsSF, DSvsSF, ASDvsASA, ASDvsK, ASAvsK, DSvsK, SFvsK, 
+%LSP = [ASDvsDS, ASAvsDS, ASAvsSF, ASDvsSF, DSvsSF, ASDvsASA, ASDvsK, ASAvsK, DSvsK, SFvsK,
 %       ZSDvsSF, ZSAvsSF, ZSDvsK, ZSAvsK, ZSDvsDs, ZSAvsDs, ZSDvsASD, ZSAvsASD, ZSDvsASA, ZSAvsASA ZSDvsASA]
 %LSP = [0 0 0 0 -0.5 0 0 0 0 0 0 -0.8 0 0 0 0 0.5 0 0 0 0]; %RMA LOS
 %LSP = [-0.4 0 0 0.6 -0.5 0 NaN NaN NaN NaN 0 -0.4 NaN NaN -0.5 0 0.5 -0.1 0 0 0]; %RMA NLOS

@@ -35,7 +35,7 @@ set(lena-lte-comparison_examples
     lena-lte-comparison-user
     lena-lte-comparison-campaign
 )
-set(lena-lte-comparison_source_files 
+set(lena-lte-comparison_source_files
     lena-lte-comparison/lena-lte-comparison.cc
     lena-lte-comparison/sinr-output-stats.cc
     lena-lte-comparison/flow-monitor-output-stats.cc
@@ -63,7 +63,7 @@ set(example cttc-realistic-beamforming)
 set(source_files ${example}.cc)
 set(libraries_to_link ${libnr} ${libflow-monitor} ${SQLite3_LIBRARIES})
 build_lib_example(
-  NAME ${example} 
+  NAME ${example}
   SOURCE_FILES ${source_files}
   LIBRARIES_TO_LINK ${libraries_to_link}
 )

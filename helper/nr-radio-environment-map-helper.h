@@ -139,7 +139,7 @@ public:
   void SetRemMode (enum RemMode remType);
 
   /**
-   * \brief Set simTag that will be contatenated to 
+   * \brief Set simTag that will be contatenated to
    * output file names
    * \param simTag string to be used as simulation tag
    */

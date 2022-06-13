@@ -22,7 +22,7 @@
 
 namespace ns3 {
 
-double ScenarioParameters::MAX_ANTENNA_OFFSET = 1;  
+double ScenarioParameters::MAX_ANTENNA_OFFSET = 1;
 
 ScenarioParameters::~ScenarioParameters (void)
 {
@@ -90,7 +90,7 @@ ScenarioParameters::SetScenarioParameters (const ScenarioParameters &scenario)
   m_minBsUtDistance = scenario.m_minBsUtDistance;
   m_antennaOffset = scenario.m_antennaOffset;
 }
-  
+
 
 void
 ScenarioParameters::SetUMaParameters (void)

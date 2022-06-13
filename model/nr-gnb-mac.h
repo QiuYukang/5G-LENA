@@ -85,8 +85,8 @@ public:
   virtual ~NrGnbMac (void) override;
 
   /**
-   * \brief Sets the number of RBs per RBG. Currently it can be 
-   * configured by the user, while in the future it will be configured 
+   * \brief Sets the number of RBs per RBG. Currently it can be
+   * configured by the user, while in the future it will be configured
    * by the RRC based on the type of configuration and the bandwidth.
    * \param rbgSize Number of RBs per RBG
    */

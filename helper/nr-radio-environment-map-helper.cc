@@ -1453,7 +1453,7 @@ void
 NrRadioEnvironmentMapHelper::Finalize ()
 {
   NS_LOG_FUNCTION (this);
-  // TODO test if we can call this  
+  // TODO test if we can call this
   //std::ostringstream oss;
   //oss <<"gnuplot -p nr-"<<m_simTag.c_str()<<"-ues.txt nr-"<<m_simTag.c_str()<<"-gnbs.txt nr-rem-"<<m_simTag.c_str()<<"-buildings.txt nr-rem-"<<m_simTag.c_str()<<"-plot-rem.gnuplot";
   //system(oss.str().c_str());

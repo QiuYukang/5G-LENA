@@ -51,7 +51,7 @@ PlotDeployment (const Ptr<const ListPositionAllocator> &sitePositioner,
   std::size_t numSites = sitePositioner->GetSize ();
   std::size_t numUts = utPositioner->GetSize ();
   std::size_t numCells = numSites * numSectors;
-  
+
   NS_ASSERT (numSites);
   NS_ASSERT (numUts);
   NS_ASSERT (numSectors > 0);
@@ -75,7 +75,7 @@ PlotDeployment (const Ptr<const ListPositionAllocator> &sitePositioner,
   //  topologyOutfile << "set autoscale" << std::endl;
 
   // Extent of the plot, 5% margin all around
-  std::size_t radius = maxRadius * 1.05;  
+  std::size_t radius = maxRadius * 1.05;
   topologyOutfile << "set xrange [-" << radius << ":" << radius <<"]" << std::endl;
   topologyOutfile << "set yrange [-" << radius << ":" << radius <<"]" << std::endl;
 
@@ -95,10 +95,10 @@ PlotDeployment (const Ptr<const ListPositionAllocator> &sitePositioner,
   // the orientation of the sectorized antenna.
   // Set it to 1/3 the ISD:    x --->     <--- x
   double arrowLength = effIsd;
-    
+
   const double sectorSize = 2 * M_PI / numSectors;
   std::size_t cellId = 0;
-  
+
   for (std::size_t siteId = 0; siteId < numSites; ++siteId)
     {
       Vector site = sitePositioner->GetNext ();
@@ -115,7 +115,7 @@ PlotDeployment (const Ptr<const ListPositionAllocator> &sitePositioner,
             }
           double rx = arrowLength * std::cos (angle);
           double ry = arrowLength * std::sin (angle);
-          
+
           topologyOutfile << "set arrow " << cellId + 1
                           << " from " << site.x << "," << site.y
                           << " rto " << rx << "," << ry
@@ -170,7 +170,7 @@ Vector
 FileScenarioHelper::GetSitePosition (std::size_t cellId) const
 {
   CheckScenario (__FUNCTION__);
-  
+
   auto node = m_bs.Get (cellId);
   auto mob = node->GetObject<MobilityModel> ();
   return mob->GetPosition ();
@@ -181,10 +181,10 @@ FileScenarioHelper::CreateScenario ()
 {
   NS_ASSERT_MSG (m_bsPositioner,
                  "Must Add() a position file before CreateScenario()");
-  
+
   //NS_ASSERT_MSG (m_numSites > 0,
       //           "Must have at least one site location in the position file.");
-  
+
   NS_ASSERT_MSG (m_sectorization != NONE,
                  "Must SetSectorization() before CreateScenario()");
   NS_ASSERT_MSG (m_bsHeight >= 0.0,
@@ -205,7 +205,7 @@ FileScenarioHelper::CreateScenario ()
   std::cout << "      reserving sitePositions" << std::endl;
   std::vector<Vector> sitePositions;
   sitePositions.reserve (m_numSites);
-  
+
   // Position the BS cells
   std::cout << "      creating bsPositions" << std::endl;
   Ptr<ListPositionAllocator> bsPositions = CreateObject<ListPositionAllocator> ();
@@ -242,7 +242,7 @@ FileScenarioHelper::CreateScenario ()
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (m_bsPositioner);
   mobility.Install (m_bs);
-  
+
   // Compute effective ISD
   double effIsd = 0;
   std::cout << "      computing average Isd..." << std::flush;
@@ -263,7 +263,7 @@ FileScenarioHelper::CreateScenario ()
     }  // for v : sitePositions
   effIsd /= m_numSites * (m_numSites - 1) / 2;
   std::cout << effIsd << std::endl;
-  
+
 
   // Position the UEs uniformly in the sector annulus
   std::cout << "      UE positions" << std::endl;
@@ -289,13 +289,13 @@ FileScenarioHelper::CreateScenario ()
   theta->SetStream (RngSeedManager::GetNextStreamIndex ());
   std::cout << "done" << std::endl;
 
-  Ptr<ListPositionAllocator> utPositioner = CreateObject<ListPositionAllocator> ();;  
+  Ptr<ListPositionAllocator> utPositioner = CreateObject<ListPositionAllocator> ();;
   for (uint32_t utId = 0; utId < m_numUt; ++utId)
     {
       auto cellId = GetCellIndex (utId);
       auto siteId = GetSiteIndex (cellId);
       Vector cellPos = sitePositions[siteId];
-      
+
       // Need to weight r to get uniform in the sector wedge
       // See https://stackoverflow.com/questions/5837572
       double d = std::sqrt (r->GetValue ());
@@ -304,19 +304,19 @@ FileScenarioHelper::CreateScenario ()
       theta->SetAttribute ("Min", DoubleValue (boreSight - halfWidth));
       theta->SetAttribute ("Max", DoubleValue (boreSight + halfWidth));
       double t = theta->GetValue ();
-      
+
       Vector utPos (cellPos);
       utPos.x += d * cos (t);
       utPos.y += d * sin (t);
       utPos.z = m_utHeight;
-      
+
       utPositioner->Add (utPos);
     }
 
   std::cout << "      UE mobility" << std::endl;
   mobility.SetPositionAllocator (utPositioner);
   mobility.Install (m_ut);
-  
+
   std::cout << "      plot deployment" << std::endl;
   PlotDeployment (m_bsPositioner, utPositioner, sectors, maxRadius, outerR);
 

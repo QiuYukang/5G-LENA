@@ -939,7 +939,7 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
                                                          FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask),
                                                          dci->m_harqProcess, dci->m_rv.at (streamIndex), true,
                                                          dci->m_symStart, dci->m_numSym, m_currentSlot);
-                                                         
+
           m_reportDlTbSize (m_netDevice->GetObject <NrUeNetDevice> ()->GetImsi (), dci->m_tbSize.at (streamIndex));
           NS_LOG_DEBUG ("UE" << m_rnti << " stream " << +streamIndex <<
                         " RXing DL DATA frame for"
