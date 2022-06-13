@@ -29,8 +29,6 @@ stages:
     - ./test.py -n
     - cd ../
     - rm -rf ns-3-dev
-  tags:
-    - cttc
   cache:
     # Use separate key for each (debug/optimized/release) jobs because
     # they run in parallel and will otherwise overwrite each other
@@ -80,8 +78,6 @@ stages:
 
 pages:
   stage: build
-  tags:
-    - cttc
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
