@@ -46,35 +46,47 @@ stages:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
 
 # Defines the per-commit jobs. They are executed for any branch
-#gcc-debug:
-#  extends: .base-build
-#  image: archlinux
-#  variables:
-#    COMPILER: g++
-#    MODE: debug
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+gcc-debug:
+  extends: .base-build
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $GCC_BUILD_ENABLE == "True"
+  image: archlinux
+  variables:
+    COMPILER: g++
+    MODE: debug
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-#gcc-release:
-#  extends: .base-build
-#  image: archlinux
-#  variables:
-#    COMPILER: g++
-#    MODE: release
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+gcc-release:
+  extends: .base-build
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $GCC_BUILD_ENABLE == "True"
+  image: archlinux
+  variables:
+    COMPILER: g++
+    MODE: release
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-#gcc-optimized:
-#  extends: .base-build
-#  image: archlinux
-#  variables:
-#    COMPILER: g++
-#    MODE: optimized
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+gcc-optimized:
+  extends: .base-build
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $GCC_BUILD_ENABLE == "True"
+  image: archlinux
+  variables:
+    COMPILER: g++
+    MODE: optimized
+  before_script:
+    - pacman -Syu --noconfirm
+    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
 pages:
   stage: build
@@ -100,8 +112,6 @@ pages:
 
 whitespaces:
   stage: build
-  tags:
-    - cttc
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
@@ -116,8 +126,6 @@ whitespaces:
 
 #doxygen-linux:
 #  stage: build
-#  tags:
-#    - cttc
 #  image: archlinux
 #  before_script:
 #    - pacman -Syu --noconfirm

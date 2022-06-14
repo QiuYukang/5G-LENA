@@ -824,13 +824,8 @@ NrUeMac::SendNewData ()
   // Let's count how many LC we have, that are waiting with some data
   uint16_t activeLcsRetx = 0;
   uint16_t activeLcsTx = 0;
-  uint32_t totRetx = 0;
-  uint32_t totTx = 0;
   for (const auto & itBsr : m_ulBsrReceived)
     {
-      totRetx += itBsr.second.retxQueueSize;
-      totTx += itBsr.second.txQueueSize;
-
       if (itBsr.second.retxQueueSize > 0)
         {
           activeLcsRetx++;

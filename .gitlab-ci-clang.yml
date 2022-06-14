@@ -4,7 +4,7 @@
 # "RELEASE", that has a value "weekly". Also, a variable "CLANG" should be set
 # to True.
 
-# We support CLANG 6 - 11
+# We support CLANG 8 - 12
 # The test is done under Linux.
 
 .build-clang:
@@ -121,6 +121,9 @@ clang-10-optimized:
 # CLANG 11
 clang-11-debug:
   extends: .build-clang
+  only:
+    variables:
+      - $RELEASE == "weekly"
   variables:
     CLANG: 11
     MODE: debug
@@ -128,6 +131,9 @@ clang-11-debug:
 
 clang-11-release:
   extends: .build-clang
+  only:
+    variables:
+      - $RELEASE == "weekly"
   variables:
     CLANG: 11
     MODE: release
@@ -135,7 +141,32 @@ clang-11-release:
 
 clang-11-optimized:
   extends: .build-clang
+  only:
+    variables:
+      - $RELEASE == "weekly"
   variables:
     CLANG: 11
+    MODE: optimized
+    EXTRA: libc++-$CLANG-dev libc++abi-$CLANG-dev libomp-$CLANG-dev python3-clang-$CLANG
+    
+# CLANG 12
+clang-12-debug:
+  extends: .build-clang
+  variables:
+    CLANG: 12
+    MODE: debug
+    EXTRA: libc++-$CLANG-dev libc++abi-$CLANG-dev libomp-$CLANG-dev python3-clang-$CLANG
+
+clang-12-release:
+  extends: .build-clang
+  variables:
+    CLANG: 12
+    MODE: release
+    EXTRA: libc++-$CLANG-dev libc++abi-$CLANG-dev libomp-$CLANG-dev python3-clang-$CLANG
+
+clang-12-optimized:
+  extends: .build-clang
+  variables:
+    CLANG: 12
     MODE: optimized
     EXTRA: libc++-$CLANG-dev libc++abi-$CLANG-dev libomp-$CLANG-dev python3-clang-$CLANG
