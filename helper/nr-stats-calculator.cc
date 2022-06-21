@@ -157,6 +157,7 @@ NrStatsCalculator::FindImsiFromGnbRlcPath (std::string path)
   else
     {
       NS_FATAL_ERROR ("Lookup " << ueMapPath << " got no matches");
+      return 0; // Silence compiler warning
     }
 }
 
@@ -180,6 +181,7 @@ NrStatsCalculator::FindImsiFromNrUeNetDevice (std::string path)
   else
     {
       NS_FATAL_ERROR ("Lookup " << path << " got no matches");
+      return 0; // Silence compiler warning
     }
 }
 
@@ -202,6 +204,7 @@ NrStatsCalculator::FindCellIdFromGnbRlcPath (std::string path)
   else
     {
       NS_FATAL_ERROR ("Lookup " << gnbNetDevicePath << " got no matches");
+      return 0; // Silence compiler warning
     }
 }
 
