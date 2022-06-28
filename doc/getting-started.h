@@ -34,7 +34,7 @@ the ns-3 and the NR world.
 To download a working copy of the ns-3-dev repository, you can do the following:
 
 \code{.sh}
-$ git clone git@gitlab.com:nsnam/ns-3-dev.git
+$ git clone https://gitlab.com/nsnam/ns-3-dev.git
 $ cd ns-3-dev
 \endcode
 
@@ -80,7 +80,7 @@ repository as explained in the previous steps.
 Clone the NR module:
 
 \code{.sh}
-cd src
+cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 \endcode
 
@@ -92,7 +92,7 @@ cd nr
 git checkout 5g-lena-v2.2.y
 \endcode
 
-Please note that the src/nr directory will be listed as "Untracked files" every
+Please note that the contrib/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
 independent module. This is normal, since you have two parallel git repositories,
 that of ns-3 and of nr. Notice that you can install the nr module also inside
@@ -174,7 +174,7 @@ it. If it is not the case, then please move all your work in a separate branch.
 A clean 'master' branch can be updated by simply running:
 
 \code{.sh}
-$ cd ns-3-dev/src/nr
+$ cd ns-3-dev/contrib/nr
 $ git pull
 \endcode
 
