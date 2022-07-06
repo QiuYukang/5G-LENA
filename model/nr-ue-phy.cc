@@ -924,12 +924,24 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   Time varTtiDuration = GetSymbolPeriod () * dci->m_numSym;
 
   m_activeDlDataStreams = 0;
+  m_activeDlDataStreamsPerHarqId.clear ();
+  NS_ASSERT (dci->m_rnti == m_rnti);
+  NS_ASSERT (m_dlHarqInfo.size () == 0);
 
   for (uint8_t streamIndex = 0; streamIndex < dci->m_tbSize.size(); streamIndex++)
     {
       if (dci->m_tbSize.at (streamIndex) > 0)
         {
           m_activeDlDataStreams ++;
+          // we need to know for each HARQ ID how many active streams there are, see function NotifyDlHarqFeedback
+          if (m_activeDlDataStreamsPerHarqId.find (dci->m_harqProcess)!= m_activeDlDataStreamsPerHarqId.end())
+            {
+              m_activeDlDataStreamsPerHarqId [dci->m_harqProcess] = 1;
+            }
+          else
+            {
+              m_activeDlDataStreamsPerHarqId [dci->m_harqProcess] ++;
+            }
           //Here we need to call the AddExpectedTb of a NrSpectrumPhy
           //responsible to receive the expected TB of the stream we
           //are iterating over
@@ -1234,27 +1246,31 @@ NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeed
                                uint8_t harqProcessId, uint8_t rv)
 {
 
-  if (m_dlHarqInfo.m_harqStatus.empty()) // No Harq reported yet, initialize the structure
+  // if we still did not report for this process ID for any stream
+  if (m_dlHarqInfo.find (harqProcessId) == m_dlHarqInfo.end ())
     {
-      m_dlHarqInfo.m_rnti = m_rnti;
-      m_dlHarqInfo.m_bwpIndex = GetBwpId();
-      // (m_spectrumPhys.size(), NONE); // initialize the feedbacks from all streams with NONE
-      m_dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);
-      //above initialization logic also applies to m_numRetx vector
-      m_dlHarqInfo.m_numRetx = std::vector <uint8_t> (m_spectrumPhys.size(), UINT8_MAX);
-      m_dlHarqInfo.m_harqProcessId = harqProcessId;
-    }
-  else
-    {
-      NS_ASSERT (m_dlHarqInfo.m_harqProcessId == harqProcessId);
+       DlHarqInfo dlHarqInfo;
+       dlHarqInfo.m_rnti = m_rnti;
+       dlHarqInfo.m_bwpIndex = GetBwpId();
+       // initialize the feedbacks from all streams with NONE
+       dlHarqInfo.m_harqStatus = std::vector <enum DlHarqInfo::HarqStatus> (m_spectrumPhys.size(), DlHarqInfo::HarqStatus::NONE);
+       //above initialization logic also applies to m_numRetx vector
+       dlHarqInfo.m_numRetx = std::vector <uint8_t> (m_spectrumPhys.size(), UINT8_MAX);
+       dlHarqInfo.m_harqProcessId = harqProcessId;
+       //insert this element
+       m_dlHarqInfo [harqProcessId] = dlHarqInfo;
     }
 
-  NS_ASSERT (streamId < m_dlHarqInfo.m_harqStatus.size () && m_dlHarqInfo.m_harqStatus.at (streamId) == DlHarqInfo::HarqStatus::NONE);
-  m_dlHarqInfo.m_harqStatus [streamId] = harqFeedback;
-  m_dlHarqInfo.m_numRetx [streamId] = rv;
+  auto & harq = m_dlHarqInfo [harqProcessId];
+  NS_ASSERT (harq.m_harqProcessId == harqProcessId);
+  NS_ASSERT (streamId < harq.m_harqStatus.size ());
+  // we make sure that for this stream the HARQ feedback was not reported before
+  NS_ASSERT (harq.m_harqStatus.at (streamId) == DlHarqInfo::HarqStatus::NONE);
+  harq.m_harqStatus [streamId] = harqFeedback;
+  harq.m_numRetx [streamId] = rv;
 
   uint8_t feedbackCounter = 0;
-  for (const auto& i : m_dlHarqInfo.m_harqStatus)
+  for (const auto& i : harq.m_harqStatus)
     {
       if (i != DlHarqInfo::HarqStatus::NONE)
         {
@@ -1262,12 +1278,13 @@ NrUePhy::NotifyDlHarqFeedback (uint8_t streamId, DlHarqInfo::HarqStatus harqFeed
         }
     }
 
+  NS_ASSERT (m_activeDlDataStreamsPerHarqId.find(harqProcessId) != m_activeDlDataStreamsPerHarqId.end ());
   // if we received the feedback from all the active streams, we
   // can proceed to trigger the corresponding callback
-  if (feedbackCounter == m_activeDlDataStreams)
+  if (feedbackCounter == m_activeDlDataStreamsPerHarqId [harqProcessId])
     {
-      m_phyDlHarqFeedbackCallback (m_dlHarqInfo);
-      m_dlHarqInfo = DlHarqInfo (); // reset DL harq after reporting it through callback
+      m_phyDlHarqFeedbackCallback (harq);
+      m_dlHarqInfo.erase (m_dlHarqInfo.find (harqProcessId)); // remove this HARQ feedback from the list because it is just reported
     }
 }
 

@@ -871,9 +871,11 @@ private:
 
   NrPhyDlHarqFeedbackCallback m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is being generated
 
-  DlHarqInfo m_dlHarqInfo; //!< The attribute used to merge HARQ infos from different NrSpectrumPhy instances belonging to this NrUePhy, i.e., if there are two streams, should be cleaned after triggering m_phyDlHarqFeedbackCallback
+  std::unordered_map<uint8_t, DlHarqInfo> m_dlHarqInfo; //!< The attribute list used to merge HARQ infos from different NrSpectrumPhy instances belonging to this NrUePhy, i.e., if there are two streams, should be cleaned after triggering m_phyDlHarqFeedbackCallback
 
-  uint8_t m_activeDlDataStreams {0}; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
+  uint8_t m_activeDlDataStreams; //!< The value is updated each time DlData function is called, first it is reset to 0, and then it is incremented each time is called AddExpectedTb
+  std::unordered_map <uint8_t,uint8_t> m_activeDlDataStreamsPerHarqId; // active streams per HARQ process ID
+
 
   std::vector <uint8_t> m_prevDlWbCqi; //!< Vector to cache the CQI values reported by this UE PHY
   uint8_t m_dlCqiFeedbackCounter {0}; /**< Counter to count the number of DL CQI
