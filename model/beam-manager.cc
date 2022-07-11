@@ -56,7 +56,7 @@ BeamManager::GetBeamId (const BeamformingVector&v) const
 }
 
 Ptr<const UniformPlanarArray>
-BeamManager::GetAntennaArray() const
+BeamManager::GetAntenna () const
 {
   return m_antennaArray;
 }
@@ -231,8 +231,17 @@ BeamManager::GetBeamId (const Ptr<NetDevice>& device) const
 void
 BeamManager::SetSector (uint16_t sector, double elevation) const
 {
-  NS_LOG_INFO ("Set sector to :"<< (unsigned) sector<< ", and elevation to:"<< elevation);
+  NS_LOG_INFO ("Set sector to : " << (unsigned) sector <<
+               ", and elevation to: " << elevation);
   m_antennaArray->SetBeamformingVector(CreateDirectionalBfv (m_antennaArray, sector, elevation));
+}
+
+void
+BeamManager::SetSectorAz (double azimuth, double zenith) const
+{
+  NS_LOG_INFO ("Set azimuth to : " << (unsigned) azimuth <<
+               ", and zenith to:" << zenith);
+  m_antennaArray->SetBeamformingVector(CreateDirectionalBfvAz (m_antennaArray, azimuth, zenith));
 }
 
 } /* namespace ns3 */

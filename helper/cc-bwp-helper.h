@@ -97,7 +97,7 @@ struct BandwidthPartInfo
 
   Ptr<SpectrumChannel> m_channel;            //!< Channel for the Bwp. Leave it nullptr to let the helper fill it
   Ptr<PropagationLossModel> m_propagation;   //!< Propagation model. Leave it nullptr to let the helper fill it
-  Ptr<SpectrumPropagationLossModel> m_3gppChannel;   //!< Nr Channel. Leave it nullptr to let the helper fill it
+  Ptr<PhasedArraySpectrumPropagationLossModel> m_3gppChannel;   //!< Nr Channel. Leave it nullptr to let the helper fill it
 };
 
 /**

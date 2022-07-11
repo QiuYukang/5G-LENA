@@ -32,8 +32,8 @@ class NrNetDevice;
 class NrControlMessage;
 class NrSpectrumPhy;
 class AntennaArrayBasicModel;
-class BeamManager;
 class UniformPlanarArray;
+class BeamConfId;
 
 /**
  * \ingroup ue-phy
@@ -78,11 +78,6 @@ class UniformPlanarArray;
  *
  * \section phy_antenna Antenna and BeamManager object installation
  *
- * Through the method InstallAntenna() is possible to install the antenna model
- * for the PHY. At each invokation, a BeamManager object is also constructed.
- *
- * Please note that methods prefixed with Install* are meant to be called only
- * once (and, hopefully, from an helper).
  */
 class NrPhy : public Object
 {
@@ -115,10 +110,11 @@ public:
    * \param p the MAC PDU
    * \param sfn The SfnSf at which store the PDU
    * \param symStart The symbol inside the SfnSf at which the data will be transmitted
+   * \param streamId The stream id through which this pkt would be transmitted
    *
    * It will be saved in the PacketBurst map following the SfnSf present in the tag.
    */
-  void SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart);
+  void SetMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId);
 
   /**
    * \brief Send the RachPreamble
@@ -159,30 +155,11 @@ public:
   virtual Time GetTbDecodeLatency (void) const;
 
   /**
-   * \brief Get the beam id for the specified user
+   * \brief Get the beam conf id for the specified user
    * \param rnti RNTI
-   * \return the BeamId associated to the specified RNTI
+   * \return the BeamConfId associated to the specified RNTI
    */
-  virtual BeamId GetBeamId (uint16_t rnti) const = 0;
-
-  /**
-   * \brief Install the antenna in the PHY
-   * \param beamManager BeamManager instance of this PHY
-   * \param antenna pointer to the antenna model
-   *
-   * Usually called by the helper. It will install a new BeamManager object.
-   */
-  void InstallAntenna (Ptr<BeamManager> beamManager, const Ptr<UniformPlanarArray> &antenna);
-
-  // Note: Returning a BeamManger, it means that someone outside this class
-  // can change the beamforming vector, BUT the phy will not learn it.
-  /**
-   * \brief Get the BeamManager object of the class
-   * \return a pointer to the BeamManager instance
-   *
-   * Valid only after a call to InstallAntenna
-   */
-  Ptr<BeamManager> GetBeamManager () const;
+  virtual BeamConfId GetBeamConfId (uint16_t rnti) const = 0;
 
   /**
    * \brief Get the spectrum model of the PHY
@@ -208,12 +185,6 @@ public:
    * the numerology
    */
   Time GetSymbolPeriod () const;
-
-  // Attributes
-  /**
-   * \return The antena array that is being used by this PHY
-   */
-  Ptr<const UniformPlanarArray> GetAntennaArray () const;
 
   /**
    * \brief Set the NoiseFigure value
@@ -289,13 +260,19 @@ public:
   double GetRbOverhead () const;
 
   /**
+   * \brief Returns the number of streams, which corresponds to the number of NrSpectrumPhys per NrPhy
+   */
+  uint8_t GetNumberOfStreams  () const;
+
+  /**
    * \brief Retrieve the SpectrumPhy pointer
    *
    * As this function is used mainly to get traced values out of Spectrum,
    * it should be removed and the traces connected (and redirected) here.
+   * \param streamIndex the index of the stream of which we will return the SpectrumPhy
    * \return A pointer to the SpectrumPhy of this UE
    */
-  Ptr<NrSpectrumPhy> GetSpectrumPhy () const;
+  Ptr<NrSpectrumPhy> GetSpectrumPhy (uint8_t streamIndex = 0) const;
 
   /**
    * \brief Set the SpectrumPhy associated with this PHY
@@ -429,7 +406,7 @@ public:
    * \brief Set power allocation type. There are currently supported two types:
    * one that distributes uniformly energy among all bandwidth (all RBs),
    * and another only over used or active RBs
-   * \param powerAlocationType a type of power allocation to be used
+   * \param powerAllocationType a type of power allocation to be used
    */
   void SetPowerAllocationType (enum NrSpectrumValueHelper::PowerAllocationType powerAllocationType);
 
@@ -492,9 +469,10 @@ protected:
   /**
    * \brief Retrieve the PacketBurst at the slot/symbol specified
    * \param sym Symbol at which the PacketBurst should be sent
+   * \param streamId The stream id through which this pkt burst would be transmitted
    * \return a pointer to the burst, if present, otherwise nullptr
    */
-  Ptr<PacketBurst> GetPacketBurst (SfnSf sf, uint8_t sym);
+  Ptr<PacketBurst> GetPacketBurst (SfnSf sf, uint8_t sym, uint8_t streamId);
 
   /**
    * \brief Create Noise Power Spectral density
@@ -507,12 +485,13 @@ protected:
    * Create Tx Power Spectral Density
    * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
    * in which there is a transmission
+   * \param activeStreams the number of active streams
    * \return A SpectrumValue array with fixed size, in which each value
    * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
    * or is left untouched otherwise.
    * \see NrSpectrumValueHelper::CreateTxPowerSpectralDensity
    */
-  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector);
+  Ptr<SpectrumValue> GetTxPowerSpectralDensity (const std::vector<int> &rbIndexVector, uint8_t activeStreams);
 
   /**
    * \brief Store the slot allocation info at the front
@@ -590,7 +569,7 @@ protected:
 
 protected:
   Ptr<NrNetDevice> m_netDevice;      //!< Pointer to the owner netDevice.
-  Ptr<NrSpectrumPhy> m_spectrumPhy;  //!< Pointed to the (owned) spectrum phy
+  std::vector<Ptr<NrSpectrumPhy>> m_spectrumPhys;  //!< vector to the (owned) spectrum phy instances
 
   double m_txPower {0.0};                //!< Transmission power (attribute)
   double m_noiseFigure {0.0};            //!< Noise figure (attribute)
@@ -602,8 +581,6 @@ protected:
   NrPhySapProvider* m_phySapProvider; //!< Pointer to the MAC
 
   uint32_t m_raPreambleId {0}; //!< Preamble ID
-  Ptr<BeamManager> m_beamManager; //!< Pointer to the beam manager object
-  ObjectFactory m_beamManagerFactory; //!< Beam manager factory
 
   std::list <Ptr<NrControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 

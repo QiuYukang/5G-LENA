@@ -41,6 +41,7 @@ typedef std::vector<std::complex<double>> complexVector_t; //!< type definition 
  */
 typedef std::pair<complexVector_t, BeamId>  BeamformingVector;
 
+typedef std::pair<BeamformingVector, BeamformingVector> BeamformingVectorPair;
 
 /**
  * \brief Create a quasi omni beamforming vector
@@ -63,12 +64,23 @@ complexVector_t CreateDirectionalBfv (const Ptr<const UniformPlanarArray>& anten
                                       uint16_t sector, double elevation);
 
 /**
+ * \brief Creates a beamforming vector for a given azimuth and zenith
+ * \ingroup utils
+ * \param antenna Antenna array for which will be created the beamforming vector
+ * \param azimuth azimuth to be used
+ * \param zenith zenith to be used
+ * \return the beamforming vector
+ */
+complexVector_t CreateDirectionalBfvAz (const Ptr<const UniformPlanarArray>& antenna,
+                                        double azimuth, double zenith);
+
+/**
  * \brief Get directs path beamforming vector bfv for a device with the mobility model
  * a for transmission toward device with a mobility model b, by using antenna aAntenna.
  * \param [in] a mobility model of the first device
  * \param [in] b mobility model of the second device
- * \param [in] aAntenna antenaArray of the first device
- * \param [out] bfv resulting beamforming vector for antenna array for the first device
+ * \param [in] antenna antenaArray of the first device
+ * \return the resulting beamforming vector for antenna array for the first device
  */
 complexVector_t CreateDirectPathBfv(const Ptr<MobilityModel>& a,
                                     const Ptr<MobilityModel>& b,

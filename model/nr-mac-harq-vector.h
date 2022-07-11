@@ -202,7 +202,7 @@ private:
 };
 
 /**
- * \brief operator << Print HarqProcess onto a ostream
+ * \brief Print HarqProcess onto a ostream
  * \param os Ostream output
  * \param item Item to print
  * \return the Ostream for concatenation

@@ -29,9 +29,8 @@
 namespace ns3 {
 
 void
-SystemSchedulerTest::CountPkts (Ptr<const Packet> pkt)
+SystemSchedulerTest::CountPkts ([[maybe_unused]] Ptr<const Packet> pkt)
 {
-  NS_UNUSED (pkt);
   m_packets++;
   if (m_packets == m_limit)
     {
@@ -224,6 +223,9 @@ SystemSchedulerTest::DoRun (void)
   NetDeviceContainer gNbNetDevs = nrHelper->InstallGnbDevice (gNbNodes, allBwps);
   NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice (ueNodes, allBwps);
 
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (gNbNetDevs, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDevs, randomStream);
 
   for (auto it = gNbNetDevs.Begin (); it != gNbNetDevs.End (); ++it)
     {

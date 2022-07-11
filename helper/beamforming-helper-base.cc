@@ -24,9 +24,9 @@
 #include <ns3/nr-gnb-phy.h>
 #include <ns3/nr-ue-phy.h>
 #include <ns3/beam-manager.h>
-#include <ns3/beamforming-algorithm.h>
 #include <ns3/vector.h>
 #include <ns3/node.h>
+#include <ns3/nr-spectrum-phy.h>
 
 namespace ns3{
 
@@ -56,30 +56,22 @@ BeamformingHelperBase::GetTypeId (void)
   return tid;
 }
 
-void
-BeamformingHelperBase::AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                           const Ptr<NrUeNetDevice>& ueDev)
-{
-  NS_LOG_FUNCTION (this);
-  m_beamformingTasks.push_back(std::make_pair(gNbDev, ueDev));
-}
-
 
 void
 BeamformingHelperBase::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                const Ptr<NrUeNetDevice>& ueDev, uint8_t ccId) const
+                                const Ptr<NrUeNetDevice>& ueDev,
+                                const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_INFO (" Run beamforming task for gNB:" << gNbDev->GetNode() -> GetId() <<
                  " and UE:"<< ueDev->GetNode()->GetId () );
-  BeamformingVector gnbBfv, ueBfv;
-  GetBeamformingVectors (gNbDev, ueDev, &gnbBfv, &ueBfv, ccId);
-  Ptr<NrGnbPhy> gNbPhy = gNbDev->GetPhy (ccId);
-  Ptr<NrUePhy> uePhy = ueDev->GetPhy (ccId);
-  NS_ABORT_IF (gNbPhy == nullptr || uePhy == nullptr);
-  gNbPhy->GetBeamManager ()->SaveBeamformingVector (gnbBfv, ueDev);
-  uePhy->GetBeamManager ()->SaveBeamformingVector (ueBfv, gNbDev);
-  uePhy->GetBeamManager ()->ChangeBeamformingVector (gNbDev);
+  BeamformingVectorPair bfPair = GetBeamformingVectors (gnbSpectrumPhy, ueSpectrumPhy);
+
+  NS_ASSERT (bfPair.first.first.size () && bfPair.second.first.size ());
+  gnbSpectrumPhy->GetBeamManager ()->SaveBeamformingVector (bfPair.first, ueDev);
+  ueSpectrumPhy->GetBeamManager ()->SaveBeamformingVector (bfPair.second, gNbDev);
+  ueSpectrumPhy->GetBeamManager ()->ChangeBeamformingVector (gNbDev);
 }
 
 void

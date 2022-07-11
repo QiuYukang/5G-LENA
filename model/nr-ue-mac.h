@@ -193,53 +193,45 @@ public:
 
   /**
    *  TracedCallback signature for Ue Mac Received Control Messages.
-   *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
-   * \param [in] nodeId
-   * \param [in] bwpId
-   * \param [in] pointer to msg to get the msg type
+   * \param [in] sfnSf Frame number, subframe number, slot number, VarTti
+   * \param [in] nodeId the node ID
+   * \param [in] rnti the RNTI
+   * \param [in] bwpId the BWP ID
+   * \param [in] ctrlMessage the pointer to msg to get the msg type
    */
   typedef void (* RxedUeMacCtrlMsgsTracedCallback)
     (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
-     const uint8_t bwpId, Ptr<NrControlMessage>);
-
+     const uint8_t bwpId, Ptr<NrControlMessage> ctrlMessage);
   /**
    *  TracedCallback signature for Ue Mac Transmitted Control Messages.
-   *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
-   * \param [in] nodeId
-   * \param [in] bwpId
-   * \param [in] pointer to msg to get the msg type
+   * \param [in] sfnSf the frame number, subframe number, slot number, VarTti
+   * \param [in] nodeId the node ID
+   * \param [in] rnti the RNTI
+   * \param [in] bwpId the BWP ID
+   * \param [in] ctrlMessage the pointer to msg to get the msg type
    */
   typedef void (* TxedUeMacCtrlMsgsTracedCallback)
     (const SfnSf sfnSf, const uint16_t nodeId, const uint16_t rnti,
-     const uint8_t bwpId, Ptr<NrControlMessage>);
+     const uint8_t bwpId, Ptr<NrControlMessage> ctrlMessage);
 
   /**
-   * \brief Sets the number of HARQ processes
-   * \param numHarqProcesses the maximum number of harq processes
-   *
+   * \brief Sets the number of HARQ processes.
    * Called by the helper at the moment of UE attachment
+   * \param numHarqProcesses the maximum number of harq processes
    */
   void SetNumHarqProcess (uint8_t numHarqProcesses);
 
   /**
-   * \return number of HARQ processes
-   *
-   * Please remember that this number is obtained by the GNB, the UE
+   * \brief Please remember that this number is obtained by the GNB, the UE
    * cannot configure it.
+   *
+   * \return number of HARQ processes
    */
   uint8_t GetNumHarqProcess () const;
 
   /**
-   * Assign a fixed random variable stream number to the random variables
-   * used by this model.  Return the number of streams (possibly zero) that
+   * \brief Assign a fixed random variable stream number to the random variables
+   * used by this model. Returns the number of streams (possibly zero) that
    * have been assigned.
    *
    * \param stream first stream index to use

@@ -33,6 +33,8 @@
 #include <ns3/spectrum-value.h>
 #include <ns3/nr-phy-mac-common.h>
 #include <ns3/nr-control-messages.h>
+#include <ns3/nr-spectrum-phy.h>
+#include <ns3/spectrum-phy.h>
 #include <fstream>
 #include <iostream>
 
@@ -53,11 +55,31 @@ public:
   void SetSimTag (const std::string &simTag);
 
   /**
-   *  Trace sink for DL Average SINR (in dB).
-   *
+   * \brief Trace sink for DL Average SINR of DATA (in dB).
+   * \param [in] phyStats NrPhyRxTrace object
+   * \param [in] path context path
+   * \param [in] cellId the cell ID
+   * \param [in] rnti the RNTI
+   * \param [in] avgSinr the average SINR
+   * \param [in] bwpId the BWP ID
+   * \param [in] streamId the stream ID
    */
-  static void ReportCurrentCellRsrpSinrCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
-                                                 uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint16_t bwpId);
+  static void DlDataSinrCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
+                                  uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId, uint8_t streamId);
+
+  /**
+   * \brief Trace sink for DL Average SINR of CTRL (in dB).
+   * \param [in] phyStats NrPhyRxTrace object
+   * \param [in] path context path
+   * \param [in] cellId the cell ID
+   * \param [in] rnti the RNTI
+   * \param [in] avgSinr the average SINR
+   * \param [in] bwpId the BWP ID
+   * \param [in] streamId the stream ID
+   */
+  static void DlCtrlSinrCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
+                                 uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId, uint8_t streamId);
+
   static void UlSinrTraceCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
                                    uint64_t imsi, SpectrumValue& sinr, SpectrumValue& power);
   static void ReportPacketCountUeCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
@@ -72,10 +94,9 @@ public:
   /**
    *  Trace sink for Enb Phy Received Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slot number
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
@@ -88,10 +109,9 @@ public:
   /**
    *  Trace sink for Enb Phy Transmitted Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slot number
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
@@ -104,10 +124,9 @@ public:
   /**
    *  Trace sink for Ue Phy Received Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slot number
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
@@ -120,10 +139,9 @@ public:
   /**
    *  Trace sink for Ue Phy Transmitted Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slot number
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
@@ -136,10 +154,9 @@ public:
   /**
    *  Trace sink for Ue Phy Received Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slot number
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
@@ -152,10 +169,9 @@ public:
   /**
    *  Trace sink for Ue Phy Received Control Messages.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
-   * \param [in] slot number.
-   * \param [in] VarTti
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slot number
    * \param [in] nodeId
    * \param [in] rnti
    * \param [in] bwpId
@@ -165,6 +181,20 @@ public:
   static void TxedUePhyHarqFeedbackCallback (Ptr<NrPhyRxTrace> phyStats, std::string path,
                                              SfnSf sfn, uint16_t nodeId, uint16_t rnti,
                                              uint8_t bwpId, uint8_t harqId, uint32_t k1Delay);
+  /**
+   * \brief Trace sink for spectrum channel pathloss trace
+   *
+   * \param [in] phyStats Pointer to NrPhyRxTrace API
+   * \param [in] path The context of the trace path
+   * \param [in] txPhy The TX SpectrumPhy instance
+   * \param [in] rxPhy The RX SpectrumPhy instance
+   * \param [in] lossDb The loss value in dB
+   */
+  static void PathlossTraceCallback (Ptr<NrPhyRxTrace> phyStats,
+                                     std::string path,
+                                     Ptr<const SpectrumPhy> txPhy,
+                                     Ptr<const SpectrumPhy> rxPhy,
+                                     double lossDb);
 
 private:
   void ReportInterferenceTrace (uint64_t imsi, SpectrumValue& sinr);
@@ -172,11 +202,35 @@ private:
   void ReportPacketCountUe (UePhyPacketCountParameter param);
   void ReportPacketCountEnb (GnbPhyPacketCountParameter param);
   void ReportDLTbSize (uint64_t imsi, uint64_t tbSize);
+  /**
+   * \brief Write DL pathloss values in a file
+   *
+   * \param [in] txNrSpectrumPhy The TX NrSpectrumPhy instance
+   * \param [in] rxNrSpectrumPhy The RX NrSpectrumPhy instance
+   * \param [in] lossDb The loss value in dB
+   */
+  void WriteDlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
+                             Ptr<NrSpectrumPhy> rxNrSpectrumPhy,
+                             double lossDb);
+  /**
+   * \brief Write UL pathloss values in a file
+   *
+   * \param [in] txNrSpectrumPhy The TX NrSpectrumPhy instance
+   * \param [in] rxNrSpectrumPhy The RX NrSpectrumPhy instance
+   * \param [in] lossDb The loss value in dB
+   */
+  void WriteUlPathlossTrace (Ptr<NrSpectrumPhy> txNrSpectrumPhy,
+                             Ptr<NrSpectrumPhy> rxNrSpectrumPhy,
+                             double lossDb);
+
 
   static std::string m_simTag;   //!< The `SimTag` attribute.
 
-  static std::ofstream m_rsrpSinrFile;
-  static std::string m_rsrpSinrFileName;
+  static std::ofstream m_dlDataSinrFile;
+  static std::string m_dlDataSinrFileName;
+
+  static std::ofstream m_dlCtrlSinrFile;
+  static std::string m_dlCtrlSinrFileName;
 
   static std::ofstream m_rxPacketTraceFile;
   static std::string m_rxPacketTraceFilename;
@@ -192,6 +246,10 @@ private:
   static std::string m_txedUePhyCtrlMsgsFileName;
   static std::ofstream m_rxedUePhyDlDciFile;
   static std::string m_rxedUePhyDlDciFileName;
+  static std::ofstream m_dlPathlossFile;
+  static std::string m_dlPathlossFileName;
+  static std::ofstream m_ulPathlossFile;
+  static std::string m_ulPathlossFileName;
 };
 
 } /* namespace ns3 */

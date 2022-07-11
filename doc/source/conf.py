@@ -17,7 +17,7 @@ add_function_parentheses = True
 #modindex_common_prefix = []
 
 project = u'NR Module'
-copyright = u'2018'
+copyright = u'2022'
 
-version = '1.2'
-release = '1.2'
+version = '2.2'
+release = '2.2'

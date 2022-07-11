@@ -80,7 +80,7 @@ using namespace ns3;
  * function.
  * To run this simulation you can use for example the following command:
  *
- * ./waf --run cttc-realistic-beamforming '--command=%s
+ * ./ns3 run cttc-realistic-beamforming '--command=%s
  *    --deltaX=300
  *    --deltaY=0
  *    --algType=Real
@@ -97,7 +97,7 @@ using namespace ns3;
  *
  * To check all the parameters that are available you can always use:
  *
- * ./waf --run "cttc-realistic-beamforming --PrintHelp"
+ * ./ns3 run "cttc-realistic-beamforming --PrintHelp"
  *
  */
 

@@ -107,8 +107,9 @@ UeToUePktTxRxOutputStats::WriteCache ()
       if (InetSocketAddress::IsMatchingType (v.srcAddrs))
         {
           oss << InetSocketAddress::ConvertFrom (v.srcAddrs).GetIpv4 ();
-          if (!oss.str ().compare ("0.0.0.0")) //srcAddrs not set
+          if (!oss.str ().compare ("0.0.0.0"))
             {
+              // srcAddr is not set (is "0.0.0.0")-- most likely a TX packet
               std::ostringstream ip;
               ip << Ipv4Address::ConvertFrom (v.localAddrs);
               srcStr = ip.str ();
@@ -130,8 +131,9 @@ UeToUePktTxRxOutputStats::WriteCache ()
             {
               oss.str ("");
               oss << InetSocketAddress::ConvertFrom (v.dstAddrs).GetIpv4 ();
-              if (!oss.str ().compare ("0.0.0.0")) //dstAddrs not set
+              if (!oss.str ().compare ("0.0.0.0"))
                 {
+                  // dstAddr is not set (is "0.0.0.0")
                   std::ostringstream ip;
                   ip << InetSocketAddress::ConvertFrom (v.srcAddrs).GetIpv4 ();
                   srcStr = ip.str ();
@@ -158,8 +160,14 @@ UeToUePktTxRxOutputStats::WriteCache ()
                   NS_ABORT_UNLESS (ret);
                   ret = m_db->Bind (stmt, 7, InetSocketAddress::ConvertFrom (v.srcAddrs).GetPort ());
                   NS_ABORT_UNLESS (ret);
+                  Ipv4Address dstIpv4Address = InetSocketAddress::ConvertFrom (v.dstAddrs).GetIpv4 ();
+                  if (dstIpv4Address.IsMulticast () || dstIpv4Address.IsBroadcast ())
+                    {
+                      // Use local address as destination address
+                      dstIpv4Address = Ipv4Address::ConvertFrom (v.localAddrs);
+                    }
                   ip.str ("");
-                  ip << InetSocketAddress::ConvertFrom (v.dstAddrs).GetIpv4 ();
+                  ip << dstIpv4Address;
                   dstStr = ip.str ();
                   ret = m_db->Bind (stmt, 8, dstStr);
                   NS_ABORT_UNLESS (ret);

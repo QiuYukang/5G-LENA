@@ -46,11 +46,10 @@ NrEesmCc::GetTypeId (void)
 
 double
 NrEesmCc::ComputeSINR (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs,
-                         uint32_t sizeBit,
+                       [[maybe_unused]] uint32_t sizeBit,
                          const NrErrorModel::NrErrorModelHistory &sinrHistory) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (sizeBit);
 
   // HARQ CHASE COMBINING: update SINReff, but not ECR after retx
   // repetition of coded bits

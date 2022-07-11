@@ -29,7 +29,7 @@
  * having these calculations correlate.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-channel-randomness --Help"
+$ ./ns3 run "cttc-channel-randomness --PrintHelp"
     \endcode
  *
  */
@@ -239,11 +239,6 @@ main (int argc, char *argv[])
   Ptr<UniformPlanarArray> txAntenna = CreateObjectWithAttributes<UniformPlanarArray> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
   Ptr<UniformPlanarArray> rxAntenna = CreateObjectWithAttributes<UniformPlanarArray> ("NumColumns", UintegerValue (2), "NumRows", UintegerValue (2));
 
-  // initialize the devices in the ThreeGppSpectrumPropagationLossModel
-  m_spectrumLossModel->AddDevice (txDev, txAntenna);
-  m_spectrumLossModel->AddDevice (rxDev, rxAntenna);
-
-
   // set the beamforming vectors
   DoBeamforming (txDev, txAntenna, rxDev);
   DoBeamforming (rxDev, rxAntenna, txDev);
@@ -269,7 +264,7 @@ main (int argc, char *argv[])
     }
   Ptr<const SpectrumValue> txPsd1 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs, sm1, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
   std::cout << "Average tx power 1: " << 10 * log10 (Sum (*txPsd1) / txPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
-  Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob);
+  Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob, txAntenna, rxAntenna);
   std::cout << "Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
 
   channelModel = {nullptr};
@@ -310,7 +305,7 @@ main (int argc, char *argv[])
   Ptr<const SpectrumValue> txPsd2 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs2, sm2, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
 
   std::cout << "Average tx power 1: " << 10 * log10 (Sum (*txPsd2) / txPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
-  Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob);
+  Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob, txAntenna, rxAntenna);
   std::cout << "Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
 
 

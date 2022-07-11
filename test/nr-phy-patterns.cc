@@ -252,8 +252,8 @@ LtePhyPatternTestCase::CreatePhy (const Ptr<NrGnbMac> &mac) const
 
   phy->InstallSpectrumPhy (channelPhy);
   Ptr<BeamManager> beamManager = CreateObject<BeamManager>();
-  phy->InstallAntenna (beamManager, antenna);
-
+  beamManager->Configure (antenna);
+  channelPhy->SetBeamManager(beamManager);
   return phy;
 }
 

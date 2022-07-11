@@ -24,7 +24,8 @@
 #include "nr-amc.h"
 #include <unordered_map>
 #include <functional>
-#include "beam-id.h"
+#include "beam-conf-id.h"
+#include <algorithm>
 
 namespace ns3 {
 
@@ -71,130 +72,94 @@ public:
   /**
    * \brief Create a new UE representation
    * \param rnti the RNTI of the UE
-   * \param beamId the BeamID of the UE (can be updated later)
+   * \param beamConfId the BeamConfId of the UE (can be updated later)
    */
-  NrMacSchedulerUeInfo (uint16_t rnti, BeamId beamId, const GetRbPerRbgFn &fn) :
-    m_rnti (rnti),
-    m_beamId (beamId),
-    m_getNumRbPerRbg (fn)
-  {
-  }
+  NrMacSchedulerUeInfo (uint16_t rnti, BeamConfId beamConfId, const GetRbPerRbgFn &fn);
 
   /**
    * \brief ~NrMacSchedulerUeInfo deconstructor
    */
-  virtual ~NrMacSchedulerUeInfo ()
-  {
-  }
+  virtual ~NrMacSchedulerUeInfo ();
 
   /**
    * \brief GetDlRBG
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint32_t & GetDlRBG (const UePtr &ue)
-  {
-    return ue->m_dlRBG;
-  }
+  static uint32_t & GetDlRBG (const UePtr &ue);
   /**
    * \brief GetUlRBG
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint32_t & GetUlRBG (const UePtr &ue)
-  {
-    return ue->m_ulRBG;
-  }
+  static uint32_t & GetUlRBG (const UePtr &ue);
   /**
    * \brief GetDlSym
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint8_t & GetDlSym (const UePtr &ue)
-  {
-    return ue->m_dlSym;
-  }
+  static uint8_t & GetDlSym (const UePtr &ue);
   /**
    * \brief GetUlSym
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint8_t & GetUlSym (const UePtr &ue)
-  {
-    return ue->m_ulSym;
-  }
+  static uint8_t & GetUlSym (const UePtr &ue);
   /**
    * \brief GetDlMcs
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint8_t & GetDlMcs (const UePtr &ue)
-  {
-    return ue->m_dlMcs;
-  }
+  static uint8_t & GetDlMcs (const UePtr &ue, uint8_t stream);
   /**
    * \brief GetUlMcs
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint8_t & GetUlMcs (const UePtr &ue)
-  {
-    return ue->m_ulMcs;
-  }
+  static uint8_t & GetUlMcs (const UePtr &ue);
+  /**
+   * \brief GetDlTBSPerStream
+   * \param ue UE pointer from which obtain the value
+   * \param stream The stream id UE pointer from which obtain the value
+   * \return The TB size of the stream whose id is passed as an argument
+   */
+  static uint32_t & GetDlTBSPerStream (const UePtr &ue, uint8_t stream);
   /**
    * \brief GetDlTBS
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint32_t & GetDlTBS (const UePtr &ue)
-  {
-    return ue->m_dlTbSize;
-  }
+  static uint32_t GetDlTBS (const UePtr &ue);
   /**
    * \brief GetUlTBS
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static uint32_t & GetUlTBS (const UePtr &ue)
-  {
-    return ue->m_ulTbSize;
-  }
+  static uint32_t GetUlTBS (const UePtr &ue);
   /**
    * \brief GetDlLCG
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static std::unordered_map<uint8_t, LCGPtr> & GetDlLCG (const UePtr &ue)
-  {
-    return ue->m_dlLCG;
-  }
+  static std::unordered_map<uint8_t, LCGPtr> & GetDlLCG (const UePtr &ue);
   /**
    * \brief GetUlLCG
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static std::unordered_map<uint8_t, LCGPtr> & GetUlLCG (const UePtr &ue)
-  {
-    return ue->m_ulLCG;
-  }
+  static std::unordered_map<uint8_t, LCGPtr> & GetUlLCG (const UePtr &ue);
   /**
    * \brief GetDlHarqVector
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static NrMacHarqVector & GetDlHarqVector (const UePtr &ue)
-  {
-    return ue->m_dlHarq;
-  }
+  static NrMacHarqVector & GetDlHarqVector (const UePtr &ue);
   /**
    * \brief GetUlHarqVector
    * \param ue UE pointer from which obtain the value
    * \return
    */
-  static NrMacHarqVector & GetUlHarqVector (const UePtr &ue)
-  {
-    return ue->m_ulHarq;
-  }
+  static NrMacHarqVector & GetUlHarqVector (const UePtr &ue);
 
   typedef std::function<std::unordered_map<uint8_t, LCGPtr> &(const UePtr &ue)> GetLCGFn;
   typedef std::function<NrMacHarqVector& (const UePtr &ue)> GetHarqVectorFn;
@@ -205,13 +170,7 @@ public:
    * Called after each slot. It should reset all the information that are
    * slot-dependent.
    */
-  virtual void ResetDlSchedInfo ()
-  {
-    m_dlMRBRetx = 0;
-    m_dlRBG = 0;
-    m_dlTbSize = 0;
-    m_dlSym = 0;
-  }
+  virtual void ResetDlSchedInfo ();
 
   /**
    * \brief Reset UL information
@@ -219,30 +178,14 @@ public:
    * Called after each slot. It should reset all the information that are
    * slot-dependent.
    */
-  virtual void ResetUlSchedInfo ()
-  {
-    m_ulMRBRetx = 0;
-    m_ulRBG = 0;
-    m_ulSym = 0;
-    m_ulTbSize = 0;
-  }
+  virtual void ResetUlSchedInfo ();
 
   /**
    * \brief Update DL metrics after resources have been assigned
    *
    * The amount of assigned resources is stored inside m_dlRBG by the scheduler.
    */
-  virtual void UpdateDlMetric (const Ptr<const NrAmc> &amc)
-  {
-    if (m_dlRBG == 0)
-      {
-        m_dlTbSize = 0;
-      }
-    else
-      {
-        m_dlTbSize = amc->CalculateTbSize (m_dlMcs, m_dlRBG * GetNumRbPerRbg ());
-      }
-  }
+  virtual void UpdateDlMetric (const Ptr<const NrAmc> &amc);
 
   /**
    * \brief ResetDlMetric
@@ -251,27 +194,14 @@ public:
    * to a TBS > 0. The assignation is, therefore, not transformed in DCI.
    * These RBG will not be assigned, they will be empty in the slot.
    */
-  virtual void ResetDlMetric ()
-  {
-    m_dlTbSize = 0;
-  }
+  virtual void ResetDlMetric ();
 
   /**
    * \brief Update UL metrics after resources have been assigned
    *
    * The amount of assigned resources is stored inside m_ulRBG by the scheduler.
    */
-  virtual void UpdateUlMetric (const Ptr<const NrAmc> &amc)
-  {
-    if (m_ulRBG == 0)
-      {
-        m_ulTbSize = 0;
-      }
-    else
-      {
-        m_ulTbSize = amc->CalculateTbSize (m_ulMcs, m_ulRBG * GetNumRbPerRbg ());
-      }
-  }
+  virtual void UpdateUlMetric (const Ptr<const NrAmc> &amc);
 
   /**
    * \brief ResetDlMetric
@@ -280,10 +210,7 @@ public:
    * to a TBS > 0. The assignation is, therefore, not transformed in DCI.
    * These RBG will not be assigned, they will be empty in the slot.
    */
-  virtual void ResetUlMetric ()
-  {
-    m_ulTbSize = 0;
-  }
+  virtual void ResetUlMetric ();
 
   /**
    * \brief Received CQI information
@@ -305,8 +232,28 @@ public:
     uint32_t m_timer {0};  //!< Timer (in slot number). When the timer is 0, the value is discarded
   };
 
-  uint16_t m_rnti            {0};             //!< RNTI of the UE
-  BeamId   m_beamId;       //!< Beam ID of the UE (kept updated as much as possible by MAC)
+  /**
+   * \brief Received CQI information
+   */
+  struct DlCqiInfo
+  {
+    /**
+     * \brief Type of CQI
+     */
+    enum CqiType
+    {
+      WB,             //!< Wide-band
+      SB              //!< Sub-band
+    } m_cqiType {WB}; //!< CQI type
+
+    uint8_t m_ri    {0}; //!< The rank indicator, by default UE would have only one stream
+    std::vector<double> m_sinr;   //!< Vector of SINR for the entire band
+    std::vector<uint8_t> m_wbCqi; //!< CQI for each stream
+    uint32_t m_timer {0};  //!< Timer (in slot number). When the timer is 0, the value is discarded
+  };
+
+  uint16_t m_rnti {0};          //!< RNTI of the UE
+  BeamConfId   m_beamConfId;    //!< Beam ID of the UE (kept updated as much as possible by MAC)
 
   std::unordered_map<uint8_t, LCGPtr> m_dlLCG;//!< DL LCG
   std::unordered_map<uint8_t, LCGPtr> m_ulLCG;//!< UL LCG
@@ -318,13 +265,13 @@ public:
   uint8_t         m_dlSym     {0};  //!< Number of (new data) symbols assigned in this slot.
   uint8_t         m_ulSym     {0};  //!< Number of (new data) symbols assigned in this slot.
 
-  uint8_t         m_dlMcs     {0};  //!< DL MCS
-  uint8_t         m_ulMcs     {0};  //!< UL MCS
+  std::vector<uint8_t> m_dlMcs;  //!< DL MCS per stream, it is initialized with a starting MCS upon UE addition to gNB and the scheduler
+  uint8_t m_ulMcs     {0};  //!< UL MCS
 
-  uint32_t m_dlTbSize         {0};  //!< DL Transport Block Size, depends on MCS and RBG, updated in UpdateDlMetric()
+  std::vector<uint32_t> m_dlTbSize {0};  //!< DL Transport Block Size per stream, depends on MCS and RBG, updated in UpdateDlMetric()
   uint32_t m_ulTbSize         {0};  //!< UL Transport Block Size, depends on MCS and RBG, updated in UpdateDlMetric()
 
-  CqiInfo m_dlCqi;                  //!< DL CQI information
+  DlCqiInfo m_dlCqi;                  //!< DL CQI information
   CqiInfo m_ulCqi;                  //!< UL CQI information
 
   NrMacHarqVector m_dlHarq;     //!< HARQ process vector for DL
@@ -332,6 +279,7 @@ public:
 
   uint32_t m_srsPeriodicity {0}; //!< SRS periodicity
   uint32_t m_srsOffset {0};      //!< SRS offset
+  uint8_t m_startMcsDlUe {0}; //!< Starting DL MCS to be used
 
 protected:
   /**
@@ -339,10 +287,7 @@ protected:
    *
    * \return numRbPerRbg. Calls the MAC.
    */
-  uint32_t GetNumRbPerRbg () const
-  {
-    return m_getNumRbPerRbg ();
-  }
+  uint32_t GetNumRbPerRbg () const;
 
 private:
   const GetRbPerRbgFn m_getNumRbPerRbg; //!< Function that points to a method which knows the number of RB per RBG.

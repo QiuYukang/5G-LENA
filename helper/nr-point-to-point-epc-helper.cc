@@ -66,17 +66,22 @@ NrPointToPointEpcHelper::DoAddX2Interface (const Ptr<EpcX2> &gnb1X2, const Ptr<N
 
   Ptr<NrGnbNetDevice> gnb1NetDevice = gnb1NetDev->GetObject<NrGnbNetDevice> ();
   Ptr<NrGnbNetDevice> gnb2NetDevice = gnb2NetDev->GetObject<NrGnbNetDevice> ();
-  uint16_t gnb1CellId = gnb1NetDevice->GetCellId ();
-  uint16_t gnb2CellId = gnb2NetDevice->GetCellId ();
+  std::vector<uint16_t> gnb1CellIds = gnb1NetDevice->GetCellIds ();
+  std::vector<uint16_t> gnb2CellIds = gnb2NetDevice->GetCellIds ();
+
+
 
   NS_ABORT_IF (gnb1NetDevice == nullptr);
   NS_ABORT_IF (gnb2NetDevice == nullptr);
 
+  uint16_t gnb1CellId = gnb1CellIds.at (0);
+  uint16_t gnb2CellId = gnb2CellIds.at (0);
+
   NS_LOG_LOGIC ("NrGnbNetDevice #1 = " << gnb1NetDev << " - CellId = " << gnb1CellId);
   NS_LOG_LOGIC ("NrGnbNetDevice #2 = " << gnb2NetDev << " - CellId = " << gnb2CellId);
 
-  gnb1X2->AddX2Interface (gnb1CellId, gnb1X2Address, gnb2CellId, gnb2X2Address);
-  gnb2X2->AddX2Interface (gnb2CellId, gnb2X2Address, gnb1CellId, gnb1X2Address);
+  gnb1X2->AddX2Interface (gnb1CellId, gnb1X2Address, gnb2CellIds, gnb2X2Address);
+  gnb2X2->AddX2Interface (gnb2CellId, gnb2X2Address, gnb1CellIds, gnb1X2Address);
 
   gnb1NetDevice->GetRrc ()->AddX2Neighbour (gnb2CellId);
   gnb2NetDevice->GetRrc ()->AddX2Neighbour (gnb1CellId);

@@ -32,17 +32,17 @@
  * be low latency or not. By default the traffic is low latency. So,
  * the example can be run from the command line in the following way:
  *
- * ./waf --run cttc-3gpp-channel-simple-fdm
+ * ./ns3 run cttc-3gpp-channel-simple-fdm
  *
  * or to configure flow as not ultra low latency:
  *
- * ./waf --run 'cttc-3gpp-channel-simple-fdm --isUll=0'
+ * ./ns3 run 'cttc-3gpp-channel-simple-fdm --isUll=0'
  *
  * Variables that are accessible through the command line (e.g. numerology of
  * BWP 1 can be configured by using --numerologyBwp1=4, so if the user would
  * like to specify this parameter the program can be run in the following way:
  *
- * ./waf --run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=4"
+ * ./ns3 run "cttc-3gpp-channel-simple-fdm --numerologyBwp1=4"
  *
  *
  *

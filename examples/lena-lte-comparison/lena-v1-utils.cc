@@ -44,10 +44,8 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
                                            PowerOutputStats *powerStats,
                                            const std::string &scheduler,
                                            uint32_t bandwidthMHz, uint32_t freqScenario,
-                                           double downtiltAngle)
+                                           [[maybe_unused]] double downtiltAngle)
 {
-  NS_UNUSED (downtiltAngle);
-
   /*
    *  An example of how the spectrum is being used, for 20 MHz bandwidth..
    *
@@ -271,9 +269,9 @@ LenaV1Utils::SetLenaV1SimulatorParameters (const double sector0AngleRad,
 }
 
 void
-LenaV1Utils::ReportSinrLena (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti, double power, double avgSinr, uint8_t bwpId)
+LenaV1Utils::ReportSinrLena (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti, [[maybe_unused]] double power, double avgSinr, uint8_t bwpId)
 {
-  LenaV2Utils::ReportSinrNr (stats, cellId, rnti, power, avgSinr, static_cast<uint16_t> (bwpId));
+  LenaV2Utils::ReportSinrNr (stats, cellId, rnti, avgSinr, static_cast<uint16_t> (bwpId));
 }
 
 void

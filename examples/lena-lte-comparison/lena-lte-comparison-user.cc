@@ -30,7 +30,7 @@ using namespace ns3;
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "lena-lte-comparison-user --Help"
+$ ./ns3 run "lena-lte-comparison-user --Help"
     \endcode
  *
  */

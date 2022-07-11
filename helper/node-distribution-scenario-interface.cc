@@ -89,7 +89,7 @@ NodeDistributionScenarioInterface::GetAntennaOrientationDegrees (std::size_t cel
       auto sectors = static_cast<std::size_t> (m_sectorization);
       std::size_t sector = cellId % sectors;
       double sectorSize = 360.0 / sectors;
-      orientation = sectorSize * (sector + 0.5);  // First sector starts at 0°
+      orientation = sectorSize * (sector + 0.5);  // First sector starts at 0
     }
   return orientation;
 }

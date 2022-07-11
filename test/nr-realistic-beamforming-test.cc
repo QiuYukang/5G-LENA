@@ -26,6 +26,7 @@
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/antenna-module.h>
+#include <ns3/beamforming-vector.h>
 
 namespace ns3 {
 
@@ -199,14 +200,14 @@ NrRealisticBeamformingTestCase::DoRun (void)
 
                   Ptr<NrUePhy> uePhy = nrHelper->GetUePhy (ueDevs.Get (0), 0);
 
-                  Ptr<const NrSpectrumPhy> txSpectrumPhy = nrHelper->GetGnbPhy (gnbDevs.Get (0), 0)->GetSpectrumPhy ();
+                  Ptr<NrSpectrumPhy> txSpectrumPhy = nrHelper->GetGnbPhy (gnbDevs.Get (0), 0)->GetSpectrumPhy (0);
                   Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel ();
                   Ptr<ThreeGppPropagationLossModel> propagationLossModel =  DynamicCast<ThreeGppPropagationLossModel> (txSpectrumChannel->GetPropagationLossModel ());
                   NS_ASSERT (propagationLossModel != nullptr);
                   propagationLossModel->AssignStreams (1);
                   Ptr<ChannelConditionModel> channelConditionModel = propagationLossModel->GetChannelConditionModel ();
                   channelConditionModel->AssignStreams (1);
-                  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetSpectrumPropagationLossModel ());
+                  Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel = DynamicCast<ThreeGppSpectrumPropagationLossModel> (txSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel());
                   NS_ASSERT (spectrumLossModel != nullptr);
                   Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel ());
                   channel->AssignStreams (1);
@@ -215,44 +216,33 @@ NrRealisticBeamformingTestCase::DoRun (void)
                   double sinrSrsLowLineal = std::pow (10.0, 0.1 * (-10));
 
                   Ptr<CellScanBeamforming> cellScanBeamforming = CreateObject<CellScanBeamforming>();
-                  BeamformingVector idealGnbBfv;
-                  BeamformingVector idealUeBfv;
-                  cellScanBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
-                                                              DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
-                                                              &idealGnbBfv,
-                                                              &idealUeBfv,
-                                                              0);
+
+                  BeamformingVectorPair bfPairIdeal = cellScanBeamforming->GetBeamformingVectors (txSpectrumPhy, uePhy->GetSpectrumPhy(0));
 
                   Ptr<RealisticBeamformingAlgorithm> realisticBeamforming = CreateObject<RealisticBeamformingAlgorithm>();
-                  realisticBeamforming->Install (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)), DynamicCast<NrUeNetDevice> (ueDevs.Get (0)), 0);
-                  BeamformingVector realisticGnbBfv1;
-                  BeamformingVector realisticUeBfv1;
+                  realisticBeamforming->Install (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
+                                                 DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
+                                                 txSpectrumPhy,
+                                                 uePhy->GetSpectrumPhy(0),
+                                                 DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0))->GetScheduler(0)
+                                                );
 
                   // directly update max SINR SRS to a high value, skipping other set functions of the algorithm
                   realisticBeamforming->m_maxSrsSinrPerSlot = sinrSrsHighLineal;
 
-                  realisticBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
-                                                               DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
-                                                               &realisticGnbBfv1,
-                                                               &realisticUeBfv1,
-                                                               0 );
+                  BeamformingVectorPair bfPairReal1 = realisticBeamforming->GetBeamformingVectors ();
 
-                  BeamformingVector realisticGnbBfv2;
-                  BeamformingVector realisticUeBfv2;
                   // directly update max SINR SRS to a new lower value, skipping other set functions of the algorithm,
                   realisticBeamforming->m_maxSrsSinrPerSlot = sinrSrsLowLineal;
 
-                  realisticBeamforming->GetBeamformingVectors (DynamicCast<NrGnbNetDevice> (gnbDevs.Get (0)),
-                                                               DynamicCast<NrUeNetDevice> (ueDevs.Get (0)),
-                                                               &realisticGnbBfv2,
-                                                               &realisticUeBfv2,
-                                                               0 );
-                  if ((idealGnbBfv.second == realisticGnbBfv1.second) && (idealUeBfv.second == realisticUeBfv1.second))
+                  BeamformingVectorPair bfPairReal2 = realisticBeamforming->GetBeamformingVectors ();
+
+                  if ((bfPairIdeal.first.second == bfPairReal1.first.second) && (bfPairIdeal.second.second == bfPairReal1.second.second))
                     {
                       highSinrCounter++;
                     }
 
-                  if (!((idealGnbBfv.second == realisticGnbBfv2.second) && (idealUeBfv.second == realisticUeBfv2.second)))
+                  if (!((bfPairIdeal.first.second == bfPairReal2.first.second) && (bfPairIdeal.second.second == bfPairReal2.second.second)))
                     {
                       lowSinrCounter++;
                     }

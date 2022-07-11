@@ -104,7 +104,8 @@ struct HarqProcess
   Status m_status                       {INACTIVE};    //!< Status of the process
   uint8_t m_timer                       {0};           //!< Timer of the process (in slot)
   std::shared_ptr<DciInfoElementTdma> m_dciElement {}; //!< DCI element
-  std::vector <RlcPduInfo> m_rlcPduInfo {};            //!< vector of RLC PDU
+  std::vector<std::vector<RlcPduInfo> > m_rlcPduInfo {};            //!< vector of RLC PDU
+  std::vector <uint8_t> nackStreamIndexes; //!< vector holding the stream indexes for which gNB received NACK
 };
 
 /**

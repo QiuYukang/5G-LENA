@@ -33,9 +33,9 @@ namespace ns3 {
 
 void
 LenaV2Utils::ReportSinrNr (SinrOutputStats *stats, uint16_t cellId, uint16_t rnti,
-                           double power, double avgSinr, uint16_t bwpId)
+                           double avgSinr, uint16_t bwpId, [[maybe_unused]] uint8_t streamId)
 {
-  stats->SaveSinr (cellId, rnti, power, avgSinr, bwpId);
+  stats->SaveSinr (cellId, rnti, avgSinr, bwpId);
 }
 
 void
@@ -95,12 +95,12 @@ void ConfigurePhy (Ptr<NrHelper> &nrHelper,
   // Change the antenna orientation
   Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy (gnb, 0);  // BWP 0
   Ptr<UniformPlanarArray> antenna0 =
-    ConstCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntennaArray ());
+    DynamicCast<UniformPlanarArray> (phy0->GetSpectrumPhy ()->GetAntenna ());
   antenna0->SetAttribute ("BearingAngle", DoubleValue (orientationRads));
 
   // configure the beam that points toward the center of hexagonal
   // In case of beamforming, it will be overwritten.
-  phy0->GetBeamManager ()->SetPredefinedBeam (3, 30);
+  phy0->GetSpectrumPhy (0)->GetBeamManager ()->SetPredefinedBeam (3, 30);
 
   // Set numerology
   nrHelper->GetGnbPhy (gnb, 0)->SetAttribute ("Numerology", UintegerValue (numerology));      // BWP
@@ -735,7 +735,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters (const double sector0AngleRad,
           uePhySecond = nrHelper->GetUePhy (*nd, 1);
           uePhySecond->SetUplinkPowerControl (uePhyFirst->GetUplinkPowerControl ());
         }
-      uePhyFirst->TraceConnectWithoutContext ("ReportCurrentCellRsrpSinr",
+      uePhyFirst->TraceConnectWithoutContext ("DlDataSinr",
                                               MakeBoundCallback (&ReportSinrNr, sinrStats));
       uePhySecond->TraceConnectWithoutContext ("ReportPowerSpectralDensity",
                                                MakeBoundCallback (&ReportPowerNr, ueTxPowerStats));

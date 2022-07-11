@@ -32,6 +32,7 @@
 #include <ns3/nr-spectrum-phy.h>
 #include "ideal-beamforming-helper.h"
 #include "cc-bwp-helper.h"
+#include "nr-mac-scheduling-stats.h"
 
 namespace ns3 {
 
@@ -238,7 +239,8 @@ public:
    *
    */
   NetDeviceContainer InstallUeDevice (const NodeContainer &c,
-                                      const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> &allBwps);
+                                      const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> &allBwps,
+                                      uint8_t numberOfPanels = 1);
   /**
    * \brief Install one (or more) GNBs
    * \param c Node container with the GNB
@@ -246,7 +248,8 @@ public:
    * \return a NetDeviceContainer with the net devices that have been installed.
    */
   NetDeviceContainer InstallGnbDevice (const NodeContainer &c,
-                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+                                       const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+                                       uint8_t numberOfPanels = 1);
 
   /**
    * \brief Get the number of configured BWP for a specific GNB NetDevice
@@ -605,6 +608,12 @@ public:
    */
   void SetUeBwpManagerAlgorithmTypeId (const TypeId &typeId);
 
+  /*
+   * \brief Sets the TypeId of the PhasedArraySpectrumPropagationLossModel to be used
+   * \param typeId Type of the object
+   */
+  void SetPhasedArraySpectrumPropagationLossModelTypeId (const TypeId &typeId);
+
   /**
    * \brief Set an attribute for the GNB BWP Manager, before it is created.
    *
@@ -612,6 +621,14 @@ public:
    * \param v the value of the attribute
    */
   void SetUeBwpManagerAlgorithmAttribute (const std::string &n, const AttributeValue &v);
+
+  /**
+   * \brief Set an attribute for the PhasedArraySpectrumPropagationLossModel before it is created.
+   *
+   * \param n the name of the attribute
+   * \param v the value of the attribute
+   */
+  void SetPhasedArraySpectrumPropagationLossModelAttribute (const std::string &n, const AttributeValue &v);
 
   /**
    * Set an attribute for the Channel Condition model, before it is created.
@@ -701,6 +718,117 @@ public:
   void SetDlErrorModel (const std::string & errorModelTypeId);
 
   /**
+   * \brief Enable DL DATA PHY traces
+   */
+  void EnableDlDataPhyTraces ();
+
+  /**
+   * \brief Enable DL CTRL PHY traces
+   */
+  void EnableDlCtrlPhyTraces ();
+
+  /**
+   * \brief Enable UL PHY traces
+   */
+  void EnableUlPhyTraces ();
+
+  /**
+   * \brief Get the phy traces object
+   *
+   * \return The NrPhyRxTrace object to write PHY traces
+   */
+  Ptr<NrPhyRxTrace> GetPhyRxTrace (void);
+
+  /**
+   * \brief Enable gNB packet count trace
+   */
+  void EnableGnbPacketCountTrace ();
+
+  /**
+   * \brief Enable UE packet count trace
+   *
+   */
+  void EnableUePacketCountTrace ();
+
+  /**
+   * \brief Enable transport block trace
+   *
+   * At the time of writing this documentation
+   * this method only connect the ReportDownlinkTbSize
+   * of NrUePhy.
+   */
+  void EnableTransportBlockTrace ();
+
+  /**
+   * \brief Enable gNB PHY CTRL TX and RX traces
+   */
+  void EnableGnbPhyCtrlMsgsTraces (void);
+
+  /**
+   * \brief Enable UE PHY CTRL TX and RX traces
+   */
+  void EnableUePhyCtrlMsgsTraces (void);
+
+  /**
+   * \brief Enable gNB MAC CTRL TX and RX traces
+   */
+  void EnableGnbMacCtrlMsgsTraces (void);
+
+  /**
+   * \brief Enable UE MAC CTRL TX and RX traces
+   */
+  void EnableUeMacCtrlMsgsTraces (void);
+
+  /**
+   * \brief Get the RLC stats calculator object
+   *
+   * \return The NrBearerStatsCalculator stats calculator object to write RLC traces
+   */
+  Ptr<NrBearerStatsCalculator> GetRlcStatsCalculator (void);
+
+  /**
+   * \brief Enable RLC simple traces (DL RLC TX, DL RLC RX, UL DL TX, UL DL RX)
+   */
+  void EnableRlcSimpleTraces (void);
+
+  /**
+   * \brief Enable PDCP traces (DL PDCP TX, DL PDCP RX, UL PDCP TX, UL PDCP RX)
+   */
+  void EnablePdcpSimpleTraces (void);
+
+  /**
+   * \brief Enable RLC calculator and end-to-end RCL traces to file
+   */
+  void EnableRlcE2eTraces (void);
+
+  /**
+   * \brief Enable PDCP calculator and end-to-end PDCP traces to file
+   */
+  void EnablePdcpE2eTraces (void);
+
+  /**
+   * \brief Get the PDCP stats calculator object
+   *
+   * \return The NrBearerStatsCalculator stats calculator object to write PDCP traces
+   */
+  Ptr<NrBearerStatsCalculator> GetPdcpStatsCalculator (void);
+
+  /**
+   * Enable trace sinks for DL MAC layer scheduling.
+   */
+  void EnableDlMacSchedTraces (void);
+
+  /**
+   * Enable trace sinks for UL MAC layer scheduling.
+   */
+  void EnableUlMacSchedTraces (void);
+
+  /**
+   * \brief Enable trace sinks for DL and UL pathloss
+   */
+  void EnablePathlossTraces ();
+
+  /**
     * Assign a fixed random variable stream number to the random variables used.
     *
     * The InstallGnbDevice() or InstallUeDevice method should have previously
@@ -746,34 +874,24 @@ private:
 
   Ptr<NrGnbPhy> CreateGnbPhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                   const Ptr<NrGnbNetDevice> &dev,
-                                  const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyEndCtrlCallback);
+                                  const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyEndCtrlCallback,
+                                  uint8_t numberOfPanels);
   Ptr<NrMacScheduler> CreateGnbSched ();
   Ptr<NrGnbMac> CreateGnbMac ();
 
   Ptr<NrUeMac> CreateUeMac () const;
   Ptr<NrUePhy> CreateUePhy (const Ptr<Node> &n, const std::unique_ptr<BandwidthPartInfo> &bwp,
                                 const Ptr<NrUeNetDevice> &dev,
-                                const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback &dlHarqCallback,
-                                const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback);
+                                const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback &phyRxCtrlCallback,
+                                uint8_t numberOfPanels);
 
   Ptr<NetDevice> InstallSingleUeDevice (const Ptr<Node> &n,
-                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+                                        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+                                        uint8_t numberOfPanels);
   Ptr<NetDevice> InstallSingleGnbDevice (const Ptr<Node> &n,
-                                         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+                                         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+                                         uint8_t numberOfPanels);
   void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
-  void EnableDlPhyTrace ();
-  void EnableUlPhyTrace ();
-  void EnableEnbPacketCountTrace ();
-  void EnableUePacketCountTrace ();
-  void EnableTransportBlockTrace ();
-  void EnableRlcTraces (void);
-  void EnableGnbPhyCtrlMsgsTraces (void);
-  void EnableUePhyCtrlMsgsTraces (void);
-  void EnableGnbMacCtrlMsgsTraces (void);
-  void EnableUeMacCtrlMsgsTraces (void);
-  Ptr<NrBearerStatsCalculator> GetRlcStats (void);
-  void EnablePdcpTraces (void);
-  Ptr<NrBearerStatsCalculator> GetPdcpStats (void);
 
   std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap ();
 
@@ -804,20 +922,21 @@ private:
   uint64_t m_imsiCounter {0};    //!< Imsi counter
   uint16_t m_cellIdCounter {1};  //!< CellId Counter
 
-  Ptr<NrPhyRxTrace> m_phyStats; //!< Pointer to the PhyRx stats
-  Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
-
   Ptr<EpcHelper> m_epcHelper {nullptr};                           //!< Ptr to the EPC helper (optional)
   Ptr<BeamformingHelperBase> m_beamformingHelper {nullptr}; //!< Ptr to the beamforming helper
 
   bool m_harqEnabled {false};
   bool m_snrTest {false};
 
-  Ptr<NrBearerStatsCalculator> m_rlcStats;  //!< ?
-  Ptr<NrBearerStatsCalculator> m_pdcpStats; //!< ?
-  NrBearerStatsConnector m_radioBearerStatsConnector; //!< ?
+  Ptr<NrPhyRxTrace> m_phyStats; //!< Pointer to the PhyRx stats
+  Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats
+
+  NrBearerStatsConnector m_radioBearerStatsConnectorSimpleTraces; //!< RLC and PDCP statistics connector for simple file statistics
+  NrBearerStatsConnector m_radioBearerStatsConnectorCalculator; //!< RLC and PDCP statistics connector for complex calculator statistics
+
   std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
   std::vector< Ptr <Object> > m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper has assigned streams in order to avoid double assignments
+  Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
 
   //NR Sidelink code and additions
 public:

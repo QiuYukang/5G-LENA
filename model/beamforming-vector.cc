@@ -73,13 +73,50 @@ complexVector_t CreateDirectionalBfv (const Ptr<const UniformPlanarArray>& anten
   double vAngle_radian = elevation * M_PI / 180;
   uint16_t size = antenna->GetNumberOfElements ();
   double power = 1 / sqrt (size);
-  for (auto ind = 0; ind < size; ind++)
+  if (size == 1)
     {
-    Vector loc = antenna->GetElementLocation (ind);
-    double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
-                                + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
-                                + cos (vAngle_radian) * loc.z);
-    tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
+      tempVector.push_back (power);  // single AE, no BF
+    }
+  else
+    {
+      for (auto ind = 0; ind < size; ind++)
+        {
+        Vector loc = antenna->GetElementLocation (ind);
+        double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
+                                    + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
+                                    + cos (vAngle_radian) * loc.z);
+        tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
+        }
+    }
+  return tempVector;
+}
+
+complexVector_t CreateDirectionalBfvAz (const Ptr<const UniformPlanarArray>& antenna,
+                                        double azimuth, double zenith)
+{
+  complexVector_t tempVector;
+
+  UintegerValue uintValueNumRows;
+  antenna->GetAttribute ("NumRows", uintValueNumRows);
+
+  double hAngle_radian = azimuth * M_PI / 180;
+  double vAngle_radian = zenith * M_PI / 180;
+  uint16_t size = antenna->GetNumberOfElements ();
+  double power = 1 / sqrt (size);
+  if (size == 1)
+    {
+      tempVector.push_back (power);  // single AE, no BF
+    }
+  else
+    {
+      for (auto ind = 0; ind < size; ind++)
+        {
+        Vector loc = antenna->GetElementLocation (ind);
+        double phase = -2 * M_PI * (sin (vAngle_radian) * cos (hAngle_radian) * loc.x
+                                    + sin (vAngle_radian) * sin (hAngle_radian) * loc.y
+                                    + cos (vAngle_radian) * loc.z);
+        tempVector.push_back (exp (std::complex<double> (0, phase)) * power);
+        }
     }
   return tempVector;
 }

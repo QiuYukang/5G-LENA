@@ -63,8 +63,6 @@ public:
    * successive file to the list of sites.
    *
    * \param [in] filePath The path to the input file.
-   * \param [in] defaultZ The default Z value to use when reading files
-   *             with only X and Y positions.
    * \param [in] delimiter The delimiter character; see CsvReader.
    */
   void Add (const std::string filePath,
@@ -72,7 +70,7 @@ public:
   
   /**
    * \brief Get the site position corresponding to a given cell.
-   * \param cellId Cell id of the antenna
+   * \param cellId the cell ID of the antenna
    */
   Vector GetSitePosition (std::size_t cellId) const;
 

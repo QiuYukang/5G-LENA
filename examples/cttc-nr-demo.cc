@@ -36,7 +36,7 @@
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-nr-demo --Help"
+$ ./ns3 run "cttc-nr-demo --PrintHelp"
     \endcode
  *
  */

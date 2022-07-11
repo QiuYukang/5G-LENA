@@ -65,8 +65,9 @@ NrBearerStatsCalculator::GetTypeId (void)
 {
   static TypeId tid =
     TypeId ("ns3::NrBearerStatsCalculator")
-    .SetParent<LteStatsCalculator> ().AddConstructor<NrBearerStatsCalculator> ()
-    .SetGroupName ("Lte")
+    .SetParent<NrBearerStatsBase> ()
+    .AddConstructor<NrBearerStatsCalculator> ()
+    .SetGroupName ("nr")
     .AddAttribute ("StartTime", "Start time of the on going epoch.",
                    TimeValue (Seconds (0.)),
                    MakeTimeAccessor (&NrBearerStatsCalculator::SetStartTime,
@@ -79,23 +80,23 @@ NrBearerStatsCalculator::GetTypeId (void)
                    MakeTimeChecker ())
     .AddAttribute ("DlRlcOutputFilename",
                    "Name of the file where the downlink results will be saved.",
-                   StringValue ("DlRlcStats.txt"),
-                   MakeStringAccessor (&LteStatsCalculator::SetDlOutputFilename),
+                   StringValue ("NrDlRlcStatsE2E.txt"),
+                   MakeStringAccessor (&NrBearerStatsCalculator::m_dlRlcOutputFilename),
                    MakeStringChecker ())
     .AddAttribute ("UlRlcOutputFilename",
                    "Name of the file where the uplink results will be saved.",
-                   StringValue ("UlRlcStats.txt"),
-                   MakeStringAccessor (&LteStatsCalculator::SetUlOutputFilename),
+                   StringValue ("NrUlRlcStatsE2E.txt"),
+                   MakeStringAccessor (&NrBearerStatsCalculator::m_ulRlcOutputFilename),
                    MakeStringChecker ())
     .AddAttribute ("DlPdcpOutputFilename",
                    "Name of the file where the downlink results will be saved.",
-                   StringValue ("DlPdcpStats.txt"),
-                   MakeStringAccessor (&NrBearerStatsCalculator::SetDlPdcpOutputFilename),
+                   StringValue ("NrDlPdcpStatsE2E.txt"),
+                   MakeStringAccessor (&NrBearerStatsCalculator::m_dlPdcpOutputFilename),
                    MakeStringChecker ())
     .AddAttribute ("UlPdcpOutputFilename",
                    "Name of the file where the uplink results will be saved.",
-                   StringValue ("UlPdcpStats.txt"),
-                   MakeStringAccessor (&NrBearerStatsCalculator::SetUlPdcpOutputFilename),
+                   StringValue ("NrUlPdcpStatsE2E.txt"),
+                   MakeStringAccessor (&NrBearerStatsCalculator::m_ulPdcpOutputFilename),
                    MakeStringChecker ())
   ;
   return tid;
@@ -140,26 +141,9 @@ NrBearerStatsCalculator::GetEpoch () const
 void
 NrBearerStatsCalculator::UlTxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti, uint8_t lcid, uint32_t packetSize)
 {
-  NS_LOG_FUNCTION (this << "UlTxPdu" << cellId << imsi << rnti << (uint32_t) lcid << packetSize);
+  NS_LOG_FUNCTION (this);
 
-  if (!m_ulOutFile.is_open ())
-    {
-      m_ulOutFile.open (GetUlOutputFilename ().c_str (), std::ios_base::app);
-    }
-
-  if (m_protocolType == "RLC")
-    {
-      m_ulOutFile << "RLC ";
-    }
-  else
-    {
-      m_ulOutFile << "PDCP ";
-    }
-
-  m_ulOutFile << "UlTxPDU " << Simulator::Now () << " " << cellId << " "
-              << rnti << " " << (uint32_t) lcid << " " << packetSize << " " << std::endl;
-
-  /*ImsiLcidPair_t p (imsi, lcid);
+  ImsiLcidPair_t p (imsi, lcid);
   if (Simulator::Now () >= m_startTime)
     {
       m_ulCellId[p] = cellId;
@@ -167,33 +151,15 @@ NrBearerStatsCalculator::UlTxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti,
       m_ulTxPackets[p]++;
       m_ulTxData[p] += packetSize;
     }
-  m_pendingOutput = true;*/
+  m_pendingOutput = true;
 }
 
 void
 NrBearerStatsCalculator::DlTxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti, uint8_t lcid, uint32_t packetSize)
 {
-  NS_LOG_FUNCTION (this << "DlTxPDU" << cellId << imsi << rnti << (uint32_t) lcid << packetSize);
+  NS_LOG_FUNCTION (this);
 
-  if (!m_dlOutFile.is_open ())
-    {
-      m_dlOutFile.open (GetDlOutputFilename ().c_str (), std::ios_base::app);
-    }
-
-  if (m_protocolType == "RLC")
-    {
-      m_dlOutFile << "RLC ";
-    }
-  else
-    {
-      m_dlOutFile << "PDCP ";
-    }
-
-  m_dlOutFile << "DlTxPDU " << Simulator::Now () << " " << cellId << " "
-              << rnti << " " << (uint32_t) lcid << " " << packetSize << " " << std::endl;
-
-
-  /*ImsiLcidPair_t p (imsi, lcid);
+  ImsiLcidPair_t p (imsi, lcid);
   if (Simulator::Now () >= m_startTime)
     {
       m_dlCellId[p] = cellId;
@@ -201,33 +167,16 @@ NrBearerStatsCalculator::DlTxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti,
       m_dlTxPackets[p]++;
       m_dlTxData[p] += packetSize;
     }
-  m_pendingOutput = true;*/
+  m_pendingOutput = true;
 }
 
 void
 NrBearerStatsCalculator::UlRxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti, uint8_t lcid, uint32_t packetSize,
                                       uint64_t delay)
 {
-  NS_LOG_FUNCTION (this << "UlRxPDU" << cellId << imsi << rnti << (uint32_t) lcid << packetSize << delay);
+  NS_LOG_FUNCTION (this);
 
-  if (!m_ulOutFile.is_open ())
-    {
-      m_ulOutFile.open (GetUlOutputFilename ().c_str (), std::ios_base::app);
-    }
-
-  if (m_protocolType == "RLC")
-    {
-      m_ulOutFile << "RLC ";
-    }
-  else
-    {
-      m_ulOutFile << "PDCP ";
-    }
-
-  m_ulOutFile << "UlRxPDU " << Simulator::Now () << " " << cellId << " "
-              << rnti << " " << (uint32_t) lcid << " " << packetSize << " " << delay << std::endl;
-
-  /*ImsiLcidPair_t p (imsi, lcid);
+  ImsiLcidPair_t p (imsi, lcid);
   if (Simulator::Now () >= m_startTime)
     {
       m_ulCellId[p] = cellId;
@@ -244,57 +193,39 @@ NrBearerStatsCalculator::UlRxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti,
       m_ulDelay[p]->Update (delay);
       m_ulPduSize[p]->Update (packetSize);
     }
-  m_pendingOutput = true;*/
+  m_pendingOutput = true;
 }
 
 void
 NrBearerStatsCalculator::DlRxPdu (uint16_t cellId, uint64_t imsi, uint16_t rnti, uint8_t lcid, uint32_t packetSize, uint64_t delay)
 {
-  NS_LOG_FUNCTION (this << "DlRxPDU" << cellId << imsi << rnti << (uint32_t) lcid << packetSize << delay);
+  NS_LOG_FUNCTION (this);
 
-  if (!m_dlOutFile.is_open ())
+  ImsiLcidPair_t p (imsi, lcid);
+  if (Simulator::Now () >= m_startTime)
     {
-      m_dlOutFile.open (GetDlOutputFilename ().c_str (), std::ios_base::app);
+      m_dlCellId[p] = cellId;
+      m_dlRxPackets[p]++;
+      m_dlRxData[p] += packetSize;
+
+      Uint64StatsMap::iterator it = m_dlDelay.find (p);
+      if (it == m_dlDelay.end ())
+        {
+          NS_LOG_DEBUG (this << " Creating DL stats calculators for IMSI " << p.m_imsi << " and LCID " << (uint32_t) p.m_lcId);
+          m_dlDelay[p] = CreateObject<MinMaxAvgTotalCalculator<uint64_t> > ();
+          m_dlPduSize[p] = CreateObject<MinMaxAvgTotalCalculator<uint32_t> > ();
+        }
+      m_dlDelay[p]->Update (delay);
+      m_dlPduSize[p]->Update (packetSize);
     }
-
-  if (m_protocolType == "RLC")
-    {
-      m_dlOutFile << "RLC ";
-    }
-  else
-    {
-      m_dlOutFile << "PDCP ";
-    }
-
-  m_dlOutFile << "DlRxPDU " << Simulator::Now () << " " << cellId << " "
-              << rnti << " " << (uint32_t) lcid << " " << packetSize << " " << delay << std::endl;
-
-  /* ImsiLcidPair_t p (imsi, lcid);
-   if (Simulator::Now () >= m_startTime)
-     {
-       m_dlCellId[p] = cellId;
-       m_dlRxPackets[p]++;
-       m_dlRxData[p] += packetSize;
-
-       Uint64StatsMap::iterator it = m_dlDelay.find (p);
-       if (it == m_dlDelay.end ())
-         {
-           NS_LOG_DEBUG (this << " Creating DL stats calculators for IMSI " << p.m_imsi << " and LCID " << (uint32_t) p.m_lcId);
-           m_dlDelay[p] = CreateObject<MinMaxAvgTotalCalculator<uint64_t> > ();
-           m_dlPduSize[p] = CreateObject<MinMaxAvgTotalCalculator<uint32_t> > ();
-         }
-       m_dlDelay[p]->Update (delay);
-       m_dlPduSize[p]->Update (packetSize);
-     }
-   m_pendingOutput = true;*/
+  m_pendingOutput = true;
 }
 
 void
 NrBearerStatsCalculator::ShowResults (void)
 {
-
   NS_LOG_FUNCTION (this << GetUlOutputFilename ().c_str () << GetDlOutputFilename ().c_str ());
-  NS_LOG_INFO ("Write Rlc Stats in " << GetUlOutputFilename ().c_str () << " and in " << GetDlOutputFilename ().c_str ());
+  NS_LOG_INFO ("Write bearer stats to " << GetUlOutputFilename ().c_str () << " and in " << GetDlOutputFilename ().c_str ());
 
   std::ofstream ulOutFile;
   std::ofstream dlOutFile;
@@ -315,12 +246,12 @@ NrBearerStatsCalculator::ShowResults (void)
           return;
         }
       m_firstWrite = false;
-      ulOutFile << "% start\tend\tCellId\tIMSI\tRNTI\tLCID\tnTxPDUs\tTxBytes\tnRxPDUs\tRxBytes\t";
-      ulOutFile << "delay\tstdDev\tmin\tmax\t";
+      ulOutFile << "% start(s)\tend(s)\tCellId\tIMSI\tRNTI\tLCID\tnTxPDUs\tTxBytes\tnRxPDUs\tRxBytes\t";
+      ulOutFile << "delay(s)\tstdDev(s)\tmin(s)\tmax(s)\t";
       ulOutFile << "PduSize\tstdDev\tmin\tmax";
       ulOutFile << std::endl;
-      dlOutFile << "% start\tend\tCellId\tIMSI\tRNTI\tLCID\tnTxPDUs\tTxBytes\tnRxPDUs\tRxBytes\t";
-      dlOutFile << "delay\tstdDev\tmin\tmax\t";
+      dlOutFile << "% start(s)\tend(s)\tCellId\tIMSI\tRNTI\tLCID\tnTxPDUs\tTxBytes\tnRxPDUs\tRxBytes\t";
+      dlOutFile << "delay(s)\tstdDev(s)\tmin(s)\tmax(s)\t";
       dlOutFile << "PduSize\tstdDev\tmin\tmax";
       dlOutFile << std::endl;
     }
@@ -367,8 +298,8 @@ NrBearerStatsCalculator::WriteUlResults (std::ofstream& outFile)
   for (std::vector<ImsiLcidPair_t>::iterator it = pairVector.begin (); it != pairVector.end (); ++it)
     {
       ImsiLcidPair_t p = *it;
-      outFile << m_startTime.GetNanoSeconds () / 1.0e9 << "\t";
-      outFile << endTime.GetNanoSeconds () / 1.0e9 << "\t";
+      outFile << m_startTime.GetSeconds () << "\t";
+      outFile << endTime.GetSeconds () << "\t";
       outFile << GetUlCellId (p.m_imsi, p.m_lcId) << "\t";
       outFile << p.m_imsi << "\t";
       outFile << m_flowId[p].m_rnti << "\t";
@@ -412,8 +343,8 @@ NrBearerStatsCalculator::WriteDlResults (std::ofstream& outFile)
   for (std::vector<ImsiLcidPair_t>::iterator pair = pairVector.begin (); pair != pairVector.end (); ++pair)
     {
       ImsiLcidPair_t p = *pair;
-      outFile << m_startTime.GetNanoSeconds () / 1.0e9 << "\t";
-      outFile << endTime.GetNanoSeconds () / 1.0e9 << "\t";
+      outFile << m_startTime.GetSeconds () << "\t";
+      outFile << endTime.GetSeconds () << "\t";
       outFile << GetDlCellId (p.m_imsi, p.m_lcId) << "\t";
       outFile << p.m_imsi << "\t";
       outFile << m_flowId[p].m_rnti << "\t";
@@ -678,16 +609,17 @@ NrBearerStatsCalculator::GetDlPduSizeStats (uint64_t imsi, uint8_t lcid)
   return stats;
 }
 
+
 std::string
 NrBearerStatsCalculator::GetUlOutputFilename (void)
 {
   if (m_protocolType == "RLC")
     {
-      return LteStatsCalculator::GetUlOutputFilename ();
+      return m_ulRlcOutputFilename;
     }
   else
     {
-      return GetUlPdcpOutputFilename ();
+      return m_ulPdcpOutputFilename;
     }
 }
 
@@ -696,35 +628,12 @@ NrBearerStatsCalculator::GetDlOutputFilename (void)
 {
   if (m_protocolType == "RLC")
     {
-      return LteStatsCalculator::GetDlOutputFilename ();
+      return m_dlRlcOutputFilename;
     }
   else
     {
-      return GetDlPdcpOutputFilename ();
+      return m_dlPdcpOutputFilename;
     }
-}
-
-void
-NrBearerStatsCalculator::SetUlPdcpOutputFilename (std::string outputFilename)
-{
-  m_ulPdcpOutputFilename = outputFilename;
-}
-
-std::string
-NrBearerStatsCalculator::GetUlPdcpOutputFilename (void)
-{
-  return m_ulPdcpOutputFilename;
-}
-void
-NrBearerStatsCalculator::SetDlPdcpOutputFilename (std::string outputFilename)
-{
-  m_dlPdcpOutputFilename = outputFilename;
-}
-
-std::string
-NrBearerStatsCalculator::GetDlPdcpOutputFilename (void)
-{
-  return m_dlPdcpOutputFilename;
 }
 
 } // namespace ns3

@@ -36,11 +36,10 @@ LenaErrorModel::~LenaErrorModel ()
 }
 
 uint32_t
-LenaErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, NrErrorModel::Mode mode) const
+LenaErrorModel::GetPayloadSize ([[maybe_unused]] uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, NrErrorModel::Mode mode) const
 {
   NS_LOG_FUNCTION (this);
 
-  NS_UNUSED (usefulSC);
   // Since we call here LteAmc which assumes that for data is assigned 11 or 13 symbols
   // (11 DL and 13 UL).
   // In DL we will assign o DATA always 13 symbols in OFDMA, but in UL since we have

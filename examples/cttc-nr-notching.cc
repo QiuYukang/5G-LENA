@@ -76,7 +76,7 @@
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-nr-notching --Help"
+$ ./ns3 run "cttc-nr-notching --PrintHelp"
     \endcode
  */
 using namespace ns3;

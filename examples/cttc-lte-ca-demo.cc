@@ -39,7 +39,7 @@
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-lte-ca-demo --Help"
+$ ./ns3 run "cttc-lte-ca-demo --PrintHelp"
     \endcode
  *
  */

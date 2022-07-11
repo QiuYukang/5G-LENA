@@ -42,30 +42,26 @@ std::shared_ptr<NrMacSchedulerUeInfo>
 NrMacSchedulerOfdmaRR::CreateUeRepresentation (const NrMacCschedSapProvider::CschedUeConfigReqParameters &params) const
 {
   NS_LOG_FUNCTION (this);
-  return std::make_shared <NrMacSchedulerUeInfoRR> (params.m_rnti, params.m_beamId,
+  return std::make_shared <NrMacSchedulerUeInfoRR> (params.m_rnti, params.m_beamConfId,
                                                         std::bind (&NrMacSchedulerOfdmaRR::GetNumRbPerRbg, this));
 }
 
 void
 NrMacSchedulerOfdmaRR::AssignedDlResources (const UePtrAndBufferReq &ue,
-                                                const FTResources &assigned,
-                                                const FTResources &totAssigned) const
+                                            [[maybe_unused]] const FTResources &assigned,
+                                            [[maybe_unused]] const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
-  NS_UNUSED (totAssigned);
   GetFirst GetUe;
   GetUe (ue)->UpdateDlMetric (m_dlAmc);
 }
 
 void
 NrMacSchedulerOfdmaRR::AssignedUlResources (const UePtrAndBufferReq &ue,
-                                                const FTResources &assigned,
-                                                const FTResources &totAssigned) const
+                                            [[maybe_unused]] const FTResources &assigned,
+                                            [[maybe_unused]] const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
-  NS_UNUSED (totAssigned);
   GetFirst GetUe;
   GetUe (ue)->UpdateUlMetric (m_ulAmc);
 }

@@ -98,7 +98,7 @@ public:
    * for the given cellId.
    * The orientation is the azimuth angle of the antenna bore sight.
    * \param cellId Cell Id
-   * \return The antenna orientation in degrees [0°, 360°]
+   * \return The antenna orientation in degrees [0, 360]
    */
   double GetAntennaOrientationDegrees (std::size_t cellId) const;
 
@@ -113,7 +113,7 @@ public:
   /**
    * \brief Returns the position of the cell antenna
    * \param sitePos Site position coordinates in meters
-   * \param cell Id Cell id of the antenna
+   * \param cellId Id Cell id of the antenna
    */
   Vector GetAntennaPosition (const Vector &sitePos, uint16_t cellId) const;
 

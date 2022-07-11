@@ -20,10 +20,10 @@
 #ifndef SRC_NR_MODEL_BEAM_MANAGER_H_
 #define SRC_NR_MODEL_BEAM_MANAGER_H_
 
-#include "beamforming-algorithm.h"
 #include "ns3/event-id.h"
 #include <ns3/nstime.h>
 #include <ns3/net-device.h>
+#include "beamforming-vector.h"
 
 
 namespace ns3 {
@@ -100,7 +100,7 @@ public:
    * \brief Get a pointer to the current antenna
    * \return the antenna
    */
-  Ptr<const UniformPlanarArray> GetAntennaArray () const;
+  Ptr<const UniformPlanarArray> GetAntenna () const;
 
 
   typedef std::map<const Ptr<const NetDevice>, BeamformingVector> BeamformingStorage; //!< BeamformingStorage type used to save the map of beamforming vectors per device
@@ -153,6 +153,13 @@ public:
    * \param elevation elevation
    */
   void SetSector (uint16_t sector, double elevation) const;
+
+  /**
+   * \brief Set the Sector
+   * \param azimuth azimuth
+   * \param zenith zenith
+   */
+  void SetSectorAz (double azimuth, double zenith) const;
 
 private:
 

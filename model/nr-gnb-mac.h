@@ -37,7 +37,7 @@ namespace ns3 {
 
 class NrControlMessage;
 class NrRarMessage;
-class BeamId;
+class BeamConfId;
 
 /**
  * \ingroup gnb-mac
@@ -185,24 +185,32 @@ public:
   void SetLteCcmMacSapUser (LteCcmMacSapUser* s);
 
   /**
-   * \brief A Beam for a user has changed
-   * \param beamId new beam ID
+   * \brief A BeamConf for a user has changed
+   * \param beamConfId new beam ID
    * \param rnti RNTI of the user
    */
-  void BeamChangeReport (BeamId beamId, uint8_t rnti);
+  void BeamChangeReport (BeamConfId beamConfId, uint8_t rnti);
 
   /**
-   * TracedCallback signature for DL scheduling events.
+   * TracedCallback signature for DL and UL data scheduling events.
    *
-   * \param [in] frame Frame number.
-   * \param [in] subframe Subframe number.
+   * \param [in] frame Frame number
+   * \param [in] subframe Subframe number
+   * \param [in] slotNum Slot number
+   * \param [in] symStart Symbol start
+   * \param [in] numSym Number of symbols
+   * \param [in] streamId Stream id
+   * \param [in] tbSize The TB size
+   * \param [in] mcs MCS
+   * \param [in] rnti RNTI
+   * \param [in] bwpId BandWidth Part id
    * ...
    */
-  typedef void (* DlSchedulingTracedCallback)(   uint32_t frameNum, uint32_t subframeNum,
-                                                 uint32_t slotNum,
-                                                 uint32_t tbSize, uint32_t mcs,
-                                                 uint32_t rnti,
-                                                 uint8_t componentCarrierId);
+  typedef void (*SchedulingTracedCallback)(uint32_t frameNum, uint32_t subframeNum,
+                                              uint32_t slotNum, uint8_t symStart,
+                                              uint8_t numSym, uint8_t streamId,
+                                              uint32_t tbSize, uint32_t mcs,
+                                              uint32_t rnti, uint8_t bwpId);
 
   /**
    * TracedCallback signature for SR scheduling events.
@@ -329,12 +337,18 @@ private:
   void SendRar (const std::vector<BuildRarListElement_s> &rarList);
 
 private:
-  struct NrDlHarqProcessInfo
+
+  struct HarqProcessInfoSingleStream
   {
     Ptr<PacketBurst> m_pktBurst;
     // maintain list of LCs contained in this TB
     // used to signal HARQ failure to RLC handlers
     std::vector<uint8_t> m_lcidList;
+  };
+
+  struct NrDlHarqProcessInfo
+  {
+    std::vector<HarqProcessInfoSingleStream> m_infoPerStream;
   };
 
   typedef std::vector < NrDlHarqProcessInfo> NrDlHarqProcessesBuffer_t;
@@ -375,9 +389,8 @@ private:
   std::vector <UlHarqInfo> m_ulHarqInfoReceived;   // UL HARQ feedback received
   std::unordered_map <uint16_t, NrDlHarqProcessesBuffer_t> m_miDlHarqProcessesPackets;   // Packet under trasmission of the DL HARQ process
 
-  /* That's horribly broken: in the class the DlScheduling attribute refers to
-   * the LteGnbMac signature */
-  TracedCallback<uint32_t, uint32_t,uint32_t, uint32_t, uint32_t, uint32_t, uint8_t> m_dlScheduling;
+  TracedCallback<NrSchedulingCallbackInfo> m_dlScheduling;
+  TracedCallback<NrSchedulingCallbackInfo> m_ulScheduling;
 
   std::list<uint16_t> m_srRntiList; //!< List of RNTI that requested a SR
 

@@ -106,10 +106,8 @@ protected:
    * \param symOfBeam the number of symbols assigned to the beam
    */
   virtual void
-  ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override
+  ChangeDlBeam ([[maybe_unused]] PointInFTPlane *spoint, [[maybe_unused]] uint32_t symOfBeam) const override
   {
-    NS_UNUSED (spoint);
-    NS_UNUSED (symOfBeam);
   }
 
   /**
@@ -118,10 +116,8 @@ protected:
    * \param symOfBeam the number of symbols assigned to the beam
    */
   virtual void
-  ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override
+  ChangeUlBeam ([[maybe_unused]] PointInFTPlane *spoint, [[maybe_unused]] uint32_t symOfBeam) const override
   {
-    NS_UNUSED (spoint);
-    NS_UNUSED (symOfBeam);
   }
 
   virtual uint8_t GetTpc () const override;
@@ -243,7 +239,7 @@ private:
    */
   typedef std::function<void (const UePtrAndBufferReq &, const FTResources &, const FTResources &)> AfterUnsucessfullAssignmentFn;
   typedef std::function<uint32_t& (const UePtr &ue)> GetRBGFn; //!< Getter for the RBG of an UE
-  typedef std::function<uint32_t& (const UePtr &ue)> GetTBSFn; //!< Getter for the TBS of an UE
+  typedef std::function<uint32_t (const UePtr &ue)> GetTBSFn; //!< Getter for the TBS of an UE
   typedef std::function<uint8_t& (const UePtr &ue)> GetSymFn;  //!< Getter for the number of symbols of an UE
   typedef std::function<bool (const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
                               const NrMacSchedulerNs3::UePtrAndBufferReq &rhs )> CompareUeFn;
@@ -252,15 +248,15 @@ private:
   BeamSymbolMap
   AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeUe,
                  const std::string &type, const BeforeSchedFn &BeforeSchedFn,
-                 const GetCompareUeFn &GetCompareFn,
-                 const GetTBSFn &GetTBSFn, const GetRBGFn &GetRBGFn,
+                 const GetCompareUeFn &GetCompareFn, const GetTBSFn &GetTBSFn, const GetRBGFn &GetRBGFn,
                  const GetSymFn &GetSymFn, const AfterSuccessfullAssignmentFn &SuccessfullAssignmentFn,
                  const AfterUnsucessfullAssignmentFn &UnSuccessfullAssignmentFn) const;
 
 
   std::shared_ptr<DciInfoElementTdma> CreateDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                                 uint32_t tbs, DciInfoElementTdma::DciFormat fmt,
-                                                 uint32_t mcs, uint8_t numSym) const;
+                                                 std::vector<uint32_t> tbs, DciInfoElementTdma::DciFormat fmt,
+                                                 std::vector<uint8_t> mcs, std::vector<uint8_t> ndi,
+                                                 std::vector<uint8_t> rv, uint8_t numSym) const;
 };
 
 } // namespace ns3

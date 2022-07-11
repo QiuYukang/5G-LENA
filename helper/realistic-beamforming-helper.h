@@ -21,6 +21,7 @@
 #include "beamforming-helper-base.h"
 #include <ns3/realistic-beamforming-algorithm.h>
 #include <ns3/node.h>
+#include <ns3/beamforming-vector.h>
 
 #ifndef SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
@@ -31,6 +32,7 @@ class NrGnbNetDevice;
 class NrUeNetDevice;
 class NrGnbPhy;
 class NrUePhy;
+class NrSpectrumPhy;
 
 
 /**
@@ -109,23 +111,14 @@ public:
 private:
 
 
-  virtual void GetBeamformingVectors (const Ptr<NrGnbNetDevice>& gnbDev,
-                                      const Ptr<NrUeNetDevice>& ueDev,
-                                      BeamformingVector* gnbBfv,
-                                      BeamformingVector* ueBfv,
-                                      uint16_t ccId) const override;
+  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
-  typedef std::pair< Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > BfDevicePair;
+  typedef std::pair< Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy> > BfAntennaPair;
+  typedef std::map <BfAntennaPair, Ptr<RealisticBeamformingAlgorithm>> AntennaPairToAlgorithm;
 
-  struct NodePairHash{
-    size_t operator() (const BfDevicePair &x) const
-    {
-      return std::hash<uint32_t>()(Cantor (x.first->GetNode()->GetId (), x.second->GetNode()->GetId()));
-    }
-  };
-  typedef std::unordered_map <uint16_t, Ptr<RealisticBeamformingAlgorithm> > CcIdToBeamformingAlgorithm;
-  typedef std::unordered_map <BfDevicePair, CcIdToBeamformingAlgorithm, NodePairHash > DevicePairToAlgorithmsPerCcId;
-  DevicePairToAlgorithmsPerCcId m_devicePairToAlgorithmsPerCcId;
+  AntennaPairToAlgorithm m_antennaPairToAlgorithm;
+
 };
 
 }; //ns3 namespace

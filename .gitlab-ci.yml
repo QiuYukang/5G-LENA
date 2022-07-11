@@ -18,12 +18,26 @@ stages:
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
     - mkdir -p ns-3-dev/contrib/nr
     - cp -r doc examples helper model test utils ns-3-dev/contrib/nr/
-    - cp -r wscript ns-3-dev/contrib/nr/
+    - cp -r CMakeLists.txt ns-3-dev/contrib/nr/
     - cd ns-3-dev
+    - git checkout ns-3.36.1
     - git log -1
+    - export MPI_CI=1
+    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
+    - cmake --version
+    - ./ns3 build
+    - ./test.py -n
+    - ./ns3 clean
     - git checkout v2x-lte-dev
-    - CXX="ccache $COMPILER" ./waf configure --enable-examples --enable-tests -d $MODE
-    - ./waf
+    - rm -rf contrib/nr
+    - cd ..
+    - git checkout nr-v2x-dev
+    - mkdir -p ns-3-dev/contrib/nr
+    - cp -r doc examples helper model test utils ns-3-dev/contrib/nr/
+    - cp -r CMakeLists.txt ns-3-dev/contrib/nr/
+    - cd ns-3-dev
+    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja  --enable-examples --enable-tests --enable-modules=flow-monitor,stats,nr --enable-asserts
+    - ./ns3 build
     - ./test.py
     - cd ../
     - rm -rf ns-3-dev
@@ -46,29 +60,40 @@ stages:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
 
 # Defines the per-commit jobs. They are executed for any branch
-per-commit-compile-debug:
-  extends: .base-build
-  image: natalep/archlinux-nr-environment
-  variables:
-    COMPILER: g++
-    MODE: debug
+#gcc-debug:
+#  extends: .base-build
+#  image: archlinux
+#  variables:
+#    COMPILER: g++
+#    MODE: debug
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-per-commit-compile-release:
-  extends: .base-build
-  image: natalep/archlinux-nr-environment
-  variables:
-    COMPILER: g++
-    MODE: release
+#gcc-release:
+#  extends: .base-build
+#  image: archlinux
+#  variables:
+#    COMPILER: g++
+#    MODE: release
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-per-commit-compile-optimized:
-  extends: .base-build
-  image: natalep/archlinux-nr-environment
-  variables:
-    COMPILER: g++
-    MODE: optimized
+#gcc-optimized:
+#  extends: .base-build
+#  image: archlinux
+#  variables:
+#    COMPILER: g++
+#    MODE: optimized
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
 pages:
   stage: build
+  tags:
+    - cttc
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
@@ -78,19 +103,39 @@ pages:
   image: ubuntu
   script:
     - mkdir -p public/
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
-    - python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
-    - mv doc/doc/html/ public/
     - cd doc && make latexpdf
     - cd ..
     - mv doc/build/latex/*.pdf public/
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
+    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+    - mv doc/doc/html/ public/
   artifacts:
     paths:
       - public
-  only:
-    - master
+    
+#doxygen-linux:
+#  stage: build
+#  tags:
+#    - cttc
+#  image: archlinux
+#  before_script:
+#    - pacman -Syu --noconfirm
+#    - pacman -Sy base-devel ninja cmake python ccache gsl gtk3 boost --noconfirm
+#    - pacman -Sy git doxygen graphviz imagemagick dia texlive-core texlive-bin texlive-latexextra python-sphinx --noconfirm
+#    - mv /etc/ImageMagick-7/policy.xml /etc/ImageMagick-7/policy.xml.bak
+#  script:
+#    - mkdir -p public/
+#    - git submodule sync --recursive
+#    - git submodule update --init --recursive
+#    - doxygen --version
+#    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+#    - mv doc/doc/html/ public/
+#  artifacts:
+#    paths:
+#      - public
 
+ 
 include:
   - '.gitlab-ci-clang.yml'
   - '.gitlab-ci-gcc.yml'

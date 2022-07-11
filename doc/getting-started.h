@@ -21,25 +21,14 @@
 
 \tableofcontents
 
-The first thing to do is take some confidence with the ns-3 environment.
-We cannot really help you here, but you can find on the Web a lot of information
-and tutorials. So, we will download and build the 5G-LENA project, but then
-we will point out some ns-3 tutorials before entering the NR domain.
+In order to start with the NR module you should have some confidence with
+the ns-3 environment. You can find on the ns-3 web site all the necessary information.
 
-\note
-Many of these instructions are copied from the README file. If you find an
-inconsistency, please open a support ticket!
+In the following instructions, we will download and build the 5G-LENA project,
+and we will point out to ns-3 and 5G-LENA documentation to help you enter
+the ns-3 and the NR world.
 
 \section getting-started-ns3 Download the ns-3 part of the 5G-LENA project
-
-We try to keep in sync with the latest advancements in ns-3-dev. By the version
-1.0, we have upstreamed all our patches to ns-3-dev, making our module
-independent from the ns-3 version used.
-
-\note
-If you don't have the permission to see the repository, it is probably due
-to the fact that you did not requested it. Even though 5G LENA is GPLv2-licensed,
-the access to the code is restricted.
 
 \subsection download-ns3 Download a brand new ns-3-dev repository
 To download a working copy of the ns-3-dev repository, you can do the following:
@@ -49,72 +38,132 @@ $ git clone git@gitlab.com:nsnam/ns-3-dev.git
 $ cd ns-3-dev
 \endcode
 
-Provide your username and password when asked. If you don't have an account
-on gitlab.com, you can use `https://gitlab.com/nsnam/ns-3-dev.git` as the
-repository address.
+We try to keep in sync with the latest advancements in ns-3-dev. By the version
+1.0, we have upstreamed all our patches to ns-3-dev, making our module
+independent from the ns-3 version used. However, since the version 1.3, we
+recommend the specific ns-3 release branch for each NR release, i.e., the
+ns-3 release branch with which are carried out all CI/CD tests for the specific
+NR release. Hence, at this step, you should check in RELEASE_NOTES.md of the NR module
+which is the recommended ns-3 release to use for the specific NR release,
+and then you can switch to the corresponding ns-3 release branch, e.g., in the
+following way:
 
-In case you are already using the git mirror of ns-3-dev, hosted at GitHub or GitLab, you are already ready to go (please make sure to be up-to-date with
-`git pull` in the master branch!).
+```
+$ git checkout ns-3.36
 
-\subsection switching-ns3 Switching from CTTC-provided ns-3-dev
+```
 
-Before v1.0, the NR module needed a custom ns-3-dev version. For those of you
-that are upgrading from v0.4 to v1.0, the steps to switch to the official
-ns-3 repository are the following (without recreating the repo configuration):
+You can replace "36" with the specific release that you want to use. If the
+recommended ns-3 release is not available yet (such in the case that NR is
+released before the recommended ns-3 release), then you can use ns-3 master
+until ns-3 recommended release is ready.
 
-\code{.sh}
-$ git remote add nsnam git@gitlab.com:nsnam/ns-3-dev.git
-$ git checkout master
-$ git pull nsnam master
-\endcode
-
-Anyway, we will make sure that the master of our custom ns-3-dev will stay
-up-to-date with respect to the official ns-3-dev.
 
 \subsection test-ns3 Test the installation
 
-To test the installation, after following one of the previous point, you can do
-a simple configuration and compile test (more options for that later):
+To test the installation, after following the previous steps, you can do
+a simple configuration and compilation test:
 
 \code{.sh}
-$ ./waf configure --enable-examples --enable-tests
-$ ./waf
+$ ./ns3 configure --enable-examples --enable-tests
+$ ./ns3 build
 \endcode
 
-A success for both previous commands indicates an overall success.
+A success for both previous commands indicates an overall success and you are
+ready to install the NR module.
 
 \section getting-started-nr Download the 5G-LENA core project
 
-As a precondition to the following steps, you must have a working local git
-repository. If that is the case, then, your local git repo is ready to include
-our nr module:
+As a precondition to the following steps, you must have a working local ns-3 git
+repository as explained in the previous steps.
+
+Clone the NR module:
 
 \code{.sh}
 cd src
-git clone git@gitlab.com:cttc-lena/nr.git
-cd ..
+git clone https://gitlab.com/cttc-lena/nr.git
+\endcode
+
+At this step, you should switch to the latest NR release branch.
+For example, to switch to the NR version 2.2 you should do the following:
+
+\code{.sh}
+cd nr
+git checkout 5g-lena-v2.2.y
 \endcode
 
 Please note that the src/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
-independent module. As a result, we have now two parallel repository, but one
-lives inside the other. We are working to be able to put nr inside the
-contrib/ directory, as per standard ns-3 rules.
+independent module. This is normal, since you have two parallel git repositories,
+that of ns-3 and of nr. Notice that you can install the nr module also inside
+the contrib/ directory, as per standard ns-3 instructions.
 
-To test the resulting repository, let's configure the project again:
+To test the resulting repository, go back to the root ns-3 directory and
+configure the ns-3 project and build it again:
 \code{.sh}
-$ ./waf configure --enable-examples --enable-tests
+$ cd ../../
+$ ./ns3 configure --enable-examples --enable-tests
+$ ./ns3 build
 \endcode
 
 If the NR module is recognized correctly, you should see "nr" in the list of
-built modules. If that is not the case, then most probably the previous
-point failed. Otherwise, you could compile it:
+built modules. If that is the case, Welcome to the NR world !!! :-)
 
-\code{sh}
-$ ./waf
+Now, you can run some of NR examples (see nr/examples folder):
+
+\code{.sh}
+$ ./ns3 run cttc-nr-mimo-demo
 \endcode
 
-If that command returns successfully, Welcome to the NR world !
+For more examples see nr/examples folder.
+
+\section contributing Contributing to 5G-LENA
+
+We would be very happy if you would contribute to 5G-LENA!
+
+If you do some of the following with 5G-LENA:
+
+  - find and solve some bug,
+  - add some new parameter,
+  - create a completely and different example or test,
+  - parametrize existing piece of code,
+  - develop a completely new feature,
+  - extend the tracing system through files or the databases,
+  - improve visualization of the scenario through the python scripts
+  - or whatever else,
+
+and you would like to contribute that to the open source NR module,
+please create a merge request (MR) or contact us to guide you through the
+contributing process.
+
+
+\section getting-started-tutorial Get familiar with ns-3 and the NR module
+
+We recommend you to first get familiar with ns-3 and then with the NR module.
+
+\subsection getting-started-ns-3 ns-3 tutorials
+
+If it is the first time you work with the ns-3 environment, we recommend to take
+things slowly (but steady) and going forward through simple steps.
+The ns-3 documentation <https://www.nsnam.org/documentation/> is divided into
+three categories tutorial, manual and documentation (describing models):
+
+- The ns-3 tutorial: <https://www.nsnam.org/docs/tutorial/html/index.html>
+- The ns-3 manual: <https://www.nsnam.org/docs/manual/html/index.html>
+- The LTE documentation: <https://www.nsnam.org/docs/models/html/lte.html>
+
+\subsection getting-started-nr-doc NR documentation
+
+The NR documentation is divided into two categories:
+
+- The NR module general documentation describing models: <https://cttc-lena.gitlab.io/nr/nrmodule.pdf>
+- The NR doxygen documentation (very detailed code documentation): <https://cttc-lena.gitlab.io/nr/html/>
+
+
+The publications related to the NR module and its extensions are also very
+valuable source of information. The list of the publications can be found here:
+<https://5g-lena.cttc.es/papers/>.
+
 
 \section upgrade Upgrading 5G-LENA
 
@@ -122,35 +171,22 @@ We assume that your work lives in a separate branch, and that the 'master'
 branch of the NR repository is left untouched as the first time you downloaded
 it. If it is not the case, then please move all your work in a separate branch.
 
-A vanilla 'master' branch can be updated by simply running:
+A clean 'master' branch can be updated by simply running:
 
 \code{.sh}
 $ cd ns-3-dev/src/nr
-$ git checkout master
 $ git pull
 \endcode
 
-At each release, we will incorporate into the master branch all the work that
-is meant to be released.
+Then checkout the latest NR release branch (e.g., `git checkout 5g-lena-v2.2.y`).
+With each release, we will also incorporate into the master branch all the work
+that is meant to be released.
 
-For what regards ns-3-dev (the main directory in which, under src/ or contrib/,
-you saved the NR module) the story is a bit different. Since we often rewrite
-its history to keep pace with ns-3-dev plus our patches to LTE that have not been
-accepted in the mainline, it is possible that with a simple `git pull` it will
-not upgrade correctly. What we suggest is, if the `git pull` strategy leads to
-conflicts, to download again our ns-3-dev repository, following the instructions
-at the beginning of this file (the repository is gitlab.com:cttc-lena/ns-3-dev.git).
+For what regards ns-3-dev run `git pull` and switch to its release branch that is
+indicated in the NR RELEASE_NOTES.md for the corresponding NR release.
 
-\section getting-started-tutorial ns-3 tutorials
-
-If it is the first time you work with the ns-3 environment, we recommend to take
-things slowly (but steady) and going forward through simple steps.
-The ns-3 documentation <https://www.nsnam.org/documentation/> is divided into
-two categories: the reference manual for the ns-3 core, and a separate model
-library. We suggest to read the following:
-
-- The ns-3 core tutorial: <https://www.nsnam.org/docs/tutorial/html/index.html>
-- The ns-3 core manual: <https://www.nsnam.org/docs/manual/html/index.html>
-- The LTE documentation: <https://www.nsnam.org/docs/models/html/lte.html>
+\note
+Many of these instructions are copied from the NR README.md file. If you find an
+inconsistency, please open a support ticket!
 
 */

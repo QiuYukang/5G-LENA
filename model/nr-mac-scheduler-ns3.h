@@ -186,7 +186,7 @@ class NrMacSchedulerSrsDefault;
  * the scheduler should compute beforehand the number of active UEs, as well as
  * the number of retransmission to be done. These operations are done, respectively,
  * by the methods ComputeActiveUe() and ComputeActiveHarq(). These methods work on
- * data structures that group UE and retransmission by BeamID
+ * data structures that group UE and retransmission by BeamConfId
  * (ActiveUeMap and ActiveHarqMap).
  *
  * \section scheduler_sched_ul Scheduling UL
@@ -360,17 +360,17 @@ public:
    */
   typedef std::pair<UePtr, uint32_t> UePtrAndBufferReq;
   /**
-   * \brief Map between a BeamId and a vector of UE (the UE are in that beam)
+   * \brief Map between a BeamConfId and a vector of UE (the UE are in that beam)
    */
-  typedef std::unordered_map <BeamId, std::vector<UePtrAndBufferReq>, BeamIdHash> ActiveUeMap;
+  typedef std::unordered_map <BeamConfId, std::vector<UePtrAndBufferReq>, BeamConfIdHash> ActiveUeMap;
   /**
-   * \brief Map between a BeamId and the symbol assigned to that beam
+   * \brief Map between a BeamConfId and the symbol assigned to that beam
    */
-  typedef std::unordered_map <BeamId, uint32_t, BeamIdHash> BeamSymbolMap;
+  typedef std::unordered_map <BeamConfId, uint32_t, BeamConfIdHash> BeamSymbolMap;
   /**
-   * \brief Map between a beamID and the HARQ of that beam
+   * \brief Map between a BeamConfId and the HARQ of that beam
    */
-  typedef std::unordered_map<BeamId, HarqVectorIteratorList, BeamIdHash> ActiveHarqMap;
+  typedef std::unordered_map<BeamConfId, HarqVectorIteratorList, BeamConfIdHash> ActiveHarqMap;
 
   /**
    * \brief Set the CqiTimerThreshold
@@ -454,7 +454,7 @@ public:
 
   /**
    * \brief Set the notched (blank) RBGs Mask for the DL
-   * \param notchedRbgsMask The mask of notched RBGs
+   * \param dlNotchedRbgsMask The mask of notched RBGs
    */
   void SetDlNotchedRbgMask (const std::vector<uint8_t> &dlNotchedRbgsMask);
 
@@ -466,7 +466,7 @@ public:
 
   /**
    * \brief Set the notched (blank) RBGs Mask for the UL
-   * \param notchedRbgsMask The mask of notched RBGs
+   * \param ulNotchedRbgsMask The mask of notched RBGs
    */
   void SetUlNotchedRbgMask (const std::vector<uint8_t> &ulNotchedRbgsMask);
 
@@ -513,6 +513,26 @@ public:
    * \return true if F slots are available for SRS, false otherwise
    */
   bool IsSrsInFSlots () const;
+  /**
+   * \brief Enable HARQ ReTx function
+   *
+   * Remember we introduced the EnableHarqReTx attribute only
+   * for FB calibration example. We want to disable HARQ ReTx
+   * because ReTx are scheduled in OFDMA fashion. In a TDMA simulation,
+   * such retransmissions change the SINR trends in a scenario. Also,
+   * REMEMBER that this solution of disabling the HARQ ReTx not very
+   * optimized because gNB MAC will still buffer the packet and UE
+   * would still transmit the HARQ feedback for the first transmission.
+   *
+   * \param enableFlag If true, it would set the max HARQ ReTx to 3; otherwise it set it to 0
+   */
+  void EnableHarqReTx (bool enableFlag);
+  /**
+   * \brief Is HARQ ReTx enable function
+   *
+   * \return Returns true if HARQ ReTx are enabled; otherwise false
+   */
+  bool IsHarqReTxEnable () const;
 
 protected:
   /**
@@ -902,6 +922,8 @@ private:
   uint32_t m_srsSlotCounter {0}; //!< Counter for UL slots
 
   friend NrSchedGeneralTestCase;
+
+  bool m_enableHarqReTx  {true}; //!< Flag to enable or disable HARQ ReTx (attribute)
 };
 
 } //namespace ns3

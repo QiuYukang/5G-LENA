@@ -9,7 +9,8 @@ be discussed below).
 
 We try to keep in sync with the latest advancements in ns-3-dev. By the version
 1.0, we have upstreamed all our patches to ns-3-dev, making our module
-independent from the ns-3 version used.
+independent from the ns-3 version used. Since the version 1.3, for 
+each NR release we will recommend which ns-3 release to use.
 
 ### Brand new installation of ns-3-dev repository
 
@@ -20,6 +21,21 @@ you can do the following:
 $ git clone https://gitlab.com/nsnam/ns-3-dev.git
 $ cd ns-3-dev
 ```
+
+At this step, you should check in RELEASE_NOTES.md which is the recommended ns-3 
+release to use for the specific NR release, and then you can switch to the 
+corresponding ns-3 release branch, e.g., in the following way:
+
+```
+$ git checkout ns-3.36
+
+```
+
+You can replace "36" with the specific release that you want to use. 
+
+If the recommended ns-3 release is not available yet (such in the case that NR is 
+released before the recommended ns-3 release), 
+then you can use ns-3 master until ns-3 recommended release is ready.
 
 Provide your username and password when asked.
 
@@ -49,8 +65,8 @@ To test the installation, after following one of the previous point, you can do
 a simple configuration and compile test (more options for that later):
 
 ```
-$ ./waf configure --enable-examples --enable-tests
-$ ./waf
+$ ./ns3 configure --enable-examples --enable-tests
+$ ./ns3 build
 ```
 
 A success for both previous commands indicates an overall success.
@@ -82,7 +98,7 @@ to the `5g-lena-v1.1.y` branch.
 Let's configure the project:
 
 ```
-$ ./waf configure --enable-examples --enable-tests
+$ ./ns3 configure --enable-examples --enable-tests
 ```
 
 If the NR module is recognized correctly, you should see "nr" in the list of
@@ -90,7 +106,7 @@ built modules. If that is not the case, then most probably the previous
 point failed. Otherwise, you could compile it:
 
 ```
-$ ./waf
+$ ./ns3
 ```
 
 If that command returns successfully, Welcome to the NR world !
@@ -110,7 +126,7 @@ apt-get install sqlite sqlite3 libsqlite3-dev
 ```
 
 For more details, related to the prerequisites for ns-3 please visit: `https://www.nsnam.org/wiki/Installation#Ubuntu.2FDebian.2FMint`.
-After the installation of the missing packages run again `./waf configure --enable-tests --enable-examples`.
+After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
 You should see: `SQLite stats support: enabled`
 
 
@@ -157,7 +173,7 @@ can find the list of packages for any Ubuntu-based distribution in the file
 To build the doxygen documentation, please do:
 
 ```
-$ python3 doc/m.css/doxygen/dox2html5.py doc/doxygen-mcss.conf --debug
+$ python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
 ```
 
 And then you will find the doxygen documentation inside `doc/doc/html/`.

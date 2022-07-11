@@ -252,7 +252,7 @@ LenaLteComparison (const Parameters &params)
     }
 
   std::cout << "  statistics\n";
-  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db", "lena-lte-comparison");
+  SQLiteOutput db (params.outputDir + "/" + params.simTag + ".db");
   SinrOutputStats sinrStats;
   PowerOutputStats ueTxPowerStats;
   PowerOutputStats gnbRxPowerStats;
@@ -564,12 +564,12 @@ LenaLteComparison (const Parameters &params)
     }
 
   // attach UEs to their gNB. Try to attach them per cellId order
-  std::cout << "  attach UEs to gNBs\n";
+  std::cout << "  attach UEs to gNBs\n" << std::endl;
   for (uint32_t ueId = 0; ueId < ueNodes.GetN (); ++ueId)
     {
       auto cellId = scenario->GetCellIndex (ueId);
-      Ptr<NetDevice> gnbNetDev = gnbNetDevs.Get (cellId);
-      Ptr<NetDevice> ueNetDev = ueNetDevs.Get (ueId);
+      Ptr<NetDevice> gnbNetDev = gnbNodes.Get (cellId)->GetDevice(0);
+      Ptr<NetDevice> ueNetDev = ueNodes.Get (ueId)->GetDevice(0);
       if (lteHelper != nullptr)
         {
           lteHelper->Attach (ueNetDev, gnbNetDev);
@@ -577,19 +577,18 @@ LenaLteComparison (const Parameters &params)
       else if (nrHelper != nullptr)
         {
           nrHelper->AttachToEnb (ueNetDev, gnbNetDev);
-          // UL phy
-          uint32_t bwp = (params.operationMode == "FDD" ? 1 : 0);
-          auto ueUlPhy {nrHelper->GetUePhy (ueNetDev, bwp)};
-          auto rnti = ueUlPhy->GetRnti ();
+          auto uePhyBwp0 {nrHelper->GetUePhy (ueNetDev, 0)};
+          auto gnbPhyBwp0 {nrHelper->GetGnbPhy (gnbNetDev, 0)};
           Vector gnbpos = gnbNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
           Vector uepos = ueNetDev->GetNode ()->GetObject<MobilityModel> ()->GetPosition ();
           double distance = CalculateDistance (gnbpos, uepos);
-          std::cout << "ueId: " << ueId
-                    << ", rnti: " << rnti
-                    << ", at " << uepos
-                    << ", attached to eNB " << cellId
-                    << " at " << gnbpos
-                    << ", range: " << distance << " meters"
+          std::cout <<"ueId "<< ueId
+                    <<", cellIndex "<< cellId
+                    <<", ue freq "<< uePhyBwp0->GetCentralFrequency () / 1e9
+                    <<", gnb freq "<< gnbPhyBwp0->GetCentralFrequency () / 1e9
+                    <<", sector "<< scenario->GetSectorIndex (cellId)
+                    <<", distance "<< distance
+                    <<", azimuth gnb->ue:"<< RadiansToDegrees (Angles (gnbpos, uepos).GetAzimuth())
                     << std::endl;
         }
     }
@@ -720,8 +719,8 @@ LenaLteComparison (const Parameters &params)
       Ptr<NetDevice> remDevice;
 
       // params.ulRem:
-      std::vector<NetDeviceContainer *> & remNdBySector {ueNdBySector};
-      std::vector<NetDeviceContainer *> & remDevBySector {gnbNdBySector};
+      std::vector<NetDeviceContainer *> remNdBySector {ueNdBySector};
+      std::vector<NetDeviceContainer *> remDevBySector {gnbNdBySector};
 
       if (params.dlRem)
         {
@@ -729,20 +728,22 @@ LenaLteComparison (const Parameters &params)
           remDevBySector = ueNdBySector;
         }
 
+      uint32_t sectorIndex = 0;
       // Reverse order so we get sector 1 for the remSector == 0 case
       for (uint32_t sector = sectors; sector > 0; --sector)
         {
-          if ( (params.remSector == sector) || (params.remSector == 0) )
+          if (params.remSector == sector || params.remSector == 0 )
             {
-              remNd.Add (*remNdBySector[sector]);
-              remDevice = remDevBySector[sector]->Get (0);
+              sectorIndex = sector-1;
+              remNd.Add (*remNdBySector[sectorIndex]);
+              remDevice = remDevBySector[sectorIndex]->Get (0);
             }
         }
 
       if (params.ulRem)
         {
-          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy ()->GetAntennaArray ();
-          auto antenna = ConstCast<UniformPlanarArray> (antArray);
+          auto antArray = DynamicCast<NrGnbNetDevice> (remDevice)->GetPhy (0)->GetSpectrumPhy ()->GetAntenna ();
+          auto antenna = DynamicCast<UniformPlanarArray> (antArray);
           antenna->SetAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
         }
 
@@ -761,13 +762,13 @@ LenaLteComparison (const Parameters &params)
         {
           if ( (params.remSector == sector) || (params.remSector == 0) )
             {
+              sectorIndex = sector-1;
               for (uint32_t siteId = 0; siteId < gnbSites; ++siteId)
                 {
-                  gnbNdBySector[sector]->Get (siteId)
+                  gnbNdBySector[sectorIndex]->Get (siteId)
                   ->GetObject<NrGnbNetDevice>()
                   ->GetPhy (remPhyIndex)
-                  ->GetBeamManager ()
-                  ->ChangeBeamformingVector (ueNdBySector[sector]->Get (siteId));
+                  ->ChangeBeamformingVector (ueNdBySector[sectorIndex]->Get (siteId));
                 }
             }
         }

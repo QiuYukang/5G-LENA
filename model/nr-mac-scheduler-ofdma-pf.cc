@@ -86,7 +86,7 @@ std::shared_ptr<NrMacSchedulerUeInfo>
 NrMacSchedulerOfdmaPF::CreateUeRepresentation (const NrMacCschedSapProvider::CschedUeConfigReqParameters &params) const
 {
   NS_LOG_FUNCTION (this);
-  return std::make_shared <NrMacSchedulerUeInfoPF> (m_alpha, params.m_rnti, params.m_beamId,
+  return std::make_shared <NrMacSchedulerUeInfoPF> (m_alpha, params.m_rnti, params.m_beamConfId,
                                                         std::bind(&NrMacSchedulerOfdmaPF::GetNumRbPerRbg, this));
 }
 
@@ -106,44 +106,40 @@ NrMacSchedulerOfdmaPF::GetUeCompareUlFn () const
 
 void
 NrMacSchedulerOfdmaPF::AssignedDlResources (const UePtrAndBufferReq &ue,
-                                                const FTResources &assigned,
-                                                const FTResources &totAssigned) const
+                                            [[maybe_unused]]const FTResources &assigned,
+                                                  const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
   uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_dlAmc);
 }
 
 void
 NrMacSchedulerOfdmaPF::NotAssignedDlResources (const NrMacSchedulerNs3::UePtrAndBufferReq &ue,
-                                                   const NrMacSchedulerNs3::FTResources &assigned,
+                                               [[maybe_unused]] const NrMacSchedulerNs3::FTResources &assigned,
                                                    const NrMacSchedulerNs3::FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
   uePtr->UpdateDlPFMetric (totAssigned, m_timeWindow, m_dlAmc);
 }
 
 void
 NrMacSchedulerOfdmaPF::AssignedUlResources (const UePtrAndBufferReq &ue,
-                                                const FTResources &assigned,
+                                            [[maybe_unused]] const FTResources &assigned,
                                                 const FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
   uePtr->UpdateUlPFMetric (totAssigned, m_timeWindow, m_ulAmc);
 }
 
 void
 NrMacSchedulerOfdmaPF::NotAssignedUlResources (const NrMacSchedulerNs3::UePtrAndBufferReq &ue,
-                                                   const NrMacSchedulerNs3::FTResources &assigned,
+                                               [[maybe_unused]] const NrMacSchedulerNs3::FTResources &assigned,
                                                    const NrMacSchedulerNs3::FTResources &totAssigned) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (assigned);
   auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF> (ue.first);
   uePtr->UpdateUlPFMetric (totAssigned, m_timeWindow, m_ulAmc);
 }

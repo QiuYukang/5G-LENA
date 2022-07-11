@@ -24,6 +24,7 @@
 #include <ns3/nr-mac-sched-sap.h>
 #include <ns3/nr-phy-sap.h>
 #include <ns3/nr-control-messages.h>
+#include <ns3/beam-conf-id.h>
 #include <algorithm>
 
 /**
@@ -50,13 +51,13 @@ public:
   virtual uint16_t GetBwpId () const override;
   virtual uint16_t GetCellId () const override;
   virtual Time GetSlotPeriod () const override;
-  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart) override;
+  virtual void SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId) override;
   virtual void SendControlMessage (Ptr<NrControlMessage> msg) override;
   virtual void SendRachPreamble (uint8_t PreambleId, uint8_t Rnti) override;
   virtual void SetSlotAllocInfo (const SlotAllocInfo &slotAllocInfo) override;
   virtual void NotifyConnectionSuccessful () override;
   virtual uint32_t GetRbNum () const override;
-  virtual BeamId GetBeamId (uint8_t rnti) const override;
+  virtual BeamConfId GetBeamConfId (uint8_t rnti) const override;
   void SetParams (uint32_t numOfUesPerBeam, uint32_t numOfBeams);
 
 private:
@@ -111,7 +112,7 @@ TestNotchingPhySapProvider::GetSlotPeriod () const
 }
 
 void
-TestNotchingPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart)
+TestNotchingPhySapProvider::SendMacPdu (const Ptr<Packet> &p, const SfnSf & sfn, uint8_t symStart, uint8_t streamId)
 {}
 
 void
@@ -138,8 +139,8 @@ TestNotchingPhySapProvider::GetRbNum () const
   return 53;
 }
 
-BeamId
-TestNotchingPhySapProvider::GetBeamId (uint8_t rnti) const
+BeamConfId
+TestNotchingPhySapProvider::GetBeamConfId (uint8_t rnti) const
 {
   BeamId beamId = BeamId (0, 0.0);
   uint8_t rntiCnt = 1;
@@ -162,7 +163,7 @@ TestNotchingPhySapProvider::GetBeamId (uint8_t rnti) const
           rntiCnt++;
         }
     }
-  return beamId;
+  return BeamConfId (beamId, BeamId::GetEmptyBeamId());
 }
 
 
@@ -267,7 +268,6 @@ public:
    * \param schedulerType The type of the scheduler to be tested
    * \param numOfUesPerBeam The number of UEs per beam to be tested
    * \param beamsNum The number beams to be tested
-   * \param numerology The numerology to be tested
    */
   NrNotchingTestCase (const std::string &name, const std::vector<uint8_t> &mask,
                       const std::string &schedulerType,
@@ -282,7 +282,7 @@ private:
   virtual void DoRun (void) override;
   Ptr<NrMacSchedulerNs3> CreateScheduler (const std::string &schedulerType) const;
   Ptr<TestNotchingGnbMac> CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
-                                     NrMacCschedSapProvider::CschedCellConfigReqParameters params) const;
+                                     NrMacCschedSapProvider::CschedCellConfigReqParameters &params) const;
 
   bool m_verbose = false;
   const std::vector<uint8_t> m_mask;
@@ -308,7 +308,7 @@ NrNotchingTestCase::CreateScheduler (const std::string &schedulerType) const
 
 Ptr<TestNotchingGnbMac>
 NrNotchingTestCase::CreateMac (Ptr<NrMacSchedulerNs3> &scheduler,
-                               NrMacCschedSapProvider::CschedCellConfigReqParameters params) const
+                               NrMacCschedSapProvider::CschedCellConfigReqParameters &params) const
 {
   Ptr<TestNotchingGnbMac> mac = CreateObject<TestNotchingGnbMac> (m_mask);
 
@@ -353,13 +353,13 @@ NrNotchingTestCase::DoRun ()
         {
           NrMacCschedSapProvider::CschedUeConfigReqParameters paramsUe;
           paramsUe.m_rnti = rntiCnt;
-          paramsUe.m_beamId = m_phySapProvider->GetBeamId (rntiCnt);
+          paramsUe.m_beamConfId = m_phySapProvider->GetBeamConfId (rntiCnt);
 
           if (m_verbose)
             {
               std::cout << "beam: " << beam << " ue: " << u <<
                 " rnti: " << paramsUe.m_rnti <<
-                " beam Id: " << paramsUe.m_beamId <<
+                " beam Id: " << paramsUe.m_beamConfId <<
                 " scheduler: " << m_schedulerType << std::endl;
               if (beam == (m_beamsNum - 1) && u == (m_numOfUesPerBeam - 1))
                 {

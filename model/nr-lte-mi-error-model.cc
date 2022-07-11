@@ -664,10 +664,9 @@ NrLteMiErrorModel::GetSpectralEfficiencyForMcs (uint8_t mcs) const
 }
 
 uint32_t
-NrLteMiErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, Mode mode) const
+NrLteMiErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, [[maybe_unused]] Mode mode) const
 {
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (mode);
   const uint32_t rscElement = usefulSC * rbNum;
   const double Rcode = McsEcrTable[mcs];
   const uint8_t Qm = ModulationSchemeForMcs[mcs];
@@ -681,11 +680,8 @@ NrLteMiErrorModel::GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNu
 }
 
 uint32_t
-NrLteMiErrorModel::GetMaxCbSize (uint32_t tbSize, uint8_t mcs) const
+NrLteMiErrorModel::GetMaxCbSize ([[maybe_unused]] uint32_t tbSize, [[maybe_unused]] uint8_t mcs) const
 {
-  NS_UNUSED (tbSize);
-  NS_UNUSED (mcs);
-
   return cbSizeTable.back () / 8;
 }
 

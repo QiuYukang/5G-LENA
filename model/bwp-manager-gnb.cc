@@ -67,9 +67,9 @@ BwpManagerGnb::SetBwpManagerAlgorithm (const Ptr<BwpManagerAlgorithm> &algorithm
 bool
 BwpManagerGnb::IsGbr (LteMacSapProvider::ReportBufferStatusParameters params)
 {
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti) != m_rlcLcInstantiated.end (), "Trying to check the QoS of unknown UE");
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid) != m_rlcLcInstantiated.find (params.rnti)->second.end (), "Trying to check the QoS of unknown logical channel");
-  return m_rlcLcInstantiated.find (params.rnti)->second.find (params.lcid)->second.isGbr;
+  NS_ASSERT_MSG (m_ueInfo.find (params.rnti) != m_ueInfo.end (), "Trying to check the QoS of unknown UE");
+  NS_ASSERT_MSG (m_ueInfo.at (params.rnti).m_rlcLcInstantiated.find (params.lcid) != m_ueInfo.at (params.rnti).m_rlcLcInstantiated.end (), "Trying to check the QoS of unknown logical channel");
+  return (m_ueInfo[params.rnti].m_rlcLcInstantiated[params.lcid]).isGbr;
 }
 
 std::vector<LteCcmRrcSapProvider::LcsConfig>
@@ -86,10 +86,10 @@ BwpManagerGnb::GetBwpIndex (uint16_t rnti, uint8_t lcid)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_algorithm != nullptr);
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti)->second.find (lcid) != m_rlcLcInstantiated.find (rnti)->second.end (), "Unknown logical channel of UE");
+  NS_ASSERT_MSG (m_ueInfo.find (rnti) != m_ueInfo.end (), "Unknown UE");
+  NS_ASSERT_MSG (m_ueInfo.at (rnti).m_rlcLcInstantiated.find (lcid) != m_ueInfo.at (rnti).m_rlcLcInstantiated.end (), "Unknown logical channel of UE");
 
-  uint8_t qci = m_rlcLcInstantiated.find (rnti)->second.find (lcid)->second.qci;
+  uint8_t qci = m_ueInfo[rnti].m_rlcLcInstantiated [lcid].qci;
 
   // Force a conversion between the uint8_t type that comes from the LcInfo
   // struct (yeah, using the EpsBearer::Qci type was too hard ...)
@@ -102,10 +102,10 @@ BwpManagerGnb::PeekBwpIndex (uint16_t rnti, uint8_t lcid) const
   NS_LOG_FUNCTION (this);
   NS_ASSERT (m_algorithm != nullptr);
   // For the moment, Get and Peek are the same, but they'll change
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti) != m_rlcLcInstantiated.end (), "Unknown UE");
-  NS_ASSERT_MSG (m_rlcLcInstantiated.find (rnti)->second.find (lcid) != m_rlcLcInstantiated.find (rnti)->second.end (), "Unknown logical channel of UE");
+  NS_ASSERT_MSG (m_ueInfo.find (rnti) != m_ueInfo.end (), "Unknown UE");
+  NS_ASSERT_MSG (m_ueInfo.at (rnti).m_rlcLcInstantiated.find (lcid) != m_ueInfo.at (rnti).m_rlcLcInstantiated.end (), "Unknown logical channel of UE");
 
-  uint8_t qci = m_rlcLcInstantiated.find (rnti)->second.find (lcid)->second.qci;
+  uint8_t qci = m_ueInfo.at(rnti).m_rlcLcInstantiated.at (lcid).qci;
 
   // Force a conversion between the uint8_t type that comes from the LcInfo
   // struct (yeah, using the EpsBearer::Qci type was too hard ...)
@@ -180,11 +180,11 @@ void
 BwpManagerGnb::DoNotifyTxOpportunity (LteMacSapUser::TxOpportunityParameters txOpParams)
 {
   NS_LOG_FUNCTION (this);
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_ueAttached.find (txOpParams.rnti);
-  NS_ASSERT_MSG (rntiIt != m_ueAttached.end (), "could not find RNTI" << txOpParams.rnti);
+  std::map <uint16_t, UeInfo >::iterator rntiIt = m_ueInfo.find (txOpParams.rnti);
+  NS_ASSERT_MSG (rntiIt != m_ueInfo.end (), "could not find RNTI" << txOpParams.rnti);
 
-  std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (txOpParams.lcid);
-  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID " << (uint16_t) txOpParams.lcid);
+  std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.m_ueAttached.find (txOpParams.lcid);
+  NS_ASSERT_MSG (lcidIt != rntiIt->second.m_ueAttached.end (), "could not find LCID " << (uint16_t) txOpParams.lcid);
 
   (*lcidIt).second->NotifyTxOpportunity (txOpParams);
 }

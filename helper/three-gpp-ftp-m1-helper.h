@@ -80,7 +80,7 @@ public:
    * \param clientApps is a container of client applications. This helper will be adding client applications to this container.
    * \param serverNodes are server nodes that will be considered for this FTP Mpdel 1 traffic
    * \param clientNodes are client nodes that will be considered fot this FTP Model 1 traffic
-   * \param serverIps are the Ipv4 interfaces of the server nodes
+   * \param serversIps are the Ipv4 interfaces of the server nodes
    */
   ThreeGppFtpM1Helper (ApplicationContainer* serverApps, ApplicationContainer* clientApps,
                        NodeContainer* serverNodes, NodeContainer* clientNodes,

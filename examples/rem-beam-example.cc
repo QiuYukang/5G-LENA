@@ -35,7 +35,7 @@
  * The rest of parameters are for REM map configuration, such as parameters for
  * resolution and REM area.
  *
- * ./waf --run "rem-beam-example"
+ * ./ns3 run "rem-beam-example"
  *
  * The output of this example are REM csv files from which REM figures can be
  * generated with the following command:
@@ -209,8 +209,8 @@ main (int argc, char *argv[])
   remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
 
   //configure beam that will be shown in REM map
-  DynamicCast<NrGnbNetDevice> (gnbNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->SetSector (sector, theta);
-  DynamicCast<NrUeNetDevice> (ueNetDev.Get (0))->GetPhy (0)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
+  DynamicCast<NrGnbNetDevice> (gnbNetDev.Get (0))->GetPhy (0)->GetSpectrumPhy(0)->GetBeamManager ()->SetSector (sector, theta);
+  DynamicCast<NrUeNetDevice> (ueNetDev.Get (0))->GetPhy (0)->GetSpectrumPhy(0)->GetBeamManager ()->ChangeToQuasiOmniBeamformingVector ();
   remHelper->CreateRem (gnbNetDev, ueNetDev.Get (0), 0);
 
   Simulator::Stop (Seconds (simTime));
