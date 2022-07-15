@@ -67,6 +67,12 @@ GridScenarioHelper::SetColumns (uint32_t c)
   m_columns = c;
 }
 
+void
+GridScenarioHelper::SetStartingPosition (const Vector &initialPos)
+{
+  m_initialPos = initialPos;
+}
+
 void GridScenarioHelper::SetScenarioLength(double m)
 {
   m_length = m;

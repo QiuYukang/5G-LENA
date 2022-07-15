@@ -65,6 +65,10 @@ public:
    */
   void SetColumns (uint32_t c);
 
+  /**
+   * \brief Set starting position of the grid
+   * \param [in] initialPos The starting position vector (x, y, z), where z is ignored.
+   */
   void SetStartingPosition (const Vector &initialPos);
 
   void SetScenarioLength (double m);
