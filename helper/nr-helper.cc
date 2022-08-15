@@ -1356,7 +1356,7 @@ NrHelper::DoAssignStreamsToChannelObjects (Ptr<NrSpectrumPhy> phy, int64_t curre
         {
           Ptr <ThreeGppChannelModel> channel = DynamicCast<ThreeGppChannelModel> (spectrumLossModel->GetChannelModel());
           currentStream += channel->AssignStreams (currentStream);
-          m_channelObjectsWithAssignedStreams.push_back (channel);
+          m_channelObjectsWithAssignedStreams.push_back (spectrumLossModel);
         }
     }
 
