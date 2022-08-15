@@ -753,7 +753,7 @@ main (int argc, char *argv[])
   std::string resultsDir = "./";
   std::string simTag = "";
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("duration",
                 "Simulation duration in ms, should be greater than 100 ms to allow the collection of traces",

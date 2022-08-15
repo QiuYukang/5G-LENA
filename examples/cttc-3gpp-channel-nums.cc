@@ -101,7 +101,7 @@ main (int argc, char *argv[])
   std::string outputDir = "./";
 
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("gNbNum",
                 "The number of gNbs in multiple-ue topology",
                 gNbNum);

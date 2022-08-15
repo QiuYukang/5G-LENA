@@ -86,7 +86,7 @@ main (int argc, char *argv[])
   bool enableVoice = true;
   bool enableGaming = true;
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("packetSizeVideo",
                 "packet size in bytes to be used by video traffic",

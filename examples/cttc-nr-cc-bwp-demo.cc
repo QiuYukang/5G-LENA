@@ -127,7 +127,7 @@ main (int argc, char *argv[])
   double simTime = 1; // seconds
   double udpAppStartTime = 0.4; //seconds
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("simTime", "Simulation time", simTime);
   cmd.AddValue ("gNbNum",

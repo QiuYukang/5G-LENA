@@ -118,7 +118,7 @@ main (int argc, char *argv[])
 
 
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("simTime", "Simulation time", simTime);
   cmd.AddValue ("gNbNum",

@@ -16,7 +16,7 @@ main (int argc, char *argv[])
    * that we may accept as input, as well as their description, and the storage
    * variable.
    */
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("scenario",
                 "The urban scenario string (UMa,UMi,RMa)",

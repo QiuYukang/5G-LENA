@@ -141,7 +141,7 @@ main (int argc, char *argv[])
   uint16_t yRes = 50;
   double z = 1.5;
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("remMode",
                 "What type of REM map to use: BeamShape, CoverageArea, UeCoverage."
                 "BeamShape shows beams that are configured in a user's script. "

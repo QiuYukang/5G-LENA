@@ -125,7 +125,7 @@ main (int argc, char *argv[])
   uint32_t simTimeMs = 1000;
   bool logging = false;
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("frequency",
                 "The operating frequency in Hz (2125.0e6 corresponds to EARFCN 2100)",
                 frequency);

@@ -127,7 +127,7 @@ main (int argc, char *argv[])
 
   std::string errorModel = "ns3::NrEesmCcT1";
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("simTime", "Simulation time", simTime);
   cmd.AddValue ("errorModelType",

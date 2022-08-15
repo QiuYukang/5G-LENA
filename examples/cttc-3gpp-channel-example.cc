@@ -64,7 +64,7 @@ main (int argc, char *argv[])
   double txPower = 40; // txPower
   enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("scenario",
                 "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'.",
                 scenario);

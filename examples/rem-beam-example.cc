@@ -85,7 +85,7 @@ main (int argc, char *argv[])
   uint16_t yRes = 100;
   std::string simTag = "";
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("simTag",
                 "The simTag to be used for REM files creation",
                 simTag);

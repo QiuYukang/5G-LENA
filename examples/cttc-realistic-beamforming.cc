@@ -905,7 +905,7 @@ main (int argc, char *argv[])
 
   CttcRealisticBeamforming::BeamformingMethod beamformingType;
   RealisticBfManager::TriggerEvent triggerEventEnum = RealisticBfManager::SRS_COUNT;
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
 
   cmd.AddValue ("deltaX",
                 "Determines X coordinate of UE wrt. to gNB X coordinate [meters].",

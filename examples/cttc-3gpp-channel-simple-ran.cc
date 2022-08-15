@@ -151,7 +151,7 @@ main (int argc, char *argv[])
 
   Time sendPacketTime = Seconds (0.4);
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("numerologyBwp1",
                 "The numerology to be used in bandwidth part 1",
                 numerologyBwp1);

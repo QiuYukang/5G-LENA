@@ -171,7 +171,7 @@ main (int argc, char *argv[])
   Time sendPacketTime = Seconds (0.4);
 
 
-  CommandLine cmd;
+  CommandLine cmd (__FILE__);
   cmd.AddValue ("gNbNum",
                 "The number of gNbs in multiple-ue topology",
                 gNbNum);
