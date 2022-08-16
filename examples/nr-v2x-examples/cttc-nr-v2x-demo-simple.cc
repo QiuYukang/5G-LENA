@@ -693,6 +693,7 @@ main (int argc, char *argv[])
 
   InternetStackHelper internet;
   internet.Install (ueVoiceContainer);
+  stream += internet.AssignStreams (ueVoiceContainer, stream);
   uint32_t dstL2Id = 255;
   Ipv4Address groupAddress4 ("225.0.0.0");     //use multicast address as destination
   Ipv6Address groupAddress6 ("ff0e::1");     //use multicast address as destination
