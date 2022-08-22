@@ -1006,7 +1006,7 @@ NrHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDev
           closestEnbDevice = *i;
         }
     }
-  NS_ASSERT (closestEnbDevice != 0);
+  NS_ASSERT (closestEnbDevice);
 
   AttachToEnb (ueDevice, closestEnbDevice);
 }
@@ -1076,7 +1076,7 @@ NrHelper::ActivateDedicatedEpsBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer,
 {
   NS_LOG_FUNCTION (this);
 
-  NS_ASSERT_MSG (m_epcHelper != 0, "dedicated EPS bearers cannot be set up when the EPC is not used");
+  NS_ASSERT_MSG (m_epcHelper, "dedicated EPS bearers cannot be set up when the EPC is not used");
 
   uint64_t imsi = ueDevice->GetObject<NrUeNetDevice> ()->GetImsi ();
   uint8_t bearerId = m_epcHelper->ActivateEpsBearer (ueDevice, imsi, tft, bearer);
@@ -1472,7 +1472,7 @@ void
 NrHelper::ActivateDataRadioBearer (Ptr<NetDevice> ueDevice, EpsBearer bearer)
 {
   NS_LOG_FUNCTION (this << ueDevice);
-  NS_ASSERT_MSG (m_epcHelper == 0, "this method must not be used when the EPC is being used");
+  NS_ASSERT_MSG (!m_epcHelper, "this method must not be used when the EPC is being used");
 
   // Normally it is the EPC that takes care of activating DRBs
   // when the UE gets connected. When the EPC is not used, we achieve

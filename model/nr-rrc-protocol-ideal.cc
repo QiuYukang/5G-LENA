@@ -299,7 +299,7 @@ NrGnbRrcProtocolIdeal::DoSendSystemInformation (uint16_t cellId, LteRrcSap::Syst
       for (int j = 0; j < nDevs; ++j)
         {
           Ptr<NrUeNetDevice> nrUeDev = node->GetDevice (j)->GetObject <NrUeNetDevice> ();
-          if (nrUeDev != 0)
+          if (nrUeDev)
             {
               Ptr<LteUeRrc> ueRrc = nrUeDev->GetRrc ();
               NS_LOG_LOGIC ("considering UE IMSI " << nrUeDev->GetImsi () << " that has cellId " << ueRrc->GetCellId ());
