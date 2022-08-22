@@ -48,7 +48,7 @@ NrSpectrumSignalParametersDataFrame::NrSpectrumSignalParametersDataFrame (const 
 }
 
 Ptr<SpectrumSignalParameters>
-NrSpectrumSignalParametersDataFrame::Copy ()
+NrSpectrumSignalParametersDataFrame::Copy () const
 {
   NS_LOG_FUNCTION (this);
   // Ideally we would use:
@@ -78,7 +78,7 @@ NrSpectrumSignalParametersDlCtrlFrame::NrSpectrumSignalParametersDlCtrlFrame (co
 }
 
 Ptr<SpectrumSignalParameters>
-NrSpectrumSignalParametersDlCtrlFrame::Copy ()
+NrSpectrumSignalParametersDlCtrlFrame::Copy () const
 {
   NS_LOG_FUNCTION (this);
   // Ideally we would use:
@@ -106,7 +106,7 @@ NrSpectrumSignalParametersUlCtrlFrame::NrSpectrumSignalParametersUlCtrlFrame (co
 }
 
 Ptr<SpectrumSignalParameters>
-NrSpectrumSignalParametersUlCtrlFrame::Copy ()
+NrSpectrumSignalParametersUlCtrlFrame::Copy () const
 {
   NS_LOG_FUNCTION (this);
   // Ideally we would use:

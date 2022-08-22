@@ -41,7 +41,7 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 {
 
   // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy ();
+  virtual Ptr<SpectrumSignalParameters> Copy () const override;
 
   /**
    * \brief NrSpectrumSignalParametersDataFrame
@@ -73,7 +73,7 @@ struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
 {
 
   // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy ();
+  virtual Ptr<SpectrumSignalParameters> Copy () const override;
 
   /**
    * \brief NrSpectrumSignalParametersDlCtrlFrame
@@ -105,7 +105,7 @@ struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
 {
 
   // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy ();
+  virtual Ptr<SpectrumSignalParameters> Copy () const override;
 
   /**
    * \brief NrSpectrumSignalParametersUlCtrlFrame
