@@ -71,14 +71,14 @@ public:
    * model and the beamforming gain. However, if the distance between a and b
    * is higher than allowe this class will return 0 PSD.
    *
-   * \param txPsd tx PSD
+   * \param params tx parameters
    * \param a first node mobility model
    * \param b second node mobility model
    * \param aPhasedArrayModel the antenna array of the first node
    * \param bPhasedArrayModel the antenna array of the second node
    * \return the received PSD
    */
-  virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
+  virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumSignalParameters> params,
                                                            Ptr<const MobilityModel> a,
                                                            Ptr<const MobilityModel> b,
                                                            Ptr<const PhasedArrayModel> aPhasedArrayModel,

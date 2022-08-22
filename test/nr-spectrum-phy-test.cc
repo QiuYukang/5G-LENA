@@ -43,11 +43,11 @@ NoLossSpectrumPropagationLossModel::GetTypeId (void)
 }
 
 Ptr<SpectrumValue>
-NoLossSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
+NoLossSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumSignalParameters> params,
                                                                   Ptr<const MobilityModel> a,
                                                                   Ptr<const MobilityModel> b) const
 {
-  return Copy (txPsd);
+  return Copy (params->psd);
 }
 
 

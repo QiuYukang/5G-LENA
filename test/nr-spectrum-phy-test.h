@@ -54,7 +54,7 @@ public:
 
 private:
 
-  virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
+  virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity (Ptr<const SpectrumSignalParameters> params,
                                                            Ptr<const MobilityModel> a,
                                                            Ptr<const MobilityModel> b) const override;
 };

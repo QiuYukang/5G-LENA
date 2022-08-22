@@ -23,6 +23,7 @@
 #include "ns3/string.h"
 #include "ns3/simulator.h"
 #include "ns3/pointer.h"
+#include "ns3/spectrum-signal-parameters.h"
 
 namespace ns3 {
 
@@ -71,7 +72,7 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::GetMaxDistance () const
 
 
 Ptr<SpectrumValue>
-DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumValue> txPsd,
+DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumSignalParameters> params,
                                                                                  Ptr<const MobilityModel> a,
                                                                                  Ptr<const MobilityModel> b,
                                                                                  Ptr<const PhasedArrayModel> aPhasedArrayModel,
@@ -81,7 +82,7 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity 
   uint32_t aId = a->GetObject<Node> ()->GetId (); // id of the node a
   uint32_t bId = b->GetObject<Node> ()->GetId (); // id of the node b
 
-  Ptr<SpectrumValue> rxPsd = Copy<SpectrumValue> (txPsd);
+  Ptr<SpectrumValue> rxPsd = Copy<SpectrumValue> (params->psd);
   if (a->GetDistanceFrom (b) > m_maxDistance)
     {
       NS_LOG_LOGIC ("Distance between a: " << aId << "and  node b: "<<bId << " is higher than max allowed distance. Return 0 PSD.");
@@ -90,7 +91,7 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity 
     }
   else
     {
-      return ThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (txPsd, a, b, aPhasedArrayModel, bPhasedArrayModel);
+      return ThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (params, a, b, aPhasedArrayModel, bPhasedArrayModel);
     }
 
   return rxPsd;

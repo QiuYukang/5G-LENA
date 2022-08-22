@@ -704,7 +704,8 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
     }
 
   // Copy TX PSD to RX PSD, they are now equal rxPsd == txPsd
-  Ptr<SpectrumValue> rxPsd = convertedTxPsd->Copy ();
+  Ptr<SpectrumSignalParameters> rxParams = Create<SpectrumSignalParameters> ();
+  rxParams->psd = convertedTxPsd->Copy ();
   double pathLossDb = tempPropModels.remPropagationLossModelCopy->CalcRxPower (0, device.mob, otherDevice.mob);
   double pathGainLinear = DbToRatio (pathLossDb);
 
@@ -712,12 +713,12 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue (RemDevice& device, RemDevice& other
   NS_LOG_DEBUG ("PathlosDb:" << pathLossDb);
 
   // Apply now calculated pathloss to rxPsd, now rxPsd < txPsd because we had some losses
-  *(rxPsd) *= pathGainLinear;
+  *(rxParams->psd) *= pathGainLinear;
 
-  NS_LOG_DEBUG ("RX power in dBm after pathloss:" << WToDbm (Integral (*rxPsd)));
+  NS_LOG_DEBUG ("RX power in dBm after pathloss:" << WToDbm (Integral (*(rxParams->psd))));
 
   // Now we call spectrum model, which in this keys add a beamforming gain
-  rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxPsd, device.mob, otherDevice.mob, device.antenna, otherDevice.antenna);
+  Ptr<SpectrumValue> rxPsd = tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity (rxParams, device.mob, otherDevice.mob, device.antenna, otherDevice.antenna);
 
   NS_LOG_DEBUG ("RX power in dBm after fading: " << WToDbm (Integral (*rxPsd)));
 

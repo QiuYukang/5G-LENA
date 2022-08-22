@@ -103,6 +103,8 @@ CellScanBeamforming::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectru
 
   Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, activeRbs, gnbSpectrumPhy->GetRxSpectrumModel (),
                                                                                           NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+  Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters> ();
+  fakeParams->psd = fakePsd->Copy ();
 
   double max = 0, maxTxTheta = 0, maxRxTheta = 0;
   uint16_t maxTxSector = 0, maxRxSector = 0;
@@ -146,7 +148,7 @@ CellScanBeamforming::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectru
 
                   NS_ABORT_MSG_IF (txW.size()==0 || rxW.size()==0, "Beamforming vectors must be initialized in order to calculate the long term matrix.");
 
-                  Ptr<SpectrumValue> rxPsd = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd,
+                  Ptr<SpectrumValue> rxPsd = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakeParams,
                                                                                                        gnbSpectrumPhy->GetMobility (),
                                                                                                        ueSpectrumPhy->GetMobility (),
                                                                                                        gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
@@ -224,6 +226,8 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors (const Ptr<NrSpectrumPhy
 
   Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, activeRbs, gnbSpectrumPhy->GetRxSpectrumModel (),
                                                                                           NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+  Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters> ();
+  fakeParams->psd = fakePsd->Copy ();
 
   double max = 0, maxTxAzimuth = 0, maxRxAzimuth = 0, maxTxZenith = 0, maxRxZenith = 0;
   complexVector_t  maxTxW, maxRxW;
@@ -268,7 +272,7 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors (const Ptr<NrSpectrumPhy
                                    "Beamforming vectors must be initialized in "
                                    "order to calculate the long term matrix.");
 
-                  Ptr<SpectrumValue> rxPsd = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd,
+                  Ptr<SpectrumValue> rxPsd = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakeParams,
                                                                                                        gnbSpectrumPhy->GetMobility (),
                                                                                                        ueSpectrumPhy->GetMobility (),
                                                                                                        gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
@@ -358,6 +362,8 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& g
 
   Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (0.0, activeRbs, gnbSpectrumPhy->GetRxSpectrumModel (),
                                                                                           NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+  Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters> ();
+  fakeParams->psd = fakePsd->Copy ();
 
   double max = 0, maxTxTheta = 0;
   uint16_t maxTxSector = 0;
@@ -383,7 +389,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors (const Ptr<NrSpectrumPhy>& g
 
           NS_ABORT_MSG_IF (txW.size ()== 0 || rxW.size ()== 0,
                            "Beamforming vectors must be initialized in order to calculate the long term matrix.");
-          Ptr<SpectrumValue> rxPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakePsd,
+          Ptr<SpectrumValue> rxPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity (fakeParams,
                                                                                               gnbSpectrumPhy ->GetMobility (),
                                                                                               ueSpectrumPhy ->GetMobility(),
                                                                                               gnbSpectrumPhy->GetAntenna ()->GetObject <PhasedArrayModel>(),
