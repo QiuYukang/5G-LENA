@@ -164,7 +164,7 @@ void FileTransferApplication::StopApplication (void) // Called at time specified
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_socket != 0)
+  if (m_socket)
     {
       m_socket->Close ();
       m_connected = false;

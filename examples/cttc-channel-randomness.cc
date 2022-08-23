@@ -263,8 +263,10 @@ main (int argc, char *argv[])
       activeRbs.push_back(rbId);
     }
   Ptr<const SpectrumValue> txPsd1 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs, sm1, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+  Ptr<SpectrumSignalParameters> txParams1 = Create<SpectrumSignalParameters> ();
+  txParams1->psd = txPsd1->Copy ();
   std::cout << "Average tx power 1: " << 10 * log10 (Sum (*txPsd1) / txPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
-  Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd1, txMob, rxMob, txAntenna, rxAntenna);
+  Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txParams1, txMob, rxMob, txAntenna, rxAntenna);
   std::cout << "Average rx power 1: " << 10 * log10 (Sum (*rxPsd1) / rxPsd1->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
 
   channelModel = {nullptr};
@@ -303,9 +305,11 @@ main (int argc, char *argv[])
       activeRbs2.push_back(rbId);
     }
   Ptr<const SpectrumValue> txPsd2 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity (txPower, activeRbs2, sm2, NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+  Ptr<SpectrumSignalParameters> txParams2 = Create<SpectrumSignalParameters> ();
+  txParams2->psd = txPsd2->Copy ();
 
   std::cout << "Average tx power 1: " << 10 * log10 (Sum (*txPsd2) / txPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
-  Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txPsd2, txMob, rxMob, txAntenna, rxAntenna);
+  Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity (txParams2, txMob, rxMob, txAntenna, rxAntenna);
   std::cout << "Average rx power 1: " << 10 * log10 (Sum (*rxPsd2) / rxPsd2->GetSpectrumModel ()->GetNumBands ()) << " dBm" << std::endl;
 
 
