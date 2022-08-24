@@ -23,6 +23,7 @@
 #include <ns3/hexagonal-grid-scenario-helper.h>
 #include "ns3/random-variable-stream.h"
 #include "sinr-output-stats.h"
+#include <ns3/distance-based-three-gpp-spectrum-propagation-loss-model.h>
 
 namespace ns3 {
 

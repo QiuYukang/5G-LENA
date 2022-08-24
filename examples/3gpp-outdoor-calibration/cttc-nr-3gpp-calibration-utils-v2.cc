@@ -18,7 +18,6 @@
  */
 
 #include "cttc-nr-3gpp-calibration-utils-v2.h"
-#include "ns3/core-module.h"
 #include "flow-monitor-output-stats.h"
 #include "power-output-stats.h"
 #include "slot-output-stats.h"
@@ -27,6 +26,7 @@
 #include <ns3/antenna-module.h>
 #include <ns3/enum.h>
 #include "ns3/log.h"
+#include <ns3/object-vector.h>
 
 NS_LOG_COMPONENT_DEFINE ("LenaV2Utils");
 
