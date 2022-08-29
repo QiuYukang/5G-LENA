@@ -53,23 +53,24 @@ public:
 
   /**
    * \brief SfnSf constructor
-   * \param frameNum Frame number
-   * \param sfNum Subframe Number
-   * \param slotNum Slot number
-   * \param numerology Numerology (will be always associated with this SfnSf)
+   * Numerology must be <= 5
+   * \param frameNum Frame number (32-bit)
+   * \param sfNum Subframe Number (8-bit)
+   * \param slotNum Slot number (8-bit)
+   * \param numerology Numerology (will be always associated with this SfnSf) (8-bit)
    */
-  SfnSf (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t numerology);
+  SfnSf (uint32_t frameNum, uint8_t sfNum, uint8_t slotNum, uint8_t numerology);
 
   /**
-   * \brief Get enconding for this SfnSf
+   * \brief Get encoding for this SfnSf
    * \return an uint64_t that is able to represent fully this SfnSf
    * \see FromEncoding
    */
   uint64_t GetEncoding () const;
   /**
-   * \brief Get the enconding number, including a symbol start value
+   * \brief Get the encoding number, including a symbol start value
    * \param symStart the symbol start value to include
-   * \return an uint64_t that can represent this SfnSf plus 2 bytes to represent the
+   * \return an uint64_t that can represent this SfnSf plus a short integer to represent the
    * symbol start
    */
   uint64_t GetEncodingWithSymStart (uint8_t symStart) const;
@@ -105,7 +106,7 @@ public:
   static SfnSf Decode (uint64_t sfn);
 
   /**
-   * \return the number of subframes per frame, 10
+   * \return the number of subframes per frame (ten for every numerology)
    */
   static uint32_t GetSubframesPerFrame ();
 
@@ -118,7 +119,9 @@ public:
 
   /**
    * \brief Normalize the SfnSf in slot number
-   * \return The number of total slots passed (can overlap)
+   *
+   * This value will wrap if the frame count (32-bit unsigned integer) wraps
+   * \return The number of total slots passed
    */
   uint64_t Normalize () const;
 
@@ -140,19 +143,16 @@ public:
    * \param rhs other SfnSf to compare
    * \return true if this SfnSf is less than rhs
    *
-   * The comparison is done on m_frameNum, m_subframeNum, and m_slotNum: not on varTti
+   * The comparison is done on m_frameNum, m_subframeNum, and m_slotNum 
+   * The program will assert if numerologies do not match (and asserts are enabled)
    */
   bool operator < (const SfnSf& rhs) const;
 
   /**
-   * \brief operator ==, compares only frame, subframe, and slot
+   * \brief operator ==, compares frame, subframe, and slot
    * \param o other instance to compare
-   * \return true if this instance and the other have the same frame, subframe, slot
-   *
-   * Used in the MAC operation, in which the varTti is not used (or, it is
-   * its duty to fill it).
-   *
-   * To check the varTti, please use this operator and IsTtiEqual()
+   * \return true if this instance and the other have the same frame, subframe, and slot
+   * The program will assert if numerologies do not match (and asserts are enabled)
    */
   bool operator == (const SfnSf &o) const;
 
@@ -160,7 +160,7 @@ public:
    * \brief GetFrame
    * \return the frame number
    */
-  uint16_t GetFrame () const;
+  uint32_t GetFrame () const;
   /**
    * \brief GetSubframe
    * \return the subframe number
@@ -170,23 +170,23 @@ public:
    * \brief GetSlot
    * \return the slot number
    */
-  uint16_t GetSlot () const;
+  uint8_t GetSlot () const;
   /**
    * \brief GetNumerology
    * \return the numerology installed
    *
    * Please note that if you invoke this method without passing a numerology
    * to the constructor or without constructing the object from an encoded
-   * value, the program will fail.
+   * value with a valid numerology, the program will fail.
    */
-  uint16_t GetNumerology () const;
+  uint8_t GetNumerology () const;
 
 
 private:
-  uint16_t m_frameNum   { 0 };  //!< Frame Number
+  uint32_t m_frameNum   { 0 };  //!< Frame Number
   uint8_t m_subframeNum { 0 };  //!< SubFrame Number
-  uint16_t m_slotNum    { 0 };  //!< Slot number (a slot is made by 14 symbols)
-  int16_t m_numerology  {-1 };  //!< Slot per subframe: 2^{numerology}
+  uint8_t m_slotNum    { 0 };  //!< Slot number (a slot is made by 14 symbols)
+  uint8_t m_numerology  { 255 };  //!< Slot per subframe: 2^{numerology}
 };
 
 } // namespace ns3

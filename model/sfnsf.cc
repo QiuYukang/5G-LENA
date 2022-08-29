@@ -18,40 +18,44 @@
  */
 #include "sfnsf.h"
 #include <math.h>
+#include "ns3/abort.h"
 
 namespace ns3 {
 
-SfnSf::SfnSf (uint16_t frameNum, uint8_t sfNum, uint16_t slotNum, uint8_t numerology)
+SfnSf::SfnSf (uint32_t frameNum, uint8_t sfNum, uint8_t slotNum, uint8_t numerology)
   : m_frameNum (frameNum),
     m_subframeNum (sfNum),
     m_slotNum (slotNum),
     m_numerology (numerology)
 {
+  // Numerology > 5 unsupported; if you want to define a new one,
+  // relax this constraint
+  NS_ABORT_MSG_IF (numerology > 5, "Numerology > 5 unsupported");
 }
 
 uint64_t
 SfnSf::GetEncoding () const
 {
-  NS_ASSERT (m_numerology >= 0);
+  NS_ASSERT (m_numerology <= 5);
   uint64_t ret = 0ULL;
   ret =
-    (static_cast<uint64_t> (m_numerology) << 48) |
-    (static_cast<uint64_t> (m_frameNum) << 32 ) |
+    (static_cast<uint64_t> (m_frameNum) << 32) |
     (static_cast<uint64_t> (m_subframeNum) << 24) |
-    (static_cast<uint64_t> (m_slotNum) << 8);
+    (static_cast<uint64_t> (m_slotNum) << 16) |
+    (static_cast<uint64_t> (m_numerology) << 8);
   return ret;
 }
 
 uint64_t
 SfnSf::GetEncodingWithSymStart (uint8_t symStart) const
 {
-  NS_ASSERT (m_numerology >= 0);
+  NS_ASSERT (m_numerology <= 5);
   uint64_t ret = 0ULL;
   ret =
-    (static_cast<uint64_t> (m_numerology) << 48) |
-    (static_cast<uint64_t> (m_frameNum) << 32 ) |
+    (static_cast<uint64_t> (m_frameNum) << 32) |
     (static_cast<uint64_t> (m_subframeNum) << 24) |
-    (static_cast<uint64_t> (m_slotNum) << 8) |
+    (static_cast<uint64_t> (m_slotNum) << 16) |
+    (static_cast<uint64_t> (m_numerology) << 8) |
     (static_cast<uint64_t> (symStart));
   return ret;
 }
@@ -74,10 +78,10 @@ SfnSf::GetEncForStreamWithSymStart (uint8_t streamId, uint8_t symStart) const
 void
 SfnSf::FromEncoding (uint64_t sfn)
 {
-  m_numerology = (sfn & 0x00FF000000000000) >> 48;
-  m_frameNum    =     (sfn & 0x0000FFFF00000000) >> 32;
+  m_frameNum    =     (sfn & 0xFFFFFFFF00000000) >> 32;
   m_subframeNum =     (sfn & 0x00000000FF000000) >> 24;
-  m_slotNum     =     (sfn & 0x0000000000FFFF00) >> 8;
+  m_slotNum     =     (sfn & 0x0000000000FF0000) >> 16;
+  m_numerology =      (sfn & 0x000000000000FF00) >> 8;
 }
 
 // Static functions
@@ -128,7 +132,7 @@ SfnSf::GetFutureSfnSf (uint32_t slotN)
 void
 SfnSf::Add (uint32_t slotN)
 {
-  NS_ASSERT (m_numerology >= 0);
+  NS_ASSERT_MSG (m_numerology <= 5, "Numerology " << m_numerology << " invalid");
   m_frameNum += (m_subframeNum + (m_slotNum + slotN) / GetSlotPerSubframe ()) / GetSubframesPerFrame ();
   m_subframeNum = (m_subframeNum + (m_slotNum + slotN) / GetSlotPerSubframe ()) % GetSubframesPerFrame ();
   m_slotNum = (m_slotNum + slotN) % GetSlotPerSubframe ();
@@ -137,7 +141,7 @@ SfnSf::Add (uint32_t slotN)
 bool
 SfnSf::operator < (const SfnSf &rhs) const
 {
-  NS_ASSERT (rhs.m_numerology == m_numerology);
+  NS_ASSERT_MSG (rhs.m_numerology == m_numerology, "Numerology does not match");
   if (m_frameNum < rhs.m_frameNum)
     {
       return true;
@@ -159,12 +163,12 @@ SfnSf::operator < (const SfnSf &rhs) const
 bool
 SfnSf::operator == (const SfnSf &o) const
 {
-  NS_ASSERT (o.m_numerology == m_numerology);
+  NS_ASSERT_MSG (o.m_numerology == m_numerology, "Numerology does not match");
   return (m_frameNum == o.m_frameNum) && (m_subframeNum == o.m_subframeNum)
          && (m_slotNum == o.m_slotNum);
 }
 
-uint16_t
+uint32_t
 SfnSf::GetFrame () const
 {
   return m_frameNum;
@@ -176,16 +180,16 @@ SfnSf::GetSubframe () const
   return m_subframeNum;
 }
 
-uint16_t
+uint8_t
 SfnSf::GetSlot () const
 {
   return m_slotNum;
 }
 
-uint16_t
+uint8_t
 SfnSf::GetNumerology () const
 {
-  NS_ASSERT (m_numerology >= 0);
+  NS_ASSERT_MSG (m_numerology <= 5, "Numerology " << m_numerology << " invalid");
   return m_numerology;
 }
 
