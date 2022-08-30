@@ -796,18 +796,18 @@ NrUePhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiDuration = GetSymbolPeriod () * dci->m_numSym;
 
   NS_LOG_DEBUG ("UE" << m_rnti <<
                 " RXing DL CTRL frame for"
                 " symbols "  << +dci->m_symStart <<
                 "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
                 "\t start " << Simulator::Now () <<
-                " end " << (Simulator::Now () + varTtiPeriod));
+                " end " << (Simulator::Now () + varTtiDuration));
 
   m_tryToPerformLbt = true;
 
-  return varTtiPeriod;
+  return varTtiDuration;
 }
 
 
@@ -828,23 +828,23 @@ NrUePhy::UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci)
   Ptr<NrSrsMessage> srs = Create<NrSrsMessage> ();
   srs->SetSourceBwp (GetBwpId());
   srsMsg.push_back (srs);
-  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiDuration = GetSymbolPeriod () * dci->m_numSym;
 
   // SRS will be transmitted over all streams/streams
   for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
       m_phyTxedCtrlMsgsTrace (m_currentSlot,  GetCellId (), dci->m_rnti, GetBwpId (), *srsMsg.begin ());
-      m_spectrumPhys.at (streamIndex)->StartTxUlControlFrames (srsMsg, varTtiPeriod - NanoSeconds (1.0));
+      m_spectrumPhys.at (streamIndex)->StartTxUlControlFrames (srsMsg, varTtiDuration - NanoSeconds (1.0));
     }
 
   NS_LOG_DEBUG ("UE" << m_rnti << " TXing UL SRS frame for symbols " <<
                   +dci->m_symStart << "-" <<
                   +(dci->m_symStart + dci->m_numSym - 1) <<
                   "\t start " << Simulator::Now () << " end " <<
-                  (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)));
+                  (Simulator::Now () + varTtiDuration - NanoSeconds (1.0)));
 
   ChannelAccessDenied (); // Reset the channel status
-  return varTtiPeriod;
+  return varTtiDuration;
 }
 
 Time
@@ -852,7 +852,7 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
 
-  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiDuration = GetSymbolPeriod () * dci->m_numSym;
 
   if (m_ctrlMsgs.size () == 0)
     {
@@ -860,16 +860,16 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                     +dci->m_symStart << "-" <<
                     +(dci->m_symStart + dci->m_numSym - 1) <<
                     "\t start " << Simulator::Now () << " end " <<
-                    (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)) <<
+                    (Simulator::Now () + varTtiDuration - NanoSeconds (1.0)) <<
                     " but no data to transmit");
       m_cam->Cancel ();
-      return varTtiPeriod;
+      return varTtiDuration;
     }
   else if (m_channelStatus != GRANTED)
     {
       NS_LOG_INFO ("UE" << m_rnti << " has to transmit CTRL but channel not granted");
       m_cam->Cancel ();
-      return varTtiPeriod;
+      return varTtiDuration;
     }
 
   for (const auto & msg : m_ctrlMsgs)
@@ -907,12 +907,12 @@ NrUePhy::UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci)
                 +dci->m_symStart << "-" <<
                 +(dci->m_symStart + dci->m_numSym - 1) <<
                 "\t start " << Simulator::Now () << " end " <<
-                (Simulator::Now () + varTtiPeriod - NanoSeconds (1.0)));
+                (Simulator::Now () + varTtiDuration - NanoSeconds (1.0)));
 
-  SendCtrlChannels (varTtiPeriod - NanoSeconds (1.0));
+  SendCtrlChannels (varTtiDuration - NanoSeconds (1.0));
 
   ChannelAccessDenied (); // Reset the channel status
-  return varTtiPeriod;
+  return varTtiDuration;
 }
 
 Time
@@ -921,7 +921,7 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
   NS_LOG_FUNCTION (this);
 
   m_receptionEnabled = true;
-  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiDuration = GetSymbolPeriod () * dci->m_numSym;
 
   m_activeDlDataStreams = 0;
 
@@ -947,11 +947,11 @@ NrUePhy::DlData (const std::shared_ptr<DciInfoElementTdma> &dci)
                         "-" << +(dci->m_symStart + dci->m_numSym - 1) <<
                         " num of rbg assigned: " << FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask).size () <<
                         "\t start " << Simulator::Now () <<
-                        " end " << (Simulator::Now () + varTtiPeriod));
+                        " end " << (Simulator::Now () + varTtiDuration));
         }
     }
 
-  return varTtiPeriod;
+  return varTtiDuration;
 }
 
 Time
@@ -964,7 +964,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
     }
   // Currently uplink DATA is transmitted over only 1 stream
   SetSubChannelsForTransmission (FromRBGBitmaskToRBAssignment (dci->m_rbgBitmask), dci->m_numSym, 1);
-  Time varTtiPeriod = GetSymbolPeriod () * dci->m_numSym;
+  Time varTtiDuration = GetSymbolPeriod () * dci->m_numSym;
   std::list<Ptr<NrControlMessage> > ctrlMsg;
   //MIMO is not supported for UL yet.
   //Therefore, there will be only
@@ -993,18 +993,18 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma> &dci)
                 " symbols "  << +dci->m_symStart <<
                 "-" << +(dci->m_symStart + dci->m_numSym - 1)
                      << "\t start " << Simulator::Now () <<
-                " end " << (Simulator::Now () + varTtiPeriod));
+                " end " << (Simulator::Now () + varTtiDuration));
 
   Simulator::Schedule (NanoSeconds (1.0), &NrUePhy::SendDataChannels, this,
-                       pktBurst, ctrlMsg, varTtiPeriod - NanoSeconds (2.0));
-  return varTtiPeriod;
+                       pktBurst, ctrlMsg, varTtiDuration - NanoSeconds (2.0));
+  return varTtiDuration;
 }
 
 void
 NrUePhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
 {
   NS_LOG_FUNCTION (this);
-  Time varTtiPeriod;
+  Time varTtiDuration;
 
   for (auto const &it:dci->m_tbSize)
     {
@@ -1015,26 +1015,26 @@ NrUePhy::StartVarTti (const std::shared_ptr<DciInfoElementTdma> &dci)
 
   if (dci->m_type == DciInfoElementTdma::CTRL && dci->m_format == DciInfoElementTdma::DL)
     {
-      varTtiPeriod = DlCtrl (dci);
+      varTtiDuration = DlCtrl (dci);
     }
   else if (dci->m_type == DciInfoElementTdma::CTRL && dci->m_format == DciInfoElementTdma::UL)
     {
-      varTtiPeriod = UlCtrl (dci);
+      varTtiDuration = UlCtrl (dci);
     }
   else if (dci->m_type == DciInfoElementTdma::SRS && dci->m_format == DciInfoElementTdma::UL)
     {
-      varTtiPeriod = UlSrs (dci);
+      varTtiDuration = UlSrs (dci);
     }
   else if (dci->m_type == DciInfoElementTdma::DATA && dci->m_format == DciInfoElementTdma::DL)
     {
-      varTtiPeriod = DlData (dci);
+      varTtiDuration = DlData (dci);
     }
   else if (dci->m_type == DciInfoElementTdma::DATA && dci->m_format == DciInfoElementTdma::UL)
     {
-      varTtiPeriod = UlData (dci);
+      varTtiDuration = UlData (dci);
     }
 
-  Simulator::Schedule (varTtiPeriod, &NrUePhy::EndVarTti, this, dci);
+  Simulator::Schedule (varTtiDuration, &NrUePhy::EndVarTti, this, dci);
 }
 
 
@@ -1104,10 +1104,10 @@ NrUePhy::SendDataChannels (const Ptr<PacketBurst> &pb,
 }
 
 void
-NrUePhy::SendCtrlChannels (Time prd)
+NrUePhy::SendCtrlChannels (Time duration)
 {
   // Uplink CTRL is sent only through a single stream, the first is assumed
-  m_spectrumPhys.at (0)->StartTxUlControlFrames (m_ctrlMsgs, prd);
+  m_spectrumPhys.at (0)->StartTxUlControlFrames (m_ctrlMsgs, duration);
   m_ctrlMsgs.clear ();
 }
 

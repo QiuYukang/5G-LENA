@@ -541,34 +541,34 @@ private:
    */
   Ptr<NrDlCqiMessage> CreateDlCqiFeedbackMessage (const DlCqiInfo& dlcqi) __attribute__((warn_unused_result));
   /**
-   * \brief Receive DL CTRL and return the time at which the transmission will end
+   * \brief Receive DL CTRL and return the duration of the transmission
    * \param dci the current DCI
-   * \return the time at which the reception of DL CTRL will end
+   * \return the duration of the DL CTRL interval
    */
   Time DlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
   /**
-   * \brief Transmit UL CTRL and return the time at which the transmission will end
+   * \brief Transmit UL CTRL and return the duration of the transmission
    * \param dci the current DCI
-   * \return the time at which the transmission of UL CTRL will end
+   * \return the duration of the UL CTRL interval
    */
   Time UlCtrl (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
   /**
-   * \brief Transmit UL SRS and return the time at which the transmission will end
+   * \brief Transmit UL SRS and return the duration of the transmission
    * \param dci the current DCI
-   * \return the time at which the transmission of UL SRS will end
+   * \return the duration of the UL SRS interval
    */
   Time UlSrs (const std::shared_ptr<DciInfoElementTdma> &dci);
   /**
-   * \brief Receive DL data and return the time at which the transmission will end
+   * \brief Receive DL data and return the duration of the transmission
    * \param dci the current DCI
-   * \return the time at which the reception of DL data will end
+   * \return the duration of the DL data interval
    */
   Time DlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
   /**
-   * \brief Transmit UL data and return the time at which the transmission will end
+   * \brief Transmit UL data and return the duration of the transmission
    * \param dci the current DCI
-   * \return the time at which the transmission of UL data will end
+   * \return the duration of the UL data interval
    */
   Time UlData (const std::shared_ptr<DciInfoElementTdma> &dci) __attribute__((warn_unused_result));
 
@@ -664,11 +664,11 @@ private:
   /**
    * \brief Transmit the control channel
    *
-   * \param varTtiPeriod the period of transmission
+   * \param duration the duration of transmission
    *
    * Call the NrSpectrumPhy class, indicating the control message to transmit.
    */
-  void SendCtrlChannels (Time prd);
+  void SendCtrlChannels (Time duration);
 
   // SAP methods
   void DoReset ();
