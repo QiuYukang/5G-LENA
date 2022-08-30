@@ -741,7 +741,7 @@ NrUeMac::SendRetxData (uint32_t usefulTbs, uint32_t activeLcsRetx)
           m_lcInfoMap.at (bsr.lcid).macSapUser->NotifyTxOpportunity (txParams);
           // After this call, m_ulDciTotalUsed has been updated with the
           // correct amount of bytes... but it is up to us in updating the BSR
-          // value, substracting the amount of bytes transmitted
+          // value, subtracting the amount of bytes transmitted
 
           // We need to use std::min here because bytesPerLcId can be
           // greater than bsr.txQueueSize because scheduler can assign
@@ -790,7 +790,7 @@ NrUeMac::SendTxData(uint32_t usefulTbs, uint32_t activeTx)
           m_lcInfoMap.at (bsr.lcid).macSapUser->NotifyTxOpportunity (txParams);
           // After this call, m_ulDciTotalUsed has been updated with the
           // correct amount of bytes... but it is up to us in updating the BSR
-          // value, substracting the amount of bytes transmitted
+          // value, subtracting the amount of bytes transmitted
 
           // We need to use std::min here because bytesPerLcId can be
           // greater than bsr.txQueueSize because scheduler can assign
@@ -920,7 +920,7 @@ NrUeMac::SendNewStatusData()
               m_lcInfoMap.at (bsr.lcid).macSapUser->NotifyTxOpportunity (txParams);
               // After this call, m_ulDciTotalUsed has been updated with the
               // correct amount of bytes... but it is up to us in updating the BSR
-              // value, substracting the amount of bytes transmitted
+              // value, subtracting the amount of bytes transmitted
               bsr.statusPduSize = 0;
               sentOneStatusPdu = true;
             }
