@@ -134,7 +134,7 @@ NrSpectrumPhy::GetTypeId (void)
                     MakeBooleanAccessor (&NrSpectrumPhy::SetDataErrorModelEnabled),
                     MakeBooleanChecker ())
     .AddAttribute ("ErrorModelType",
-                   "Type of the Error Model to apply to TBs of PDSCH and PUSCH",
+                   "Default type of the Error Model to apply to TBs of PDSCH and PUSCH",
                     TypeIdValue (NrLteMiErrorModel::GetTypeId ()),
                     MakeTypeIdAccessor (&NrSpectrumPhy::SetErrorModelType),
                     MakeTypeIdChecker ())
@@ -283,6 +283,19 @@ Ptr<BeamManager>
 NrSpectrumPhy::GetBeamManager ()
 {
   return m_beamManager;
+}
+
+void
+NrSpectrumPhy::SetErrorModel (Ptr<NrErrorModel> em)
+{
+  NS_LOG_FUNCTION (this << em);
+  m_errorModel = em;
+}
+
+Ptr<NrErrorModel>
+NrSpectrumPhy::GetErrorModel () const
+{
+  return m_errorModel;
 }
 
 void
@@ -1174,19 +1187,22 @@ NrSpectrumPhy::EndRxData ()
       NS_ABORT_MSG_IF (!m_errorModelType.IsChildOf(NrErrorModel::GetTypeId()),
                        "The error model must be a child of NrErrorModel");
 
-      ObjectFactory emFactory;
-      emFactory.SetTypeId (m_errorModelType);
-      Ptr<NrErrorModel> em = DynamicCast<NrErrorModel> (emFactory.Create ());
-      NS_ABORT_IF (em == nullptr);
+      if (!m_errorModel)
+        {
+          ObjectFactory emFactory;
+          emFactory.SetTypeId (m_errorModelType);
+          m_errorModel = DynamicCast<NrErrorModel> (emFactory.Create ());
+          NS_ABORT_IF (m_errorModel == nullptr);
+        }
 
       // Output is the output of the error model. From the TBLER we decide
       // if the entire TB is corrupted or not
 
-      GetTBInfo(tbIt).m_outputOfEM = em->GetTbDecodificationStats (m_sinrPerceived,
-                                                                   GetTBInfo(tbIt).m_expected.m_rbBitmap,
-                                                                   GetTBInfo(tbIt).m_expected.m_tbSize,
-                                                                   GetTBInfo(tbIt).m_expected.m_mcs,
-                                                                   harqInfoList);
+      GetTBInfo(tbIt).m_outputOfEM = m_errorModel->GetTbDecodificationStats (m_sinrPerceived,
+                                                                             GetTBInfo(tbIt).m_expected.m_rbBitmap,
+                                                                             GetTBInfo(tbIt).m_expected.m_tbSize,
+                                                                             GetTBInfo(tbIt).m_expected.m_mcs,
+                                                                             harqInfoList);
       GetTBInfo (tbIt).m_isCorrupted = m_random->GetValue () > GetTBInfo(tbIt).m_outputOfEM->m_tbler ? false : true;
 
       if (GetTBInfo (tbIt).m_isCorrupted)

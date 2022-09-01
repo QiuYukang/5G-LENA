@@ -162,6 +162,19 @@ public:
    */
   Ptr<BeamManager> GetBeamManager ();
 
+  /*
+   * \brief Sets the error model of this spectrum phy, overriding the default
+   * that is created by the attribute NrSpectrumPhy::ErrorModelType
+   *
+   * \param em The error model
+   */
+  void SetErrorModel (Ptr<NrErrorModel> em);
+
+  /*
+   * \brief Gets a pointer to the error model (if instantiated)
+   */
+  Ptr<NrErrorModel> GetErrorModel () const;
+
   /**
    * \brief Inherited from SpectrumPhy
    * Note: Implements GetAntenna function from SpectrumPhy.
@@ -583,6 +596,7 @@ private:
   Ptr<MobilityModel> m_mobility {nullptr}; //!< the mobility model of the node to which belongs this spectrum phy
   Ptr<NetDevice> m_device {nullptr}; //!< the device to which belongs this spectrum phy
   Ptr<NrPhy> m_phy {nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
+  Ptr<NrErrorModel> m_errorModel {nullptr}; //!< a pointer to the error model instance
   Ptr<Object> m_antenna {nullptr}; //!< antenna object of this NrSpectrumPhy, currently supported UniformPlannarArray type of antenna
   Ptr<NrHarqPhy> m_harqPhyModule {nullptr}; //!< the HARQ module of this spectrum phy instance
   Ptr<NrInterference> m_interferenceData {nullptr}; //!<the interference object used to calculate the interference for this spectrum phy
