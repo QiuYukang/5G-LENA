@@ -54,60 +54,16 @@ public:
    * \param o other instance
    */
   NrMacSchedulerLC (const NrMacSchedulerLC &o) = delete;
-
   /**
    * \brief Overwrite all the parameters with the one contained in the message
    * \param params the message received from the RLC layer, containing the information about the queues
-   *
-   * \return Number of bytes added or removed from the LC
    */
-  int
-  Update (const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params)
-  {
-    NS_ASSERT (params.m_logicalChannelIdentity == m_id);
-
-    int ret = 0;
-
-    if (params.m_rlcTransmissionQueueSize > m_rlcTransmissionQueueSize)
-      {
-        ret += params.m_rlcTransmissionQueueSize - m_rlcTransmissionQueueSize;
-      }
-    if (params.m_rlcRetransmissionQueueSize > m_rlcRetransmissionQueueSize)
-      {
-        ret += params.m_rlcRetransmissionQueueSize - m_rlcRetransmissionQueueSize;
-      }
-    if (params.m_rlcStatusPduSize - m_rlcStatusPduSize)
-      {
-        ret += params.m_rlcStatusPduSize - m_rlcStatusPduSize;
-      }
-
-    m_rlcTransmissionQueueSize = params.m_rlcTransmissionQueueSize;
-    m_rlcTransmissionQueueHolDelay = params.m_rlcTransmissionQueueHolDelay;
-    m_rlcRetransmissionQueueSize = params.m_rlcRetransmissionQueueSize;
-    m_rlcRetransmissionHolDelay = params.m_rlcRetransmissionHolDelay;
-    m_rlcStatusPduSize = params.m_rlcStatusPduSize;
-
-    return ret;
-  }
-
-  /**
-   * \brief Forcefully update m_rlcTransmissionQueueSize
-   * \param size Num. of bytes
-   */
-  void OverwriteTxQueueSize (uint32_t size)
-  {
-    m_rlcTransmissionQueueSize = size;
-  }
-
+  void Update (const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params);
   /**
    * \brief Get the total size of the LC
    * \return the total size of the LC
    */
-  uint32_t
-  GetTotalSize () const
-  {
-    return m_rlcTransmissionQueueSize + m_rlcRetransmissionQueueSize + m_rlcStatusPduSize;
-  }
+  uint32_t GetTotalSize () const;
 
   uint32_t m_id                           {0}; //!< ID of the LC
   uint32_t m_rlcTransmissionQueueSize     {0}; //!< The current size of the new transmission queue in byte.
@@ -159,49 +115,29 @@ public:
    * \brief NrMacSchedulerLCG constructor
    * \param id The id of the LCG
    */
-  NrMacSchedulerLCG (uint8_t id) : m_id (id)
-  {
-    (void) m_id;
-  }
+  NrMacSchedulerLCG (uint8_t id);
   /**
    * \brief NrMacSchedulerLCG copy constructor (deleted)
    * \param other other instance
    */
   NrMacSchedulerLCG (const NrMacSchedulerLCG &other) = delete;
-
   /**
    * \brief Check if the LCG contains the LC id specified
    * \param lcId LC ID to check for
    * \return true if the LCG contains the LC
    */
-  bool
-  Contains (uint8_t lcId) const
-  {
-    return m_lcMap.find (lcId) != m_lcMap.end ();
-  }
-
+  bool Contains (uint8_t lcId) const;
   /**
    * \brief Get the number of LC currently in the LCG
    * \return the number of LC
    */
-  uint32_t
-  NumOfLC () const
-  {
-    return static_cast<uint32_t> (m_lcMap.size ());
-  }
-
+  uint32_t NumOfLC () const;
   /**
    * \brief Insert LC in the group
    * \param lc LC to insert
    * \return true if the insertion was fine (false in the case the LC already exists)
    */
-  bool
-  Insert (LCPtr && lc)
-  {
-    NS_ASSERT (!Contains (lc->m_id));
-    return m_lcMap.emplace (std::make_pair (lc->m_id, std::move (lc))).second;
-  }
-
+  bool Insert (LCPtr && lc);
   /**
    * \brief Update the LCG with a message coming from RLC in the gNB.
    * \param params message from gNB RLC layer.
@@ -211,42 +147,7 @@ public:
    *
    * A call to NrMacSchedulerLC::Update is performed.
    */
-  void
-  UpdateInfo (const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params)
-  {
-    NS_ASSERT (Contains (params.m_logicalChannelIdentity));
-    int ret = m_lcMap.at (params.m_logicalChannelIdentity)->Update (params);
-    if (ret < 0)
-      {
-        NS_ASSERT_MSG (m_totalSize >= static_cast<uint32_t> (std::abs (ret)),
-                       "totSize: " << m_totalSize << " ret: " << ret);
-      }
-    // Update m_totalSize to include the sizes of the buffers
-    m_totalSize += ret;
-  }
-
-  /**
-   * Checks if m_totalSize is in correct state, and if not resets it.
-   * If m_totalSize is higher than it should at this point, i.e.,
-   * some overheads were not taken into account when it was being updated.
-   */
-  void
-  SanityCheck ()
-  {
-    //sanity check of m_totalSize
-    uint32_t size = 0;
-    for (const auto & lc : m_lcMap)
-      {
-        size += lc. second->m_rlcStatusPduSize + lc.second -> m_rlcRetransmissionQueueSize + lc.second ->m_rlcTransmissionQueueSize;
-      }
-
-    if (size == 0)
-      {
-        m_totalSize = 0;
-      }
-  }
-
-
+  void UpdateInfo (const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params);
   /**
    * \brief Update the LCG with just the LCG occupancy. Used in UL case when a BSR is received.
    * \param lcgQueueSize Sum of the size of all components in B
@@ -255,57 +156,26 @@ public:
    * available. For the LC, only the value m_rlcTransmissionQueueSize is updated.
    *
    * For UL, only 1 LC per LCG is supported.
-   *
-   * \see NrMacSchedulerLC::OverwriteTxQueueSize()
    */
-  void
-  UpdateInfo (uint32_t lcgQueueSize)
-  {
-    NS_ABORT_IF (m_lcMap.size () > 1);
-    uint32_t lcIdPart = lcgQueueSize / m_lcMap.size ();
-    for (auto & lc : m_lcMap)
-      {
-        lc.second->OverwriteTxQueueSize (lcIdPart);
-      }
-    m_totalSize = lcgQueueSize;
-  }
-
+  void UpdateInfo (uint32_t lcgQueueSize);
   /**
    * \brief Get the total size of the LCG
    * \return the total size of the LCG
    */
-  uint32_t
-  GetTotalSize () const
-  {
-    return m_totalSize;
-  }
+  uint32_t GetTotalSize () const;
 
   /**
    * \brief Get TotalSize Of LC
    * \param lcId LC ID
    * \return the total size of the LC
    */
-  uint32_t
-  GetTotalSizeOfLC (uint8_t lcId) const
-  {
-    NS_ABORT_IF (m_lcMap.size () == 0);
-    return m_lcMap.at (lcId)->GetTotalSize ();
-  }
+  uint32_t GetTotalSizeOfLC (uint8_t lcId) const;
 
   /**
    * \brief Get a vector of LC ID
    * \return a vector with all the LC id present in this LCG
    */
-  std::vector<uint8_t>
-  GetLCId () const
-  {
-    std::vector<uint8_t> ret;
-    for (const auto & lc : m_lcMap)
-      {
-        ret.emplace_back (lc.first);
-      }
-    return ret;
-  }
+  std::vector<uint8_t> GetLCId () const;
 
   /**
    * \brief Inform the LCG of the assigned data to a LC id
@@ -316,7 +186,6 @@ public:
   void AssignedData (uint8_t lcId, uint32_t size, std::string type);
 
 private:
-  uint32_t m_totalSize {0};                  //!< Total size
   uint8_t m_id {0};                          //!< ID of the LCG
   std::unordered_map<uint8_t, LCPtr> m_lcMap; //!< Map between LC id and their pointer
 };

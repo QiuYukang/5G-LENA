@@ -441,6 +441,22 @@ NrUeMac::SendReportBufferStatus (const SfnSf &dataSfn, uint8_t symStart)
                      "BSR should not be used for LCID 0");
       uint8_t lcg = lcInfoMapIt->second.lcConfig.logicalChannelGroup;
       queue.at (lcg) += ((*it).second.txQueueSize + (*it).second.retxQueueSize + (*it).second.statusPduSize);
+
+      if (queue.at (lcg) != 0)
+        {
+          NS_LOG_DEBUG ("Adding 5 bytes for SHORT_BSR.");
+          queue.at (lcg) += 5;
+        }
+      if ((*it).second.txQueueSize > 0)
+        {
+          NS_LOG_DEBUG ("Adding 3 bytes for TX subheader.");
+          queue.at (lcg) += 3;
+        }
+      if ((*it).second.retxQueueSize > 0)
+        {
+          NS_LOG_DEBUG ("Adding 3 bytes for RX subheader.");
+          queue.at (lcg) += 3;
+        }
     }
 
   NS_LOG_INFO ("Sending BSR with this info for the LCG: " << queue.at (0) << " " <<
@@ -842,39 +858,57 @@ NrUeMac::SendNewData ()
   // the overhead of the SHORT_BSR, which is 5 bytes.
   NS_ASSERT_MSG (m_ulDciTotalUsed + 5 <= m_ulDci->m_tbSize.at (0),
                  "The StatusPDU used " << m_ulDciTotalUsed << " B, we don't have any for the SHORT_BSR.");
+  // reserve some data for the SHORT_BSR
   uint32_t usefulTbs = m_ulDci->m_tbSize.at (0) - m_ulDciTotalUsed - 5;
 
   // Now, we have 3 bytes of overhead for each subPDU. Let's try to serve all
   // the queues with some RETX data.
-  if (activeLcsRetx * 3 > usefulTbs)
+  if (activeLcsRetx == 0 && activeLcsTx == 0 && usefulTbs > 0)
+   {
+      NS_LOG_LOGIC ("This UE tx opportunity will be wasted: " << usefulTbs << " bytes.");
+   }
+
+  // this check is needed, because if there are no active LCS we should not
+  // enter into else and call the function SendRetxData
+  if (activeLcsRetx > 0 && usefulTbs > 0)// the queues with some RETX data.
     {
-      NS_LOG_DEBUG ("The overhead for transmitting retx data is greater than the space for transmitting it."
-                    "Ignore the TBS of " << usefulTbs << " B.");
-    }
-  else
-    {
-      usefulTbs -= activeLcsRetx * 3;
-      SendRetxData (usefulTbs, activeLcsRetx);
+      // 10 because 3 bytes will go for MAC subheader
+      // and we should ensure to pass to RLC AM at least 7 bytes
+      if (activeLcsRetx * 10 > usefulTbs)
+        {
+          NS_LOG_DEBUG ("The overhead for transmitting retx data is greater than the space for transmitting it."
+                        "Ignore the TBS of " << usefulTbs << " B.");
+        }
+      else
+        {
+          usefulTbs -= activeLcsRetx * 3;
+          SendRetxData (usefulTbs, activeLcsRetx);
+        }
     }
 
   // Now we have to update our useful TBS for the next transmission.
   // Remember that m_ulDciTotalUsed keep count of data and overhead that we
   // used till now.
   NS_ASSERT_MSG (m_ulDciTotalUsed + 5 <= m_ulDci->m_tbSize.at (0),
-                 "The StatusPDU sending required all space, we don't have any for the SHORT_BSR.");
+                 "The StatusPDU and RETX sending required all space, we don't have any for the SHORT_BSR.");
   usefulTbs = m_ulDci->m_tbSize.at (0) - m_ulDciTotalUsed - 5; // Update the usefulTbs.
 
   // The last part is for the queues with some non-RETX data. If there is no space left,
   // then nothing.
-  if (activeLcsTx * 3 > usefulTbs)
+  if (activeLcsTx > 0 && usefulTbs > 0)// the queues with some TX data.
     {
-      NS_LOG_DEBUG ("The overhead for transmitting new data is greater than the space for transmitting it."
-                    "Ignore the TBS of " << usefulTbs << " B.");
-    }
-  else
-    {
-      usefulTbs -= activeLcsTx * 3;
-      SendTxData (usefulTbs, activeLcsTx);
+      // 10 because 3 bytes will go for MAC subheader
+      // and we should ensure to pass to RLC AM at least 7 bytes
+      if (activeLcsTx * 10 > usefulTbs)
+        {
+          NS_LOG_DEBUG ("The overhead for transmitting new data is greater than the space for transmitting it."
+                        "Ignore the TBS of " << usefulTbs << " B.");
+        }
+      else
+        {
+          usefulTbs -= activeLcsTx * 3;
+          SendTxData (usefulTbs, activeLcsTx);
+        }
     }
 
   // If we did not used the packet burst, explicitly signal it to the HARQ

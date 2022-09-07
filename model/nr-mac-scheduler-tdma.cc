@@ -160,7 +160,7 @@ NrMacSchedulerTdma::AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeU
         {
           uint32_t bufQueueSize = schedInfoIt->second;
 
-          if (GetTBSFn (GetUe (*schedInfoIt)) >= std::max (bufQueueSize, 7U))
+          if (GetTBSFn (GetUe (*schedInfoIt)) >= std::max (bufQueueSize, 10U))
             {
               if (GetUe (*schedInfoIt)->m_dlTbSize.size () > 1 && type == "DL")
                 {
@@ -356,7 +356,7 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
                                      [[maybe_unused]] uint32_t maxSym) const
 {
   NS_LOG_FUNCTION (this);
-  uint16_t countLessThan7B = 0;
+  uint16_t countLessThanMinBytes = 0;
 
   //we do not need to recalculate the TB size here because we already
   //computed it in side the method AssignDLRBG called before this method.
@@ -372,12 +372,12 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
     for (uint32_t numTb = 0; numTb < ueInfo->m_dlTbSize.size (); numTb++)
       {
         tbs = ueInfo->m_dlTbSize.at (numTb);
-        if (tbs < 7)
+        if (tbs < 10)
           {
-            countLessThan7B++;
-            NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
+            countLessThanMinBytes++;
+            NS_LOG_DEBUG ("While creating DL DCI for UE " << ueInfo->m_rnti <<
                           " stream " << numTb << " assigned " << ueInfo->m_dlRBG <<
-                          " DL RBG, but TBS < 7, reseting its size to zero in UE info");
+                          " DL RBG, but TBS < 10, reseting its size to zero in UE info");
             ueInfo->m_dlTbSize.at (numTb) = 0;
             ndi.at (numTb) = 0;
             rv.at (numTb) = 0;
@@ -389,10 +389,10 @@ NrMacSchedulerTdma::CreateDlDci (PointInFTPlane *spoint,
 
   // If the size of all the TBs is less than 7 bytes (3 mac header, 2 rlc header, 2 data),
   // then we can't transmit any new data, so don't create dci.
-  if (countLessThan7B == ueInfo->m_dlTbSize.size ())
+  if (countLessThanMinBytes == ueInfo->m_dlTbSize.size ())
     {
-      NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 7");
+      NS_LOG_DEBUG ("While creating DL DCI for UE " << ueInfo->m_rnti <<
+                    " assigned " << ueInfo->m_dlRBG << " DL RBG, but TBS < 10");
       return nullptr;
     }
 
@@ -433,12 +433,12 @@ NrMacSchedulerTdma::CreateUlDci (NrMacSchedulerNs3::PointInFTPlane *spoint,
   uint32_t tbs = m_ulAmc->CalculateTbSize (ueInfo->m_ulMcs,
                                            ueInfo->m_ulRBG * GetNumRbPerRbg ());
 
-  // If is less than 7 (3 mac header, 2 rlc header, 2 data), then we can't
-  // transmit any new data, so don't create dci.
-  if (tbs < 7)
+  // If is less than 12, 7 (3 mac header, 2 rlc header, 2 data) + SHORT_BSR (5),
+  //then we can't transmit any new data, so don't create dci.
+  if (tbs < 12)
     {
-      NS_LOG_DEBUG ("While creating DCI for UE " << ueInfo->m_rnti <<
-                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS < 7");
+      NS_LOG_DEBUG ("While creating UL DCI for UE " << ueInfo->m_rnti <<
+                    " assigned " << ueInfo->m_ulRBG << " UL RBG, but TBS " << tbs  << " < 12");
       return nullptr;
     }
 
