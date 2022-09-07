@@ -67,11 +67,11 @@ SystemSchedulerTest::DoRun (void)
   NS_ABORT_IF (!m_isUplink && !m_isDownlink);
 
   // set simulation time and mobility
-  Time simTime = MilliSeconds (1500);
+  Time simTime = MilliSeconds (1000);
   Time udpAppStartTimeDl = MilliSeconds (500);
   Time udpAppStartTimeUl = MilliSeconds (500);
-  Time udpAppStopTimeDl = MilliSeconds (1500);   // Let's give 1s to end the tx
-  Time udpAppStopTimeUl = MilliSeconds (1500);   // Let's give 1 to end the tx
+  Time udpAppStopTimeDl = MilliSeconds (1000);   // Let's give 0.5s for the traffic
+  Time udpAppStopTimeUl = MilliSeconds (1000);   // Let's give 0.5s for the traffic
   uint16_t gNbNum = 1;
   uint32_t packetSize = 100;
   uint32_t maxPackets = 400;
