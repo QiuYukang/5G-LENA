@@ -1651,7 +1651,7 @@ NrUeMac::DoNrSlSlotIndication (const SfnSf& sfn)
                       continue;
                     }
 
-                  uint32_t randProb = m_ueSelectedUniformVariable->GetInteger (0, 1);
+                  double randProb = m_ueSelectedUniformVariable->GetValue (0, 1);
                   if (itGrantInfo->second.cReselCounter > 0 &&
                       itGrantInfo->second.slotAllocations.size () > 0 && m_slProbResourceKeep > randProb)
                     {
