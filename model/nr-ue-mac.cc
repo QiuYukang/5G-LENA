@@ -1313,13 +1313,16 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
         }
 
       // calculate all possible transmissions of sensed data
-      //using unordered map, since we need to check all the sensed slots
-      //anyway, thus, the order does not matter.
-      std::unordered_map<uint64_t, std::list<SlotSensingData>> allSensingData;
+      //using a vector of SlotSensingData, since we need to check all the SCIs
+      //and their possible future transmission that are received during the
+      //above trimmed sensing window. On each index of the vector, it is a
+      //list that holds the info of each received SCI and its possible
+      //future transmission.
+      std::vector<std::list<SlotSensingData>> allSensingData;
       for (const auto &itSensedSlot:sensedData)
         {
           std::list<SlotSensingData> listFutureSensTx = GetFutSlotsBasedOnSens (itSensedSlot);
-          allSensingData.emplace (std::make_pair (itSensedSlot.sfn.GetEncoding (), listFutureSensTx));
+          allSensingData.push_back (listFutureSensTx);
         }
 
       NS_LOG_DEBUG ("Size of allSensingData " << allSensingData.size ());
@@ -1350,14 +1353,13 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
                   slAlloc.sfn.Add (i * pPrimeRsvpTx);
                   listFutureCands.emplace_back (slAlloc);
                 }
-              // Traverse over all the possible transmissions of each sensed slot
-              for (const auto &itSensedSlot:allSensingData)
+              // Traverse over all the possible transmissions of each sensed SCI
+              for (const auto &itSensedData:allSensingData)
                 {
-                  std::list<SlotSensingData> listFutureSensTx = itSensedSlot.second;
                   // for all proposed transmissions of current candidate resource
                   for (auto &itFutureCand:listFutureCands)
                     {
-                      for (const auto &itFutureSensTx:listFutureSensTx)
+                      for (const auto &itFutureSensTx:itSensedData)
                         {
                           if (itFutureCand.sfn.Normalize () == itFutureSensTx.sfn.Normalize ())
                             {
@@ -1367,7 +1369,7 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
                                   NS_LOG_DEBUG (this << " Overlapped Slot " << itCandSsResoA->sfn.Normalize () << " occupied " << +itFutureSensTx.sbChLength << " subchannels index " << +itFutureSensTx.sbChStart);
                                   itCandSsResoA->occupiedSbCh.insert (i);
                                 }
-                              if (itFutureSensTx.sbChLength == GetTotalSubCh (m_poolId))
+                              if (itCandSsResoA->occupiedSbCh.size () == GetTotalSubCh (m_poolId))
                                 {
                                   if(itFutureSensTx.slRsrp > rsrpThrehold)
                                     {
