@@ -1262,8 +1262,8 @@ NrUeMac::GetNrSlTxOpportunities (const SfnSf& sfn)
 
   //Check the validity of the resource selection window configuration (T1 and T2) 
   //and the following parameters: numerology and reservation period.
-  uint64_t nsMs = (m_t2-m_t1+1) * (1 / pow(2,numerology)); // number of slots mutiplied by the slot duration in ms
-  uint64_t rsvpMs = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()); // reservation period in ms
+  uint16_t nsMs = (m_t2-m_t1+1) * (1 / pow(2,numerology)); // number of slots mutiplied by the slot duration in ms
+  uint16_t rsvpMs = static_cast <uint16_t> (m_pRsvpTx.GetMilliSeconds ()); // reservation period in ms
   NS_ABORT_MSG_IF (nsMs > rsvpMs, 
       "An error may be generated due to the fact that the resource selection window size is higher than the resource reservation period value. Make sure that (T2-T1+1) x (1/(2^numerology)) < reservation period. Modify the values of T1, T2, numerology, and reservation period accordingly.");
 
