@@ -150,9 +150,9 @@ TestAntenna3gppModelConf::DoRun (void)
 {
   std::cout << "\n\n\n" << m_name << std::endl;
   // set simulation time and mobility
-  Time simTime = MilliSeconds (1000);
+  Time simTime = MilliSeconds (800);
   Time udpAppStartTimeDl = MilliSeconds (400);
-  Time udpAppStopTimeDl = MilliSeconds (1000);
+  Time udpAppStopTimeDl = MilliSeconds (800);
   uint32_t packetSize = 1000;
   DataRate udpRate = DataRate ("2Mbps");
 

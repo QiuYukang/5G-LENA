@@ -183,15 +183,15 @@ NrSystemTestConfigurationsTestCase1::DoRun (void)
   clientApps.Add (dlClient.Install (remoteHost));
 
   // start server and client apps
-  serverApps.Start (Seconds (0.4));
-  clientApps.Start (Seconds (0.4));
-  serverApps.Stop (Seconds (1));
-  clientApps.Stop (Seconds (1));
+  serverApps.Start (MilliSeconds(400));
+  clientApps.Start (MilliSeconds (400));
+  serverApps.Stop (MilliSeconds (800));
+  clientApps.Stop (MilliSeconds (800));
 
   // attach UEs to the closest eNB
   nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
 
-  Simulator::Stop (Seconds (1));
+  Simulator::Stop (MilliSeconds (800));
   Simulator::Run ();
   Simulator::Destroy ();
 

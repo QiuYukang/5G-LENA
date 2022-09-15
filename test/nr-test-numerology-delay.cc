@@ -285,7 +285,7 @@ NrTestNumerologyDelayCase1::DoRun (void)
 
   nrHelper->EnableTraces ();
 
-  Simulator::Stop (MilliSeconds (1000));
+  Simulator::Stop (MilliSeconds (800));
   Simulator::Run ();
   Simulator::Destroy ();
 }

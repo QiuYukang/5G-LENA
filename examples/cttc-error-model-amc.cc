@@ -121,9 +121,6 @@ main (int argc, char *argv[])
   Time udpAppStartTime = MilliSeconds (1000);
   Time packetInterval = MilliSeconds (200);
   Time updateChannelInterval = MilliSeconds (0);  // no channel updates to test AMC
-  uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
-  NS_ABORT_IF (packets == 0);
-
 
   std::string errorModel = "ns3::NrEesmCcT1";
 
@@ -141,6 +138,9 @@ main (int argc, char *argv[])
                 pktSize);
 
   cmd.Parse (argc, argv);
+
+  uint32_t packets = (simTime - udpAppStartTime.GetSeconds ()) / packetInterval.GetSeconds ();
+  NS_ABORT_IF (packets == 0);
 
   /*
    * Default values for the simulation. We are progressively removing all
