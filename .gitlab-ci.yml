@@ -26,7 +26,8 @@ stages:
     - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
     - cmake --version
     - ./ns3 build
-    - ./test.py -n
+    - ./test.py -c example
+    - ./test.py -s "nr*"
     - cd ../
     - rm -rf ns-3-dev
   cache:
