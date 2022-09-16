@@ -35,14 +35,10 @@
  * \section mainpage-contact Contact & support
  *
  * If you want to contribute to 5G-LENA, if you spotted a bug, need a feature or
- * have an awesome idea, you can get a copy of the sources from GitHub and start
+ * have an awesome idea, you can get a copy of the sources from Gitlab and start
  * right away! There is a guide about
- * \ref coding-style "coding style and best practices" which you should follow to
- * keep the project as consistent and maintainable as possible.
- *
- * -   Project homepage --- https://cttc-lena.gitlab.io/5g-lena-website/
- * -   Documentation --- https://cttc-lena.gitlab.io/nr/
- * -   GitLab --- https://gitlab.cttc.es/ns3-new-radio/nr
+ * [NR Coding style and best practices] (https://gitlab.com/cttc-lena/nr/-/blob/master/doc/development-guidelines.md)
+ * which you should follow to keep the project as consistent and maintainable as possible.
  *
  * See also the [Contact & Support page](https://cttc-lena.gitlab.io/5g-lena-website/contact/)
  * on the project website for further information.
