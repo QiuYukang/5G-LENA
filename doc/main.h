@@ -32,18 +32,27 @@
  * The best way to get started is to read the thorough
  * \ref getting-started "guide to download, build, install and start using 5G-LENA".
  *
- * \section mainpage-contact Contact & support
+ *\section mainpage-contributions Contributions
  *
- * If you want to contribute to 5G-LENA, if you spotted a bug, need a feature or
+ *If you want to contribute to 5G-LENA, if you spotted a bug, need a feature or
  * have an awesome idea, you can get a copy of the sources from Gitlab and start
  * right away! There is a guide about
  * [NR Coding style and best practices] (https://gitlab.com/cttc-lena/nr/-/blob/master/doc/development-guidelines.md)
  * which you should follow to keep the project as consistent and maintainable as possible.
  *
- * See also the [Contact & Support page](https://cttc-lena.gitlab.io/5g-lena-website/contact/)
- * on the project website for further information.
+ *\section mainpage-other-links Users group and Bug/Issues Reporting
  *
- * Todo: Add filing an issue. Add reporting a bug. Add usage of Gitlab.
+ * For users Q&A about 5G-LENA module you can join our 5G-LENA users group.
+ * For reporting an issue or a bug you should do it through NR Gitlab. Here are the links:
+ *
+ * - 5G-LENA users group: https://groups.google.com/g/5g-lena-users/
+ * - NR module bug/issues reporting: https://gitlab.com/cttc-lena/nr/-/issues
+ *
+ *
+ * \section mainpage-contact Contact & Support page
+ *
+ * See the [Contact & Support page](https://cttc-lena.gitlab.io/5g-lena-website/contact/)
+ * on the project website for further information.
  *
  * \section mainpage-license License
  *
