@@ -95,10 +95,9 @@ NrEesmErrorModel::SinrExp (const SpectrumValue& sinr, const std::vector<int>& ma
   double SINRexp = 0.0;
   double SINRsum = 0.0;
   double beta = GetBetaTable ()->at (mcs);
-  SpectrumValue sinrCopy = sinr;
   for (uint32_t i = 0; i < map.size (); i++)
     {
-      double sinrLin = sinrCopy [map.at (i)];
+      double sinrLin = sinr [map.at (i)];
       SINRexp = exp (-sinrLin / beta);
       SINRsum += SINRexp;
     }

@@ -339,11 +339,10 @@ NrLteMiErrorModel::Mib (const SpectrumValue& sinr, const std::vector<int>& map, 
 
   double MI;
   double MIsum = 0.0;
-  SpectrumValue sinrCopy = sinr;
 
   for (uint32_t i = 0; i < map.size (); i++)
     {
-      double sinrLin = sinrCopy[map.at (i)];
+      double sinrLin = sinr [map.at (i)];
       if (mcs <= MI_QPSK_MAX_ID) // QPSK
         {
 
