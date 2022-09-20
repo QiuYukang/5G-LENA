@@ -143,7 +143,7 @@ public:
    * \param rhs other SfnSf to compare
    * \return true if this SfnSf is less than rhs
    *
-   * The comparison is done on m_frameNum, m_subframeNum, and m_slotNum 
+   * The comparison is done on m_frameNum, m_subframeNum, and m_slotNum
    * The program will assert if numerologies do not match (and asserts are enabled)
    */
   bool operator < (const SfnSf& rhs) const;
