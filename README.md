@@ -1,10 +1,10 @@
 # 3GPP NR ns-3 module #
 
 This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the
-simulation of NR non-standalone cellular networks. ns-3 is used as a base 
+simulation of NR non-standalone cellular networks. ns-3 is used as a base
 simulator, on top of which can be added our NR module as plug-in.
 
-## Brand new installation of ns-3 
+## Brand new installation of ns-3
 
 To download a working copy of the ns-3, you can do the following:
 
@@ -31,14 +31,14 @@ git clone https://gitlab.com/cttc-lena/nr.git
 cd nr
 ```
 
-Notice that we have two parallel git repositories, ns-3 and NR. If you run 
-`git status` inside of the ns-3, you will notice that the contrib/nr 
+Notice that we have two parallel git repositories, ns-3 and NR. If you run
+`git status` inside of the ns-3, you will notice that the contrib/nr
 directory will be listed as "Untracked files". This is normal.
 
 
 ### Checkout the latest NR release branch
 
-Switch to the latest NR release branch. For example, for NR Relase 2.2 run 
+Switch to the latest NR release branch. For example, for NR Relase 2.2 run
 from the NR folder:
 
 ```
@@ -47,10 +47,10 @@ git checkout 5g-lena-v2.2.y
 
 ### Checkout the recommended ns-3 release branch
 
-`Check in the NR RELEASE_NOTES.md which is the recommended ns-3 release`, 
-and then checkout the corresponding ns-3 release branch. 
+`Check in the NR RELEASE_NOTES.md which is the recommended ns-3 release`,
+and then checkout the corresponding ns-3 release branch.
 
-For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 
+For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3
 release is "36.1" you can run:
 
 ```
@@ -60,7 +60,7 @@ git checkout ns-3.36.1
 
 ### Test ns-3 + nr installation
 
-Let's configure the ns-3 project again (after downloading NR and 
+Let's configure the ns-3 project again (after downloading NR and
 switching to the specific NR and ns-3 release branches):
 
 ```
@@ -69,7 +69,7 @@ switching to the specific NR and ns-3 release branches):
 
 If the NR module is recognized correctly, you should see "nr" in the list of
 built modules. If that is not the case, then most probably the previous
-point failed. 
+point failed.
 
 To compile the ns-3 with NR you can run the following command:
 
@@ -116,40 +116,40 @@ git pull
 ```
 
 To move to the latest NR release, if the latest release is 2.2 you will need to do
-from the `nr` folder:  
+from the `nr` folder:
 
 ```
 git checkout 5g-lena-v2.2.y
 ```
 
-Then, you should check in the NR RELEASE_NOTES.md what is the recommended ns-3 version, 
+Then, you should check in the NR RELEASE_NOTES.md what is the recommended ns-3 version,
 then move to the `ns-3` folder and run:
 
 ```
 git checkout ns-3.*
 ```
 
-Replace * by the specific ns-3 release number. Then you can follow the steps listed in 
+Replace * by the specific ns-3 release number. Then you can follow the steps listed in
 section "Test ns3 + NR installation" to test your upgraded NR.
 
 ## Documentation
 
-We maintain two sources of documentation: 
+We maintain two sources of documentation:
 
-1. [The user manual](https://cttc-lena.gitlab.io/nr/nrmodule.pdf) describes the models and their assumptions; as 
-we developed the module while the 3GPP standard was not fully available, some parts 
+1. [The user manual](https://cttc-lena.gitlab.io/nr/nrmodule.pdf) describes the models and their assumptions; as
+we developed the module while the 3GPP standard was not fully available, some parts
 are not modeling precisely the procedures as indicated by the standard.
- 
-2. [The Doxygen](https://cttc-lena.gitlab.io/nr/html/), you will find details about design 
-and user usage of any class of the module, as well as description and 
+
+2. [The Doxygen](https://cttc-lena.gitlab.io/nr/html/), you will find details about design
+and user usage of any class of the module, as well as description and
 images for the examples and the tests.
 
 
 
-### Building documentation 
+### Building documentation
 
-If you would like to build the documentation on your own, you can follow the 
-instructions from this section. 
+If you would like to build the documentation on your own, you can follow the
+instructions from this section.
 
 - To build the user manual, navigate to the nr folder and then:
 
@@ -177,17 +177,17 @@ to install some packages like python3.
 
 ## Contributions are welcome!
 
-As you may know, to fund, design, develop and then maintain an 
-open source software for a novel communication technology is a 
-challenging and time expensive task. For this, we would like to 
+As you may know, to fund, design, develop and then maintain an
+open source software for a novel communication technology is a
+challenging and time expensive task. For this, we would like to
 foster collaborations with researchers and companies around the globe:
 
 - If you identify a bug, please let us know through the Gitlab issue page;
-- If you have a development plan that you can share, please get in touch with us. 
-We may be able to provide useful suggestions with your design and then maybe your 
+- If you have a development plan that you can share, please get in touch with us.
+We may be able to provide useful suggestions with your design and then maybe your
 contribution can be more integrated more efficiently and be useful to let the project grow;
-- If you plan to share your code, as the GPLv2 permits, please help us to 
-integrate it so that the work you have done does not become outdated 
+- If you plan to share your code, as the GPLv2 permits, please help us to
+integrate it so that the work you have done does not become outdated
 and then impossible to merge;
 - The more we are, the better we can do!
 
