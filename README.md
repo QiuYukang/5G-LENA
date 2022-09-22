@@ -1,75 +1,82 @@
 # 3GPP NR ns-3 module #
 
 This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the
-simulation of NR non-standalone cellular networks. ns-3 is used as a base
+simulation of 3GPP NR non-standalone cellular networks. ns-3 is used as a base
 simulator, on top of which can be added our NR module as plug-in.
 
-## Brand new installation of ns-3
+## ns-3 + NR prerequisites
 
-To download a working copy of the ns-3, you can do the following:
+### ns-3 prerequisites:
+
+Make sure to install all [ns-3 preresquisites](https://www.nsnam.org/wiki/Installation#Prerequisites).
+
+### NR prerequisites:
+
+Install libc6-dev (it provides `semaphore.h` header file):
+
+```
+sudo apt-get install libc6-dev
+```
+
+Install sqlite:
+
+```
+apt-get install sqlite sqlite3 libsqlite3-dev
+```
+
+Notice that ns-3 and nr prerequisites are required (otherwise you will get an error, e.g: `fatal error: ns3/sqlite-output.h`).
+
+## ns-3 + nr installation
+
+###  Download ns-3:
 
 ```
 git clone https://gitlab.com/nsnam/ns-3-dev.git
 cd ns-3-dev
 ```
 
-### Test the ns-3 installation
-To test the installation, you can run:
-
-```
-./ns3 configure --enable-examples --enable-tests
-./ns3 build
-```
-
-## Brand new installation of the NR module
-
-Once you have installed and tested the ns-3, you can install the nr module:
+### Download the NR module:
 
 ```
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
-cd nr
 ```
 
-Notice that we have two parallel git repositories, ns-3 and NR. If you run
+Notice that since these are two independent git repositories, when you run 
 `git status` inside of the ns-3, you will notice that the contrib/nr
 directory will be listed as "Untracked files". This is normal.
 
+### Switch to the latest NR release branch:
 
-### Checkout the latest NR release branch
-
-Switch to the latest NR release branch. For example, for NR Relase 2.2 run
-from the NR folder:
+Checkout the latest NR release branch (usually the branch with the highest version 
+number, to list git branches run `git branch -r`). For example, for NR Release v2.2 run:
 
 ```
+cd nr
 git checkout 5g-lena-v2.2.y
 ```
 
-### Checkout the recommended ns-3 release branch
+### Switch to the recommended ns-3 release branch:
 
-`Check in the NR RELEASE_NOTES.md which is the recommended ns-3 release`,
-and then checkout the corresponding ns-3 release branch.
-
-For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3
-release is "36.1" you can run:
+Check in the [NR RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the recommended ns-3 release, and then check out the corresponding ns-3 release branch.
+For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is "36.1" you can run:
 
 ```
 cd ../..
 git checkout ns-3.36.1
 ```
 
-### Test ns-3 + nr installation
+### Test ns-3 + nr installation:
 
-Let's configure the ns-3 project again (after downloading NR and
-switching to the specific NR and ns-3 release branches):
+Let's configure the ns-3 + NR project:
 
 ```
 ./ns3 configure --enable-examples --enable-tests
 ```
 
-If the NR module is recognized correctly, you should see "nr" in the list of
-built modules. If that is not the case, then most probably the previous
-point failed.
+In the output you should see: `SQLite stats support: enabled`.
+
+If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`. 
 
 To compile the ns-3 with NR you can run the following command:
 
@@ -77,28 +84,8 @@ To compile the ns-3 with NR you can run the following command:
 ./ns3
 ```
 
-If that command returns successfully, _Welcome to the NR world !_
-
-
-## ns-3 and NR prerequisites
-
-Notice that sqlite development package and semaphore.h are required (otherwise
-you will get an error, e.g: `fatal error: ns3/sqlite-output.h`). In this case
-you should install libc6-dev:
-
-```
-sudo apt-get install libc6-dev
-```
-
-that will provide semaphore.h and/or sqlite:
-
-```
-apt-get install sqlite sqlite3 libsqlite3-dev
-```
-
-For more details, related to the prerequisites for ns-3 please visit: `https://www.nsnam.org/wiki/Installation#Ubuntu.2FDebian.2FMint`.
-After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
-You should see: `SQLite stats support: enabled`
+If the NR module is recognized correctly, you should see "nr" in the list of
+built modules. If that is the case, _Welcome to the NR world !_
 
 
 ## Upgrading 5G-LENA
@@ -114,23 +101,6 @@ cd ns-3-dev/contrib/nr    # or src/nr if the module lives under src/
 git checkout master
 git pull
 ```
-
-To move to the latest NR release, if the latest release is 2.2 you will need to do
-from the `nr` folder:
-
-```
-git checkout 5g-lena-v2.2.y
-```
-
-Then, you should check in the NR RELEASE_NOTES.md what is the recommended ns-3 version,
-then move to the `ns-3` folder and run:
-
-```
-git checkout ns-3.*
-```
-
-Replace * by the specific ns-3 release number. Then you can follow the steps listed in
-section "Test ns3 + NR installation" to test your upgraded NR.
 
 ## Documentation
 
