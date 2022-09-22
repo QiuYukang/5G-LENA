@@ -1,255 +1,177 @@
-# 3GPP NR ns-3 module #
+# ns-3 NR module with V2X extensions
 
-This is an [ns-3](https://www.nsnam.org "ns-3 Website") 3GPP NR module for the
-simulation of NR non-standalone cellular networks. Ns-3 is used as a base,
-on top of which we will add our module as plug-in (with limitations that will
-be discussed below).
+This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the simulation of NR V2X. 
+ns-3 is used as a base, on top of which we add NR module with V2X extensions as plug-in.
 
-## Installation for an authorized developer
+## ns-3 + NR prerequisites
 
-We try to keep in sync with the latest advancements in ns-3-dev. By the version
-1.0, we have upstreamed all our patches to ns-3-dev, making our module
-independent from the ns-3 version used. Since the version 1.3, for 
-each NR release we will recommend which ns-3 release to use.
+### ns-3 prerequisites:
 
-### Brand new installation of ns-3-dev repository
+Make sure to install all [ns-3 preresquisites](https://www.nsnam.org/wiki/Installation#Prerequisites).
 
-To download a working copy of the ns-3-dev repository with the latest changes,
-you can do the following:
+### NR prerequisites:
 
-```
-$ git clone https://gitlab.com/nsnam/ns-3-dev.git
-$ cd ns-3-dev
-```
-
-At this step, you should check in RELEASE_NOTES.md which is the recommended ns-3 
-release to use for the specific NR release, and then you can switch to the 
-corresponding ns-3 release branch, e.g., in the following way:
-
-```
-$ git checkout ns-3.36
-
-```
-
-You can replace "36" with the specific release that you want to use. 
-
-If the recommended ns-3 release is not available yet (such in the case that NR is 
-released before the recommended ns-3 release), 
-then you can use ns-3 master until ns-3 recommended release is ready.
-
-Provide your username and password when asked.
-
-### Switching from CTTC-provided ns-3-dev
-
-Before v1.0, the NR module needed a custom ns-3-dev version. For those of you
-that are upgrading from v0.4 to v1.0, the steps to switch to the official
-ns-3 repository are the following (without recreating the repo configuration):
-
-```
-$ git remote add nsnam https://gitlab.com/nsnam/ns-3-dev.git
-$ git checkout master
-$ git pull nsnam master
-```
-
-Anyway, we will make sure that the master of our custom ns-3-dev will stay
-up-to-date with respect to the official ns-3-dev.
-
-### Using an existing installation of ns-3
-
-In case you are already using the git mirror of ns-3-dev, hosted at GitHub or
-GitLab, you are already ready to go (please make sure to be up-to-date with
-`git pull` in the master branch!).
-
-### Test the installation
-To test the installation, after following one of the previous point, you can do
-a simple configuration and compile test (more options for that later):
-
-```
-$ ./ns3 configure --enable-examples --enable-tests
-$ ./ns3 build
-```
-
-A success for both previous commands indicates an overall success.
-
-### Brand new installation of the NR module
-
-As a precondition to the following steps, you must have a working local git
-repository of ns-3-dev. If that is the case, then, your local git repo is ready
-to include our nr module (only for authorized users):
-
-```
-$ cd contrib
-$ git clone https://gitlab.com/cttc-lena/nr.git
-$ cd ..
-```
-
-Please note that the contrib/nr directory will be listed as "Untracked files" every
-time you do a `git status` command. Ignore it, as the directory lives as an
-independent module. As a result, we have now two parallel repository, but one
-lives inside the other.
-
-Finally, switch to the latest release branch (fixes are included in the release
-branch and not master). For example, for version 1.1 you have to `git checkout`
-to the `5g-lena-v1.1.y` branch.
-
-
-### Test the NR installation
-
-Let's configure the project:
-
-```
-$ ./ns3 configure --enable-examples --enable-tests
-```
-
-If the NR module is recognized correctly, you should see "nr" in the list of
-built modules. If that is not the case, then most probably the previous
-point failed. Otherwise, you could compile it:
-
-```
-$ ./ns3
-```
-
-If that command returns successfully, Welcome to the NR world !
-
-Notice that sqlite development package and semaphore.h are required (otherwise
-you will get an error, e.g: `fatal error: ns3/sqlite-output.h`). In this case
-you should install libc6-dev:
+Install libc6-dev (it provides `semaphore.h` header file):
 
 ```
 sudo apt-get install libc6-dev
 ```
 
-that will provide semaphore.h and/or sqlite:
+Install sqlite:
 
 ```
 apt-get install sqlite sqlite3 libsqlite3-dev
 ```
 
-For more details, related to the prerequisites for ns-3 please visit: `https://www.nsnam.org/wiki/Installation#Ubuntu.2FDebian.2FMint`.
-After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
-You should see: `SQLite stats support: enabled`
+Notice that ns-3 and nr prerequisites are required (otherwise you will get an error, e.g: `fatal error: ns3/sqlite-output.h`).
 
+## ns-3 + nr installation
+
+The implementation of NR V2X is divided between ns-3 LTE (RLC and above) and
+5G-LENA NR (MAC and PHY) modules, and it is contained in separate branches.
+Therefore, to be able to use this code one has to use CTTC customized LTE module
+of ns-3, and a specific branch in the nr module.
+
+###  1. Download ns-3 with extensions for V2X:
+
+```
+git clone https://gitlab.com/cttc-lena/ns-3-dev.git
+cd ns-3-dev
+```
+
+### 2. Download the NR module:
+
+```
+cd contrib
+git clone https://gitlab.com/cttc-lena/nr.git
+```
+
+Notice that since these are two independent git repositories, when you run 
+`git status` inside of the ns-3, you will notice that the contrib/nr
+directory will be listed as "Untracked files". This is normal.
+
+### 3. Switch to the latest NR release branch with V2X extensions:
+
+Checkout the latest NR release branch (usually the branch with the highest version 
+number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
+For example, if `5g-lena-v2x-v0.1.y` is the latest release branch you can check it out 
+in the following way:
+
+```
+cd nr
+git checkout 5g-lena-v2x-v0.1.y
+```
+
+### 4. Switch to the recommended ns-3 release branch that includes V2X extensions:
+
+Switch to ns-3 branch with V2X extensions: 
+
+```
+cd ../..
+$ git checkout v2x-lte-dev
+```
+
+### 5. Check out compatible ns-3 V2X tag
+
+To check out the correct tag, consult the following table:
+
+| NR V2X git branch| ns-3 V2X git tag| Build system|
+| ------ | ------ |----------|
+| 5g-lena-v2x-v0.1.y | ns-3-dev-v2x-v0.1 |waf|
+| soon to be released | soon to be released|cmake|
+
+For example, for NR relase branch called 5g-lena-v2x-v0.1.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.1.
+(To see the list of available ns-3 v2x release tags you can run: `git tag -l "*v2x*"`)
+
+To check out the git tag run:
+
+```
+git checkout ns-3-dev-v2x-v0.1
+```
+
+Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK. 
+
+### 6. Test ns-3 + nr installation:
+
+Let's configure the ns-3 + NR project with V2X estensions:
+
+```
+cd ../..
+./waf configure --disable-python --enable-tests --enable-examples
+```
+
+In the output you should see: `SQLite stats support: enabled`. If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`. 
+
+To compile the ns-3 with NR you can run the following command:
+
+```
+./waf build
+```
+
+If the NR module is recognized correctly, you should see "nr" in the list of
+built modules. If that is the case, _Welcome to the NR V2X world !_
+
+## Run examples: 
+
+To run `cttc-nr-v2x-demo-simple.cc` example from the nr/examples folder run: 
+
+```
+./waf --run "cttc-nr-v2x-demo-simple"
+```
+
+To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run: 
+
+```
+./waf --run "nr-v2x-west-to-east-highway"
+```
 
 ## Upgrading 5G-LENA
 
-We assume that your work lives in a separate branch, and that the 'master'
-branch of the NR repository is left untouched as the first time you downloaded
-it. If it is not the case, then please move all your work in a separate branch.
+We assume that your work lives in a separate branch, and that the 'master' and 
+'nr-v2x-dev' and release branches of the NR repository is left untouched as 
+the first time you downloaded it. 
+If it is not the case, then please move all your work in a separate branch.
 
-A vanilla 'master' branch can be updated by simply running:
+A vanilla 'master' and 'nr-v2x-dev' branches can be updated by simply running:
 
 ```
 $ cd ns-3-dev/contrib/nr    # or src/nr if the module lives under src/
 $ git checkout master
 $ git pull
+$ git checkout nr-v2x-dev
+$ git pull
 ```
-
-At each release, we will incorporate into the master branch all the work that
+At each release NR V2X release, we will incorporate into the nr-v2x-dev branch all the work that
 is meant to be released.
 
-## Documentation
+### Building NR V2X documentation
 
-We maintain two sources of documentation: a user manual, and the Doxygen API
-documentation. The user manual describes the models and their assumptions; as
-we developed the module while the standard was not fully available, some parts
-are not modeling precisely the bits and the procedures indicated by the
-standard. However, we tried to abstract them accurately. In the Doxygen API
-documentation, you will find details about design and user usage of any class
-of the module, as well as description and images for the examples and the
-tests.
+To build the NR V2X documentation on your own, you can follow the
+instructions from this section.
 
-To build the user manual, please do:
+- To build the user manual, navigate to the nr folder and then:
 
 ```
-$ cd doc
-$ make latexpdf
+cd doc
+make latexpdf
 ```
 
-And you fill find the PDF user manual in the directory build/latex. Please note
+And you will find the PDF user manual in the directory build/latex. Please note
 that you may have to install some requirements to build the documentation; you
 can find the list of packages for any Ubuntu-based distribution in the file
 `.gitlab-ci.yml`.
 
-To build the doxygen documentation, please do:
+- To build the doxygen documentation, please do from the nr folder:
 
 ```
-$ python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+git submodule sync --recursive
+git submodule update --init --recursive
+python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
 ```
 
-And then you will find the doxygen documentation inside `doc/doc/html/`.
+You will find the doxygen documentation inside `doc/doc/html/`.
 Please note that you may need to initialize the m.css submodule, and
 to install some packages like python3.
-
-## Building NR V2X code
-
-The implementation of NR V2X is divided between ns-3 LTE (RLC and above) and
-5G-LENA NR (MAC and PHY) modules, and it is contained in separate branches.
-Therefore, to be able to use this code one has to use CTTC customized LTE module
-of ns-3, and a specific branch in the nr module. Following are the steps to
-switch to these dedicated branches. Note, before following these steps please
-make sure that you have been granted access to the CTTC NR module.
-
-### Adding V2X branches to your local nr and ns-3-dev repositories
-
-1. Switch to the V2X branch in your local nr repository
-
-```
-$ cd contrib/nr
-```
-Once you are inside the nr module directory, switch to the latest V2X code
-release branch. For example, for version 0.1, you have to execute one of the
-following commands depending on whether you have just cloned the nr repository
-for the first time or you are already working with it for some time.
-
-**If you have just cloned the nr repository for the first time:**
-
-```
-$ git checkout 5g-lena-v2x-v0.1.y
-```
-**If you are already working with the nr module:**
-
-```
-$ git fetch origin 5g-lena-v2x-v0.1.y
-$ git checkout 5g-lena-v2x-v0.1.y
-```
-
-2. Now, lets get back to the ns-3-dev directory to fetch the CTTC customized ns-3
-   LTE module for V2X.
-
-```
-$ cd ../..
-```
-
-3. Add a new remote to the CTTC fork of ns-3-dev
-
-*Note: Make sure to position yourself in ns-3-dev directory*
-
-```
-$ git remote add cttc-ns3-dev-fork https://gitlab.com/cttc-lena/ns-3-dev.git
-```
-
-4. Fetch the V2X branch from the CTTC fork of ns-3-dev
-
-```
-$ git fetch cttc-ns3-dev-fork v2x-lte-dev
-```
-
-5. Switch to the V2X branch in your local ns-3-dev repository
-
-```
-$ git checkout v2x-lte-dev
-```
-
-6. Building V2X code
-
-```
-$ ./waf configure --disable-python --enable-tests --enable-examples
-$ ./waf build
-```
-
-## Features
-
-To see the features, please go to the [official webpage](https://cttc-lena.gitlab.io/5g-lena-website/features/).
 
 ## Papers
 
@@ -257,13 +179,6 @@ An updated list of published papers that are based on the outcome of this
 module is available
 [here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
 
-## Future work
-
-## About
-
-The Mobile Networks group in CTTC is a group of 10 highly skilled researchers, with expertise in the area of mobile and computer networks, ML/AI based network management, SDN/NFV, energy management, performance evaluation. Our work on performance evaluation started with the design and development of the LTE module of ns-3.
-
-We are [on the web](https://cttc-lena.gitlab.io/5g-lena-website/about/).
 
 ## Authors ##
 
@@ -274,6 +189,7 @@ In alphabetical order:
 - Lorenza Giupponi
 - Katerina Koutlia
 - Sandra Lagen
+- Tom Henderson
 - Natale Patriciello
 
 Inspired by [mmWave module by NYU/UniPD] (https://github.com/nyuwireless-unipd/ns3-mmwave)
