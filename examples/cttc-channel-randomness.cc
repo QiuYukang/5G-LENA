@@ -91,19 +91,20 @@ DoBeamforming (Ptr<NetDevice> thisDevice, Ptr<UniformPlanarArray> thisAntenna, P
 
 
   // retrieve the number of antenna elements
-  int totNoArrayElements = thisAntenna->GetNumberOfElements ();
+  unsigned int totNoArrayElements = thisAntenna->GetNumberOfElements ();
+  antennaWeights.resize (totNoArrayElements);
 
   // the total power is divided equally among the antenna elements
   double power = 1 / sqrt (totNoArrayElements);
 
   // compute the antenna weights
-  for (int ind = 0; ind < totNoArrayElements; ind++)
+  for (unsigned int ind = 0; ind < totNoArrayElements; ind++)
     {
       Vector loc = thisAntenna->GetElementLocation (ind);
       double phase = -2 * M_PI * (sin (vAngleRadian) * cos (hAngleRadian) * loc.x
                                   + sin (vAngleRadian) * sin (hAngleRadian) * loc.y
                                   + cos (vAngleRadian) * loc.z);
-      antennaWeights.push_back (exp (std::complex<double> (0, phase)) * power);
+      antennaWeights[ind] = exp (std::complex<double> (0, phase)) * power;
     }
 
   // store the antenna weights
@@ -289,13 +290,13 @@ main (int argc, char *argv[])
   }*/
 
   if (channelMatrix1->m_channel != channelMatrix2->m_channel)
-  {
+    {
       std::cout << "matrices are different" << std::endl;
-  }
+    }
   else
-  {
+    {
       std::cout << "matrices are the same" << std::endl;
-  }
+    }
 
 
   Ptr<const SpectrumModel> sm2 =  NrSpectrumValueHelper::GetSpectrumModel (rbNum, frequency, subcarrierSpacing);
