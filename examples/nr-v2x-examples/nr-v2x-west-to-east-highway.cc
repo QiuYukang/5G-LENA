@@ -52,7 +52,7 @@
  * through the command line.
  *
  * \code{.unparsed}
-$ ./waf --run "nr-v2x-west-to-east-highway --help"
+$ ./ns3 run "nr-v2x-west-to-east-highway --help"
     \endcode
  *
  */

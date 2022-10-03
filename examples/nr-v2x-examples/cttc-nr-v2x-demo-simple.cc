@@ -39,7 +39,7 @@
  * is only one transmitter in the scenario, sensing is by default not enabled.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-nr-v2x-demo-simple --help"
+$ ./ns3 run "cttc-nr-v2x-demo-simple --help"
     \endcode
  *
  */
