@@ -42,13 +42,13 @@ cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 ```
 
-Notice that since these are two independent git repositories, when you run 
+Notice that since these are two independent git repositories, when you run
 `git status` inside of the ns-3, you will notice that the contrib/nr
 directory will be listed as "Untracked files". This is normal.
 
 ### Switch to the latest NR release branch:
 
-Checkout the latest NR release branch (usually the branch with the highest version 
+Checkout the latest NR release branch (usually the branch with the highest version
 number, to list git branches run `git branch -r`). For example, for NR Release v2.2 run:
 
 ```
@@ -76,7 +76,7 @@ Let's configure the ns-3 + NR project:
 
 In the output you should see: `SQLite stats support: enabled`.
 
-If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`. 
+If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
 
 To compile the ns-3 with NR you can run the following command:
 
