@@ -20,9 +20,6 @@ stages:
     - cp -r CMakeLists.txt ns-3-dev/contrib/nr/
     - cd ns-3-dev
     - git checkout v2x-lte-dev
-    - cd contrib/nr
-    - git checkout nr-v2x-dev
-    - cd ../..
     - git log -1
     - export MPI_CI=1
     - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
