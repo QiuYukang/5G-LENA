@@ -30,7 +30,7 @@ using namespace ns3;
  * as well as writing them on a file.
  *
  * \code{.unparsed}
-$ ./waf --run "cttc-nr-3gpp-calibration-user --Help"
+$ ./ns3 run "cttc-nr-3gpp-calibration-user --PrintHelp"
     \endcode
  *
  */
