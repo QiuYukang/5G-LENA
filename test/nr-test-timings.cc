@@ -724,8 +724,6 @@ NrTimingsTest::UeMacRx (SfnSf sfn, [[maybe_unused]] uint16_t nodeId, [[maybe_unu
 void
 NrTimingsTest::DoRun (void)
 {
-  ns3::SeedManager::SetRun (5);
-
   Ptr<Node> ueNode = CreateObject<Node> ();
   Ptr<Node> gNbNode = CreateObject<Node> ();
 
@@ -736,6 +734,8 @@ NrTimingsTest::DoRun (void)
   gNbNode->GetObject<MobilityModel>()->SetPosition (Vector (0.0, 0.0, 10));
   ueNode->GetObject<MobilityModel> ()->SetPosition (Vector (0, 10, 1.5));
 
+  RngSeedManager::SetSeed(1);
+  RngSeedManager::SetRun(1);
 
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
@@ -787,6 +787,10 @@ NrTimingsTest::DoRun (void)
 
   NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gNbNode, allBwps);
   NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (ueNode, allBwps);
+
+  int64_t randomStream = 1;
+  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
+  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
 
   GET_ENB_PHY (0,0)->TraceConnectWithoutContext ("GnbPhyTxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyTx, this));
   GET_ENB_PHY (0,0)->TraceConnectWithoutContext ("GnbPhyRxedCtrlMsgsTrace", MakeCallback (&NrTimingsTest::GnbPhyRx, this));
