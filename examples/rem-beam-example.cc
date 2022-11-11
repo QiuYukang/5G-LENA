@@ -134,7 +134,7 @@ main (int argc, char *argv[])
   mobility.Install (gnbNodes);
   gnbNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, 0, 10));
   mobility.Install (ueNodes);
-  ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (10, 10, 0));
+  ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (10, 10, 1.5));
 
   // Create and configure helpers
   Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
