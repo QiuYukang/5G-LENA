@@ -54,12 +54,12 @@ directory will be listed as "Untracked files". This is normal.
 
 Checkout the latest NR release branch (usually the branch with the highest version 
 number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
-For example, if `5g-lena-v2x-v0.1.y` is the latest release branch you can check it out 
+For example, if `5g-lena-v2x-v0.2.y` is the latest release branch you can check it out 
 in the following way:
 
 ```
 cd nr
-git checkout 5g-lena-v2x-v0.1.y
+git checkout 5g-lena-v2x-v0.2.y
 ```
 
 ### 4. Switch to the recommended ns-3 release branch that includes V2X extensions:
@@ -75,18 +75,19 @@ $ git checkout v2x-lte-dev
 
 To check out the correct tag, consult the following table:
 
-| NR V2X git branch| ns-3 V2X git tag| Build system|
-| ------ | ------ |----------|
-| 5g-lena-v2x-v0.1.y | ns-3-dev-v2x-v0.1 |waf|
-| soon to be released | soon to be released|cmake|
+| NR V2X git branch| ns-3 V2X git tag| Build system| ns-3 version|
+| ------ | ------ | ------ | ------ |
+| 5g-lena-v2x-v0.1.y | ns-3-dev-v2x-v0.1 | waf | ns-3.35 |
+| 5g-lena-v2x-v0.2.y | ns-3-dev-v2x-v0.2 | cmake | ns-3.36 |
+| to be released | to be released | cmake | ns-3.37 |
 
-For example, for NR relase branch called 5g-lena-v2x-v0.1.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.1.
+For example, for NR relase branch called 5g-lena-v2x-v0.2.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.2.
 (To see the list of available ns-3 v2x release tags you can run: `git tag -l "*v2x*"`)
 
 To check out the git tag run:
 
 ```
-git checkout ns-3-dev-v2x-v0.1
+git checkout ns-3-dev-v2x-v0.2
 ```
 
 Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK. 
@@ -97,7 +98,7 @@ Let's configure the ns-3 + NR project with V2X estensions:
 
 ```
 cd ../..
-./waf configure --disable-python --enable-tests --enable-examples
+./ns3 configure --disable-python --enable-tests --enable-examples
 ```
 
 In the output you should see: `SQLite stats support: enabled`. If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`. 
@@ -105,7 +106,7 @@ In the output you should see: `SQLite stats support: enabled`. If that is not th
 To compile the ns-3 with NR you can run the following command:
 
 ```
-./waf build
+./ns3 build
 ```
 
 If the NR module is recognized correctly, you should see "nr" in the list of
@@ -116,13 +117,13 @@ built modules. If that is the case, _Welcome to the NR V2X world !_
 To run `cttc-nr-v2x-demo-simple.cc` example from the nr/examples folder run: 
 
 ```
-./waf --run "cttc-nr-v2x-demo-simple"
+./ns3 run "cttc-nr-v2x-demo-simple"
 ```
 
 To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run: 
 
 ```
-./waf --run "nr-v2x-west-to-east-highway"
+./ns3 run "nr-v2x-west-to-east-highway"
 ```
 
 ## Upgrading 5G-LENA
