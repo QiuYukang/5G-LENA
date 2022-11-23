@@ -18,68 +18,65 @@
  */
 
 #include "beamforming-helper-base.h"
-#include <ns3/log.h>
-#include <ns3/nr-gnb-net-device.h>
-#include <ns3/nr-ue-net-device.h>
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/nr-ue-phy.h>
+
 #include <ns3/beam-manager.h>
-#include <ns3/vector.h>
+#include <ns3/log.h>
 #include <ns3/node.h>
+#include <ns3/nr-gnb-net-device.h>
+#include <ns3/nr-gnb-phy.h>
 #include <ns3/nr-spectrum-phy.h>
+#include <ns3/nr-ue-net-device.h>
+#include <ns3/nr-ue-phy.h>
+#include <ns3/vector.h>
 
-namespace ns3{
-
-NS_LOG_COMPONENT_DEFINE ("BeamformingHelperBase");
-NS_OBJECT_ENSURE_REGISTERED (BeamformingHelperBase);
-
-
-BeamformingHelperBase::BeamformingHelperBase ()
+namespace ns3
 {
-  // TODO Auto-generated constructor stub
-  NS_LOG_FUNCTION (this);
+
+NS_LOG_COMPONENT_DEFINE("BeamformingHelperBase");
+NS_OBJECT_ENSURE_REGISTERED(BeamformingHelperBase);
+
+BeamformingHelperBase::BeamformingHelperBase()
+{
+    // TODO Auto-generated constructor stub
+    NS_LOG_FUNCTION(this);
 }
 
-BeamformingHelperBase::~BeamformingHelperBase ()
+BeamformingHelperBase::~BeamformingHelperBase()
 {
-  // TODO Auto-generated destructor stub
-  NS_LOG_FUNCTION (this);
+    // TODO Auto-generated destructor stub
+    NS_LOG_FUNCTION(this);
 }
 
 TypeId
-BeamformingHelperBase::GetTypeId (void)
+BeamformingHelperBase::GetTypeId(void)
 {
-  static TypeId tid =
-      TypeId ("ns3::BeamformingHelperBase")
-      .SetParent<Object> ()
-      ;
-  return tid;
-}
-
-
-void
-BeamformingHelperBase::RunTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                const Ptr<NrUeNetDevice>& ueDev,
-                                const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
-                                const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_INFO (" Run beamforming task for gNB:" << gNbDev->GetNode() -> GetId() <<
-                 " and UE:"<< ueDev->GetNode()->GetId () );
-  BeamformingVectorPair bfPair = GetBeamformingVectors (gnbSpectrumPhy, ueSpectrumPhy);
-
-  NS_ASSERT (bfPair.first.first.size () && bfPair.second.first.size ());
-  gnbSpectrumPhy->GetBeamManager ()->SaveBeamformingVector (bfPair.first, ueDev);
-  ueSpectrumPhy->GetBeamManager ()->SaveBeamformingVector (bfPair.second, gNbDev);
-  ueSpectrumPhy->GetBeamManager ()->ChangeBeamformingVector (gNbDev);
+    static TypeId tid = TypeId("ns3::BeamformingHelperBase").SetParent<Object>();
+    return tid;
 }
 
 void
-BeamformingHelperBase::SetBeamformingAlgorithmAttribute (const std::string &n, const AttributeValue &v)
+BeamformingHelperBase::RunTask(const Ptr<NrGnbNetDevice>& gNbDev,
+                               const Ptr<NrUeNetDevice>& ueDev,
+                               const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                               const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
 {
-  NS_LOG_FUNCTION (this);
-  m_algorithmFactory.Set (n, v);
+    NS_LOG_FUNCTION(this);
+    NS_LOG_INFO(" Run beamforming task for gNB:" << gNbDev->GetNode()->GetId()
+                                                 << " and UE:" << ueDev->GetNode()->GetId());
+    BeamformingVectorPair bfPair = GetBeamformingVectors(gnbSpectrumPhy, ueSpectrumPhy);
+
+    NS_ASSERT(bfPair.first.first.size() && bfPair.second.first.size());
+    gnbSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.first, ueDev);
+    ueSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.second, gNbDev);
+    ueSpectrumPhy->GetBeamManager()->ChangeBeamformingVector(gNbDev);
 }
 
-
+void
+BeamformingHelperBase::SetBeamformingAlgorithmAttribute(const std::string& n,
+                                                        const AttributeValue& v)
+{
+    NS_LOG_FUNCTION(this);
+    m_algorithmFactory.Set(n, v);
 }
+
+} // namespace ns3

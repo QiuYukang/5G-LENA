@@ -19,10 +19,12 @@
 #ifndef NR_EESM_T2_H
 #define NR_EESM_T2_H
 
-#include <vector>
 #include "nr-eesm-error-model.h"
 
-namespace ns3 {
+#include <vector>
+
+namespace ns3
+{
 
 /**
  * \ingroup error-models
@@ -43,17 +45,18 @@ namespace ns3 {
  */
 struct NrEesmT2
 {
-  /**
-   * \brief NrEesmT2 constructor. Initialize the pointers
-   */
-  NrEesmT2 ();
+    /**
+     * \brief NrEesmT2 constructor. Initialize the pointers
+     */
+    NrEesmT2();
 
-  const std::vector<double> *m_betaTable {nullptr};  //!< Beta table
-  const std::vector<double> *m_mcsEcrTable {nullptr}; //!< MCS-ECR table
-  const NrEesmErrorModel::SimulatedBlerFromSINR *m_simulatedBlerFromSINR {nullptr}; //!< BLER from SINR table
-  const std::vector<uint8_t> *m_mcsMTable {nullptr}; //!< MCS-M table
-  const std::vector<double> *m_spectralEfficiencyForMcs {nullptr}; //!< Spectral-efficiency for MCS
-  const std::vector<double> *m_spectralEfficiencyForCqi {nullptr}; //!< Spectral-efficiency for CQI
+    const std::vector<double>* m_betaTable{nullptr};   //!< Beta table
+    const std::vector<double>* m_mcsEcrTable{nullptr}; //!< MCS-ECR table
+    const NrEesmErrorModel::SimulatedBlerFromSINR* m_simulatedBlerFromSINR{
+        nullptr};                                                   //!< BLER from SINR table
+    const std::vector<uint8_t>* m_mcsMTable{nullptr};               //!< MCS-M table
+    const std::vector<double>* m_spectralEfficiencyForMcs{nullptr}; //!< Spectral-efficiency for MCS
+    const std::vector<double>* m_spectralEfficiencyForCqi{nullptr}; //!< Spectral-efficiency for CQI
 };
 
 } // namespace ns3

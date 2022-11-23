@@ -18,153 +18,155 @@
  */
 
 #include "grid-scenario-helper.h"
-#include <ns3/position-allocator.h>
-#include <ns3/mobility-helper.h>
-#include <ns3/double.h>
-#include <ns3/log.h>
+
 #include "ns3/core-module.h"
 #include "ns3/mobility-model.h"
+#include <ns3/double.h>
+#include <ns3/log.h>
+#include <ns3/mobility-helper.h>
+#include <ns3/position-allocator.h>
 
-namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("GridScenarioHelper");
-
-GridScenarioHelper::GridScenarioHelper ()
+namespace ns3
 {
-  m_x = CreateObject<UniformRandomVariable> ();
-  m_y = CreateObject<UniformRandomVariable> ();
-  m_initialPos.x = 0.0;
-  m_initialPos.y = 0.0;
-  m_initialPos.z = 0.0;
+
+NS_LOG_COMPONENT_DEFINE("GridScenarioHelper");
+
+GridScenarioHelper::GridScenarioHelper()
+{
+    m_x = CreateObject<UniformRandomVariable>();
+    m_y = CreateObject<UniformRandomVariable>();
+    m_initialPos.x = 0.0;
+    m_initialPos.y = 0.0;
+    m_initialPos.z = 0.0;
 }
 
-GridScenarioHelper::~GridScenarioHelper ()
+GridScenarioHelper::~GridScenarioHelper()
 {
-
-}
-
-void
-GridScenarioHelper::SetHorizontalBsDistance (double d)
-{
-  m_horizontalBsDistance = d;
-}
-
-void
-GridScenarioHelper::SetVerticalBsDistance (double d)
-{
-  m_verticalBsDistance = d;
 }
 
 void
-GridScenarioHelper::SetRows (uint32_t r)
+GridScenarioHelper::SetHorizontalBsDistance(double d)
 {
-  m_rows = r;
+    m_horizontalBsDistance = d;
 }
 
 void
-GridScenarioHelper::SetColumns (uint32_t c)
+GridScenarioHelper::SetVerticalBsDistance(double d)
 {
-  m_columns = c;
+    m_verticalBsDistance = d;
 }
 
 void
-GridScenarioHelper::SetStartingPosition (const Vector &initialPos)
+GridScenarioHelper::SetRows(uint32_t r)
 {
-  m_initialPos = initialPos;
-}
-
-void GridScenarioHelper::SetScenarioLength(double m)
-{
-  m_length = m;
-}
-
-void GridScenarioHelper::SetScenarioHeight(double m)
-{
-  m_height = m;
+    m_rows = r;
 }
 
 void
-GridScenarioHelper::CreateScenario ()
+GridScenarioHelper::SetColumns(uint32_t c)
 {
-  NS_ASSERT (m_rows > 0);
-  NS_ASSERT (m_columns > 0);
-  NS_ASSERT (m_bsHeight >= 0.0);
-  NS_ASSERT (m_utHeight >= 0.0);
-  NS_ASSERT (m_numBs > 0);
-  NS_ASSERT (m_numUt > 0);
+    m_columns = c;
+}
 
-  m_bs.Create (m_numBs);
-  m_ut.Create (m_numUt);
+void
+GridScenarioHelper::SetStartingPosition(const Vector& initialPos)
+{
+    m_initialPos = initialPos;
+}
 
-  MobilityHelper mobility;
-  Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator> ();
-  Ptr<ListPositionAllocator> utPos = CreateObject<ListPositionAllocator> ();
+void
+GridScenarioHelper::SetScenarioLength(double m)
+{
+    m_length = m;
+}
 
-  // BS position
-  if (m_bs.GetN () > 0)
+void
+GridScenarioHelper::SetScenarioHeight(double m)
+{
+    m_height = m;
+}
+
+void
+GridScenarioHelper::CreateScenario()
+{
+    NS_ASSERT(m_rows > 0);
+    NS_ASSERT(m_columns > 0);
+    NS_ASSERT(m_bsHeight >= 0.0);
+    NS_ASSERT(m_utHeight >= 0.0);
+    NS_ASSERT(m_numBs > 0);
+    NS_ASSERT(m_numUt > 0);
+
+    m_bs.Create(m_numBs);
+    m_ut.Create(m_numUt);
+
+    MobilityHelper mobility;
+    Ptr<ListPositionAllocator> bsPos = CreateObject<ListPositionAllocator>();
+    Ptr<ListPositionAllocator> utPos = CreateObject<ListPositionAllocator>();
+
+    // BS position
+    if (m_bs.GetN() > 0)
     {
-      uint32_t bsN = m_bs.GetN ();
-      for (uint32_t i = 0; i < m_rows; ++i)
+        uint32_t bsN = m_bs.GetN();
+        for (uint32_t i = 0; i < m_rows; ++i)
         {
-          for (uint32_t j = 0; j < m_columns; ++j)
+            for (uint32_t j = 0; j < m_columns; ++j)
             {
-              if (bsN == 0)
+                if (bsN == 0)
                 {
-                  break;
+                    break;
                 }
 
-              Vector pos (m_initialPos);
-              pos.z = m_bsHeight;
+                Vector pos(m_initialPos);
+                pos.z = m_bsHeight;
 
-              pos.x = m_initialPos.x + (j * m_horizontalBsDistance);
-              pos.y = m_initialPos.y + (i * m_verticalBsDistance);
+                pos.x = m_initialPos.x + (j * m_horizontalBsDistance);
+                pos.y = m_initialPos.y + (i * m_verticalBsDistance);
 
-              NS_LOG_DEBUG ("GNB Position: " << pos);
-              bsPos->Add (pos);
+                NS_LOG_DEBUG("GNB Position: " << pos);
+                bsPos->Add(pos);
 
-              bsN--;
+                bsN--;
             }
         }
     }
 
-
-  m_x->SetAttribute ("Min", DoubleValue (0.0));
-  m_x->SetAttribute ("Max", DoubleValue (m_length));
-  m_y->SetAttribute ("Min", DoubleValue (0.0));
-  m_y->SetAttribute ("Max", DoubleValue (m_height));
-  // UT position
-  if (m_ut.GetN () > 0)
+    m_x->SetAttribute("Min", DoubleValue(0.0));
+    m_x->SetAttribute("Max", DoubleValue(m_length));
+    m_y->SetAttribute("Min", DoubleValue(0.0));
+    m_y->SetAttribute("Max", DoubleValue(m_height));
+    // UT position
+    if (m_ut.GetN() > 0)
     {
-      uint32_t utN = m_ut.GetN ();
+        uint32_t utN = m_ut.GetN();
 
-      for (uint32_t i = 0; i < utN; ++i)
+        for (uint32_t i = 0; i < utN; ++i)
         {
-          Vector pos = bsPos->GetNext ();
+            Vector pos = bsPos->GetNext();
 
-          pos.x += m_x->GetValue ();
-          pos.y += m_y->GetValue ();
-          pos.z = m_utHeight;
+            pos.x += m_x->GetValue();
+            pos.y += m_y->GetValue();
+            pos.z = m_utHeight;
 
-          NS_LOG_DEBUG ("UE Position: " << pos);
+            NS_LOG_DEBUG("UE Position: " << pos);
 
-          utPos->Add (pos);
+            utPos->Add(pos);
         }
     }
 
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.SetPositionAllocator (bsPos);
-  mobility.Install (m_bs);
+    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobility.SetPositionAllocator(bsPos);
+    mobility.Install(m_bs);
 
-  mobility.SetPositionAllocator (utPos);
-  mobility.Install (m_ut);
+    mobility.SetPositionAllocator(utPos);
+    mobility.Install(m_ut);
 }
 
 int64_t
-GridScenarioHelper::AssignStreams (int64_t stream)
+GridScenarioHelper::AssignStreams(int64_t stream)
 {
-  m_x->SetStream (stream);
-  m_y->SetStream (stream + 1);
-  return 2;
+    m_x->SetStream(stream);
+    m_y->SetStream(stream + 1);
+    return 2;
 }
 
 } // namespace ns3

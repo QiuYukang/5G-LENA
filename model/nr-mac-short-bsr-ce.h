@@ -20,10 +20,12 @@
 #ifndef NR_MAC_SHORT_BSR_CE_H
 #define NR_MAC_SHORT_BSR_CE_H
 
-#include "ns3/packet.h"
 #include "nr-mac-header-fs-ul.h"
 
-namespace ns3 {
+#include "ns3/packet.h"
+
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -69,75 +71,76 @@ namespace ns3 {
  */
 class NrMacShortBsrCe : public Header
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    virtual TypeId GetInstanceTypeId(void) const;
 
-  /**
-   * \brief NrMacShortBsrCe constructor
-   */
-  NrMacShortBsrCe ();
+    /**
+     * \brief NrMacShortBsrCe constructor
+     */
+    NrMacShortBsrCe();
 
-  /**
-   * \brief Serialize on a buffer
-   * \param start start position
-   */
-  void Serialize (Buffer::Iterator start) const;
-  /**
-   * \brief Deserialize from a buffer
-   * \param start start position
-   * \return the number of bytes read from the buffer
-   */
-  uint32_t Deserialize (Buffer::Iterator start);
-  /**
-   * \brief Get the serialized size
-   * \return 1
-   */
-  uint32_t GetSerializedSize () const;
-  /**
-   * \brief Print the struct on a ostream
-   * \param os ostream
-   */
-  void Print (std::ostream &os) const;
+    /**
+     * \brief Serialize on a buffer
+     * \param start start position
+     */
+    void Serialize(Buffer::Iterator start) const;
+    /**
+     * \brief Deserialize from a buffer
+     * \param start start position
+     * \return the number of bytes read from the buffer
+     */
+    uint32_t Deserialize(Buffer::Iterator start);
+    /**
+     * \brief Get the serialized size
+     * \return 1
+     */
+    uint32_t GetSerializedSize() const;
+    /**
+     * \brief Print the struct on a ostream
+     * \param os ostream
+     */
+    void Print(std::ostream& os) const;
 
-  /**
-   * \brief IsEqual
-   * \param o another instance
-   * \return true if this and o are equal, false otherwise
-   */
-  bool operator == (const NrMacShortBsrCe &o) const;
+    /**
+     * \brief IsEqual
+     * \param o another instance
+     * \return true if this and o are equal, false otherwise
+     */
+    bool operator==(const NrMacShortBsrCe& o) const;
 
-  /**
-   * \brief Convert a bytes value into the 3GPP-standard level to write in the BSR
-   * \param bufferSize The buffer size
-   * \return a number between 0 and 31 that represents the buffer level as specified in the standard
-   */
-  static uint8_t FromBytesToLevel (uint64_t bufferSize);
+    /**
+     * \brief Convert a bytes value into the 3GPP-standard level to write in the BSR
+     * \param bufferSize The buffer size
+     * \return a number between 0 and 31 that represents the buffer level as specified in the
+     * standard
+     */
+    static uint8_t FromBytesToLevel(uint64_t bufferSize);
 
-  /**
-   * \brief Convert a buffer level into a buffer size
-   * \param bufferLevel The buffer level
-   * \return the buffer size
-   */
-  static uint64_t FromLevelToBytes (uint8_t bufferLevel);
+    /**
+     * \brief Convert a buffer level into a buffer size
+     * \param bufferLevel The buffer level
+     * \return the buffer size
+     */
+    static uint64_t FromLevelToBytes(uint8_t bufferLevel);
 
-  uint8_t m_bufferSizeLevel_0 {0}; //!< Buffer size level for LCG 0 (maximum value: 31)
-  uint8_t m_bufferSizeLevel_1 {0}; //!< Buffer size level for LCG 1 (maximum value: 31)
-  uint8_t m_bufferSizeLevel_2 {0}; //!< Buffer size level for LCG 2 (maximum value: 31)
-  uint8_t m_bufferSizeLevel_3 {0}; //!< Buffer size level for LCG 3 (maximum value: 31)
+    uint8_t m_bufferSizeLevel_0{0}; //!< Buffer size level for LCG 0 (maximum value: 31)
+    uint8_t m_bufferSizeLevel_1{0}; //!< Buffer size level for LCG 1 (maximum value: 31)
+    uint8_t m_bufferSizeLevel_2{0}; //!< Buffer size level for LCG 2 (maximum value: 31)
+    uint8_t m_bufferSizeLevel_3{0}; //!< Buffer size level for LCG 3 (maximum value: 31)
 
-private:
-  NrMacHeaderFsUl m_header; //!< Fixed-size header to prepend to the BSR
+  private:
+    NrMacHeaderFsUl m_header; //!< Fixed-size header to prepend to the BSR
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* NR_MAC_SHORT_BSR_CE_H */

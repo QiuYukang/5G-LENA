@@ -54,28 +54,30 @@
  *
  */
 
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/config-store.h"
-#include "ns3/nr-helper.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
-#include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
-#include "ns3/internet-module.h"
-#include "ns3/eps-bearer-tag.h"
-#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
-#include "ns3/nr-module.h"
-#include "ns3/log.h"
 #include "ns3/antenna-module.h"
-
+#include "ns3/config-store.h"
+#include "ns3/core-module.h"
+#include "ns3/eps-bearer-tag.h"
+#include "ns3/internet-module.h"
+#include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/log.h"
+#include "ns3/mobility-module.h"
+#include "ns3/network-module.h"
+#include "ns3/nr-helper.h"
+#include "ns3/nr-module.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("Cttc3gppChannelSimpleFdm");
+NS_LOG_COMPONENT_DEFINE("Cttc3gppChannelSimpleFdm");
 
-static int g_rlcTraceCallbackCalled = false; //!< Global variable used to check if the callback function for RLC is called and thus to determine if the example is run correctly or not
-static int g_pdcpTraceCallbackCalled = false; //!< Global variable used to check if the callback function for PDCP is called and thus to determine if the example is run correctly or not
+static int g_rlcTraceCallbackCalled =
+    false; //!< Global variable used to check if the callback function for RLC is called and thus to
+           //!< determine if the example is run correctly or not
+static int g_pdcpTraceCallbackCalled =
+    false; //!< Global variable used to check if the callback function for PDCP is called and thus
+           //!< to determine if the example is run correctly or not
 
 /**
  * Function creates a single packet and directly calls the function send
@@ -84,21 +86,22 @@ static int g_pdcpTraceCallbackCalled = false; //!< Global variable used to check
  * @param addr Destination address for a packet.
  * @param packetSize The packet size.
  */
-static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
+static void
+SendPacket(Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
 {
-  Ptr<Packet> pkt = Create<Packet> (packetSize);
-  //Adding empty IPV4 header after adding the IPV6 support for NR module.
-  //NrNetDevice::Receive need to peek the header to know the IP protocol.
-  //Since, there are no apps install in this test, this packet will be
-  //dropped in Ipv4L3Protocol::Receive method upon not finding the route.
-  Ipv4Header ipHeader;
-  pkt->AddHeader (ipHeader);
+    Ptr<Packet> pkt = Create<Packet>(packetSize);
+    // Adding empty IPV4 header after adding the IPV6 support for NR module.
+    // NrNetDevice::Receive need to peek the header to know the IP protocol.
+    // Since, there are no apps install in this test, this packet will be
+    // dropped in Ipv4L3Protocol::Receive method upon not finding the route.
+    Ipv4Header ipHeader;
+    pkt->AddHeader(ipHeader);
 
-  // the dedicated bearer that we activate in the simulation
-  // will have bearerId = 2
-  EpsBearerTag tag (1, 2);
-  pkt->AddPacketTag (tag);
-  device->Send (pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
+    // the dedicated bearer that we activate in the simulation
+    // will have bearerId = 2
+    EpsBearerTag tag(1, 2);
+    pkt->AddPacketTag(tag);
+    device->Send(pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
 
 /**
@@ -111,10 +114,10 @@ static void SendPacket (Ptr<NetDevice> device, Address& addr, uint32_t packetSiz
  * @param pdcpDelay PDCP delay
  */
 void
-RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
+RxPdcpPDU(std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t pdcpDelay)
 {
-  std::cout << "\n Packet PDCP delay:" << pdcpDelay << "\n";
-  g_pdcpTraceCallbackCalled = true;
+    std::cout << "\n Packet PDCP delay:" << pdcpDelay << "\n";
+    g_pdcpTraceCallbackCalled = true;
 }
 
 /**
@@ -128,212 +131,206 @@ RxPdcpPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64
  * @param rlcDelay RLC PDU delay
  */
 void
-RxRlcPDU (std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t rlcDelay)
+RxRlcPDU(std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t rlcDelay)
 {
-  std::cout << "\n\n Data received by UE RLC at:" << Simulator::Now () << std::endl;
-  std::cout << "\n rnti:" << rnti << std::endl;
-  std::cout << "\n lcid:" << (unsigned)lcid << std::endl;
-  std::cout << "\n bytes :" << bytes << std::endl;
-  std::cout << "\n delay :" << rlcDelay << std::endl;
-  g_rlcTraceCallbackCalled = true;
+    std::cout << "\n\n Data received by UE RLC at:" << Simulator::Now() << std::endl;
+    std::cout << "\n rnti:" << rnti << std::endl;
+    std::cout << "\n lcid:" << (unsigned)lcid << std::endl;
+    std::cout << "\n bytes :" << bytes << std::endl;
+    std::cout << "\n delay :" << rlcDelay << std::endl;
+    g_rlcTraceCallbackCalled = true;
 }
 
 /**
  * Function that connects PDCP and RLC traces to the corresponding trace sources.
  */
 void
-ConnectPdcpRlcTraces ()
+ConnectPdcpRlcTraces()
 {
-  // after recent changes in the EPC UE node ID has changed to 3
-  // dedicated bearer that we have activated has bearer id 2
-  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LtePdcp/RxPDU",
-                   MakeCallback (&RxPdcpPDU));
-  // after recent changes in the EPC UE node ID has changed to 3
-  // dedicated bearer that we have activated has bearer id 2
-  Config::Connect ("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LteRlc/RxPDU",
-                   MakeCallback (&RxRlcPDU));
-
+    // after recent changes in the EPC UE node ID has changed to 3
+    // dedicated bearer that we have activated has bearer id 2
+    Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LtePdcp/RxPDU",
+                    MakeCallback(&RxPdcpPDU));
+    // after recent changes in the EPC UE node ID has changed to 3
+    // dedicated bearer that we have activated has bearer id 2
+    Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/*/LteRlc/RxPDU",
+                    MakeCallback(&RxRlcPDU));
 }
 
 int
-main (int argc, char *argv[])
+main(int argc, char* argv[])
 {
-  uint16_t gNbNum = 1;
-  uint16_t ueNumPergNb = 1;
-  uint16_t numerologyBwp1 = 4;
-  uint16_t numerologyBwp2 = 2;
-  double centralFrequencyBand = 28.1e9;
-  double bandwidthBand = 200e6;
-  double txPowerPerBwp = 4;
-  uint32_t packetSize = 1000;
-  bool isUll = true;           // Whether the flow is a low latency type of traffic.
+    uint16_t gNbNum = 1;
+    uint16_t ueNumPergNb = 1;
+    uint16_t numerologyBwp1 = 4;
+    uint16_t numerologyBwp2 = 2;
+    double centralFrequencyBand = 28.1e9;
+    double bandwidthBand = 200e6;
+    double txPowerPerBwp = 4;
+    uint32_t packetSize = 1000;
+    bool isUll = true; // Whether the flow is a low latency type of traffic.
 
-  Time sendPacketTime = Seconds (0.4);
+    Time sendPacketTime = Seconds(0.4);
 
+    CommandLine cmd(__FILE__);
+    cmd.AddValue("gNbNum", "The number of gNbs in multiple-ue topology", gNbNum);
+    cmd.AddValue("ueNumPergNb", "The number of UE per gNb in multiple-ue topology", ueNumPergNb);
+    cmd.AddValue("numerologyBwp1", "The numerology to be used in bandwidth part 1", numerologyBwp1);
+    cmd.AddValue("numerologyBwp2", "The numerology to be used in bandwidth part 2", numerologyBwp2);
+    cmd.AddValue("frequency", "The system frequency", centralFrequencyBand);
+    cmd.AddValue("bandwidthBand", "The system bandwidth", bandwidthBand);
+    cmd.AddValue("packetSize", "packet size in bytes", packetSize);
+    cmd.AddValue("isUll", "Enable Uplink", isUll);
+    cmd.Parse(argc, argv);
 
-  CommandLine cmd (__FILE__);
-  cmd.AddValue ("gNbNum",
-                "The number of gNbs in multiple-ue topology",
-                gNbNum);
-  cmd.AddValue ("ueNumPergNb",
-                "The number of UE per gNb in multiple-ue topology",
-                ueNumPergNb);
-  cmd.AddValue ("numerologyBwp1",
-                "The numerology to be used in bandwidth part 1",
-                numerologyBwp1);
-  cmd.AddValue ("numerologyBwp2",
-                "The numerology to be used in bandwidth part 2",
-                numerologyBwp2);
-  cmd.AddValue ("frequency",
-                "The system frequency",
-                centralFrequencyBand);
-  cmd.AddValue ("bandwidthBand",
-                "The system bandwidth",
-                bandwidthBand);
-  cmd.AddValue ("packetSize",
-                "packet size in bytes",
-                packetSize);
-  cmd.AddValue ("isUll",
-                "Enable Uplink",
-                isUll);
-  cmd.Parse (argc, argv);
+    int64_t randomStream = 1;
+    // Create the scenario
+    GridScenarioHelper gridScenario;
+    gridScenario.SetRows(1);
+    gridScenario.SetColumns(gNbNum);
+    gridScenario.SetHorizontalBsDistance(5.0);
+    gridScenario.SetBsHeight(10.0);
+    gridScenario.SetUtHeight(1.5);
+    // must be set before BS number
+    gridScenario.SetSectorization(GridScenarioHelper::SINGLE);
+    gridScenario.SetBsNumber(gNbNum);
+    gridScenario.SetUtNumber(ueNumPergNb * gNbNum);
+    gridScenario.SetScenarioHeight(3); // Create a 3x3 scenario where the UE will
+    gridScenario.SetScenarioLength(3); // be distributed.
+    randomStream += gridScenario.AssignStreams(randomStream);
+    gridScenario.CreateScenario();
 
-  int64_t randomStream = 1;
-  //Create the scenario
-  GridScenarioHelper gridScenario;
-  gridScenario.SetRows (1);
-  gridScenario.SetColumns (gNbNum);
-  gridScenario.SetHorizontalBsDistance (5.0);
-  gridScenario.SetBsHeight (10.0);
-  gridScenario.SetUtHeight (1.5);
-  // must be set before BS number
-  gridScenario.SetSectorization (GridScenarioHelper::SINGLE);
-  gridScenario.SetBsNumber (gNbNum);
-  gridScenario.SetUtNumber (ueNumPergNb * gNbNum);
-  gridScenario.SetScenarioHeight (3); // Create a 3x3 scenario where the UE will
-  gridScenario.SetScenarioLength (3); // be distributed.
-  randomStream += gridScenario.AssignStreams (randomStream);
-  gridScenario.CreateScenario ();
+    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
 
-  Config::SetDefault ("ns3::EpsBearer::Release", UintegerValue (15));
+    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+    Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
 
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
-  Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-  Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
+    nrHelper->SetBeamformingHelper(idealBeamformingHelper);
+    nrHelper->SetEpcHelper(epcHelper);
 
-  nrHelper->SetBeamformingHelper (idealBeamformingHelper);
-  nrHelper->SetEpcHelper (epcHelper);
+    // Create one operational band containing one CC with 2 bandwidth parts
+    BandwidthPartInfoPtrVector allBwps;
+    CcBwpCreator ccBwpCreator;
+    const uint8_t numCcPerBand = 1; // one CC per Band
 
-  // Create one operational band containing one CC with 2 bandwidth parts
-  BandwidthPartInfoPtrVector allBwps;
-  CcBwpCreator ccBwpCreator;
-  const uint8_t numCcPerBand = 1; // one CC per Band
+    // Create the configuration for the CcBwpHelper
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequencyBand,
+                                                   bandwidthBand,
+                                                   numCcPerBand,
+                                                   BandwidthPartInfo::UMi_StreetCanyon_LoS);
+    bandConf.m_numBwp = 2; // two BWPs per CC
 
-  // Create the configuration for the CcBwpHelper
-  CcBwpCreator::SimpleOperationBandConf bandConf (centralFrequencyBand, bandwidthBand,
-                                                  numCcPerBand, BandwidthPartInfo::UMi_StreetCanyon_LoS);
-  bandConf.m_numBwp = 2; // two BWPs per CC
+    // By using the configuration created, it is time to make the operation band
+    OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
 
-  // By using the configuration created, it is time to make the operation band
-  OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc (bandConf);
+    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
 
-  nrHelper->SetPathlossAttribute ("ShadowingEnabled", BooleanValue (false));
+    nrHelper->InitializeOperationBand(&band);
+    allBwps = CcBwpCreator::GetAllBwps({band});
 
-  nrHelper->InitializeOperationBand (&band);
-  allBwps = CcBwpCreator::GetAllBwps ({band});
+    // Beamforming method
+    idealBeamformingHelper->SetAttribute("BeamformingMethod",
+                                         TypeIdValue(DirectPathBeamforming::GetTypeId()));
 
-  // Beamforming method
-  idealBeamformingHelper->SetAttribute ("BeamformingMethod", TypeIdValue (DirectPathBeamforming::GetTypeId ()));
+    // Antennas for all the UEs
+    nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(2));
+    nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(4));
+    nrHelper->SetUeAntennaAttribute("AntennaElement",
+                                    PointerValue(CreateObject<IsotropicAntennaModel>()));
 
-  // Antennas for all the UEs
-  nrHelper->SetUeAntennaAttribute ("NumRows", UintegerValue (2));
-  nrHelper->SetUeAntennaAttribute ("NumColumns", UintegerValue (4));
-  nrHelper->SetUeAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    // Antennas for all the gNbs
+    nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(4));
+    nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(8));
+    nrHelper->SetGnbAntennaAttribute("AntennaElement",
+                                     PointerValue(CreateObject<IsotropicAntennaModel>()));
 
-  // Antennas for all the gNbs
-  nrHelper->SetGnbAntennaAttribute ("NumRows", UintegerValue (4));
-  nrHelper->SetGnbAntennaAttribute ("NumColumns", UintegerValue (8));
-  nrHelper->SetGnbAntennaAttribute ("AntennaElement", PointerValue (CreateObject<IsotropicAntennaModel> ()));
+    uint32_t bwpIdForLowLat = 0;
+    uint32_t bwpIdForVoice = 1;
 
-  uint32_t bwpIdForLowLat = 0;
-  uint32_t bwpIdForVoice = 1;
+    // gNb routing between Bearer and bandwidh part
+    nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
+                                                 UintegerValue(bwpIdForLowLat));
+    nrHelper->SetGnbBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
 
-  // gNb routing between Bearer and bandwidh part
-  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  nrHelper->SetGnbBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+    // Ue routing between Bearer and bandwidth part
+    nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
+    nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
 
-  // Ue routing between Bearer and bandwidth part
-  nrHelper->SetUeBwpManagerAlgorithmAttribute ("NGBR_LOW_LAT_EMBB", UintegerValue (bwpIdForLowLat));
-  nrHelper->SetUeBwpManagerAlgorithmAttribute ("GBR_CONV_VOICE", UintegerValue (bwpIdForVoice));
+    // Install and get the pointers to the NetDevices
+    NetDeviceContainer enbNetDev =
+        nrHelper->InstallGnbDevice(gridScenario.GetBaseStations(), allBwps);
+    NetDeviceContainer ueNetDev =
+        nrHelper->InstallUeDevice(gridScenario.GetUserTerminals(), allBwps);
 
-  //Install and get the pointers to the NetDevices
-  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (), allBwps);
-  NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice (gridScenario.GetUserTerminals (), allBwps);
+    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-  randomStream += nrHelper->AssignStreams (enbNetDev, randomStream);
-  randomStream += nrHelper->AssignStreams (ueNetDev, randomStream);
+    // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
+    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+        ->SetAttribute("Numerology", UintegerValue(numerologyBwp1));
+    nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        ->SetAttribute("Numerology", UintegerValue(numerologyBwp2));
+    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetTxPower(txPowerPerBwp);
+    nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)->SetTxPower(txPowerPerBwp);
 
-  // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)/(1)
-  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (numerologyBwp1));
-  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetAttribute ("Numerology", UintegerValue (numerologyBwp2));
-  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetTxPower (txPowerPerBwp);
-  nrHelper->GetGnbPhy (enbNetDev.Get (0), 1)->SetTxPower (txPowerPerBwp);
-
-  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
     {
-      DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
+        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
 
-  for (auto it = ueNetDev.Begin (); it != ueNetDev.End (); ++it)
+    for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
     {
-      DynamicCast<NrUeNetDevice> (*it)->UpdateConfig ();
+        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
     }
 
-  InternetStackHelper internet;
-  internet.Install (gridScenario.GetUserTerminals ());
-  Ipv4InterfaceContainer ueIpIface;
-  ueIpIface = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueNetDev));
+    InternetStackHelper internet;
+    internet.Install(gridScenario.GetUserTerminals());
+    Ipv4InterfaceContainer ueIpIface;
+    ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
-  Simulator::Schedule (sendPacketTime, &SendPacket, enbNetDev.Get (0), ueNetDev.Get (0)->GetAddress (), packetSize);
+    Simulator::Schedule(sendPacketTime,
+                        &SendPacket,
+                        enbNetDev.Get(0),
+                        ueNetDev.Get(0)->GetAddress(),
+                        packetSize);
 
-  // attach UEs to the closest eNB
-  nrHelper->AttachToClosestEnb (ueNetDev, enbNetDev);
+    // attach UEs to the closest eNB
+    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
 
-  Ptr<EpcTft> tft = Create<EpcTft> ();
-  EpcTft::PacketFilter dlpf;
-  dlpf.localPortStart = 1234;
-  dlpf.localPortEnd = 1235;
-  tft->Add (dlpf);
-  enum EpsBearer::Qci q;
+    Ptr<EpcTft> tft = Create<EpcTft>();
+    EpcTft::PacketFilter dlpf;
+    dlpf.localPortStart = 1234;
+    dlpf.localPortEnd = 1235;
+    tft->Add(dlpf);
+    enum EpsBearer::Qci q;
 
-  if (isUll)
+    if (isUll)
     {
-      q = EpsBearer::NGBR_LOW_LAT_EMBB;
+        q = EpsBearer::NGBR_LOW_LAT_EMBB;
     }
-  else
+    else
     {
-      q = EpsBearer::GBR_CONV_VOICE;
+        q = EpsBearer::GBR_CONV_VOICE;
     }
 
-  EpsBearer bearer (q);
-  nrHelper->ActivateDedicatedEpsBearer (ueNetDev, bearer, tft);
+    EpsBearer bearer(q);
+    nrHelper->ActivateDedicatedEpsBearer(ueNetDev, bearer, tft);
 
-  Simulator::Schedule (Seconds (0.2), &ConnectPdcpRlcTraces);
+    Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
 
-  nrHelper->EnableTraces ();
+    nrHelper->EnableTraces();
 
-  Simulator::Stop (Seconds (1));
-  Simulator::Run ();
-  Simulator::Destroy ();
+    Simulator::Stop(Seconds(1));
+    Simulator::Run();
+    Simulator::Destroy();
 
-  if (g_rlcTraceCallbackCalled && g_pdcpTraceCallbackCalled)
+    if (g_rlcTraceCallbackCalled && g_pdcpTraceCallbackCalled)
     {
-      return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
     }
-  else
+    else
     {
-      return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 }
-
-

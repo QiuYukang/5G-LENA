@@ -19,9 +19,11 @@
 #pragma once
 
 #include "nr-mac-scheduler-tdma.h"
+
 #include <ns3/traced-value.h>
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup scheduler
@@ -61,57 +63,56 @@ namespace ns3 {
  */
 class NrMacSchedulerOfdma : public NrMacSchedulerTdma
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return The TypeId of the class
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief GetTypeId
+     * \return The TypeId of the class
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief NrMacSchedulerOfdma constructor
-   */
-  NrMacSchedulerOfdma ();
+    /**
+     * \brief NrMacSchedulerOfdma constructor
+     */
+    NrMacSchedulerOfdma();
 
-  /**
-   * \brief Deconstructor
-   */
-  ~NrMacSchedulerOfdma ()
-  {
-  }
+    /**
+     * \brief Deconstructor
+     */
+    ~NrMacSchedulerOfdma()
+    {
+    }
 
-protected:
-  virtual BeamSymbolMap
-  AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl) const override;
-  virtual BeamSymbolMap
-  AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl) const override;
+  protected:
+    virtual BeamSymbolMap AssignDLRBG(uint32_t symAvail,
+                                      const ActiveUeMap& activeDl) const override;
+    virtual BeamSymbolMap AssignULRBG(uint32_t symAvail,
+                                      const ActiveUeMap& activeUl) const override;
 
-  virtual std::shared_ptr<DciInfoElementTdma>
-  CreateDlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-               uint32_t maxSym) const override;
-  virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-               uint32_t maxSym) const override;
+    virtual std::shared_ptr<DciInfoElementTdma> CreateDlDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        uint32_t maxSym) const override;
+    virtual std::shared_ptr<DciInfoElementTdma> CreateUlDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        uint32_t maxSym) const override;
 
-  /**
-   * \brief Advance the starting point by the number of symbols specified,
-   * resetting the RB count to 0
-   * \param spoint Starting point
-   * \param symOfBeam Number of symbols for the beam
-   */
-  virtual void
-  ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override;
+    /**
+     * \brief Advance the starting point by the number of symbols specified,
+     * resetting the RB count to 0
+     * \param spoint Starting point
+     * \param symOfBeam Number of symbols for the beam
+     */
+    virtual void ChangeDlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
-  virtual void
-  ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override;
+    virtual void ChangeUlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
-  NrMacSchedulerOfdma::BeamSymbolMap
-  GetSymPerBeam (uint32_t symAvail, const ActiveUeMap &activeDl) const;
+    NrMacSchedulerOfdma::BeamSymbolMap GetSymPerBeam(uint32_t symAvail,
+                                                     const ActiveUeMap& activeDl) const;
 
-  virtual uint8_t GetTpc () const override;
+    virtual uint8_t GetTpc() const override;
 
-private:
-
-  TracedValue<uint32_t> m_tracedValueSymPerBeam;
+  private:
+    TracedValue<uint32_t> m_tracedValueSymPerBeam;
 };
 } // namespace ns3

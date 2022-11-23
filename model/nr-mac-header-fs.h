@@ -22,7 +22,8 @@
 
 #include "ns3/packet.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -61,70 +62,70 @@ namespace ns3 {
  */
 class NrMacHeaderFs : public Header
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    virtual TypeId GetInstanceTypeId(void) const;
 
-  /**
-   * \brief Constructor
-   */
-  NrMacHeaderFs ();
+    /**
+     * \brief Constructor
+     */
+    NrMacHeaderFs();
 
-  /**
-   * \brief Serialize on a buffer
-   * \param start start position
-   */
-  void Serialize (Buffer::Iterator start) const;
-  /**
-   * \brief Deserialize from a buffer
-   * \param start start position
-   * \return the number of bytes read from the buffer
-   */
-  uint32_t Deserialize (Buffer::Iterator start);
-  /**
-   * \brief Get the serialized size
-   * \return 1
-   */
-  uint32_t GetSerializedSize () const;
-  /**
-   * \brief Print the struct on a ostream
-   * \param os ostream
-   */
-  void Print (std::ostream &os) const;
+    /**
+     * \brief Serialize on a buffer
+     * \param start start position
+     */
+    void Serialize(Buffer::Iterator start) const;
+    /**
+     * \brief Deserialize from a buffer
+     * \param start start position
+     * \return the number of bytes read from the buffer
+     */
+    uint32_t Deserialize(Buffer::Iterator start);
+    /**
+     * \brief Get the serialized size
+     * \return 1
+     */
+    uint32_t GetSerializedSize() const;
+    /**
+     * \brief Print the struct on a ostream
+     * \param os ostream
+     */
+    void Print(std::ostream& os) const;
 
-  static const uint8_t PADDING = 63; //!< Padding
+    static const uint8_t PADDING = 63; //!< Padding
 
-  /**
-   * \brief Set the LC ID
-   * \param lcId LC ID
-   *
-   * It will assert if the value is not inside the vector of allowed ones.
-   */
-  virtual void SetLcId (uint8_t lcId);
+    /**
+     * \brief Set the LC ID
+     * \param lcId LC ID
+     *
+     * It will assert if the value is not inside the vector of allowed ones.
+     */
+    virtual void SetLcId(uint8_t lcId);
 
-  /**
-   * \brief Retrieve the LC ID of this header
-   * \return the LC ID
-   */
-  uint8_t GetLcId () const;
+    /**
+     * \brief Retrieve the LC ID of this header
+     * \return the LC ID
+     */
+    uint8_t GetLcId() const;
 
-  /**
-   * \brief IsEqual
-   * \param o another instance
-   * \return true if this and o are equal, false otherwise
-   */
-  bool operator == (const NrMacHeaderFs &o) const;
+    /**
+     * \brief IsEqual
+     * \param o another instance
+     * \return true if this and o are equal, false otherwise
+     */
+    bool operator==(const NrMacHeaderFs& o) const;
 
-protected:
-  uint8_t   m_lcid {0};    //!< LC ID
+  protected:
+    uint8_t m_lcid{0}; //!< LC ID
 };
 
 } // namespace ns3

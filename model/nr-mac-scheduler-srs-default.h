@@ -19,12 +19,13 @@
 #ifndef NR_MAC_SCHEDULER_SRS_DEFAULT_H
 #define NR_MAC_SCHEDULER_SRS_DEFAULT_H
 
+#include "nr-mac-scheduler-srs.h"
+
 #include <ns3/object.h>
 #include <ns3/random-variable-stream.h>
 
-#include "nr-mac-scheduler-srs.h"
-
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \brief Default algorithm for assigning offset and periodicity
@@ -37,63 +38,65 @@ namespace ns3 {
  */
 class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
 {
-public:
-  /**
-   * \brief NrMacSchedulerSrsDefault
-   */
-  NrMacSchedulerSrsDefault ();
-  /**
-   * \brief ~NrMacSchedulerSrsDefault
-   */
-  virtual ~NrMacSchedulerSrsDefault ();
+  public:
+    /**
+     * \brief NrMacSchedulerSrsDefault
+     */
+    NrMacSchedulerSrsDefault();
+    /**
+     * \brief ~NrMacSchedulerSrsDefault
+     */
+    virtual ~NrMacSchedulerSrsDefault();
 
-  /**
-   * \brief GetTypeId
-   * \return the object type id
-   */
-  static TypeId GetTypeId ();
+    /**
+     * \brief GetTypeId
+     * \return the object type id
+     */
+    static TypeId GetTypeId();
 
-  // inherited from NrMacSchedulerSrs
-  virtual SrsPeriodicityAndOffset AddUe (void) override;
-  void RemoveUe (uint32_t offset) override;
-  virtual bool IncreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap) override;
-  virtual bool DecreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap) override;
+    // inherited from NrMacSchedulerSrs
+    virtual SrsPeriodicityAndOffset AddUe(void) override;
+    void RemoveUe(uint32_t offset) override;
+    virtual bool IncreasePeriodicity(
+        std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) override;
+    virtual bool DecreasePeriodicity(
+        std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) override;
 
-  /**
-   * \brief Set the Periodicity for all the UEs
-   * \param start the periodicity
-   */
-  void SetStartingPeriodicity (uint32_t start);
+    /**
+     * \brief Set the Periodicity for all the UEs
+     * \param start the periodicity
+     */
+    void SetStartingPeriodicity(uint32_t start);
 
-  /**
-   * \brief Get the periodicity
-   * \return the periodicity
-   */
-  uint32_t GetStartingPeriodicity () const;
+    /**
+     * \brief Get the periodicity
+     * \return the periodicity
+     */
+    uint32_t GetStartingPeriodicity() const;
 
+    /**
+     * Assign a fixed random variable stream number to the random variables
+     * used by this model.  Return the number of streams (possibly zero) that
+     * have been assigned.
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    int64_t AssignStreams(int64_t stream);
 
-  /**
-   * Assign a fixed random variable stream number to the random variables
-   * used by this model.  Return the number of streams (possibly zero) that
-   * have been assigned.
-   *
-   * \param stream first stream index to use
-   * \return the number of stream indices assigned by this model
-   */
-  int64_t AssignStreams (int64_t stream);
+  private:
+    /**
+     * \brief Reassign offset/periodicity to all the UEs
+     * \param ueMap the UE map of the scheduler
+     */
+    void ReassignSrsValue(
+        std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap);
+    static std::vector<uint32_t> StandardPeriodicity; //!< Standard periodicity of SRS
 
-private:
-  /**
-   * \brief Reassign offset/periodicity to all the UEs
-   * \param ueMap the UE map of the scheduler
-   */
-  void ReassignSrsValue (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap);
-  static std::vector<uint32_t> StandardPeriodicity; //!< Standard periodicity of SRS
-
-private:
-  uint32_t m_periodicity {0};  //!< Configured periodicity
-  std::vector<uint32_t> m_availableOffsetValues; //!< Available offset values
-  Ptr<UniformRandomVariable> m_random; //!< Random variable
+  private:
+    uint32_t m_periodicity{0};                     //!< Configured periodicity
+    std::vector<uint32_t> m_availableOffsetValues; //!< Available offset values
+    Ptr<UniformRandomVariable> m_random;           //!< Random variable
 };
 
 } // namespace ns3

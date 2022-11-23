@@ -22,7 +22,8 @@
 
 #include "nr-mac-header-fs.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -44,55 +45,54 @@ namespace ns3 {
  */
 class NrMacHeaderFsUl : public NrMacHeaderFs
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const override;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    virtual TypeId GetInstanceTypeId(void) const override;
 
-  /**
-   * \brief NrMacHeaderFsUl constructor
-   */
-  NrMacHeaderFsUl ();
+    /**
+     * \brief NrMacHeaderFsUl constructor
+     */
+    NrMacHeaderFsUl();
 
-  /**
-   * \brief ~NrMacHeaderFsUl
-   */
-  virtual ~NrMacHeaderFsUl ();
+    /**
+     * \brief ~NrMacHeaderFsUl
+     */
+    virtual ~NrMacHeaderFsUl();
 
+    // CCCH_LARGE  = 0, //!< CCCH of size 64 bit   (is it fixed or variable?)
+    // CCCH_SMALL = 52, //!< CCCH of size 48  (is it fixed or variable?)
+    static const uint8_t BIT_RATE_QUERY = 53;                //!< Recommended bit rate query
+    static const uint8_t CONFIGURED_GRANT_CONFIRMATION = 55; //!< Configured Grant Confirmation
+    static const uint8_t SINGLE_ENTRY_PHR = 57;              //!< Single entry PHR
+    static const uint8_t C_RNTI = 58;                        //!< C-RNTI
+    static const uint8_t SHORT_TRUNCATED_BSR = 59;           //!< Short Truncated BSR
+    static const uint8_t SHORT_BSR = 61;                     //!< Short BSR
 
-  // CCCH_LARGE  = 0, //!< CCCH of size 64 bit   (is it fixed or variable?)
-  // CCCH_SMALL = 52, //!< CCCH of size 48  (is it fixed or variable?)
-  static const uint8_t BIT_RATE_QUERY = 53;                  //!< Recommended bit rate query
-  static const uint8_t CONFIGURED_GRANT_CONFIRMATION = 55;   //!< Configured Grant Confirmation
-  static const uint8_t SINGLE_ENTRY_PHR = 57;                //!< Single entry PHR
-  static const uint8_t C_RNTI = 58;                          //!< C-RNTI
-  static const uint8_t SHORT_TRUNCATED_BSR = 59;             //!< Short Truncated BSR
-  static const uint8_t SHORT_BSR = 61;                       //!< Short BSR
+    /**
+     * \brief Set the LC ID
+     * \param lcId LC ID
+     *
+     * It will assert if the value is not inside the vector of allowed one.
+     * To not make any error, please use one of the pre-defined const values in
+     * this class.
+     */
+    virtual void SetLcId(uint8_t lcId) override;
 
-  /**
-   * \brief Set the LC ID
-   * \param lcId LC ID
-   *
-   * It will assert if the value is not inside the vector of allowed one.
-   * To not make any error, please use one of the pre-defined const values in
-   * this class.
-   */
-  virtual void SetLcId (uint8_t lcId) override;
-
-  /**
-   * \brief Check if it really a fixed-size header
-   * \return true if the lcId value stored internally matches with a fixed-size header
-   */
-  bool IsFixedSizeHeader () const;
+    /**
+     * \brief Check if it really a fixed-size header
+     * \return true if the lcId value stored internally matches with a fixed-size header
+     */
+    bool IsFixedSizeHeader() const;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* NR_MAC_HEADER_FS_UL_H */

@@ -148,7 +148,7 @@ clang-11-optimized:
     CLANG: 11
     MODE: optimized
     EXTRA: libc++-$CLANG-dev libc++abi-$CLANG-dev libomp-$CLANG-dev python3-clang-$CLANG
-    
+
 # CLANG 12
 clang-12-debug:
   extends: .build-clang

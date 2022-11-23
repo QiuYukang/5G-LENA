@@ -17,125 +17,124 @@
  *
  */
 
-#include <ns3/uinteger.h>
-#include <ns3/boolean.h>
-#include <ns3/simulator.h>
-#include <ns3/log.h>
-#include <ns3/abort.h>
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/pointer.h>
-#include <ns3/nr-gnb-mac.h>
-#include <ns3/ff-mac-scheduler.h>
 #include "bandwidth-part-gnb.h"
 
-namespace ns3 {
+#include <ns3/abort.h>
+#include <ns3/boolean.h>
+#include <ns3/ff-mac-scheduler.h>
+#include <ns3/log.h>
+#include <ns3/nr-gnb-mac.h>
+#include <ns3/nr-gnb-phy.h>
+#include <ns3/pointer.h>
+#include <ns3/simulator.h>
+#include <ns3/uinteger.h>
 
-NS_LOG_COMPONENT_DEFINE ("BandwidthPartGnb");
-NS_OBJECT_ENSURE_REGISTERED (BandwidthPartGnb);
-
-TypeId BandwidthPartGnb::GetTypeId (void)
+namespace ns3
 {
-  static TypeId
-    tid =
-    TypeId ("ns3::BandwidthPartGnb")
-    .SetParent<ComponentCarrierBaseStation> ()
-    .AddConstructor<BandwidthPartGnb> ()
-    .AddAttribute ("NrGnbPhy",
-                   "The PHY associated to this EnbNetDevice",
-                   PointerValue (),
-                   MakePointerAccessor (&BandwidthPartGnb::m_phy),
-                   MakePointerChecker <NrGnbPhy> ())
-    .AddAttribute ("NrGnbMac",
-                   "The MAC associated to this EnbNetDevice",
-                   PointerValue (),
-                   MakePointerAccessor (&BandwidthPartGnb::m_mac),
-                   MakePointerChecker <NrGnbMac> ())
-    .AddAttribute ("FfMacScheduler",
-                   "The scheduler associated to this EnbNetDevice",
-                   PointerValue (),
-                   MakePointerAccessor (&BandwidthPartGnb::m_scheduler),
-                   MakePointerChecker <FfMacScheduler> ())
-  ;
-  return tid;
+
+NS_LOG_COMPONENT_DEFINE("BandwidthPartGnb");
+NS_OBJECT_ENSURE_REGISTERED(BandwidthPartGnb);
+
+TypeId
+BandwidthPartGnb::GetTypeId(void)
+{
+    static TypeId tid = TypeId("ns3::BandwidthPartGnb")
+                            .SetParent<ComponentCarrierBaseStation>()
+                            .AddConstructor<BandwidthPartGnb>()
+                            .AddAttribute("NrGnbPhy",
+                                          "The PHY associated to this EnbNetDevice",
+                                          PointerValue(),
+                                          MakePointerAccessor(&BandwidthPartGnb::m_phy),
+                                          MakePointerChecker<NrGnbPhy>())
+                            .AddAttribute("NrGnbMac",
+                                          "The MAC associated to this EnbNetDevice",
+                                          PointerValue(),
+                                          MakePointerAccessor(&BandwidthPartGnb::m_mac),
+                                          MakePointerChecker<NrGnbMac>())
+                            .AddAttribute("FfMacScheduler",
+                                          "The scheduler associated to this EnbNetDevice",
+                                          PointerValue(),
+                                          MakePointerAccessor(&BandwidthPartGnb::m_scheduler),
+                                          MakePointerChecker<FfMacScheduler>());
+    return tid;
 }
-BandwidthPartGnb::BandwidthPartGnb ()
-  : ComponentCarrierBaseStation ()
+
+BandwidthPartGnb::BandwidthPartGnb()
+    : ComponentCarrierBaseStation()
 {
-  NS_LOG_FUNCTION (this);
-  m_phy = nullptr;
+    NS_LOG_FUNCTION(this);
+    m_phy = nullptr;
 }
 
-BandwidthPartGnb::~BandwidthPartGnb (void)
+BandwidthPartGnb::~BandwidthPartGnb(void)
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
 
 void
-BandwidthPartGnb::DoDispose ()
+BandwidthPartGnb::DoDispose()
 {
-  NS_LOG_FUNCTION (this);
-  m_phy->Dispose ();
-  m_phy = nullptr;
-  m_mac->Dispose ();
-  m_mac = nullptr;
-  m_scheduler = nullptr;
-  Object::DoDispose ();
+    NS_LOG_FUNCTION(this);
+    m_phy->Dispose();
+    m_phy = nullptr;
+    m_mac->Dispose();
+    m_mac = nullptr;
+    m_scheduler = nullptr;
+    Object::DoDispose();
 }
 
 Ptr<NrGnbPhy>
-BandwidthPartGnb::GetPhy ()
+BandwidthPartGnb::GetPhy()
 {
-  NS_LOG_FUNCTION (this);
-  return m_phy;
+    NS_LOG_FUNCTION(this);
+    return m_phy;
 }
 
 void
-BandwidthPartGnb::SetPhy (Ptr<NrGnbPhy> s)
+BandwidthPartGnb::SetPhy(Ptr<NrGnbPhy> s)
 {
-  NS_LOG_FUNCTION (this);
-  NS_ABORT_IF (m_phy != nullptr);
-  m_phy = s;
+    NS_LOG_FUNCTION(this);
+    NS_ABORT_IF(m_phy != nullptr);
+    m_phy = s;
 }
 
 Ptr<NrGnbMac>
-BandwidthPartGnb::GetMac ()
+BandwidthPartGnb::GetMac()
 {
-  NS_LOG_FUNCTION (this);
-  return m_mac;
-}
-void
-BandwidthPartGnb::SetMac (Ptr<NrGnbMac> s)
-{
-  NS_LOG_FUNCTION (this);
-  m_mac = s;
+    NS_LOG_FUNCTION(this);
+    return m_mac;
 }
 
+void
+BandwidthPartGnb::SetMac(Ptr<NrGnbMac> s)
+{
+    NS_LOG_FUNCTION(this);
+    m_mac = s;
+}
 
 Ptr<NrMacScheduler>
-BandwidthPartGnb::GetScheduler ()
+BandwidthPartGnb::GetScheduler()
 {
-  NS_LOG_FUNCTION (this);
-  return m_scheduler;
+    NS_LOG_FUNCTION(this);
+    return m_scheduler;
 }
 
 void
-BandwidthPartGnb::SetNrMacScheduler (Ptr<NrMacScheduler> s)
+BandwidthPartGnb::SetNrMacScheduler(Ptr<NrMacScheduler> s)
 {
-  NS_LOG_FUNCTION (this);
-  m_scheduler = s;
+    NS_LOG_FUNCTION(this);
+    m_scheduler = s;
 }
 
 void
-BandwidthPartGnb::SetAsPrimary (bool primaryCarrier)
+BandwidthPartGnb::SetAsPrimary(bool primaryCarrier)
 {
-  NS_LOG_FUNCTION (this);
-  NS_ASSERT (m_phy != nullptr);
-  if (primaryCarrier)
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(m_phy != nullptr);
+    if (primaryCarrier)
     {
-      m_phy->SetPrimary ();
+        m_phy->SetPrimary();
     }
 }
 
 } // namespace ns3
-
-

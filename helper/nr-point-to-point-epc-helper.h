@@ -1,27 +1,28 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 #ifndef NR_POINT_TO_POINT_EPC_HELPER_H
 #define NR_POINT_TO_POINT_EPC_HELPER_H
 
 #include <ns3/point-to-point-epc-helper.h>
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup helper
@@ -84,9 +85,9 @@ namespace ns3 {
   Ipv4StaticRoutingHelper ipv4RoutingHelper;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
-  Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv4> ());
-  remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address ("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1);
-\endverbatim
+  Ptr<Ipv4StaticRouting> remoteHostStaticRouting = ipv4RoutingHelper.GetStaticRouting
+(remoteHost->GetObject<Ipv4> ()); remoteHostStaticRouting->AddNetworkRouteTo (Ipv4Address
+("7.0.0.0"), Ipv4Mask ("255.0.0.0"), 1); \endverbatim
  *
  * \section p2p_epc_ipv4 Assigning IPV4 addresses
  *
@@ -105,8 +106,9 @@ namespace ns3 {
   // Set the default gateway for the UEs
   for (uint32_t j = 0; j < ueContainer.GetN(); ++j)
     {
-      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueContainer.Get(j)->GetObject<Ipv4> ());
-      ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting
+(ueContainer.Get(j)->GetObject<Ipv4> ()); ueStaticRouting->SetDefaultRoute
+(epcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 \endverbatim
  *
@@ -116,32 +118,34 @@ namespace ns3 {
  */
 class NrPointToPointEpcHelper : public PointToPointEpcHelper
 {
-public:
-  /**
-   * \brief Constructor
-   */
-  NrPointToPointEpcHelper ();
+  public:
+    /**
+     * \brief Constructor
+     */
+    NrPointToPointEpcHelper();
 
-  /**
-   * \brief Destructor
-   */
-  virtual ~NrPointToPointEpcHelper () override;
+    /**
+     * \brief Destructor
+     */
+    virtual ~NrPointToPointEpcHelper() override;
 
-  // inherited from Object
-  /**
-   *  \brief Register this type.
-   *  \return The object TypeId.
-   */
-  static TypeId GetTypeId (void);
+    // inherited from Object
+    /**
+     *  \brief Register this type.
+     *  \return The object TypeId.
+     */
+    static TypeId GetTypeId(void);
 
-protected:
-  virtual void DoAddX2Interface (const Ptr<EpcX2> &gnb1X2, const Ptr<NetDevice> &gnb1NetDev,
-                                 const Ipv4Address &gnb1X2Address,
-                                 const Ptr<EpcX2> &gnb2X2, const Ptr<NetDevice> &gnb2NetDev,
-                                 const Ipv4Address &gnb2X2Address) const override;
-  virtual void DoActivateEpsBearerForUe (const Ptr<NetDevice> &ueDevice,
-                                         const Ptr<EpcTft> &tft,
-                                         const EpsBearer &bearer) const override;
+  protected:
+    virtual void DoAddX2Interface(const Ptr<EpcX2>& gnb1X2,
+                                  const Ptr<NetDevice>& gnb1NetDev,
+                                  const Ipv4Address& gnb1X2Address,
+                                  const Ptr<EpcX2>& gnb2X2,
+                                  const Ptr<NetDevice>& gnb2NetDev,
+                                  const Ipv4Address& gnb2X2Address) const override;
+    virtual void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
+                                          const Ptr<EpcTft>& tft,
+                                          const EpsBearer& bearer) const override;
 };
 
 } // namespace ns3

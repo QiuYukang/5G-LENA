@@ -17,14 +17,15 @@
  *
  */
 
-
 #ifndef NR_SPECTRUM_SIGNAL_PARAMETERS_H
 #define NR_SPECTRUM_SIGNAL_PARAMETERS_H
 
-#include <list>
 #include <ns3/spectrum-signal-parameters.h>
 
-namespace ns3 {
+#include <list>
+
+namespace ns3
+{
 
 class PacketBurst;
 class NrControlMessage;
@@ -39,25 +40,23 @@ class NrControlMessage;
  */
 struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 {
+    // inherited from SpectrumSignalParameters
+    virtual Ptr<SpectrumSignalParameters> Copy() const override;
 
-  // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy () const override;
+    /**
+     * \brief NrSpectrumSignalParametersDataFrame
+     */
+    NrSpectrumSignalParametersDataFrame();
 
-  /**
-   * \brief NrSpectrumSignalParametersDataFrame
-   */
-  NrSpectrumSignalParametersDataFrame ();
+    /**
+     * \brief NrSpectrumSignalParametersDataFrame copy constructor
+     * \param p the object from which we have to copy things
+     */
+    NrSpectrumSignalParametersDataFrame(const NrSpectrumSignalParametersDataFrame& p);
 
-
-  /**
-   * \brief NrSpectrumSignalParametersDataFrame copy constructor
-   * \param p the object from which we have to copy things
-   */
-  NrSpectrumSignalParametersDataFrame (const NrSpectrumSignalParametersDataFrame& p);
-
-  Ptr<PacketBurst> packetBurst;                       //!< Packet burst
-  std::list<Ptr<NrControlMessage> > ctrlMsgList;  //!< List of contrl messages
-  uint16_t cellId;                                    //!< CellId
+    Ptr<PacketBurst> packetBurst;                 //!< Packet burst
+    std::list<Ptr<NrControlMessage>> ctrlMsgList; //!< List of contrl messages
+    uint16_t cellId;                              //!< CellId
 };
 
 /**
@@ -71,25 +70,23 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
  */
 struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
 {
+    // inherited from SpectrumSignalParameters
+    virtual Ptr<SpectrumSignalParameters> Copy() const override;
 
-  // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy () const override;
+    /**
+     * \brief NrSpectrumSignalParametersDlCtrlFrame
+     */
+    NrSpectrumSignalParametersDlCtrlFrame();
 
-  /**
-   * \brief NrSpectrumSignalParametersDlCtrlFrame
-   */
-  NrSpectrumSignalParametersDlCtrlFrame ();
+    /**
+     * \brief NrSpectrumSignalParametersDlCtrlFrame copy constructor
+     * \param p the object from which we have to copy from
+     */
+    NrSpectrumSignalParametersDlCtrlFrame(const NrSpectrumSignalParametersDlCtrlFrame& p);
 
-  /**
-   * \brief NrSpectrumSignalParametersDlCtrlFrame copy constructor
-   * \param p the object from which we have to copy from
-   */
-  NrSpectrumSignalParametersDlCtrlFrame (const NrSpectrumSignalParametersDlCtrlFrame& p);
-
-
-  std::list<Ptr<NrControlMessage> > ctrlMsgList;  //!< CTRL message list
-  bool pss;                                           //!< PSS (?)
-  uint16_t cellId;                                    //!< cell id
+    std::list<Ptr<NrControlMessage>> ctrlMsgList; //!< CTRL message list
+    bool pss;                                     //!< PSS (?)
+    uint16_t cellId;                              //!< cell id
 };
 
 /**
@@ -103,29 +100,24 @@ struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
  */
 struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
 {
+    // inherited from SpectrumSignalParameters
+    virtual Ptr<SpectrumSignalParameters> Copy() const override;
 
-  // inherited from SpectrumSignalParameters
-  virtual Ptr<SpectrumSignalParameters> Copy () const override;
+    /**
+     * \brief NrSpectrumSignalParametersUlCtrlFrame
+     */
+    NrSpectrumSignalParametersUlCtrlFrame();
 
-  /**
-   * \brief NrSpectrumSignalParametersUlCtrlFrame
-   */
-  NrSpectrumSignalParametersUlCtrlFrame ();
+    /**
+     * \brief NrSpectrumSignalParametersUlCtrlFrame copy constructor
+     * \param p the object from which we have to copy from
+     */
+    NrSpectrumSignalParametersUlCtrlFrame(const NrSpectrumSignalParametersUlCtrlFrame& p);
 
-
-  /**
-   * \brief NrSpectrumSignalParametersUlCtrlFrame copy constructor
-   * \param p the object from which we have to copy from
-   */
-  NrSpectrumSignalParametersUlCtrlFrame (const NrSpectrumSignalParametersUlCtrlFrame& p);
-
-
-  std::list<Ptr<NrControlMessage> > ctrlMsgList;  //!< CTRL message list
-  uint16_t cellId;                                    //!< cell id
+    std::list<Ptr<NrControlMessage>> ctrlMsgList; //!< CTRL message list
+    uint16_t cellId;                              //!< cell id
 };
 
-
-}  // namespace ns3
-
+} // namespace ns3
 
 #endif /* NR_SPECTRUM_SIGNAL_PARAMETERS_H */

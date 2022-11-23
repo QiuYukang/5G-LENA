@@ -20,14 +20,15 @@
 #ifndef COMPONENT_CARRIER_NR_UE_H
 #define COMPONENT_CARRIER_NR_UE_H
 
+#include "ns3/nr-phy.h"
+#include <ns3/component-carrier.h>
+#include <ns3/nr-ue-phy.h>
+#include <ns3/nstime.h>
 #include <ns3/object.h>
 #include <ns3/packet.h>
-#include <ns3/nstime.h>
-#include "ns3/nr-phy.h"
-#include <ns3/nr-ue-phy.h>
-#include <ns3/component-carrier.h>
 
-namespace ns3 {
+namespace ns3
+{
 
 class NrUeMac;
 
@@ -38,58 +39,64 @@ class NrUeMac;
  */
 class BandwidthPartUe : public ComponentCarrier
 {
-public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief Get the type ID.
+     * \return the object TypeId
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief BandwidthPartUe constructor
-   */
-  BandwidthPartUe ();
+    /**
+     * \brief BandwidthPartUe constructor
+     */
+    BandwidthPartUe();
 
-  /**
-   * \brief ~BandwidthPartUe
-   */
-  virtual ~BandwidthPartUe (void) override;
+    /**
+     * \brief ~BandwidthPartUe
+     */
+    virtual ~BandwidthPartUe(void) override;
 
-  /**
-   * \return a pointer to the physical layer.
-   */
-  Ptr<NrUePhy> GetPhy (void) const;
+    /**
+     * \return a pointer to the physical layer.
+     */
+    Ptr<NrUePhy> GetPhy(void) const;
 
-  /**
-   * \return a pointer to the MAC layer.
-   */
-  Ptr<NrUeMac> GetMac (void) const;
+    /**
+     * \return a pointer to the MAC layer.
+     */
+    Ptr<NrUeMac> GetMac(void) const;
 
-  /**
-   * Set NrUePhy
-   * \param s a pointer to the NrUePhy
-   */
-  void SetPhy (Ptr<NrUePhy> s);
+    /**
+     * Set NrUePhy
+     * \param s a pointer to the NrUePhy
+     */
+    void SetPhy(Ptr<NrUePhy> s);
 
-  /**
-   * Set the NrGnbMac
-   * \param s a pointer to the NrGnbMac
-   */
-  void SetMac (Ptr<NrUeMac> s);
+    /**
+     * Set the NrGnbMac
+     * \param s a pointer to the NrGnbMac
+     */
+    void SetMac(Ptr<NrUeMac> s);
 
-  virtual void SetDlBandwidth (uint16_t bw) override { m_dlBandwidth = bw; }
-  virtual void SetUlBandwidth (uint16_t bw) override { m_ulBandwidth = bw; }
+    virtual void SetDlBandwidth(uint16_t bw) override
+    {
+        m_dlBandwidth = bw;
+    }
 
-protected:
-  /**
-   * \brief DoDispose method inherited from Object
-   */
-  void virtual DoDispose () override;
+    virtual void SetUlBandwidth(uint16_t bw) override
+    {
+        m_ulBandwidth = bw;
+    }
 
-private:
-  Ptr<NrUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier
-  Ptr<NrUeMac> m_mac; ///< the MAC instance of this eNodeB component carrier
+  protected:
+    /**
+     * \brief DoDispose method inherited from Object
+     */
+    void virtual DoDispose() override;
 
+  private:
+    Ptr<NrUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier
+    Ptr<NrUeMac> m_mac; ///< the MAC instance of this eNodeB component carrier
 };
 
 } // namespace ns3

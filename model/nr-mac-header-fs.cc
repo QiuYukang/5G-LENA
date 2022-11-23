@@ -18,86 +18,85 @@
  */
 
 #include "nr-mac-header-fs.h"
+
 #include <ns3/log.h>
 
-namespace ns3 {
+namespace ns3
+{
 
-NS_OBJECT_ENSURE_REGISTERED (NrMacHeaderFs);
-NS_LOG_COMPONENT_DEFINE ("NrMacHeaderFs");
+NS_OBJECT_ENSURE_REGISTERED(NrMacHeaderFs);
+NS_LOG_COMPONENT_DEFINE("NrMacHeaderFs");
 
 TypeId
-NrMacHeaderFs::GetTypeId ()
+NrMacHeaderFs::GetTypeId()
 {
-  static TypeId tid = TypeId ("ns3::NrMacHeaderFs")
-    .SetParent<Header> ()
-    .AddConstructor <NrMacHeaderFs> ()
-  ;
-  return tid;
+    static TypeId tid =
+        TypeId("ns3::NrMacHeaderFs").SetParent<Header>().AddConstructor<NrMacHeaderFs>();
+    return tid;
 }
 
 TypeId
-NrMacHeaderFs::GetInstanceTypeId () const
+NrMacHeaderFs::GetInstanceTypeId() const
 {
-  return GetTypeId ();
+    return GetTypeId();
 }
 
-NrMacHeaderFs::NrMacHeaderFs ()
+NrMacHeaderFs::NrMacHeaderFs()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
 
 void
-NrMacHeaderFs::Serialize (Buffer::Iterator start) const
+NrMacHeaderFs::Serialize(Buffer::Iterator start) const
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  // 0x3F: 0 0 1 1 1 1 1 1
-  uint8_t firstByte = m_lcid & 0x3F;  // R, R bit set to 0, the rest equal to lcId
-  start.WriteU8 (firstByte);
+    // 0x3F: 0 0 1 1 1 1 1 1
+    uint8_t firstByte = m_lcid & 0x3F; // R, R bit set to 0, the rest equal to lcId
+    start.WriteU8(firstByte);
 }
 
 uint32_t
-NrMacHeaderFs::Deserialize (Buffer::Iterator start)
+NrMacHeaderFs::Deserialize(Buffer::Iterator start)
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  m_lcid = start.ReadU8 ();
+    m_lcid = start.ReadU8();
 
-  return 1;
+    return 1;
 }
 
 uint32_t
-NrMacHeaderFs::GetSerializedSize () const
+NrMacHeaderFs::GetSerializedSize() const
 {
-  NS_LOG_FUNCTION (this);
-  return 1;
+    NS_LOG_FUNCTION(this);
+    return 1;
 }
 
 void
-NrMacHeaderFs::Print (std::ostream &os) const
+NrMacHeaderFs::Print(std::ostream& os) const
 {
-  NS_LOG_FUNCTION (this);
-  os << "LCid " << +m_lcid;
+    NS_LOG_FUNCTION(this);
+    os << "LCid " << +m_lcid;
 }
 
 void
-NrMacHeaderFs::SetLcId (uint8_t lcId)
+NrMacHeaderFs::SetLcId(uint8_t lcId)
 {
-  NS_ASSERT (lcId == PADDING);
-  m_lcid = PADDING;
+    NS_ASSERT(lcId == PADDING);
+    m_lcid = PADDING;
 }
 
 uint8_t
-NrMacHeaderFs::GetLcId () const
+NrMacHeaderFs::GetLcId() const
 {
-  return m_lcid;
+    return m_lcid;
 }
 
 bool
-NrMacHeaderFs::operator == (const NrMacHeaderFs &o) const
+NrMacHeaderFs::operator==(const NrMacHeaderFs& o) const
 {
-  return m_lcid == o.m_lcid;
+    return m_lcid == o.m_lcid;
 }
 
 } // namespace ns3
-

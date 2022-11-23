@@ -18,236 +18,249 @@
  * This API is derived from MacStatsCalculator of LTE module
  */
 
-#include "ns3/string.h"
-#include <ns3/simulator.h>
-#include <ns3/log.h>
 #include "nr-mac-scheduling-stats.h"
 
-namespace ns3 {
+#include "ns3/string.h"
+#include <ns3/log.h>
+#include <ns3/simulator.h>
 
-NS_LOG_COMPONENT_DEFINE ("NrMacSchedulingStats");
-
-NS_OBJECT_ENSURE_REGISTERED (NrMacSchedulingStats);
-
-NrMacSchedulingStats::NrMacSchedulingStats ()
-  : m_dlFirstWrite (true),
-    m_ulFirstWrite (true)
+namespace ns3
 {
-  NS_LOG_FUNCTION (this);
 
+NS_LOG_COMPONENT_DEFINE("NrMacSchedulingStats");
+
+NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulingStats);
+
+NrMacSchedulingStats::NrMacSchedulingStats()
+    : m_dlFirstWrite(true),
+      m_ulFirstWrite(true)
+{
+    NS_LOG_FUNCTION(this);
 }
 
-NrMacSchedulingStats::~NrMacSchedulingStats ()
+NrMacSchedulingStats::~NrMacSchedulingStats()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
 
 TypeId
-NrMacSchedulingStats::GetTypeId (void)
+NrMacSchedulingStats::GetTypeId(void)
 {
-  static TypeId tid = TypeId ("ns3::NrMacSchedulingStats")
-    .SetParent<NrStatsCalculator> ()
-    .SetGroupName ("nr")
-    .AddConstructor<NrMacSchedulingStats> ()
-    .AddAttribute ("DlOutputFilename",
-                   "Name of the file where the downlink results will be saved.",
-                   StringValue ("NrDlMacStats.txt"),
-                   MakeStringAccessor (&NrMacSchedulingStats::SetDlOutputFilename),
-                   MakeStringChecker ())
-    .AddAttribute ("UlOutputFilename",
-                   "Name of the file where the uplink results will be saved.",
-                   StringValue ("NrUlMacStats.txt"),
-                   MakeStringAccessor (&NrMacSchedulingStats::SetUlOutputFilename),
-                   MakeStringChecker ())
-  ;
-  return tid;
+    static TypeId tid =
+        TypeId("ns3::NrMacSchedulingStats")
+            .SetParent<NrStatsCalculator>()
+            .SetGroupName("nr")
+            .AddConstructor<NrMacSchedulingStats>()
+            .AddAttribute("DlOutputFilename",
+                          "Name of the file where the downlink results will be saved.",
+                          StringValue("NrDlMacStats.txt"),
+                          MakeStringAccessor(&NrMacSchedulingStats::SetDlOutputFilename),
+                          MakeStringChecker())
+            .AddAttribute("UlOutputFilename",
+                          "Name of the file where the uplink results will be saved.",
+                          StringValue("NrUlMacStats.txt"),
+                          MakeStringAccessor(&NrMacSchedulingStats::SetUlOutputFilename),
+                          MakeStringChecker());
+    return tid;
 }
 
 void
-NrMacSchedulingStats::SetUlOutputFilename (std::string outputFilename)
+NrMacSchedulingStats::SetUlOutputFilename(std::string outputFilename)
 {
-  NrStatsCalculator::SetUlOutputFilename (outputFilename);
+    NrStatsCalculator::SetUlOutputFilename(outputFilename);
 }
 
 std::string
-NrMacSchedulingStats::GetUlOutputFilename (void)
+NrMacSchedulingStats::GetUlOutputFilename(void)
 {
-  return NrStatsCalculator::GetUlOutputFilename ();
+    return NrStatsCalculator::GetUlOutputFilename();
 }
 
 void
-NrMacSchedulingStats::SetDlOutputFilename (std::string outputFilename)
+NrMacSchedulingStats::SetDlOutputFilename(std::string outputFilename)
 {
-  NrStatsCalculator::SetDlOutputFilename (outputFilename);
+    NrStatsCalculator::SetDlOutputFilename(outputFilename);
 }
 
 std::string
-NrMacSchedulingStats::GetDlOutputFilename (void)
+NrMacSchedulingStats::GetDlOutputFilename(void)
 {
-  return NrStatsCalculator::GetDlOutputFilename ();
+    return NrStatsCalculator::GetDlOutputFilename();
 }
 
 void
-NrMacSchedulingStats::DlScheduling (uint16_t cellId, uint64_t imsi, const NrSchedulingCallbackInfo &traceInfo)
+NrMacSchedulingStats::DlScheduling(uint16_t cellId,
+                                   uint64_t imsi,
+                                   const NrSchedulingCallbackInfo& traceInfo)
 {
-  NS_LOG_FUNCTION (this << cellId << imsi << traceInfo.m_frameNum << traceInfo.m_subframeNum <<
-                   traceInfo.m_rnti << (uint32_t) traceInfo.m_mcs << traceInfo.m_tbSize);
-  NS_LOG_INFO ("Write DL Mac Stats in " << GetDlOutputFilename ().c_str ());
+    NS_LOG_FUNCTION(this << cellId << imsi << traceInfo.m_frameNum << traceInfo.m_subframeNum
+                         << traceInfo.m_rnti << (uint32_t)traceInfo.m_mcs << traceInfo.m_tbSize);
+    NS_LOG_INFO("Write DL Mac Stats in " << GetDlOutputFilename().c_str());
 
-  std::ofstream outFile;
-  if ( m_dlFirstWrite == true )
+    std::ofstream outFile;
+    if (m_dlFirstWrite == true)
     {
-      outFile.open (GetDlOutputFilename ().c_str ());
-      if (!outFile.is_open ())
+        outFile.open(GetDlOutputFilename().c_str());
+        if (!outFile.is_open())
         {
-          NS_LOG_ERROR ("Can't open file " << GetDlOutputFilename ().c_str ());
-          return;
+            NS_LOG_ERROR("Can't open file " << GetDlOutputFilename().c_str());
+            return;
         }
-      m_dlFirstWrite = false;
-      outFile << "% time(s)\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\tharqId\tndi\trv\tmcs\ttbSize";
-      outFile << std::endl;
+        m_dlFirstWrite = false;
+        outFile << "% "
+                   "time(s)"
+                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\thar"
+                   "qId\tndi\trv\tmcs\ttbSize";
+        outFile << std::endl;
     }
-  else
+    else
     {
-      outFile.open (GetDlOutputFilename ().c_str (),  std::ios_base::app);
-      if (!outFile.is_open ())
+        outFile.open(GetDlOutputFilename().c_str(), std::ios_base::app);
+        if (!outFile.is_open())
         {
-          NS_LOG_ERROR ("Can't open file " << GetDlOutputFilename ().c_str ());
-          return;
+            NS_LOG_ERROR("Can't open file " << GetDlOutputFilename().c_str());
+            return;
         }
     }
 
-  outFile << Simulator::Now ().GetSeconds () << "\t";
-  outFile << (uint32_t) cellId << "\t";
-  outFile << (uint32_t) traceInfo.m_bwpId  << "\t";
-  outFile << imsi << "\t";
-  outFile << traceInfo.m_rnti << "\t";
-  outFile << traceInfo.m_frameNum << "\t";
-  outFile << (uint32_t)traceInfo.m_subframeNum << "\t";
-  outFile << traceInfo.m_slotNum << "\t";
-  outFile << (uint32_t)traceInfo.m_symStart << "\t";
-  outFile << (uint32_t)traceInfo.m_numSym << "\t";
-  outFile << (uint32_t) traceInfo.m_streamId << "\t";
-  outFile << (uint32_t) traceInfo.m_harqId << "\t";
-  outFile << (uint32_t) traceInfo.m_ndi << "\t";
-  outFile << (uint32_t) traceInfo.m_rv << "\t";
-  outFile << (uint32_t) traceInfo.m_mcs << "\t";
-  outFile << traceInfo.m_tbSize << std::endl;
-  outFile.close ();
+    outFile << Simulator::Now().GetSeconds() << "\t";
+    outFile << (uint32_t)cellId << "\t";
+    outFile << (uint32_t)traceInfo.m_bwpId << "\t";
+    outFile << imsi << "\t";
+    outFile << traceInfo.m_rnti << "\t";
+    outFile << traceInfo.m_frameNum << "\t";
+    outFile << (uint32_t)traceInfo.m_subframeNum << "\t";
+    outFile << traceInfo.m_slotNum << "\t";
+    outFile << (uint32_t)traceInfo.m_symStart << "\t";
+    outFile << (uint32_t)traceInfo.m_numSym << "\t";
+    outFile << (uint32_t)traceInfo.m_streamId << "\t";
+    outFile << (uint32_t)traceInfo.m_harqId << "\t";
+    outFile << (uint32_t)traceInfo.m_ndi << "\t";
+    outFile << (uint32_t)traceInfo.m_rv << "\t";
+    outFile << (uint32_t)traceInfo.m_mcs << "\t";
+    outFile << traceInfo.m_tbSize << std::endl;
+    outFile.close();
 }
 
 void
-NrMacSchedulingStats::UlScheduling (uint16_t cellId, uint64_t imsi, const NrSchedulingCallbackInfo &traceInfo)
+NrMacSchedulingStats::UlScheduling(uint16_t cellId,
+                                   uint64_t imsi,
+                                   const NrSchedulingCallbackInfo& traceInfo)
 {
-  NS_LOG_FUNCTION (this << cellId << imsi << traceInfo.m_frameNum << traceInfo.m_subframeNum
-                        << traceInfo.m_rnti << (uint32_t) traceInfo.m_mcs << traceInfo.m_tbSize);
-  NS_LOG_INFO ("Write UL Mac Stats in " << GetUlOutputFilename ().c_str ());
+    NS_LOG_FUNCTION(this << cellId << imsi << traceInfo.m_frameNum << traceInfo.m_subframeNum
+                         << traceInfo.m_rnti << (uint32_t)traceInfo.m_mcs << traceInfo.m_tbSize);
+    NS_LOG_INFO("Write UL Mac Stats in " << GetUlOutputFilename().c_str());
 
-  std::ofstream outFile;
-  if ( m_ulFirstWrite == true )
+    std::ofstream outFile;
+    if (m_ulFirstWrite == true)
     {
-      outFile.open (GetUlOutputFilename ().c_str ());
-      if (!outFile.is_open ())
+        outFile.open(GetUlOutputFilename().c_str());
+        if (!outFile.is_open())
         {
-          NS_LOG_ERROR ("Can't open file " << GetUlOutputFilename ().c_str ());
-          return;
+            NS_LOG_ERROR("Can't open file " << GetUlOutputFilename().c_str());
+            return;
         }
-      m_ulFirstWrite = false;
-      outFile << "% time(s)\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\tharqId\tndi\trv\tmcs\ttbSize";
-      outFile << std::endl;
+        m_ulFirstWrite = false;
+        outFile << "% "
+                   "time(s)"
+                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\thar"
+                   "qId\tndi\trv\tmcs\ttbSize";
+        outFile << std::endl;
     }
-  else
+    else
     {
-      outFile.open (GetUlOutputFilename ().c_str (),  std::ios_base::app);
-      if (!outFile.is_open ())
+        outFile.open(GetUlOutputFilename().c_str(), std::ios_base::app);
+        if (!outFile.is_open())
         {
-          NS_LOG_ERROR ("Can't open file " << GetUlOutputFilename ().c_str ());
-          return;
+            NS_LOG_ERROR("Can't open file " << GetUlOutputFilename().c_str());
+            return;
         }
     }
 
-  outFile << Simulator::Now ().GetSeconds () << "\t";
-  outFile << (uint32_t) cellId << "\t";
-  outFile << (uint32_t) traceInfo.m_bwpId  << "\t";
-  outFile << imsi << "\t";
-  outFile << traceInfo.m_rnti << "\t";
-  outFile << traceInfo.m_frameNum << "\t";
-  outFile << (uint32_t)traceInfo.m_subframeNum << "\t";
-  outFile << traceInfo.m_slotNum << "\t";
-  outFile << (uint32_t)traceInfo.m_symStart << "\t";
-  outFile << (uint32_t)traceInfo.m_numSym << "\t";
-  outFile << (uint32_t) traceInfo.m_streamId << "\t";
-  outFile << (uint32_t) traceInfo.m_harqId << "\t";
-  outFile << (uint32_t) traceInfo.m_ndi << "\t";
-  outFile << (uint32_t) traceInfo.m_rv << "\t";
-  outFile << (uint32_t) traceInfo.m_mcs << "\t";
-  outFile << traceInfo.m_tbSize << std::endl;
-  outFile.close ();
+    outFile << Simulator::Now().GetSeconds() << "\t";
+    outFile << (uint32_t)cellId << "\t";
+    outFile << (uint32_t)traceInfo.m_bwpId << "\t";
+    outFile << imsi << "\t";
+    outFile << traceInfo.m_rnti << "\t";
+    outFile << traceInfo.m_frameNum << "\t";
+    outFile << (uint32_t)traceInfo.m_subframeNum << "\t";
+    outFile << traceInfo.m_slotNum << "\t";
+    outFile << (uint32_t)traceInfo.m_symStart << "\t";
+    outFile << (uint32_t)traceInfo.m_numSym << "\t";
+    outFile << (uint32_t)traceInfo.m_streamId << "\t";
+    outFile << (uint32_t)traceInfo.m_harqId << "\t";
+    outFile << (uint32_t)traceInfo.m_ndi << "\t";
+    outFile << (uint32_t)traceInfo.m_rv << "\t";
+    outFile << (uint32_t)traceInfo.m_mcs << "\t";
+    outFile << traceInfo.m_tbSize << std::endl;
+    outFile.close();
 }
 
 void
-NrMacSchedulingStats::DlSchedulingCallback (Ptr<NrMacSchedulingStats> macStats, std::string path, NrSchedulingCallbackInfo traceInfo)
+NrMacSchedulingStats::DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
+                                           std::string path,
+                                           NrSchedulingCallbackInfo traceInfo)
 {
-  NS_LOG_FUNCTION (macStats << path);
-  uint64_t imsi = 0;
-  std::ostringstream pathAndRnti;
-  std::string pathGnb  = path.substr (0, path.find ("/BandwidthPartMap"));
-  pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
-  if (macStats->ExistsImsiPath (pathAndRnti.str ()) == true)
+    NS_LOG_FUNCTION(macStats << path);
+    uint64_t imsi = 0;
+    std::ostringstream pathAndRnti;
+    std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
+    pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
+    if (macStats->ExistsImsiPath(pathAndRnti.str()) == true)
     {
-      imsi = macStats->GetImsiPath (pathAndRnti.str ());
+        imsi = macStats->GetImsiPath(pathAndRnti.str());
     }
-  else
+    else
     {
-      imsi = FindImsiFromGnbRlcPath (pathAndRnti.str ());
-      macStats->SetImsiPath (pathAndRnti.str (), imsi);
+        imsi = FindImsiFromGnbRlcPath(pathAndRnti.str());
+        macStats->SetImsiPath(pathAndRnti.str(), imsi);
     }
-  uint16_t cellId = 0;
-  if (macStats->ExistsCellIdPath (pathAndRnti.str ()) == true)
+    uint16_t cellId = 0;
+    if (macStats->ExistsCellIdPath(pathAndRnti.str()) == true)
     {
-      cellId = macStats->GetCellIdPath (pathAndRnti.str ());
+        cellId = macStats->GetCellIdPath(pathAndRnti.str());
     }
-  else
+    else
     {
-      cellId = FindCellIdFromGnbRlcPath (pathAndRnti.str ());
-      macStats->SetCellIdPath (pathAndRnti.str (), cellId);
+        cellId = FindCellIdFromGnbRlcPath(pathAndRnti.str());
+        macStats->SetCellIdPath(pathAndRnti.str(), cellId);
     }
 
-  macStats->DlScheduling (cellId, imsi, traceInfo);
+    macStats->DlScheduling(cellId, imsi, traceInfo);
 }
 
 void
-NrMacSchedulingStats::UlSchedulingCallback (Ptr<NrMacSchedulingStats> macStats,
-                                            std::string path, NrSchedulingCallbackInfo traceInfo)
+NrMacSchedulingStats::UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
+                                           std::string path,
+                                           NrSchedulingCallbackInfo traceInfo)
 {
-  NS_LOG_FUNCTION (macStats << path);
+    NS_LOG_FUNCTION(macStats << path);
 
-  uint64_t imsi = 0;
-  std::ostringstream pathAndRnti;
-  std::string pathGnb  = path.substr (0, path.find ("/BandwidthPartMap"));
-  pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
-  if (macStats->ExistsImsiPath (pathAndRnti.str ()) == true)
+    uint64_t imsi = 0;
+    std::ostringstream pathAndRnti;
+    std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
+    pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
+    if (macStats->ExistsImsiPath(pathAndRnti.str()) == true)
     {
-      imsi = macStats->GetImsiPath (pathAndRnti.str ());
+        imsi = macStats->GetImsiPath(pathAndRnti.str());
     }
-  else
+    else
     {
-      imsi = FindImsiFromGnbRlcPath (pathAndRnti.str ());
-      macStats->SetImsiPath (pathAndRnti.str (), imsi);
+        imsi = FindImsiFromGnbRlcPath(pathAndRnti.str());
+        macStats->SetImsiPath(pathAndRnti.str(), imsi);
     }
-  uint16_t cellId = 0;
-  if (macStats->ExistsCellIdPath (pathAndRnti.str ()) == true)
+    uint16_t cellId = 0;
+    if (macStats->ExistsCellIdPath(pathAndRnti.str()) == true)
     {
-      cellId = macStats->GetCellIdPath (pathAndRnti.str ());
+        cellId = macStats->GetCellIdPath(pathAndRnti.str());
     }
-  else
+    else
     {
-      cellId = FindCellIdFromGnbRlcPath (pathAndRnti.str ());
-      macStats->SetCellIdPath (pathAndRnti.str (), cellId);
+        cellId = FindCellIdFromGnbRlcPath(pathAndRnti.str());
+        macStats->SetCellIdPath(pathAndRnti.str(), cellId);
     }
 
-  macStats->UlScheduling (cellId, imsi, traceInfo);
+    macStats->UlScheduling(cellId, imsi, traceInfo);
 }
-
 
 } // namespace ns3

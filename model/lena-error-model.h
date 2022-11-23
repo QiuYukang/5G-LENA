@@ -1,27 +1,28 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #ifndef LENA_ERROR_MODEL_H
 #define LENA_ERROR_MODEL_H
 
 #include "nr-lte-mi-error-model.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup error-models
@@ -52,42 +53,44 @@ namespace ns3 {
  */
 class LenaErrorModel : public NrLteMiErrorModel
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the object type id
-   */
-  static TypeId GetTypeId ();
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the object type id
+     */
+    static TypeId GetTypeId();
 
-  /**
-   * \brief Get the type ID of this instance
-   * \return the Type ID of this instance
-   */
-  TypeId GetInstanceTypeId (void) const override;
+    /**
+     * \brief Get the type ID of this instance
+     * \return the Type ID of this instance
+     */
+    TypeId GetInstanceTypeId(void) const override;
 
-  /**
-   * \brief NrLteMiErrorModel constructor
-   */
-  LenaErrorModel ();
+    /**
+     * \brief NrLteMiErrorModel constructor
+     */
+    LenaErrorModel();
 
-  /**
-   * \brief ~NrLteMiErrorModel
-   */
-  virtual ~LenaErrorModel () override;
+    /**
+     * \brief ~NrLteMiErrorModel
+     */
+    virtual ~LenaErrorModel() override;
 
-  /**
-   * \brief Get the payload size, following the MCSs in LTE
-   * \param usefulSC Useful Subcarriers (ignored)
-   * \param mcs MCS
-   * \param rbNum Resource Block number (please pay attention)
-   * \param mode UL or DL
-   *
-   * The RB value will be divided by 13.
-   */
-  virtual uint32_t GetPayloadSize (uint32_t usefulSC, uint8_t mcs, uint32_t rbNum, Mode mode) const override;
-
+    /**
+     * \brief Get the payload size, following the MCSs in LTE
+     * \param usefulSC Useful Subcarriers (ignored)
+     * \param mcs MCS
+     * \param rbNum Resource Block number (please pay attention)
+     * \param mode UL or DL
+     *
+     * The RB value will be divided by 13.
+     */
+    virtual uint32_t GetPayloadSize(uint32_t usefulSC,
+                                    uint8_t mcs,
+                                    uint32_t rbNum,
+                                    Mode mode) const override;
 };
 
-} // namespace ns3;
+} // namespace ns3
 
 #endif // LENA_ERROR_MODEL_H

@@ -17,17 +17,20 @@
  *
  */
 
-#include <ns3/object.h>
-#include <ns3/nstime.h>
-#include <ns3/event-id.h>
-#include <functional>
 #include "nr-gnb-mac.h"
 #include "nr-spectrum-phy.h"
+
+#include <ns3/event-id.h>
+#include <ns3/nstime.h>
+#include <ns3/object.h>
+
+#include <functional>
 
 #ifndef NR_CH_ACCESS_MANAGER_H_
 #define NR_CH_ACCESS_MANAGER_H_
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup nru
@@ -57,97 +60,97 @@ namespace ns3 {
  */
 class NrChAccessManager : public Object
 {
-public:
-  /**
-   * \brief Get the type ID
-   * \return the type id
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief Get the type ID
+     * \return the type id
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief ChannelAccessManager constructor
-   */
-  NrChAccessManager ();
+    /**
+     * \brief ChannelAccessManager constructor
+     */
+    NrChAccessManager();
 
-  /**
-   * \brief ~ChannelAccessManager
-   */
-  virtual ~NrChAccessManager () override;
+    /**
+     * \brief ~ChannelAccessManager
+     */
+    virtual ~NrChAccessManager() override;
 
-  /**
-   * \brief Set duration of grant for transmission.
-   * \param grantDuration duration of grant
-   */
-  void SetGrantDuration (Time grantDuration);
+    /**
+     * \brief Set duration of grant for transmission.
+     * \param grantDuration duration of grant
+     */
+    void SetGrantDuration(Time grantDuration);
 
-  /**
-   * \brief Get grant duration time.
-   * \returns default grant duration
-   */
-  Time GetGrantDuration () const;
+    /**
+     * \brief Get grant duration time.
+     * \returns default grant duration
+     */
+    Time GetGrantDuration() const;
 
-  /**
-   * \brief A function that signal that the channel has been earned
-   */
-  typedef std::function<void (const Time &time)> AccessGrantedCallback;
-  /**
-   * \brief A function that signal that the channel is denied and the request should
-   * be retried
-   */
-  typedef std::function<void ()> AccessDeniedCallback;
+    /**
+     * \brief A function that signal that the channel has been earned
+     */
+    typedef std::function<void(const Time& time)> AccessGrantedCallback;
+    /**
+     * \brief A function that signal that the channel is denied and the request should
+     * be retried
+     */
+    typedef std::function<void()> AccessDeniedCallback;
 
-  /**
-   * \brief RequestAccess
-   *
-   * When the channel is granted, the callback set with SetAccessGrantedCallback()
-   * will be called.
-   */
-  virtual void RequestAccess () = 0;
-  /**
-   * \brief Set Access-Granted Callback
-   * \param cb the callback to invoke when the channel access is granted
-   */
-  virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) = 0;
-  /**
-   * \brief Set Access-Denied Callback
-   * \param cb the callback to invoke when the channel access is denied
-   */
-  virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) = 0;
+    /**
+     * \brief RequestAccess
+     *
+     * When the channel is granted, the callback set with SetAccessGrantedCallback()
+     * will be called.
+     */
+    virtual void RequestAccess() = 0;
+    /**
+     * \brief Set Access-Granted Callback
+     * \param cb the callback to invoke when the channel access is granted
+     */
+    virtual void SetAccessGrantedCallback(const AccessGrantedCallback& cb) = 0;
+    /**
+     * \brief Set Access-Denied Callback
+     * \param cb the callback to invoke when the channel access is denied
+     */
+    virtual void SetAccessDeniedCallback(const AccessDeniedCallback& cb) = 0;
 
-  /**
-   * \brief Cancel a previously invoked request for accesing the channel
-   */
-  virtual void Cancel () = 0;
+    /**
+     * \brief Cancel a previously invoked request for accesing the channel
+     */
+    virtual void Cancel() = 0;
 
-  /**
-   * \brief Set spectrum phy instance for this channel access manager
-   * \param spectrumPhy specturm phy instance
-   */
-  virtual void SetNrSpectrumPhy (Ptr<NrSpectrumPhy> spectrumPhy);
+    /**
+     * \brief Set spectrum phy instance for this channel access manager
+     * \param spectrumPhy specturm phy instance
+     */
+    virtual void SetNrSpectrumPhy(Ptr<NrSpectrumPhy> spectrumPhy);
 
-  /**
-   * \brief Getter for spectrum phy instance to which is connected this channel access manager
-   * \return pointer to spectrum phy instance
-   */
-  Ptr<NrSpectrumPhy> GetNrSpectrumPhy ();
+    /**
+     * \brief Getter for spectrum phy instance to which is connected this channel access manager
+     * \return pointer to spectrum phy instance
+     */
+    Ptr<NrSpectrumPhy> GetNrSpectrumPhy();
 
-  /**
-   * \brief Set MAC instance for this channel access manager
-   * \param mac gNB mac instance
-   */
-  virtual void SetNrGnbMac (Ptr<NrGnbMac> mac);
+    /**
+     * \brief Set MAC instance for this channel access manager
+     * \param mac gNB mac instance
+     */
+    virtual void SetNrGnbMac(Ptr<NrGnbMac> mac);
 
-  /**
-   * \brief Getter for MAC instance to which is connected this channel access manager
-   * \return pointer to MAC instance
-   */
-  Ptr<NrGnbMac> GetNrGnbMac ();
+    /**
+     * \brief Getter for MAC instance to which is connected this channel access manager
+     * \return pointer to MAC instance
+     */
+    Ptr<NrGnbMac> GetNrGnbMac();
 
-private:
-
-  Time m_grantDuration; //!< Duration of the channel access grant
-  Ptr<NrGnbMac> m_mac; //!< MAC instance to which is connected this channel access manager
-  Ptr<NrSpectrumPhy> m_spectrumPhy; //!< SpectrumPhy instance to which is connected this channel access manager
+  private:
+    Time m_grantDuration; //!< Duration of the channel access grant
+    Ptr<NrGnbMac> m_mac;  //!< MAC instance to which is connected this channel access manager
+    Ptr<NrSpectrumPhy>
+        m_spectrumPhy; //!< SpectrumPhy instance to which is connected this channel access manager
 };
 
 /**
@@ -180,32 +183,32 @@ private:
  */
 class NrAlwaysOnAccessManager : public NrChAccessManager
 {
-public:
-  /**
-   * \brief Get the type ID
-   * \return the type id
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief Get the type ID
+     * \return the type id
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief NrAlwaysOnAccessManager constructor
-   */
-  NrAlwaysOnAccessManager ();
-  /**
-    * \brief destructor
-    */
-  ~NrAlwaysOnAccessManager () override;
+    /**
+     * \brief NrAlwaysOnAccessManager constructor
+     */
+    NrAlwaysOnAccessManager();
+    /**
+     * \brief destructor
+     */
+    ~NrAlwaysOnAccessManager() override;
 
-  // inherited
-  virtual void RequestAccess () override;
-  virtual void SetAccessGrantedCallback (const AccessGrantedCallback &cb) override;
-  virtual void SetAccessDeniedCallback (const AccessDeniedCallback &cb) override;
-  virtual void Cancel () override;
+    // inherited
+    virtual void RequestAccess() override;
+    virtual void SetAccessGrantedCallback(const AccessGrantedCallback& cb) override;
+    virtual void SetAccessDeniedCallback(const AccessDeniedCallback& cb) override;
+    virtual void Cancel() override;
 
-private:
-  std::vector<AccessGrantedCallback> m_accessGrantedCb; //!< Access granted CB
+  private:
+    std::vector<AccessGrantedCallback> m_accessGrantedCb; //!< Access granted CB
 };
 
-}
+} // namespace ns3
 
 #endif /* NR_CH_ACCESS_MANAGER_H_ */

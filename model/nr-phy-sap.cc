@@ -17,17 +17,13 @@
  *
  */
 
-
 #include "nr-phy-sap.h"
 
-namespace ns3 {
-
-NrPhySapProvider::~NrPhySapProvider ()
+namespace ns3
 {
 
+NrPhySapProvider::~NrPhySapProvider()
+{
 }
 
-
-}
-
-
+} // namespace ns3

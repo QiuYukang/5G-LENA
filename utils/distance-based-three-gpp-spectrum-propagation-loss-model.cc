@@ -17,85 +17,98 @@
  */
 
 #include "distance-based-three-gpp-spectrum-propagation-loss-model.h"
+
+#include "ns3/double.h"
 #include "ns3/log.h"
 #include "ns3/node.h"
-#include "ns3/double.h"
-#include "ns3/string.h"
-#include "ns3/simulator.h"
 #include "ns3/pointer.h"
+#include "ns3/simulator.h"
 #include "ns3/spectrum-signal-parameters.h"
+#include "ns3/string.h"
 
-namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("DistanceBasedThreeGppSpectrumPropagationLossModel");
-NS_OBJECT_ENSURE_REGISTERED (DistanceBasedThreeGppSpectrumPropagationLossModel);
-
-DistanceBasedThreeGppSpectrumPropagationLossModel::DistanceBasedThreeGppSpectrumPropagationLossModel ()
+namespace ns3
 {
-  NS_LOG_FUNCTION (this);
+
+NS_LOG_COMPONENT_DEFINE("DistanceBasedThreeGppSpectrumPropagationLossModel");
+NS_OBJECT_ENSURE_REGISTERED(DistanceBasedThreeGppSpectrumPropagationLossModel);
+
+DistanceBasedThreeGppSpectrumPropagationLossModel::
+    DistanceBasedThreeGppSpectrumPropagationLossModel()
+{
+    NS_LOG_FUNCTION(this);
 }
 
-DistanceBasedThreeGppSpectrumPropagationLossModel::~DistanceBasedThreeGppSpectrumPropagationLossModel ()
+DistanceBasedThreeGppSpectrumPropagationLossModel::
+    ~DistanceBasedThreeGppSpectrumPropagationLossModel()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
 
 TypeId
-DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId (void)
+DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId(void)
 {
-  static TypeId tid = TypeId ("ns3::DistanceBasedThreeGppSpectrumPropagationLossModel")
-    .SetParent<ThreeGppSpectrumPropagationLossModel> ()
-    .SetGroupName ("Spectrum")
-    .AddConstructor<DistanceBasedThreeGppSpectrumPropagationLossModel> ()
-    .AddAttribute("MaxDistance",
-                  "The maximum distance in meters between nodes in order to calculate fast fading and beamforming."
-                  "For all signals for which nodes are at higher distance will be returned 0 PSD.",
-                  DoubleValue (1000),
-                  MakeDoubleAccessor (&DistanceBasedThreeGppSpectrumPropagationLossModel::SetMaxDistance,
-                                      &DistanceBasedThreeGppSpectrumPropagationLossModel::GetMaxDistance),
-                  MakeDoubleChecker<double> ())
-    ;
-  return tid;
+    static TypeId tid =
+        TypeId("ns3::DistanceBasedThreeGppSpectrumPropagationLossModel")
+            .SetParent<ThreeGppSpectrumPropagationLossModel>()
+            .SetGroupName("Spectrum")
+            .AddConstructor<DistanceBasedThreeGppSpectrumPropagationLossModel>()
+            .AddAttribute(
+                "MaxDistance",
+                "The maximum distance in meters between nodes in order to calculate fast fading "
+                "and beamforming."
+                "For all signals for which nodes are at higher distance will be returned 0 PSD.",
+                DoubleValue(1000),
+                MakeDoubleAccessor(
+                    &DistanceBasedThreeGppSpectrumPropagationLossModel::SetMaxDistance,
+                    &DistanceBasedThreeGppSpectrumPropagationLossModel::GetMaxDistance),
+                MakeDoubleChecker<double>());
+    return tid;
 }
 
 void
-DistanceBasedThreeGppSpectrumPropagationLossModel::SetMaxDistance (double maxDistance)
+DistanceBasedThreeGppSpectrumPropagationLossModel::SetMaxDistance(double maxDistance)
 {
-  m_maxDistance = maxDistance;
+    m_maxDistance = maxDistance;
 }
 
 double
-DistanceBasedThreeGppSpectrumPropagationLossModel::GetMaxDistance () const
+DistanceBasedThreeGppSpectrumPropagationLossModel::GetMaxDistance() const
 {
-  return m_maxDistance;
+    return m_maxDistance;
 }
-
 
 Ptr<SpectrumValue>
-DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (Ptr<const SpectrumSignalParameters> params,
-                                                                                 Ptr<const MobilityModel> a,
-                                                                                 Ptr<const MobilityModel> b,
-                                                                                 Ptr<const PhasedArrayModel> aPhasedArrayModel,
-                                                                                 Ptr<const PhasedArrayModel> bPhasedArrayModel) const
+DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
+    Ptr<const SpectrumSignalParameters> params,
+    Ptr<const MobilityModel> a,
+    Ptr<const MobilityModel> b,
+    Ptr<const PhasedArrayModel> aPhasedArrayModel,
+    Ptr<const PhasedArrayModel> bPhasedArrayModel) const
 {
-  NS_LOG_FUNCTION (this);
-  uint32_t aId = a->GetObject<Node> ()->GetId (); // id of the node a
-  uint32_t bId = b->GetObject<Node> ()->GetId (); // id of the node b
+    NS_LOG_FUNCTION(this);
+    uint32_t aId = a->GetObject<Node>()->GetId(); // id of the node a
+    uint32_t bId = b->GetObject<Node>()->GetId(); // id of the node b
 
-  Ptr<SpectrumValue> rxPsd = Copy<SpectrumValue> (params->psd);
-  if (a->GetDistanceFrom (b) > m_maxDistance)
+    Ptr<SpectrumValue> rxPsd = Copy<SpectrumValue>(params->psd);
+    if (a->GetDistanceFrom(b) > m_maxDistance)
     {
-      NS_LOG_LOGIC ("Distance between a: " << aId << "and  node b: "<<bId << " is higher than max allowed distance. Return 0 PSD.");
-      *rxPsd = 0.0;
-      return rxPsd;
+        NS_LOG_LOGIC("Distance between a: "
+                     << aId << "and  node b: " << bId
+                     << " is higher than max allowed distance. Return 0 PSD.");
+        *rxPsd = 0.0;
+        return rxPsd;
     }
-  else
+    else
     {
-      return ThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity (params, a, b, aPhasedArrayModel, bPhasedArrayModel);
+        return ThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
+            params,
+            a,
+            b,
+            aPhasedArrayModel,
+            bPhasedArrayModel);
     }
 
-  return rxPsd;
+    return rxPsd;
 }
 
-
-}  // namespace ns3
+} // namespace ns3

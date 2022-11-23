@@ -19,10 +19,12 @@
 #pragma once
 
 #include "nr-mac-scheduler-ns3.h"
-#include <memory>
-#include <functional>
 
-namespace ns3 {
+#include <functional>
+#include <memory>
+
+namespace ns3
+{
 
 /**
  * \ingroup scheduler
@@ -73,190 +75,206 @@ namespace ns3 {
  */
 class NrMacSchedulerTdma : public NrMacSchedulerNs3
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return The TypeId of the class
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief GetTypeId
+     * \return The TypeId of the class
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief NrMacSchedulerTdma constructor
-   */
-  NrMacSchedulerTdma ();
-  /**
-   * \brief NrMacSchedulerTdma deconstructor
-   */
-  virtual ~NrMacSchedulerTdma () override;
+    /**
+     * \brief NrMacSchedulerTdma constructor
+     */
+    NrMacSchedulerTdma();
+    /**
+     * \brief NrMacSchedulerTdma deconstructor
+     */
+    virtual ~NrMacSchedulerTdma() override;
 
-protected:
-  virtual BeamSymbolMap AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl) const override;
+  protected:
+    virtual BeamSymbolMap AssignDLRBG(uint32_t symAvail,
+                                      const ActiveUeMap& activeDl) const override;
 
-  virtual BeamSymbolMap AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl) const override;
-  virtual std::shared_ptr<DciInfoElementTdma>
-  CreateDlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-               uint32_t maxSym) const override;
-  virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-               uint32_t maxSym) const override;
+    virtual BeamSymbolMap AssignULRBG(uint32_t symAvail,
+                                      const ActiveUeMap& activeUl) const override;
+    virtual std::shared_ptr<DciInfoElementTdma> CreateDlDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        uint32_t maxSym) const override;
+    virtual std::shared_ptr<DciInfoElementTdma> CreateUlDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        uint32_t maxSym) const override;
 
-  /**
-   * \brief Not doing anything, moving forward the spoint is done by CreateDci
-   * \param spoint Starting point
-   * \param symOfBeam the number of symbols assigned to the beam
-   */
-  virtual void
-  ChangeDlBeam ([[maybe_unused]] PointInFTPlane *spoint, [[maybe_unused]] uint32_t symOfBeam) const override
-  {
-  }
+    /**
+     * \brief Not doing anything, moving forward the spoint is done by CreateDci
+     * \param spoint Starting point
+     * \param symOfBeam the number of symbols assigned to the beam
+     */
+    virtual void ChangeDlBeam([[maybe_unused]] PointInFTPlane* spoint,
+                              [[maybe_unused]] uint32_t symOfBeam) const override
+    {
+    }
 
-  /**
-   * \brief Not doing anything, moving forward the spoint is done by CreateDci
-   * \param spoint Starting point
-   * \param symOfBeam the number of symbols assigned to the beam
-   */
-  virtual void
-  ChangeUlBeam ([[maybe_unused]] PointInFTPlane *spoint, [[maybe_unused]] uint32_t symOfBeam) const override
-  {
-  }
+    /**
+     * \brief Not doing anything, moving forward the spoint is done by CreateDci
+     * \param spoint Starting point
+     * \param symOfBeam the number of symbols assigned to the beam
+     */
+    virtual void ChangeUlBeam([[maybe_unused]] PointInFTPlane* spoint,
+                              [[maybe_unused]] uint32_t symOfBeam) const override
+    {
+    }
 
-  virtual uint8_t GetTpc () const override;
+    virtual uint8_t GetTpc() const override;
 
-  /**
-   * \brief Provide the comparison function to order the UE when scheduling DL
-   * \return a function that should order two UEs based on their priority: if
-   * UE a is less than UE b, it will have an higher priority.
-   */
-  virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
-                             const NrMacSchedulerNs3::UePtrAndBufferReq &rhs )>
-  GetUeCompareDlFn () const = 0;
+    /**
+     * \brief Provide the comparison function to order the UE when scheduling DL
+     * \return a function that should order two UEs based on their priority: if
+     * UE a is less than UE b, it will have an higher priority.
+     */
+    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    GetUeCompareDlFn() const = 0;
 
-  /**
-   * \brief Provide the comparison function to order the UE when scheduling UL
-   * \return a function that should order two UEs based on their priority: if
-   * UE a is less than UE b, it will have an higher priority.
-   */
-  virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
-                             const NrMacSchedulerNs3::UePtrAndBufferReq &rhs )>
-  GetUeCompareUlFn () const = 0;
+    /**
+     * \brief Provide the comparison function to order the UE when scheduling UL
+     * \return a function that should order two UEs based on their priority: if
+     * UE a is less than UE b, it will have an higher priority.
+     */
+    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    GetUeCompareUlFn() const = 0;
 
-  /**
-   * \brief Update the UE representation after a symbol (DL) has been assigned to it
-   * \param ue UE to which a symbol has been assigned
-   * \param assigned the amount of resources assigned
-   * \param totalAssigned the amount of total resources assigned until now
-   *
-   * After an UE is selected to be eligible for a symbol assignment, its representation
-   * should be updated. The subclasses, by implementing this method, update
-   * the representation by updating some custom values that reflect the assignment
-   * done. These values are the one that, hopefully, are checked by the
-   * comparison function returned by GetUeCompareDlFn().
-   */
-  virtual void AssignedDlResources (const UePtrAndBufferReq &ue,
-                                    const FTResources &assigned,
-                                    const FTResources &totalAssigned) const = 0;
+    /**
+     * \brief Update the UE representation after a symbol (DL) has been assigned to it
+     * \param ue UE to which a symbol has been assigned
+     * \param assigned the amount of resources assigned
+     * \param totalAssigned the amount of total resources assigned until now
+     *
+     * After an UE is selected to be eligible for a symbol assignment, its representation
+     * should be updated. The subclasses, by implementing this method, update
+     * the representation by updating some custom values that reflect the assignment
+     * done. These values are the one that, hopefully, are checked by the
+     * comparison function returned by GetUeCompareDlFn().
+     */
+    virtual void AssignedDlResources(const UePtrAndBufferReq& ue,
+                                     const FTResources& assigned,
+                                     const FTResources& totalAssigned) const = 0;
 
-  /**
-   * \brief Update the UE representation after a symbol (DL) has been assigned to it
-   * \param ue UE to which a symbol has been assigned
-   * \param assigned the amount of resources assigned
-   * \param totalAssigned the amount of total resources assigned until now
-   *
-   * After an UE is selected to be eligible for a symbol assignment, its representation
-   * should be updated. The subclasses, by implementing this method, update
-   * the representation by updating some custom values that reflect the assignment
-   * done. These values are the one that, hopefully, are checked by the
-   * comparison function returned by GetUeCompareUelFn().
-   */
-  virtual void AssignedUlResources (const UePtrAndBufferReq &ue,
-                                    const FTResources &assigned,
-                                    const FTResources &totalAssigned) const = 0;
+    /**
+     * \brief Update the UE representation after a symbol (DL) has been assigned to it
+     * \param ue UE to which a symbol has been assigned
+     * \param assigned the amount of resources assigned
+     * \param totalAssigned the amount of total resources assigned until now
+     *
+     * After an UE is selected to be eligible for a symbol assignment, its representation
+     * should be updated. The subclasses, by implementing this method, update
+     * the representation by updating some custom values that reflect the assignment
+     * done. These values are the one that, hopefully, are checked by the
+     * comparison function returned by GetUeCompareUelFn().
+     */
+    virtual void AssignedUlResources(const UePtrAndBufferReq& ue,
+                                     const FTResources& assigned,
+                                     const FTResources& totalAssigned) const = 0;
 
-  /**
-   * \brief Update the UE representation after a symbol (DL) has been assigned to other UE
-   * \param ue UE to which a symbol has not been assigned
-   * \param notAssigned the amount of resources not assigned
-   * \param totalAssigned the amount of total resources assigned until now
-   */
-  virtual void NotAssignedDlResources (const UePtrAndBufferReq &ue,
-                                       const FTResources &notAssigned,
-                                       const FTResources &totalAssigned) const = 0;
+    /**
+     * \brief Update the UE representation after a symbol (DL) has been assigned to other UE
+     * \param ue UE to which a symbol has not been assigned
+     * \param notAssigned the amount of resources not assigned
+     * \param totalAssigned the amount of total resources assigned until now
+     */
+    virtual void NotAssignedDlResources(const UePtrAndBufferReq& ue,
+                                        const FTResources& notAssigned,
+                                        const FTResources& totalAssigned) const = 0;
 
-  /**
-   * \brief Update the UE representation after a symbol (UL) has been assigned to other UE
-   * \param ue UE to which a symbol has not been assigned
-   * \param notAssigned the amount of resources not assigned
-   * \param totalAssigned the amount of total resources assigned until now
-   */
-  virtual void NotAssignedUlResources (const UePtrAndBufferReq &ue,
-                                       const FTResources &notAssigned,
-                                       const FTResources &totalAssigned) const = 0;
+    /**
+     * \brief Update the UE representation after a symbol (UL) has been assigned to other UE
+     * \param ue UE to which a symbol has not been assigned
+     * \param notAssigned the amount of resources not assigned
+     * \param totalAssigned the amount of total resources assigned until now
+     */
+    virtual void NotAssignedUlResources(const UePtrAndBufferReq& ue,
+                                        const FTResources& notAssigned,
+                                        const FTResources& totalAssigned) const = 0;
 
-  /**
-   * \brief Prepare UE for the DL scheduling
-   * \param ue UE that is eligible for an assignation in any iteration round
-   * \param assignableInIteration Resources that can be assigned in each iteration
-   *
-   * The default implementation is empty, but a subclass can specialize the
-   * behaviour, e.g., to calculate some value before the choice of RBG to
-   * assign to each UE is done.
-   */
-  virtual void
-  BeforeDlSched (const UePtrAndBufferReq &ue,
-                 const FTResources &assignableInIteration) const = 0;
+    /**
+     * \brief Prepare UE for the DL scheduling
+     * \param ue UE that is eligible for an assignation in any iteration round
+     * \param assignableInIteration Resources that can be assigned in each iteration
+     *
+     * The default implementation is empty, but a subclass can specialize the
+     * behaviour, e.g., to calculate some value before the choice of RBG to
+     * assign to each UE is done.
+     */
+    virtual void BeforeDlSched(const UePtrAndBufferReq& ue,
+                               const FTResources& assignableInIteration) const = 0;
 
-  /**
-   * \brief Prepare UE for the UL scheduling
-   * \param ue UE that is eligible for an assignation in any iteration round
-   * \param assignableInIteration Resources that can be assigned in each iteration
-   *
-   * The default implementation is empty, but a subclass can specialize the
-   * behaviour, e.g., to calculate some value before the choice of RBG to
-   * assign to each UE is done.
-   */
-  virtual void
-  BeforeUlSched (const UePtrAndBufferReq &ue,
-                 const FTResources &assignableInIteration) const = 0;
-private:
-  /**
-   * \brief Retrieve the UE vector from an ActiveUeMap
-   * \param activeUes UE map
-   * \return A Vector of UEs and their buffer requirements (in B)
-   *
-   * Really used only in TDMA scheduling. Worth moving?
-   */
-  static std::vector<UePtrAndBufferReq>
-  GetUeVectorFromActiveUeMap (const ActiveUeMap &activeUes);
+    /**
+     * \brief Prepare UE for the UL scheduling
+     * \param ue UE that is eligible for an assignation in any iteration round
+     * \param assignableInIteration Resources that can be assigned in each iteration
+     *
+     * The default implementation is empty, but a subclass can specialize the
+     * behaviour, e.g., to calculate some value before the choice of RBG to
+     * assign to each UE is done.
+     */
+    virtual void BeforeUlSched(const UePtrAndBufferReq& ue,
+                               const FTResources& assignableInIteration) const = 0;
 
-private:
-  typedef std::function<void (const UePtrAndBufferReq &, const FTResources &)> BeforeSchedFn; //!< Before scheduling function
-  /**
-   * \brief //!< Function to notify a successfull assignment
-   */
-  typedef std::function<void (const UePtrAndBufferReq &, const FTResources &, const FTResources &)> AfterSuccessfullAssignmentFn;
-  /**
-   * \brief Function to notify that the UE did not get any resource in one iteration
-   */
-  typedef std::function<void (const UePtrAndBufferReq &, const FTResources &, const FTResources &)> AfterUnsucessfullAssignmentFn;
-  typedef std::function<uint32_t& (const UePtr &ue)> GetRBGFn; //!< Getter for the RBG of an UE
-  typedef std::function<uint32_t (const UePtr &ue)> GetTBSFn; //!< Getter for the TBS of an UE
-  typedef std::function<uint8_t& (const UePtr &ue)> GetSymFn;  //!< Getter for the number of symbols of an UE
-  typedef std::function<bool (const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
-                              const NrMacSchedulerNs3::UePtrAndBufferReq &rhs )> CompareUeFn;
-  typedef std::function<CompareUeFn ()> GetCompareUeFn;
+  private:
+    /**
+     * \brief Retrieve the UE vector from an ActiveUeMap
+     * \param activeUes UE map
+     * \return A Vector of UEs and their buffer requirements (in B)
+     *
+     * Really used only in TDMA scheduling. Worth moving?
+     */
+    static std::vector<UePtrAndBufferReq> GetUeVectorFromActiveUeMap(const ActiveUeMap& activeUes);
 
-  BeamSymbolMap
-  AssignRBGTDMA (uint32_t symAvail, const ActiveUeMap &activeUe,
-                 const std::string &type, const BeforeSchedFn &BeforeSchedFn,
-                 const GetCompareUeFn &GetCompareFn, const GetTBSFn &GetTBSFn, const GetRBGFn &GetRBGFn,
-                 const GetSymFn &GetSymFn, const AfterSuccessfullAssignmentFn &SuccessfullAssignmentFn,
-                 const AfterUnsucessfullAssignmentFn &UnSuccessfullAssignmentFn) const;
+  private:
+    typedef std::function<void(const UePtrAndBufferReq&, const FTResources&)>
+        BeforeSchedFn; //!< Before scheduling function
+    /**
+     * \brief //!< Function to notify a successfull assignment
+     */
+    typedef std::function<void(const UePtrAndBufferReq&, const FTResources&, const FTResources&)>
+        AfterSuccessfullAssignmentFn;
+    /**
+     * \brief Function to notify that the UE did not get any resource in one iteration
+     */
+    typedef std::function<void(const UePtrAndBufferReq&, const FTResources&, const FTResources&)>
+        AfterUnsucessfullAssignmentFn;
+    typedef std::function<uint32_t&(const UePtr& ue)> GetRBGFn; //!< Getter for the RBG of an UE
+    typedef std::function<uint32_t(const UePtr& ue)> GetTBSFn;  //!< Getter for the TBS of an UE
+    typedef std::function<uint8_t&(const UePtr& ue)>
+        GetSymFn; //!< Getter for the number of symbols of an UE
+    typedef std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+        CompareUeFn;
+    typedef std::function<CompareUeFn()> GetCompareUeFn;
 
+    BeamSymbolMap AssignRBGTDMA(
+        uint32_t symAvail,
+        const ActiveUeMap& activeUe,
+        const std::string& type,
+        const BeforeSchedFn& BeforeSchedFn,
+        const GetCompareUeFn& GetCompareFn,
+        const GetTBSFn& GetTBSFn,
+        const GetRBGFn& GetRBGFn,
+        const GetSymFn& GetSymFn,
+        const AfterSuccessfullAssignmentFn& SuccessfullAssignmentFn,
+        const AfterUnsucessfullAssignmentFn& UnSuccessfullAssignmentFn) const;
 
-  std::shared_ptr<DciInfoElementTdma> CreateDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-                                                 std::vector<uint32_t> tbs, DciInfoElementTdma::DciFormat fmt,
-                                                 std::vector<uint8_t> mcs, std::vector<uint8_t> ndi,
-                                                 std::vector<uint8_t> rv, uint8_t numSym) const;
+    std::shared_ptr<DciInfoElementTdma> CreateDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        std::vector<uint32_t> tbs,
+        DciInfoElementTdma::DciFormat fmt,
+        std::vector<uint8_t> mcs,
+        std::vector<uint8_t> ndi,
+        std::vector<uint8_t> rv,
+        uint8_t numSym) const;
 };
 
 } // namespace ns3

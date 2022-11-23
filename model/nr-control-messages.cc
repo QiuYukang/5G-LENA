@@ -1,369 +1,354 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
-*   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-*
-*   This program is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License version 2 as
-*   published by the Free Software Foundation;
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*
-*/
+ *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License version 2 as
+ *   published by the Free Software Foundation;
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
-#include <ns3/log.h>
 #include "nr-control-messages.h"
 
-namespace ns3 {
+#include <ns3/log.h>
 
-NS_LOG_COMPONENT_DEFINE ("nrControlMessage");
-
-NrControlMessage::NrControlMessage (void)
+namespace ns3
 {
-  NS_LOG_INFO (this);
+
+NS_LOG_COMPONENT_DEFINE("nrControlMessage");
+
+NrControlMessage::NrControlMessage(void)
+{
+    NS_LOG_INFO(this);
 }
 
-NrControlMessage::~NrControlMessage (void)
+NrControlMessage::~NrControlMessage(void)
 {
-  NS_LOG_INFO (this);
+    NS_LOG_INFO(this);
 }
 
 void
-NrControlMessage::SetMessageType (messageType type)
+NrControlMessage::SetMessageType(messageType type)
 {
-  m_messageType = type;
+    m_messageType = type;
 }
 
 NrControlMessage::messageType
-NrControlMessage::GetMessageType (void) const
+NrControlMessage::GetMessageType(void) const
 {
-  return m_messageType;
+    return m_messageType;
 }
 
 void
-NrControlMessage::SetSourceBwp (uint16_t bwpId)
+NrControlMessage::SetSourceBwp(uint16_t bwpId)
 {
-  m_bwpId = bwpId;
+    m_bwpId = bwpId;
 }
 
 uint16_t
-NrControlMessage::GetSourceBwp () const
+NrControlMessage::GetSourceBwp() const
 {
-  NS_ABORT_IF (m_bwpId < 0);
-  return static_cast<uint16_t> (m_bwpId);
+    NS_ABORT_IF(m_bwpId < 0);
+    return static_cast<uint16_t>(m_bwpId);
 }
 
-NrSRMessage::NrSRMessage ()
+NrSRMessage::NrSRMessage()
 {
-  NS_LOG_INFO (this);
-  SetMessageType (NrControlMessage::SR);
+    NS_LOG_INFO(this);
+    SetMessageType(NrControlMessage::SR);
 }
 
-NrSRMessage::~NrSRMessage ()
+NrSRMessage::~NrSRMessage()
 {
-  NS_LOG_INFO (this);
+    NS_LOG_INFO(this);
 }
 
 void
-NrSRMessage::SetRNTI (uint16_t rnti)
+NrSRMessage::SetRNTI(uint16_t rnti)
 {
-  m_rnti = rnti;
+    m_rnti = rnti;
 }
 
 uint16_t
-NrSRMessage::GetRNTI () const
+NrSRMessage::GetRNTI() const
 {
-  return m_rnti;
+    return m_rnti;
 }
 
-NrDlDciMessage::NrDlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci)
-  : m_dciInfoElement (dci)
+NrDlDciMessage::NrDlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci)
+    : m_dciInfoElement(dci)
 {
-  NS_LOG_INFO (this);
-  SetMessageType (NrControlMessage::DL_DCI);
+    NS_LOG_INFO(this);
+    SetMessageType(NrControlMessage::DL_DCI);
 }
 
-NrDlDciMessage::~NrDlDciMessage (void)
+NrDlDciMessage::~NrDlDciMessage(void)
 {
-  NS_LOG_INFO (this);
-}
-
-std::shared_ptr<DciInfoElementTdma>
-NrDlDciMessage::GetDciInfoElement (void)
-{
-  return m_dciInfoElement;
-}
-
-void
-NrDlDciMessage::SetKDelay (uint32_t delay)
-{
-  m_k = delay;
-}
-
-void
-NrDlDciMessage::SetK1Delay (uint32_t delay)
-{
-  m_k1 = delay;
-}
-
-uint32_t
-NrDlDciMessage::GetKDelay (void) const
-{
-  return m_k;
-}
-
-uint32_t
-NrDlDciMessage::GetK1Delay (void) const
-{
-  return m_k1;
-}
-
-NrUlDciMessage::NrUlDciMessage (const std::shared_ptr<DciInfoElementTdma> &dci)
-  : m_dciInfoElement (dci)
-{
-  NS_LOG_INFO (this);
-  SetMessageType (NrControlMessage::UL_DCI);
-}
-
-NrUlDciMessage::~NrUlDciMessage (void)
-{
-  NS_LOG_INFO (this);
+    NS_LOG_INFO(this);
 }
 
 std::shared_ptr<DciInfoElementTdma>
-NrUlDciMessage::GetDciInfoElement (void)
+NrDlDciMessage::GetDciInfoElement(void)
 {
-  return m_dciInfoElement;
+    return m_dciInfoElement;
 }
 
 void
-NrUlDciMessage::SetKDelay (uint32_t delay)
+NrDlDciMessage::SetKDelay(uint32_t delay)
 {
-  m_k = delay;
+    m_k = delay;
+}
+
+void
+NrDlDciMessage::SetK1Delay(uint32_t delay)
+{
+    m_k1 = delay;
 }
 
 uint32_t
-NrUlDciMessage::GetKDelay (void) const
+NrDlDciMessage::GetKDelay(void) const
 {
-  return m_k;
+    return m_k;
 }
 
-NrDlCqiMessage::NrDlCqiMessage (void)
+uint32_t
+NrDlDciMessage::GetK1Delay(void) const
 {
-  SetMessageType (NrControlMessage::DL_CQI);
-  NS_LOG_INFO (this);
+    return m_k1;
 }
-NrDlCqiMessage::~NrDlCqiMessage (void)
+
+NrUlDciMessage::NrUlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci)
+    : m_dciInfoElement(dci)
 {
-  NS_LOG_INFO (this);
+    NS_LOG_INFO(this);
+    SetMessageType(NrControlMessage::UL_DCI);
+}
+
+NrUlDciMessage::~NrUlDciMessage(void)
+{
+    NS_LOG_INFO(this);
+}
+
+std::shared_ptr<DciInfoElementTdma>
+NrUlDciMessage::GetDciInfoElement(void)
+{
+    return m_dciInfoElement;
 }
 
 void
-NrDlCqiMessage::SetDlCqi (DlCqiInfo cqi)
+NrUlDciMessage::SetKDelay(uint32_t delay)
 {
-  m_cqi = cqi;
+    m_k = delay;
+}
+
+uint32_t
+NrUlDciMessage::GetKDelay(void) const
+{
+    return m_k;
+}
+
+NrDlCqiMessage::NrDlCqiMessage(void)
+{
+    SetMessageType(NrControlMessage::DL_CQI);
+    NS_LOG_INFO(this);
+}
+
+NrDlCqiMessage::~NrDlCqiMessage(void)
+{
+    NS_LOG_INFO(this);
+}
+
+void
+NrDlCqiMessage::SetDlCqi(DlCqiInfo cqi)
+{
+    m_cqi = cqi;
 }
 
 DlCqiInfo
-NrDlCqiMessage::GetDlCqi ()
+NrDlCqiMessage::GetDlCqi()
 {
-  return m_cqi;
+    return m_cqi;
 }
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrBsrMessage::NrBsrMessage (void)
+NrBsrMessage::NrBsrMessage(void)
 {
-  SetMessageType (NrControlMessage::BSR);
+    SetMessageType(NrControlMessage::BSR);
 }
 
-
-NrBsrMessage::~NrBsrMessage (void)
+NrBsrMessage::~NrBsrMessage(void)
 {
-
 }
 
 void
-NrBsrMessage::SetBsr (MacCeElement bsr)
+NrBsrMessage::SetBsr(MacCeElement bsr)
 {
-  m_bsr = bsr;
-
+    m_bsr = bsr;
 }
-
 
 MacCeElement
-NrBsrMessage::GetBsr (void)
+NrBsrMessage::GetBsr(void)
 {
-  return m_bsr;
+    return m_bsr;
 }
 
 // ----------------------------------------------------------------------------------------------------------
 
-
-
-NrMibMessage::NrMibMessage (void)
+NrMibMessage::NrMibMessage(void)
 {
-  SetMessageType (NrControlMessage::MIB);
+    SetMessageType(NrControlMessage::MIB);
 }
 
-
 void
-NrMibMessage::SetMib (LteRrcSap::MasterInformationBlock  mib)
+NrMibMessage::SetMib(LteRrcSap::MasterInformationBlock mib)
 {
-  m_mib = mib;
+    m_mib = mib;
 }
 
 LteRrcSap::MasterInformationBlock
-NrMibMessage::GetMib () const
+NrMibMessage::GetMib() const
 {
-  return m_mib;
+    return m_mib;
 }
-
 
 // ----------------------------------------------------------------------------------------------------------
 
-
-
-NrSib1Message::NrSib1Message (void)
+NrSib1Message::NrSib1Message(void)
 {
-  SetMessageType (NrControlMessage::SIB1);
+    SetMessageType(NrControlMessage::SIB1);
 }
 
-
 void
-NrSib1Message::SetSib1 (LteRrcSap::SystemInformationBlockType1 sib1)
+NrSib1Message::SetSib1(LteRrcSap::SystemInformationBlockType1 sib1)
 {
-  m_sib1 = sib1;
+    m_sib1 = sib1;
 }
 
 LteRrcSap::SystemInformationBlockType1
-NrSib1Message::GetSib1 () const
+NrSib1Message::GetSib1() const
 {
-  return m_sib1;
+    return m_sib1;
 }
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrRachPreambleMessage::NrRachPreambleMessage (void)
+NrRachPreambleMessage::NrRachPreambleMessage(void)
 {
-  SetMessageType (NrControlMessage::RACH_PREAMBLE);
+    SetMessageType(NrControlMessage::RACH_PREAMBLE);
 }
 
 NrRachPreambleMessage::~NrRachPreambleMessage()
 {
-
 }
 
 void
-NrRachPreambleMessage::SetRapId (uint32_t rapId)
+NrRachPreambleMessage::SetRapId(uint32_t rapId)
 {
-  m_rapId = rapId;
+    m_rapId = rapId;
 }
 
 uint32_t
-NrRachPreambleMessage::GetRapId () const
+NrRachPreambleMessage::GetRapId() const
 {
-  return m_rapId;
+    return m_rapId;
 }
 
 // ----------------------------------------------------------------------------------------------------------
 
-
-NrRarMessage::NrRarMessage (void)
+NrRarMessage::NrRarMessage(void)
 {
-  SetMessageType (NrControlMessage::RAR);
+    SetMessageType(NrControlMessage::RAR);
 }
 
 NrRarMessage::~NrRarMessage()
 {
-
 }
 
 void
-NrRarMessage::SetRaRnti (uint16_t raRnti)
+NrRarMessage::SetRaRnti(uint16_t raRnti)
 {
-  m_raRnti = raRnti;
+    m_raRnti = raRnti;
 }
 
 uint16_t
-NrRarMessage::GetRaRnti () const
+NrRarMessage::GetRaRnti() const
 {
-  return m_raRnti;
+    return m_raRnti;
 }
 
 void
-NrRarMessage::AddRar (Rar rar)
+NrRarMessage::AddRar(Rar rar)
 {
-  m_rarList.push_back (rar);
+    m_rarList.push_back(rar);
 }
 
 std::list<NrRarMessage::Rar>::const_iterator
-NrRarMessage::RarListBegin () const
+NrRarMessage::RarListBegin() const
 {
-  return m_rarList.begin ();
+    return m_rarList.begin();
 }
 
 std::list<NrRarMessage::Rar>::const_iterator
-NrRarMessage::RarListEnd () const
+NrRarMessage::RarListEnd() const
 {
-  return m_rarList.end ();
+    return m_rarList.end();
 }
 
-NrDlHarqFeedbackMessage::NrDlHarqFeedbackMessage (void)
+NrDlHarqFeedbackMessage::NrDlHarqFeedbackMessage(void)
 {
-  SetMessageType (NrControlMessage::DL_HARQ);
+    SetMessageType(NrControlMessage::DL_HARQ);
 }
 
-
-NrDlHarqFeedbackMessage::~NrDlHarqFeedbackMessage (void)
+NrDlHarqFeedbackMessage::~NrDlHarqFeedbackMessage(void)
 {
-
 }
 
 void
-NrDlHarqFeedbackMessage::SetDlHarqFeedback (DlHarqInfo m)
+NrDlHarqFeedbackMessage::SetDlHarqFeedback(DlHarqInfo m)
 {
-  m_dlHarqInfo = m;
+    m_dlHarqInfo = m;
 }
-
 
 DlHarqInfo
-NrDlHarqFeedbackMessage::GetDlHarqFeedback (void)
+NrDlHarqFeedbackMessage::GetDlHarqFeedback(void)
 {
-  return m_dlHarqInfo;
+    return m_dlHarqInfo;
 }
 
-NrSrsMessage::NrSrsMessage ()
+NrSrsMessage::NrSrsMessage()
 {
-  SetMessageType (NrControlMessage::SRS);
+    SetMessageType(NrControlMessage::SRS);
 }
 
-std::ostream &
-operator<< (std::ostream &os, const LteNrTddSlotType &item)
+std::ostream&
+operator<<(std::ostream& os, const LteNrTddSlotType& item)
 {
-  switch (item)
+    switch (item)
     {
     case LteNrTddSlotType::DL:
-      os << "DL";
-      break;
+        os << "DL";
+        break;
     case LteNrTddSlotType::F:
-      os << "F";
-      break;
+        os << "F";
+        break;
     case LteNrTddSlotType::S:
-      os << "S";
-      break;
+        os << "S";
+        break;
     case LteNrTddSlotType::UL:
-      os << "UL";
-      break;
+        os << "UL";
+        break;
     }
-  return os;
+    return os;
 }
 
-}
-
+} // namespace ns3

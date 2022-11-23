@@ -22,7 +22,8 @@
 
 #include "nr-mac-header-vs.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -44,53 +45,54 @@ namespace ns3 {
  */
 class NrMacHeaderVsUl : public NrMacHeaderVs
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const override;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    virtual TypeId GetInstanceTypeId(void) const override;
 
-  /**
-   * \brief NrMacHeaderVsUl constructor
-   */
-  NrMacHeaderVsUl ();
+    /**
+     * \brief NrMacHeaderVsUl constructor
+     */
+    NrMacHeaderVsUl();
 
-  /**
-   * \brief ~NrMacHeaderVsUl
-   */
-  virtual ~NrMacHeaderVsUl ();
+    /**
+     * \brief ~NrMacHeaderVsUl
+     */
+    virtual ~NrMacHeaderVsUl();
 
-  // const uint8_t CCCH_LARGE  = 0, //!< CCCH of size 64 bit (is it fixed or variable?)
-  // const uint8_t CCCH_SMALL = 52, //!< CCCH of size 48 (is it fixed or variable?)
+    // const uint8_t CCCH_LARGE  = 0, //!< CCCH of size 64 bit (is it fixed or variable?)
+    // const uint8_t CCCH_SMALL = 52, //!< CCCH of size 48 (is it fixed or variable?)
 
-  static const uint8_t MULTIPLE_ENTRY_PHR_FOUR_OCTECT = 54;  //!< Multiple entry PHR (four octect C_i)
-  static const uint8_t MULTIPLE_ENTRY_PHR_ONE_OCTET = 56;    //!< Multiple entry PHR (one octect C_i)
-  static const uint8_t LONG_TRUNCATED_BSR = 60;              //!< Long Truncated BSR
-  static const uint8_t LONG_BSR = 62;                        //!< Long BSR
+    static const uint8_t MULTIPLE_ENTRY_PHR_FOUR_OCTECT =
+        54; //!< Multiple entry PHR (four octect C_i)
+    static const uint8_t MULTIPLE_ENTRY_PHR_ONE_OCTET = 56; //!< Multiple entry PHR (one octect C_i)
+    static const uint8_t LONG_TRUNCATED_BSR = 60;           //!< Long Truncated BSR
+    static const uint8_t LONG_BSR = 62;                     //!< Long BSR
 
-  /**
-   * \brief Set the LC ID
-   * \param lcId LC ID
-   *
-   * It will assert if the value is not inside the vector of allowed one.
-   * To not make any error, please use one of the pre-defined const values in
-   * this class.
-   */
-  virtual void SetLcId (uint8_t lcId) override;
+    /**
+     * \brief Set the LC ID
+     * \param lcId LC ID
+     *
+     * It will assert if the value is not inside the vector of allowed one.
+     * To not make any error, please use one of the pre-defined const values in
+     * this class.
+     */
+    virtual void SetLcId(uint8_t lcId) override;
 
-  /**
-   * \brief Check if it really a variable-size header
-   * \return true if the lcId value stored internally matches with a variable-size header
-   */
-  bool IsVariableSizeHeader () const;
+    /**
+     * \brief Check if it really a variable-size header
+     * \return true if the lcId value stored internally matches with a variable-size header
+     */
+    bool IsVariableSizeHeader() const;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* NR_MAC_HEADER_VS_UL_H */

@@ -22,7 +22,8 @@
 #include "nr-eesm-cc.h"
 #include "nr-eesm-t1.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup error-models
@@ -33,31 +34,31 @@ namespace ns3 {
  */
 class NrEesmCcT1 : public NrEesmCc
 {
-public:
-  /**
-   * \brief Get the type id of the object
-   * \return the type id of the object
-   */
-  static TypeId GetTypeId (void);
-  /**
-   * \brief NrEesmCcT1 constructor
-   */
-  NrEesmCcT1 ();
-  /**
-   * \brief ~NrEesmCcT1 deconstructor
-   */
-  virtual ~NrEesmCcT1 ();
+  public:
+    /**
+     * \brief Get the type id of the object
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief NrEesmCcT1 constructor
+     */
+    NrEesmCcT1();
+    /**
+     * \brief ~NrEesmCcT1 deconstructor
+     */
+    virtual ~NrEesmCcT1();
 
-protected:
-  virtual const std::vector<double> * GetBetaTable () const override;
-  virtual const std::vector<double> * GetMcsEcrTable () const override;
-  virtual const SimulatedBlerFromSINR * GetSimulatedBlerFromSINR () const override;
-  virtual const std::vector<uint8_t> * GetMcsMTable () const override;
-  virtual const std::vector<double> * GetSpectralEfficiencyForMcs () const override;
-  virtual const std::vector<double> * GetSpectralEfficiencyForCqi () const override;
+  protected:
+    virtual const std::vector<double>* GetBetaTable() const override;
+    virtual const std::vector<double>* GetMcsEcrTable() const override;
+    virtual const SimulatedBlerFromSINR* GetSimulatedBlerFromSINR() const override;
+    virtual const std::vector<uint8_t>* GetMcsMTable() const override;
+    virtual const std::vector<double>* GetSpectralEfficiencyForMcs() const override;
+    virtual const std::vector<double>* GetSpectralEfficiencyForCqi() const override;
 
-private:
-  NrEesmT1 m_t1; //!< The reference table
+  private:
+    NrEesmT1 m_t1; //!< The reference table
 };
 
 } // namespace ns3

@@ -17,18 +17,19 @@
  *
  */
 
-#include "ns3/test.h"
 #include "system-scheduler-test.h"
+
+#include "ns3/test.h"
 
 using namespace ns3;
 
 /**
-  * \file nr-system-test-schedulers-tdma-pf.cc
-  * \ingroup test
-  *
-  * \brief System test for TDMA - Proportional Fair scheduler.  It checks that all the
-  * packets sent are delivered correctly.
-  */
+ * \file nr-system-test-schedulers-tdma-pf.cc
+ * \ingroup test
+ *
+ * \brief System test for TDMA - Proportional Fair scheduler.  It checks that all the
+ * packets sent are delivered correctly.
+ */
 
 /**
  * \brief The TDMA PF scheduler system test suite
@@ -43,66 +44,76 @@ using namespace ns3;
  */
 class NrSystemTestSchedulerTdmaPfSuite : public TestSuite
 {
-public:
-  /**
-   * \brief constructor
-   */
-  NrSystemTestSchedulerTdmaPfSuite ();
+  public:
+    /**
+     * \brief constructor
+     */
+    NrSystemTestSchedulerTdmaPfSuite();
 };
 
-NrSystemTestSchedulerTdmaPfSuite::NrSystemTestSchedulerTdmaPfSuite ()
-: TestSuite ("nr-system-test-schedulers-tdma-pf", SYSTEM)
+NrSystemTestSchedulerTdmaPfSuite::NrSystemTestSchedulerTdmaPfSuite()
+    : TestSuite("nr-system-test-schedulers-tdma-pf", SYSTEM)
 {
-  enum TxMode
-  {
-    DL,
-    UL,
-    DL_UL
-  };
-
-  std::list<std::string> subdivision     = {"Tdma",};
-  std::list<std::string> scheds          = {"PF"};
-  std::list<TxMode>      mode            = {DL, UL, DL_UL};
-  std::list<uint32_t>    uesPerBeamList  = {1, 2, 4, 8};
-  std::list<uint32_t>    beams           = {1, 2};
-  std::list<uint32_t>    numerologies    = {0, 1, }; // Test only num 0 and 1
-
-  for (const auto & num : numerologies)
+    enum TxMode
     {
-      for (const auto & subType : subdivision)
+        DL,
+        UL,
+        DL_UL
+    };
+
+    std::list<std::string> subdivision = {
+        "Tdma",
+    };
+    std::list<std::string> scheds = {"PF"};
+    std::list<TxMode> mode = {DL, UL, DL_UL};
+    std::list<uint32_t> uesPerBeamList = {1, 2, 4, 8};
+    std::list<uint32_t> beams = {1, 2};
+    std::list<uint32_t> numerologies = {
+        0,
+        1,
+    }; // Test only num 0 and 1
+
+    for (const auto& num : numerologies)
+    {
+        for (const auto& subType : subdivision)
         {
-          for (const auto & sched : scheds)
+            for (const auto& sched : scheds)
             {
-              for (const auto & modeType : mode)
+                for (const auto& modeType : mode)
                 {
-                  for (const auto & uesPerBeam : uesPerBeamList)
+                    for (const auto& uesPerBeam : uesPerBeamList)
                     {
-                      for (const auto & beam : beams)
+                        for (const auto& beam : beams)
                         {
-                          std::stringstream ss, schedName;
-                          if (modeType == DL)
+                            std::stringstream ss, schedName;
+                            if (modeType == DL)
                             {
-                              ss << "DL";
+                                ss << "DL";
                             }
-                          else if (modeType == UL)
+                            else if (modeType == UL)
                             {
-                              ss << "UL";
+                                ss << "UL";
                             }
-                          else
+                            else
                             {
-                              ss << "DL_UL";
+                                ss << "DL_UL";
                             }
-                          ss << ", Num " << num << ", " << subType << " " << sched << ", "
-                             << uesPerBeam << " UE per beam, " << beam << " beam";
-                          const bool isDl = modeType == DL || modeType == DL_UL;
-                          const bool isUl = modeType == UL || modeType == DL_UL;
+                            ss << ", Num " << num << ", " << subType << " " << sched << ", "
+                               << uesPerBeam << " UE per beam, " << beam << " beam";
+                            const bool isDl = modeType == DL || modeType == DL_UL;
+                            const bool isUl = modeType == UL || modeType == DL_UL;
 
-                          schedName << "ns3::NrMacScheduler" << subType << sched;
+                            schedName << "ns3::NrMacScheduler" << subType << sched;
 
-                          AddTestCase (new SystemSchedulerTest (ss.str(), uesPerBeam, beam, num,
-                                                                       20e6, isDl, isUl,
-                                                                       schedName.str()),
-                                       TestCase::QUICK);
+                            AddTestCase(new SystemSchedulerTest(ss.str(),
+                                                                uesPerBeam,
+                                                                beam,
+                                                                num,
+                                                                20e6,
+                                                                isDl,
+                                                                isUl,
+                                                                schedName.str()),
+                                        TestCase::QUICK);
                         }
                     }
                 }
@@ -113,5 +124,3 @@ NrSystemTestSchedulerTdmaPfSuite::NrSystemTestSchedulerTdmaPfSuite ()
 
 // Do not forget to allocate an instance of this TestSuite
 static NrSystemTestSchedulerTdmaPfSuite mmwaveTestSuite;
-
-

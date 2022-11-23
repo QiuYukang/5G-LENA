@@ -17,14 +17,15 @@
  *
  */
 
-
 #ifndef SRC_NR_MODEL_NR_NET_DEVICE_H_
 #define SRC_NR_MODEL_NR_NET_DEVICE_H_
 
-#include <ns3/net-device.h>
 #include "nr-phy.h"
 
-namespace ns3 {
+#include <ns3/net-device.h>
+
+namespace ns3
+{
 
 class Node;
 class Packet;
@@ -38,64 +39,66 @@ class Packet;
  */
 class NrNetDevice : public NetDevice
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the object type id
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the object type id
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief NrNetDevice
-   */
-  NrNetDevice (void);
-  /**
-   * \brief ~NrNetDevice
-   */
-  virtual ~NrNetDevice (void);
+    /**
+     * \brief NrNetDevice
+     */
+    NrNetDevice(void);
+    /**
+     * \brief ~NrNetDevice
+     */
+    virtual ~NrNetDevice(void);
 
-  // inherit
-  virtual void SetIfIndex (const uint32_t index);
-  virtual uint32_t GetIfIndex (void) const;
-  virtual Ptr<Channel> GetChannel (void) const;
-  virtual void SetAddress (Address address);
-  virtual Address GetAddress (void) const;
-  virtual bool SetMtu (const uint16_t mtu);
-  virtual uint16_t GetMtu (void) const;
-  virtual bool IsLinkUp (void) const;
-  virtual void AddLinkChangeCallback (Callback<void> callback);
-  virtual bool IsBroadcast (void) const;
-  virtual Address GetBroadcast (void) const;
-  virtual bool IsMulticast (void) const;
-  virtual Address GetMulticast (Ipv4Address multicastGroup) const;
-  virtual bool IsBridge (void) const;
-  virtual bool IsPointToPoint (void) const;
-  virtual bool SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber);
-  virtual Ptr<Node> GetNode (void) const;
-  virtual void SetNode (Ptr<Node> node);
-  virtual bool NeedsArp (void) const;
-  virtual Address GetMulticast (Ipv6Address addr) const;
-  virtual void SetReceiveCallback (ReceiveCallback cb);
-  virtual void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
-  virtual bool SupportsSendFrom (void) const;
-  virtual bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
-  void Receive (Ptr<Packet> p);
+    // inherit
+    virtual void SetIfIndex(const uint32_t index);
+    virtual uint32_t GetIfIndex(void) const;
+    virtual Ptr<Channel> GetChannel(void) const;
+    virtual void SetAddress(Address address);
+    virtual Address GetAddress(void) const;
+    virtual bool SetMtu(const uint16_t mtu);
+    virtual uint16_t GetMtu(void) const;
+    virtual bool IsLinkUp(void) const;
+    virtual void AddLinkChangeCallback(Callback<void> callback);
+    virtual bool IsBroadcast(void) const;
+    virtual Address GetBroadcast(void) const;
+    virtual bool IsMulticast(void) const;
+    virtual Address GetMulticast(Ipv4Address multicastGroup) const;
+    virtual bool IsBridge(void) const;
+    virtual bool IsPointToPoint(void) const;
+    virtual bool SendFrom(Ptr<Packet> packet,
+                          const Address& source,
+                          const Address& dest,
+                          uint16_t protocolNumber);
+    virtual Ptr<Node> GetNode(void) const;
+    virtual void SetNode(Ptr<Node> node);
+    virtual bool NeedsArp(void) const;
+    virtual Address GetMulticast(Ipv6Address addr) const;
+    virtual void SetReceiveCallback(ReceiveCallback cb);
+    virtual void SetPromiscReceiveCallback(PromiscReceiveCallback cb);
+    virtual bool SupportsSendFrom(void) const;
+    virtual bool Send(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
+    void Receive(Ptr<Packet> p);
 
-protected:
-  virtual void DoDispose (void);
+  protected:
+    virtual void DoDispose(void);
 
-  NetDevice::ReceiveCallback m_rxCallback;
-  virtual bool DoSend (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
+    NetDevice::ReceiveCallback m_rxCallback;
+    virtual bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
 
-private:
-  Mac48Address m_macaddress;
-  Ptr<Node> m_node;
-  mutable uint16_t m_mtu;
-  bool m_linkUp;
-  uint32_t m_ifIndex;
-
+  private:
+    Mac48Address m_macaddress;
+    Ptr<Node> m_node;
+    mutable uint16_t m_mtu;
+    bool m_linkUp;
+    uint32_t m_ifIndex;
 };
 
-}
+} // namespace ns3
 
 #endif /* SRC_NR_MODEL_NR_NET_DEVICE_H_ */

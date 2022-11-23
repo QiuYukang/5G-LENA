@@ -21,58 +21,60 @@
  */
 
 #include "file-transfer-helper.h"
+
 #include "ns3/inet-socket-address.h"
+#include "ns3/names.h"
 #include "ns3/packet-socket-address.h"
 #include "ns3/string.h"
-#include "ns3/names.h"
 
-namespace ns3 {
-
-FileTransferHelper::FileTransferHelper (std::string protocol, Address address)
+namespace ns3
 {
-  m_factory.SetTypeId ("ns3::FileTransferApplication");
-  m_factory.Set ("Protocol", StringValue (protocol));
-  m_factory.Set ("Remote", AddressValue (address));
+
+FileTransferHelper::FileTransferHelper(std::string protocol, Address address)
+{
+    m_factory.SetTypeId("ns3::FileTransferApplication");
+    m_factory.Set("Protocol", StringValue(protocol));
+    m_factory.Set("Remote", AddressValue(address));
 }
 
 void
-FileTransferHelper::SetAttribute (std::string name, const AttributeValue &value)
+FileTransferHelper::SetAttribute(std::string name, const AttributeValue& value)
 {
-  m_factory.Set (name, value);
+    m_factory.Set(name, value);
 }
 
 ApplicationContainer
-FileTransferHelper::Install (Ptr<Node> node) const
+FileTransferHelper::Install(Ptr<Node> node) const
 {
-  return ApplicationContainer (InstallPriv (node));
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-FileTransferHelper::Install (std::string nodeName) const
+FileTransferHelper::Install(std::string nodeName) const
 {
-  Ptr<Node> node = Names::Find<Node> (nodeName);
-  return ApplicationContainer (InstallPriv (node));
+    Ptr<Node> node = Names::Find<Node>(nodeName);
+    return ApplicationContainer(InstallPriv(node));
 }
 
 ApplicationContainer
-FileTransferHelper::Install (NodeContainer c) const
+FileTransferHelper::Install(NodeContainer c) const
 {
-  ApplicationContainer apps;
-  for (NodeContainer::Iterator i = c.Begin (); i != c.End (); ++i)
+    ApplicationContainer apps;
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
-      apps.Add (InstallPriv (*i));
+        apps.Add(InstallPriv(*i));
     }
 
-  return apps;
+    return apps;
 }
 
 Ptr<Application>
-FileTransferHelper::InstallPriv (Ptr<Node> node) const
+FileTransferHelper::InstallPriv(Ptr<Node> node) const
 {
-  Ptr<Application> app = m_factory.Create<Application> ();
-  node->AddApplication (app);
+    Ptr<Application> app = m_factory.Create<Application>();
+    node->AddApplication(app);
 
-  return app;
+    return app;
 }
 
 } // namespace ns3

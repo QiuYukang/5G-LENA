@@ -19,94 +19,91 @@
 
 #include "bandwidth-part-ue.h"
 
-#include <ns3/uinteger.h>
-#include <ns3/boolean.h>
-#include <ns3/simulator.h>
-#include <ns3/log.h>
 #include <ns3/abort.h>
-#include <ns3/nr-ue-phy.h>
+#include <ns3/boolean.h>
+#include <ns3/log.h>
 #include <ns3/nr-ue-mac.h>
+#include <ns3/nr-ue-phy.h>
 #include <ns3/pointer.h>
+#include <ns3/simulator.h>
+#include <ns3/uinteger.h>
 
-namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("BandwidthPartUe");
-
-NS_OBJECT_ENSURE_REGISTERED (BandwidthPartUe);
-
-TypeId BandwidthPartUe::GetTypeId (void)
+namespace ns3
 {
-  static TypeId
-    tid =
-    TypeId ("ns3::BandwidthPartUe")
-    .SetParent<ComponentCarrier> ()
-    .AddConstructor<BandwidthPartUe> ()
-    .AddAttribute ("NrUePhy",
-                   "The PHY associated to this BandwidthPartUe",
-                   PointerValue (),
-                   MakePointerAccessor (&BandwidthPartUe::m_phy),
-                   MakePointerChecker <NrUePhy> ())
-    .AddAttribute ("NrUeMac",
-                   "The MAC associated to this BandwidthPartUe",
-                   PointerValue (),
-                   MakePointerAccessor (&BandwidthPartUe::m_mac),
-                   MakePointerChecker <NrUeMac> ())
-  ;
-  return tid;
-}
-BandwidthPartUe::BandwidthPartUe ()
-  : ComponentCarrier()
+
+NS_LOG_COMPONENT_DEFINE("BandwidthPartUe");
+
+NS_OBJECT_ENSURE_REGISTERED(BandwidthPartUe);
+
+TypeId
+BandwidthPartUe::GetTypeId(void)
 {
-  NS_LOG_FUNCTION (this);
-  m_phy = nullptr;
+    static TypeId tid = TypeId("ns3::BandwidthPartUe")
+                            .SetParent<ComponentCarrier>()
+                            .AddConstructor<BandwidthPartUe>()
+                            .AddAttribute("NrUePhy",
+                                          "The PHY associated to this BandwidthPartUe",
+                                          PointerValue(),
+                                          MakePointerAccessor(&BandwidthPartUe::m_phy),
+                                          MakePointerChecker<NrUePhy>())
+                            .AddAttribute("NrUeMac",
+                                          "The MAC associated to this BandwidthPartUe",
+                                          PointerValue(),
+                                          MakePointerAccessor(&BandwidthPartUe::m_mac),
+                                          MakePointerChecker<NrUeMac>());
+    return tid;
 }
 
-BandwidthPartUe::~BandwidthPartUe (void)
+BandwidthPartUe::BandwidthPartUe()
+    : ComponentCarrier()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
+    m_phy = nullptr;
 }
 
-void
-BandwidthPartUe::DoDispose ()
+BandwidthPartUe::~BandwidthPartUe(void)
 {
-  NS_LOG_FUNCTION (this);
-  m_phy->Dispose ();
-  m_phy = nullptr;
-  m_mac->Dispose ();
-  m_mac = nullptr;
-  Object::DoDispose ();
+    NS_LOG_FUNCTION(this);
 }
 
 void
-BandwidthPartUe::SetPhy (Ptr<NrUePhy> s)
+BandwidthPartUe::DoDispose()
 {
-  NS_LOG_FUNCTION (this);
-  NS_ABORT_IF (m_phy != nullptr);
-  m_phy = s;
+    NS_LOG_FUNCTION(this);
+    m_phy->Dispose();
+    m_phy = nullptr;
+    m_mac->Dispose();
+    m_mac = nullptr;
+    Object::DoDispose();
 }
 
+void
+BandwidthPartUe::SetPhy(Ptr<NrUePhy> s)
+{
+    NS_LOG_FUNCTION(this);
+    NS_ABORT_IF(m_phy != nullptr);
+    m_phy = s;
+}
 
 Ptr<NrUePhy>
-BandwidthPartUe::GetPhy () const
+BandwidthPartUe::GetPhy() const
 {
-  NS_LOG_FUNCTION (this);
-  return m_phy;
+    NS_LOG_FUNCTION(this);
+    return m_phy;
 }
 
 void
-BandwidthPartUe::SetMac (Ptr<NrUeMac> s)
+BandwidthPartUe::SetMac(Ptr<NrUeMac> s)
 {
-  NS_LOG_FUNCTION (this);
-  m_mac = s;
+    NS_LOG_FUNCTION(this);
+    m_mac = s;
 }
 
 Ptr<NrUeMac>
-BandwidthPartUe::GetMac () const
+BandwidthPartUe::GetMac() const
 {
-  NS_LOG_FUNCTION (this);
-  return m_mac;
+    NS_LOG_FUNCTION(this);
+    return m_mac;
 }
 
 } // namespace ns3
-
-

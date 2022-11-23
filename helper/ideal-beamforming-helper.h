@@ -18,14 +18,16 @@
  */
 
 #include "beamforming-helper-base.h"
-#include <ns3/nstime.h>
+
 #include "ns3/event-id.h"
 #include <ns3/beamforming-vector.h>
+#include <ns3/nstime.h>
 
 #ifndef SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
 
-namespace ns3 {
+namespace ns3
+{
 
 class NrGnbNetDevice;
 class NrUeNetDevice;
@@ -37,80 +39,81 @@ class IdealBeamformingAlgorithm;
  */
 class IdealBeamformingHelper : public BeamformingHelperBase
 {
-public:
-  /**
-   * \brief IdealBeamformingHelper
-   */
-  IdealBeamformingHelper ();
-  /**
-   * \brief ~IdealBeamformingHelper
-   */
-  virtual ~IdealBeamformingHelper ();
+  public:
+    /**
+     * \brief IdealBeamformingHelper
+     */
+    IdealBeamformingHelper();
+    /**
+     * \brief ~IdealBeamformingHelper
+     */
+    virtual ~IdealBeamformingHelper();
 
-  /**
-   * \brief Get the Type ID
-   * \return the TypeId of the instance
-   */
-  static TypeId GetTypeId (void);
+    /**
+     * \brief Get the Type ID
+     * \return the TypeId of the instance
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief SetBeamformingMethod
-   * \param beamformingMethod
-   */
-  virtual void SetBeamformingMethod (const TypeId &beamformingMethod) override;
+    /**
+     * \brief SetBeamformingMethod
+     * \param beamformingMethod
+     */
+    virtual void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 
-  /**
-   * \brief SetIdealBeamformingPeriodicity
-   * \param v
-   */
-  void SetPeriodicity (const Time &v);
-  /**
-   * \brief GetIdealBeamformingPeriodicity
-   * \return
-   */
-  Time GetPeriodicity () const;
+    /**
+     * \brief SetIdealBeamformingPeriodicity
+     * \param v
+     */
+    void SetPeriodicity(const Time& v);
+    /**
+     * \brief GetIdealBeamformingPeriodicity
+     * \return
+     */
+    Time GetPeriodicity() const;
 
-  /**
-   * \brief Run beamforming task
-   */
-  virtual void Run () const;
+    /**
+     * \brief Run beamforming task
+     */
+    virtual void Run() const;
 
-  /**
-   * \brief Specify among which devices the beamforming algorithm should be
-   * performed
-   * \param gNbDev gNB device
-   * \param ueDev UE device
-   */
-  virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                   const Ptr<NrUeNetDevice>& ueDev) override;
+    /**
+     * \brief Specify among which devices the beamforming algorithm should be
+     * performed
+     * \param gNbDev gNB device
+     * \param ueDev UE device
+     */
+    virtual void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
+                                    const Ptr<NrUeNetDevice>& ueDev) override;
 
-protected:
+  protected:
+    // inherited from Object
+    virtual void DoInitialize(void) override;
 
-  // inherited from Object
-  virtual void DoInitialize (void) override;
+    /**
+     * \brief The beamforming timer has expired; at the next slot, perform beamforming.
+     *
+     */
+    virtual void ExpireBeamformingTimer();
 
-  /**
-   * \brief The beamforming timer has expired; at the next slot, perform beamforming.
-   *
-   */
-  virtual void ExpireBeamformingTimer ();
+    virtual BeamformingVectorPair GetBeamformingVectors(
+        const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
+    Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming
+                                   //!< tasks will be executed
+    EventId m_beamformingTimer;    //!< Beamforming timer that is used to schedule periodical
+                                   //!< beamforming vector updates
+    Ptr<IdealBeamformingAlgorithm>
+        m_beamformingAlgorithm; //!< The beamforming algorithm that will be used
 
-  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
-                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
+    typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy>> SpectrumPhyPair;
+    typedef std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice>>
+        DevicePair; //!< The list of beamforming tasks to be executed
 
-  Time m_beamformingPeriodicity; //!< The beamforming periodicity or how frequently beamforming tasks will be executed
-  EventId m_beamformingTimer; //!< Beamforming timer that is used to schedule periodical beamforming vector updates
-  Ptr<IdealBeamformingAlgorithm> m_beamformingAlgorithm; //!< The beamforming algorithm that will be used
-
-  typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy> > SpectrumPhyPair;
-  typedef std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice> > DevicePair; //!< The list of beamforming tasks to be executed
-
-  std::map <SpectrumPhyPair, DevicePair> m_spectrumPhyPairToDevicePair;
-
+    std::map<SpectrumPhyPair, DevicePair> m_spectrumPhyPairToDevicePair;
 };
 
-}; //ns3 namespace
-
+}; // namespace ns3
 
 #endif /* SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_ */

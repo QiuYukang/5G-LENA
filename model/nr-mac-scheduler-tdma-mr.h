@@ -20,7 +20,8 @@
 
 #include "nr-mac-scheduler-tdma-rr.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup scheduler
@@ -33,49 +34,49 @@ namespace ns3 {
  */
 class NrMacSchedulerTdmaMR : public NrMacSchedulerTdmaRR
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return The TypeId of the class
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief GetTypeId
+     * \return The TypeId of the class
+     */
+    static TypeId GetTypeId(void);
 
-  /**
-   * \brief NrMacSchedulerTdmaMR constructor
-   */
-  NrMacSchedulerTdmaMR ();
+    /**
+     * \brief NrMacSchedulerTdmaMR constructor
+     */
+    NrMacSchedulerTdmaMR();
 
-  /**
-   * \brief ~NrMacSchedulerTdmaMR deconstructor
-   */
-  virtual ~NrMacSchedulerTdmaMR () override
-  {
-  }
+    /**
+     * \brief ~NrMacSchedulerTdmaMR deconstructor
+     */
+    virtual ~NrMacSchedulerTdmaMR() override
+    {
+    }
 
-protected:
-  /**
-   * \brief Create an UE representation of the type NrMacSchedulerUeInfoMR
-   * \param params parameters
-   * \return NrMacSchedulerUeInfoRR instance
-   */
-  virtual std::shared_ptr<NrMacSchedulerUeInfo>
-  CreateUeRepresentation (const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
+  protected:
+    /**
+     * \brief Create an UE representation of the type NrMacSchedulerUeInfoMR
+     * \param params parameters
+     * \return NrMacSchedulerUeInfoRR instance
+     */
+    virtual std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
+        const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
-  /**
-   * \brief Return the comparison function to sort DL UE according to the scheduler policy
-   * \return a pointer to NrMacSchedulerUeInfoMR::CompareUeWeightsDl
-   */
-  virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
-                             const NrMacSchedulerNs3::UePtrAndBufferReq &rhs )>
-  GetUeCompareDlFn () const override;
+    /**
+     * \brief Return the comparison function to sort DL UE according to the scheduler policy
+     * \return a pointer to NrMacSchedulerUeInfoMR::CompareUeWeightsDl
+     */
+    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    GetUeCompareDlFn() const override;
 
-  /**
-   * \brief Return the comparison function to sort UL UE according to the scheduler policy
-   * \return a pointer to NrMacSchedulerUeInfoMR::CompareUeWeightsUl
-   */
-  virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq &lhs,
-                             const NrMacSchedulerNs3::UePtrAndBufferReq &rhs )>
-  GetUeCompareUlFn () const override;
+    /**
+     * \brief Return the comparison function to sort UL UE according to the scheduler policy
+     * \return a pointer to NrMacSchedulerUeInfoMR::CompareUeWeightsUl
+     */
+    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    GetUeCompareUlFn() const override;
 };
 
 } // namespace ns3

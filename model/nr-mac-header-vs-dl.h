@@ -22,7 +22,8 @@
 
 #include "nr-mac-header-vs.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -44,51 +45,53 @@ namespace ns3 {
  */
 class NrMacHeaderVsDl : public NrMacHeaderVs
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const override;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    virtual TypeId GetInstanceTypeId(void) const override;
 
-  /**
-   * \brief NrMacHeaderVsDl constructor
-   */
-  NrMacHeaderVsDl ();
+    /**
+     * \brief NrMacHeaderVsDl constructor
+     */
+    NrMacHeaderVsDl();
 
-  /**
-   * \brief ~NrMacHeaderVsDl
-   */
-  virtual ~NrMacHeaderVsDl ();
+    /**
+     * \brief ~NrMacHeaderVsDl
+     */
+    virtual ~NrMacHeaderVsDl();
 
-  // const uint8_t CCCH = 0;          //!< CCCH  (is it fixed or variable?)
-  static const uint8_t SP_SRS = 50;          //!< SP SRS Activation/Deactivation
-  static const uint8_t TCI_STATES_PDSCH = 53;//!< TCI States Activation/Deactivation for UE-specific PDSCH
-  static const uint8_t APERIODIC_CSI = 54;   //!< Aperiodic CSI Trigger State Subselection
-  static const uint8_t SP_CSI_RS_IM = 55;    //!< SP CSI-RS / CSI-IM Resource Set Activation/Deactivation
+    // const uint8_t CCCH = 0;          //!< CCCH  (is it fixed or variable?)
+    static const uint8_t SP_SRS = 50; //!< SP SRS Activation/Deactivation
+    static const uint8_t TCI_STATES_PDSCH =
+        53; //!< TCI States Activation/Deactivation for UE-specific PDSCH
+    static const uint8_t APERIODIC_CSI = 54; //!< Aperiodic CSI Trigger State Subselection
+    static const uint8_t SP_CSI_RS_IM =
+        55; //!< SP CSI-RS / CSI-IM Resource Set Activation/Deactivation
 
-  /**
-   * \brief Set the LC ID
-   * \param lcId LC ID
-   *
-   * It will assert if the value is not inside the vector of allowed one.
-   * To not make any error, please use one of the pre-defined const values in
-   * this class.
-   */
-  virtual void SetLcId (uint8_t lcId) override;
+    /**
+     * \brief Set the LC ID
+     * \param lcId LC ID
+     *
+     * It will assert if the value is not inside the vector of allowed one.
+     * To not make any error, please use one of the pre-defined const values in
+     * this class.
+     */
+    virtual void SetLcId(uint8_t lcId) override;
 
-  /**
-   * \brief Check if it really a variable-size header
-   * \return true if the lcId value stored internally matches with a variable-size header
-   */
-  bool IsVariableSizeHeader () const;
+    /**
+     * \brief Check if it really a variable-size header
+     * \return true if the lcId value stored internally matches with a variable-size header
+     */
+    bool IsVariableSizeHeader() const;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* NR_MAC_HEADER_VS_DL_H */

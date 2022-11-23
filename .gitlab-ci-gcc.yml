@@ -74,7 +74,7 @@ gcc-10-optimized:
   image: gcc:10
   variables:
     MODE: optimized
-    
+
 # GCC 11
 gcc-11-debug:
   extends: .build-gcc

@@ -21,7 +21,8 @@
 
 #include "nr-eesm-error-model.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup error-models
@@ -45,50 +46,53 @@ namespace ns3 {
  */
 class NrEesmIr : public NrEesmErrorModel
 {
-public:
-  /**
-   * \brief Get the type id of the object
-   * \return the type id of the object
-   */
-  static TypeId GetTypeId (void);
-  /**
-   * \brief NrEesmIr constructor
-   */
-  NrEesmIr();
-  /**
-   * \brief ~NrEesmIr deconstructor
-   */
-  virtual ~NrEesmIr () override;
+  public:
+    /**
+     * \brief Get the type id of the object
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId(void);
+    /**
+     * \brief NrEesmIr constructor
+     */
+    NrEesmIr();
+    /**
+     * \brief ~NrEesmIr deconstructor
+     */
+    virtual ~NrEesmIr() override;
 
-protected:
-  // Inherited from NrEesmErrorModel
-  /**
-   * \brief Computes the effective SINR after retransmission combining with HARQ-IR.
-   * Also, it updates the equivalent ECR after retransmissions (m_Reff).
-   *
-   * \param sinr the SINR vector of current transmission
-   * \param map the RB map of current transmission
-   * \param sizeBit the Transport block size in bits
-   * \param mcs the MCS
-   * \param sinrHistory the History of the previous transmissions of the same block
-   * \return The effective SINR
-   */
-  double ComputeSINR (const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs,
-                      uint32_t sizeBit, const NrErrorModel::NrErrorModelHistory &sinrHistory) const override;
+  protected:
+    // Inherited from NrEesmErrorModel
+    /**
+     * \brief Computes the effective SINR after retransmission combining with HARQ-IR.
+     * Also, it updates the equivalent ECR after retransmissions (m_Reff).
+     *
+     * \param sinr the SINR vector of current transmission
+     * \param map the RB map of current transmission
+     * \param sizeBit the Transport block size in bits
+     * \param mcs the MCS
+     * \param sinrHistory the History of the previous transmissions of the same block
+     * \return The effective SINR
+     */
+    double ComputeSINR(const SpectrumValue& sinr,
+                       const std::vector<int>& map,
+                       uint8_t mcs,
+                       uint32_t sizeBit,
+                       const NrErrorModel::NrErrorModelHistory& sinrHistory) const override;
 
-  /**
-   * \brief Returns the MCS corresponding to the ECR after retransmissions. In case of
-   * HARQ-IR the equivalent ECR changes after retransmissions, and it is updated
-   * inside ComputeSINR function. GetMcsEq gets the closest ECR to m_Reff from
-   * the available ones that belong to the same modulation order.
-   *
-   * \param mcsTx the MCS of the transmission
-   * \return The equivalent MCS after retransmissions
-   */
-  double GetMcsEq (uint8_t mcsTx) const override;
+    /**
+     * \brief Returns the MCS corresponding to the ECR after retransmissions. In case of
+     * HARQ-IR the equivalent ECR changes after retransmissions, and it is updated
+     * inside ComputeSINR function. GetMcsEq gets the closest ECR to m_Reff from
+     * the available ones that belong to the same modulation order.
+     *
+     * \param mcsTx the MCS of the transmission
+     * \return The equivalent MCS after retransmissions
+     */
+    double GetMcsEq(uint8_t mcsTx) const override;
 
-private:
-  double m_Reff {0.0};  //!< equivalent effective code rate after retransmissions
+  private:
+    double m_Reff{0.0}; //!< equivalent effective code rate after retransmissions
 };
 
 } // namespace ns3
