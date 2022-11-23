@@ -246,7 +246,7 @@ NrSpectrumPhyTestSuite::NrSpectrumPhyTestSuite()
         {10e6, 1.0, 8, 9, 3},
         {5e6, 1.0, 8, 9, 3},
         //{ 1.4e6,   0.5, 8, 9, 3}, This test case will not work since 1.4MHz cannot s not enough
-        //width for numerology 3, because numerology 3 RB width is 1.44 MHz
+        // width for numerology 3, because numerology 3 RB width is 1.44 MHz
         {100e6, 10.0, 4, 6, 4},
         {200e6, 5.0, 5, 6, 4},
         {300e6, 20.0, 7, 5, 4},
@@ -255,7 +255,7 @@ NrSpectrumPhyTestSuite::NrSpectrumPhyTestSuite()
         {10e6, 1.0, 8, 9, 4},
         {5e6, 1.0, 8, 9, 4},
         //{ 1.4e6,   0.5, 8, 9, 4} This test case will not work since 1.4MHz cannot is not enough
-        //width for numerology 3, because numerology 3 RB width is 2.88 MHz
+        // width for numerology 3, because numerology 3 RB width is 2.88 MHz
     };
 
     for (auto input : testInputValuesSet)

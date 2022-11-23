@@ -1447,7 +1447,8 @@ NrUePhy::ScheduleStartEventLoop(uint32_t nodeId, uint16_t frame, uint8_t subfram
 }
 
 void
-NrUePhy::ReportRsReceivedPower(const SpectrumValue& rsReceivedPower, [[maybe_unused]] uint8_t streamIndex)
+NrUePhy::ReportRsReceivedPower(const SpectrumValue& rsReceivedPower,
+                               [[maybe_unused]] uint8_t streamIndex)
 {
     NS_LOG_FUNCTION(this << rsReceivedPower);
 

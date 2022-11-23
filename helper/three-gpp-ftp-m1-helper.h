@@ -136,9 +136,9 @@ class ThreeGppFtpM1Helper : public Object
     Ptr<ExponentialRandomVariable>
         m_ftpArrivals; //!< random variable used to obtain the times for FTP Model 1 arrivals
     Ptr<UniformRandomVariable>
-        m_startJitter; //!< random variable used to generate a jitter among start times, to not
-                       //!< start all clients exactly at the same time
-    uint16_t m_port{0};                 //!< port that will be used for all the applications
+        m_startJitter;  //!< random variable used to generate a jitter among start times, to not
+                        //!< start all clients exactly at the same time
+    uint16_t m_port{0}; //!< port that will be used for all the applications
     Time m_clientStartTime{Seconds(0)}; //!< start time of client applications
     Time m_clientStopTime{Seconds(0)};  //!< stop time of client applications
     double m_ftpLambda{0.0};            //!< ftp lambda as parameter of FTP Model 1 traffic

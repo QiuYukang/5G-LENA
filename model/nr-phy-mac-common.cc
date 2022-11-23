@@ -141,8 +141,7 @@ operator<<(std::ostream& os, const DlHarqInfo& item)
        << static_cast<uint32_t>(item.m_rnti);
     for (std::size_t stream = 0; stream < item.m_numRetx.size(); stream++)
     {
-        os << "stream " << stream
-           << " Num Retx: " << static_cast<uint32_t>(item.m_numRetx[stream]);
+        os << "stream " << stream << " Num Retx: " << static_cast<uint32_t>(item.m_numRetx[stream]);
     }
 
     os << " BWP index: " << static_cast<uint32_t>(item.m_bwpIndex);
