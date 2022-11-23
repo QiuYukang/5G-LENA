@@ -50,7 +50,7 @@ struct NrLteMiErrorModelOutput : public NrErrorModelOutput
     /**
      * \brief ~NrLteMiErrorModelOutput
      */
-    virtual ~NrLteMiErrorModelOutput()
+    ~NrLteMiErrorModelOutput() override
     {
     }
 
@@ -83,7 +83,7 @@ class NrLteMiErrorModel : public NrErrorModel
      * \brief Get the type ID of this instance
      * \return the Type ID of this instance
      */
-    TypeId GetInstanceTypeId(void) const override;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrLteMiErrorModel constructor
@@ -93,7 +93,7 @@ class NrLteMiErrorModel : public NrErrorModel
     /**
      * \brief ~NrLteMiErrorModel
      */
-    virtual ~NrLteMiErrorModel() override;
+    ~NrLteMiErrorModel() override;
 
     /**
      * \brief Get an output for the decodification error probability of a given
@@ -108,33 +108,32 @@ class NrLteMiErrorModel : public NrErrorModel
      * \return A pointer to an output, with the tbler and accumulated MI, effective
      * MI, code bits, and info bits.
      */
-    virtual Ptr<NrErrorModelOutput> GetTbDecodificationStats(
-        const SpectrumValue& sinr,
-        const std::vector<int>& map,
-        uint32_t size,
-        uint8_t mcs,
-        const NrErrorModelHistory& history) override;
+    Ptr<NrErrorModelOutput> GetTbDecodificationStats(const SpectrumValue& sinr,
+                                                     const std::vector<int>& map,
+                                                     uint32_t size,
+                                                     uint8_t mcs,
+                                                     const NrErrorModelHistory& history) override;
 
     /**
      * \brief Get the SE for a given CQI, following the CQIs in LTE
      */
-    virtual double GetSpectralEfficiencyForCqi(uint8_t cqi) override;
+    double GetSpectralEfficiencyForCqi(uint8_t cqi) override;
     /**
      * \brief Get the SE for a given MCS, following the MCSs in LTE
      */
-    virtual double GetSpectralEfficiencyForMcs(uint8_t mcs) const override;
+    double GetSpectralEfficiencyForMcs(uint8_t mcs) const override;
     /**
      * \brief Get the payload size, following the MCSs in LTE
      */
-    virtual uint32_t GetPayloadSize(uint32_t usefulSC,
-                                    uint8_t mcs,
-                                    uint32_t rbNum,
-                                    Mode mode) const override;
+    uint32_t GetPayloadSize(uint32_t usefulSC,
+                            uint8_t mcs,
+                            uint32_t rbNum,
+                            Mode mode) const override;
     /**
      * \brief Get the maximum code block size, as per LTE
      */
-    virtual uint32_t GetMaxCbSize(uint32_t tbSize, uint8_t mcs) const override;
-    virtual uint8_t GetMaxMcs() const override;
+    uint32_t GetMaxCbSize(uint32_t tbSize, uint8_t mcs) const override;
+    uint8_t GetMaxMcs() const override;
 
   private:
     /**

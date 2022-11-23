@@ -36,7 +36,7 @@ NS_LOG_COMPONENT_DEFINE("BandwidthPartUe");
 NS_OBJECT_ENSURE_REGISTERED(BandwidthPartUe);
 
 TypeId
-BandwidthPartUe::GetTypeId(void)
+BandwidthPartUe::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BandwidthPartUe")
                             .SetParent<ComponentCarrier>()
@@ -61,7 +61,7 @@ BandwidthPartUe::BandwidthPartUe()
     m_phy = nullptr;
 }
 
-BandwidthPartUe::~BandwidthPartUe(void)
+BandwidthPartUe::~BandwidthPartUe()
 {
     NS_LOG_FUNCTION(this);
 }

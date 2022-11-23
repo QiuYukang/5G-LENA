@@ -92,7 +92,7 @@ LenaErrorModel::GetPayloadSize([[maybe_unused]] uint32_t usefulSC,
 }
 
 TypeId
-LenaErrorModel::GetTypeId(void)
+LenaErrorModel::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::LenaErrorModel")
                             .SetParent<NrLteMiErrorModel>()

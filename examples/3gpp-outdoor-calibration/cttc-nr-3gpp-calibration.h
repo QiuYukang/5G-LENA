@@ -32,7 +32,7 @@ struct Parameters
 {
     friend std::ostream& operator<<(std::ostream& os, const Parameters& parameters);
 
-    bool Validate(void) const;
+    bool Validate() const;
 
     std::string confType = "customConf";            // calibrationConf
     std::string nrConfigurationScenario = "DenseA"; // DenseA, DenseB, RuralA, RuralB

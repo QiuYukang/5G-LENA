@@ -40,18 +40,18 @@ ThreeGppFtpM1Helper::ThreeGppFtpM1Helper(ApplicationContainer* serverApps,
     m_serversIps = serversIps;
 }
 
-ThreeGppFtpM1Helper::ThreeGppFtpM1Helper(void)
+ThreeGppFtpM1Helper::ThreeGppFtpM1Helper()
 {
     NS_LOG_FUNCTION(this);
 }
 
-ThreeGppFtpM1Helper::~ThreeGppFtpM1Helper(void)
+ThreeGppFtpM1Helper::~ThreeGppFtpM1Helper()
 {
     NS_LOG_FUNCTION(this);
 }
 
 TypeId
-ThreeGppFtpM1Helper::GetTypeId(void)
+ThreeGppFtpM1Helper::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::ThreeGppFtpM1Helper")
                             .SetParent<Object>()
@@ -60,7 +60,7 @@ ThreeGppFtpM1Helper::GetTypeId(void)
 }
 
 void
-ThreeGppFtpM1Helper::DoConfigureFtpServers(void)
+ThreeGppFtpM1Helper::DoConfigureFtpServers()
 {
     NS_LOG_FUNCTION(this);
     Address apLocalAddress(InetSocketAddress(Ipv4Address::GetAny(), m_port));
@@ -70,7 +70,7 @@ ThreeGppFtpM1Helper::DoConfigureFtpServers(void)
 }
 
 void
-ThreeGppFtpM1Helper::DoConfigureFtpClients(void)
+ThreeGppFtpM1Helper::DoConfigureFtpClients()
 {
     NS_LOG_FUNCTION(this);
     uint32_t ftpSegSize = 1448; // bytes
@@ -98,7 +98,7 @@ ThreeGppFtpM1Helper::DoConfigureFtpClients(void)
 }
 
 void
-ThreeGppFtpM1Helper::DoStartFileTransfer(void)
+ThreeGppFtpM1Helper::DoStartFileTransfer()
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_lastClient >= 0 && m_lastClient < m_clientApps->GetN());
@@ -145,7 +145,7 @@ ThreeGppFtpM1Helper::Configure(uint16_t port,
 }
 
 void
-ThreeGppFtpM1Helper::Start(void)
+ThreeGppFtpM1Helper::Start()
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_boolConfigured);
@@ -160,7 +160,7 @@ ThreeGppFtpM1Helper::Start(void)
 }
 
 Time
-ThreeGppFtpM1Helper::DoGetNextTime(void) const
+ThreeGppFtpM1Helper::DoGetNextTime() const
 {
     return Seconds(m_ftpArrivals->GetValue());
 }

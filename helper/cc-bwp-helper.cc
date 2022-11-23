@@ -125,7 +125,7 @@ OperationBandInfo::GetBwps() const
     {
         for (auto& bwp : cc->m_bwp)
         {
-            ret.push_back(bwp);
+            ret.emplace_back(bwp);
         }
     }
 

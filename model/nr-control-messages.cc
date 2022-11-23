@@ -26,12 +26,12 @@ namespace ns3
 
 NS_LOG_COMPONENT_DEFINE("nrControlMessage");
 
-NrControlMessage::NrControlMessage(void)
+NrControlMessage::NrControlMessage()
 {
     NS_LOG_INFO(this);
 }
 
-NrControlMessage::~NrControlMessage(void)
+NrControlMessage::~NrControlMessage()
 {
     NS_LOG_INFO(this);
 }
@@ -43,7 +43,7 @@ NrControlMessage::SetMessageType(messageType type)
 }
 
 NrControlMessage::messageType
-NrControlMessage::GetMessageType(void) const
+NrControlMessage::GetMessageType() const
 {
     return m_messageType;
 }
@@ -91,13 +91,13 @@ NrDlDciMessage::NrDlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci)
     SetMessageType(NrControlMessage::DL_DCI);
 }
 
-NrDlDciMessage::~NrDlDciMessage(void)
+NrDlDciMessage::~NrDlDciMessage()
 {
     NS_LOG_INFO(this);
 }
 
 std::shared_ptr<DciInfoElementTdma>
-NrDlDciMessage::GetDciInfoElement(void)
+NrDlDciMessage::GetDciInfoElement()
 {
     return m_dciInfoElement;
 }
@@ -115,13 +115,13 @@ NrDlDciMessage::SetK1Delay(uint32_t delay)
 }
 
 uint32_t
-NrDlDciMessage::GetKDelay(void) const
+NrDlDciMessage::GetKDelay() const
 {
     return m_k;
 }
 
 uint32_t
-NrDlDciMessage::GetK1Delay(void) const
+NrDlDciMessage::GetK1Delay() const
 {
     return m_k1;
 }
@@ -133,13 +133,13 @@ NrUlDciMessage::NrUlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci)
     SetMessageType(NrControlMessage::UL_DCI);
 }
 
-NrUlDciMessage::~NrUlDciMessage(void)
+NrUlDciMessage::~NrUlDciMessage()
 {
     NS_LOG_INFO(this);
 }
 
 std::shared_ptr<DciInfoElementTdma>
-NrUlDciMessage::GetDciInfoElement(void)
+NrUlDciMessage::GetDciInfoElement()
 {
     return m_dciInfoElement;
 }
@@ -151,18 +151,18 @@ NrUlDciMessage::SetKDelay(uint32_t delay)
 }
 
 uint32_t
-NrUlDciMessage::GetKDelay(void) const
+NrUlDciMessage::GetKDelay() const
 {
     return m_k;
 }
 
-NrDlCqiMessage::NrDlCqiMessage(void)
+NrDlCqiMessage::NrDlCqiMessage()
 {
     SetMessageType(NrControlMessage::DL_CQI);
     NS_LOG_INFO(this);
 }
 
-NrDlCqiMessage::~NrDlCqiMessage(void)
+NrDlCqiMessage::~NrDlCqiMessage()
 {
     NS_LOG_INFO(this);
 }
@@ -181,12 +181,12 @@ NrDlCqiMessage::GetDlCqi()
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrBsrMessage::NrBsrMessage(void)
+NrBsrMessage::NrBsrMessage()
 {
     SetMessageType(NrControlMessage::BSR);
 }
 
-NrBsrMessage::~NrBsrMessage(void)
+NrBsrMessage::~NrBsrMessage()
 {
 }
 
@@ -197,14 +197,14 @@ NrBsrMessage::SetBsr(MacCeElement bsr)
 }
 
 MacCeElement
-NrBsrMessage::GetBsr(void)
+NrBsrMessage::GetBsr()
 {
     return m_bsr;
 }
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrMibMessage::NrMibMessage(void)
+NrMibMessage::NrMibMessage()
 {
     SetMessageType(NrControlMessage::MIB);
 }
@@ -223,7 +223,7 @@ NrMibMessage::GetMib() const
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrSib1Message::NrSib1Message(void)
+NrSib1Message::NrSib1Message()
 {
     SetMessageType(NrControlMessage::SIB1);
 }
@@ -242,7 +242,7 @@ NrSib1Message::GetSib1() const
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrRachPreambleMessage::NrRachPreambleMessage(void)
+NrRachPreambleMessage::NrRachPreambleMessage()
 {
     SetMessageType(NrControlMessage::RACH_PREAMBLE);
 }
@@ -265,7 +265,7 @@ NrRachPreambleMessage::GetRapId() const
 
 // ----------------------------------------------------------------------------------------------------------
 
-NrRarMessage::NrRarMessage(void)
+NrRarMessage::NrRarMessage()
 {
     SetMessageType(NrControlMessage::RAR);
 }
@@ -304,12 +304,12 @@ NrRarMessage::RarListEnd() const
     return m_rarList.end();
 }
 
-NrDlHarqFeedbackMessage::NrDlHarqFeedbackMessage(void)
+NrDlHarqFeedbackMessage::NrDlHarqFeedbackMessage()
 {
     SetMessageType(NrControlMessage::DL_HARQ);
 }
 
-NrDlHarqFeedbackMessage::~NrDlHarqFeedbackMessage(void)
+NrDlHarqFeedbackMessage::~NrDlHarqFeedbackMessage()
 {
 }
 
@@ -320,7 +320,7 @@ NrDlHarqFeedbackMessage::SetDlHarqFeedback(DlHarqInfo m)
 }
 
 DlHarqInfo
-NrDlHarqFeedbackMessage::GetDlHarqFeedback(void)
+NrDlHarqFeedbackMessage::GetDlHarqFeedback()
 {
     return m_dlHarqInfo;
 }

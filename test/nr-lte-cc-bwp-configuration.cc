@@ -58,7 +58,7 @@ class CcBwpTestCase : public TestCase
     }
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
 
     /**
      * \brief Test the automatic creation of a single operation band
@@ -243,7 +243,7 @@ CcBwpTestCase::TestCcBwpNumbers(
 
     CcBwpCreator creator;
 
-    for (uint16_t i = 0; i < operationBandConfigs.size(); ++i)
+    for (std::size_t i = 0; i < operationBandConfigs.size(); ++i)
     {
         CcBwpCreator::SimpleOperationBandConf bandConfig = operationBandConfigs.at(i);
         OperationBandInfo band = creator.CreateOperationBandContiguousCc(bandConfig);
@@ -253,7 +253,7 @@ CcBwpTestCase::TestCcBwpNumbers(
         uint16_t numBwp = 0;
         for (const auto& cc : band.m_cc)
         {
-            numBwp += cc.get()->m_bwp.size();
+            numBwp += cc->m_bwp.size();
         }
 
         NS_TEST_ASSERT_MSG_EQ(numBwp, bandConfig.m_numCc, "Unexpected number of BWPs");

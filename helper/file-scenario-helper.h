@@ -49,7 +49,7 @@ class FileScenarioHelper : public NodeDistributionScenarioInterface
     /**
      * \brief ~FileScenarioHelper
      */
-    virtual ~FileScenarioHelper(void) override;
+    ~FileScenarioHelper() override;
 
     /**
      * \brief Add the positions listed in a file.
@@ -75,7 +75,7 @@ class FileScenarioHelper : public NodeDistributionScenarioInterface
     Vector GetSitePosition(std::size_t cellId) const;
 
     // inherited
-    virtual void CreateScenario(void) override;
+    void CreateScenario() override;
     using NodeDistributionScenarioInterface::GetAntennaPosition;
 
   private:

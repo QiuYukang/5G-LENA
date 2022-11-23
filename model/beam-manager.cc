@@ -71,7 +71,7 @@ BeamManager::~BeamManager()
 }
 
 TypeId
-BeamManager::GetTypeId(void)
+BeamManager::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::BeamManager").SetParent<Object>().AddConstructor<BeamManager>();
@@ -162,7 +162,8 @@ BeamManager::ChangeToQuasiOmniBeamformingVector()
 {
     NS_LOG_FUNCTION(this);
 
-    UintegerValue numRows, numColumns;
+    UintegerValue numRows;
+    UintegerValue numColumns;
     m_antennaArray->GetAttribute("NumRows", numRows);
     m_antennaArray->GetAttribute("NumColumns", numColumns);
 

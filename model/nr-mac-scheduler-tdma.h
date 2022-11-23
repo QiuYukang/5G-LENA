@@ -80,7 +80,7 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrMacSchedulerTdma constructor
@@ -89,19 +89,17 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
     /**
      * \brief NrMacSchedulerTdma deconstructor
      */
-    virtual ~NrMacSchedulerTdma() override;
+    ~NrMacSchedulerTdma() override;
 
   protected:
-    virtual BeamSymbolMap AssignDLRBG(uint32_t symAvail,
-                                      const ActiveUeMap& activeDl) const override;
+    BeamSymbolMap AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) const override;
 
-    virtual BeamSymbolMap AssignULRBG(uint32_t symAvail,
-                                      const ActiveUeMap& activeUl) const override;
-    virtual std::shared_ptr<DciInfoElementTdma> CreateDlDci(
+    BeamSymbolMap AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) const override;
+    std::shared_ptr<DciInfoElementTdma> CreateDlDci(
         PointInFTPlane* spoint,
         const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
         uint32_t maxSym) const override;
-    virtual std::shared_ptr<DciInfoElementTdma> CreateUlDci(
+    std::shared_ptr<DciInfoElementTdma> CreateUlDci(
         PointInFTPlane* spoint,
         const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
         uint32_t maxSym) const override;
@@ -111,8 +109,8 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
      * \param spoint Starting point
      * \param symOfBeam the number of symbols assigned to the beam
      */
-    virtual void ChangeDlBeam([[maybe_unused]] PointInFTPlane* spoint,
-                              [[maybe_unused]] uint32_t symOfBeam) const override
+    void ChangeDlBeam([[maybe_unused]] PointInFTPlane* spoint,
+                      [[maybe_unused]] uint32_t symOfBeam) const override
     {
     }
 
@@ -121,12 +119,12 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
      * \param spoint Starting point
      * \param symOfBeam the number of symbols assigned to the beam
      */
-    virtual void ChangeUlBeam([[maybe_unused]] PointInFTPlane* spoint,
-                              [[maybe_unused]] uint32_t symOfBeam) const override
+    void ChangeUlBeam([[maybe_unused]] PointInFTPlane* spoint,
+                      [[maybe_unused]] uint32_t symOfBeam) const override
     {
     }
 
-    virtual uint8_t GetTpc() const override;
+    uint8_t GetTpc() const override;
 
     /**
      * \brief Provide the comparison function to order the UE when scheduling DL

@@ -49,32 +49,32 @@ class NrMemberPhySapProvider : public NrPhySapProvider
   public:
     NrMemberPhySapProvider(NrPhy* phy);
 
-    virtual void SendMacPdu(const Ptr<Packet>& p,
-                            const SfnSf& sfn,
-                            uint8_t symStart,
-                            uint8_t streamId) override;
+    void SendMacPdu(const Ptr<Packet>& p,
+                    const SfnSf& sfn,
+                    uint8_t symStart,
+                    uint8_t streamId) override;
 
-    virtual void SendControlMessage(Ptr<NrControlMessage> msg) override;
+    void SendControlMessage(Ptr<NrControlMessage> msg) override;
 
-    virtual void SendRachPreamble(uint8_t PreambleId, uint8_t Rnti) override;
+    void SendRachPreamble(uint8_t PreambleId, uint8_t Rnti) override;
 
-    virtual void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
+    void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
 
-    virtual BeamConfId GetBeamConfId(uint8_t rnti) const override;
+    BeamConfId GetBeamConfId(uint8_t rnti) const override;
 
-    virtual Ptr<const SpectrumModel> GetSpectrumModel() override;
+    Ptr<const SpectrumModel> GetSpectrumModel() override;
 
-    virtual void NotifyConnectionSuccessful() override;
+    void NotifyConnectionSuccessful() override;
 
-    virtual uint16_t GetBwpId() const override;
+    uint16_t GetBwpId() const override;
 
-    virtual uint16_t GetCellId() const override;
+    uint16_t GetCellId() const override;
 
-    virtual uint32_t GetSymbolsPerSlot() const override;
+    uint32_t GetSymbolsPerSlot() const override;
 
-    virtual Time GetSlotPeriod() const override;
+    Time GetSlotPeriod() const override;
 
-    virtual uint32_t GetRbNum() const override;
+    uint32_t GetRbNum() const override;
 
   private:
     NrPhy* m_phy;
@@ -216,7 +216,7 @@ NrPhy::DoDispose()
     m_tddPattern.clear();
     m_netDevice = nullptr;
 
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         if (m_spectrumPhys.at(streamIndex))
         {
@@ -566,7 +566,7 @@ NrPhy::DoUpdateRbNum()
     if (m_spectrumPhys.size())
     {
         // Update the noisePowerSpectralDensity, as it depends on m_rbNum
-        for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+        for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
         {
             m_spectrumPhys.at(streamIndex)
                 ->SetNoisePowerSpectralDensity(GetNoisePowerSpectralDensity());
@@ -624,12 +624,12 @@ NrPhy::InitializeMessageList()
 
     for (unsigned i = 0; i <= GetL1L2CtrlLatency(); i++)
     {
-        m_controlMessageQueue.push_back(std::list<Ptr<NrControlMessage>>());
+        m_controlMessageQueue.emplace_back();
     }
 }
 
 std::list<Ptr<NrControlMessage>>
-NrPhy::PopCurrentSlotCtrlMsgs(void)
+NrPhy::PopCurrentSlotCtrlMsgs()
 {
     NS_LOG_FUNCTION(this);
     if (m_controlMessageQueue.empty())
@@ -766,7 +766,8 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
             if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
                 // move the pkt burst of all the streams correctly.
-                for (uint8_t stream = 0; stream < alloc.m_dci->m_tbSize.size(); stream++)
+                uint8_t streams = static_cast<uint8_t>(alloc.m_dci->m_tbSize.size());
+                for (uint8_t stream = 0; stream < streams; stream++)
                 {
                     Ptr<PacketBurst> pburst =
                         GetPacketBurst(slotSfn, alloc.m_dci->m_symStart, stream);
@@ -794,7 +795,8 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
 
     for (const auto& burstPair : newBursts)
     {
-        SfnSf old, latest;
+        SfnSf old;
+        SfnSf latest;
         old.Decode(sfnMap.at(burstPair.first));
         latest.Decode(burstPair.first);
         m_packetBurstMap.insert(std::make_pair(burstPair.first, burstPair.second));
@@ -902,7 +904,7 @@ NrPhy::SetNoiseFigure(double d)
 
     if (m_spectrumPhys.size() > 0 && GetRbNum() != 0)
     {
-        for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+        for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
         {
             m_spectrumPhys.at(streamIndex)
                 ->SetNoisePowerSpectralDensity(GetNoisePowerSpectralDensity());
@@ -923,7 +925,7 @@ NrPhy::SetTbDecodeLatency(const Time& us)
 }
 
 Time
-NrPhy::GetTbDecodeLatency(void) const
+NrPhy::GetTbDecodeLatency() const
 {
     return m_tbDecodeLatencyUs;
 }

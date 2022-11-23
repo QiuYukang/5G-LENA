@@ -54,19 +54,19 @@ class UeMemberNrUeCmacSapProvider : public LteUeCmacSapProvider
     UeMemberNrUeCmacSapProvider(NrUeMac* mac);
 
     // inherited from LteUeCmacSapProvider
-    virtual void ConfigureRach(RachConfig rc);
-    virtual void StartContentionBasedRandomAccessProcedure();
-    virtual void StartNonContentionBasedRandomAccessProcedure(uint16_t rnti,
-                                                              uint8_t preambleId,
-                                                              uint8_t prachMask);
-    virtual void AddLc(uint8_t lcId,
-                       LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
-                       LteMacSapUser* msu);
-    virtual void RemoveLc(uint8_t lcId);
-    virtual void Reset();
-    virtual void SetRnti(uint16_t rnti);
-    virtual void NotifyConnectionSuccessful();
-    virtual void SetImsi(uint64_t imsi);
+    void ConfigureRach(RachConfig rc) override;
+    void StartContentionBasedRandomAccessProcedure() override;
+    void StartNonContentionBasedRandomAccessProcedure(uint16_t rnti,
+                                                      uint8_t preambleId,
+                                                      uint8_t prachMask) override;
+    void AddLc(uint8_t lcId,
+               LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
+               LteMacSapUser* msu) override;
+    void RemoveLc(uint8_t lcId) override;
+    void Reset() override;
+    void SetRnti(uint16_t rnti) override;
+    void NotifyConnectionSuccessful() override;
+    void SetImsi(uint64_t imsi) override;
 
   private:
     NrUeMac* m_mac;
@@ -139,8 +139,8 @@ class UeMemberNrMacSapProvider : public LteMacSapProvider
     UeMemberNrMacSapProvider(NrUeMac* mac);
 
     // inherited from LteMacSapProvider
-    virtual void TransmitPdu(TransmitPduParameters params);
-    virtual void ReportBufferStatus(ReportBufferStatusParameters params);
+    void TransmitPdu(TransmitPduParameters params) override;
+    void ReportBufferStatus(ReportBufferStatusParameters params) override;
 
   private:
     NrUeMac* m_mac;
@@ -170,15 +170,15 @@ class MacUeMemberPhySapUser : public NrUePhySapUser
   public:
     MacUeMemberPhySapUser(NrUeMac* mac);
 
-    virtual void ReceivePhyPdu(Ptr<Packet> p) override;
+    void ReceivePhyPdu(Ptr<Packet> p) override;
 
-    virtual void ReceiveControlMessage(Ptr<NrControlMessage> msg) override;
+    void ReceiveControlMessage(Ptr<NrControlMessage> msg) override;
 
-    virtual void SlotIndication(SfnSf sfn) override;
+    void SlotIndication(SfnSf sfn) override;
 
     // virtual void NotifyHarqDeliveryFailure (uint8_t harqId);
 
-    virtual uint8_t GetNumHarqProcess() const override;
+    uint8_t GetNumHarqProcess() const override;
 
   private:
     NrUeMac* m_mac;
@@ -216,7 +216,7 @@ MacUeMemberPhySapUser::GetNumHarqProcess() const
 //-----------------------------------------------------------------------
 
 TypeId
-NrUeMac::GetTypeId(void)
+NrUeMac::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrUeMac")
@@ -239,7 +239,7 @@ NrUeMac::GetTypeId(void)
     return tid;
 }
 
-NrUeMac::NrUeMac(void)
+NrUeMac::NrUeMac()
     : Object()
 {
     NS_LOG_FUNCTION(this);
@@ -249,7 +249,7 @@ NrUeMac::NrUeMac(void)
     m_raPreambleUniformVariable = CreateObject<UniformRandomVariable>();
 }
 
-NrUeMac::~NrUeMac(void)
+NrUeMac::~NrUeMac()
 {
 }
 
@@ -334,7 +334,7 @@ NrUeMac::SetNumHarqProcess(uint8_t numHarqProcess)
     m_numHarqProcess = numHarqProcess;
 
     m_miUlHarqProcessesPacket.resize(GetNumHarqProcess());
-    for (uint8_t i = 0; i < m_miUlHarqProcessesPacket.size(); i++)
+    for (std::size_t i = 0; i < m_miUlHarqProcessesPacket.size(); i++)
     {
         if (m_miUlHarqProcessesPacket.at(i).m_pktBurst == nullptr)
         {
@@ -514,17 +514,17 @@ NrUeMac::SetUeCmacSapUser(LteUeCmacSapUser* s)
 }
 
 LteUeCmacSapProvider*
-NrUeMac::GetUeCmacSapProvider(void)
+NrUeMac::GetUeCmacSapProvider()
 {
     return m_cmacSapProvider;
 }
 
 void
-NrUeMac::RefreshHarqProcessesPacketBuffer(void)
+NrUeMac::RefreshHarqProcessesPacketBuffer()
 {
     NS_LOG_FUNCTION(this);
 
-    for (uint16_t i = 0; i < m_miUlHarqProcessesPacketTimer.size(); i++)
+    for (std::size_t i = 0; i < m_miUlHarqProcessesPacketTimer.size(); i++)
     {
         if (m_miUlHarqProcessesPacketTimer.at(i) == 0 && m_miUlHarqProcessesPacket.at(i).m_pktBurst)
         {
@@ -1112,7 +1112,7 @@ NrUeMac::DoRemoveLc(uint8_t lcId)
 }
 
 LteMacSapProvider*
-NrUeMac::GetUeMacSapProvider(void)
+NrUeMac::GetUeMacSapProvider()
 {
     return m_macSapProvider;
 }

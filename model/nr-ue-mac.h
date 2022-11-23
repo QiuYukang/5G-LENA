@@ -127,16 +127,16 @@ class NrUeMac : public Object
      * \brief Get the Type id
      * \return the type id
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrUeMac constructor
      */
-    NrUeMac(void);
+    NrUeMac();
     /**
      * \brief Deconstructor
      */
-    ~NrUeMac(void) override;
+    ~NrUeMac() override;
 
     /**
      * \brief Set the C MAC SAP user (AKA the RRC representation for the MAC)
@@ -148,13 +148,13 @@ class NrUeMac : public Object
      * \brief Get the C MAC SAP provider (AKA the MAC representation for the RRC)
      * \return  C MAC SAP provider (AKA the MAC representation for the RRC)
      */
-    LteUeCmacSapProvider* GetUeCmacSapProvider(void);
+    LteUeCmacSapProvider* GetUeCmacSapProvider();
 
     /**
      * \brief Get the Mac SAP provider (AKA the MAC representation for the RLC)
      * \return the Mac SAP provider (AKA the MAC representation for the RLC)
      */
-    LteMacSapProvider* GetUeMacSapProvider(void);
+    LteMacSapProvider* GetUeMacSapProvider();
 
     /**
      * \brief Get the PHY SAP User (AKA the MAC representation for the PHY)
@@ -224,7 +224,7 @@ class NrUeMac : public Object
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
     /**
      * \brief Get the bwp id of this MAC
      * \return the bwp id
@@ -320,7 +320,7 @@ class NrUeMac : public Object
      * not get retransmitted.
      */
     void SendReportBufferStatus(const SfnSf& dataSfn, uint8_t symStart);
-    void RefreshHarqProcessesPacketBuffer(void);
+    void RefreshHarqProcessesPacketBuffer();
 
     /**
      * \brief Process the received UL DCI

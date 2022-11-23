@@ -215,7 +215,8 @@ main(int argc, char* argv[])
      * In ueLowLat we will put the UEs that will receive low-latency traffic,
      * while in ueVoice we will put the UEs that will receive the voice traffic.
      */
-    NodeContainer ueLowLatContainer, ueVoiceContainer;
+    NodeContainer ueLowLatContainer;
+    NodeContainer ueVoiceContainer;
 
     for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
     {

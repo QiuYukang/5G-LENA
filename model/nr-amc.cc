@@ -60,7 +60,7 @@ NrAmc::SetUlMode()
 }
 
 TypeId
-NrAmc::GetTypeId(void)
+NrAmc::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrAmc")

@@ -90,13 +90,13 @@ class NrPhy : public Object
     /**
      * \brief ~NrPhy
      */
-    virtual ~NrPhy() override;
+    ~NrPhy() override;
 
     /**
      * \brief Get the TypeId of the Object
      * \return the TypeId of the Object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     // Called by SAP
     /**
@@ -152,7 +152,7 @@ class NrPhy : public Object
      * \brief Returns Transport Block decode latency
      * \return The TB decode latency
      */
-    virtual Time GetTbDecodeLatency(void) const;
+    virtual Time GetTbDecodeLatency() const;
 
     /**
      * \brief Get the beam conf id for the specified user
@@ -424,7 +424,7 @@ class NrPhy : public Object
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
     /**
      * \brief Update the number of RB. Usually called after bandwidth changes
      */
@@ -571,7 +571,7 @@ class NrPhy : public Object
      * \brief Extract and return the message list that is at the beginning of the queue
      * \return a list of control messages that are meant to be sent in the current slot
      */
-    virtual std::list<Ptr<NrControlMessage>> PopCurrentSlotCtrlMsgs(void);
+    virtual std::list<Ptr<NrControlMessage>> PopCurrentSlotCtrlMsgs();
 
   protected:
     Ptr<NrNetDevice> m_netDevice; //!< Pointer to the owner netDevice.

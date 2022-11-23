@@ -41,8 +41,8 @@ static const Time RRC_IDEAL_MSG_DELAY = MilliSeconds(0);
 NS_OBJECT_ENSURE_REGISTERED(nrUeRrcProtocolIdeal);
 
 nrUeRrcProtocolIdeal::nrUeRrcProtocolIdeal()
-    : m_ueRrcSapProvider(0),
-      m_enbRrcSapProvider(0)
+    : m_ueRrcSapProvider(nullptr),
+      m_enbRrcSapProvider(nullptr)
 {
     m_ueRrcSapUser = new MemberLteUeRrcSapUser<nrUeRrcProtocolIdeal>(this);
 }
@@ -56,11 +56,11 @@ nrUeRrcProtocolIdeal::DoDispose()
 {
     NS_LOG_FUNCTION(this);
     delete m_ueRrcSapUser;
-    m_rrc = 0;
+    m_rrc = nullptr;
 }
 
 TypeId
-nrUeRrcProtocolIdeal::GetTypeId(void)
+nrUeRrcProtocolIdeal::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::nrUeRrcProtocolIdeal")
                             .SetParent<Object>()
@@ -211,7 +211,7 @@ nrUeRrcProtocolIdeal::SetEnbRrcSapProvider()
 NS_OBJECT_ENSURE_REGISTERED(NrGnbRrcProtocolIdeal);
 
 NrGnbRrcProtocolIdeal::NrGnbRrcProtocolIdeal()
-    : m_enbRrcSapProvider(0)
+    : m_enbRrcSapProvider(nullptr)
 {
     NS_LOG_FUNCTION(this);
     m_enbRrcSapUser = new MemberLteEnbRrcSapUser<NrGnbRrcProtocolIdeal>(this);
@@ -230,7 +230,7 @@ NrGnbRrcProtocolIdeal::DoDispose()
 }
 
 TypeId
-NrGnbRrcProtocolIdeal::GetTypeId(void)
+NrGnbRrcProtocolIdeal::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrGnbRrcProtocolIdeal")
                             .SetParent<Object>()
@@ -272,7 +272,7 @@ void
 NrGnbRrcProtocolIdeal::DoSetupUe(uint16_t rnti, LteEnbRrcSapUser::SetupUeParameters params)
 {
     NS_LOG_FUNCTION(this << rnti);
-    m_enbRrcSapProviderMap[rnti] = 0;
+    m_enbRrcSapProviderMap[rnti] = nullptr;
 }
 
 void
@@ -400,12 +400,12 @@ class NrIdealHandoverPreparationInfoHeader : public Header
   public:
     uint32_t GetMsgId();
     void SetMsgId(uint32_t id);
-    static TypeId GetTypeId(void);
-    virtual TypeId GetInstanceTypeId(void) const;
-    virtual void Print(std::ostream& os) const;
-    virtual uint32_t GetSerializedSize(void) const;
-    virtual void Serialize(Buffer::Iterator start) const;
-    virtual uint32_t Deserialize(Buffer::Iterator start);
+    static TypeId GetTypeId();
+    TypeId GetInstanceTypeId() const override;
+    void Print(std::ostream& os) const override;
+    uint32_t GetSerializedSize() const override;
+    void Serialize(Buffer::Iterator start) const override;
+    uint32_t Deserialize(Buffer::Iterator start) override;
 
   private:
     uint32_t m_msgId;
@@ -424,7 +424,7 @@ NrIdealHandoverPreparationInfoHeader::SetMsgId(uint32_t id)
 }
 
 TypeId
-NrIdealHandoverPreparationInfoHeader::GetTypeId(void)
+NrIdealHandoverPreparationInfoHeader::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrIdealHandoverPreparationInfoHeader")
                             .SetParent<Header>()
@@ -433,7 +433,7 @@ NrIdealHandoverPreparationInfoHeader::GetTypeId(void)
 }
 
 TypeId
-NrIdealHandoverPreparationInfoHeader::GetInstanceTypeId(void) const
+NrIdealHandoverPreparationInfoHeader::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -445,7 +445,7 @@ NrIdealHandoverPreparationInfoHeader::Print(std::ostream& os) const
 }
 
 uint32_t
-NrIdealHandoverPreparationInfoHeader::GetSerializedSize(void) const
+NrIdealHandoverPreparationInfoHeader::GetSerializedSize() const
 {
     return 4;
 }
@@ -509,12 +509,12 @@ class NrIdealHandoverCommandHeader : public Header
   public:
     uint32_t GetMsgId();
     void SetMsgId(uint32_t id);
-    static TypeId GetTypeId(void);
-    virtual TypeId GetInstanceTypeId(void) const;
-    virtual void Print(std::ostream& os) const;
-    virtual uint32_t GetSerializedSize(void) const;
-    virtual void Serialize(Buffer::Iterator start) const;
-    virtual uint32_t Deserialize(Buffer::Iterator start);
+    static TypeId GetTypeId();
+    TypeId GetInstanceTypeId() const override;
+    void Print(std::ostream& os) const override;
+    uint32_t GetSerializedSize() const override;
+    void Serialize(Buffer::Iterator start) const override;
+    uint32_t Deserialize(Buffer::Iterator start) override;
 
   private:
     uint32_t m_msgId;
@@ -533,7 +533,7 @@ NrIdealHandoverCommandHeader::SetMsgId(uint32_t id)
 }
 
 TypeId
-NrIdealHandoverCommandHeader::GetTypeId(void)
+NrIdealHandoverCommandHeader::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrIdealHandoverCommandHeader")
                             .SetParent<Header>()
@@ -542,7 +542,7 @@ NrIdealHandoverCommandHeader::GetTypeId(void)
 }
 
 TypeId
-NrIdealHandoverCommandHeader::GetInstanceTypeId(void) const
+NrIdealHandoverCommandHeader::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -554,7 +554,7 @@ NrIdealHandoverCommandHeader::Print(std::ostream& os) const
 }
 
 uint32_t
-NrIdealHandoverCommandHeader::GetSerializedSize(void) const
+NrIdealHandoverCommandHeader::GetSerializedSize() const
 {
     return 4;
 }

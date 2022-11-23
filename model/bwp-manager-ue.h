@@ -48,7 +48,7 @@ class BwpManagerUe : public SimpleUeComponentCarrierManager
     /**
      * \brief ~BwpManagerUe
      */
-    virtual ~BwpManagerUe() override;
+    ~BwpManagerUe() override;
 
     /**
      * \brief Set the algorithm
@@ -102,16 +102,14 @@ class BwpManagerUe : public SimpleUeComponentCarrierManager
     void SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp);
 
   protected:
-    virtual void DoReportBufferStatus(
-        LteMacSapProvider::ReportBufferStatusParameters params) override;
-    virtual std::vector<LteUeCcmRrcSapProvider::LcsConfig> DoAddLc(
+    void DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params) override;
+    std::vector<LteUeCcmRrcSapProvider::LcsConfig> DoAddLc(
         uint8_t lcId,
         LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
         LteMacSapUser* msu) override;
-    virtual LteMacSapUser* DoConfigureSignalBearer(
-        uint8_t lcId,
-        LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
-        LteMacSapUser* msu) override;
+    LteMacSapUser* DoConfigureSignalBearer(uint8_t lcId,
+                                           LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
+                                           LteMacSapUser* msu) override;
 
   private:
     Ptr<BwpManagerAlgorithm> m_algorithm;

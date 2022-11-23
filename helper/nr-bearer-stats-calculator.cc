@@ -63,7 +63,7 @@ NrBearerStatsCalculator::~NrBearerStatsCalculator()
 }
 
 TypeId
-NrBearerStatsCalculator::GetTypeId(void)
+NrBearerStatsCalculator::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrBearerStatsCalculator")
@@ -244,7 +244,7 @@ NrBearerStatsCalculator::DlRxPdu(uint16_t cellId,
 }
 
 void
-NrBearerStatsCalculator::ShowResults(void)
+NrBearerStatsCalculator::ShowResults()
 {
     NS_LOG_FUNCTION(this << GetUlOutputFilename().c_str() << GetDlOutputFilename().c_str());
     NS_LOG_INFO("Write bearer stats to " << GetUlOutputFilename().c_str() << " and in "
@@ -396,7 +396,7 @@ NrBearerStatsCalculator::WriteDlResults(std::ofstream& outFile)
 }
 
 void
-NrBearerStatsCalculator::ResetResults(void)
+NrBearerStatsCalculator::ResetResults()
 {
     NS_LOG_FUNCTION(this);
 
@@ -416,7 +416,7 @@ NrBearerStatsCalculator::ResetResults(void)
 }
 
 void
-NrBearerStatsCalculator::RescheduleEndEpoch(void)
+NrBearerStatsCalculator::RescheduleEndEpoch()
 {
     NS_LOG_FUNCTION(this);
     m_endEpochEvent.Cancel();
@@ -427,7 +427,7 @@ NrBearerStatsCalculator::RescheduleEndEpoch(void)
 }
 
 void
-NrBearerStatsCalculator::EndEpoch(void)
+NrBearerStatsCalculator::EndEpoch()
 {
     NS_LOG_FUNCTION(this);
     ShowResults();
@@ -634,7 +634,7 @@ NrBearerStatsCalculator::GetDlPduSizeStats(uint64_t imsi, uint8_t lcid)
 }
 
 std::string
-NrBearerStatsCalculator::GetUlOutputFilename(void)
+NrBearerStatsCalculator::GetUlOutputFilename()
 {
     if (m_protocolType == "RLC")
     {
@@ -647,7 +647,7 @@ NrBearerStatsCalculator::GetUlOutputFilename(void)
 }
 
 std::string
-NrBearerStatsCalculator::GetDlOutputFilename(void)
+NrBearerStatsCalculator::GetDlOutputFilename()
 {
     if (m_protocolType == "RLC")
     {

@@ -50,13 +50,13 @@ class BeamformingHelperBase : public Object
     /**
      * \brief ~BeamformingHelperBase destructor
      */
-    virtual ~BeamformingHelperBase();
+    ~BeamformingHelperBase() override;
 
     /**
      * \brief Get the Type ID
      * \return the TypeId of the instance
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Creates a new beamforming task, which means the pair of

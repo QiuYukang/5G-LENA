@@ -59,7 +59,7 @@ class TestHarqTestCase : public TestCase
     }
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
     void ValidateHarqForTwoRx();
     NrErrorModel::NrErrorModelHistory GetTbDecodStats(std::vector<double> sinrRx,
                                                       NrErrorModel::NrErrorModelHistory harqHistory,

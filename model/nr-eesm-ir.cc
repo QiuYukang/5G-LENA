@@ -38,7 +38,7 @@ NrEesmIr::~NrEesmIr()
 }
 
 TypeId
-NrEesmIr::GetTypeId(void)
+NrEesmIr::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrEesmIr").SetParent<NrEesmErrorModel>();
     return tid;

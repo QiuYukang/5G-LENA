@@ -58,15 +58,15 @@ class nrUeRrcProtocolIdeal : public Object
     /**
      * \brief ~nrUeRrcProtocolIdeal
      */
-    virtual ~nrUeRrcProtocolIdeal();
+    ~nrUeRrcProtocolIdeal() override;
 
     // inherited from Object
-    virtual void DoDispose(void) override;
+    void DoDispose() override;
     /**
      * \brief GetTypeId
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief SetLteUeRrcSapProvider
@@ -129,11 +129,11 @@ class NrGnbRrcProtocolIdeal : public Object
 
   public:
     NrGnbRrcProtocolIdeal();
-    virtual ~NrGnbRrcProtocolIdeal();
+    ~NrGnbRrcProtocolIdeal() override;
 
     // inherited from Object
-    virtual void DoDispose(void);
-    static TypeId GetTypeId(void);
+    void DoDispose() override;
+    static TypeId GetTypeId();
 
     void SetLteEnbRrcSapProvider(LteEnbRrcSapProvider* p);
     LteEnbRrcSapUser* GetLteEnbRrcSapUser();

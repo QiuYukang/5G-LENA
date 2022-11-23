@@ -41,7 +41,7 @@ class NodeDistributionScenarioInterface : public ScenarioParameters
     /**
      * \brief ~NodeDistributionScenarioInterface
      */
-    virtual ~NodeDistributionScenarioInterface();
+    ~NodeDistributionScenarioInterface() override;
     /**
      * \brief Get the list of gnb/base station nodes
      * \return A NodeContainer with all the Gnb (or base stations)

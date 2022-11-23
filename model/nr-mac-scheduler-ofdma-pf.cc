@@ -32,7 +32,7 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerOfdmaPF");
 NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulerOfdmaPF);
 
 TypeId
-NrMacSchedulerOfdmaPF::GetTypeId(void)
+NrMacSchedulerOfdmaPF::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrMacSchedulerOfdmaPF")

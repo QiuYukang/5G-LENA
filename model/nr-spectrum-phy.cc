@@ -123,7 +123,7 @@ NrSpectrumPhy::DoDispose()
 }
 
 TypeId
-NrSpectrumPhy::GetTypeId(void)
+NrSpectrumPhy::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrSpectrumPhy")
@@ -351,7 +351,7 @@ NrSpectrumPhy::SetCcaMode1Threshold(double thresholdDBm)
 }
 
 double
-NrSpectrumPhy::GetCcaMode1Threshold(void) const
+NrSpectrumPhy::GetCcaMode1Threshold() const
 {
     // convert Watt to dBm
     return 10.0 * std::log10(m_ccaMode1ThresholdW * 1000.0);
@@ -884,19 +884,19 @@ NrSpectrumPhy::SetAntenna(const Ptr<Object> antenna)
 }
 
 Ptr<SpectrumChannel>
-NrSpectrumPhy::GetSpectrumChannel(void) const
+NrSpectrumPhy::GetSpectrumChannel() const
 {
     return m_channel;
 }
 
 Ptr<NrHarqPhy>
-NrSpectrumPhy::GetHarqPhyModule(void) const
+NrSpectrumPhy::GetHarqPhyModule() const
 {
     return m_harqPhyModule;
 }
 
 Ptr<NrInterference>
-NrSpectrumPhy::GetNrInterference(void) const
+NrSpectrumPhy::GetNrInterference() const
 {
     NS_LOG_FUNCTION(this);
     return m_interferenceData;

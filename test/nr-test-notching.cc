@@ -47,22 +47,22 @@ class TestNotchingPhySapProvider : public NrPhySapProvider
 {
   public:
     TestNotchingPhySapProvider();
-    virtual ~TestNotchingPhySapProvider(void) override;
-    virtual uint32_t GetSymbolsPerSlot() const override;
-    virtual Ptr<const SpectrumModel> GetSpectrumModel() override;
-    virtual uint16_t GetBwpId() const override;
-    virtual uint16_t GetCellId() const override;
-    virtual Time GetSlotPeriod() const override;
-    virtual void SendMacPdu(const Ptr<Packet>& p,
-                            const SfnSf& sfn,
-                            uint8_t symStart,
-                            uint8_t streamId) override;
-    virtual void SendControlMessage(Ptr<NrControlMessage> msg) override;
-    virtual void SendRachPreamble(uint8_t PreambleId, uint8_t Rnti) override;
-    virtual void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
-    virtual void NotifyConnectionSuccessful() override;
-    virtual uint32_t GetRbNum() const override;
-    virtual BeamConfId GetBeamConfId(uint8_t rnti) const override;
+    ~TestNotchingPhySapProvider() override;
+    uint32_t GetSymbolsPerSlot() const override;
+    Ptr<const SpectrumModel> GetSpectrumModel() override;
+    uint16_t GetBwpId() const override;
+    uint16_t GetCellId() const override;
+    Time GetSlotPeriod() const override;
+    void SendMacPdu(const Ptr<Packet>& p,
+                    const SfnSf& sfn,
+                    uint8_t symStart,
+                    uint8_t streamId) override;
+    void SendControlMessage(Ptr<NrControlMessage> msg) override;
+    void SendRachPreamble(uint8_t PreambleId, uint8_t Rnti) override;
+    void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
+    void NotifyConnectionSuccessful() override;
+    uint32_t GetRbNum() const override;
+    BeamConfId GetBeamConfId(uint8_t rnti) const override;
     void SetParams(uint32_t numOfUesPerBeam, uint32_t numOfBeams);
 
   private:
@@ -184,10 +184,10 @@ TestNotchingPhySapProvider::GetBeamConfId(uint8_t rnti) const
 class TestNotchingGnbMac : public NrGnbMac
 {
   public:
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     TestNotchingGnbMac(const std::vector<u_int8_t>& inputMask);
-    virtual ~TestNotchingGnbMac(void) override;
-    virtual void DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind) override;
+    ~TestNotchingGnbMac() override;
+    void DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind) override;
     void SetVerbose(bool verbose);
 
   private:
@@ -296,10 +296,10 @@ class NrNotchingTestCase : public TestCase
     {
     }
 
-    ~NrNotchingTestCase();
+    ~NrNotchingTestCase() override;
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
     Ptr<NrMacSchedulerNs3> CreateScheduler(const std::string& schedulerType) const;
     Ptr<TestNotchingGnbMac> CreateMac(
         Ptr<NrMacSchedulerNs3>& scheduler,
@@ -467,7 +467,8 @@ class NrNotchingTestSuite : public TestSuite
                 {
                     for (const auto& beam : beams)
                     {
-                        std::stringstream ss, schedName;
+                        std::stringstream ss;
+                        std::stringstream schedName;
                         ss << ", " << subType << " " << sched << ", " << uesPerBeam
                            << " UE per beam, " << beam << " beam";
 

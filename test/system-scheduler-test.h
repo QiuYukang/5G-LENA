@@ -68,10 +68,10 @@ class SystemSchedulerTest : public TestCase
     /**
      * \brief ~SystemSchedulerTest
      */
-    virtual ~SystemSchedulerTest();
+    ~SystemSchedulerTest() override;
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
     void CountPkts(Ptr<const Packet> pkt);
 
     uint32_t m_numerology;      //!< the numerology to be used

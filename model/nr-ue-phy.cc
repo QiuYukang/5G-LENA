@@ -75,7 +75,7 @@ NrUePhy::DoDispose()
 }
 
 TypeId
-NrUePhy::GetTypeId(void)
+NrUePhy::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrUePhy")
@@ -310,7 +310,7 @@ NrUePhy::SetSubChannelsForTransmission(const std::vector<int>& mask,
                                  m_imsi,
                                  GetBwpId(),
                                  GetCellId());
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         m_spectrumPhys.at(streamIndex)->SetTxPowerSpectralDensity(txPsd);
     }
@@ -417,6 +417,7 @@ NrUePhy::SetPattern(const std::string& pattern)
         extracted.push_back(token);
     }
 
+    vector.reserve(extracted.size());
     for (const auto& v : extracted)
     {
         vector.push_back(lookupTable[v]);
@@ -502,9 +503,9 @@ NrUePhy::PhyCtrlMessagesReceived(const Ptr<NrControlMessage>& msg)
         uint32_t k0Delay = dciMsg->GetKDelay();
         dciSfn.Add(k0Delay);
 
-        for (uint8_t stream = 0; stream < dciInfoElem->m_tbSize.size(); stream++)
+        for (std::size_t stream = 0; stream < dciInfoElem->m_tbSize.size(); stream++)
         {
-            NS_LOG_DEBUG("UE" << m_rnti << " stream " << +stream << " DL-DCI received for slot "
+            NS_LOG_DEBUG("UE" << m_rnti << " stream " << stream << " DL-DCI received for slot "
                               << dciSfn << " symStart "
                               << static_cast<uint32_t>(dciInfoElem->m_symStart) << " numSym "
                               << static_cast<uint32_t>(dciInfoElem->m_numSym) << " tbs "
@@ -781,7 +782,8 @@ NrUePhy::StartSlot(const SfnSf& s)
                       << m_currSlotAllocInfo.m_varTtiAllocInfo.size());
     for (const auto& alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
-        std::string direction, type;
+        std::string direction;
+        std::string type;
         if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
         {
             type = "CTRL";
@@ -868,11 +870,11 @@ NrUePhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
     std::list<Ptr<NrControlMessage>> srsMsg;
     Ptr<NrSrsMessage> srs = Create<NrSrsMessage>();
     srs->SetSourceBwp(GetBwpId());
-    srsMsg.push_back(srs);
+    srsMsg.emplace_back(srs);
     Time varTtiDuration = GetSymbolPeriod() * dci->m_numSym;
 
     // SRS will be transmitted over all streams/streams
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         m_phyTxedCtrlMsgsTrace(m_currentSlot,
                                GetCellId(),
@@ -973,7 +975,7 @@ NrUePhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     NS_ASSERT(dci->m_rnti == m_rnti);
     NS_ASSERT(m_dlHarqInfo.size() == 0);
 
-    for (uint8_t streamIndex = 0; streamIndex < dci->m_tbSize.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < dci->m_tbSize.size(); streamIndex++)
     {
         if (dci->m_tbSize.at(streamIndex) > 0)
         {
@@ -1007,7 +1009,7 @@ NrUePhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 
             m_reportDlTbSize(m_netDevice->GetObject<NrUeNetDevice>()->GetImsi(),
                              dci->m_tbSize.at(streamIndex));
-            NS_LOG_DEBUG("UE" << m_rnti << " stream " << +streamIndex
+            NS_LOG_DEBUG("UE" << m_rnti << " stream " << streamIndex
                               << " RXing DL DATA frame for"
                                  " symbols "
                               << +dci->m_symStart << "-" << +(dci->m_symStart + dci->m_numSym - 1)
@@ -1823,7 +1825,7 @@ NrUePhy::SelectRi(const std::vector<double>& avrgSinr)
     else
     {
         std::vector<uint8_t> indexValidSinr;
-        for (uint8_t i = 0; i < avrgSinr.size(); i++)
+        for (std::size_t i = 0; i < avrgSinr.size(); i++)
         {
             if (avrgSinr[i] != UINT32_MAX)
             {

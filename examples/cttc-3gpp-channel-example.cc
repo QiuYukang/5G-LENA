@@ -98,31 +98,31 @@ main(int argc, char* argv[])
 
     // set mobile device and base station antenna heights in meters, according to the chosen
     // scenario
-    if (scenario.compare("RMa") == 0)
+    if (scenario == "RMa")
     {
         hBS = 35;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::RMa;
     }
-    else if (scenario.compare("UMa") == 0)
+    else if (scenario == "UMa")
     {
         hBS = 25;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::UMa;
     }
-    else if (scenario.compare("UMi-StreetCanyon") == 0)
+    else if (scenario == "UMi-StreetCanyon")
     {
         hBS = 10;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-    else if (scenario.compare("InH-OfficeMixed") == 0)
+    else if (scenario == "InH-OfficeMixed")
     {
         hBS = 3;
         hUT = 1;
         scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
     }
-    else if (scenario.compare("InH-OfficeOpen") == 0)
+    else if (scenario == "InH-OfficeOpen")
     {
         hBS = 3;
         hUT = 1;

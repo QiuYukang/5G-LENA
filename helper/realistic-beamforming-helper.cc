@@ -39,7 +39,7 @@ NS_LOG_COMPONENT_DEFINE("RealisticBeamformingHelper");
 NS_OBJECT_ENSURE_REGISTERED(RealisticBeamformingHelper);
 
 TypeId
-RealisticBeamformingHelper::GetTypeId(void)
+RealisticBeamformingHelper::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::RealisticBeamformingHelper")
                             .SetParent<BeamformingHelperBase>()
@@ -52,7 +52,7 @@ RealisticBeamformingHelper::AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev
                                                const Ptr<NrUeNetDevice>& ueDev)
 {
     NS_LOG_FUNCTION(this);
-    for (uint8_t ccId = 0; ccId < gNbDev->GetCcMapSize(); ccId++)
+    for (std::size_t ccId = 0; ccId < gNbDev->GetCcMapSize(); ccId++)
     {
         uint8_t gnbAntennaArrays = gNbDev->GetPhy(ccId)->GetNumberOfStreams();
         uint8_t ueAntennaArrays = ueDev->GetPhy(ccId)->GetNumberOfStreams();

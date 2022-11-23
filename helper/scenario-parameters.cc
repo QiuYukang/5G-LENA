@@ -24,7 +24,7 @@ namespace ns3
 
 double ScenarioParameters::MAX_ANTENNA_OFFSET = 1;
 
-ScenarioParameters::~ScenarioParameters(void)
+ScenarioParameters::~ScenarioParameters()
 {
 }
 
@@ -41,7 +41,7 @@ ScenarioParameters::SetUtHeight(double h)
 }
 
 uint32_t
-ScenarioParameters::GetNumSectorsPerSite(void) const
+ScenarioParameters::GetNumSectorsPerSite() const
 {
     return static_cast<uint32_t>(m_sectorization);
 }
@@ -91,7 +91,7 @@ ScenarioParameters::SetScenarioParameters(const ScenarioParameters& scenario)
 }
 
 void
-ScenarioParameters::SetUMaParameters(void)
+ScenarioParameters::SetUMaParameters()
 {
     m_isd = 1732;
     m_bsHeight = 30.0;
@@ -102,7 +102,7 @@ ScenarioParameters::SetUMaParameters(void)
 }
 
 void
-ScenarioParameters::SetUMiParameters(void)
+ScenarioParameters::SetUMiParameters()
 {
     m_isd = 500;
     m_bsHeight = 10.0;
@@ -113,7 +113,7 @@ ScenarioParameters::SetUMiParameters(void)
 }
 
 void
-ScenarioParameters::SetRMaParameters(void)
+ScenarioParameters::SetRMaParameters()
 {
     m_isd = 7000;
     m_bsHeight = 45.0;

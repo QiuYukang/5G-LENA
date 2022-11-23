@@ -76,7 +76,7 @@ RealisticBeamformingAlgorithm::~RealisticBeamformingAlgorithm()
 }
 
 TypeId
-RealisticBeamformingAlgorithm::GetTypeId(void)
+RealisticBeamformingAlgorithm::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::RealisticBeamformingAlgorithm")
@@ -305,15 +305,19 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
                     "Beamforming method cannot be performed between two devices that are placed in "
                     "the same position.");
 
-    double max = 0, maxTxTheta = 0, maxRxTheta = 0;
-    uint16_t maxTxSector = 0, maxRxSector = 0;
-    complexVector_t maxTxW, maxRxW;
+    double max = 0;
+    double maxTxTheta = 0;
+    double maxRxTheta = 0;
+    uint16_t maxTxSector = 0;
+    uint16_t maxRxSector = 0;
+    complexVector_t maxTxW;
+    complexVector_t maxRxW;
 
     UintegerValue uintValue;
     m_gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
-    uint32_t gnbNumRows = static_cast<uint32_t>(uintValue.Get());
+    uint16_t gnbNumRows = static_cast<uint16_t>(uintValue.Get());
     m_ueSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
-    uint32_t ueNumRows = static_cast<uint32_t>(uintValue.Get());
+    uint16_t ueNumRows = static_cast<uint32_t>(uintValue.Get());
 
     TriggerEventConf conf = GetTriggerEventConf();
     double srsSinr = 0;
@@ -448,7 +452,8 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent(
 
     // check if the channel matrix was generated considering a as the s-node and
     // b as the u-node or viceversa
-    UniformPlanarArray::ComplexVector sW, uW;
+    UniformPlanarArray::ComplexVector sW;
+    UniformPlanarArray::ComplexVector uW;
     if (!channelMatrix->IsReverse(aArray->GetId(), bArray->GetId()))
     {
         sW = aW;

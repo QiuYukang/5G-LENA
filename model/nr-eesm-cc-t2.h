@@ -39,7 +39,7 @@ class NrEesmCcT2 : public NrEesmCc
      * \brief Get the type id of the object
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief NrEesmCcT2 constructor
      */
@@ -47,15 +47,15 @@ class NrEesmCcT2 : public NrEesmCc
     /**
      * \brief ~NrEesmCcT2 deconstructor
      */
-    virtual ~NrEesmCcT2();
+    ~NrEesmCcT2() override;
 
   protected:
-    virtual const std::vector<double>* GetBetaTable() const override;
-    virtual const std::vector<double>* GetMcsEcrTable() const override;
-    virtual const SimulatedBlerFromSINR* GetSimulatedBlerFromSINR() const override;
-    virtual const std::vector<uint8_t>* GetMcsMTable() const override;
-    virtual const std::vector<double>* GetSpectralEfficiencyForMcs() const override;
-    virtual const std::vector<double>* GetSpectralEfficiencyForCqi() const override;
+    const std::vector<double>* GetBetaTable() const override;
+    const std::vector<double>* GetMcsEcrTable() const override;
+    const SimulatedBlerFromSINR* GetSimulatedBlerFromSINR() const override;
+    const std::vector<uint8_t>* GetMcsMTable() const override;
+    const std::vector<double>* GetSpectralEfficiencyForMcs() const override;
+    const std::vector<double>* GetSpectralEfficiencyForCqi() const override;
 
   private:
     NrEesmT2 m_t2; //!< The reference table

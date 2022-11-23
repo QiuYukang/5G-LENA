@@ -33,7 +33,7 @@ NS_OBJECT_ENSURE_REGISTERED(NrBearerStatsBase);
 NS_OBJECT_ENSURE_REGISTERED(NrBearerStatsSimple);
 
 TypeId
-NrBearerStatsBase::GetTypeId(void)
+NrBearerStatsBase::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrBearerStatsBase").SetParent<Object>().SetGroupName("nr");
     return tid;
@@ -64,7 +64,7 @@ NrBearerStatsSimple::~NrBearerStatsSimple()
 }
 
 TypeId
-NrBearerStatsSimple::GetTypeId(void)
+NrBearerStatsSimple::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrBearerStatsSimple")
@@ -239,7 +239,7 @@ NrBearerStatsSimple::DlRxPdu(uint16_t cellId,
 }
 
 std::string
-NrBearerStatsSimple::GetUlTxOutputFilename(void)
+NrBearerStatsSimple::GetUlTxOutputFilename()
 {
     if (m_protocolType == "RLC")
     {
@@ -252,7 +252,7 @@ NrBearerStatsSimple::GetUlTxOutputFilename(void)
 }
 
 std::string
-NrBearerStatsSimple::GetUlRxOutputFilename(void)
+NrBearerStatsSimple::GetUlRxOutputFilename()
 {
     if (m_protocolType == "RLC")
     {
@@ -265,7 +265,7 @@ NrBearerStatsSimple::GetUlRxOutputFilename(void)
 }
 
 std::string
-NrBearerStatsSimple::GetDlTxOutputFilename(void)
+NrBearerStatsSimple::GetDlTxOutputFilename()
 {
     if (m_protocolType == "RLC")
     {
@@ -278,7 +278,7 @@ NrBearerStatsSimple::GetDlTxOutputFilename(void)
 }
 
 std::string
-NrBearerStatsSimple::GetDlRxOutputFilename(void)
+NrBearerStatsSimple::GetDlRxOutputFilename()
 {
     if (m_protocolType == "RLC")
     {

@@ -127,25 +127,25 @@ class NrPointToPointEpcHelper : public PointToPointEpcHelper
     /**
      * \brief Destructor
      */
-    virtual ~NrPointToPointEpcHelper() override;
+    ~NrPointToPointEpcHelper() override;
 
     // inherited from Object
     /**
      *  \brief Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
   protected:
-    virtual void DoAddX2Interface(const Ptr<EpcX2>& gnb1X2,
-                                  const Ptr<NetDevice>& gnb1NetDev,
-                                  const Ipv4Address& gnb1X2Address,
-                                  const Ptr<EpcX2>& gnb2X2,
-                                  const Ptr<NetDevice>& gnb2NetDev,
-                                  const Ipv4Address& gnb2X2Address) const override;
-    virtual void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                          const Ptr<EpcTft>& tft,
-                                          const EpsBearer& bearer) const override;
+    void DoAddX2Interface(const Ptr<EpcX2>& gnb1X2,
+                          const Ptr<NetDevice>& gnb1NetDev,
+                          const Ipv4Address& gnb1X2Address,
+                          const Ptr<EpcX2>& gnb2X2,
+                          const Ptr<NetDevice>& gnb2NetDev,
+                          const Ipv4Address& gnb2X2Address) const override;
+    void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
+                                  const Ptr<EpcTft>& tft,
+                                  const EpsBearer& bearer) const override;
 };
 
 } // namespace ns3

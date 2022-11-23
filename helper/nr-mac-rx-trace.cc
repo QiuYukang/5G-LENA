@@ -70,7 +70,7 @@ NrMacRxTrace::~NrMacRxTrace()
 }
 
 TypeId
-NrMacRxTrace::GetTypeId(void)
+NrMacRxTrace::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrMacRxTrace").SetParent<Object>().AddConstructor<NrMacRxTrace>();

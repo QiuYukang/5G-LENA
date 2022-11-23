@@ -65,10 +65,10 @@ class NrTimingsTest : public TestCase
 {
   public:
     NrTimingsTest(const std::string& name, uint32_t numerology, bool verbose);
-    virtual ~NrTimingsTest();
+    ~NrTimingsTest() override;
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
     void GnbPhyTx(SfnSf sfn,
                   uint16_t nodeId,
                   uint16_t rnti,
@@ -827,7 +827,7 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
 #define GET_UE_MAC(X, Y) nrHelper->GetUeMac(ueNetDev.Get(X), Y)
 
 void
-NrTimingsTest::DoRun(void)
+NrTimingsTest::DoRun()
 {
     Ptr<Node> ueNode = CreateObject<Node>();
     Ptr<Node> gNbNode = CreateObject<Node>();

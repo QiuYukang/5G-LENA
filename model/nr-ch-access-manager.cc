@@ -31,7 +31,7 @@ NS_LOG_COMPONENT_DEFINE("NrChAccessManager");
 NS_OBJECT_ENSURE_REGISTERED(NrChAccessManager);
 
 TypeId
-NrChAccessManager::GetTypeId(void)
+NrChAccessManager::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrChAccessManager")
                             .SetParent<Object>()
@@ -102,7 +102,7 @@ NrChAccessManager::GetNrGnbMac()
 NS_OBJECT_ENSURE_REGISTERED(NrAlwaysOnAccessManager);
 
 TypeId
-NrAlwaysOnAccessManager::GetTypeId(void)
+NrAlwaysOnAccessManager::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrAlwaysOnAccessManager")
                             .SetParent<NrChAccessManager>()

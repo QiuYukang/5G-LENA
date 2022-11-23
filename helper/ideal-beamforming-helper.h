@@ -47,19 +47,19 @@ class IdealBeamformingHelper : public BeamformingHelperBase
     /**
      * \brief ~IdealBeamformingHelper
      */
-    virtual ~IdealBeamformingHelper();
+    ~IdealBeamformingHelper() override;
 
     /**
      * \brief Get the Type ID
      * \return the TypeId of the instance
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief SetBeamformingMethod
      * \param beamformingMethod
      */
-    virtual void SetBeamformingMethod(const TypeId& beamformingMethod) override;
+    void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 
     /**
      * \brief SetIdealBeamformingPeriodicity
@@ -83,12 +83,12 @@ class IdealBeamformingHelper : public BeamformingHelperBase
      * \param gNbDev gNB device
      * \param ueDev UE device
      */
-    virtual void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
-                                    const Ptr<NrUeNetDevice>& ueDev) override;
+    void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
+                            const Ptr<NrUeNetDevice>& ueDev) override;
 
   protected:
     // inherited from Object
-    virtual void DoInitialize(void) override;
+    void DoInitialize() override;
 
     /**
      * \brief The beamforming timer has expired; at the next slot, perform beamforming.
@@ -96,7 +96,7 @@ class IdealBeamformingHelper : public BeamformingHelperBase
      */
     virtual void ExpireBeamformingTimer();
 
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 

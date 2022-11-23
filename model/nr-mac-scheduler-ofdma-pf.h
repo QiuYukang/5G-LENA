@@ -38,7 +38,7 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief NrMacSchedulerOfdmaPF constructor
      */
@@ -47,7 +47,7 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
     /**
      * \brief ~NrMacSchedulerOfdmaPF deconstructor
      */
-    virtual ~NrMacSchedulerOfdmaPF() override
+    ~NrMacSchedulerOfdmaPF() override
     {
     }
 
@@ -81,23 +81,23 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * \param params parameters
      * \return NrMacSchedulerUeInfoRR instance
      */
-    virtual std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
+    std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
         const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
     /**
      * \brief Return the comparison function to sort DL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoPF::CompareUeWeightsDl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareDlFn() const override;
 
     /**
      * \brief Return the comparison function to sort UL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoPF::CompareUeWeightsUl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareUlFn() const override;
 
     /**
@@ -112,9 +112,9 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * based on the resources assigned to the user. This will help the sorting
      * function to sort the UEs for resource allocation.
      */
-    virtual void AssignedDlResources(const UePtrAndBufferReq& ue,
-                                     const FTResources& assigned,
-                                     const FTResources& totAssigned) const override;
+    void AssignedDlResources(const UePtrAndBufferReq& ue,
+                             const FTResources& assigned,
+                             const FTResources& totAssigned) const override;
 
     /**
      * \brief Update DL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFDlMetric
@@ -132,9 +132,9 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * assigned, the tbSize will be zero. This will help the sorting function to
      * sort the UEs for resource allocation.
      */
-    virtual void NotAssignedDlResources(const UePtrAndBufferReq& ue,
-                                        const FTResources& notAssigned,
-                                        const FTResources& totalAssigned) const override;
+    void NotAssignedDlResources(const UePtrAndBufferReq& ue,
+                                const FTResources& notAssigned,
+                                const FTResources& totalAssigned) const override;
 
     /**
      * \brief Update the UE representation after a symbol (UL) has been assigned to it
@@ -148,9 +148,9 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * based on the resources assigned to the user. This will help the sorting
      * function to sort the UEs for resource allocation.
      */
-    virtual void AssignedUlResources(const UePtrAndBufferReq& ue,
-                                     const FTResources& assigned,
-                                     const FTResources& totAssigned) const override;
+    void AssignedUlResources(const UePtrAndBufferReq& ue,
+                             const FTResources& assigned,
+                             const FTResources& totAssigned) const override;
 
     /**
      * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
@@ -168,9 +168,9 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * assigned, the tbSize will be zero. This will help the sorting function to
      * sort the UEs for resource allocation.
      */
-    virtual void NotAssignedUlResources(const UePtrAndBufferReq& ue,
-                                        const FTResources& notAssigned,
-                                        const FTResources& totalAssigned) const override;
+    void NotAssignedUlResources(const UePtrAndBufferReq& ue,
+                                const FTResources& notAssigned,
+                                const FTResources& totalAssigned) const override;
 
     /**
      * \brief Calculate the potential throughput for the DL based on the available resources
@@ -180,8 +180,8 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * Calculates the the potential throughput by calling
      * NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl.
      */
-    virtual void BeforeDlSched(const UePtrAndBufferReq& ue,
-                               const FTResources& assignableInIteration) const override;
+    void BeforeDlSched(const UePtrAndBufferReq& ue,
+                       const FTResources& assignableInIteration) const override;
 
     /**
      * \brief Calculate the potential throughput for the UL based on the available resources
@@ -191,8 +191,8 @@ class NrMacSchedulerOfdmaPF : public NrMacSchedulerOfdmaRR
      * Calculates the the potential throughput by calling
      * NrMacSchedulerUeInfoPF::CalculatePotentialTPutUl.
      */
-    virtual void BeforeUlSched(const UePtrAndBufferReq& ue,
-                               const FTResources& assignableInIteration) const override;
+    void BeforeUlSched(const UePtrAndBufferReq& ue,
+                       const FTResources& assignableInIteration) const override;
 
   private:
     double m_timeWindow{

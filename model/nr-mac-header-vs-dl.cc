@@ -69,15 +69,25 @@ bool
 NrMacHeaderVsDl::IsVariableSizeHeader() const
 {
     if (m_lcid <= 32)
+    {
         return true;
+    }
     if (m_lcid == SP_SRS)
+    {
         return true;
+    }
     if (m_lcid == TCI_STATES_PDSCH)
+    {
         return true;
+    }
     if (m_lcid == APERIODIC_CSI)
+    {
         return true;
+    }
     if (m_lcid == SP_CSI_RS_IM)
+    {
         return true;
+    }
     return false;
 }
 

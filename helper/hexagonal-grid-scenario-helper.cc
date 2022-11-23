@@ -226,7 +226,8 @@ PlotHexagonalDeployment(const Ptr<const ListPositionAllocator>& sitePosVector,
         Vector cellPos = cellCenterVector->GetNext();
         double angleDeg = 30 + 120 * (cellId % 3);
         double angleRad = angleDeg * M_PI / 180;
-        double x, y;
+        double x;
+        double y;
 
         if (cellId % numSectors == 0)
         {
@@ -408,7 +409,7 @@ HexagonalGridScenarioHelper::CreateScenario()
     Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator>();
 
     // BS position
-    for (uint16_t cellId = 0; cellId < m_numBs; cellId++)
+    for (std::size_t cellId = 0; cellId < m_numBs; cellId++)
     {
         uint16_t siteIndex = GetSiteIndex(cellId);
         Vector sitePos(m_centralPos);
@@ -511,7 +512,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed, dou
     Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator>();
 
     // BS position
-    for (uint16_t cellId = 0; cellId < m_numBs; cellId++)
+    for (std::size_t cellId = 0; cellId < m_numBs; cellId++)
     {
         uint16_t siteIndex = GetSiteIndex(cellId);
         Vector sitePos(m_centralPos);

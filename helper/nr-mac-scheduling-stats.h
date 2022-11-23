@@ -59,14 +59,14 @@ class NrMacSchedulingStats : public NrStatsCalculator
     /**
      * Destructor
      */
-    virtual ~NrMacSchedulingStats();
+    ~NrMacSchedulingStats() override;
 
     // Inherited from ns3::Object
     /**
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * Set the name of the file where the uplink statistics will be stored.
@@ -79,7 +79,7 @@ class NrMacSchedulingStats : public NrStatsCalculator
      * Get the name of the file where the uplink statistics will be stored.
      * @return the name of the file where the uplink statistics will be stored
      */
-    std::string GetUlOutputFilename(void);
+    std::string GetUlOutputFilename();
 
     /**
      * Set the name of the file where the downlink statistics will be stored.
@@ -92,7 +92,7 @@ class NrMacSchedulingStats : public NrStatsCalculator
      * Get the name of the file where the downlink statistics will be stored.
      * @return the name of the file where the downlink statistics will be stored
      */
-    std::string GetDlOutputFilename(void);
+    std::string GetDlOutputFilename();
 
     /**
      * Notifies the stats calculator that an downlink scheduling has occurred.

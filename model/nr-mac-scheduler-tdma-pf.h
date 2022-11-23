@@ -36,7 +36,7 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief NrMacSchedulerTdmaPF constructor
      */
@@ -45,7 +45,7 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
     /**
      * \brief ~NrMacSchedulerTdmaPF deconstructor
      */
-    virtual ~NrMacSchedulerTdmaPF() override
+    ~NrMacSchedulerTdmaPF() override
     {
     }
 
@@ -79,23 +79,23 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * \param params parameters
      * \return NrMacSchedulerUeInfoRR instance
      */
-    virtual std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
+    std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
         const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
     /**
      * \brief Return the comparison function to sort DL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoPF::CompareUeWeightsDl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareDlFn() const override;
 
     /**
      * \brief Return the comparison function to sort UL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoPF::CompareUeWeightsUl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareUlFn() const override;
 
     /**
@@ -110,9 +110,9 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * based on the resources assigned to the user. This will help the sorting
      * function to sort the UEs for resource allocation.
      */
-    virtual void AssignedDlResources(const UePtrAndBufferReq& ue,
-                                     const FTResources& assigned,
-                                     const FTResources& totAssigned) const override;
+    void AssignedDlResources(const UePtrAndBufferReq& ue,
+                             const FTResources& assigned,
+                             const FTResources& totAssigned) const override;
 
     /**
      * \brief Update DL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFDlMetric
@@ -130,9 +130,9 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * assigned, the tbSize will be zero. This will help the sorting function to
      * sort the UEs for resource allocation.
      */
-    virtual void NotAssignedDlResources(const UePtrAndBufferReq& ue,
-                                        const FTResources& notAssigned,
-                                        const FTResources& totAssigned) const override;
+    void NotAssignedDlResources(const UePtrAndBufferReq& ue,
+                                const FTResources& notAssigned,
+                                const FTResources& totAssigned) const override;
 
     /**
      * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
@@ -146,9 +146,9 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * based on the resources assigned to the user. This will help the sorting
      * function to sort the UEs for resource allocation.
      */
-    virtual void AssignedUlResources(const UePtrAndBufferReq& ue,
-                                     const FTResources& assigned,
-                                     const FTResources& totAssigned) const override;
+    void AssignedUlResources(const UePtrAndBufferReq& ue,
+                             const FTResources& assigned,
+                             const FTResources& totAssigned) const override;
 
     /**
      * \brief Update UL metrics by calling NrMacSchedulerUeInfoPF::UpdatePFUlMetric
@@ -166,9 +166,9 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * assigned, the tbSize will be zero. This will help the sorting function to
      * sort the UEs for resource allocation.
      */
-    virtual void NotAssignedUlResources(const UePtrAndBufferReq& ue,
-                                        const FTResources& notAssigned,
-                                        const FTResources& totAssigned) const override;
+    void NotAssignedUlResources(const UePtrAndBufferReq& ue,
+                                const FTResources& notAssigned,
+                                const FTResources& totAssigned) const override;
 
     /**
      * \brief Calculate the potential throughtput for the DL based on the available resources
@@ -178,8 +178,8 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * Calculates the the potential throughput by calling
      * NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl.
      */
-    virtual void BeforeDlSched(const UePtrAndBufferReq& ue,
-                               const FTResources& assignableInIteration) const override;
+    void BeforeDlSched(const UePtrAndBufferReq& ue,
+                       const FTResources& assignableInIteration) const override;
 
     /**
      * \brief Calculate the potential throughput for the UL based on the available resources
@@ -189,8 +189,8 @@ class NrMacSchedulerTdmaPF : public NrMacSchedulerTdmaRR
      * Calculates the the potential throughput by calling
      * NrMacSchedulerUeInfoPF::CalculatePotentialTPutUl.
      */
-    virtual void BeforeUlSched(const UePtrAndBufferReq& ue,
-                               const FTResources& assignableInIteration) const override;
+    void BeforeUlSched(const UePtrAndBufferReq& ue,
+                       const FTResources& assignableInIteration) const override;
 
   private:
     double m_timeWindow{

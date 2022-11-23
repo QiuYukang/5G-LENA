@@ -41,7 +41,7 @@ class NrControlMessage;
 struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 {
     // inherited from SpectrumSignalParameters
-    virtual Ptr<SpectrumSignalParameters> Copy() const override;
+    Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
      * \brief NrSpectrumSignalParametersDataFrame
@@ -71,7 +71,7 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
 {
     // inherited from SpectrumSignalParameters
-    virtual Ptr<SpectrumSignalParameters> Copy() const override;
+    Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
      * \brief NrSpectrumSignalParametersDlCtrlFrame
@@ -101,7 +101,7 @@ struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
 struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
 {
     // inherited from SpectrumSignalParameters
-    virtual Ptr<SpectrumSignalParameters> Copy() const override;
+    Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
      * \brief NrSpectrumSignalParametersUlCtrlFrame

@@ -32,7 +32,7 @@ struct Parameters
 {
     friend std::ostream& operator<<(std::ostream& os, const Parameters& parameters);
 
-    bool Validate(void) const;
+    bool Validate() const;
 
     uint16_t numOuterRings = 3;
     uint16_t ueNumPergNb = 2;

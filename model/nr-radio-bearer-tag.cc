@@ -28,7 +28,7 @@ namespace ns3
 NS_OBJECT_ENSURE_REGISTERED(NrRadioBearerTag);
 
 TypeId
-NrRadioBearerTag::GetTypeId(void)
+NrRadioBearerTag::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrRadioBearerTag")
@@ -54,7 +54,7 @@ NrRadioBearerTag::GetTypeId(void)
 }
 
 TypeId
-NrRadioBearerTag::GetInstanceTypeId(void) const
+NrRadioBearerTag::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -107,7 +107,7 @@ NrRadioBearerTag::SetSize(uint32_t size)
 }
 
 uint32_t
-NrRadioBearerTag::GetSerializedSize(void) const
+NrRadioBearerTag::GetSerializedSize() const
 {
     return 4;
 }

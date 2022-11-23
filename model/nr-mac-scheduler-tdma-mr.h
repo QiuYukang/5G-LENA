@@ -39,7 +39,7 @@ class NrMacSchedulerTdmaMR : public NrMacSchedulerTdmaRR
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrMacSchedulerTdmaMR constructor
@@ -49,7 +49,7 @@ class NrMacSchedulerTdmaMR : public NrMacSchedulerTdmaRR
     /**
      * \brief ~NrMacSchedulerTdmaMR deconstructor
      */
-    virtual ~NrMacSchedulerTdmaMR() override
+    ~NrMacSchedulerTdmaMR() override
     {
     }
 
@@ -59,23 +59,23 @@ class NrMacSchedulerTdmaMR : public NrMacSchedulerTdmaRR
      * \param params parameters
      * \return NrMacSchedulerUeInfoRR instance
      */
-    virtual std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
+    std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
         const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
     /**
      * \brief Return the comparison function to sort DL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoMR::CompareUeWeightsDl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareDlFn() const override;
 
     /**
      * \brief Return the comparison function to sort UL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoMR::CompareUeWeightsUl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareUlFn() const override;
 };
 

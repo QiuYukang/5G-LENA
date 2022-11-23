@@ -62,19 +62,33 @@ bool
 NrMacHeaderFsUl::IsFixedSizeHeader() const
 {
     if (m_lcid == BIT_RATE_QUERY)
+    {
         return true;
+    }
     if (m_lcid == CONFIGURED_GRANT_CONFIRMATION)
+    {
         return true;
+    }
     if (m_lcid == SINGLE_ENTRY_PHR)
+    {
         return true;
+    }
     if (m_lcid == C_RNTI)
+    {
         return true;
+    }
     if (m_lcid == SHORT_TRUNCATED_BSR)
+    {
         return true;
+    }
     if (m_lcid == SHORT_BSR)
+    {
         return true;
+    }
     if (m_lcid == PADDING)
+    {
         return true;
+    }
 
     return false;
 }

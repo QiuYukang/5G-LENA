@@ -55,31 +55,57 @@ bool
 NrMacHeaderFsDl::IsFixedSizeHeader() const
 {
     if (m_lcid == RECOMMENDED_BIT_RATE)
+    {
         return true;
+    }
     if (m_lcid == SP_ZP_CSI_RS)
+    {
         return true;
+    }
     if (m_lcid == PUCCH_SPATIAL_RELATION)
+    {
         return true;
+    }
     if (m_lcid == SP_CSI_REPORT)
+    {
         return true;
+    }
     if (m_lcid == TCI_STATE_INDICATION_PDCCH)
+    {
         return true;
+    }
     if (m_lcid == DUPLICATION)
+    {
         return true;
+    }
     if (m_lcid == SCELL_FOUR_OCTET)
+    {
         return true;
+    }
     if (m_lcid == SCELL_ONE_OCTET)
+    {
         return true;
+    }
     if (m_lcid == LONG_DRX)
+    {
         return true;
+    }
     if (m_lcid == DRX)
+    {
         return true;
+    }
     if (m_lcid == TIMING_ADVANCE)
+    {
         return true;
+    }
     if (m_lcid == UE_CONTENTION_RESOLUTION)
+    {
         return true;
+    }
     if (m_lcid == PADDING)
+    {
         return true;
+    }
 
     return false;
 }

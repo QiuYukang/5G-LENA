@@ -143,7 +143,7 @@ NrPhyRxTrace::~NrPhyRxTrace()
 }
 
 TypeId
-NrPhyRxTrace::GetTypeId(void)
+NrPhyRxTrace::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrPhyRxTrace")

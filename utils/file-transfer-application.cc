@@ -41,7 +41,7 @@ NS_LOG_COMPONENT_DEFINE("FileTransferApplication");
 NS_OBJECT_ENSURE_REGISTERED(FileTransferApplication);
 
 TypeId
-FileTransferApplication::GetTypeId(void)
+FileTransferApplication::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::FileTransferApplication")
@@ -77,7 +77,7 @@ FileTransferApplication::GetTypeId(void)
 }
 
 FileTransferApplication::FileTransferApplication()
-    : m_socket(0),
+    : m_socket(nullptr),
       m_connected(false),
       m_totBytes(0)
 {
@@ -97,31 +97,31 @@ FileTransferApplication::SetFileSize(uint32_t fileSize)
 }
 
 uint32_t
-FileTransferApplication::GetTotalBytes(void) const
+FileTransferApplication::GetTotalBytes() const
 {
     NS_LOG_FUNCTION(this);
     return m_totBytes;
 }
 
 Ptr<Socket>
-FileTransferApplication::GetSocket(void) const
+FileTransferApplication::GetSocket() const
 {
     NS_LOG_FUNCTION(this);
     return m_socket;
 }
 
 void
-FileTransferApplication::DoDispose(void)
+FileTransferApplication::DoDispose()
 {
     NS_LOG_FUNCTION(this);
 
-    m_socket = 0;
+    m_socket = nullptr;
     // chain up
     Application::DoDispose();
 }
 
 bool
-FileTransferApplication::SendFile(void)
+FileTransferApplication::SendFile()
 {
     NS_LOG_FUNCTION(this);
     if (m_socket)
@@ -159,13 +159,13 @@ FileTransferApplication::SendFile(void)
 
 // Application Methods
 void
-FileTransferApplication::StartApplication(void) // Called at time specified by Start
+FileTransferApplication::StartApplication() // Called at time specified by Start
 {
     NS_LOG_FUNCTION(this);
 }
 
 void
-FileTransferApplication::StopApplication(void) // Called at time specified by Stop
+FileTransferApplication::StopApplication() // Called at time specified by Stop
 {
     NS_LOG_FUNCTION(this);
 
@@ -183,7 +183,7 @@ FileTransferApplication::StopApplication(void) // Called at time specified by St
 // Private helpers
 
 void
-FileTransferApplication::SendData(void)
+FileTransferApplication::SendData()
 {
     NS_LOG_FUNCTION(this);
 
@@ -220,7 +220,7 @@ FileTransferApplication::SendData(void)
     }
     if (m_tid == UdpSocketFactory::GetTypeId())
     {
-        m_socket = 0;
+        m_socket = nullptr;
     }
 }
 
@@ -246,7 +246,7 @@ FileTransferApplication::CloseSucceeded(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_LOG_LOGIC("FileTransferApplication Close succeeded");
-    m_socket = 0;
+    m_socket = nullptr;
 }
 
 void
@@ -254,7 +254,7 @@ FileTransferApplication::CloseFailed(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_LOG_LOGIC("FileTransferApplication Close failed");
-    m_socket = 0;
+    m_socket = nullptr;
 }
 
 void

@@ -35,8 +35,8 @@ class NrMacRxTrace : public Object
 {
   public:
     NrMacRxTrace();
-    virtual ~NrMacRxTrace();
-    static TypeId GetTypeId(void);
+    ~NrMacRxTrace() override;
+    static TypeId GetTypeId();
 
     /**
      *  Trace sink for Enb Mac Received Control Messages.

@@ -289,7 +289,7 @@ NrBearerStatsConnector::StoreUeManagerPath(std::string context, uint16_t cellId,
 {
     NS_LOG_FUNCTION(this << context << cellId << rnti);
     std::ostringstream ueManagerPath;
-    ueManagerPath << context.substr(0, context.rfind("/")) << "/UeMap/" << (uint32_t)rnti;
+    ueManagerPath << context.substr(0, context.rfind('/')) << "/UeMap/" << (uint32_t)rnti;
     CellIdRnti key;
     key.cellId = cellId;
     key.rnti = rnti;
@@ -303,7 +303,7 @@ NrBearerStatsConnector::ConnectSrb0Traces(std::string context,
                                           uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << imsi << cellId << rnti);
-    std::string ueRrcPath = context.substr(0, context.rfind("/"));
+    std::string ueRrcPath = context.substr(0, context.rfind('/'));
     CellIdRnti key;
     key.cellId = cellId;
     key.rnti = rnti;
@@ -424,7 +424,7 @@ NrBearerStatsConnector::ConnectTracesUe(std::string context,
 {
     NS_LOG_FUNCTION(this << context);
     NS_LOG_LOGIC(this << "expected context should match /NodeList/*/DeviceList/*/LteUeRrc/");
-    std::string basePath = context.substr(0, context.rfind("/"));
+    std::string basePath = context.substr(0, context.rfind('/'));
     if (m_rlcStats)
     {
         Ptr<NrBoundCallbackArgument> arg = Create<NrBoundCallbackArgument>();
@@ -462,7 +462,7 @@ NrBearerStatsConnector::ConnectTracesEnb(std::string context,
     NS_LOG_FUNCTION(this << context);
     NS_LOG_LOGIC(this << "expected context  should match /NodeList/*/DeviceList/*/LteEnbRrc/");
     std::ostringstream basePath;
-    basePath << context.substr(0, context.rfind("/")) << "/UeMap/" << (uint32_t)rnti;
+    basePath << context.substr(0, context.rfind('/')) << "/UeMap/" << (uint32_t)rnti;
     if (m_rlcStats)
     {
         Ptr<NrBoundCallbackArgument> arg = Create<NrBoundCallbackArgument>();

@@ -88,14 +88,14 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
     /**
      * Class destructor
      */
-    virtual ~NrBearerStatsCalculator();
+    ~NrBearerStatsCalculator() override;
     // Inherited from ns3::Object
     /**
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
-    virtual void DoDispose() override;
+    static TypeId GetTypeId();
+    void DoDispose() override;
     /**
      *
      * \param t the value of the StartTime attribute
@@ -124,11 +124,11 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      * @param lcid LCID through which the PDU has been transmitted
      * @param packetSize size of the PDU in bytes
      */
-    virtual void UlTxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize) override;
+    void UlTxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize) override;
     /**
      * Notifies the stats calculator that an uplink reception has occurred.
      * @param cellId CellId of the attached Enb
@@ -138,12 +138,12 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      * @param packetSize size of the PDU in bytes
      * @param delay RLC to RLC delay in nanoseconds
      */
-    virtual void UlRxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize,
-                         uint64_t delay) override;
+    void UlRxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize,
+                 uint64_t delay) override;
     /**
      * Notifies the stats calculator that an downlink transmission has occurred.
      * @param cellId CellId of the attached Enb
@@ -152,11 +152,11 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      * @param lcid LCID through which the PDU has been transmitted
      * @param packetSize size of the PDU in bytes
      */
-    virtual void DlTxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize) override;
+    void DlTxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize) override;
     /**
      * Notifies the stats calculator that an downlink reception has occurred.
      * @param cellId CellId of the attached Enb
@@ -166,12 +166,12 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      * @param packetSize size of the PDU in bytes
      * @param delay RLC to RLC delay in nanoseconds
      */
-    virtual void DlRxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize,
-                         uint64_t delay) override;
+    void DlRxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize,
+                 uint64_t delay) override;
     /**
      * Gets the number of transmitted uplink packets.
      * @param imsi IMSI of the UE
@@ -287,11 +287,11 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
     /**
      * \return UL output file name
      */
-    std::string GetUlOutputFilename(void);
+    std::string GetUlOutputFilename();
     /**
      * return DL output file name
      */
-    std::string GetDlOutputFilename(void);
+    std::string GetDlOutputFilename();
 
   private:
     /**
@@ -300,7 +300,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      * it opens output files and write columns descriptions.
      * During next calls it opens output files in append mode.
      */
-    void ShowResults(void);
+    void ShowResults();
     /**
      * Writes collected statistics to UL output file and
      * closes UL output file.
@@ -316,7 +316,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
     /**
      * Erases collected statistics
      */
-    void ResetResults(void);
+    void ResetResults();
     /**
      * Reschedules EndEpoch event. Usually used after
      * execution of SetStartTime() or SetEpoch()
@@ -327,7 +327,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      * ShowResults() to write statistics to output files
      * and ResetResults() to clear collected statistics.
      */
-    void EndEpoch(void);
+    void EndEpoch();
 
     EventId m_endEpochEvent;    //!< Event id for next end epoch event
     FlowIdMap m_flowId;         //!< List of FlowIds, ie. (RNTI, LCID) by (IMSI, LCID) pair

@@ -46,7 +46,7 @@ class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
     /**
      * \brief ~NrMacSchedulerSrsDefault
      */
-    virtual ~NrMacSchedulerSrsDefault();
+    ~NrMacSchedulerSrsDefault() override;
 
     /**
      * \brief GetTypeId
@@ -55,11 +55,11 @@ class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
     static TypeId GetTypeId();
 
     // inherited from NrMacSchedulerSrs
-    virtual SrsPeriodicityAndOffset AddUe(void) override;
+    SrsPeriodicityAndOffset AddUe() override;
     void RemoveUe(uint32_t offset) override;
-    virtual bool IncreasePeriodicity(
+    bool IncreasePeriodicity(
         std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) override;
-    virtual bool DecreasePeriodicity(
+    bool DecreasePeriodicity(
         std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) override;
 
     /**

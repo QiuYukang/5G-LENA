@@ -66,7 +66,7 @@ NS_LOG_COMPONENT_DEFINE("NrHelper");
 
 NS_OBJECT_ENSURE_REGISTERED(NrHelper);
 
-NrHelper::NrHelper(void)
+NrHelper::NrHelper()
 {
     NS_LOG_FUNCTION(this);
     m_channelFactory.SetTypeId(MultiModelSpectrumChannel::GetTypeId());
@@ -103,13 +103,13 @@ NrHelper::NrHelper(void)
     m_macSchedStats = CreateObject<NrMacSchedulingStats>();
 }
 
-NrHelper::~NrHelper(void)
+NrHelper::~NrHelper()
 {
     NS_LOG_FUNCTION(this);
 }
 
 TypeId
-NrHelper::GetTypeId(void)
+NrHelper::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrHelper")
                             .SetParent<Object>()
@@ -1430,7 +1430,7 @@ NrHelper::DoAssignStreamsToChannelObjects(Ptr<NrSpectrumPhy> phy, int64_t curren
                   propagationLossModel) == m_channelObjectsWithAssignedStreams.end())
     {
         currentStream += propagationLossModel->AssignStreams(currentStream);
-        m_channelObjectsWithAssignedStreams.push_back(propagationLossModel);
+        m_channelObjectsWithAssignedStreams.emplace_back(propagationLossModel);
     }
 
     Ptr<ChannelConditionModel> channelConditionModel =
@@ -1441,7 +1441,7 @@ NrHelper::DoAssignStreamsToChannelObjects(Ptr<NrSpectrumPhy> phy, int64_t curren
                   channelConditionModel) == m_channelObjectsWithAssignedStreams.end())
     {
         currentStream += channelConditionModel->AssignStreams(currentStream);
-        m_channelObjectsWithAssignedStreams.push_back(channelConditionModel);
+        m_channelObjectsWithAssignedStreams.emplace_back(channelConditionModel);
     }
 
     Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel =
@@ -1457,7 +1457,7 @@ NrHelper::DoAssignStreamsToChannelObjects(Ptr<NrSpectrumPhy> phy, int64_t curren
             Ptr<ThreeGppChannelModel> channel =
                 DynamicCast<ThreeGppChannelModel>(spectrumLossModel->GetChannelModel());
             currentStream += channel->AssignStreams(currentStream);
-            m_channelObjectsWithAssignedStreams.push_back(spectrumLossModel);
+            m_channelObjectsWithAssignedStreams.emplace_back(spectrumLossModel);
         }
     }
 
@@ -1601,7 +1601,7 @@ NrHelper::ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer)
 }
 
 void
-NrHelper::EnableTraces(void)
+NrHelper::EnableTraces()
 {
     EnableDlDataPhyTraces();
     EnableDlCtrlPhyTraces();
@@ -1623,13 +1623,13 @@ NrHelper::EnableTraces(void)
 }
 
 Ptr<NrPhyRxTrace>
-NrHelper::GetPhyRxTrace(void)
+NrHelper::GetPhyRxTrace()
 {
     return m_phyStats;
 }
 
 void
-NrHelper::EnableDlDataPhyTraces(void)
+NrHelper::EnableDlDataPhyTraces()
 {
     // NS_LOG_FUNCTION_NOARGS ();
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr",
@@ -1641,7 +1641,7 @@ NrHelper::EnableDlDataPhyTraces(void)
 }
 
 void
-NrHelper::EnableDlCtrlPhyTraces(void)
+NrHelper::EnableDlCtrlPhyTraces()
 {
     // NS_LOG_FUNCTION_NOARGS ();
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlCtrlSinr",
@@ -1649,7 +1649,7 @@ NrHelper::EnableDlCtrlPhyTraces(void)
 }
 
 void
-NrHelper::EnableGnbPhyCtrlMsgsTraces(void)
+NrHelper::EnableGnbPhyCtrlMsgsTraces()
 {
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/GnbPhyRxedCtrlMsgsTrace",
                     MakeBoundCallback(&NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback, m_phyStats));
@@ -1658,7 +1658,7 @@ NrHelper::EnableGnbPhyCtrlMsgsTraces(void)
 }
 
 void
-NrHelper::EnableGnbMacCtrlMsgsTraces(void)
+NrHelper::EnableGnbMacCtrlMsgsTraces()
 {
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/GnbMacRxedCtrlMsgsTrace",
                     MakeBoundCallback(&NrMacRxTrace::RxedGnbMacCtrlMsgsCallback, m_macStats));
@@ -1668,7 +1668,7 @@ NrHelper::EnableGnbMacCtrlMsgsTraces(void)
 }
 
 void
-NrHelper::EnableUePhyCtrlMsgsTraces(void)
+NrHelper::EnableUePhyCtrlMsgsTraces()
 {
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/UePhyRxedCtrlMsgsTrace",
@@ -1684,7 +1684,7 @@ NrHelper::EnableUePhyCtrlMsgsTraces(void)
 }
 
 void
-NrHelper::EnableUeMacCtrlMsgsTraces(void)
+NrHelper::EnableUeMacCtrlMsgsTraces()
 {
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUeMac/UeMacRxedCtrlMsgsTrace",
@@ -1695,7 +1695,7 @@ NrHelper::EnableUeMacCtrlMsgsTraces(void)
 }
 
 void
-NrHelper::EnableUlPhyTraces(void)
+NrHelper::EnableUlPhyTraces()
 {
     NS_LOG_FUNCTION_NOARGS();
     Config::Connect(
@@ -1730,42 +1730,42 @@ NrHelper::EnableTransportBlockTrace()
 }
 
 void
-NrHelper::EnableRlcSimpleTraces(void)
+NrHelper::EnableRlcSimpleTraces()
 {
     Ptr<NrBearerStatsSimple> rlcStats = CreateObject<NrBearerStatsSimple>("RLC");
     m_radioBearerStatsConnectorSimpleTraces.EnableRlcStats(rlcStats);
 }
 
 void
-NrHelper::EnablePdcpSimpleTraces(void)
+NrHelper::EnablePdcpSimpleTraces()
 {
     Ptr<NrBearerStatsSimple> pdcpStats = CreateObject<NrBearerStatsSimple>("PDCP");
     m_radioBearerStatsConnectorSimpleTraces.EnablePdcpStats(pdcpStats);
 }
 
 void
-NrHelper::EnableRlcE2eTraces(void)
+NrHelper::EnableRlcE2eTraces()
 {
     Ptr<NrBearerStatsCalculator> rlcStats = CreateObject<NrBearerStatsCalculator>("RLC");
     m_radioBearerStatsConnectorCalculator.EnableRlcStats(rlcStats);
 }
 
 void
-NrHelper::EnablePdcpE2eTraces(void)
+NrHelper::EnablePdcpE2eTraces()
 {
     Ptr<NrBearerStatsCalculator> pdcpStats = CreateObject<NrBearerStatsCalculator>("PDCP");
     m_radioBearerStatsConnectorCalculator.EnablePdcpStats(pdcpStats);
 }
 
 Ptr<NrBearerStatsCalculator>
-NrHelper::GetRlcStatsCalculator(void)
+NrHelper::GetRlcStatsCalculator()
 {
     return DynamicCast<NrBearerStatsCalculator>(
         m_radioBearerStatsConnectorCalculator.GetRlcStats());
 }
 
 Ptr<NrBearerStatsCalculator>
-NrHelper::GetPdcpStatsCalculator(void)
+NrHelper::GetPdcpStatsCalculator()
 {
     return DynamicCast<NrBearerStatsCalculator>(
         m_radioBearerStatsConnectorCalculator.GetPdcpStats());

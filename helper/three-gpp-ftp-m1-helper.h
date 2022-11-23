@@ -71,7 +71,7 @@ class ThreeGppFtpM1Helper : public Object
     /**
      * Default constructor
      */
-    ThreeGppFtpM1Helper(void);
+    ThreeGppFtpM1Helper();
     /**
      * Constructor that should be called from user program in order to setup the FTP Model 1
      * traffic helper.
@@ -90,13 +90,13 @@ class ThreeGppFtpM1Helper : public Object
     /**
      * Destructor
      */
-    virtual ~ThreeGppFtpM1Helper(void);
+    ~ThreeGppFtpM1Helper() override;
 
     /**
      * \brief GetTypeId
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief To be called before Start() function.
@@ -116,19 +116,19 @@ class ThreeGppFtpM1Helper : public Object
     /**
      * \brief Configures FTP servers
      */
-    void DoConfigureFtpServers(void);
+    void DoConfigureFtpServers();
     /**
      * \brief Configures FTP clients
      */
-    void DoConfigureFtpClients(void);
+    void DoConfigureFtpClients();
     /**
      * \brief Function that is called to start the next file transfer
      */
-    void DoStartFileTransfer(void);
+    void DoStartFileTransfer();
     /**
      * \brief Gets the next file transfer time
      */
-    Time DoGetNextTime(void) const;
+    Time DoGetNextTime() const;
 
     uint32_t m_lastClient{
         0}; //!< last client index, index is the index to access to a node in m_clientNodes

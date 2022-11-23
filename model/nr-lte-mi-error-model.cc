@@ -923,7 +923,7 @@ NrLteMiErrorModel::~NrLteMiErrorModel()
 }
 
 TypeId
-NrLteMiErrorModel::GetTypeId(void)
+NrLteMiErrorModel::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrLteMiErrorModel")
                             .SetParent<NrErrorModel>()

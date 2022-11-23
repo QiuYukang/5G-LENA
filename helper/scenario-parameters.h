@@ -44,7 +44,7 @@ class ScenarioParameters
     /**
      * \brief ~ScenarioParameters
      */
-    virtual ~ScenarioParameters(void);
+    virtual ~ScenarioParameters();
 
     /**
      * \brief SetGnbHeight
@@ -61,7 +61,7 @@ class ScenarioParameters
     /**
      * \brief Gets the number of sectors per site
      */
-    uint32_t GetNumSectorsPerSite(void) const;
+    uint32_t GetNumSectorsPerSite() const;
 
     /**
      * \brief Sets the number of sectors of every site.
@@ -86,17 +86,17 @@ class ScenarioParameters
     /**
      * \brief Sets the Urban Macro (UMa) scenario parameters
      */
-    void SetUMaParameters(void);
+    void SetUMaParameters();
 
     /**
      * \brief Sets the Urban Micro (UMi) scenario parameters
      */
-    void SetUMiParameters(void);
+    void SetUMiParameters();
 
     /**
      * \brief Sets rural Macro scenario parameters
      */
-    void SetRMaParameters(void);
+    void SetRMaParameters();
 
     // Keep the data members public to facilitate defining custom scenarios
     double m_isd{-1.0};                          //!< Inter-site distance (ISD) in meters

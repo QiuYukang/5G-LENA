@@ -47,7 +47,7 @@ NrStatsCalculator::~NrStatsCalculator()
 }
 
 TypeId
-NrStatsCalculator::GetTypeId(void)
+NrStatsCalculator::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrStatsCalculator")
                             .SetParent<Object>()
@@ -63,7 +63,7 @@ NrStatsCalculator::SetUlOutputFilename(std::string outputFilename)
 }
 
 std::string
-NrStatsCalculator::GetUlOutputFilename(void)
+NrStatsCalculator::GetUlOutputFilename()
 {
     return m_ulOutputFilename;
 }
@@ -75,7 +75,7 @@ NrStatsCalculator::SetDlOutputFilename(std::string outputFilename)
 }
 
 std::string
-NrStatsCalculator::GetDlOutputFilename(void)
+NrStatsCalculator::GetDlOutputFilename()
 {
     return m_dlOutputFilename;
 }

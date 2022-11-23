@@ -45,7 +45,7 @@ class NrTestNumerologyDelayCase1 : public TestCase
 {
   public:
     NrTestNumerologyDelayCase1(std::string name, uint32_t numerology);
-    virtual ~NrTestNumerologyDelayCase1();
+    ~NrTestNumerologyDelayCase1() override;
     void DlScheduling(uint32_t frameNo,
                       uint32_t subframeNo,
                       uint32_t slotNum,
@@ -62,7 +62,7 @@ class NrTestNumerologyDelayCase1 : public TestCase
     void RxPdcpPDU(uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t delay);
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
 
     static Time GetSlotTime(uint32_t numerology);
     static Time GetSymbolPeriod(uint32_t numerology);
@@ -201,7 +201,7 @@ SendPacket(Ptr<NetDevice> device, Address& addr)
 }
 
 void
-NrTestNumerologyDelayCase1::DoRun(void)
+NrTestNumerologyDelayCase1::DoRun()
 {
     Ptr<Node> ueNode = CreateObject<Node>();
     Ptr<Node> gNbNode = CreateObject<Node>();

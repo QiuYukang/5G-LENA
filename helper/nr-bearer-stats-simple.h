@@ -46,8 +46,8 @@ class NrBearerStatsBase : public Object
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
-    virtual void DoDispose() override;
+    static TypeId GetTypeId();
+    void DoDispose() override;
     /**
      * Notifies the stats calculator that an UL transmission has occurred.
      * @param cellId CellId of the attached Enb
@@ -133,39 +133,39 @@ class NrBearerStatsSimple : public NrBearerStatsBase
     /**
      * Class destructor
      */
-    virtual ~NrBearerStatsSimple();
+    ~NrBearerStatsSimple() override;
 
     // Inherited from ns3::Object
     /**
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
-    virtual void DoDispose() override;
+    static TypeId GetTypeId();
+    void DoDispose() override;
 
     /**
      * Get the name of the file where the UL TX (RLC or PDCP) statistics will be stored.
      * @return the name of the file where the uplink statistics will be stored
      */
-    std::string GetUlTxOutputFilename(void);
+    std::string GetUlTxOutputFilename();
 
     /**
      * Get the name of the file where the UL RX (RLC or PDCP) statistics will be stored.
      * @return the name of the file where the uplink statistics will be stored
      */
-    std::string GetUlRxOutputFilename(void);
+    std::string GetUlRxOutputFilename();
 
     /**
      * Get the name of the file where the DL TX (RLC or PDCP) statistics will be stored.
      * @return the name of the file where the downlink statistics will be stored
      */
-    std::string GetDlTxOutputFilename(void);
+    std::string GetDlTxOutputFilename();
 
     /**
      * Get the name of the file where the DL RX (RLC or PDCP) statistics will be stored.
      * @return the name of the file where the downlink statistics will be stored
      */
-    std::string GetDlRxOutputFilename(void);
+    std::string GetDlRxOutputFilename();
 
     /**
      * Notifies the stats calculator that an uplink transmission has occurred.
@@ -175,11 +175,11 @@ class NrBearerStatsSimple : public NrBearerStatsBase
      * @param lcid LCID through which the PDU has been transmitted
      * @param packetSize size of the PDU in bytes
      */
-    virtual void UlTxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize) override;
+    void UlTxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize) override;
 
     /**
      * Notifies the stats calculator that an uplink reception has occurred.
@@ -190,12 +190,12 @@ class NrBearerStatsSimple : public NrBearerStatsBase
      * @param packetSize size of the PDU in bytes
      * @param delay RLC to RLC delay in nanoseconds
      */
-    virtual void UlRxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize,
-                         uint64_t delay) override;
+    void UlRxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize,
+                 uint64_t delay) override;
 
     /**
      * Notifies the stats calculator that an downlink transmission has occurred.
@@ -205,11 +205,11 @@ class NrBearerStatsSimple : public NrBearerStatsBase
      * @param lcid LCID through which the PDU has been transmitted
      * @param packetSize size of the PDU in bytes
      */
-    virtual void DlTxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize) override;
+    void DlTxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize) override;
 
     /**
      * Notifies the stats calculator that an downlink reception has occurred.
@@ -220,12 +220,12 @@ class NrBearerStatsSimple : public NrBearerStatsBase
      * @param packetSize size of the PDU in bytes
      * @param delay RLC to RLC delay in nanoseconds
      */
-    virtual void DlRxPdu(uint16_t cellId,
-                         uint64_t imsi,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t packetSize,
-                         uint64_t delay) override;
+    void DlRxPdu(uint16_t cellId,
+                 uint64_t imsi,
+                 uint16_t rnti,
+                 uint8_t lcid,
+                 uint32_t packetSize,
+                 uint64_t delay) override;
 
   private:
     /**

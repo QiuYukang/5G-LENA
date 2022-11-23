@@ -109,7 +109,7 @@ class NrGnbPhy : public NrPhy
      * \brief Get Type id
      * \return the type id of the NrGnbPhy
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrGnbPhy constructor. Please use the other one.
@@ -119,7 +119,7 @@ class NrGnbPhy : public NrPhy
     /**
      * \brief ~NrGnbPhy
      */
-    virtual ~NrGnbPhy() override;
+    ~NrGnbPhy() override;
 
     /**
      * \brief Set the C PHY SAP user
@@ -173,19 +173,19 @@ class NrGnbPhy : public NrPhy
      * \brief: Get the minimum processing delay (in slots)
      * to decode DL DCI and decode DL Data
      */
-    uint32_t GetN0Delay(void) const;
+    uint32_t GetN0Delay() const;
 
     /**
      * \brief: Get the minimum processing delay (in slots)
      * to decode DL Data and send Harq feedback
      */
-    uint32_t GetN1Delay(void) const;
+    uint32_t GetN1Delay() const;
 
     /**
      * \brief: Get the minimum processing delay (in slots)
      * to decode UL DCI and prepare UL data
      */
-    uint32_t GetN2Delay(void) const;
+    uint32_t GetN2Delay() const;
 
     /**
      * \brief Get the BeamConfId for the selected user
@@ -220,7 +220,7 @@ class NrGnbPhy : public NrPhy
      * Please note that there is also an attribute ("NrUePhy::TxPower")
      * \return the TX power of the gNB
      */
-    virtual double GetTxPower() const override;
+    double GetTxPower() const override;
 
     /**
      * \brief Set the Tx power spectral density based on the RB index vector
@@ -326,10 +326,10 @@ class NrGnbPhy : public NrPhy
      * \param subframe SubF.
      * \param slot Slot
      */
-    virtual void ScheduleStartEventLoop(uint32_t nodeId,
-                                        uint16_t frame,
-                                        uint8_t subframe,
-                                        uint16_t slot) override;
+    void ScheduleStartEventLoop(uint32_t nodeId,
+                                uint16_t frame,
+                                uint8_t subframe,
+                                uint16_t slot) override;
 
     /**
      *  TracedCallback signature for Received Control Messages.
@@ -426,7 +426,7 @@ class NrGnbPhy : public NrPhy
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
 
   private:
     /**
@@ -457,7 +457,7 @@ class NrGnbPhy : public NrPhy
      *
      * \see StartSlot
      */
-    void EndSlot(void);
+    void EndSlot();
 
     /**
      * \brief Start the processing of a variable TTI

@@ -38,7 +38,7 @@ RealisticBfManager::~RealisticBfManager()
 }
 
 TypeId
-RealisticBfManager::GetTypeId(void)
+RealisticBfManager::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::RealisticBfManager")

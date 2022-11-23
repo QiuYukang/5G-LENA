@@ -39,13 +39,13 @@ class NrRadioBearerTag : public Tag
      * \brief Get the object TypeId
      * \return the object type id
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Get the InstanceTypeId
      * \return the TypeId of the instance
      */
-    virtual TypeId GetInstanceTypeId(void) const;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * Create an empty NrRadioBearerTag
@@ -91,31 +91,31 @@ class NrRadioBearerTag : public Tag
     void SetSize(uint32_t size);
 
     // inherited
-    virtual void Serialize(TagBuffer i) const;
-    virtual void Deserialize(TagBuffer i);
-    virtual uint32_t GetSerializedSize() const;
-    virtual void Print(std::ostream& os) const;
+    void Serialize(TagBuffer i) const override;
+    void Deserialize(TagBuffer i) override;
+    uint32_t GetSerializedSize() const override;
+    void Print(std::ostream& os) const override;
 
     /**
      * \brief Get the Rnti
      * \return the RNTI
      */
-    uint16_t GetRnti(void) const;
+    uint16_t GetRnti() const;
     /**
      * \brief Get the Lcid
      * \return the LCID
      */
-    uint8_t GetLcid(void) const;
+    uint8_t GetLcid() const;
     /**
      * \brief Get the Layer
      * \return the layer (?)
      */
-    uint8_t GetLayer(void) const;
+    uint8_t GetLayer() const;
     /**
      * \brief Get Size
      * \return size in bytes of RLC PDU
      */
-    uint32_t GetSize(void) const;
+    uint32_t GetSize() const;
 
   private:
     uint16_t m_rnti; //!< RNTI

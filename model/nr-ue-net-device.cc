@@ -41,7 +41,7 @@ NS_LOG_COMPONENT_DEFINE("NrUeNetDevice");
 NS_OBJECT_ENSURE_REGISTERED(NrUeNetDevice);
 
 TypeId
-NrUeNetDevice::GetTypeId(void)
+NrUeNetDevice::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrUeNetDevice")
@@ -80,17 +80,17 @@ NrUeNetDevice::GetTypeId(void)
     return tid;
 }
 
-NrUeNetDevice::NrUeNetDevice(void)
+NrUeNetDevice::NrUeNetDevice()
 {
     NS_LOG_FUNCTION(this);
 }
 
-NrUeNetDevice::~NrUeNetDevice(void)
+NrUeNetDevice::~NrUeNetDevice()
 {
 }
 
 void
-NrUeNetDevice::DoInitialize(void)
+NrUeNetDevice::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
 
@@ -208,7 +208,7 @@ NrUeNetDevice::GetMac(uint8_t index) const
 }
 
 void
-NrUeNetDevice::UpdateConfig(void)
+NrUeNetDevice::UpdateConfig()
 {
     NS_LOG_FUNCTION(this);
     m_nas->SetImsi(m_imsi);
@@ -235,21 +235,21 @@ NrUeNetDevice::GetPhy(uint8_t index) const
 }
 
 Ptr<BwpManagerUe>
-NrUeNetDevice::GetBwpManager(void) const
+NrUeNetDevice::GetBwpManager() const
 {
     NS_LOG_FUNCTION(this);
     return DynamicCast<BwpManagerUe>(m_componentCarrierManager);
 }
 
 Ptr<EpcUeNas>
-NrUeNetDevice::GetNas(void) const
+NrUeNetDevice::GetNas() const
 {
     NS_LOG_FUNCTION(this);
     return m_nas;
 }
 
 Ptr<LteUeRrc>
-NrUeNetDevice::GetRrc(void) const
+NrUeNetDevice::GetRrc() const
 {
     NS_LOG_FUNCTION(this);
     return m_rrc;
@@ -284,7 +284,7 @@ NrUeNetDevice::SetTargetEnb(Ptr<NrGnbNetDevice> enb)
 }
 
 Ptr<const NrGnbNetDevice>
-NrUeNetDevice::GetTargetEnb(void) const
+NrUeNetDevice::GetTargetEnb() const
 {
     NS_LOG_FUNCTION(this);
     return m_targetEnb;

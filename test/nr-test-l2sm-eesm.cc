@@ -51,12 +51,12 @@ class NrL2smEesmTestCase : public TestCase
     /**
      * \brief Destroy the object instance
      */
-    virtual ~NrL2smEesmTestCase() override
+    ~NrL2smEesmTestCase() override
     {
     }
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
 
     void TestMappingSinrBler1(const Ptr<NrEesmErrorModel>& em);
     void TestMappingSinrBler2(const Ptr<NrEesmErrorModel>& em);

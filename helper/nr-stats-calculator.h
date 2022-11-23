@@ -48,13 +48,13 @@ class NrStatsCalculator : public Object
     /**
      * Destructor
      */
-    virtual ~NrStatsCalculator();
+    ~NrStatsCalculator() override;
 
     /**
      *  Register this type.
      *  \return The object TypeId.
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * Set the name of the file where the uplink statistics will be stored.
@@ -67,7 +67,7 @@ class NrStatsCalculator : public Object
      * Get the name of the file where the uplink statistics will be stored.
      * \return the name of the file where the uplink statistics will be stored
      */
-    std::string GetUlOutputFilename(void);
+    std::string GetUlOutputFilename();
 
     /**
      * Set the name of the file where the downlink statistics will be stored.
@@ -80,7 +80,7 @@ class NrStatsCalculator : public Object
      * Get the name of the file where the downlink statistics will be stored.
      * \return the name of the file where the downlink statistics will be stored
      */
-    std::string GetDlOutputFilename(void);
+    std::string GetDlOutputFilename();
 
     /**
      * Checks if there is an already stored IMSI for the given path

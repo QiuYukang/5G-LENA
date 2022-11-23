@@ -44,7 +44,7 @@ NrMacSchedulingStats::~NrMacSchedulingStats()
 }
 
 TypeId
-NrMacSchedulingStats::GetTypeId(void)
+NrMacSchedulingStats::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrMacSchedulingStats")
@@ -71,7 +71,7 @@ NrMacSchedulingStats::SetUlOutputFilename(std::string outputFilename)
 }
 
 std::string
-NrMacSchedulingStats::GetUlOutputFilename(void)
+NrMacSchedulingStats::GetUlOutputFilename()
 {
     return NrStatsCalculator::GetUlOutputFilename();
 }
@@ -83,7 +83,7 @@ NrMacSchedulingStats::SetDlOutputFilename(std::string outputFilename)
 }
 
 std::string
-NrMacSchedulingStats::GetDlOutputFilename(void)
+NrMacSchedulingStats::GetDlOutputFilename()
 {
     return NrStatsCalculator::GetDlOutputFilename();
 }

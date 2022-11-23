@@ -121,16 +121,16 @@ class NrRadioEnvironmentMapHelper : public Object
     /**
      * \brief destructor
      */
-    virtual ~NrRadioEnvironmentMapHelper();
+    ~NrRadioEnvironmentMapHelper() override;
 
     // inherited from Object
-    virtual void DoDispose(void);
+    void DoDispose() override;
 
     /**
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Set the type of REM Map to be generated

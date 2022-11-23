@@ -35,7 +35,7 @@ NrEesmIrT2::~NrEesmIrT2()
 }
 
 TypeId
-NrEesmIrT2::GetTypeId(void)
+NrEesmIrT2::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrEesmIrT2").SetParent<NrEesmIr>().AddConstructor<NrEesmIrT2>();

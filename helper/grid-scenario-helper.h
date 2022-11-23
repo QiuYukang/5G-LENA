@@ -44,7 +44,7 @@ class GridScenarioHelper : public NodeDistributionScenarioInterface
     /**
      * \brief ~GridScenarioHelper
      */
-    virtual ~GridScenarioHelper() override;
+    ~GridScenarioHelper() override;
 
     /**
      * @brief SetHorizontalBsDistance
@@ -77,7 +77,7 @@ class GridScenarioHelper : public NodeDistributionScenarioInterface
     void SetScenarioHeight(double m);
 
     // inherited
-    virtual void CreateScenario() override;
+    void CreateScenario() override;
 
     /**
      * Assign a fixed random variable stream number to the random variables

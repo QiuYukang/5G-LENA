@@ -74,7 +74,7 @@ NrGnbPhy::DoDispose()
 }
 
 TypeId
-NrGnbPhy::GetTypeId(void)
+NrGnbPhy::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrGnbPhy")
@@ -527,13 +527,13 @@ NrGnbPhy::GetEnbCphySapProvider()
 }
 
 uint32_t
-NrGnbPhy::GetN0Delay(void) const
+NrGnbPhy::GetN0Delay() const
 {
     return m_n0Delay;
 }
 
 uint32_t
-NrGnbPhy::GetN1Delay(void) const
+NrGnbPhy::GetN1Delay() const
 {
     return m_n1Delay;
 }
@@ -574,7 +574,7 @@ NrGnbPhy::GetBeamConfId(uint16_t rnti) const
                         " Currently the BeamConfId implementation supports up to 2 antenna arrays "
                         "per PHY instance.");
 
-    for (uint8_t i = 0; i < m_deviceMap.size(); i++)
+    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
@@ -630,7 +630,7 @@ NrGnbPhy::SetSubChannels(const std::vector<int>& rbIndexVector, uint8_t activeSt
 {
     Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity(rbIndexVector, activeStreams);
     NS_ASSERT(txPsd);
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         m_spectrumPhys.at(streamIndex)->SetTxPowerSpectralDensity(txPsd);
     }
@@ -1295,7 +1295,8 @@ NrGnbPhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    uint8_t streams = static_cast<uint8_t>(m_spectrumPhys.size());
+    for (uint8_t streamIndex = 0; streamIndex < streams; streamIndex++)
     {
         Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart, streamIndex);
         if (!pktBurst || pktBurst->GetNPackets() == 0)
@@ -1355,7 +1356,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     }
 
     bool found = false;
-    for (uint8_t i = 0; i < m_deviceMap.size(); i++)
+    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
@@ -1381,7 +1382,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 void
 NrGnbPhy::ChangeBeamformingVector(Ptr<NetDevice> dev)
 {
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         m_spectrumPhys.at(streamIndex)->GetBeamManager()->ChangeBeamformingVector(dev);
     }
@@ -1390,7 +1391,7 @@ NrGnbPhy::ChangeBeamformingVector(Ptr<NetDevice> dev)
 void
 NrGnbPhy::ChangeToQuasiOmniBeamformingVector()
 {
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         m_spectrumPhys.at(streamIndex)->GetBeamManager()->ChangeToQuasiOmniBeamformingVector();
     }
@@ -1406,7 +1407,7 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    for (uint8_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
     {
         m_spectrumPhys.at(streamIndex)->AddExpectedSrsRnti(dci->m_rnti);
     }
@@ -1416,7 +1417,7 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
         0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
            // if yes, and the rnti for the current SRS is not found in the list,
            // the code will not abort
-    for (uint8_t i = 0; i < m_deviceMap.size(); i++)
+    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(0)))->GetRnti();
@@ -1503,7 +1504,7 @@ NrGnbPhy::EndVarTti(const std::shared_ptr<DciInfoElementTdma>& lastDci)
 }
 
 void
-NrGnbPhy::EndSlot(void)
+NrGnbPhy::EndSlot()
 {
     NS_LOG_FUNCTION(this);
 
@@ -1530,7 +1531,7 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
     NS_LOG_FUNCTION(this);
     // update beamforming vectors (currently supports 1 user only)
     bool found = false;
-    for (uint8_t i = 0; i < m_deviceMap.size(); i++)
+    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();

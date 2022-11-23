@@ -76,7 +76,7 @@ class NrUplinkPowerControlTestCase : public TestCase
     /**
      * \brief Destructor
      */
-    virtual ~NrUplinkPowerControlTestCase();
+    ~NrUplinkPowerControlTestCase() override;
 
     /**
      * Function that moves the UE to a different position
@@ -104,7 +104,7 @@ class NrUplinkPowerControlTestCase : public TestCase
     void PucchTxPowerTrace(uint16_t cellId, uint16_t rnti, double txPower);
 
   protected:
-    virtual void DoRun(void);
+    void DoRun() override;
 
     Ptr<MobilityModel> m_ueMobility;    //!< UE mobility model
     Ptr<NrUePowerControl> m_ueUpc;      //!< UE uplink power control
@@ -251,7 +251,7 @@ NrUplinkPowerControlTestCase::PucchTxPowerTrace(uint16_t cellId, uint16_t rnti, 
 }
 
 void
-NrUplinkPowerControlTestCase::DoRun(void)
+NrUplinkPowerControlTestCase::DoRun()
 {
     std::string scenario = "InH-OfficeMixed"; // scenario
     double frequency = 2e9;                   // central frequency

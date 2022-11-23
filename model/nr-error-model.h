@@ -93,7 +93,7 @@ class NrErrorModel : public Object
      * \brief Get the type ID of this instance
      * \return the Type ID of this instance
      */
-    TypeId GetInstanceTypeId(void) const override;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrErrorModel default constructor
@@ -103,7 +103,7 @@ class NrErrorModel : public Object
     /**
      * \brief deconstructor
      */
-    virtual ~NrErrorModel() override;
+    ~NrErrorModel() override;
 
     /**
      * \brief Indicate the mode (UL or DL)

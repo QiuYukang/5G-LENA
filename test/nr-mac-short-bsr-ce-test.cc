@@ -44,7 +44,7 @@ class NrMacShortBsrCeTest : public TestCase
     }
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
 };
 
 void

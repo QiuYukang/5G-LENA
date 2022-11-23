@@ -63,7 +63,7 @@ NrUePowerControl::DoDispose()
 }
 
 TypeId
-NrUePowerControl::GetTypeId(void)
+NrUePowerControl::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrUePowerControl")

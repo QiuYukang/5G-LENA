@@ -57,15 +57,15 @@ class NrGnbMacMemberEnbCmacSapProvider : public LteEnbCmacSapProvider
     NrGnbMacMemberEnbCmacSapProvider(NrGnbMac* mac);
 
     // inherited from LteEnbCmacSapProvider
-    virtual void ConfigureMac(uint16_t ulBandwidth, uint16_t dlBandwidth);
-    virtual void AddUe(uint16_t rnti);
-    virtual void RemoveUe(uint16_t rnti);
-    virtual void AddLc(LcInfo lcinfo, LteMacSapUser* msu);
-    virtual void ReconfigureLc(LcInfo lcinfo);
-    virtual void ReleaseLc(uint16_t rnti, uint8_t lcid);
-    virtual void UeUpdateConfigurationReq(UeConfig params);
-    virtual RachConfig GetRachConfig();
-    virtual AllocateNcRaPreambleReturnValue AllocateNcRaPreamble(uint16_t rnti);
+    void ConfigureMac(uint16_t ulBandwidth, uint16_t dlBandwidth) override;
+    void AddUe(uint16_t rnti) override;
+    void RemoveUe(uint16_t rnti) override;
+    void AddLc(LcInfo lcinfo, LteMacSapUser* msu) override;
+    void ReconfigureLc(LcInfo lcinfo) override;
+    void ReleaseLc(uint16_t rnti, uint8_t lcid) override;
+    void UeUpdateConfigurationReq(UeConfig params) override;
+    RachConfig GetRachConfig() override;
+    AllocateNcRaPreambleReturnValue AllocateNcRaPreamble(uint16_t rnti) override;
 
   private:
     NrGnbMac* m_mac;
@@ -138,28 +138,28 @@ class NrMacEnbMemberPhySapUser : public NrGnbPhySapUser
   public:
     NrMacEnbMemberPhySapUser(NrGnbMac* mac);
 
-    virtual void ReceivePhyPdu(Ptr<Packet> p) override;
+    void ReceivePhyPdu(Ptr<Packet> p) override;
 
-    virtual void ReceiveControlMessage(Ptr<NrControlMessage> msg) override;
+    void ReceiveControlMessage(Ptr<NrControlMessage> msg) override;
 
-    virtual void SlotDlIndication(const SfnSf&, LteNrTddSlotType) override;
+    void SlotDlIndication(const SfnSf&, LteNrTddSlotType) override;
 
-    virtual void SlotUlIndication(const SfnSf&, LteNrTddSlotType) override;
+    void SlotUlIndication(const SfnSf&, LteNrTddSlotType) override;
 
-    virtual void SetCurrentSfn(const SfnSf&) override;
+    void SetCurrentSfn(const SfnSf&) override;
 
-    virtual void UlCqiReport(NrMacSchedSapProvider::SchedUlCqiInfoReqParameters cqi) override;
+    void UlCqiReport(NrMacSchedSapProvider::SchedUlCqiInfoReqParameters cqi) override;
 
-    virtual void ReceiveRachPreamble(uint32_t raId) override;
+    void ReceiveRachPreamble(uint32_t raId) override;
 
-    virtual void UlHarqFeedback(UlHarqInfo params) override;
+    void UlHarqFeedback(UlHarqInfo params) override;
 
-    virtual void BeamChangeReport(BeamConfId beamConfId, uint8_t rnti) override;
+    void BeamChangeReport(BeamConfId beamConfId, uint8_t rnti) override;
 
-    virtual uint32_t GetNumRbPerRbg() const override;
+    uint32_t GetNumRbPerRbg() const override;
 
-    virtual std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci() const override;
-    virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci() const override;
+    std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci() const override;
+    std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci() const override;
 
   private:
     NrGnbMac* m_mac;
@@ -248,14 +248,14 @@ class NrMacMemberMacSchedSapUser : public NrMacSchedSapUser
 {
   public:
     NrMacMemberMacSchedSapUser(NrGnbMac* mac);
-    virtual void SchedConfigInd(const struct SchedConfigIndParameters& params) override;
-    virtual Ptr<const SpectrumModel> GetSpectrumModel() const override;
-    virtual uint32_t GetNumRbPerRbg() const override;
-    virtual uint8_t GetNumHarqProcess() const override;
-    virtual uint16_t GetBwpId() const override;
-    virtual uint16_t GetCellId() const override;
-    virtual uint32_t GetSymbolsPerSlot() const override;
-    virtual Time GetSlotPeriod() const override;
+    void SchedConfigInd(const struct SchedConfigIndParameters& params) override;
+    Ptr<const SpectrumModel> GetSpectrumModel() const override;
+    uint32_t GetNumRbPerRbg() const override;
+    uint8_t GetNumHarqProcess() const override;
+    uint16_t GetBwpId() const override;
+    uint16_t GetCellId() const override;
+    uint32_t GetSymbolsPerSlot() const override;
+    Time GetSlotPeriod() const override;
 
   private:
     NrGnbMac* m_mac;
@@ -322,20 +322,20 @@ class NrMacMemberMacCschedSapUser : public NrMacCschedSapUser
   public:
     NrMacMemberMacCschedSapUser(NrGnbMac* mac);
 
-    virtual void CschedCellConfigCnf(
-        const struct NrMacCschedSapUser::CschedCellConfigCnfParameters& params);
-    virtual void CschedUeConfigCnf(
-        const struct NrMacCschedSapUser::CschedUeConfigCnfParameters& params);
-    virtual void CschedLcConfigCnf(
-        const struct NrMacCschedSapUser::CschedLcConfigCnfParameters& params);
-    virtual void CschedLcReleaseCnf(
-        const struct NrMacCschedSapUser::CschedLcReleaseCnfParameters& params);
-    virtual void CschedUeReleaseCnf(
-        const struct NrMacCschedSapUser::CschedUeReleaseCnfParameters& params);
-    virtual void CschedUeConfigUpdateInd(
-        const struct NrMacCschedSapUser::CschedUeConfigUpdateIndParameters& params);
-    virtual void CschedCellConfigUpdateInd(
-        const struct NrMacCschedSapUser::CschedCellConfigUpdateIndParameters& params);
+    void CschedCellConfigCnf(
+        const struct NrMacCschedSapUser::CschedCellConfigCnfParameters& params) override;
+    void CschedUeConfigCnf(
+        const struct NrMacCschedSapUser::CschedUeConfigCnfParameters& params) override;
+    void CschedLcConfigCnf(
+        const struct NrMacCschedSapUser::CschedLcConfigCnfParameters& params) override;
+    void CschedLcReleaseCnf(
+        const struct NrMacCschedSapUser::CschedLcReleaseCnfParameters& params) override;
+    void CschedUeReleaseCnf(
+        const struct NrMacCschedSapUser::CschedUeReleaseCnfParameters& params) override;
+    void CschedUeConfigUpdateInd(
+        const struct NrMacCschedSapUser::CschedUeConfigUpdateIndParameters& params) override;
+    void CschedCellConfigUpdateInd(
+        const struct NrMacCschedSapUser::CschedCellConfigUpdateIndParameters& params) override;
 
   private:
     NrGnbMac* m_mac;
@@ -391,7 +391,7 @@ NrMacMemberMacCschedSapUser::CschedCellConfigUpdateInd(
 }
 
 TypeId
-NrGnbMac::GetTypeId(void)
+NrGnbMac::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrGnbMac")
@@ -436,7 +436,7 @@ NrGnbMac::GetTypeId(void)
     return tid;
 }
 
-NrGnbMac::NrGnbMac(void)
+NrGnbMac::NrGnbMac()
     : Object()
 {
     NS_LOG_FUNCTION(this);
@@ -448,7 +448,7 @@ NrGnbMac::NrGnbMac(void)
     m_ccmMacSapProvider = new MemberLteCcmMacSapProvider<NrGnbMac>(this);
 }
 
-NrGnbMac::~NrGnbMac(void)
+NrGnbMac::~NrGnbMac()
 {
     NS_LOG_FUNCTION(this);
 }
@@ -477,7 +477,7 @@ NrGnbMac::SetNumRbPerRbg(uint32_t rbgSize)
 }
 
 uint32_t
-NrGnbMac::GetNumRbPerRbg(void) const
+NrGnbMac::GetNumRbPerRbg() const
 {
     return m_numRbPerRbg;
 }
@@ -520,13 +520,13 @@ NrGnbMac::ReceiveRachPreamble(uint32_t raId)
 }
 
 LteMacSapProvider*
-NrGnbMac::GetMacSapProvider(void)
+NrGnbMac::GetMacSapProvider()
 {
     return m_macSapProvider;
 }
 
 LteEnbCmacSapProvider*
-NrGnbMac::GetEnbCmacSapProvider(void)
+NrGnbMac::GetEnbCmacSapProvider()
 {
     return m_cmacSapProvider;
 }
@@ -650,7 +650,7 @@ NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 
     // --- UPLINK ---
     // Send UL-CQI info to the scheduler
-    for (uint16_t i = 0; i < m_ulCqiReceived.size(); i++)
+    for (std::size_t i = 0; i < m_ulCqiReceived.size(); i++)
     {
         // m_ulCqiReceived.at (i).m_sfnSf = ((0x3FF & frameNum) << 16) | ((0xFF & subframeNum) << 8)
         // | (0xFF & varTtiNum);
@@ -952,7 +952,7 @@ NrGnbMac::DoDlHarqFeedback(const DlHarqInfo& params)
         m_miDlHarqProcessesPackets.find(params.m_rnti);
     NS_ASSERT(it != m_miDlHarqProcessesPackets.end());
 
-    for (uint8_t stream = 0; stream < params.m_harqStatus.size(); stream++)
+    for (std::size_t stream = 0; stream < params.m_harqStatus.size(); stream++)
     {
         if (params.m_harqStatus.at(stream) == DlHarqInfo::ACK)
         {
@@ -962,19 +962,19 @@ NrGnbMac::DoDlHarqFeedback(const DlHarqInfo& params)
                 emptyBuf;
             NS_LOG_DEBUG(this << " HARQ-ACK UE " << params.m_rnti << " harqId "
                               << (uint16_t)params.m_harqProcessId << " stream id "
-                              << static_cast<uint16_t>(stream));
+                              << stream);
         }
         else if (params.m_harqStatus.at(stream) == DlHarqInfo::NACK)
         {
             NS_LOG_DEBUG(this << " HARQ-NACK UE " << params.m_rnti << " harqId "
                               << (uint16_t)params.m_harqProcessId << " stream id "
-                              << static_cast<uint16_t>(stream));
+                              << stream);
         }
         else if (params.m_harqStatus.at(stream) == DlHarqInfo::NONE)
         {
             NS_LOG_DEBUG(this << " HARQ-NONE UE " << params.m_rnti << " harqId "
                               << (uint16_t)params.m_harqProcessId << " stream id "
-                              << static_cast<uint16_t>(stream));
+                              << stream);
         }
         else
         {
@@ -1110,7 +1110,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
             std::pair<std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator, bool> mapRet;
 
             // for new data first force emptying correspondent harq pkt buffer
-            for (uint8_t stream = 0; stream < dciElem->m_ndi.size(); stream++)
+            for (std::size_t stream = 0; stream < dciElem->m_ndi.size(); stream++)
             {
                 if (dciElem->m_ndi.at(stream) == 1)
                 {
@@ -1142,10 +1142,11 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
             }
 
             // for each LC j
-            for (uint16_t j = 0; j < varTtiAllocInfo.m_rlcPduInfo.size(); j++)
+            for (std::size_t j = 0; j < varTtiAllocInfo.m_rlcPduInfo.size(); j++)
             {
                 // for each stream k of LC j
-                for (uint8_t k = 0; k < varTtiAllocInfo.m_rlcPduInfo.at(j).size(); k++)
+                uint8_t lcStream = static_cast<uint8_t>(varTtiAllocInfo.m_rlcPduInfo.at(j).size());
+                for (uint8_t k = 0; k < lcStream; k++)
                 {
                     if (dciElem->m_ndi.at(k) == 1)
                     {
@@ -1195,7 +1196,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                 m_macPduMap.erase(mapRet.first); // delete map entry
             }
 
-            for (uint8_t stream = 0; stream < dciElem->m_tbSize.size(); stream++)
+            for (std::size_t stream = 0; stream < dciElem->m_tbSize.size(); stream++)
             {
                 NrSchedulingCallbackInfo traceInfo;
                 traceInfo.m_frameNum = ind.m_sfnSf.GetFrame();
@@ -1203,7 +1204,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                 traceInfo.m_slotNum = ind.m_sfnSf.GetSlot();
                 traceInfo.m_symStart = dciElem->m_symStart;
                 traceInfo.m_numSym = dciElem->m_numSym;
-                traceInfo.m_streamId = stream;
+                traceInfo.m_streamId = static_cast<uint8_t>(stream);
                 traceInfo.m_tbSize = dciElem->m_tbSize.at(stream);
                 traceInfo.m_mcs = dciElem->m_mcs.at(stream);
                 traceInfo.m_rnti = dciElem->m_rnti;
@@ -1222,7 +1223,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
             // UL scheduling info trace
             //  Call RLC entities to generate RLC PDUs
             auto dciElem = varTtiAllocInfo.m_dci;
-            for (uint8_t stream = 0; stream < dciElem->m_tbSize.size(); stream++)
+            for (std::size_t stream = 0; stream < dciElem->m_tbSize.size(); stream++)
             {
                 NrSchedulingCallbackInfo traceInfo;
                 traceInfo.m_frameNum = ind.m_sfnSf.GetFrame();
@@ -1230,7 +1231,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                 traceInfo.m_slotNum = ind.m_sfnSf.GetSlot();
                 traceInfo.m_symStart = dciElem->m_symStart;
                 traceInfo.m_numSym = dciElem->m_numSym;
-                traceInfo.m_streamId = stream;
+                traceInfo.m_streamId = static_cast<uint8_t>(stream);
                 traceInfo.m_tbSize = dciElem->m_tbSize.at(stream);
                 traceInfo.m_mcs = dciElem->m_mcs.at(stream);
                 traceInfo.m_rnti = dciElem->m_rnti;
@@ -1368,7 +1369,7 @@ NrGnbMac::DoAddUe(uint16_t rnti)
     uint16_t harqNum = GetNumHarqProcess();
     uint16_t numStreams = 2;
     buf.resize(harqNum);
-    for (uint8_t i = 0; i < harqNum; i++)
+    for (uint16_t i = 0; i < harqNum; i++)
     {
         // for each of the HARQ process we have the info of max 2 streams
         for (uint16_t stream = 0; stream < numStreams; stream++)

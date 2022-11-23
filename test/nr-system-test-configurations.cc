@@ -43,10 +43,10 @@ class NrSystemTestConfigurationsTestCase1 : public TestCase
     NrSystemTestConfigurationsTestCase1(std::string name,
                                         uint32_t numerology,
                                         std::string scheduler);
-    virtual ~NrSystemTestConfigurationsTestCase1();
+    ~NrSystemTestConfigurationsTestCase1() override;
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
 
     uint32_t m_numerology;
     std::string m_scheduler;
@@ -66,7 +66,7 @@ NrSystemTestConfigurationsTestCase1::~NrSystemTestConfigurationsTestCase1()
 }
 
 void
-NrSystemTestConfigurationsTestCase1::DoRun(void)
+NrSystemTestConfigurationsTestCase1::DoRun()
 {
     // set mobile device and base station antenna heights in meters, according to the chosen
     // scenario

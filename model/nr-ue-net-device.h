@@ -52,17 +52,17 @@ class NrUeNetDevice : public NrNetDevice
      * \brief GetTypeId
      * \return
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrUeNetDevice
      */
-    NrUeNetDevice(void);
+    NrUeNetDevice();
 
     /**
      * \brief ~NrUeNetDevice
      */
-    virtual ~NrUeNetDevice(void);
+    ~NrUeNetDevice() override;
 
     /**
      * \brief GetCsgId ?
@@ -94,7 +94,7 @@ class NrUeNetDevice : public NrNetDevice
      * \brief Get the bandwidth part manager
      * \return a pointer to the BWP manager
      */
-    Ptr<BwpManagerUe> GetBwpManager(void) const;
+    Ptr<BwpManagerUe> GetBwpManager() const;
 
     /**
      * \brief Get the Imsi
@@ -112,7 +112,7 @@ class NrUeNetDevice : public NrNetDevice
      * \brief Get a pointer to the Nas
      * \return the NAS pointer
      */
-    Ptr<EpcUeNas> GetNas(void) const;
+    Ptr<EpcUeNas> GetNas() const;
 
     /**
      * \brief Get a Rrc pointer
@@ -132,7 +132,7 @@ class NrUeNetDevice : public NrNetDevice
      * \brief Obtain a pointer to the target enb
      * \return a pointer to the target enb
      */
-    Ptr<const NrGnbNetDevice> GetTargetEnb(void) const;
+    Ptr<const NrGnbNetDevice> GetTargetEnb() const;
 
     /**
      * \brief Set the ComponentCarrier Map for the UE
@@ -144,7 +144,7 @@ class NrUeNetDevice : public NrNetDevice
      * \brief Get the ComponentCarrier Map for the UE
      * \returns the map of ComponentCarrierUe
      */
-    std::map<uint8_t, Ptr<BandwidthPartUe>> GetCcMap(void);
+    std::map<uint8_t, Ptr<BandwidthPartUe>> GetCcMap();
 
     /**
      * \brief Get the size of the component carriers map
@@ -184,15 +184,15 @@ class NrUeNetDevice : public NrNetDevice
     /**
      * \brief Update the RRC config. Must be called only once.
      */
-    void UpdateConfig(void);
+    void UpdateConfig();
 
   protected:
     // inherited from Object
-    virtual void DoInitialize(void);
-    virtual void DoDispose();
+    void DoInitialize() override;
+    void DoDispose() override;
 
     // inherited from NetDevice
-    virtual bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
+    bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) override;
 
   private:
     Ptr<NrGnbNetDevice> m_targetEnb; //!< GNB pointer

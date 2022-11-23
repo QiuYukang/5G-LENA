@@ -49,7 +49,7 @@ class NrEesmCc : public NrEesmErrorModel
      * \brief Get the type id of the object
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief NrEesmCc constructor
      */
@@ -57,7 +57,7 @@ class NrEesmCc : public NrEesmErrorModel
     /**
      * \brief ~NrEesmCc
      */
-    virtual ~NrEesmCc() override;
+    ~NrEesmCc() override;
 
   protected:
     /**

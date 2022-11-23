@@ -80,7 +80,8 @@ NrSystemTestSchedulerTdmaRrDlSuite::NrSystemTestSchedulerTdmaRrDlSuite()
                     {
                         for (const auto& beam : beams)
                         {
-                            std::stringstream ss, schedName;
+                            std::stringstream ss;
+                            std::stringstream schedName;
                             ss << ", Num " << num << ", " << modeType << ", " << subType << " "
                                << sched << ", " << uesPerBeam << " UE per beam, " << beam
                                << " beam";
@@ -158,7 +159,8 @@ NrSystemTestSchedulerTdmaRrUlSuite::NrSystemTestSchedulerTdmaRrUlSuite()
                     {
                         for (const auto& beam : beams)
                         {
-                            std::stringstream ss, schedName;
+                            std::stringstream ss;
+                            std::stringstream schedName;
                             ss << ", Num " << num << ", " << modeType << ", " << subType << " "
                                << sched << ", " << uesPerBeam << " UE per beam, " << beam
                                << " beam";
@@ -237,7 +239,8 @@ NrSystemTestSchedulerTdmaRrDlUlSuite::NrSystemTestSchedulerTdmaRrDlUlSuite()
                     {
                         for (const auto& beam : beams)
                         {
-                            std::stringstream ss, schedName;
+                            std::stringstream ss;
+                            std::stringstream schedName;
                             ss << ", Num " << num << ", " << modeType << ", " << subType << " "
                                << sched << ", " << uesPerBeam << " UE per beam, " << beam
                                << " beam";

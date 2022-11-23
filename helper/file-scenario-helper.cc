@@ -43,7 +43,7 @@ namespace
  * \param maxRadius the plot deployment max radius
  * \param effIsd the plot deployment ISD
  */
-static void
+void
 PlotDeployment(const Ptr<const ListPositionAllocator>& sitePositioner,
                const Ptr<const ListPositionAllocator>& utPositioner,
                const std::size_t numSectors,
@@ -137,7 +137,7 @@ PlotDeployment(const Ptr<const ListPositionAllocator>& sitePositioner,
 namespace ns3
 {
 
-FileScenarioHelper::~FileScenarioHelper(void)
+FileScenarioHelper::~FileScenarioHelper()
 {
 }
 

@@ -67,7 +67,7 @@ NrRadioEnvironmentMapHelper::DoDispose()
 }
 
 TypeId
-NrRadioEnvironmentMapHelper::GetTypeId(void)
+NrRadioEnvironmentMapHelper::GetTypeId()
 {
     NS_LOG_FUNCTION("NrRadioEnvironmentMapHelper::GetTypeId");
     static TypeId tid =
@@ -689,7 +689,8 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv(RemDevice& device)
 {
     NS_LOG_FUNCTION(this);
     // configure beam on rrd antenna to be quasi-omni
-    UintegerValue numRows, numColumns;
+    UintegerValue numRows;
+    UintegerValue numColumns;
     device.antenna->GetAttribute("NumRows", numRows);
     device.antenna->GetAttribute("NumColumns", numColumns);
     // configure RRD antenna to have quasi omni beamforming vector
@@ -934,7 +935,8 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
          ++itRemPoint)
     {
         // perform calculation m_numOfIterationsToAverage times and get the average value
-        double sumSnr = 0.0, sumSinr = 0.0;
+        double sumSnr = 0.0;
+        double sumSinr = 0.0;
         double sumSir = 0.0;
         std::list<double> rxPsdsListPerIt; // list to save the summed rxPower in each RemPoint for
                                            // each Iteration (linear)
@@ -1061,7 +1063,8 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap()
          ++itRemPoint)
     {
         // perform calculation m_numOfIterationsToAverage times and get the average value
-        double sumSnr = 0.0, sumSinr = 0.0;
+        double sumSnr = 0.0;
+        double sumSinr = 0.0;
         m_rrd.mob->SetPosition(itRemPoint->pos);
 
         // all RTDs should point toward that RemPoint with DirectPah beam, this is definition of
@@ -1215,7 +1218,8 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap()
          ++itRemPoint)
     {
         // perform calculation m_numOfIterationsToAverage times and get the average value
-        double sumSnr = 0.0, sumSinr = 0.0;
+        double sumSnr = 0.0;
+        double sumSinr = 0.0;
         m_rrd.mob->SetPosition(itRemPoint->pos);
 
         for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)

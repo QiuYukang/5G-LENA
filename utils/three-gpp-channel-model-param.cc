@@ -61,7 +61,7 @@ ThreeGppChannelModelParam::DoDispose()
 }
 
 TypeId
-ThreeGppChannelModelParam::GetTypeId(void)
+ThreeGppChannelModelParam::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::ThreeGppChannelModelParam")
@@ -237,8 +237,10 @@ ThreeGppChannelModelParam::GetNewChannel(Ptr<const ThreeGppChannelParams> channe
                         // NOTE Doppler is computed in the CalcBeamformingGain function and is
                         // simplified to only account for the center angle of each cluster.
 
-                        double rxFieldPatternPhi, rxFieldPatternTheta, txFieldPatternPhi,
-                            txFieldPatternTheta;
+                        double rxFieldPatternPhi;
+                        double rxFieldPatternTheta;
+                        double txFieldPatternPhi;
+                        double txFieldPatternTheta;
                         std::tie(rxFieldPatternPhi, rxFieldPatternTheta) =
                             uAntenna->GetElementFieldPattern(
                                 Angles(rayAoaRadian[nIndex][mIndex], rayZoaRadian[nIndex][mIndex]));
@@ -298,8 +300,10 @@ ThreeGppChannelModelParam::GetNewChannel(Ptr<const ThreeGppChannelParams> channe
                                                   sin(rayAodRadian[nIndex][mIndex]) * sLoc.y +
                                               cos(rayZodRadian[nIndex][mIndex]) * sLoc.z);
 
-                        double rxFieldPatternPhi, rxFieldPatternTheta, txFieldPatternPhi,
-                            txFieldPatternTheta;
+                        double rxFieldPatternPhi;
+                        double rxFieldPatternTheta;
+                        double txFieldPatternPhi;
+                        double txFieldPatternTheta;
                         std::tie(rxFieldPatternPhi, rxFieldPatternTheta) =
                             uAntenna->GetElementFieldPattern(
                                 Angles(rayAoaRadian[nIndex][mIndex], rayZoaRadian[nIndex][mIndex]));
@@ -384,8 +388,10 @@ ThreeGppChannelModelParam::GetNewChannel(Ptr<const ThreeGppChannelParams> channe
                      sin(sAngle.GetInclination()) * sin(sAngle.GetAzimuth()) * sLoc.y +
                      cos(sAngle.GetInclination()) * sLoc.z);
 
-                double rxFieldPatternPhi, rxFieldPatternTheta, txFieldPatternPhi,
-                    txFieldPatternTheta;
+                double rxFieldPatternPhi;
+                double rxFieldPatternTheta;
+                double txFieldPatternPhi;
+                double txFieldPatternTheta;
                 std::tie(rxFieldPatternPhi, rxFieldPatternTheta) = uAntenna->GetElementFieldPattern(
                     Angles(uAngle.GetAzimuth(), uAngle.GetInclination()));
                 std::tie(txFieldPatternPhi, txFieldPatternTheta) = sAntenna->GetElementFieldPattern(

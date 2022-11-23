@@ -398,7 +398,8 @@ main(int argc, char* argv[])
      * to the NetDevices, which contains all the NR stack:
      */
 
-    uint8_t subArraysGnb = 0, subArraysUe = 0;
+    uint8_t subArraysGnb = 0;
+    uint8_t subArraysUe = 0;
 
     if (crossPolarizedGnb)
     {

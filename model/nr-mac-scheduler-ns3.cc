@@ -37,6 +37,7 @@
 #include <ns3/uinteger.h>
 
 #include <algorithm>
+#include <memory>
 #include <unordered_set>
 
 namespace ns3
@@ -51,7 +52,7 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
     NS_LOG_FUNCTION_NOARGS();
 
     // Hardcoded, but the type can be a parameter if needed
-    m_schedHarq = std::unique_ptr<NrMacSchedulerHarqRr>(new NrMacSchedulerHarqRr());
+    m_schedHarq = std::make_unique<NrMacSchedulerHarqRr>();
     m_schedHarq->InstallGetBwInRBG(std::bind(&NrMacSchedulerNs3::GetBandwidthInRbg, this));
     m_schedHarq->InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_schedHarq->InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
@@ -109,7 +110,7 @@ NrMacSchedulerNs3::AssignStreams(int64_t stream)
 }
 
 TypeId
-NrMacSchedulerNs3::GetTypeId(void)
+NrMacSchedulerNs3::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrMacSchedulerNs3")
@@ -348,7 +349,7 @@ NrMacSchedulerNs3::SetDlNotchedRbgMask(const std::vector<uint8_t>& dlNotchedRbgs
 }
 
 std::vector<uint8_t>
-NrMacSchedulerNs3::GetDlNotchedRbgMask(void) const
+NrMacSchedulerNs3::GetDlNotchedRbgMask() const
 {
     return m_dlNotchedRbgsMask;
 }
@@ -369,7 +370,7 @@ NrMacSchedulerNs3::SetUlNotchedRbgMask(const std::vector<uint8_t>& ulNotchedRbgs
 }
 
 std::vector<uint8_t>
-NrMacSchedulerNs3::GetUlNotchedRbgMask(void) const
+NrMacSchedulerNs3::GetUlNotchedRbgMask() const
 {
     return m_ulNotchedRbgsMask;
 }
@@ -600,7 +601,7 @@ LCPtr
 NrMacSchedulerNs3::CreateLC(const LogicalChannelConfigListElement_s& config) const
 {
     NS_LOG_FUNCTION(this);
-    return std::unique_ptr<NrMacSchedulerLC>(new NrMacSchedulerLC(config));
+    return std::make_unique<NrMacSchedulerLC>(config);
 }
 
 /**
@@ -617,7 +618,7 @@ LCGPtr
 NrMacSchedulerNs3::CreateLCG(const LogicalChannelConfigListElement_s& config) const
 {
     NS_LOG_FUNCTION(this);
-    return std::unique_ptr<NrMacSchedulerLCG>(new NrMacSchedulerLCG(config.m_logicalChannelGroup));
+    return std::make_unique<NrMacSchedulerLCG>(config.m_logicalChannelGroup);
 }
 
 /**
@@ -1520,7 +1521,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                 {
                     bytesPerLcPerStream.resize(distributedBytes.size());
                 }
-                for (uint16_t numLc = 0; numLc < distributedBytes.size(); numLc++)
+                for (std::size_t numLc = 0; numLc < distributedBytes.size(); numLc++)
                 {
                     bytesPerLcPerStream.at(numLc).emplace_back(
                         Assignation(distributedBytes.at(numLc).m_lcg,
@@ -1535,7 +1536,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
 
             NS_LOG_INFO("Assigned process ID " << static_cast<uint32_t>(dci->m_harqProcess)
                                                << " to UE " << ue.first->m_rnti);
-            for (uint32_t stream = 0; stream < dci->m_tbSize.size(); stream++)
+            for (std::size_t stream = 0; stream < dci->m_tbSize.size(); stream++)
             {
                 NS_LOG_DEBUG(" UE" << dci->m_rnti << " stream " << stream << " gets DL symbols "
                                    << static_cast<uint32_t>(dci->m_symStart) << "-"

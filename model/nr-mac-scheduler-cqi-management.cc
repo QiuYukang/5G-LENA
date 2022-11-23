@@ -170,7 +170,7 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
             ueInfo->m_dlTbSize.push_back(0);
         }
     }
-    for (uint8_t stream = 0; stream < info.m_wbCqi.size(); stream++)
+    for (std::size_t stream = 0; stream < info.m_wbCqi.size(); stream++)
     {
         if (info.m_wbCqi.at(stream) > 0)
         {
@@ -180,11 +180,11 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
                          static_cast<uint8_t>(maxDlMcs));
             ueInfo->m_dlMcs.at(stream) = mcs;
             NS_LOG_INFO("Calculated MCS for UE "
-                        << ueInfo->m_rnti << " stream index " << static_cast<uint16_t>(stream)
+                        << ueInfo->m_rnti << " stream index " << stream
                         << " MCS " << static_cast<uint32_t>(ueInfo->m_dlMcs.at(stream)));
 
             NS_LOG_INFO("Updated WB CQI of UE "
-                        << ueInfo->m_rnti << " stream index " << static_cast<uint16_t>(stream)
+                        << ueInfo->m_rnti << " stream index " << stream
                         << " CQI " << static_cast<uint16_t>(ueInfo->m_dlCqi.m_wbCqi.at(stream))
                         << ". It will expire in " << ueInfo->m_dlCqi.m_timer << " slots.");
         }
@@ -201,7 +201,7 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
             // tests one day but today is not that day.
             ueInfo->m_dlMcs.at(stream) = 0;
             NS_LOG_INFO("Not updated WB CQI of UE "
-                        << ueInfo->m_rnti << " stream index " << static_cast<uint16_t>(stream)
+                        << ueInfo->m_rnti << " stream index " << stream
                         << " CQI " << static_cast<uint16_t>(ueInfo->m_dlCqi.m_wbCqi.at(stream)));
         }
     }
@@ -220,7 +220,7 @@ NrMacSchedulerCQIManagement::RefreshDlCqiMaps(
         if (ue->m_dlCqi.m_timer == 0)
         {
             ue->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::DlCqiInfo::WB;
-            for (uint8_t stream = 0; stream < ue->m_dlCqi.m_wbCqi.size(); stream++)
+            for (std::size_t stream = 0; stream < ue->m_dlCqi.m_wbCqi.size(); stream++)
             {
                 ue->m_dlCqi.m_wbCqi.at(stream) = 1; // lowest value for trying a transmission
                 ue->m_dlMcs.at(stream) = GetStartMcsDl();

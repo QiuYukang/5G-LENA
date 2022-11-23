@@ -48,7 +48,7 @@ class DistanceBasedThreeGppSpectrumPropagationLossModel
     /**
      * Destructor
      */
-    virtual ~DistanceBasedThreeGppSpectrumPropagationLossModel();
+    ~DistanceBasedThreeGppSpectrumPropagationLossModel() override;
 
     /**
      * Get the type ID.
@@ -80,7 +80,7 @@ class DistanceBasedThreeGppSpectrumPropagationLossModel
      * \param bPhasedArrayModel the antenna array of the second node
      * \return the received PSD
      */
-    virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(
+    Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(
         Ptr<const SpectrumSignalParameters> params,
         Ptr<const MobilityModel> a,
         Ptr<const MobilityModel> b,

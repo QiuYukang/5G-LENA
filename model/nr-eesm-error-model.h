@@ -102,7 +102,7 @@ class NrEesmErrorModel : public NrErrorModel
      * \brief Get the type ID of this instance
      * \return the Type ID of this instance
      */
-    TypeId GetInstanceTypeId(void) const override;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrEesmErrorModel constructor
@@ -111,7 +111,7 @@ class NrEesmErrorModel : public NrErrorModel
     /**
      * \brief ~NrEesmErrorModel
      */
-    virtual ~NrEesmErrorModel() override;
+    ~NrEesmErrorModel() override;
 
     /**
      * \brief Get an output for the decodification error probability of a given
@@ -126,7 +126,7 @@ class NrEesmErrorModel : public NrErrorModel
      * \return A pointer to an output, with the tbler and SINR vector, effective
      * SINR, RB map, code bits, and info bits.
      */
-    virtual Ptr<NrErrorModelOutput> GetTbDecodificationStats(
+    Ptr<NrErrorModelOutput> GetTbDecodificationStats(
         const SpectrumValue& sinr,
         const std::vector<int>& map,
         uint32_t size,
@@ -137,12 +137,12 @@ class NrEesmErrorModel : public NrErrorModel
      * \brief Get the SE for a given CQI, following the CQIs in NR Table1/Table2
      * in TS38.214
      */
-    virtual double GetSpectralEfficiencyForCqi(uint8_t cqi) override;
+    double GetSpectralEfficiencyForCqi(uint8_t cqi) override;
     /**
      * \brief Get the SE for a given MCS, following the MCSs in NR Table1/Table2
      * in TS38.214
      */
-    virtual double GetSpectralEfficiencyForMcs(uint8_t mcs) const override;
+    double GetSpectralEfficiencyForMcs(uint8_t mcs) const override;
     /**
      * \brief Get the payload size in Bytes, following the MCSs in NR. It follows
      * TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including
@@ -153,21 +153,21 @@ class NrEesmErrorModel : public NrErrorModel
      * \param mode Mode
      *
      */
-    virtual uint32_t GetPayloadSize(uint32_t usefulSc,
-                                    uint8_t mcs,
-                                    uint32_t rbNum,
-                                    Mode mode) const override;
+    uint32_t GetPayloadSize(uint32_t usefulSc,
+                            uint8_t mcs,
+                            uint32_t rbNum,
+                            Mode mode) const override;
     /**
      * \brief Get the maximum code block size in Bytes, as per NR. It depends on the LDPC
      * base graph type
      * \param tbSize Transport block size in Bytes
      * \param mcs MCS
      */
-    virtual uint32_t GetMaxCbSize(uint32_t tbSize, uint8_t mcs) const override;
+    uint32_t GetMaxCbSize(uint32_t tbSize, uint8_t mcs) const override;
     /**
      * \brief Get the maximum MCS. It depends on NR tables being used
      */
-    virtual uint8_t GetMaxMcs() const override;
+    uint8_t GetMaxMcs() const override;
 
     typedef std::vector<double> DoubleVector;
     typedef std::tuple<DoubleVector, DoubleVector> DoubleTuple;

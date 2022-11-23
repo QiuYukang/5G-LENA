@@ -38,10 +38,10 @@ class PowerAllocationTestCase : public TestCase
 {
   public:
     PowerAllocationTestCase(const std::string& name);
-    virtual ~PowerAllocationTestCase();
+    ~PowerAllocationTestCase() override;
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
 };
 
 PowerAllocationTestCase::PowerAllocationTestCase(const std::string& name)
@@ -54,7 +54,7 @@ PowerAllocationTestCase::~PowerAllocationTestCase()
 }
 
 void
-PowerAllocationTestCase::DoRun(void)
+PowerAllocationTestCase::DoRun()
 {
     Ptr<const SpectrumModel> sm = NrSpectrumValueHelper::GetSpectrumModel(200, 2e9, 15000);
 

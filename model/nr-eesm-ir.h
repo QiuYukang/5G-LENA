@@ -51,7 +51,7 @@ class NrEesmIr : public NrEesmErrorModel
      * \brief Get the type id of the object
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief NrEesmIr constructor
      */
@@ -59,7 +59,7 @@ class NrEesmIr : public NrEesmErrorModel
     /**
      * \brief ~NrEesmIr deconstructor
      */
-    virtual ~NrEesmIr() override;
+    ~NrEesmIr() override;
 
   protected:
     // Inherited from NrEesmErrorModel

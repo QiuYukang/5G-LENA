@@ -40,12 +40,12 @@ namespace ns3
 class TestGnbMac : public NrGnbMac
 {
   public:
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     TestGnbMac(const std::string& pattern);
-    virtual ~TestGnbMac(void) override;
-    virtual void DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type) override;
-    virtual void DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type) override;
-    virtual void SetCurrentSfn(const SfnSf& sfn) override;
+    ~TestGnbMac() override;
+    void DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type) override;
+    void DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type) override;
+    void SetCurrentSfn(const SfnSf& sfn) override;
 
   private:
     std::vector<LteNrTddSlotType> m_pattern;
@@ -178,10 +178,10 @@ class LtePhyPatternTestCase : public TestCase
     {
     }
 
-    ~LtePhyPatternTestCase();
+    ~LtePhyPatternTestCase() override;
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
     void Print(const std::string& msg1,
                const std::string& msg2,
                const std::map<uint32_t, std::vector<uint32_t>>& str);

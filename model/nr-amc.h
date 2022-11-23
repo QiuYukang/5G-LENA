@@ -54,7 +54,7 @@ class NrAmc : public Object
      * \brief GetTypeId
      * \return the TypeId of the Object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief GetInstanceTypeId
@@ -70,7 +70,7 @@ class NrAmc : public Object
     /**
      * \brief ~NrAmc deconstructor
      */
-    virtual ~NrAmc() override;
+    ~NrAmc() override;
 
     /**
      * \brief Set the object to be in "DL" mode.

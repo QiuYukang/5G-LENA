@@ -49,37 +49,37 @@ class TestCschedSapUser : public NrMacCschedSapUser
     {
     }
 
-    virtual void CschedCellConfigCnf(
+    void CschedCellConfigCnf(
         [[maybe_unused]] const struct CschedCellConfigCnfParameters& params) override
     {
     }
 
-    virtual void CschedUeConfigCnf(
+    void CschedUeConfigCnf(
         [[maybe_unused]] const struct CschedUeConfigCnfParameters& params) override
     {
     }
 
-    virtual void CschedLcConfigCnf(
+    void CschedLcConfigCnf(
         [[maybe_unused]] const struct CschedLcConfigCnfParameters& params) override
     {
     }
 
-    virtual void CschedLcReleaseCnf(
+    void CschedLcReleaseCnf(
         [[maybe_unused]] const struct CschedLcReleaseCnfParameters& params) override
     {
     }
 
-    virtual void CschedUeReleaseCnf(
+    void CschedUeReleaseCnf(
         [[maybe_unused]] const struct CschedUeReleaseCnfParameters& params) override
     {
     }
 
-    virtual void CschedUeConfigUpdateInd(
+    void CschedUeConfigUpdateInd(
         [[maybe_unused]] const struct CschedUeConfigUpdateIndParameters& params) override
     {
     }
 
-    virtual void CschedCellConfigUpdateInd(
+    void CschedCellConfigUpdateInd(
         [[maybe_unused]] const struct CschedCellConfigUpdateIndParameters& params) override
     {
     }
@@ -107,7 +107,7 @@ class NrSchedGeneralTestCase : public TestCase
     /**
      * \brief Destroy the object instance
      */
-    virtual ~NrSchedGeneralTestCase() override
+    ~NrSchedGeneralTestCase() override
     {
     }
 
@@ -128,7 +128,7 @@ class NrSchedGeneralTestCase : public TestCase
     void LcConfigFor(uint16_t rnti, uint32_t bytes, const Ptr<NrMacSchedulerNs3>& sched);
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
 
     std::string m_scheduler{}; //!< Type of the scheduler
     TestCschedSapUser* m_cSchedSapUser{nullptr};
@@ -144,44 +144,44 @@ class TestSchedSapUser : public NrMacSchedSapUser
     {
     }
 
-    virtual void SchedConfigInd(const struct SchedConfigIndParameters& params) override
+    void SchedConfigInd(const struct SchedConfigIndParameters& params) override
     {
         m_testCase->SchedConfigInd(params);
     }
 
     // For the rest, setup some hard-coded values; for the moment, there is
     // no need to have real values here.
-    virtual Ptr<const SpectrumModel> GetSpectrumModel() const override
+    Ptr<const SpectrumModel> GetSpectrumModel() const override
     {
         return nullptr;
     }
 
-    virtual uint32_t GetNumRbPerRbg() const override
+    uint32_t GetNumRbPerRbg() const override
     {
         return 1;
     }
 
-    virtual uint8_t GetNumHarqProcess() const override
+    uint8_t GetNumHarqProcess() const override
     {
         return 20;
     }
 
-    virtual uint16_t GetBwpId() const override
+    uint16_t GetBwpId() const override
     {
         return 0;
     }
 
-    virtual uint16_t GetCellId() const override
+    uint16_t GetCellId() const override
     {
         return 0;
     }
 
-    virtual uint32_t GetSymbolsPerSlot() const override
+    uint32_t GetSymbolsPerSlot() const override
     {
         return 14;
     }
 
-    virtual Time GetSlotPeriod() const override
+    Time GetSlotPeriod() const override
     {
         return MilliSeconds(1);
     }

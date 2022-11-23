@@ -89,7 +89,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Get the object TypeId
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrSpectrumPhy constructor
@@ -99,7 +99,7 @@ class NrSpectrumPhy : public SpectrumPhy
     /**
      * \brief ~NrSpectrumPhy
      */
-    virtual ~NrSpectrumPhy() override;
+    ~NrSpectrumPhy() override;
 
     /**
      * \brief Enum that defines possible states of the spectrum phy
@@ -198,7 +198,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * Note: Implements GetAntenna function from SpectrumPhy.
      * \return Antenna of this NrSpectrumPhy
      */
-    virtual Ptr<Object> GetAntenna() const override;
+    Ptr<Object> GetAntenna() const override;
 
     /*
      * \brief Used to enable generation and triggering of DL DATA pathloss trace
@@ -227,7 +227,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * Returns clear channel assesment (CCA) threshold
      * \return CCA threshold in dBms
      */
-    double GetCcaMode1Threshold(void) const;
+    double GetCcaMode1Threshold() const;
     /**
      * \brief Sets whether to perform in unclicensed mode in which the channel monitoring is enabled
      * \param unlicensedMode if true the unlicensed mode is enabled
@@ -380,15 +380,15 @@ class NrSpectrumPhy : public SpectrumPhy
     /**
      * \brief Returns spectrum channel object to which is attached this spectrum phy instance
      */
-    Ptr<SpectrumChannel> GetSpectrumChannel(void) const;
+    Ptr<SpectrumChannel> GetSpectrumChannel() const;
     /**
      * \return HARQ module of this spectrum phy
      */
-    Ptr<NrHarqPhy> GetHarqPhyModule(void) const;
+    Ptr<NrHarqPhy> GetHarqPhyModule() const;
     /**
      * \return NrInterference instance of this spectrum phy
      */
-    Ptr<NrInterference> GetNrInterference(void) const;
+    Ptr<NrInterference> GetNrInterference() const;
     /**
      * \brief Instruct the Spectrum Model of a incoming transmission.
      * \param rnti RNTI
@@ -528,7 +528,7 @@ class NrSpectrumPhy : public SpectrumPhy
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
 
   private:
     /**

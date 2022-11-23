@@ -50,12 +50,12 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
      * \brief GetTypeId
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief GetInstanceTypeId
      * \return the instance type id
      */
-    virtual TypeId GetInstanceTypeId(void) const override;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrMacHeaderVsUl constructor
@@ -65,7 +65,7 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
     /**
      * \brief ~NrMacHeaderVsUl
      */
-    virtual ~NrMacHeaderVsUl();
+    ~NrMacHeaderVsUl() override;
 
     // const uint8_t CCCH_LARGE  = 0, //!< CCCH of size 64 bit (is it fixed or variable?)
     // const uint8_t CCCH_SMALL = 52, //!< CCCH of size 48 (is it fixed or variable?)
@@ -84,7 +84,7 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
      * To not make any error, please use one of the pre-defined const values in
      * this class.
      */
-    virtual void SetLcId(uint8_t lcId) override;
+    void SetLcId(uint8_t lcId) override;
 
     /**
      * \brief Check if it really a variable-size header

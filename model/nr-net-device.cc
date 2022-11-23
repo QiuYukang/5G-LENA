@@ -49,18 +49,18 @@ NrNetDevice::GetTypeId()
     return tid;
 }
 
-NrNetDevice::NrNetDevice(void)
+NrNetDevice::NrNetDevice()
 {
     NS_LOG_FUNCTION(this);
 }
 
-NrNetDevice::~NrNetDevice(void)
+NrNetDevice::~NrNetDevice()
 {
     NS_LOG_FUNCTION(this);
 }
 
 void
-NrNetDevice::DoDispose(void)
+NrNetDevice::DoDispose()
 {
     m_node = nullptr;
     NetDevice::DoDispose();
@@ -73,13 +73,13 @@ NrNetDevice::SetIfIndex(const uint32_t index)
 }
 
 uint32_t
-NrNetDevice::GetIfIndex(void) const
+NrNetDevice::GetIfIndex() const
 {
     return m_ifIndex;
 }
 
 Ptr<Channel>
-NrNetDevice::GetChannel(void) const
+NrNetDevice::GetChannel() const
 {
     return nullptr;
 }
@@ -92,7 +92,7 @@ NrNetDevice::SetAddress(Address address)
 }
 
 Address
-NrNetDevice::GetAddress(void) const
+NrNetDevice::GetAddress() const
 {
     NS_LOG_FUNCTION(this);
     return m_macaddress;
@@ -106,13 +106,13 @@ NrNetDevice::SetMtu(const uint16_t mtu)
 }
 
 uint16_t
-NrNetDevice::GetMtu(void) const
+NrNetDevice::GetMtu() const
 {
     return m_mtu;
 }
 
 bool
-NrNetDevice::IsLinkUp(void) const
+NrNetDevice::IsLinkUp() const
 {
     return m_linkUp;
 }
@@ -123,19 +123,19 @@ NrNetDevice::AddLinkChangeCallback([[maybe_unused]] Callback<void> callback)
 }
 
 bool
-NrNetDevice::IsBroadcast(void) const
+NrNetDevice::IsBroadcast() const
 {
     return false;
 }
 
 Address
-NrNetDevice::GetBroadcast(void) const
+NrNetDevice::GetBroadcast() const
 {
     return Mac48Address::GetBroadcast();
 }
 
 bool
-NrNetDevice::IsMulticast(void) const
+NrNetDevice::IsMulticast() const
 {
     return false;
 }
@@ -147,13 +147,13 @@ NrNetDevice::GetMulticast([[maybe_unused]] Ipv4Address multicastGroup) const
 }
 
 bool
-NrNetDevice::IsBridge(void) const
+NrNetDevice::IsBridge() const
 {
     return false;
 }
 
 bool
-NrNetDevice::IsPointToPoint(void) const
+NrNetDevice::IsPointToPoint() const
 {
     return false;
 }
@@ -169,7 +169,7 @@ NrNetDevice::SendFrom([[maybe_unused]] Ptr<Packet> packet,
 }
 
 Ptr<Node>
-NrNetDevice::GetNode(void) const
+NrNetDevice::GetNode() const
 {
     return m_node;
 }
@@ -181,7 +181,7 @@ NrNetDevice::SetNode(Ptr<Node> node)
 }
 
 bool
-NrNetDevice::NeedsArp(void) const
+NrNetDevice::NeedsArp() const
 {
     return false;
 }
@@ -205,7 +205,7 @@ NrNetDevice::SetPromiscReceiveCallback([[maybe_unused]] PromiscReceiveCallback c
 }
 
 bool
-NrNetDevice::SupportsSendFrom(void) const
+NrNetDevice::SupportsSendFrom() const
 {
     return false;
 }

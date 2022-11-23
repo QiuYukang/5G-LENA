@@ -69,15 +69,25 @@ bool
 NrMacHeaderVsUl::IsVariableSizeHeader() const
 {
     if (m_lcid <= 32)
+    {
         return true;
+    }
     if (m_lcid == MULTIPLE_ENTRY_PHR_FOUR_OCTECT)
+    {
         return true;
+    }
     if (m_lcid == MULTIPLE_ENTRY_PHR_ONE_OCTET)
+    {
         return true;
+    }
     if (m_lcid == LONG_TRUNCATED_BSR)
+    {
         return true;
+    }
     if (m_lcid == LONG_BSR)
+    {
         return true;
+    }
 
     return false;
 }

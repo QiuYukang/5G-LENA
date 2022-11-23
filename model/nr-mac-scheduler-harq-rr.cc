@@ -155,7 +155,7 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
             std::vector<uint8_t> mcs;
             mcs.resize(dciInfoReTx->m_mcs.size());
 
-            for (uint8_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
+            for (std::size_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
             {
                 auto it = std::find(harqProcess.nackStreamIndexes.begin(),
                                     harqProcess.nackStreamIndexes.end(),
@@ -227,7 +227,7 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
 
             VarTtiAllocInfo slotInfo(dciInfoReTx);
 
-            for (uint8_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
+            for (std::size_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
             {
                 NS_LOG_DEBUG(
                     "UE" << dciInfoReTx->m_rnti << " gets DL symbols "
@@ -241,7 +241,7 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                          << " RBG end: " << static_cast<uint32_t>(startingPoint->m_rbg) << " RETX");
             }
 
-            for (auto rlcPdu : harqProcess.m_rlcPduInfo)
+            for (const auto& rlcPdu : harqProcess.m_rlcPduInfo)
             {
                 // we should have pushed the RLC PDU info
                 // of only the stream we are rescheduling.
@@ -359,7 +359,7 @@ NrMacSchedulerHarqRr::ScheduleUlHarq(
             startingPoint->m_sym -= dciInfoReTx->m_numSym;
 
             VarTtiAllocInfo slotInfo(dciInfoReTx);
-            for (uint8_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
+            for (std::size_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
             {
                 NS_LOG_DEBUG("UE" << dciInfoReTx->m_rnti << " gets UL symbols "
                                   << static_cast<uint32_t>(dciInfoReTx->m_symStart) << "-"

@@ -58,7 +58,7 @@ class RealisticBfManager : public BeamManager
     /**
      * \brief ~RealisticBfManager
      */
-    virtual ~RealisticBfManager();
+    ~RealisticBfManager() override;
 
     /**
      * \brief GetTypeId

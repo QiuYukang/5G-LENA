@@ -77,7 +77,7 @@ class NrUePhy : public NrPhy
      * \brief Get the object TypeId
      * \return the object type id
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrUePhy default constructor.
@@ -87,7 +87,7 @@ class NrUePhy : public NrPhy
     /**
      * \brief ~NrUePhy
      */
-    virtual ~NrUePhy() override;
+    ~NrUePhy() override;
 
     /**
      * \brief Retrieve the pointer for the C PHY SAP provider (AKA the PHY interface towards the
@@ -128,7 +128,7 @@ class NrUePhy : public NrPhy
      * Please note that there is also an attribute ("NrGnbPhy::TxPower")
      * \return the TX power of the UE
      */
-    virtual double GetTxPower() const override;
+    double GetTxPower() const override;
 
     /**
      * \brief Returns the latest measured RSRP value
@@ -449,7 +449,7 @@ class NrUePhy : public NrPhy
     const SfnSf& GetCurrentSfnSf() const override;
 
     // From nr phy. Not used in the UE
-    virtual BeamConfId GetBeamConfId(uint16_t rnti) const override;
+    BeamConfId GetBeamConfId(uint16_t rnti) const override;
 
     /**
      * \brief Start the ue Event Loop
@@ -461,10 +461,10 @@ class NrUePhy : public NrPhy
      * \param subframe SubF.
      * \param slot Slot
      */
-    virtual void ScheduleStartEventLoop(uint32_t nodeId,
-                                        uint16_t frame,
-                                        uint8_t subframe,
-                                        uint16_t slot) override;
+    void ScheduleStartEventLoop(uint32_t nodeId,
+                                uint16_t frame,
+                                uint8_t subframe,
+                                uint16_t slot) override;
 
     /**
      * \brief Called when rsReceivedPower is fired
@@ -525,7 +525,7 @@ class NrUePhy : public NrPhy
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
     uint32_t GetNumRbPerRbg() const override;
 
   private:

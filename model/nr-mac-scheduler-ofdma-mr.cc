@@ -29,7 +29,7 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerOfdmaMR");
 NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulerOfdmaMR);
 
 TypeId
-NrMacSchedulerOfdmaMR::GetTypeId(void)
+NrMacSchedulerOfdmaMR::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrMacSchedulerOfdmaMR")
                             .SetParent<NrMacSchedulerOfdmaRR>()

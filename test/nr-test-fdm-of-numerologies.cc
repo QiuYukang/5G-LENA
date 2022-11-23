@@ -55,10 +55,10 @@ class NrTestFdmOfNumerologiesCase1 : public TestCase
                                  double bw2,
                                  bool isDownlink,
                                  bool isUplink);
-    virtual ~NrTestFdmOfNumerologiesCase1();
+    ~NrTestFdmOfNumerologiesCase1() override;
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
 
     uint32_t m_numerology; // the numerology to be used
     double m_bw1;          // bandwidth of bandwidth part 1
@@ -90,7 +90,7 @@ NrTestFdmOfNumerologiesCase1::~NrTestFdmOfNumerologiesCase1()
 }
 
 void
-NrTestFdmOfNumerologiesCase1::DoRun(void)
+NrTestFdmOfNumerologiesCase1::DoRun()
 {
     // set simulation time and mobility
     double simTime = 0.2;         // seconds

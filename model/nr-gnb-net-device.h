@@ -45,11 +45,11 @@ class NrMacScheduler;
 class NrGnbNetDevice : public NrNetDevice
 {
   public:
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     NrGnbNetDevice();
 
-    virtual ~NrGnbNetDevice(void);
+    ~NrGnbNetDevice() override;
 
     Ptr<NrMacScheduler> GetScheduler(uint8_t index) const;
 
@@ -81,7 +81,7 @@ class NrGnbNetDevice : public NrNetDevice
 
     void SetRrc(Ptr<LteEnbRrc> rrc);
 
-    Ptr<LteEnbRrc> GetRrc(void);
+    Ptr<LteEnbRrc> GetRrc();
 
     void SetCcMap(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccm);
 
@@ -115,10 +115,10 @@ class NrGnbNetDevice : public NrNetDevice
     void UpdateConfig();
 
   protected:
-    virtual void DoInitialize(void);
+    void DoInitialize() override;
 
-    virtual void DoDispose(void);
-    virtual bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
+    void DoDispose() override;
+    bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) override;
 
   private:
     Ptr<LteEnbRrc> m_rrc;

@@ -380,7 +380,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     const double band0Start = 2110e6;
     double bandwidthBwp = bandwidthMHz * 1e6;
 
-    OperationBandInfo band0, band1, band2;
+    OperationBandInfo band0;
+    OperationBandInfo band1;
+    OperationBandInfo band2;
     band0.m_bandId = 0;
     band1.m_bandId = 1;
     band2.m_bandId = 2;
@@ -553,7 +555,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     nrHelper->InitializeOperationBand(&band1, bandMask);
     nrHelper->InitializeOperationBand(&band2, bandMask);
 
-    BandwidthPartInfoPtrVector sector1Bwps, sector2Bwps, sector3Bwps;
+    BandwidthPartInfoPtrVector sector1Bwps;
+    BandwidthPartInfoPtrVector sector2Bwps;
+    BandwidthPartInfoPtrVector sector3Bwps;
     if (freqScenario == 0) // NON_OVERLAPPING
     {
         sector1Bwps = CcBwpCreator::GetAllBwps({band0});

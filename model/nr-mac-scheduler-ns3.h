@@ -243,7 +243,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrMacSchedulerNs3 default constructor
@@ -317,32 +317,32 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     typedef PointInFTPlane
         FTResources; //!< Represent an amount of RBG/symbols that can be, or is, assigned
 
-    virtual void DoCschedCellConfigReq(
+    void DoCschedCellConfigReq(
         const NrMacCschedSapProvider::CschedCellConfigReqParameters& params) override;
-    virtual void DoCschedUeConfigReq(
+    void DoCschedUeConfigReq(
         const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) override;
-    virtual void DoSchedDlRlcBufferReq(
+    void DoSchedDlRlcBufferReq(
         const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params) override;
-    virtual void DoSchedUlMacCtrlInfoReq(
+    void DoSchedUlMacCtrlInfoReq(
         const NrMacSchedSapProvider::SchedUlMacCtrlInfoReqParameters& params) override;
-    virtual void DoSchedDlCqiInfoReq(
+    void DoSchedDlCqiInfoReq(
         const NrMacSchedSapProvider::SchedDlCqiInfoReqParameters& params) override;
-    virtual void DoSchedUlCqiInfoReq(
+    void DoSchedUlCqiInfoReq(
         const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params) override;
-    virtual void DoCschedUeReleaseReq(
+    void DoCschedUeReleaseReq(
         const NrMacCschedSapProvider::CschedUeReleaseReqParameters& params) override;
-    virtual void DoCschedLcConfigReq(
+    void DoCschedLcConfigReq(
         const NrMacCschedSapProvider::CschedLcConfigReqParameters& params) override;
-    virtual void DoCschedLcReleaseReq(
+    void DoCschedLcReleaseReq(
         const NrMacCschedSapProvider::CschedLcReleaseReqParameters& params) override;
-    virtual void DoSchedDlTriggerReq(
+    void DoSchedDlTriggerReq(
         const NrMacSchedSapProvider::SchedDlTriggerReqParameters& params) override;
-    virtual void DoSchedUlTriggerReq(
+    void DoSchedUlTriggerReq(
         const NrMacSchedSapProvider::SchedUlTriggerReqParameters& params) override;
-    virtual void DoSchedUlSrInfoReq(
+    void DoSchedUlSrInfoReq(
         const NrMacSchedSapProvider::SchedUlSrInfoReqParameters& params) override;
-    virtual void DoSchedSetMcs(uint32_t mcs) override;
-    virtual void DoSchedDlRachInfoReq(
+    void DoSchedSetMcs(uint32_t mcs) override;
+    void DoSchedDlRachInfoReq(
         const NrMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
     uint8_t GetDlCtrlSyms() const override;
     uint8_t GetUlCtrlSyms() const override;
@@ -354,7 +354,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \param stream first stream index to use
      * \return the number of stream indices assigned by this model
      */
-    virtual int64_t AssignStreams(int64_t stream) override;
+    int64_t AssignStreams(int64_t stream) override;
 
     // to save some typing
     using HarqVectorIterator = NrMacHarqVector::iterator;
@@ -468,7 +468,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \brief Get the notched (blank) RBGs Mask for the DL
      * \return The mask of notched RBGs
      */
-    std::vector<uint8_t> GetDlNotchedRbgMask(void) const;
+    std::vector<uint8_t> GetDlNotchedRbgMask() const;
 
     /**
      * \brief Set the notched (blank) RBGs Mask for the UL
@@ -480,7 +480,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \brief Get the notched (blank) RBGs Mask for the UL
      * \return The mask of notched RBGs
      */
-    std::vector<uint8_t> GetUlNotchedRbgMask(void) const;
+    std::vector<uint8_t> GetUlNotchedRbgMask() const;
 
     /**
      * \brief Set the number of UL SRS symbols

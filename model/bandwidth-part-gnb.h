@@ -47,21 +47,21 @@ class BandwidthPartGnb : public ComponentCarrierBaseStation
      * \brief Get the type ID.
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     BandwidthPartGnb();
 
-    virtual ~BandwidthPartGnb(void) override;
+    ~BandwidthPartGnb() override;
 
     /**
      * \return a pointer to the physical layer.
      */
-    Ptr<NrGnbPhy> GetPhy(void);
+    Ptr<NrGnbPhy> GetPhy();
 
     /**
      * \return a pointer to the MAC layer.
      */
-    Ptr<NrGnbMac> GetMac(void);
+    Ptr<NrGnbMac> GetMac();
 
     /**
      * \return a pointer to the Mac Scheduler.
@@ -85,12 +85,12 @@ class BandwidthPartGnb : public ComponentCarrierBaseStation
      */
     void SetNrMacScheduler(Ptr<NrMacScheduler> s);
 
-    virtual void SetDlBandwidth(uint16_t bw) override
+    void SetDlBandwidth(uint16_t bw) override
     {
         m_dlBandwidth = bw;
     }
 
-    virtual void SetUlBandwidth(uint16_t bw) override
+    void SetUlBandwidth(uint16_t bw) override
     {
         m_ulBandwidth = bw;
     }
@@ -109,7 +109,7 @@ class BandwidthPartGnb : public ComponentCarrierBaseStation
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
 
   private:
     Ptr<NrGnbPhy> m_phy;             ///< the Phy instance of this eNodeB component carrier

@@ -334,9 +334,11 @@ main(int argc, char* argv[])
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
-    ApplicationContainer clientApps, serverApps;
+    ApplicationContainer clientApps;
+    ApplicationContainer serverApps;
 
-    ApplicationContainer clientAppsEmbb, serverAppsEmbb;
+    ApplicationContainer clientAppsEmbb;
+    ApplicationContainer serverAppsEmbb;
 
     UdpServerHelper dlPacketSinkHelper(dlPort);
     serverApps.Add(dlPacketSinkHelper.Install(ueNodes));

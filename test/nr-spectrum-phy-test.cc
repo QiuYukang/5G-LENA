@@ -38,7 +38,7 @@ NoLossSpectrumPropagationLossModel::~NoLossSpectrumPropagationLossModel()
 }
 
 TypeId
-NoLossSpectrumPropagationLossModel::GetTypeId(void)
+NoLossSpectrumPropagationLossModel::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NoLossSpectrumPropagationLossModel")
                             .SetParent<SpectrumPropagationLossModel>()
@@ -116,7 +116,7 @@ SetNoisePsdTestCase::DoEvaluateTest()
 }
 
 void
-SetNoisePsdTestCase::DoRun(void)
+SetNoisePsdTestCase::DoRun()
 {
     double centerFrequency = 28e9;
 

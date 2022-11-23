@@ -44,7 +44,7 @@ class BandwidthPartUe : public ComponentCarrier
      * \brief Get the type ID.
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief BandwidthPartUe constructor
@@ -54,17 +54,17 @@ class BandwidthPartUe : public ComponentCarrier
     /**
      * \brief ~BandwidthPartUe
      */
-    virtual ~BandwidthPartUe(void) override;
+    ~BandwidthPartUe() override;
 
     /**
      * \return a pointer to the physical layer.
      */
-    Ptr<NrUePhy> GetPhy(void) const;
+    Ptr<NrUePhy> GetPhy() const;
 
     /**
      * \return a pointer to the MAC layer.
      */
-    Ptr<NrUeMac> GetMac(void) const;
+    Ptr<NrUeMac> GetMac() const;
 
     /**
      * Set NrUePhy
@@ -78,12 +78,12 @@ class BandwidthPartUe : public ComponentCarrier
      */
     void SetMac(Ptr<NrUeMac> s);
 
-    virtual void SetDlBandwidth(uint16_t bw) override
+    void SetDlBandwidth(uint16_t bw) override
     {
         m_dlBandwidth = bw;
     }
 
-    virtual void SetUlBandwidth(uint16_t bw) override
+    void SetUlBandwidth(uint16_t bw) override
     {
         m_ulBandwidth = bw;
     }
@@ -92,7 +92,7 @@ class BandwidthPartUe : public ComponentCarrier
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
 
   private:
     Ptr<NrUePhy> m_phy; ///< the Phy instance of this eNodeB component carrier

@@ -42,7 +42,7 @@ class NrMacScheduler : public Object
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrMacScheduler constructor
@@ -52,7 +52,7 @@ class NrMacScheduler : public Object
     /**
      * \brief NrMacScheduler deconstructor
      */
-    virtual ~NrMacScheduler();
+    ~NrMacScheduler() override;
 
     /**
      * \brief Set the MacSchedSapUser pointer

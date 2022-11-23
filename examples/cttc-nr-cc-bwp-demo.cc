@@ -564,7 +564,8 @@ main(int argc, char* argv[])
     // install UDP applications
     uint16_t dlPort = 1234;
     uint16_t ulPort = dlPort + gNbNum * ueNumPergNb * numFlowsUe + 1;
-    ApplicationContainer clientApps, serverApps;
+    ApplicationContainer clientApps;
+    ApplicationContainer serverApps;
 
     for (uint32_t u = 0; u < ueNodes.GetN(); ++u)
     {

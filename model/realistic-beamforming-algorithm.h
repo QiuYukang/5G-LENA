@@ -114,12 +114,12 @@ class RealisticBeamformingAlgorithm : public Object
     /**
      * \brief destructor
      */
-    virtual ~RealisticBeamformingAlgorithm();
+    ~RealisticBeamformingAlgorithm() override;
     /**
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief Assign a fixed random variable stream number to the random variables
      * used by this model. Return the number of streams (possibly zero) that

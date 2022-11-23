@@ -51,7 +51,7 @@ NrInterference::DoDispose()
 }
 
 TypeId
-NrInterference::GetTypeId(void)
+NrInterference::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrInterference")
@@ -185,13 +185,13 @@ NrInterference::NiChange::NiChange(Time time, double delta)
 }
 
 Time
-NrInterference::NiChange::GetTime(void) const
+NrInterference::NiChange::GetTime() const
 {
     return m_time;
 }
 
 double
-NrInterference::NiChange::GetDelta(void) const
+NrInterference::NiChange::GetDelta() const
 {
     return m_delta;
 }
@@ -271,7 +271,7 @@ NrInterference::GetEnergyDuration(double energyW)
 }
 
 void
-NrInterference::EraseEvents(void)
+NrInterference::EraseEvents()
 {
     m_niChanges.clear();
     m_firstPower = 0.0;

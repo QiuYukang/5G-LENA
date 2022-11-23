@@ -85,7 +85,8 @@ NrSystemTestSchedulerOfdmaMrSuite::NrSystemTestSchedulerOfdmaMrSuite()
                     {
                         for (const auto& beam : beams)
                         {
-                            std::stringstream ss, schedName;
+                            std::stringstream ss;
+                            std::stringstream schedName;
                             if (modeType == DL)
                             {
                                 ss << "DL";

@@ -334,8 +334,10 @@ main(int argc, char* argv[])
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
     UdpServerHelper dlPacketSinkHelper(dlPort);
-    ApplicationContainer txApps, sinkApps;
-    NodeContainer txNodes, sinkNodes;
+    ApplicationContainer txApps;
+    ApplicationContainer sinkApps;
+    NodeContainer txNodes;
+    NodeContainer sinkNodes;
     Ipv4InterfaceContainer sinkIps;
 
     if (isUl)

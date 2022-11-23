@@ -55,7 +55,7 @@ class BeamManager : public Object
     /**
      * \brief ~BeamManager
      */
-    virtual ~BeamManager();
+    ~BeamManager() override;
 
     /**
      * \brief GetTypeId

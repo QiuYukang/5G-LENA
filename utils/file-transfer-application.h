@@ -73,11 +73,11 @@ class FileTransferApplication : public Application
      * \brief Get the type ID.
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     FileTransferApplication();
 
-    virtual ~FileTransferApplication();
+    ~FileTransferApplication() override;
 
     /**
      * \brief Set the file size to try to transfer
@@ -92,7 +92,7 @@ class FileTransferApplication : public Application
      *
      * return the total number of bytes that have been sent
      */
-    uint32_t GetTotalBytes(void) const;
+    uint32_t GetTotalBytes() const;
 
     /**
      * \brief Send another file
@@ -100,21 +100,21 @@ class FileTransferApplication : public Application
      * return true if another file was started; false if the request
      *        didn't succeed (possibly because another transfer is ongoing)
      */
-    bool SendFile(void);
+    bool SendFile();
 
     /**
      * \brief Get the socket this application is attached to.
      * \return pointer to associated socket
      */
-    Ptr<Socket> GetSocket(void) const;
+    Ptr<Socket> GetSocket() const;
 
   protected:
-    virtual void DoDispose(void);
+    void DoDispose() override;
 
   private:
     // inherited from Application base class.
-    virtual void StartApplication(void); // Called at time specified by Start
-    virtual void StopApplication(void);  // Called at time specified by Stop
+    void StartApplication() override; // Called at time specified by Start
+    void StopApplication() override;  // Called at time specified by Stop
 
     /**
      * \brief Send data until the L4 transmission buffer is full.

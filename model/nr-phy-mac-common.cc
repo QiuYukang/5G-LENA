@@ -48,7 +48,7 @@ SlotAllocInfo::Merge(const SlotAllocInfo& other)
 
     m_numSymAlloc += other.m_numSymAlloc;
 
-    for (auto extAlloc : other.m_varTtiAllocInfo)
+    for (const auto& extAlloc : other.m_varTtiAllocInfo)
     {
         m_varTtiAllocInfo.push_front(extAlloc);
     }
@@ -139,9 +139,9 @@ operator<<(std::ostream& os, const DlHarqInfo& item)
     }
     os << "for ProcessID: " << static_cast<uint32_t>(item.m_harqProcessId) << " of UE "
        << static_cast<uint32_t>(item.m_rnti);
-    for (uint8_t stream = 0; stream < item.m_numRetx.size(); stream++)
+    for (std::size_t stream = 0; stream < item.m_numRetx.size(); stream++)
     {
-        os << "stream " << static_cast<uint32_t>(stream)
+        os << "stream " << stream
            << " Num Retx: " << static_cast<uint32_t>(item.m_numRetx[stream]);
     }
 
@@ -186,7 +186,8 @@ operator<<(std::ostream& os, const SlotAllocInfo& item)
        << " composed by the following allocations: " << std::endl;
     for (const auto& alloc : item.m_varTtiAllocInfo)
     {
-        std::string direction, type;
+        std::string direction;
+        std::string type;
         if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
         {
             type = "CTRL";
@@ -243,22 +244,22 @@ operator<<(std::ostream& os, const DciInfoElementTdma& item)
     os << "RNTI=" << item.m_rnti << "|" << item.m_format << "|SYM=" << +item.m_symStart
        << "|NSYM=" << +item.m_numSym;
 
-    for (uint8_t imcs = 0; imcs < item.m_mcs.size(); imcs++)
+    for (std::size_t imcs = 0; imcs < item.m_mcs.size(); imcs++)
     {
         os << "|McsStream" << imcs << "=" << +item.m_mcs.at(imcs);
     }
 
-    for (uint32_t itbs = 0; itbs < item.m_tbSize.size(); itbs++)
+    for (std::size_t itbs = 0; itbs < item.m_tbSize.size(); itbs++)
     {
         os << "|TBsStream" << itbs << "=" << item.m_tbSize.at(itbs);
     }
 
-    for (uint8_t indi = 0; indi < item.m_ndi.size(); indi++)
+    for (std::size_t indi = 0; indi < item.m_ndi.size(); indi++)
     {
         os << "|NdiStream" << indi << "=" << +item.m_ndi.at(indi);
     }
 
-    for (uint8_t irv = 0; irv < item.m_rv.size(); irv++)
+    for (std::size_t irv = 0; irv < item.m_rv.size(); irv++)
     {
         os << "|RvStream" << irv << "=" << +item.m_rv.at(irv);
     }
@@ -266,7 +267,8 @@ operator<<(std::ostream& os, const DciInfoElementTdma& item)
     os << "|TYPE=" << item.m_type << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess
        << "|RBG=";
 
-    uint16_t start = 65000, end = 0;
+    uint16_t start = 65000;
+    uint16_t end = 0;
     bool canPrint = false;
     for (uint32_t i = 0; i < item.m_rbgBitmask.size(); ++i)
     {

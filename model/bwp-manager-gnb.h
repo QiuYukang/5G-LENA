@@ -43,7 +43,7 @@ class BwpManagerGnb : public RrComponentCarrierManager
 {
   public:
     BwpManagerGnb();
-    virtual ~BwpManagerGnb() override;
+    ~BwpManagerGnb() override;
     static TypeId GetTypeId();
 
     /**
@@ -111,34 +111,33 @@ class BwpManagerGnb : public RrComponentCarrierManager
     /*
      * \brief This function contains most of the BwpManager logic.
      */
-    virtual void DoReportBufferStatus(
-        LteMacSapProvider::ReportBufferStatusParameters params) override;
+    void DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params) override;
 
     /*
      * \brief Intercepts function calls from MAC of component carriers when it notifies RLC
      * of transmission opportunities. This function decides id the transmission opportunity
      * will be forwarded to the RLC.
      */
-    virtual void DoNotifyTxOpportunity(LteMacSapUser::TxOpportunityParameters txOpParams) override;
+    void DoNotifyTxOpportunity(LteMacSapUser::TxOpportunityParameters txOpParams) override;
 
     /**
      * \brief Forwards uplink BSR to CCM, called by MAC through CCM SAP interface.
      * \param bsr the BSR
      * \param componentCarrierId the component carrier ID
      */
-    virtual void DoUlReceiveMacCe(MacCeListElement_s bsr, uint8_t componentCarrierId) override;
+    void DoUlReceiveMacCe(MacCeListElement_s bsr, uint8_t componentCarrierId) override;
 
     /**
      * \brief Forward SR to the right MAC instance through CCM SAP interface
      * \param rnti RNTI of the UE that requested the SR
      * \param componentCarrierId the component carrier ID which received the SR
      */
-    virtual void DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId) override;
+    void DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId) override;
 
     /**
      * \brief Overload DoSetupBadaRadioBearer to connect directly to Rlc retransmission buffer size.
      */
-    virtual std::vector<LteCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(
+    std::vector<LteCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(
         EpsBearer bearer,
         uint8_t bearerId,
         uint16_t rnti,

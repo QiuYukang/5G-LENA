@@ -96,7 +96,7 @@ class NrMacSchedulerSrs
      *
      * \see IncreatePeriodicity
      */
-    virtual SrsPeriodicityAndOffset AddUe(void) = 0;
+    virtual SrsPeriodicityAndOffset AddUe() = 0;
 
     /**
      * \brief Function called when the scheduler has to release a previousy owned periodicity

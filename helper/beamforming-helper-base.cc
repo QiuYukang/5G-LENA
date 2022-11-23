@@ -48,7 +48,7 @@ BeamformingHelperBase::~BeamformingHelperBase()
 }
 
 TypeId
-BeamformingHelperBase::GetTypeId(void)
+BeamformingHelperBase::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BeamformingHelperBase").SetParent<Object>();
     return tid;

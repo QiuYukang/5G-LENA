@@ -90,7 +90,7 @@ class LtePatternTestCase : public TestCase
     void CheckVector(const std::vector<uint32_t>& a, const std::vector<uint32_t>& b);
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
     /**
      * \brief Test the output of PHY for a pattern, and compares it to the input
      * \param pattern The pattern to test

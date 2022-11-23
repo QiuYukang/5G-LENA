@@ -35,7 +35,7 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerOfdma");
 NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulerOfdma);
 
 TypeId
-NrMacSchedulerOfdma::GetTypeId(void)
+NrMacSchedulerOfdma::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrMacSchedulerOfdma")

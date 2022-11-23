@@ -47,7 +47,7 @@ class NrMacSchedulerOfdmaRR : public NrMacSchedulerOfdma
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrMacSchedulerTdmaRR constructor
@@ -57,7 +57,7 @@ class NrMacSchedulerOfdmaRR : public NrMacSchedulerOfdma
     /**
      * \brief ~NrMacSchedulerTdmaRR deconstructor
      */
-    virtual ~NrMacSchedulerOfdmaRR() override
+    ~NrMacSchedulerOfdmaRR() override
     {
     }
 
@@ -67,23 +67,23 @@ class NrMacSchedulerOfdmaRR : public NrMacSchedulerOfdma
      * \param params parameters
      * \return NrMacSchedulerUeInfoRR instance
      */
-    virtual std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
+    std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
         const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
     /**
      * \brief Return the comparison function to sort DL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoRR::CompareUeWeightsDl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareDlFn() const override;
 
     /**
      * \brief Return the comparison function to sort UL UE according to the scheduler policy
      * \return a pointer to NrMacSchedulerUeInfoRR::CompareUeWeightsUl
      */
-    virtual std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+    std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                       const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
     GetUeCompareUlFn() const override;
 
     /**
@@ -94,9 +94,9 @@ class NrMacSchedulerOfdmaRR : public NrMacSchedulerOfdma
      *
      * Update DL metrics by calling NrMacSchedulerUeInfoRR::UpdateDlMetric
      */
-    virtual void AssignedDlResources(const UePtrAndBufferReq& ue,
-                                     const FTResources& assigned,
-                                     const FTResources& totAssigned) const override;
+    void AssignedDlResources(const UePtrAndBufferReq& ue,
+                             const FTResources& assigned,
+                             const FTResources& totAssigned) const override;
 
     /**
      * \brief Update the UE representation after a symbol (DL) has been assigned to it
@@ -106,31 +106,31 @@ class NrMacSchedulerOfdmaRR : public NrMacSchedulerOfdma
      *
      * Update DL metrics by calling NrMacSchedulerUeInfoRR::UpdateUlMetric
      */
-    virtual void AssignedUlResources(const UePtrAndBufferReq& ue,
-                                     const FTResources& assigned,
-                                     const FTResources& totAssigned) const override;
+    void AssignedUlResources(const UePtrAndBufferReq& ue,
+                             const FTResources& assigned,
+                             const FTResources& totAssigned) const override;
 
     // RR is a simple scheduler: it doesn't do anything in the next
     // inherited calls.
-    virtual void NotAssignedDlResources(const UePtrAndBufferReq& ue,
-                                        const FTResources& notAssigned,
-                                        const FTResources& totalAssigned) const override
+    void NotAssignedDlResources(const UePtrAndBufferReq& ue,
+                                const FTResources& notAssigned,
+                                const FTResources& totalAssigned) const override
     {
     }
 
-    virtual void NotAssignedUlResources(const UePtrAndBufferReq& ue,
-                                        const FTResources& notAssigned,
-                                        const FTResources& totalAssigned) const override
+    void NotAssignedUlResources(const UePtrAndBufferReq& ue,
+                                const FTResources& notAssigned,
+                                const FTResources& totalAssigned) const override
     {
     }
 
-    virtual void BeforeDlSched(const UePtrAndBufferReq& ue,
-                               const FTResources& assignableInIteration) const override
+    void BeforeDlSched(const UePtrAndBufferReq& ue,
+                       const FTResources& assignableInIteration) const override
     {
     }
 
-    virtual void BeforeUlSched(const UePtrAndBufferReq& ue,
-                               const FTResources& assignableInIteration) const override
+    void BeforeUlSched(const UePtrAndBufferReq& ue,
+                       const FTResources& assignableInIteration) const override
     {
     }
 };

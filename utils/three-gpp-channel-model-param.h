@@ -59,7 +59,7 @@ class ThreeGppChannelModelParam : public ThreeGppChannelModel
     /**
      * Destructor
      */
-    ~ThreeGppChannelModelParam();
+    ~ThreeGppChannelModelParam() override;
 
     void DoDispose() override;
 
@@ -83,12 +83,12 @@ class ThreeGppChannelModelParam : public ThreeGppChannelModel
      * \param uAntenna the antenna array of node u
      * \return the channel realization
      */
-    virtual Ptr<ChannelMatrix> GetNewChannel(Ptr<const ThreeGppChannelParams> channelParams,
-                                             Ptr<const ParamsTable> table3gpp,
-                                             const Ptr<const MobilityModel> sMob,
-                                             const Ptr<const MobilityModel> uMob,
-                                             Ptr<const PhasedArrayModel> sAntenna,
-                                             Ptr<const PhasedArrayModel> uAntenna) const override;
+    Ptr<ChannelMatrix> GetNewChannel(Ptr<const ThreeGppChannelParams> channelParams,
+                                     Ptr<const ParamsTable> table3gpp,
+                                     const Ptr<const MobilityModel> sMob,
+                                     const Ptr<const MobilityModel> uMob,
+                                     Ptr<const PhasedArrayModel> sAntenna,
+                                     Ptr<const PhasedArrayModel> uAntenna) const override;
 
     double m_Ro{1.0}; //!< cross polarization correlation parameter
     double m_parametrizedCorrelation{

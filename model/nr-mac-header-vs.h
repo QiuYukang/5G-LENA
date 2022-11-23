@@ -76,12 +76,12 @@ class NrMacHeaderVs : public Header
      * \brief GetTypeId
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief GetInstanceTypeId
      * \return the instance type id
      */
-    virtual TypeId GetInstanceTypeId(void) const;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrMacHeaderVs constructor
@@ -92,24 +92,24 @@ class NrMacHeaderVs : public Header
      * \brief Serialize on a buffer
      * \param start start position
      */
-    void Serialize(Buffer::Iterator start) const;
+    void Serialize(Buffer::Iterator start) const override;
     /**
      * \brief Deserialize from a buffer
      * \param start start position
      * \return the number of bytes read from the buffer
      */
-    uint32_t Deserialize(Buffer::Iterator start);
+    uint32_t Deserialize(Buffer::Iterator start) override;
     /**
      * \brief Get the serialized size
      * \return if the size can be represented with 1 byte, then the S.S. is 2,
      * otherwise 3
      */
-    uint32_t GetSerializedSize() const;
+    uint32_t GetSerializedSize() const override;
     /**
      * \brief Print the struct on a ostream
      * \param os ostream
      */
-    void Print(std::ostream& os) const;
+    void Print(std::ostream& os) const override;
 
     /**
      * \brief IsEqual

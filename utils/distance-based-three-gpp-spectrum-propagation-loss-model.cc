@@ -45,7 +45,7 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::
 }
 
 TypeId
-DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId(void)
+DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::DistanceBasedThreeGppSpectrumPropagationLossModel")

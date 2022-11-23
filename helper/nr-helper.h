@@ -220,17 +220,17 @@ class NrHelper : public Object
     /**
      * \brief NrHelper constructor
      */
-    NrHelper(void);
+    NrHelper();
     /**
      * \brief ~NrHelper
      */
-    virtual ~NrHelper(void);
+    ~NrHelper() override;
 
     /**
      * \brief GetTypeId
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Install one (or more) UEs
@@ -745,7 +745,7 @@ class NrHelper : public Object
      *
      * \return The NrPhyRxTrace object to write PHY traces
      */
-    Ptr<NrPhyRxTrace> GetPhyRxTrace(void);
+    Ptr<NrPhyRxTrace> GetPhyRxTrace();
 
     /**
      * \brief Enable gNB packet count trace
@@ -770,66 +770,66 @@ class NrHelper : public Object
     /**
      * \brief Enable gNB PHY CTRL TX and RX traces
      */
-    void EnableGnbPhyCtrlMsgsTraces(void);
+    void EnableGnbPhyCtrlMsgsTraces();
 
     /**
      * \brief Enable UE PHY CTRL TX and RX traces
      */
-    void EnableUePhyCtrlMsgsTraces(void);
+    void EnableUePhyCtrlMsgsTraces();
 
     /**
      * \brief Enable gNB MAC CTRL TX and RX traces
      */
-    void EnableGnbMacCtrlMsgsTraces(void);
+    void EnableGnbMacCtrlMsgsTraces();
 
     /**
      * \brief Enable UE MAC CTRL TX and RX traces
      */
-    void EnableUeMacCtrlMsgsTraces(void);
+    void EnableUeMacCtrlMsgsTraces();
 
     /**
      * \brief Get the RLC stats calculator object
      *
      * \return The NrBearerStatsCalculator stats calculator object to write RLC traces
      */
-    Ptr<NrBearerStatsCalculator> GetRlcStatsCalculator(void);
+    Ptr<NrBearerStatsCalculator> GetRlcStatsCalculator();
 
     /**
      * \brief Enable RLC simple traces (DL RLC TX, DL RLC RX, UL DL TX, UL DL RX)
      */
-    void EnableRlcSimpleTraces(void);
+    void EnableRlcSimpleTraces();
 
     /**
      * \brief Enable PDCP traces (DL PDCP TX, DL PDCP RX, UL PDCP TX, UL PDCP RX)
      */
-    void EnablePdcpSimpleTraces(void);
+    void EnablePdcpSimpleTraces();
 
     /**
      * \brief Enable RLC calculator and end-to-end RCL traces to file
      */
-    void EnableRlcE2eTraces(void);
+    void EnableRlcE2eTraces();
 
     /**
      * \brief Enable PDCP calculator and end-to-end PDCP traces to file
      */
-    void EnablePdcpE2eTraces(void);
+    void EnablePdcpE2eTraces();
 
     /**
      * \brief Get the PDCP stats calculator object
      *
      * \return The NrBearerStatsCalculator stats calculator object to write PDCP traces
      */
-    Ptr<NrBearerStatsCalculator> GetPdcpStatsCalculator(void);
+    Ptr<NrBearerStatsCalculator> GetPdcpStatsCalculator();
 
     /**
      * Enable trace sinks for DL MAC layer scheduling.
      */
-    void EnableDlMacSchedTraces(void);
+    void EnableDlMacSchedTraces();
 
     /**
      * Enable trace sinks for UL MAC layer scheduling.
      */
-    void EnableUlMacSchedTraces(void);
+    void EnableUlMacSchedTraces();
 
     /**
      * \brief Enable trace sinks for DL and UL pathloss

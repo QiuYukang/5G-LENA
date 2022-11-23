@@ -50,12 +50,12 @@ class NrMacHeaderFsDl : public NrMacHeaderFs
      * \brief GetTypeId
      * \return the type id of the object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief GetInstanceTypeId
      * \return the instance type id
      */
-    virtual TypeId GetInstanceTypeId(void) const override;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrMacHeaderFsDl constructor
@@ -65,7 +65,7 @@ class NrMacHeaderFsDl : public NrMacHeaderFs
     /**
      * \brief ~NrMacHeaderFsDl
      */
-    virtual ~NrMacHeaderFsDl();
+    ~NrMacHeaderFsDl() override;
 
     // CCCH = 0,                      //!< CCCH  (is it fixed or variable?)
     static const uint8_t RECOMMENDED_BIT_RATE = 47; //!< Recommended bit rate
@@ -91,7 +91,7 @@ class NrMacHeaderFsDl : public NrMacHeaderFs
      * To not make any error, please use one of the pre-defined const values in
      * this class.
      */
-    virtual void SetLcId(uint8_t lcId) override;
+    void SetLcId(uint8_t lcId) override;
 
     /**
      * \brief Check if it really a fixed-size header

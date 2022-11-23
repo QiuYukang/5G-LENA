@@ -241,46 +241,46 @@ main(int argc, char* argv[])
 
     // set mobile device and base station antenna heights in meters, according to the chosen
     // scenario
-    if (scenario.compare("RMa") == 0)
+    if (scenario == "RMa")
     {
         hBS = 35;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::RMa;
     }
-    else if (scenario.compare("UMa") == 0)
+    else if (scenario == "UMa")
     {
         // hBS = 25;
         hBS = 1.5;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::UMa;
     }
-    else if (scenario.compare("UMa-Buildings") == 0)
+    else if (scenario == "UMa-Buildings")
     {
         hBS = 1.5; // 25
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::UMa_Buildings;
         enableBuildings = true;
     }
-    else if (scenario.compare("UMi-StreetCanyon") == 0)
+    else if (scenario == "UMi-StreetCanyon")
     {
         hBS = 10;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-    else if (scenario.compare("UMi-Buildings") == 0)
+    else if (scenario == "UMi-Buildings")
     {
         hBS = 10;
         hUT = 1.5;
         scenarioEnum = BandwidthPartInfo::UMi_Buildings;
         enableBuildings = true;
     }
-    else if (scenario.compare("InH-OfficeMixed") == 0)
+    else if (scenario == "InH-OfficeMixed")
     {
         hBS = 3;
         hUT = 1;
         scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
     }
-    else if (scenario.compare("InH-OfficeOpen") == 0)
+    else if (scenario == "InH-OfficeOpen")
     {
         hBS = 3;
         hUT = 1;
@@ -293,17 +293,17 @@ main(int argc, char* argv[])
                      "'UMa-Buildings', and 'UMi-Buildings'.");
     }
 
-    if (deploymentScenario.compare("SingleGnb") == 0)
+    if (deploymentScenario == "SingleGnb")
     {
         gNbNum = 1;
         ueNumPergNb = 1;
     }
-    else if (deploymentScenario.compare("TwoGnbs") == 0)
+    else if (deploymentScenario == "TwoGnbs")
     {
         gNbNum = 2;
         ueNumPergNb = 1;
     }
-    else if (deploymentScenario.compare("FourGnbs") == 0)
+    else if (deploymentScenario == "FourGnbs")
     {
         gNbNum = 4;
         ueNumPergNb = 1;
@@ -325,11 +325,11 @@ main(int argc, char* argv[])
     // position the base stations
     Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator>();
     gnbPositionAlloc->Add(Vector(gNB1x, gNB1y, hBS));
-    if (deploymentScenario.compare("TwoGnbs") == 0)
+    if (deploymentScenario == "TwoGnbs")
     {
         gnbPositionAlloc->Add(Vector(gNB2x, gNB2y, hBS));
     }
-    if (deploymentScenario.compare("FourGnbs") == 0)
+    if (deploymentScenario == "FourGnbs")
     {
         gnbPositionAlloc->Add(Vector(gNB2x, gNB2y, hBS));
         gnbPositionAlloc->Add(Vector(gNB1x + offset, gNB1y, hBS));
@@ -347,12 +347,12 @@ main(int argc, char* argv[])
     ueMobility.Install(ueNodes);
 
     ueNodes.Get(0)->GetObject<MobilityModel>()->SetPosition(Vector(ue1x, ue1y, hUT));
-    if (deploymentScenario.compare("TwoGnbs") == 0)
+    if (deploymentScenario == "TwoGnbs")
     {
         ueNodes.Get(1)->GetObject<MobilityModel>()->SetPosition(Vector(ue2x, ue2y, hUT));
     }
 
-    if (deploymentScenario.compare("FourGnbs") == 0)
+    if (deploymentScenario == "FourGnbs")
     {
         ueNodes.Get(1)->GetObject<MobilityModel>()->SetPosition(Vector(ue2x, ue2y, hUT));
         ueNodes.Get(2)->GetObject<MobilityModel>()->SetPosition(Vector(ue1x + offset, ue1y, hUT));
@@ -417,25 +417,25 @@ main(int argc, char* argv[])
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Configure beamforming method
-    if (beamforming.compare("dir-dir") == 0)
+    if (beamforming == "dir-dir")
     {
         idealBeamformingHelper->SetAttribute(
             "BeamformingMethod",
             TypeIdValue(DirectPathBeamforming::GetTypeId())); // dir at gNB, dir at UE
     }
-    else if (beamforming.compare("dir-omni") == 0)
+    else if (beamforming == "dir-omni")
     {
         idealBeamformingHelper->SetAttribute(
             "BeamformingMethod",
             TypeIdValue(DirectPathQuasiOmniBeamforming::GetTypeId())); // dir at gNB, q-omni at UE
     }
-    else if (beamforming.compare("omni-dir") == 0)
+    else if (beamforming == "omni-dir")
     {
         idealBeamformingHelper->SetAttribute(
             "BeamformingMethod",
             TypeIdValue(QuasiOmniDirectPathBeamforming::GetTypeId())); // q-omni at gNB, dir at UE
     }
-    else if (beamforming.compare("search-omni") == 0)
+    else if (beamforming == "search-omni")
     {
         idealBeamformingHelper->SetAttribute(
             "BeamformingMethod",
@@ -559,12 +559,12 @@ main(int argc, char* argv[])
     // attach UEs to the closest gNB
     nrHelper->AttachToEnb(ueNetDev.Get(0), gnbNetDev.Get(0));
 
-    if (deploymentScenario.compare("TwoGnbs") == 0)
+    if (deploymentScenario == "TwoGnbs")
     {
         nrHelper->AttachToEnb(ueNetDev.Get(1), gnbNetDev.Get(1));
     }
 
-    if (deploymentScenario.compare("FourGnbs") == 0)
+    if (deploymentScenario == "FourGnbs")
     {
         nrHelper->AttachToEnb(ueNetDev.Get(1), gnbNetDev.Get(1));
         nrHelper->AttachToEnb(ueNetDev.Get(2), gnbNetDev.Get(2));
@@ -602,7 +602,7 @@ main(int argc, char* argv[])
         ->GetBeamManager()
         ->ChangeBeamformingVector(ueNetDev.Get(0));
 
-    if (deploymentScenario.compare("TwoGnbs") == 0)
+    if (deploymentScenario == "TwoGnbs")
     {
         gnbNetDev.Get(1)
             ->GetObject<NrGnbNetDevice>()
@@ -612,7 +612,7 @@ main(int argc, char* argv[])
             ->ChangeBeamformingVector(ueNetDev.Get(1));
     }
 
-    if (deploymentScenario.compare("FourGnbs") == 0)
+    if (deploymentScenario == "FourGnbs")
     {
         gnbNetDev.Get(1)
             ->GetObject<NrGnbNetDevice>()
@@ -638,11 +638,11 @@ main(int argc, char* argv[])
     {
         remHelper->SetRemMode(NrRadioEnvironmentMapHelper::BEAM_SHAPE);
 
-        if (typeOfRem.compare("DlRem") == 0)
+        if (typeOfRem == "DlRem")
         {
             remHelper->CreateRem(gnbNetDev, ueNetDev.Get(0), remBwpId);
         }
-        else if (typeOfRem.compare("UlRem") == 0)
+        else if (typeOfRem == "UlRem")
         {
             remHelper->CreateRem(ueNetDev, gnbNetDev.Get(0), remBwpId);
         }

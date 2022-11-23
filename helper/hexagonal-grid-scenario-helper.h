@@ -53,7 +53,7 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
     /**
      * \brief ~HexagonalGridScenarioHelper
      */
-    virtual ~HexagonalGridScenarioHelper() override;
+    ~HexagonalGridScenarioHelper() override;
 
     /**
      * \brief Sets the number of outer rings of sites around the central site
@@ -99,7 +99,7 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
     Vector GetHexagonalCellCenter(const Vector& sitePos, uint16_t cellId) const;
 
     // inherited
-    virtual void CreateScenario() override;
+    void CreateScenario() override;
 
     /**
      * \brief This function can be used to create a scenario with

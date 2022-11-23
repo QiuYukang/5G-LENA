@@ -57,7 +57,7 @@ IdealBeamformingHelper::DoInitialize()
 }
 
 TypeId
-IdealBeamformingHelper::GetTypeId(void)
+IdealBeamformingHelper::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::IdealBeamformingHelper")
@@ -90,7 +90,7 @@ IdealBeamformingHelper::AddBeamformingTask(const Ptr<NrGnbNetDevice>& gnbDev,
         m_beamformingAlgorithm = m_algorithmFactory.Create<IdealBeamformingAlgorithm>();
     }
 
-    for (uint8_t ccId = 0; ccId < gnbDev->GetCcMapSize(); ccId++)
+    for (std::size_t ccId = 0; ccId < gnbDev->GetCcMapSize(); ccId++)
     {
         uint8_t gnbAntennaArrays = gnbDev->GetPhy(ccId)->GetNumberOfStreams();
         uint8_t ueAntennaArrays = ueDev->GetPhy(ccId)->GetNumberOfStreams();

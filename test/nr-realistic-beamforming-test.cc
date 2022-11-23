@@ -64,10 +64,10 @@ class NrRealisticBeamformingTestCase : public TestCase
 {
   public:
     NrRealisticBeamformingTestCase(std::string name, enum TestDuration duration);
-    virtual ~NrRealisticBeamformingTestCase();
+    ~NrRealisticBeamformingTestCase() override;
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
 
     enum TestDuration m_duration
     {
@@ -110,7 +110,7 @@ NrRealisticBeamformingTestCase::~NrRealisticBeamformingTestCase()
 }
 
 void
-NrRealisticBeamformingTestCase::DoRun(void)
+NrRealisticBeamformingTestCase::DoRun()
 {
     RngSeedManager::SetSeed(1);
 
@@ -118,7 +118,9 @@ NrRealisticBeamformingTestCase::DoRun(void)
                                               Vector(0, 10, 1.5),
                                               Vector(0, -10, 1.5)};
 
-    uint16_t totalCounter = 0, highSinrCounter = 0, lowSinrCounter = 0;
+    uint16_t totalCounter = 0;
+    uint16_t highSinrCounter = 0;
+    uint16_t lowSinrCounter = 0;
 
     std::list<uint16_t> rngList = (m_duration == TestCase::EXTENSIVE) ? std::list<uint16_t>({2, 3})
                                                                       : std::list<uint16_t>({1});

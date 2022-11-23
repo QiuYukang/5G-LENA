@@ -339,7 +339,10 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
      * Each spectrum part length is, as well, specified by the input parameters.
      * The operational band will use StreetCanyon channel or UrbanMacro modeling.
      */
-    BandwidthPartInfoPtrVector allBwps, bwps1, bwps2, bwps3;
+    BandwidthPartInfoPtrVector allBwps;
+    BandwidthPartInfoPtrVector bwps1;
+    BandwidthPartInfoPtrVector bwps2;
+    BandwidthPartInfoPtrVector bwps3;
     CcBwpCreator ccBwpCreator;
     // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
     // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
@@ -1092,7 +1095,9 @@ main(int argc, char* argv[])
     /*
      * Create different gNB NodeContainer for the different sectors.
      */
-    NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
+    NodeContainer gnbSector1Container;
+    NodeContainer gnbSector2Container;
+    NodeContainer gnbSector3Container;
     for (uint32_t j = 0; j < gridScenario.GetBaseStations().GetN(); ++j)
     {
         Ptr<Node> gnb = gridScenario.GetBaseStations().Get(j);
@@ -1116,7 +1121,9 @@ main(int argc, char* argv[])
     /*
      * Create different UE NodeContainer for the different sectors.
      */
-    NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
+    NodeContainer ueSector1Container;
+    NodeContainer ueSector2Container;
+    NodeContainer ueSector3Container;
 
     for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
     {
@@ -1144,8 +1151,12 @@ main(int argc, char* argv[])
      */
     Ptr<PointToPointEpcHelper> epcHelper;
 
-    NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
-    NetDeviceContainer ueSector1NetDev, ueSector2NetDev, ueSector3NetDev;
+    NetDeviceContainer gnbSector1NetDev;
+    NetDeviceContainer gnbSector2NetDev;
+    NetDeviceContainer gnbSector3NetDev;
+    NetDeviceContainer ueSector1NetDev;
+    NetDeviceContainer ueSector2NetDev;
+    NetDeviceContainer ueSector3NetDev;
 
     Ptr<LteHelper> lteHelper = nullptr;
     Ptr<NrHelper> nrHelper = nullptr;
@@ -1388,9 +1399,12 @@ main(int argc, char* argv[])
      * Let's install the applications!
      */
     ApplicationContainer clientApps;
-    ApplicationContainer ftpClientAppsSector1, ftpServerAppsSector1;
-    ApplicationContainer ftpClientAppsSector2, ftpServerAppsSector2;
-    ApplicationContainer ftpClientAppsSector3, ftpServerAppsSector3;
+    ApplicationContainer ftpClientAppsSector1;
+    ApplicationContainer ftpServerAppsSector1;
+    ApplicationContainer ftpClientAppsSector2;
+    ApplicationContainer ftpServerAppsSector2;
+    ApplicationContainer ftpClientAppsSector3;
+    ApplicationContainer ftpServerAppsSector3;
     Ptr<ThreeGppFtpM1Helper> ftpHelperSector1;
     Ptr<ThreeGppFtpM1Helper> ftpHelperSector2;
     Ptr<ThreeGppFtpM1Helper> ftpHelperSector3;

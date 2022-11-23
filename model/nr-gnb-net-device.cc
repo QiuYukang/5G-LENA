@@ -131,7 +131,7 @@ NrGnbNetDevice::RouteOutgoingCtrlMsgs(const std::list<Ptr<NrControlMessage>>& ms
 }
 
 void
-NrGnbNetDevice::DoInitialize(void)
+NrGnbNetDevice::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
     m_rrc->Initialize();
@@ -222,7 +222,7 @@ NrGnbNetDevice::SetRrc(Ptr<LteEnbRrc> rrc)
 }
 
 Ptr<LteEnbRrc>
-NrGnbNetDevice::GetRrc(void)
+NrGnbNetDevice::GetRrc()
 {
     return m_rrc;
 }
@@ -239,14 +239,14 @@ NrGnbNetDevice::DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protoco
 }
 
 void
-NrGnbNetDevice::UpdateConfig(void)
+NrGnbNetDevice::UpdateConfig()
 {
     NS_LOG_FUNCTION(this);
 
     NS_ASSERT(!m_ccMap.empty());
 
     std::map<uint8_t, Ptr<ComponentCarrierBaseStation>> ccPhyConfMap;
-    for (auto i : m_ccMap)
+    for (const auto& i : m_ccMap)
     {
         Ptr<ComponentCarrierBaseStation> c = i.second;
         ccPhyConfMap.insert(std::pair<uint8_t, Ptr<ComponentCarrierBaseStation>>(i.first, c));

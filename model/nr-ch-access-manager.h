@@ -65,7 +65,7 @@ class NrChAccessManager : public Object
      * \brief Get the type ID
      * \return the type id
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief ChannelAccessManager constructor
@@ -75,7 +75,7 @@ class NrChAccessManager : public Object
     /**
      * \brief ~ChannelAccessManager
      */
-    virtual ~NrChAccessManager() override;
+    ~NrChAccessManager() override;
 
     /**
      * \brief Set duration of grant for transmission.
@@ -188,7 +188,7 @@ class NrAlwaysOnAccessManager : public NrChAccessManager
      * \brief Get the type ID
      * \return the type id
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrAlwaysOnAccessManager constructor
@@ -200,10 +200,10 @@ class NrAlwaysOnAccessManager : public NrChAccessManager
     ~NrAlwaysOnAccessManager() override;
 
     // inherited
-    virtual void RequestAccess() override;
-    virtual void SetAccessGrantedCallback(const AccessGrantedCallback& cb) override;
-    virtual void SetAccessDeniedCallback(const AccessDeniedCallback& cb) override;
-    virtual void Cancel() override;
+    void RequestAccess() override;
+    void SetAccessGrantedCallback(const AccessGrantedCallback& cb) override;
+    void SetAccessDeniedCallback(const AccessDeniedCallback& cb) override;
+    void Cancel() override;
 
   private:
     std::vector<AccessGrantedCallback> m_accessGrantedCb; //!< Access granted CB

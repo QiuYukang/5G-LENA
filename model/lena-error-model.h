@@ -64,7 +64,7 @@ class LenaErrorModel : public NrLteMiErrorModel
      * \brief Get the type ID of this instance
      * \return the Type ID of this instance
      */
-    TypeId GetInstanceTypeId(void) const override;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrLteMiErrorModel constructor
@@ -74,7 +74,7 @@ class LenaErrorModel : public NrLteMiErrorModel
     /**
      * \brief ~NrLteMiErrorModel
      */
-    virtual ~LenaErrorModel() override;
+    ~LenaErrorModel() override;
 
     /**
      * \brief Get the payload size, following the MCSs in LTE
@@ -85,10 +85,10 @@ class LenaErrorModel : public NrLteMiErrorModel
      *
      * The RB value will be divided by 13.
      */
-    virtual uint32_t GetPayloadSize(uint32_t usefulSC,
-                                    uint8_t mcs,
-                                    uint32_t rbNum,
-                                    Mode mode) const override;
+    uint32_t GetPayloadSize(uint32_t usefulSC,
+                            uint8_t mcs,
+                            uint32_t rbNum,
+                            Mode mode) const override;
 };
 
 } // namespace ns3

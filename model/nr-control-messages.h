@@ -75,17 +75,17 @@ class NrControlMessage : public SimpleRefCount<NrControlMessage>
     /**
      * \brief NrControlMessage
      */
-    NrControlMessage(void);
+    NrControlMessage();
     /**
      * \brief ~NrControlMessage
      */
-    virtual ~NrControlMessage(void);
+    virtual ~NrControlMessage();
 
     /**
      * \brief Get the MessageType
      * \return the message type
      */
-    messageType GetMessageType(void) const;
+    messageType GetMessageType() const;
 
     /**
      * \brief Set the BWP in which this message has been generated
@@ -125,11 +125,11 @@ class NrSRMessage : public NrControlMessage
     /**
      * \brief NrSRMessage constructor
      */
-    NrSRMessage(void);
+    NrSRMessage();
     /**
      * \brief ~NrSRMessage
      */
-    virtual ~NrSRMessage(void);
+    ~NrSRMessage() override;
 
     /**
      * \brief Set the RNTI to which this message is intended
@@ -141,7 +141,7 @@ class NrSRMessage : public NrControlMessage
      * \brief Get the RNTI of this message
      * \return RNTI
      */
-    uint16_t GetRNTI(void) const;
+    uint16_t GetRNTI() const;
 
   private:
     uint16_t m_rnti{0}; //!< RNTI
@@ -162,13 +162,13 @@ class NrDlDciMessage : public NrControlMessage
     /**
      * \brief ~NrDlDciMessage
      */
-    virtual ~NrDlDciMessage(void);
+    ~NrDlDciMessage() override;
 
     /**
      * \brief Get the DCI
      * \return the DCI
      */
-    std::shared_ptr<DciInfoElementTdma> GetDciInfoElement(void);
+    std::shared_ptr<DciInfoElementTdma> GetDciInfoElement();
 
     /**
      * \brief Set the delay (in slots) between DL DCI
@@ -182,7 +182,7 @@ class NrDlDciMessage : public NrControlMessage
      * reception/transmission of Data (k0)
      * \return k delay
      */
-    uint32_t GetKDelay(void) const;
+    uint32_t GetKDelay() const;
 
     /**
      * \brief Set the delay (in slots) between DL Data
@@ -199,7 +199,7 @@ class NrDlDciMessage : public NrControlMessage
      * Harq feedback
      * \return k1 delay
      */
-    uint32_t GetK1Delay(void) const;
+    uint32_t GetK1Delay() const;
 
   private:
     uint32_t m_k; //!< delay (in slots) between DL/UL DCI reception and subframe to which it applies
@@ -224,13 +224,13 @@ class NrUlDciMessage : public NrControlMessage
     /**
      * \brief ~NrUlDciMessage
      */
-    virtual ~NrUlDciMessage(void);
+    ~NrUlDciMessage() override;
 
     /**
      * \brief Get the DCI
      * \return the DCI
      */
-    std::shared_ptr<DciInfoElementTdma> GetDciInfoElement(void);
+    std::shared_ptr<DciInfoElementTdma> GetDciInfoElement();
 
     /**
      * \brief Set the delay (in slots) between UCI
@@ -244,7 +244,7 @@ class NrUlDciMessage : public NrControlMessage
      * reception/transmission of Data (k2)
      * \return k delay
      */
-    uint32_t GetKDelay(void) const;
+    uint32_t GetKDelay() const;
 
   private:
     uint32_t m_k; //!< delay (in slots) between UCI reception and subframe to which it applies for
@@ -262,11 +262,11 @@ class NrDlCqiMessage : public NrControlMessage
     /**
      * \brief NrDlCqiMessage constructor
      */
-    NrDlCqiMessage(void);
+    NrDlCqiMessage();
     /**
      * \brief ~NrDlCqiMessage
      */
-    virtual ~NrDlCqiMessage(void);
+    ~NrDlCqiMessage() override;
 
     /**
      * \brief Set the DlCqi to transmit
@@ -296,11 +296,11 @@ class NrBsrMessage : public NrControlMessage
     /**
      * \brief NrBsrMessage constructor
      */
-    NrBsrMessage(void);
+    NrBsrMessage();
     /**
      * \brief ~NrBsrMessage
      */
-    virtual ~NrBsrMessage(void);
+    ~NrBsrMessage() override;
 
     /**
      * \brief add a BSR feedback record into the message.
@@ -312,7 +312,7 @@ class NrBsrMessage : public NrControlMessage
      * \brief Get BSR informations
      * \return BSR message
      */
-    MacCeElement GetBsr(void);
+    MacCeElement GetBsr();
 
   private:
     MacCeElement m_bsr; //!< The BSR
@@ -332,7 +332,7 @@ class NrMibMessage : public NrControlMessage
     /**
      * \brief Create a new instance of MIB control message.
      */
-    NrMibMessage(void);
+    NrMibMessage();
 
     /**
      * \brief Replace the MIB content of this control message.
@@ -364,7 +364,7 @@ class NrSib1Message : public NrControlMessage
     /**
      * \brief Create a new instance of SIB1 control message.
      */
-    NrSib1Message(void);
+    NrSib1Message();
 
     /**
      * \brief Replace the SIB1 content of this control message.
@@ -395,12 +395,12 @@ class NrRachPreambleMessage : public NrControlMessage
     /**
      * \brief NrRachPreambleMessage constructor
      */
-    NrRachPreambleMessage(void);
+    NrRachPreambleMessage();
 
     /**
      * \brief ~NrRachPreambleMessage
      */
-    virtual ~NrRachPreambleMessage(void);
+    ~NrRachPreambleMessage() override;
 
     /**
      * Set the Random Access Preamble Identifier (RAPID), see 3GPP TS 36.321 6.2.2
@@ -432,12 +432,12 @@ class NrRarMessage : public NrControlMessage
     /**
      * \brief NrRarMessage constructor
      */
-    NrRarMessage(void);
+    NrRarMessage();
 
     /**
      * \brief ~NrRarMessage
      */
-    virtual ~NrRarMessage(void);
+    ~NrRarMessage() override;
 
     /**
      *
@@ -498,11 +498,11 @@ class NrDlHarqFeedbackMessage : public NrControlMessage
     /**
      * \brief NrDlHarqFeedbackMessage constructor
      */
-    NrDlHarqFeedbackMessage(void);
+    NrDlHarqFeedbackMessage();
     /**
      * \brief ~NrDlHarqFeedbackMessage
      */
-    virtual ~NrDlHarqFeedbackMessage(void);
+    ~NrDlHarqFeedbackMessage() override;
 
     /**
      * \brief add a DL HARQ feedback record into the message.
@@ -514,7 +514,7 @@ class NrDlHarqFeedbackMessage : public NrControlMessage
      * \brief Get DL HARQ informations
      * \return DL HARQ message
      */
-    DlHarqInfo GetDlHarqFeedback(void);
+    DlHarqInfo GetDlHarqFeedback();
 
   private:
     DlHarqInfo m_dlHarqInfo; //!< DL Harq Info
@@ -531,11 +531,11 @@ class NrSrsMessage : public NrControlMessage
     /**
      * \brief NrDlHarqFeedbackMessage constructor
      */
-    NrSrsMessage(void);
+    NrSrsMessage();
     /**
      * \brief ~NrDlHarqFeedbackMessage
      */
-    virtual ~NrSrsMessage(void) = default;
+    ~NrSrsMessage() override = default;
 };
 
 } // namespace ns3

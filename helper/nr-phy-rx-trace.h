@@ -45,8 +45,8 @@ class NrPhyRxTrace : public Object
 {
   public:
     NrPhyRxTrace();
-    virtual ~NrPhyRxTrace();
-    static TypeId GetTypeId(void);
+    ~NrPhyRxTrace() override;
+    static TypeId GetTypeId();
 
     /**
      * \brief Set simTag that will be contatenated to

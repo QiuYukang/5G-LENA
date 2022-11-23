@@ -68,7 +68,7 @@ SystemSchedulerTest::~SystemSchedulerTest()
 }
 
 void
-SystemSchedulerTest::DoRun(void)
+SystemSchedulerTest::DoRun()
 {
     NS_ABORT_IF(!m_isUplink && !m_isDownlink);
 

@@ -77,14 +77,14 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
      * \brief Get the Type ID
      * \return the TypeId of the instance
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief Adds the beamforming task to the list of tasks
      * \gnbDev gNbDev pointer to gNB device
      * \ueDev ueDev pointer to UE device
      */
-    virtual void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
-                                    const Ptr<NrUeNetDevice>& ueDev) override;
+    void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
+                            const Ptr<NrUeNetDevice>& ueDev) override;
 
     /**
      * \brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
@@ -105,10 +105,10 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
      * \brief SetBeamformingMethod
      * \param beamformingMethod
      */
-    virtual void SetBeamformingMethod(const TypeId& beamformingMethod) override;
+    void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 
   private:
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 

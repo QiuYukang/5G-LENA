@@ -135,7 +135,7 @@ InstallApps(const Ptr<Node>& ue,
 }
 
 bool
-Parameters::Validate(void) const
+Parameters::Validate() const
 {
     NS_ABORT_MSG_IF(bandwidthMHz != 20 && bandwidthMHz != 10 && bandwidthMHz != 5,
                     "Valid bandwidth values are 20, 10, 5, you set " << bandwidthMHz);
@@ -318,7 +318,7 @@ LenaLteComparison(const Parameters& params)
     const uint32_t sectors = 3;
 
     //
-    NodeDistributionScenarioInterface* scenario{NULL};
+    NodeDistributionScenarioInterface* scenario{nullptr};
     FileScenarioHelper fileScenario;
     HexagonalGridScenarioHelper gridScenario;
 
@@ -393,7 +393,9 @@ LenaLteComparison(const Parameters& params)
      * Iterate/index gnbSector<N>Container, gnbNodesBySector[sector],
      *   gnbSector<N>NetDev, gnbNdBySector[sector] by `siteId`
      */
-    NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
+    NodeContainer gnbSector1Container;
+    NodeContainer gnbSector2Container;
+    NodeContainer gnbSector3Container;
     std::vector<NodeContainer*> gnbNodesBySector{&gnbSector1Container,
                                                  &gnbSector2Container,
                                                  &gnbSector3Container};
@@ -414,7 +416,9 @@ LenaLteComparison(const Parameters& params)
      * Iterate/Index ueSector<N>Container, ueNodesBySector[sector],
      *   ueSector<N>NetDev, ueNdBySector[sector] with i % gnbSites
      */
-    NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
+    NodeContainer ueSector1Container;
+    NodeContainer ueSector2Container;
+    NodeContainer ueSector3Container;
     std::vector<NodeContainer*> ueNodesBySector{&ueSector1Container,
                                                 &ueSector2Container,
                                                 &ueSector3Container};
@@ -435,11 +439,15 @@ LenaLteComparison(const Parameters& params)
     std::cout << "  helpers\n";
     Ptr<PointToPointEpcHelper> epcHelper;
 
-    NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
+    NetDeviceContainer gnbSector1NetDev;
+    NetDeviceContainer gnbSector2NetDev;
+    NetDeviceContainer gnbSector3NetDev;
     std::vector<NetDeviceContainer*> gnbNdBySector{&gnbSector1NetDev,
                                                    &gnbSector2NetDev,
                                                    &gnbSector3NetDev};
-    NetDeviceContainer ueSector1NetDev, ueSector2NetDev, ueSector3NetDev;
+    NetDeviceContainer ueSector1NetDev;
+    NetDeviceContainer ueSector2NetDev;
+    NetDeviceContainer ueSector3NetDev;
     std::vector<NetDeviceContainer*> ueNdBySector{&ueSector1NetDev,
                                                   &ueSector2NetDev,
                                                   &ueSector3NetDev};

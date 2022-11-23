@@ -47,7 +47,7 @@ NrPointToPointEpcHelper::~NrPointToPointEpcHelper()
 }
 
 TypeId
-NrPointToPointEpcHelper::GetTypeId(void)
+NrPointToPointEpcHelper::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrPointToPointEpcHelper")
                             .SetParent<PointToPointEpcHelper>()

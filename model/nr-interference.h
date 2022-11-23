@@ -54,14 +54,14 @@ class NrInterference : public LteInterference
     /**
      * \brief ~NrInterference
      */
-    virtual ~NrInterference();
+    ~NrInterference() override;
     /**
      * \brief Get the object TypeId
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
-    virtual void AddSignal(Ptr<const SpectrumValue> spd, Time duration) override;
+    void AddSignal(Ptr<const SpectrumValue> spd, Time duration) override;
 
     /**
      * \brief Checks if the sum of the energy, including the energies that start
@@ -98,10 +98,10 @@ class NrInterference : public LteInterference
     /**
      * Erase all events.
      */
-    void EraseEvents(void);
+    void EraseEvents();
 
     // inherited from LteInterference
-    virtual void EndRx() override;
+    void EndRx() override;
 
   private:
     /**
@@ -122,13 +122,13 @@ class NrInterference : public LteInterference
          *
          * \return the event time.
          */
-        Time GetTime(void) const;
+        Time GetTime() const;
         /**
          * Return the power
          *
          * \return the power
          */
-        double GetDelta(void) const;
+        double GetDelta() const;
         /**
          * Compare the event time of two NiChange objects (a < o).
          *
@@ -160,7 +160,7 @@ class NrInterference : public LteInterference
     NrInterference::NiChanges::iterator GetPosition(Time moment);
 
     // inherited from LteInterference
-    virtual void ConditionallyEvaluateChunk() override;
+    void ConditionallyEvaluateChunk() override;
 
     /**
      * Add NiChange to the list at the appropriate position.
@@ -172,7 +172,7 @@ class NrInterference : public LteInterference
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
 
     TracedCallback<double> m_snrPerProcessedChunk;  ///<! Trace for SNR per processed chunk.
     TracedCallback<double> m_rssiPerProcessedChunk; ///<! Trace for RSSI pre processed chunk.

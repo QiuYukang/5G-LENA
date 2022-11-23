@@ -66,11 +66,11 @@ class TestAntenna3gppModelConf : public TestCase
                              bool ueOmniAntennaElem,
                              uint8_t ueNoOfAntennas,
                              std::string losCondition);
-    virtual ~TestAntenna3gppModelConf();
+    ~TestAntenna3gppModelConf() override;
     void UeReception(RxPacketTraceParams params);
 
   private:
-    virtual void DoRun(void);
+    void DoRun() override;
     std::string m_name;
     DirectionGnbUeXYAngle m_conf;
     bool m_ueOmniAntennaElem;
@@ -142,7 +142,7 @@ TestAntenna3gppModelConf::~TestAntenna3gppModelConf()
 }
 
 void
-TestAntenna3gppModelConf::DoRun(void)
+TestAntenna3gppModelConf::DoRun()
 {
     std::cout << "\n\n\n" << m_name << std::endl;
     // set simulation time and mobility

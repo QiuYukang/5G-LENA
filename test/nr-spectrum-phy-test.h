@@ -44,7 +44,7 @@ class NoLossSpectrumPropagationLossModel : public SpectrumPropagationLossModel
 {
   public:
     NoLossSpectrumPropagationLossModel();
-    virtual ~NoLossSpectrumPropagationLossModel();
+    ~NoLossSpectrumPropagationLossModel() override;
 
     /**
      * \brief Get the type ID.
@@ -53,10 +53,9 @@ class NoLossSpectrumPropagationLossModel : public SpectrumPropagationLossModel
     static TypeId GetTypeId();
 
   private:
-    virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(
-        Ptr<const SpectrumSignalParameters> params,
-        Ptr<const MobilityModel> a,
-        Ptr<const MobilityModel> b) const override;
+    Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(Ptr<const SpectrumSignalParameters> params,
+                                                    Ptr<const MobilityModel> a,
+                                                    Ptr<const MobilityModel> b) const override;
 };
 
 class SetNoisePsdTestCase : public TestCase
@@ -71,7 +70,7 @@ class SetNoisePsdTestCase : public TestCase
                         double expectedSnrSecond,
                         uint8_t numerology);
     /** Destructor. */
-    virtual ~SetNoisePsdTestCase();
+    ~SetNoisePsdTestCase() override;
 
     /**
      * \brief Save SNR value in the list of values
@@ -82,7 +81,7 @@ class SetNoisePsdTestCase : public TestCase
     /**
      * \brief Run test case
      */
-    virtual void DoRun(void);
+    void DoRun() override;
 
     /**
      * \brief Check if the test case has pass or failed

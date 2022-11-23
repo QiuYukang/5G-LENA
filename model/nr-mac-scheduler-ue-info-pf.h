@@ -60,7 +60,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
      *
      * It calls also NrMacSchedulerUeInfo::ResetDlSchedInfo.
      */
-    virtual void ResetDlSchedInfo() override
+    void ResetDlSchedInfo() override
     {
         m_lastAvgTputDl = m_avgTputDl;
         m_avgTputDl = 0.0;
@@ -77,7 +77,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
      *
      * It also calls NrMacSchedulerUeInfo::ResetUlSchedInfo.
      */
-    virtual void ResetUlSchedInfo() override
+    void ResetUlSchedInfo() override
     {
         m_lastAvgTputUl = m_avgTputUl;
         m_avgTputUl = 0.0;
@@ -89,7 +89,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
     /**
      * \brief Reset the DL avg Th to the last value
      */
-    virtual void ResetDlMetric() override
+    void ResetDlMetric() override
     {
         NrMacSchedulerUeInfo::ResetDlMetric();
         m_avgTputDl = m_lastAvgTputDl;
@@ -98,7 +98,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
     /**
      * \brief Reset the UL avg Th to the last value
      */
-    virtual void ResetUlMetric() override
+    void ResetUlMetric() override
     {
         NrMacSchedulerUeInfo::ResetUlMetric();
         m_avgTputUl = m_lastAvgTputUl;

@@ -51,7 +51,7 @@ class IdealBeamformingAlgorithm : public Object
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of communicating devices
@@ -74,7 +74,7 @@ class CellScanBeamforming : public IdealBeamformingAlgorithm
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \return Gets value of BeamSearchAngleStep attribute
@@ -94,7 +94,7 @@ class CellScanBeamforming : public IdealBeamformingAlgorithm
     /**
      * \brief destructor
      */
-    virtual ~CellScanBeamforming() override = default;
+    ~CellScanBeamforming() override = default;
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -103,7 +103,7 @@ class CellScanBeamforming : public IdealBeamformingAlgorithm
      * \param [in] ueSpectrumPhy the spectrum phy of the UE device
      * \return the beamforming vector pair of the gNB and the UE
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
@@ -122,7 +122,7 @@ class CellScanBeamformingAzimuthZenith : public IdealBeamformingAlgorithm
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief constructor
@@ -132,7 +132,7 @@ class CellScanBeamformingAzimuthZenith : public IdealBeamformingAlgorithm
     /**
      * \brief destructor
      */
-    virtual ~CellScanBeamformingAzimuthZenith() override = default;
+    ~CellScanBeamformingAzimuthZenith() override = default;
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -141,7 +141,7 @@ class CellScanBeamformingAzimuthZenith : public IdealBeamformingAlgorithm
      * \param [in] ueSpectrumPhy the spectrum phy of the UE
      * \return the beamforming vector pair of the gNB and the UE
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
@@ -161,7 +161,7 @@ class CellScanQuasiOmniBeamforming : public IdealBeamformingAlgorithm
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \return Gets value of BeamSearchAngleStep attribute
@@ -181,7 +181,7 @@ class CellScanQuasiOmniBeamforming : public IdealBeamformingAlgorithm
     /**
      * \brief destructor
      */
-    virtual ~CellScanQuasiOmniBeamforming() override = default;
+    ~CellScanQuasiOmniBeamforming() override = default;
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -189,7 +189,7 @@ class CellScanQuasiOmniBeamforming : public IdealBeamformingAlgorithm
      * vector at UE \param [in] gnbSpectrumPhy the spectrum phy of the gNB \param [in] ueSpectrumPhy
      * the spectrum phy of the UE \return the beamforming vector pair of the gNB and the UE
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
@@ -208,7 +208,7 @@ class DirectPathBeamforming : public IdealBeamformingAlgorithm
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -217,7 +217,7 @@ class DirectPathBeamforming : public IdealBeamformingAlgorithm
      * \param [in] ueSpectrumPhy the spectrum phy of the UE
      * \return the beamforming vector pair of the gNB and the UE
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };
@@ -233,7 +233,7 @@ class QuasiOmniDirectPathBeamforming : public DirectPathBeamforming
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -243,7 +243,7 @@ class QuasiOmniDirectPathBeamforming : public DirectPathBeamforming
      * \param [in] ueSpectrumPhy the spectrum phy of the UE
      * \return the beamforming vector pair of the gNB and the UE
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };
@@ -259,7 +259,7 @@ class DirectPathQuasiOmniBeamforming : public DirectPathBeamforming
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -270,7 +270,7 @@ class DirectPathQuasiOmniBeamforming : public DirectPathBeamforming
      * \return the beamforming vector pair of the gNB and the UE
      *
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };
@@ -289,7 +289,7 @@ class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief Function that generates the beamforming vectors for a pair of
@@ -299,7 +299,7 @@ class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm
      * \param [in] ueSpectrumPhy the spectrum phy of the UE
      * \return the beamforming vector pair of the gNB and the UE
      */
-    virtual BeamformingVectorPair GetBeamformingVectors(
+    BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };

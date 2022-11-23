@@ -46,14 +46,14 @@ NS_OBJECT_ENSURE_REGISTERED(QuasiOmniDirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(OptimalCovMatrixBeamforming);
 
 TypeId
-IdealBeamformingAlgorithm::GetTypeId(void)
+IdealBeamformingAlgorithm::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::IdealBeamformingAlgorithm").SetParent<Object>();
     return tid;
 }
 
 TypeId
-CellScanBeamforming::GetTypeId(void)
+CellScanBeamforming::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::CellScanBeamforming")
@@ -118,9 +118,13 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
     Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
     fakeParams->psd = fakePsd->Copy();
 
-    double max = 0, maxTxTheta = 0, maxRxTheta = 0;
-    uint16_t maxTxSector = 0, maxRxSector = 0;
-    complexVector_t maxTxW, maxRxW;
+    double max = 0;
+    double maxTxTheta = 0;
+    double maxRxTheta = 0;
+    uint16_t maxTxSector = 0;
+    uint16_t maxRxSector = 0;
+    complexVector_t maxTxW;
+    complexVector_t maxRxW;
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
@@ -131,9 +135,11 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
     NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements() &&
               ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements());
 
+    uint16_t numRowsTx = static_cast<uint16_t>(txNumRows);
+    uint16_t numRowsRx = static_cast<uint16_t>(rxNumRows);
     for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t txSector = 0; txSector <= txNumRows; txSector++)
+        for (uint16_t txSector = 0; txSector <= numRowsTx; txSector++)
         {
             NS_ASSERT(txSector < UINT16_MAX);
 
@@ -148,7 +154,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
             for (double rxTheta = 60; rxTheta < 121;
                  rxTheta = static_cast<uint16_t>(rxTheta + m_beamSearchAngleStep))
             {
-                for (uint16_t rxSector = 0; rxSector <= rxNumRows; rxSector++)
+                for (uint16_t rxSector = 0; rxSector <= numRowsRx; rxSector++)
                 {
                     NS_ASSERT(rxSector < UINT16_MAX);
 
@@ -224,7 +230,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
 }
 
 TypeId
-CellScanBeamformingAzimuthZenith::GetTypeId(void)
+CellScanBeamformingAzimuthZenith::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::CellScanBeamformingAzimuthZenith")
                             .SetParent<IdealBeamformingAlgorithm>()
@@ -271,8 +277,13 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
     Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
     fakeParams->psd = fakePsd->Copy();
 
-    double max = 0, maxTxAzimuth = 0, maxRxAzimuth = 0, maxTxZenith = 0, maxRxZenith = 0;
-    complexVector_t maxTxW, maxRxW;
+    double max = 0;
+    double maxTxAzimuth = 0;
+    double maxRxAzimuth = 0;
+    double maxTxZenith = 0;
+    double maxRxZenith = 0;
+    complexVector_t maxTxW;
+    complexVector_t maxRxW;
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
@@ -364,7 +375,7 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
 }
 
 TypeId
-CellScanQuasiOmniBeamforming::GetTypeId(void)
+CellScanQuasiOmniBeamforming::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::CellScanQuasiOmniBeamforming")
@@ -424,7 +435,8 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
     Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
     fakeParams->psd = fakePsd->Copy();
 
-    double max = 0, maxTxTheta = 0;
+    double max = 0;
+    double maxTxTheta = 0;
     uint16_t maxTxSector = 0;
     complexVector_t maxTxW;
 
@@ -440,9 +452,10 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
     complexVector_t rxW = ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
     BeamformingVector ueBfv = std::make_pair(rxW, OMNI_BEAM_ID);
 
+    uint16_t numRows = static_cast<uint16_t>(txNumRows);
     for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t txSector = 0; txSector <= txNumRows; txSector++)
+        for (uint16_t txSector = 0; txSector <= numRows; txSector++)
         {
             NS_ASSERT(txSector < UINT16_MAX);
 
@@ -493,7 +506,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
 }
 
 TypeId
-DirectPathBeamforming::GetTypeId(void)
+DirectPathBeamforming::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::DirectPathBeamforming")
                             .SetParent<IdealBeamformingAlgorithm>()
@@ -529,7 +542,7 @@ DirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectr
 }
 
 TypeId
-QuasiOmniDirectPathBeamforming::GetTypeId(void)
+QuasiOmniDirectPathBeamforming::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::QuasiOmniDirectPathBeamforming")
                             .SetParent<DirectPathBeamforming>()
@@ -548,7 +561,8 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
         ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
 
     // configure gNb beamforming vector to be quasi omni
-    UintegerValue numRows, numColumns;
+    UintegerValue numRows;
+    UintegerValue numColumns;
     gnbAntenna->GetAttribute("NumRows", numRows);
     gnbAntenna->GetAttribute("NumColumns", numColumns);
     BeamformingVector gnbBfv =
@@ -565,7 +579,7 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
 }
 
 TypeId
-DirectPathQuasiOmniBeamforming::GetTypeId(void)
+DirectPathQuasiOmniBeamforming::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::DirectPathQuasiOmniBeamforming")
                             .SetParent<DirectPathBeamforming>()
@@ -584,7 +598,8 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
         ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
 
     // configure ue beamforming vector to be quasi omni
-    UintegerValue numRows, numColumns;
+    UintegerValue numRows;
+    UintegerValue numColumns;
     ueAntenna->GetAttribute("NumRows", numRows);
     ueAntenna->GetAttribute("NumColumns", numColumns);
     BeamformingVector ueBfv =
@@ -602,7 +617,7 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
 }
 
 TypeId
-OptimalCovMatrixBeamforming::GetTypeId(void)
+OptimalCovMatrixBeamforming::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::OptimalCovMatrixBeamforming")
                             .SetParent<IdealBeamformingAlgorithm>()

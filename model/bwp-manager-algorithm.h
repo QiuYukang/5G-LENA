@@ -63,7 +63,7 @@ class BwpManagerAlgorithm : public Object
     /**
      * ~BwpManagerAlgorithm
      */
-    virtual ~BwpManagerAlgorithm() override = default;
+    ~BwpManagerAlgorithm() override = default;
     /**
      * \brief Get the bandwidth part id for the Qci specified
      * \param v the qci
@@ -94,10 +94,10 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     /**
      * \brief deconstructor
      */
-    virtual ~BwpManagerAlgorithmStatic() override = default;
+    ~BwpManagerAlgorithmStatic() override = default;
 
     // inherited
-    virtual uint8_t GetBwpForEpsBearer(const EpsBearer::Qci& v) const override;
+    uint8_t GetBwpForEpsBearer(const EpsBearer::Qci& v) const override;
 
     /**
      * \brief Set BWP index of the QCI in the function name

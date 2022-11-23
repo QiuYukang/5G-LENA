@@ -40,7 +40,7 @@ class TestSfnSfTestCase : public TestCase
     }
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun() override;
     uint16_t m_numerology{0};
 };
 

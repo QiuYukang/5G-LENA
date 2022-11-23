@@ -577,7 +577,7 @@ struct DlHarqInfo : public HarqInfo
     std::vector<enum HarqStatus> m_harqStatus; //!< HARQ status
     std::vector<uint8_t> m_numRetx;            //!< Num of Retx
 
-    virtual bool IsReceivedOk() const override
+    bool IsReceivedOk() const override
     {
         bool ok = false;
         auto allStatus = NONE;
@@ -618,7 +618,7 @@ struct DlHarqInfo : public HarqInfo
     std::vector<uint8_t> GetNackStreamIndexes()
     {
         std::vector<uint8_t> indexes;
-        for (uint8_t i = 0; i < m_harqStatus.size(); i++)
+        for (std::size_t i = 0; i < m_harqStatus.size(); i++)
         {
             if (m_harqStatus.at(i) == NACK)
             {
@@ -647,7 +647,7 @@ struct UlHarqInfo : public HarqInfo
     uint8_t m_tpc{UINT8_MAX};     //!< Transmit Power Control
     uint8_t m_numRetx{UINT8_MAX}; //!< Num of Retx
 
-    virtual bool IsReceivedOk() const override
+    bool IsReceivedOk() const override
     {
         return m_receptionStatus == Ok;
     }

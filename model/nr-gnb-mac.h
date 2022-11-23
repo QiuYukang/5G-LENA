@@ -73,15 +73,15 @@ class NrGnbMac : public Object
      * \brief Get the TypeId
      * \return the TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief NrGnbMac constructor
      */
-    NrGnbMac(void);
+    NrGnbMac();
     /**
      * \brief ~NrGnbMac
      */
-    virtual ~NrGnbMac(void) override;
+    ~NrGnbMac() override;
 
     /**
      * \brief Sets the number of RBs per RBG. Currently it can be
@@ -100,7 +100,7 @@ class NrGnbMac : public Object
      * everyone, not only through SAP.
      *
      */
-    uint32_t GetNumRbPerRbg(void) const;
+    uint32_t GetNumRbPerRbg() const;
 
     /**
      * \brief Sets the number of HARQ processes
@@ -164,8 +164,8 @@ class NrGnbMac : public Object
     NrMacCschedSapUser* GetNrMacCschedSapUser();
     void SetNrMacCschedSapProvider(NrMacCschedSapProvider* ptr);
 
-    LteMacSapProvider* GetMacSapProvider(void);
-    LteEnbCmacSapProvider* GetEnbCmacSapProvider(void);
+    LteMacSapProvider* GetMacSapProvider();
+    LteEnbCmacSapProvider* GetEnbCmacSapProvider();
 
     void SetEnbCmacSapUser(LteEnbCmacSapUser* s);
 
@@ -262,7 +262,7 @@ class NrGnbMac : public Object
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
     /**
      * \brief Get the bwp id of this MAC
      * \return the bwp id

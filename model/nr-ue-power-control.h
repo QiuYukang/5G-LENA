@@ -87,16 +87,16 @@ class NrUePowerControl : public Object
     /**
      * \brief Destructor
      */
-    virtual ~NrUePowerControl();
+    ~NrUePowerControl() override;
 
     /**
      * \brief Get the type ID.
      * \return the object TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     // inherited from Object
-    virtual void DoInitialize(void);
-    virtual void DoDispose(void);
+    void DoInitialize() override;
+    void DoDispose() override;
 
     // set functions
 

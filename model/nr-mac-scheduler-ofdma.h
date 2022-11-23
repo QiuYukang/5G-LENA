@@ -68,7 +68,7 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
      * \brief GetTypeId
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrMacSchedulerOfdma constructor
@@ -78,21 +78,19 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
     /**
      * \brief Deconstructor
      */
-    ~NrMacSchedulerOfdma()
+    ~NrMacSchedulerOfdma() override
     {
     }
 
   protected:
-    virtual BeamSymbolMap AssignDLRBG(uint32_t symAvail,
-                                      const ActiveUeMap& activeDl) const override;
-    virtual BeamSymbolMap AssignULRBG(uint32_t symAvail,
-                                      const ActiveUeMap& activeUl) const override;
+    BeamSymbolMap AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) const override;
+    BeamSymbolMap AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) const override;
 
-    virtual std::shared_ptr<DciInfoElementTdma> CreateDlDci(
+    std::shared_ptr<DciInfoElementTdma> CreateDlDci(
         PointInFTPlane* spoint,
         const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
         uint32_t maxSym) const override;
-    virtual std::shared_ptr<DciInfoElementTdma> CreateUlDci(
+    std::shared_ptr<DciInfoElementTdma> CreateUlDci(
         PointInFTPlane* spoint,
         const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
         uint32_t maxSym) const override;
@@ -103,14 +101,14 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
      * \param spoint Starting point
      * \param symOfBeam Number of symbols for the beam
      */
-    virtual void ChangeDlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
+    void ChangeDlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
-    virtual void ChangeUlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
+    void ChangeUlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
     NrMacSchedulerOfdma::BeamSymbolMap GetSymPerBeam(uint32_t symAvail,
                                                      const ActiveUeMap& activeDl) const;
 
-    virtual uint8_t GetTpc() const override;
+    uint8_t GetTpc() const override;
 
   private:
     TracedValue<uint32_t> m_tracedValueSymPerBeam;
