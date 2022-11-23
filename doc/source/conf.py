@@ -18,6 +18,7 @@ add_function_parentheses = True
 
 project = u'NR Module'
 copyright = u'2022'
+author = u'OpenSim CTTC/CERCA'
 
-version = '2.2'
-release = '2.2'
+version = '2.3'
+release = '2.3'

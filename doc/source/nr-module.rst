@@ -250,14 +250,34 @@ at NrGnbPhy and NrUePhy.
 
 Interference model
 ==================
-The PHY model is based on the well-known Gaussian interference models, according to which the powers of interfering signals (in linear units) are summed up together to determine the overall interference power. The useful and interfering signals, as well as the noise power spectral density, are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
+The PHY model is based on the well-known Gaussian interference models, according
+to which the powers of interfering signals (in linear units) are summed up together
+to determine the overall interference power. The useful and interfering signals,
+as well as the noise power spectral density, are processed to calculate the SNR,
+the SINR, the RSSI (in dBm) and the RSRP (in dBm).
 
-Also, such powers are used to determine if the channel is busy or empty. For that, we are creating two events, one that adds, for any signal, the received power and another that subtracts the received power at the end time. These events determine if the channel is busy (by comparing it to a threshold) and for how long.
+Also, such powers are used to determine if the channel is busy or empty. For that,
+we are creating two events, one that adds, for any signal, the received power and
+another that subtracts the received power at the end time. These events determine
+if the channel is busy (by comparing it to a threshold) and for how long.
 
 
 Spectrum model
 ==============
-In the simulator, radio spectrum usage follows the usual way to represent radio transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents the channel characteristic, including the propagation, following the 3GPP specifications [gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs, remembering that two (or more) channel models cannot overlap over the spectrum frequencies. In the NR nodes, there will be as many physical layers as the number of channel models; each physical layer communicates to its channel model through a spectrum model instance that owns a model of the physical layer antenna. The combination of the sender's and receiver's antenna gain (given by the configured beam and the antenna element radiation pattern), the propagation loss, and the channel characteristics, provide the value of the received power spectral density for each transmitted signal. The interference among different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_. In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering downlink-to-uplink and uplink-to-downlink interference.
+In the simulator, radio spectrum usage follows the usual way to represent radio
+transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents
+the channel characteristic, including the propagation, following the 3GPP specifications
+[gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs,
+remembering that two (or more) channel models cannot overlap over the spectrum frequencies.
+In the NR nodes, there will be as many physical layers as the number of channel models;
+each physical layer communicates to its channel model through a spectrum model instance
+that owns a model of the physical layer antenna. The combination of the sender's and
+receiver's antenna gain (given by the configured beam and the antenna element radiation pattern),
+the propagation loss, and the channel characteristics, provide the value of the
+received power spectral density for each transmitted signal. The interference among
+different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_.
+In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes,
+considering downlink-to-uplink and uplink-to-downlink interference.
 
 
 Data PHY error model
@@ -996,6 +1016,8 @@ the value and it updates it only at the next transmission occasion.
 .. figure:: figures/ulpc/nr-clpc.*
    :align: center
    :scale: 35 %
+
+   Closed Loop Power Control sequence diagram
 
 LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI,
 and the TPC command reception, reporting to NrUePowerControl and applying for
@@ -2018,6 +2040,7 @@ The database is created in the root project directory if not configured differen
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-realistic-beamforming_8cc.html.
 
+
 .. _mimo:
 
 cttc-nr-mimo-demo.cc
@@ -2027,6 +2050,84 @@ The output of this example, i.e., TX/RX bytes, throughput, mean jitter, and mean
 
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-nr-mimo-demo_8cc.html.
+
+
+cttc-nr-3gpp-calibration
+========================
+
+``3gpp-outdoor-calibration`` directory contains the program that can be run through
+``cttc-nr-3gpp-calibration-user.cc``.
+
+This example has been created to calibrate the 5G-LENA simulator under 3GPP
+reference scenarios defined in ITU IMT-2020 report [IMT-2020]_ for NR-based outdoor
+deployments. The example includes 4 test environment scenarios as defined in the
+report. For each scenario, we have added a set of pre-defined parameters, meaning
+parameters that will not be changed during the simulations, such as the frequency
+or the bandwidth, while we have included some other parameters to be defined through
+the command line, in case we want to study variations in the KPIs based on different
+configurations. Examples include the gNB and UE polarization and slant angles,
+the beamforming method used, and the activation/deactivation of fading and shadowing.
+
+The 4 pre-defined scenarios used for the calibration of the 5G-LENA are the Rural-eMBB
+Configuration A and Configuration B, and the Dense-eMBB Configuration A and Configuration B.
+These different evaluation configurations basically vary some parameters (like the
+carrier frequency, the total transmit power, the simulation bandwidth, the number
+of antenna elements per gNB/UE, and the gNB/UE noise figure) for a given test environment.
+Moreover, depending on the scenario under evaluation, UEs might be indoor/outdoor,
+while the antenna configuration and height, among other parameters, of both gNBs
+and UEs, are also varied. Finally, let us notice that all scenarios have been
+evaluated under full buffer traffic, as indicated by 3GPP reference results.
+
+The network layout consists in a hexagonal topology with 37 sites of 3 sectors each,
+thus leading to 111 Base Stations (BS), as shown in Figure :ref:`fig-calibration-hex-grid`.
+However, in the measurements we consider only the 21 inner BSs, while the 111 BSs
+are simulated to account for the wrap-around effect. Notice that each sector has
+its antenna arrays oriented towards its sector area, and each sector area is equally
+sized, meaning that each sector covers 120 degrees in azimuth. Moreover, notice that the
+antennas of each sector are pointing to 30, 150 and 270 degrees w.r.t. the horizontal axis.
+
+.. _fig-calibration-hex-grid:
+
+.. figure:: figures/calibrationHex.*
+   :align: center
+   :scale: 80 %
+
+   Wrap-around hexagonal deployment.
+
+The calculation of the Pathloss follows the TR 38.901 [TR38901]_ model and includes the
+building penetration losses as defined in 7.4.3. It is calculated based on the
+following equation:
+
+:math:`PL = PL_{b} + PL_{tw} + PL_{in} + N(0,\sigma_P^2)`
+
+
+where :math:`PL_{b}` is the basic outdoor Pathloss given in Table 7.4.1-1 of TR 38.901
+according to the LOS and NLOS conditions, :math:`PL_{tw}` is the O2I building penetration
+loss, :math:`PL_{in}` is the inside loss dependent on the depth into the building,
+and :math:`\sigma_P` is the standard deviation for the penetration loss.
+:math:`PL_{tw}`, :math:`PL_{in}` and :math:`\sigma_P` are given in Table 7.4.3-2
+of TR 38.901.
+
+The evaluation KPIs are the Downlink Geometry and the Coupling Gain. More information
+can be found in [SIMPAT-calibration]_. The curves of Downlink Geometry and Coupling
+Gain are compared against to that of various 3GPP industrial simulators provided
+in [RP180524]_. Let us notice that due to the fact that the simulator in the current
+version does not support Handover, and therefore due to the user mobility, there
+is the chance that users can be located in out-of-coverage areas, we omit from the
+SINR results (Downlink Geometry) calculations associated to a CQI (Channel Quality
+Indicator)=0.
+
+For the calibration purpose, the example provides the possibility to extract the
+REM map and the SINR as measured at each REM point (each point of the map), as well
+as the end-to-end results of the above presented KPIs, i.e. the Coupling Gain and the
+Downlink Geometry and compare it against the 3GPP reference simulators as presented
+in [RP180524]_. All the REM and end-to-end results can be found in [SIMPAT-calibration]_.
+
+Finally, let us highlight that with this study we aimed to provide to the research
+community an open source tool that allows the testing, evaluation, validation, and
+experimentation of existing and/or new features, guaranteeing the resemblance of
+the results to that of an industrial private product or of a real network.
+
 
 
 .. _Validation:
@@ -2190,6 +2291,7 @@ Test case called ``nr-test-timings`` checks the NR timings for different numerol
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-test-timings_8cc.html
 
+.. _notchingTest:
 
 Test for notching
 =================
@@ -2285,4 +2387,10 @@ Open issues and future work
 
 .. [TS38331]  3GPP  TS  38.331, Radio Resource Control (RRC). (Rel. 15). 2018.
 
+.. [IMT-2020] ITU-R, Submission, evaluation process and consensus building for IMT-2020, ITU-R IMT-2020/2-E, 2019
 
+.. [SIMPAT-calibration] K. Koutlia, B. Bojovic, Z. Ali, S. Lag ́en, Calibration of the 5G-LENA system level simulator in 3GPP reference scenarios, Simulation Modelling Practice and Theory 119, 2022
+
+.. [TR38901] 3GPP TR 38.901 "Study on Channel Model for Frequencies from 0.5 to 100 GHz", (Release 15) TR 38.901v16.1.0 (2020), 3rd Generation Partnership Project, 2020
+
+.. [RP180524] Huawei RP-180524, "Summary of Calibration Results for IMT-2020 Self Evaluation", 3GPP TSG RAN Meeting #79, 2018
