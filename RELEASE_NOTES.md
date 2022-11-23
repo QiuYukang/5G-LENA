@@ -10,6 +10,89 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+Release NR-v2.3
+----------------
+
+Availability
+------------
+Available since November 23, 2022
+
+Supported platforms
+-------------------
+The supported platforms are the same as for the NR-v2.1 release, except that
+the recommended ns-3 release is ns-3.37.
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9, 10 and 11, and clang-8, 9, 10, 11 and 12.
+
+Important news
+--------------
+The module follows now the clang-format C++ code style. Clang-format can be easily
+integrated with modern IDEs or run manually on the command-line.
+Supported versions are:
+- Clang-format-14
+- Clang-format-15
+- Clang-format-16
+
+For more information please refer to
+https://gitlab.com/nsnam/ns-3-dev/-/blob/master/doc/contributing/source/coding-style.rst
+
+Whitespaces are also checked with:
+
+```
+$ python3 ns-3-dev/utils/trim-trailing-whitespace.py --check nr
+```
+
+This module can be updated with the usual:
+
+```
+$ git pull
+```
+
+command.
+
+Remember to follow the instructions from the README.md file, i.e., to checkout
+the correct release branch of both, ns-3 and the NR module. E.g., the NR module
+Release 2.2 is compatible with the ns-3.36.1 release branch, while the NR module
+Release 2.3 is compatible with the ns-3.37 release branch.
+
+The information about compatibility with the corresponding ns-3 release branch
+is stated in this (RELEASE_NOTES.md) document in the "Supported platforms"
+section for each NR release (starting from the NR Release 1.3).
+
+New user-visible features (old first)
+-------------------------
+- Upgrade nr to `ThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity`
+changes.
+- Added new example called `cttc-nr-3gpp-calibration` used for the calibration
+of the simulator under 3GPP outdoor reference scenarios.
+- Added `DlDataSnrTrace`, `DlCtrlPathloss` and `DlDataPathloss` trace sources in
+NrSpectrumPhy.
+- `NrUePhy` now includes the RSRP measurements of a UE.
+- PHY traces are extended with a function to set the results folder path.
+- `HexagonalGridScenarioHelper` is extended to define the max UE distance from the
+closest site for the `HexagonalGridScenarioHelper::CreateScenarioWithMobility`
+function. Moreover, the simTag and the results folder can now be set.
+- The antenna orientation in the `NodeDistributionScenarioInterface::GetAntennaOrientationDegrees`
+is changed from 60, 180, 300 degrees to 30, 120, 270.
+- `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+- Included some performance enhancements, such as to remove from `NrEesmErrorModel`
+unnecessary copy, to allow the `NrErrorModel` to be passed and fetched as an object
+and to reduce the execution of tests and examples_to_run.py.
+
+Bugs fixed
+----------
+- Sfnsf frame number is expanded to 32-bit to prevent rollover
+- Fixed how the HARQ feedback from multiple streams is combined in `NrUePhy`.
+- Fixed and modified the code for MAC UL/DL RLC TX/RX/PDU queues.
+- Included a fix in NrHelper to avoid reassigning a stream due to incorrect pointer.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
 
 Release NR-v2.2
 ----------------

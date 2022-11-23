@@ -44,6 +44,68 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v2.2 to v2.3
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.36.1 to ns-3.37, including updating to clang format and with clang-tidy.
+In addition, whitespaces trailing is also checked.
+
+### New API:
+
+* Added new example called `cttc-nr-3gpp-calibration` used for the calibration
+of the simulator under 3GPP outdoor reference scenarios.
+
+* Added `DlDataSnrTrace`, `DlCtrlPathloss` and `DlDataPathloss` trace sources in
+NrSpectrumPhy.
+
+* `NrUePhy` now includes the RSRP measurements of a UE.
+
+### Changes to existing API:
+
+* Changed parameter type of the function
+`DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity`.
+
+* PHY traces are extended with a function to set the results folder path.
+
+* `HexagonalGridScenarioHelper` is extended to allow the configuration of a
+variable that defines the maximum distance between a UE and the closest site, through
+the `HexagonalGridScenarioHelper::SetMaxUeDistanceToClosestSite` function.
+This function can be used only in conjuction with the
+`HexagonalGridScenarioHelper::CreateScenarioWithMobility`.
+
+* `HexagonalGridScenarioHelper` is also extended to set the results folder path
+and a simTag for the generated gnuplot file. This is useful so that different
+simulations will not overide the results.
+
+* `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+
+* `Nrhelper` now avoids re-assigning a stream due to incorrect pointer.
+
+* Remove from `NrEesmErrorModel` redundant SpectrumValue copy that can cause a
+significant drop in the performance unnecessarily.
+
+* Allow the `NrErrorModel` to be passed and fetched as an object in `NrSpectrumPhy`.
+
+* Sfnsf frame number is expanded to 32-bit to prevent rollover
+
+
+### Changed behavior:
+
+* The antenna orientation in the `NodeDistributionScenarioInterface::GetAntennaOrientationDegrees`
+is changed from 60, 180, 300 degrees to 30, 120, 270.
+
+* Fixed how the HARQ feedback from multiple streams is combined in `NrUePhy`.
+Now it takes into account the use case when there are different HARQ IDs,
+because there can be ReTX DCI, and TX DCI for the same UE.
+
+* Fixed and modified the code for MAC UL/DL RLC TX/RX/PDU queues.
+The code at gNB MAC that keeps track of DL/UL RLC queues has been reworked, due
+to some inconsistencies related to the handling of information about RLC UE queues.
+In some cases, due to these misalignments, the gNB MAC was not assigning sufficient
+resources to a UE. Moreover, the UE MAC did not account correclty related to the
+MAC header.
+
+---
 
 ## Changes from NR-v2.1 to v2.2
 
@@ -95,7 +157,6 @@ side, and combined/merged end-to-end traces.
 RLC overhead
 
 ---
-
 
 ## Changes from NR-v1.3 to v2.0
 
@@ -149,7 +210,6 @@ that can be scheduled at the same varTti.
  `EnableGnbPhyCtrlMsgsTraces`, `EnableUePhyCtrlMsgsTraces`, `EnableGnbMacCtrlMsgsTraces`,
  `EnableUeMacCtrlMsgsTraces`, `EnableRlcTraces`, `EnablePdcpTraces`, `GetPdcpStats`,
  `EnableDlMacSchedTraces`, `EnableUlMacSchedTraces` and `EnablePathlossTraces`.
-
 
 ### Changes to existing API:
 
@@ -245,7 +305,6 @@ implement File Transfer Protocol (FTP) applications. In addition, 3GPP FTP model
 some development, so for the moment they will be included in the nr module.
 * New `NrHarqTest` is included to test HARQ-IR and HARQ-CC combining methods (thanks
 to Andrey Belogaev).
-
 
 ### Changes to existing API:
 
