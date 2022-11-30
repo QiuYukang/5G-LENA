@@ -49,15 +49,12 @@ and then you can switch to the corresponding ns-3 release branch, e.g., in the
 following way:
 
 ```
-$ git checkout ns-3.36
+$ git checkout ns-3.x
 
 ```
 
-You can replace "36" with the specific release that you want to use. If the
-recommended ns-3 release is not available yet (such in the case that NR is
-released before the recommended ns-3 release), then you can use ns-3 master
-until ns-3 recommended release is ready.
-
+where x corresponds to the specific ns-3 release branch that you want to use, which has to be supported as indicated in the table in the README file. 
+For example, you can use "git checkout ns-3.37" to switch to the ns-3.37 release branch, which is supported together with NR v2.3 release branch. If the recommended ns-3 release is not available yet (such in the case that NR is released before the recommended ns-3 release), then you can use ns-3 master until ns-3 recommended release is ready.
 
 \subsection test-ns3 Test the installation
 
@@ -84,13 +81,14 @@ cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 \endcode
 
-At this step, you should switch to the latest NR release branch.
-For example, to switch to the NR version 2.2 you should do the following:
+At this step, you should switch to the NR release branch you want:
 
 \code{.sh}
 cd nr
-git checkout 5g-lena-v2.2.y
+git checkout 5g-lena-v2.x.y
 \endcode
+
+where x corresponds to the specific NR release branch that you want to use, which has to be supported together with the configured ns-3-dev release branch as indicated in the table in the README file. For example, to switch to the NR version 2.3 (compatible with ns-3.37 release) you should do the following: "git checkout 5g-lena-v2.3.y".
 
 Please note that the contrib/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
