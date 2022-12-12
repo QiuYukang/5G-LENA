@@ -150,6 +150,18 @@ NrMacSchedulerLCG::GetQci(uint8_t lcId) const
     return m_lcMap.at(lcId)->m_qci;
 }
 
+std::unique_ptr<NrMacSchedulerLC> &
+NrMacSchedulerLCG::GetLC (uint8_t lcId)
+{
+  NS_LOG_FUNCTION (this);
+
+  NS_ASSERT (m_lcMap.size () > 0);
+  NS_ASSERT (GetTotalSizeOfLC (lcId) > 0);
+
+  return m_lcMap.at (lcId);
+}
+
+
 void
 NrMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size, std::string type)
 {

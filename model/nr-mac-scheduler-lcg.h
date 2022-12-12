@@ -186,6 +186,13 @@ class NrMacSchedulerLCG
     uint8_t GetQci(uint8_t lcId) const;
 
     /**
+     * \brief Get the LC Ptr for a specific LC ID
+     * \param lcId LC ID
+     * \return the LC Ptr for the LC ID
+     */
+    std::unique_ptr<NrMacSchedulerLC> & GetLC(uint8_t lcId);
+
+    /**
      * \brief Inform the LCG of the assigned data to a LC id
      * \param lcId the LC id to which the data was assigned
      * \param size amount of assigned data
