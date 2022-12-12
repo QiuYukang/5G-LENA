@@ -69,6 +69,7 @@ class NrMacSchedulerLC
     Time m_delayBudget{Time::Min()}; //!< Delay budget of the flow
     double m_PER{0.0};               //!< PER of the flow
     bool m_isGbr{false};             //!< Is GBR?
+    uint8_t m_qci{0};                //!< QoS Class Identifier of the flow
 };
 
 /**
@@ -170,6 +171,19 @@ class NrMacSchedulerLCG
      * \return a vector with all the LC id present in this LCG
      */
     std::vector<uint8_t> GetLCId() const;
+
+    /**
+     * \brief Get a vector of the active LC IDs
+     * \return a vector with all the LC ids in this LCG that have data
+     */
+    std::vector<uint8_t> GetActiveLCIds() const;
+
+    /**
+     * \brief Get the QoS Class Identifier of the flow
+     * \param lcId LC ID
+     * \return the QoS Class Identifier of the flow with lcId
+     */
+    uint8_t GetQci(uint8_t lcId) const;
 
     /**
      * \brief Inform the LCG of the assigned data to a LC id

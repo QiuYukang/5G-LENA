@@ -22,6 +22,7 @@ NrMacSchedulerLC::NrMacSchedulerLC(const LogicalChannelConfigListElement_s& conf
     m_delayBudget = MilliSeconds(bearer.GetPacketDelayBudgetMs());
     m_isGbr = bearer.IsGbr();
     m_PER = bearer.GetPacketErrorLossRate();
+    m_qci = conf.m_qci;
 }
 
 void
@@ -125,6 +126,28 @@ NrMacSchedulerLCG::GetLCId() const
         ret.emplace_back(lc.first);
     }
     return ret;
+}
+
+std::vector<uint8_t>
+NrMacSchedulerLCG::GetActiveLCIds() const
+{
+    NS_LOG_FUNCTION(this);
+    std::vector<uint8_t> ret;
+    for (const auto& lc : m_lcMap)
+    {
+        if (GetTotalSizeOfLC(lc.first) > 0)
+        {
+            ret.emplace_back(lc.first);
+        }
+    }
+    return ret;
+}
+
+uint8_t
+NrMacSchedulerLCG::GetQci(uint8_t lcId) const
+{
+    NS_LOG_FUNCTION(this);
+    return m_lcMap.at(lcId)->m_qci;
 }
 
 void
