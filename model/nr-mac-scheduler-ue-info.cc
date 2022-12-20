@@ -114,6 +114,15 @@ NrMacSchedulerUeInfo::GetUlHarqVector(const UePtr& ue)
 }
 
 void
+NrMacSchedulerUeInfo::PrintLcInfo (uint16_t ue, uint8_t lcgId, uint8_t lcId, uint8_t qci, uint8_t P)
+{
+  NS_LOG_DEBUG ("UE " << ue << " LCG ID: " << static_cast<uint32_t> (lcgId) <<
+                " LC ID " << static_cast<uint32_t> (lcId) <<
+                " QCI: " << static_cast<uint32_t> (qci) <<
+                " P: " << static_cast<uint32_t> (P));
+}
+
+void
 NrMacSchedulerUeInfo::ResetDlSchedInfo()
 {
     m_dlMRBRetx = 0;

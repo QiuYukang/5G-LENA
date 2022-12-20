@@ -151,6 +151,18 @@ class NrMacSchedulerUeInfo
      */
     static NrMacHarqVector& GetUlHarqVector(const UePtr& ue);
 
+    /**
+     * \brief Prints information related to the QCI of a UEs LC
+     * \param ue UE for which we want to print the LC info
+     * \param lcgId The logical channel group ID
+     * \param lcId The logical channel ID
+     * \param qci The QCI of this LC
+     * \param P The priority associated to the QCI of this LC
+     * \return
+     */
+    static void PrintLcInfo (uint16_t ue, uint8_t lcgId, uint8_t lcId, uint8_t cqi, uint8_t P);
+
+
     typedef std::function<std::unordered_map<uint8_t, LCGPtr>&(const UePtr& ue)> GetLCGFn;
     typedef std::function<NrMacHarqVector&(const UePtr& ue)> GetHarqVectorFn;
 
