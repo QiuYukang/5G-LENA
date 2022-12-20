@@ -10,19 +10,6 @@
 
 namespace ns3
 {
-
-/**
- * \brief Table of Priorities per QCI, as per TS23.501 Table 5.7.4-1
- */
-static const std::vector<double> prioritiesPerQci = {
-    0, 20, 40, 30, 50, 10, 60, 70, 80, 90, 0, // QCI 0 to 10
-    0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0,  0, 0, 0,  0,  0, 0,  0,  0,  0,  0, 0,
-    0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0,  0, 0, 0,  0,  0, 0,  0,  0,  0,  0, 0,
-    0, 0,  0,  0,  0,  0,  0,  0, // QCI 11 to 64
-    7, 20, 15, 0,  5,  55, 56, 56, 56, 56, 0, 56, 0, 0, 65, 68, 0, 19, 22, 24, 21, 18 // QCI 65 to
-                                                                                      // 86
-};
-
 /**
  * \ingroup scheduler
  * \brief UE representation for a QoS-based scheduler
@@ -170,11 +157,8 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
         auto luePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(lue.first.get());
         auto ruePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(rue.first.get());
 
-        uint8_t leftUeMinQci = CalculateDlMinQci(lue);
-        uint8_t rightUeMinQci = CalculateDlMinQci(rue);
-
-        double leftP = prioritiesPerQci.at(leftUeMinQci);
-        double rightP = prioritiesPerQci.at(rightUeMinQci);
+        double leftP = CalculateDlMinPriority(lue);
+        double rightP = CalculateDlMinPriority(rue);
         NS_ABORT_IF(leftP == 0);
         NS_ABORT_IF(rightP == 0);
 
@@ -208,11 +192,8 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
         auto luePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(lue.first.get());
         auto ruePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(rue.first.get());
 
-        uint8_t leftUeMinQci = CalculateUlMinQci(lue);
-        uint8_t rightUeMinQci = CalculateUlMinQci(rue);
-
-        double leftP = prioritiesPerQci.at(leftUeMinQci);
-        double rightP = prioritiesPerQci.at(rightUeMinQci);
+        double leftP = CalculateUlMinPriority(lue);
+        double rightP = CalculateUlMinPriority(rue);
         NS_ABORT_IF(leftP == 0);
         NS_ABORT_IF(rightP == 0);
 
@@ -225,19 +206,19 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
     }
 
     /**
-     * \brief This function calculates the min QCI.
+     * \brief This function calculates the min Priority for the DL.
      * \param lue Left UE
      * \param rue Right UE
-     * \return true if the QCI of lue is less than the QCI of rue
+     * \return true if the Priority of lue is less than the Priority of rue
      *
-     * The ordering is made by considering the minimum QCI among all the QCIs of
-     * all the LCs set for this UE.
-     * A UE that has a QCI = 1 will always be the first (i.e., has an higher priority)
-     * in a QoS scheduler.
+     * The ordering is made by considering the minimum Priority among all the
+     * Priorities of all the LCs set for this UE.
+     * A UE that has a Priority = 5 will always be the first (i.e., has a higher
+     * priority) in a QoS scheduler.
      */
-    static uint8_t CalculateDlMinQci(const NrMacSchedulerNs3::UePtrAndBufferReq& ue)
+    static uint8_t CalculateDlMinPriority(const NrMacSchedulerNs3::UePtrAndBufferReq& ue)
     {
-        uint8_t ueMinQci = 100;
+        uint8_t ueMinPriority = 100;
 
         for (const auto& ueLcg : ue.first->m_dlLCG)
         {
@@ -247,18 +228,31 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
             {
                 std::unique_ptr<NrMacSchedulerLC>& LCPtr = ueLcg.second->GetLC(lcId);
 
-                if (ueMinQci > LCPtr->m_qci)
+                if (ueMinPriority > LCPtr->m_priority)
                 {
-                    ueMinQci = LCPtr->m_qci;
+                    ueMinPriority = LCPtr->m_priority;
                 }
+
+                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority);
             }
         }
-        return ueMinQci;
+        return ueMinPriority;
     }
 
-    static uint8_t CalculateUlMinQci(const NrMacSchedulerNs3::UePtrAndBufferReq& ue)
+    /**
+     * \brief This function calculates the min Priority for the UL.
+     * \param lue Left UE
+     * \param rue Right UE
+     * \return true if the Priority of lue is less than the Priority of rue
+     *
+     * The ordering is made by considering the minimum Priority among all the
+     * Priorities of all the LCs set for this UE.
+     * A UE that has a Priority = 5 will always be the first (i.e., has a higher
+     * priority) in a QoS scheduler.
+     */
+    static uint8_t CalculateUlMinPriority(const NrMacSchedulerNs3::UePtrAndBufferReq& ue)
     {
-        uint8_t ueMinQci = 100;
+        uint8_t ueMinPriority = 100;
 
         for (const auto& ueLcg : ue.first->m_ulLCG)
         {
@@ -268,13 +262,15 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
             {
                 std::unique_ptr<NrMacSchedulerLC>& LCPtr = ueLcg.second->GetLC(lcId);
 
-                if (ueMinQci > LCPtr->m_qci)
+                if (ueMinPriority > LCPtr->m_priority)
                 {
-                    ueMinQci = LCPtr->m_qci;
+                    ueMinPriority = LCPtr->m_priority;
                 }
+
+                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority);
             }
         }
-        return ueMinQci;
+        return ueMinPriority;
     }
 
     double m_currTputDl{0.0};      //!< Current slot throughput in downlink
