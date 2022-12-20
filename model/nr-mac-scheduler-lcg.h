@@ -70,6 +70,7 @@ class NrMacSchedulerLC
     double m_PER{0.0};               //!< PER of the flow
     bool m_isGbr{false};             //!< Is GBR?
     uint8_t m_qci{0};                //!< QoS Class Identifier of the flow
+    uint8_t m_priority{0};           //!< the priority associated with the QCI of the flow 3GPP 23.203
 };
 
 /**

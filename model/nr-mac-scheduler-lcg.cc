@@ -23,6 +23,7 @@ NrMacSchedulerLC::NrMacSchedulerLC(const LogicalChannelConfigListElement_s& conf
     m_isGbr = bearer.IsGbr();
     m_PER = bearer.GetPacketErrorLossRate();
     m_qci = conf.m_qci;
+    m_priority = bearer.GetPriority();
 }
 
 void
