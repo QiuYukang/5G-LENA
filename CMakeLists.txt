@@ -256,6 +256,7 @@ set(test_sources
     test/nr-power-allocation.cc
     test/nr-test-harq.cc
     utils/traffic-generators/test/traffic-generator-test.cc
+    test/system-scheduler-test-qos.cc
 )
 
 build_lib(
