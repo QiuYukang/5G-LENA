@@ -29,7 +29,7 @@ SystemSchedulerTest::CountPkts([[maybe_unused]] Ptr<const Packet> pkt)
 
 SystemSchedulerTest::SystemSchedulerTest(const std::string& name,
                                          uint32_t usersPerBeamNum,
-                                         uint32_t beamsNum,
+                                         uint32_t numOfBeams,
                                          uint32_t numerology,
                                          double bw1,
                                          bool isDownlnk,
@@ -42,8 +42,8 @@ SystemSchedulerTest::SystemSchedulerTest(const std::string& name,
     m_isDownlink = isDownlnk;
     m_isUplink = isUplink;
     m_usersPerBeamNum = usersPerBeamNum;
-    NS_ABORT_MSG_UNLESS(beamsNum <= 4, "Test program is designed to support up to 4 beams per gNB");
-    m_beamsNum = beamsNum;
+    NS_ABORT_MSG_UNLESS(numOfBeams <= 4, "Test program is designed to support up to 4 beams per gNB");
+    m_numOfBeams = numOfBeams;
     m_schedulerType = schedulerType;
     m_name = name;
 }
@@ -88,7 +88,7 @@ SystemSchedulerTest::DoRun()
     double gNbHeight = 10;
     double ueHeight = 1.5;
     gNbNodes.Create(gNbNum);
-    ueNodes.Create(m_usersPerBeamNum * m_beamsNum * gNbNum);
+    ueNodes.Create(m_usersPerBeamNum * m_numOfBeams * gNbNum);
 
     Ptr<ListPositionAllocator> apPositionAlloc = CreateObject<ListPositionAllocator>();
     Ptr<ListPositionAllocator> staPositionAlloc = CreateObject<ListPositionAllocator>();
@@ -100,7 +100,7 @@ SystemSchedulerTest::DoRun()
     {
         apPositionAlloc->Add(Vector(gNbx, gNby, gNbHeight));
 
-        for (uint32_t beam = 1; beam <= m_beamsNum; beam++)
+        for (uint32_t beam = 1; beam <= m_numOfBeams; beam++)
         {
             for (uint32_t uePerBeamIndex = 0; uePerBeamIndex < m_usersPerBeamNum; uePerBeamIndex++)
             {
