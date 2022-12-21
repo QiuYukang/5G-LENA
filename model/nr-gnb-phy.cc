@@ -741,7 +741,7 @@ NrGnbPhy::StartSlot(const SfnSf& startSlot)
             {
                 VarTtiAllocInfo dlCtrlSlot(m_phySapUser->GetDlCtrlDci());
                 m_currSlotAllocInfo.m_varTtiAllocInfo.push_front(dlCtrlSlot);
-                m_currSlotAllocInfo.m_numSymAlloc += 1;
+                m_currSlotAllocInfo.m_numSymAlloc += m_phySapUser->GetDlCtrlSymbols();
             }
         }
     }

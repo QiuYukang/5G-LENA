@@ -161,6 +161,8 @@ class NrMacEnbMemberPhySapUser : public NrGnbPhySapUser
     std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci() const override;
     std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci() const override;
 
+    uint8_t GetDlCtrlSymbols() const override;
+
   private:
     NrGnbMac* m_mac;
 };
@@ -240,6 +242,12 @@ std::shared_ptr<DciInfoElementTdma>
 NrMacEnbMemberPhySapUser::GetUlCtrlDci() const
 {
     return m_mac->GetUlCtrlDci();
+}
+
+uint8_t
+NrMacEnbMemberPhySapUser::GetDlCtrlSymbols() const
+{
+    return m_mac->GetDlCtrlSyms();
 }
 
 // MAC Sched

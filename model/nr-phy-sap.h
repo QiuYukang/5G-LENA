@@ -260,6 +260,12 @@ class NrGnbPhySapUser
      * \return a pointer to a dci that contains a UL CTRL allocation
      */
     virtual std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci() const = 0;
+
+    /**
+     * \brief Retrieve the DL CTRL symbols
+     * \return the DL CTRL symbols
+     */
+    virtual uint8_t GetDlCtrlSymbols() const = 0;
 };
 
 /**
