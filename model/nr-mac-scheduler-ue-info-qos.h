@@ -143,31 +143,46 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
      * \param rue Right UE
      * \return true if the QoS metric of the left UE is higher than the right UE
      *
-     * The QoS metric is calculated as following:
-     *
+     * The QoS metric is calculated in CalculateDlWeight()
+     */
+    static bool CompareUeWeightsDl(const NrMacSchedulerNs3::UePtrAndBufferReq& lue,
+                                   const NrMacSchedulerNs3::UePtrAndBufferReq& rue)
+    {
+        double lQoSMetric = CalculateDlWeight(lue);
+        double rQoSMetric = CalculateDlWeight(rue);
+
+        return (lQoSMetric > rQoSMetric);
+    }
+
+    /**
+     * \brief comparison function object (i.e. an object that satisfies the
+     * requirements of Compare) which returns ​true if the first argument is less
+     * than (i.e. is ordered before) the second.
+     * \param lue Left UE
      * \f$ qosMetric_{i} = P * std::pow(potentialTPut_{i}, alpha) / std::max (1E-9, m_avgTput_{i})
      * \f$
      *
      * Alpha is a fairness metric. P is the priority associated to the QCI.
      * Please note that the throughput is calculated in bit/symbol.
      */
-    static bool CompareUeWeightsDl(const NrMacSchedulerNs3::UePtrAndBufferReq& lue,
-                                   const NrMacSchedulerNs3::UePtrAndBufferReq& rue)
+    static double CalculateDlWeight(const NrMacSchedulerNs3::UePtrAndBufferReq& ue)
     {
-        auto luePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(lue.first.get());
-        auto ruePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(rue.first.get());
+        double weight = 0;
+        auto uePtr = dynamic_cast<NrMacSchedulerUeInfoQos*>(ue.first.get());
 
-        double leftP = CalculateDlMinPriority(lue);
-        double rightP = CalculateDlMinPriority(rue);
-        NS_ABORT_IF(leftP == 0);
-        NS_ABORT_IF(rightP == 0);
+        for (const auto& ueLcg : ue.first->m_dlLCG)
+        {
+            std::vector<uint8_t> ueActiveLCs = ueLcg.second->GetActiveLCIds();
 
-        double lQoSMetric = (100 - leftP) * std::pow(luePtr->m_potentialTputDl, luePtr->m_alpha) /
-                            std::max(1E-9, luePtr->m_avgTputDl);
-        double rQoSMetric = (100 - rightP) * std::pow(ruePtr->m_potentialTputDl, ruePtr->m_alpha) /
-                            std::max(1E-9, ruePtr->m_avgTputDl);
+            for (const auto lcId : ueActiveLCs)
+            {
+                std::unique_ptr<NrMacSchedulerLC>& LCPtr = ueLcg.second->GetLC(lcId);
 
-        return (lQoSMetric > rQoSMetric);
+                weight += (100 - LCPtr->m_priority) * std::pow(uePtr->m_potentialTputDl, uePtr->m_alpha) /
+                           std::max(1E-9, uePtr->m_avgTputDl);
+            }
+        }
+        return weight;
     }
 
     /**
@@ -233,7 +248,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                     ueMinPriority = LCPtr->m_priority;
                 }
 
-                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority);
+                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority, ueMinPriority);
             }
         }
         return ueMinPriority;
@@ -267,7 +282,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                     ueMinPriority = LCPtr->m_priority;
                 }
 
-                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority);
+                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority, ueMinPriority);
             }
         }
         return ueMinPriority;
