@@ -274,15 +274,19 @@ main(int argc, char* argv[])
 
     uint32_t bwpIdForLowLat = 0;
     uint32_t bwpIdForVoice = 0;
+    uint32_t bwpIdForTcp = 0;
 
     // gNb routing between Bearer and bandwidh part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
                                                  UintegerValue(bwpIdForLowLat));
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
+    nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_PREMIUM",
+                                                 UintegerValue(bwpIdForTcp));
 
     // Ue routing between Bearer and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
+    nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_PREMIUM", UintegerValue(bwpIdForTcp));
 
     /*
      * We have configured the attributes we needed. Now, install and get the pointers
@@ -362,16 +366,19 @@ main(int argc, char* argv[])
      */
     uint16_t dlPortLowLat = 1234;
     uint16_t dlPortVoice = 1235;
+    uint16_t dlPortTcp = 1236;
 
     ApplicationContainer serverApps;
 
     // The sink will always listen to the specified ports
     UdpServerHelper dlPacketSinkLowLat(dlPortLowLat);
     UdpServerHelper dlPacketSinkVoice(dlPortVoice);
+    UdpServerHelper dlPacketSinkTcp(dlPortTcp);
 
     // The server, that is the application which is listening, is installed in the UE
     serverApps.Add(dlPacketSinkLowLat.Install(ueLowLatContainer));
     serverApps.Add(dlPacketSinkVoice.Install(ueVoiceContainer));
+    serverApps.Add(dlPacketSinkTcp.Install(ueVoiceContainer));
 
     /*
      * Configure attributes for the different generators, using user-provided
@@ -412,6 +419,22 @@ main(int argc, char* argv[])
     dlpfVoice.localPortEnd = dlPortVoice;
     voiceTft->Add(dlpfVoice);
 
+    UdpClientHelper dlClientTcp;
+    dlClientTcp.SetAttribute("RemotePort", UintegerValue(dlPortTcp));
+    dlClientTcp.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
+    dlClientTcp.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
+    dlClientTcp.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
+
+    // The bearer that will carry low latency traffic
+    EpsBearer lowLatBearer2(EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
+
+    // The filter for the low-latency traffic
+    Ptr<EpcTft> lowLatTft2 = Create<EpcTft>();
+    EpcTft::PacketFilter dlpfTcp;
+    dlpfTcp.localPortStart = dlPortTcp;
+    dlpfTcp.localPortEnd = dlPortTcp;
+    lowLatTft2->Add(dlpfTcp);
+
     //  Install the applications
     ApplicationContainer clientApps;
 
@@ -441,6 +464,21 @@ main(int argc, char* argv[])
 
         // Activate a dedicated bearer for the traffic type
         nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceTft);
+    }
+
+
+    for (uint32_t i = 0; i < ueVoiceContainer.GetN(); ++i)
+    {
+        Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
+        Address ueAddress = ueVoiceIpIface.GetAddress(i);
+
+        // The client, who is transmitting, is installed in the remote host,
+        // with destination address set to the address of the UE
+        dlClientTcp.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        clientApps.Add(dlClientTcp.Install(remoteHost));
+
+        // Activate a dedicated bearer for the traffic type
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer2, lowLatTft2);
     }
 
     // start UDP server and client apps
