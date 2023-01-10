@@ -52,15 +52,15 @@ BwpManagerGnb::SetBwpManagerAlgorithm(const Ptr<BwpManagerAlgorithm>& algorithm)
     m_algorithm = algorithm;
 }
 
-bool
-BwpManagerGnb::IsGbr(LteMacSapProvider::ReportBufferStatusParameters params)
+uint8_t
+BwpManagerGnb::GetResourceType(LteMacSapProvider::ReportBufferStatusParameters params)
 {
     NS_ASSERT_MSG(m_ueInfo.find(params.rnti) != m_ueInfo.end(),
                   "Trying to check the QoS of unknown UE");
     NS_ASSERT_MSG(m_ueInfo.at(params.rnti).m_rlcLcInstantiated.find(params.lcid) !=
                       m_ueInfo.at(params.rnti).m_rlcLcInstantiated.end(),
                   "Trying to check the QoS of unknown logical channel");
-    return (m_ueInfo[params.rnti].m_rlcLcInstantiated[params.lcid]).isGbr;
+    return (m_ueInfo[params.rnti].m_rlcLcInstantiated[params.lcid]).resourceType;
 }
 
 std::vector<LteCcmRrcSapProvider::LcsConfig>

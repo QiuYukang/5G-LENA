@@ -134,9 +134,10 @@ class BwpManagerGnb : public RrComponentCarrierManager
 
   private:
     /**
-     * \brief Checks if the flow is is GBR.
+     * \brief Get the resource type of the flow.
+     * \returns The resource type
      */
-    bool IsGbr(LteMacSapProvider::ReportBufferStatusParameters params);
+    uint8_t GetResourceType(LteMacSapProvider::ReportBufferStatusParameters params);
 
     Ptr<BwpManagerAlgorithm> m_algorithm; //!< The BWP selection algorithm.
 

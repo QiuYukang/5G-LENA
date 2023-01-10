@@ -20,7 +20,7 @@ NrMacSchedulerLC::NrMacSchedulerLC(const LogicalChannelConfigListElement_s& conf
     EpsBearer bearer(static_cast<EpsBearer::Qci>(conf.m_qci));
 
     m_delayBudget = MilliSeconds(bearer.GetPacketDelayBudgetMs());
-    m_isGbr = bearer.IsGbr();
+    m_resourceType = bearer.GetResourceType();
     m_PER = bearer.GetPacketErrorLossRate();
     m_qci = conf.m_qci;
     m_priority = bearer.GetPriority();
