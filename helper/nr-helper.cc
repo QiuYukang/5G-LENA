@@ -84,7 +84,7 @@ NrHelper::NrHelper()
     m_pathlossModelFactory.SetTypeId(ThreeGppPropagationLossModel::GetTypeId());
     m_channelConditionModelFactory.SetTypeId(ThreeGppChannelConditionModel::GetTypeId());
 
-    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
+    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(18));
 
     m_phyStats = CreateObject<NrPhyRxTrace>();
     m_macSchedStats = CreateObject<NrMacSchedulingStats>();

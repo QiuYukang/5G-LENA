@@ -465,6 +465,168 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
         return m_qciToBwpMap.at(EpsBearer::DGBR_ELECTRICITY);
     }
 
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetLiveUlStream71Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_71] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetLiveUlStream71Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_71);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetLiveUlStream72Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_72] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetLiveUlStream72Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_72);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetLiveUlStream73Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_73] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetLiveUlStream73Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_73);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetLiveUlStream74Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_74] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetLiveUlStream74Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_74);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetLiveUlStream76Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_76] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetLiveUlStream76Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_76);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetInterService87Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::DGBR_INTER_SERV_87] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetInterService87Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::DGBR_INTER_SERV_87);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetInterService88Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::DGBR_INTER_SERV_88] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetInterService88Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::DGBR_INTER_SERV_88);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetVisualContant89Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::DGBR_VISUAL_CONTENT_89] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetVisualContant89Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::DGBR_VISUAL_CONTENT_89);
+    }
+
+    /**
+     * \brief Set BWP index of the QCI in the function name
+     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     */
+    void SetVisualContant90Bwp(uint8_t bwpIndex)
+    {
+        m_qciToBwpMap[EpsBearer::DGBR_VISUAL_CONTENT_90] = bwpIndex;
+    }
+
+    /**
+     * \brief Get the BWP index of the QCI in the function name
+     * \return the BWP index of the selected QCI
+     */
+    uint8_t GetVisualContant90Bwp() const
+    {
+        return m_qciToBwpMap.at(EpsBearer::DGBR_VISUAL_CONTENT_90);
+    }
+
   private:
     /**
      * \brief Map between QCI and BWP
