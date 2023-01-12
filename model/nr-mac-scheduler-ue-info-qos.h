@@ -151,6 +151,9 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
         double lQoSMetric = CalculateDlWeight(lue);
         double rQoSMetric = CalculateDlWeight(rue);
 
+        NS_ASSERT_MSG(lQoSMetric > 0, "Weight must be greater than zero");
+        NS_ASSERT_MSG(rQoSMetric > 0, "Weight must be greater than zero");
+
         return (lQoSMetric > rQoSMetric);
     }
 
@@ -177,12 +180,39 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
             for (const auto lcId : ueActiveLCs)
             {
                 std::unique_ptr<NrMacSchedulerLC>& LCPtr = ueLcg.second->GetLC(lcId);
+                double delayBudgetFactor = 1.0;
 
+                if (LCPtr->m_resourceType == LogicalChannelConfigListElement_s::QBT_DGBR)
+                {
+                    delayBudgetFactor = CalculateDelayBudgetFactor(LCPtr->m_delayBudget.GetMilliSeconds(), LCPtr->m_rlcTransmissionQueueHolDelay);
+                }
                 weight += (100 - LCPtr->m_priority) * std::pow(uePtr->m_potentialTputDl, uePtr->m_alpha) /
-                           std::max(1E-9, uePtr->m_avgTputDl);
+                           std::max(1E-9, uePtr->m_avgTputDl) * delayBudgetFactor;
+                NS_ASSERT_MSG(weight > 0, "Weight must be greater than zero");
             }
         }
         return weight;
+    }
+
+    /**
+     * \brief This function calculates the Delay Budget Factor for the case of
+     * DC-GBR LC. This value will then be used for the calculation of the QoS
+     * metric (weight).
+     * Notice that in order to avoid the case that a packet has not been dropped
+     * when HOL >= PDB, even though it is in this state (currently our code does
+     * not implement packet drop by default), we give very high priority to this
+     * packet. We do this by considering a very small value for the denominator
+     * (i.e. (PDB - HOL) = 0.1).
+     * \param pdb The Packet Delay Budget associated to the QCI
+     * \param hol The HeadOfLine Delay of the transmission queue
+     * \return the delayBudgetFactor
+     */
+    static double CalculateDelayBudgetFactor(uint64_t pdb, uint16_t hol)
+    {
+        double denominator = hol >= pdb ? 0.1 : static_cast<double>(pdb) - static_cast<double>(hol);
+        double delayBudgetFactor = static_cast<double>(pdb)/denominator;
+
+        return delayBudgetFactor;
     }
 
     /**
