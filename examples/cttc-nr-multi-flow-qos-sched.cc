@@ -66,10 +66,11 @@ main(int argc, char* argv[])
     // will pass them inside the NR module.
     uint16_t numerology = 0;
     double centralFrequency = 4e9;
-    double bandwidth = 5e6;
+    double bandwidth = 10e6;
     double totalTxPower = 43;
 
     bool enableOfdma = false;
+    bool enable3Ues = false;
 
     uint8_t priorityTrafficScenario = 0; // default is saturation
 
@@ -108,8 +109,17 @@ main(int argc, char* argv[])
     cmd.AddValue("enableOfdma",
                  "If set to true it enables Ofdma scheduler. Default value is false (Tdma)",
                  enableOfdma);
+    cmd.AddValue("enable3Ues",
+                 "If set to true it sets the number of UEs to 3. Default value is false (2 UEs)",
+                 enable3Ues);
 
     cmd.Parse(argc, argv);
+
+    NS_ABORT_MSG_IF(ueNumPergNb != 2 && enable3Ues, "You cannot define the UE number and set the param for 3 UEs");
+    if (enable3Ues)
+    {
+        ueNumPergNb = 3;
+    }
 
     // enable logging or not
     if (logging)
@@ -173,13 +183,27 @@ main(int argc, char* argv[])
      */
     NodeContainer ueLowLatContainer;
     NodeContainer ueVoiceContainer;
+    NodeContainer ueInterServContainer;
 
-    for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
+    if (enable3Ues)
     {
-        Ptr<Node> ue = gridScenario.GetUserTerminals().Get(j);
-
-        j % 2 == 0 ? ueLowLatContainer.Add(ue) : ueVoiceContainer.Add(ue);
+        Ptr<Node> ue = gridScenario.GetUserTerminals().Get(0);
+        ueLowLatContainer.Add(ue);
+        ue = gridScenario.GetUserTerminals().Get(1);
+        ueVoiceContainer.Add(ue);
+        ue = gridScenario.GetUserTerminals().Get(2);
+        ueInterServContainer.Add(ue);
     }
+    else
+    {
+        for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
+        {
+            Ptr<Node> ue = gridScenario.GetUserTerminals().Get(j);
+
+            j % 2 == 0 ? ueLowLatContainer.Add(ue) : ueVoiceContainer.Add(ue);
+        }
+    }
+
 
     if (priorityTrafficScenario == 1)
     {
@@ -280,13 +304,13 @@ main(int argc, char* argv[])
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
                                                  UintegerValue(bwpIdForLowLat));
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
-    nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_PREMIUM",
+    nrHelper->SetGnbBwpManagerAlgorithmAttribute("DGBR_INTER_SERV_87",
                                                  UintegerValue(bwpIdForTcp));
 
     // Ue routing between Bearer and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
-    nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_PREMIUM", UintegerValue(bwpIdForTcp));
+    nrHelper->SetUeBwpManagerAlgorithmAttribute("DGBR_INTER_SERV_87", UintegerValue(bwpIdForTcp));
 
     /*
      * We have configured the attributes we needed. Now, install and get the pointers
@@ -297,9 +321,22 @@ main(int argc, char* argv[])
     NetDeviceContainer ueLowLatNetDev = nrHelper->InstallUeDevice(ueLowLatContainer, allBwps);
     NetDeviceContainer ueVoiceNetDev = nrHelper->InstallUeDevice(ueVoiceContainer, allBwps);
 
+    NetDeviceContainer ueInterServNetDev;
+    if (enable3Ues)
+    {
+      ueInterServNetDev = nrHelper->InstallUeDevice(ueInterServContainer, allBwps);
+    }
+
+
     randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueLowLatNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueVoiceNetDev, randomStream);
+
+    if (enable3Ues)
+    {
+        randomStream += nrHelper->AssignStreams(ueInterServNetDev, randomStream);
+    }
+
 
     nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("Numerology", UintegerValue(numerology));
     nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(10 * log10(x)));
@@ -317,6 +354,14 @@ main(int argc, char* argv[])
     for (auto it = ueVoiceNetDev.Begin(); it != ueVoiceNetDev.End(); ++it)
     {
         DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
+    }
+
+    if (enable3Ues)
+    {
+        for (auto it = ueInterServNetDev.Begin(); it != ueInterServNetDev.End(); ++it)
+        {
+            DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
+        }
     }
 
     // create the internet and install the IP stack on the UEs
@@ -345,8 +390,14 @@ main(int argc, char* argv[])
 
     Ipv4InterfaceContainer ueLowLatIpIface;
     Ipv4InterfaceContainer ueVoiceIpIface;
+    Ipv4InterfaceContainer ueInterServIpface;
     ueLowLatIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueLowLatNetDev));
     ueVoiceIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueVoiceNetDev));
+
+    if (enable3Ues)
+    {
+       ueInterServIpface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueInterServNetDev));
+    }
 
     // Set the default gateway for the UEs
     for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
@@ -359,6 +410,11 @@ main(int argc, char* argv[])
     // attach UEs to the closest gNB
     nrHelper->AttachToClosestEnb(ueLowLatNetDev, enbNetDev);
     nrHelper->AttachToClosestEnb(ueVoiceNetDev, enbNetDev);
+
+    if (enable3Ues)
+    {
+        nrHelper->AttachToClosestEnb(ueInterServNetDev, enbNetDev);
+    }
 
     /*
      * Traffic part. Install two kind of traffic: low-latency and voice, each
@@ -425,8 +481,8 @@ main(int argc, char* argv[])
     dlClientTcp.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
     dlClientTcp.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
 
-    // The bearer that will carry low latency traffic
-    EpsBearer lowLatBearer2(EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
+    // The bearer that will carry Inter Serv traffic
+    EpsBearer lowLatBearer2(EpsBearer::DGBR_INTER_SERV_87);
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> lowLatTft2 = Create<EpcTft>();
@@ -466,19 +522,37 @@ main(int argc, char* argv[])
         nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceTft);
     }
 
-
-    for (uint32_t i = 0; i < ueVoiceContainer.GetN(); ++i)
+    if (enable3Ues)
     {
-        Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
-        Address ueAddress = ueVoiceIpIface.GetAddress(i);
+        for (uint32_t i = 0; i < ueInterServContainer.GetN(); ++i)
+        {
+            Ptr<NetDevice> ueDevice = ueInterServNetDev.Get(i);
+            Address ueAddress = ueInterServIpface.GetAddress(i);
 
-        // The client, who is transmitting, is installed in the remote host,
-        // with destination address set to the address of the UE
-        dlClientTcp.SetAttribute("RemoteAddress", AddressValue(ueAddress));
-        clientApps.Add(dlClientTcp.Install(remoteHost));
+            // The client, who is transmitting, is installed in the remote host,
+            // with destination address set to the address of the UE
+            dlClientTcp.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+            clientApps.Add(dlClientTcp.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer2, lowLatTft2);
+            // Activate a dedicated bearer for the traffic type
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer2, lowLatTft2);
+        }
+    }
+    else
+    {
+        for (uint32_t i = 0; i < ueVoiceContainer.GetN(); ++i)
+        {
+            Ptr<NetDevice> ueDevice = ueVoiceNetDev.Get(i);
+            Address ueAddress = ueVoiceIpIface.GetAddress(i);
+
+            // The client, who is transmitting, is installed in the remote host,
+            // with destination address set to the address of the UE
+            dlClientTcp.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+            clientApps.Add(dlClientTcp.Install(remoteHost));
+
+            // Activate a dedicated bearer for the traffic type
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer2, lowLatTft2);
+        }
     }
 
     // start UDP server and client apps
