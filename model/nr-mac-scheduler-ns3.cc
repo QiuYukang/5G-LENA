@@ -15,6 +15,7 @@
 #include "nr-mac-scheduler-harq-rr.h"
 #include "nr-mac-scheduler-srs-default.h"
 #include "nr-mac-short-bsr-ce.h"
+#include "nr-mac-scheduler-lc-rr.h"
 
 #include <ns3/boolean.h>
 #include <ns3/eps-bearer.h>
@@ -187,7 +188,13 @@ NrMacSchedulerNs3::GetTypeId()
                           BooleanValue(true),
                           MakeBooleanAccessor(&NrMacSchedulerNs3::EnableHarqReTx,
                                               &NrMacSchedulerNs3::IsHarqReTxEnable),
-                          MakeBooleanChecker());
+                          MakeBooleanChecker())
+            .AddAttribute("SchedLcModelType",
+                          "Type of the scheduling algorithm that assigns bytes to the different LCs.",
+                          TypeIdValue(NrMacSchedulerLcRR::GetTypeId()),
+                          MakeTypeIdAccessor(&NrMacSchedulerNs3::SetLcSched),
+                                             //&NrMacSchedulerNs3::GetLcSched),
+                          MakeTypeIdChecker());
 
     return tid;
 }
@@ -286,6 +293,18 @@ NrMacSchedulerNs3::GetMaxDlMcs() const
 {
     NS_LOG_FUNCTION(this);
     return m_maxDlMcs;
+}
+
+void
+NrMacSchedulerNs3::SetLcSched(const TypeId& type)
+{
+    NS_LOG_FUNCTION(this);
+    ObjectFactory factory;
+    m_schedLcType = type;
+
+    factory.SetTypeId(m_schedLcType);
+    m_schedLc = DynamicCast<NrMacSchedulerLcAlgorithm>(factory.Create());
+    NS_ASSERT(m_schedLc != nullptr);
 }
 
 void
@@ -1309,73 +1328,6 @@ NrMacSchedulerNs3::ComputeActiveUe(ActiveUeMap* activeUe,
 }
 
 /**
- * \brief Method to decide how to distribute the assigned bytes to the different LCs
- * \param ueLCG LCG of an UE
- * \param tbs TBS to divide between the LCG/LC
- * \return A vector of Assignation
- *
- * The method distribute bytes evenly between LCG. This is a default;
- * more advanced methods can be inserted. Please note that the correct way
- * is to move this implementation in a class, and then implementing
- * a different method in a different class. Then, the selection between
- * the implementation should be done with an Attribute.
- *
- * Please don't try to insert if/switch statements here, NOR to make it virtual
- * and to change in the subclasses.
- */
-// Assume LC are unique
-std::vector<NrMacSchedulerNs3::Assignation>
-NrMacSchedulerNs3::AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                   uint32_t tbs) const
-{
-    NS_LOG_FUNCTION(this);
-    GetFirst GetLCGID;
-    GetSecond GetLCG;
-
-    std::vector<Assignation> ret;
-
-    NS_LOG_INFO("To distribute: " << tbs << " bytes over " << ueLCG.size() << " LCG");
-
-    uint32_t activeLc = 0;
-    for (const auto& lcg : ueLCG)
-    {
-        std::vector<uint8_t> lcs = GetLCG(lcg)->GetLCId();
-        for (const auto& lcId : lcs)
-        {
-            if (GetLCG(lcg)->GetTotalSizeOfLC(lcId) > 0)
-            {
-                ++activeLc;
-            }
-        }
-    }
-
-    if (activeLc == 0)
-    {
-        return ret;
-    }
-
-    uint32_t amountPerLC = tbs / activeLc;
-    NS_LOG_INFO("Total LC: " << activeLc << " each one will receive " << amountPerLC << " bytes");
-
-    for (const auto& lcg : ueLCG)
-    {
-        std::vector<uint8_t> lcs = GetLCG(lcg)->GetLCId();
-        for (const auto& lcId : lcs)
-        {
-            if (GetLCG(lcg)->GetTotalSizeOfLC(lcId) > 0)
-            {
-                NS_LOG_INFO("Assigned to LCID " << static_cast<uint32_t>(lcId) << " inside LCG "
-                                                << static_cast<uint32_t>(GetLCGID(lcg))
-                                                << " an amount of " << amountPerLC << " B");
-                ret.emplace_back(Assignation(GetLCGID(lcg), lcId, amountPerLC));
-            }
-        }
-    }
-
-    return ret;
-}
-
-/**
  * \brief Scheduling new DL data
  * \param spoint Starting point of the blocks to add to the allocation list
  * \param symAvail Number of available symbols
@@ -1496,13 +1448,13 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
             ue.first->m_dlHarq.Insert(&id, harqProcess);
             ue.first->m_dlHarq.Get(id).m_dciElement->m_harqProcess = id;
 
-            std::vector<std::vector<Assignation>> bytesPerLcPerStream;
+            std::vector<std::vector<NrMacSchedulerLcAlgorithm::Assignation>> bytesPerLcPerStream;
 
             for (const auto& it : dci->m_tbSize)
             {
                 // distribute tbsize of each stream among the LCs of the UE
                 // distributedBytes size is equal to the number of LCs
-                auto distributedBytes = AssignBytesToLC(ue.first->m_dlLCG, it);
+                auto distributedBytes = m_schedLc->AssignBytesToLC(ue.first->m_dlLCG, it);
                 if (bytesPerLcPerStream.size() == 0)
                 {
                     bytesPerLcPerStream.resize(distributedBytes.size());
@@ -1510,9 +1462,9 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                 for (std::size_t numLc = 0; numLc < distributedBytes.size(); numLc++)
                 {
                     bytesPerLcPerStream.at(numLc).emplace_back(
-                        Assignation(distributedBytes.at(numLc).m_lcg,
-                                    distributedBytes.at(numLc).m_lcId,
-                                    distributedBytes.at(numLc).m_bytes));
+                        NrMacSchedulerLcAlgorithm::Assignation(distributedBytes.at(numLc).m_lcg,
+                                                      distributedBytes.at(numLc).m_lcId,
+                                                      distributedBytes.at(numLc).m_bytes));
                 }
             }
 
@@ -1749,7 +1701,7 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
                                    << static_cast<uint32_t>(dci->m_rv.at(stream)));
             }
 
-            auto distributedBytes = AssignBytesToLC(ue.first->m_ulLCG, dci->m_tbSize.at(0));
+            auto distributedBytes = m_schedLc->AssignBytesToLC(ue.first->m_ulLCG, dci->m_tbSize.at(0));
             bool assignedToLC = false;
             for (const auto& byteDistribution : distributedBytes)
             {

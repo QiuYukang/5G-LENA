@@ -24,6 +24,7 @@ namespace ns3
 class NrSchedGeneralTestCase;
 class NrMacSchedulerHarqRr;
 class NrMacSchedulerSrsDefault;
+class NrMacSchedulerLcAlgorithm;
 
 /**
  * \ingroup scheduler
@@ -423,6 +424,12 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     int8_t GetMaxDlMcs() const;
 
     /**
+     * \brief Set LC Scheduler Algorithm model type
+     * \param type the LC Scheduler Algorithm Error model type
+     */
+    void SetLcSched(const TypeId& type);
+
+    /**
      * \brief Set the starting value for the UL MCS
      * \param v the value
      */
@@ -690,48 +697,6 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     uint64_t GetNumRbPerRbg() const;
 
-    /**
-     * \brief Represent an assignation of bytes to a LCG/LC
-     */
-    struct Assignation
-    {
-        /**
-         * \brief Assignation constructor (deleted)
-         */
-        Assignation() = delete;
-        /**
-         * \brief Assignation copy constructor (deleted)
-         * \param o other instance
-         */
-        Assignation(const Assignation& o) = delete;
-        /**
-         * \brief Assignation move constructor (default)
-         * \param o other instance
-         */
-        Assignation(Assignation&& o) = default;
-
-        /**
-         * \brief Assignation constructor with parameters
-         * \param lcg LCG ID
-         * \param lcId LC ID
-         * \param bytes Assigned bytes
-         */
-        Assignation(uint8_t lcg, uint8_t lcId, uint32_t bytes)
-            : m_lcg(lcg),
-              m_lcId(lcId),
-              m_bytes(bytes)
-        {
-        }
-
-        /**
-         * \brief Default deconstructor
-         */
-        ~Assignation() = default;
-
-        uint8_t m_lcg{0};    //!< LCG ID
-        uint8_t m_lcId{0};   //!< LC ID
-        uint32_t m_bytes{0}; //!< Bytes assigned to the LC
-    };
 
   protected:
     Ptr<NrAmc> m_dlAmc; //!< AMC pointer
@@ -809,9 +774,6 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         uint8_t m_totUlSym;                     //!< Total symbols used for UL
         std::vector<AllocElem> m_ulAllocations; //!< List of UL allocations
     };
-
-    std::vector<Assignation> AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                             uint32_t tbs) const;
 
     void BSRReceivedFromUe(const MacCeElement& bsr);
 
@@ -935,6 +897,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     std::unique_ptr<NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 
     Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
+    Ptr<NrMacSchedulerLcAlgorithm> m_schedLc; //!< Pointer to an instance of the LC scheduling algorithm
+    TypeId m_schedLcType; //!< Type of the LC scheduling algorithm
 
     uint32_t m_srsSlotCounter{0}; //!< Counter for UL slots
 
