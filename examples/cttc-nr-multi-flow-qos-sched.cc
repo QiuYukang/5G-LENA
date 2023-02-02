@@ -235,6 +235,9 @@ main(int argc, char* argv[])
     std::cout << "SchedulerType: " << schedulerType.str() << std::endl;
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName(schedulerType.str()));
 
+    nrHelper->SetSchedulerAttribute("SchedLcAlgorithmType", TypeIdValue(NrMacSchedulerLcQos::GetTypeId()));
+
+
     // Error Model: gNB and UE with same spectrum error model.
     std::string errorModel = "ns3::NrEesmIrT" + std::to_string(mcsTable);
     nrHelper->SetDlErrorModel(errorModel);
