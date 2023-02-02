@@ -77,6 +77,7 @@ set(source_files
     model/nr-mac-scheduler-ue-info-pf.cc
     model/nr-mac-scheduler-lc-alg.cc
     model/nr-mac-scheduler-lc-rr.cc
+    model/nr-mac-scheduler-lc-qos.cc
     model/nr-eesm-error-model.cc
     model/nr-eesm-t1.cc
     model/nr-eesm-t2.cc
@@ -194,6 +195,7 @@ set(header_files
     model/nr-mac-scheduler-ue-info-qos.h
     model/nr-mac-scheduler-lc-alg.h
     model/nr-mac-scheduler-lc-rr.h
+    model/nr-mac-scheduler-lc-qos.h
     model/nr-eesm-error-model.h
     model/nr-eesm-t1.h
     model/nr-eesm-t2.h
