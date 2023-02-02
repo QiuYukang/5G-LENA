@@ -39,6 +39,20 @@ NrMacSchedulerLcRR::GetInstanceTypeId() const
 }
 
 std::vector<NrMacSchedulerLcAlgorithm::Assignation>
+NrMacSchedulerLcRR::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
+                                      uint32_t tbs) const
+{
+    return AssignBytesToLC (ueLCG, tbs);
+}
+
+std::vector<NrMacSchedulerLcAlgorithm::Assignation>
+NrMacSchedulerLcRR::AssignBytesToUlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
+                                      uint32_t tbs) const
+{
+    return AssignBytesToLC (ueLCG, tbs);
+}
+
+std::vector<NrMacSchedulerLcAlgorithm::Assignation>
 NrMacSchedulerLcRR::AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                     uint32_t tbs) const
 {

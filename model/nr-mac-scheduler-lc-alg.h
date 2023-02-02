@@ -25,8 +25,13 @@ namespace ns3
  * Notice that in the past, the AssignBytesToLC was a method of NrMacSchedulerNs3.
  * This however, did not allow other algorithms to be used for the byte distribution.
  * For this, we have moved it to a class and defined the NrMacSchedulerLcRR
- * as the default type so that the default distribution will be done in a Round Robin manner.
- * Other algorithms can be included by implementing additional classes.
+ * as the default type so that the default distribution will be done in a Round Robin
+ * manner. Other algorithms can be included by implementing additional classes.
+ *
+ * Moreover, we have separated the function call into DL and UL direction, due to the
+ * scheduler limitation to distinguish among the various LCs of an LCG (it considers
+ * only the first LC of an LCG). This way we can allow more sophisticated algorithms
+ * to be applied in the DL direction, while the UL can be kept simpler.
  *
  */
 class NrMacSchedulerLcAlgorithm : public Object
@@ -99,12 +104,27 @@ class NrMacSchedulerLcAlgorithm : public Object
 
     /**
      * \brief Method to decide how to distribute the assigned bytes to the different LCs
+     *        for the DL direction. Notice that in the DL more sophisticated algorithms
+     *        can be applied since there is no limitation in the distinction among the
+     *        various LCs as there is in the UL (in the UL the scheduler considers only
+     *        the first created LC inside the same LCG).
      * \param ueLCG LCG of an UE
      * \param tbs TBS to divide between the LCG/LC
      * \return A vector of Assignation
      */
+    virtual std::vector<Assignation> AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
+                                                     uint32_t tbs) const = 0;
 
-    virtual std::vector<Assignation> AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
+    /**
+     * \brief Method to decide how to distribute the assigned bytes to the different LCs
+     *        for the UL direction. Notice that in the UL there is a limitation in the
+     *        distinction among the various LCs since the scheduler considers only the
+     *        first created LC inside the same LCG.
+     * \param ueLCG LCG of an UE
+     * \param tbs TBS to divide between the LCG/LC
+     * \return A vector of Assignation
+     */
+    virtual std::vector<Assignation> AssignBytesToUlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                                      uint32_t tbs) const = 0;
 
 };
