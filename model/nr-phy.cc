@@ -504,7 +504,7 @@ NrPhy::HasDlSlot(const std::vector<LteNrTddSlotType>& pattern)
 {
     for (const auto& v : pattern)
     {
-        if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::DL)
+        if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::DL || v == LteNrTddSlotType::S)
         {
             return true;
         }
@@ -517,7 +517,7 @@ NrPhy::HasUlSlot(const std::vector<LteNrTddSlotType>& pattern)
 {
     for (const auto& v : pattern)
     {
-        if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::UL)
+        if (v == LteNrTddSlotType::F || v == LteNrTddSlotType::UL || v == LteNrTddSlotType::S)
         {
             return true;
         }

@@ -242,7 +242,7 @@ ReturnHarqSlot(const std::vector<LteNrTddSlotType>& pattern, uint32_t pos, uint3
 
     uint32_t index = modulo(static_cast<int>(pos) + k1, static_cast<uint32_t>(pattern.size()));
 
-    while (pattern[index] < LteNrTddSlotType::F)
+    while (pattern[index] < LteNrTddSlotType::S)
     {
         k1++;
         index = modulo(static_cast<int>(pos) + k1, static_cast<uint32_t>(pattern.size()));
