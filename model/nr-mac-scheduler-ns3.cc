@@ -2119,7 +2119,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
     GetSecond GetUeInfoList;
     for (const auto& alloc : allocInfo->m_varTtiAllocInfo)
     {
-        for (auto it = activeUlUe.begin(); it != activeUlUe.end(); ++it)
+        for (auto it = activeUlUe.begin(); it != activeUlUe.end(); /* no incr */)
         {
             auto& ueInfos = GetUeInfoList(*it);
             for (auto ueIt = ueInfos.begin(); ueIt != ueInfos.end(); /* no incr */)
@@ -2137,6 +2137,15 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
                 {
                     ++ueIt;
                 }
+            }
+            if (ueInfos.size() > 0)
+            {
+                ++it;
+            }
+            else
+            {
+                activeUlUe.erase(it);
+                break;
             }
         }
     }
@@ -2365,7 +2374,7 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
 
     for (const auto& alloc : allocInfo->m_varTtiAllocInfo)
     {
-        for (auto it = activeDlUe->begin(); it != activeDlUe->end(); ++it)
+        for (auto it = activeDlUe->begin(); it != activeDlUe->end(); /* no incr */)
         {
             auto& ueInfos = GetUeInfoList(*it);
             for (auto ueIt = ueInfos.begin(); ueIt != ueInfos.end(); /* no incr */)
@@ -2383,6 +2392,15 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
                 {
                     ++ueIt;
                 }
+            }
+            if (ueInfos.size() > 0)
+            {
+                ++it;
+            }
+            else
+            {
+                activeDlUe->erase(it);
+                break;
             }
         }
     }
