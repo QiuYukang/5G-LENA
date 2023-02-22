@@ -14,37 +14,44 @@ namespace ns3
 {
 
 PhasedArrayModel::ComplexVector
-CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns)
+CreateQuasiOmniBfv(const Ptr<const UniformPlanarArray>& antenna)
 {
-    uint32_t size = antennaRows * antennaColumns;
-    double power = 1 / sqrt(size);
-    PhasedArrayModel::ComplexVector omni(size);
-    uint16_t bfIndex = 0;
-    for (uint32_t ind = 0; ind < antennaRows; ind++)
-    {
-        std::complex<double> c = 0.0;
-        if (antennaRows % 2 == 0)
-        {
-            c = exp(std::complex<double>(0, M_PI * ind * ind / antennaRows));
-        }
-        else
-        {
-            c = exp(std::complex<double>(0, M_PI * ind * (ind + 1) / antennaRows));
-        }
+    auto antennaRows = antenna->GetNumRows();
+    auto antennaColumns = antenna->GetNumColumns();
+    auto numElemsPerPort = antenna->GetNumElemsPerPort();
 
-        for (uint32_t ind2 = 0; ind2 < antennaColumns; ind2++)
+    double power = 1 / sqrt(numElemsPerPort);
+    size_t numPolarizations = antenna->IsDualPol() ? 2 : 1;
+
+    PhasedArrayModel::ComplexVector omni(antennaRows * antennaColumns * numPolarizations);
+    uint16_t bfIndex = 0;
+    for (size_t pol = 0; pol < numPolarizations; pol++)
+    {
+        for (uint32_t ind = 0; ind < antennaRows; ind++)
         {
-            std::complex<double> d = 0.0;
-            if (antennaColumns % 2 == 0)
+            std::complex<double> c = 0.0;
+            if (antennaRows % 2 == 0)
             {
-                d = exp(std::complex<double>(0, M_PI * ind2 * ind2 / antennaColumns));
+                c = exp(std::complex<double>(0, M_PI * ind * ind / antennaRows));
             }
             else
             {
-                d = exp(std::complex<double>(0, M_PI * ind2 * (ind2 + 1) / antennaColumns));
+                c = exp(std::complex<double>(0, M_PI * ind * (ind + 1) / antennaRows));
             }
-            omni[bfIndex] = (c * d * power);
-            bfIndex++;
+            for (uint32_t ind2 = 0; ind2 < antennaColumns; ind2++)
+            {
+                std::complex<double> d = 0.0;
+                if (antennaColumns % 2 == 0)
+                {
+                    d = exp(std::complex<double>(0, M_PI * ind2 * ind2 / antennaColumns));
+                }
+                else
+                {
+                    d = exp(std::complex<double>(0, M_PI * ind2 * (ind2 + 1) / antennaColumns));
+                }
+                omni[bfIndex] = (c * d * power);
+                bfIndex++;
+            }
         }
     }
     return omni;
@@ -63,23 +70,17 @@ CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
         0.5 * M_PI;
     double vAngle_radian = elevation * M_PI / 180;
     uint16_t size = antenna->GetNumElems();
-    double power = 1 / sqrt(size);
     PhasedArrayModel::ComplexVector tempVector(size);
-    if (size == 1)
+    auto numAnalogBeamElements = (antenna->GetVElemsPerPort() * antenna->GetHElemsPerPort());
+    auto power = 1.0 / sqrt(numAnalogBeamElements);
+    for (auto ind = 0; ind < size; ind++)
     {
-        tempVector[0] = power; // single AE, no BF
-    }
-    else
-    {
-        for (auto ind = 0; ind < size; ind++)
-        {
-            Vector loc = antenna->GetElementLocation(ind);
-            double phase =
-                -2 * M_PI *
-                (sin(vAngle_radian) * cos(hAngle_radian) * loc.x +
-                 sin(vAngle_radian) * sin(hAngle_radian) * loc.y + cos(vAngle_radian) * loc.z);
-            tempVector[ind] = (exp(std::complex<double>(0, phase)) * power);
-        }
+        Vector loc = antenna->GetElementLocation(ind);
+        double phase =
+            -2 * M_PI *
+            (sin(vAngle_radian) * cos(hAngle_radian) * loc.x +
+             sin(vAngle_radian) * sin(hAngle_radian) * loc.y + cos(vAngle_radian) * loc.z);
+        tempVector[ind] = (exp(std::complex<double>(0, phase)) * power);
     }
     return tempVector;
 }
@@ -132,9 +133,10 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
 
     // retrieve the number of antenna elements
     int totNoArrayElements = antenna->GetNumElems();
+    auto numElemsPerPort = antenna->GetNumElemsPerPort();
 
     // the total power is divided equally among the antenna elements
-    double power = 1 / sqrt(totNoArrayElements);
+    double power = 1 / sqrt(numElemsPerPort);
 
     PhasedArrayModel::ComplexVector antennaWeights(totNoArrayElements);
     // compute the antenna weights

@@ -681,7 +681,7 @@ NrRadioEnvironmentMapHelper::ConfigureQuasiOmniBfv(RemDevice& device)
     device.antenna->GetAttribute("NumRows", numRows);
     device.antenna->GetAttribute("NumColumns", numColumns);
     // configure RRD antenna to have quasi omni beamforming vector
-    device.antenna->SetBeamformingVector(CreateQuasiOmniBfv(numRows.Get(), numColumns.Get()));
+    device.antenna->SetBeamformingVector(CreateQuasiOmniBfv(device.antenna));
 }
 
 void

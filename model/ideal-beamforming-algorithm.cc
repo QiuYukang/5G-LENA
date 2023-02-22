@@ -558,16 +558,13 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
     UintegerValue numColumns;
     gnbAntenna->GetAttribute("NumRows", numRows);
     gnbAntenna->GetAttribute("NumColumns", numColumns);
-    BeamformingVector gnbBfv =
-        std::make_pair(CreateQuasiOmniBfv(numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
+    BeamformingVector gnbBfv = {CreateQuasiOmniBfv(gnbAntenna), OMNI_BEAM_ID};
 
     // configure UE beamforming vector to be directed towards gNB
     PhasedArrayModel::ComplexVector ueAntennaWeights =
         CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbSpectrumPhy->GetMobility(), ueAntenna);
     // store the antenna weights
-    BeamformingVector ueBfv =
-        BeamformingVector(std::make_pair(ueAntennaWeights, BeamId::GetEmptyBeamId()));
-
+    BeamformingVector ueBfv = BeamformingVector({ueAntennaWeights, BeamId::GetEmptyBeamId()});
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
 }
 
@@ -595,8 +592,7 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
     UintegerValue numColumns;
     ueAntenna->GetAttribute("NumRows", numRows);
     ueAntenna->GetAttribute("NumColumns", numColumns);
-    BeamformingVector ueBfv =
-        std::make_pair(CreateQuasiOmniBfv(numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
+    BeamformingVector ueBfv = {CreateQuasiOmniBfv(ueAntenna), OMNI_BEAM_ID};
 
     // configure gNB beamforming vector to be directed towards UE
     PhasedArrayModel::ComplexVector gnbAntennaWeights =
@@ -604,8 +600,7 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
                             ueSpectrumPhy->GetMobility(),
                             gnbAntenna);
     // store the antenna weights
-    BeamformingVector gnbBfv =
-        BeamformingVector(std::make_pair(gnbAntennaWeights, BeamId::GetEmptyBeamId()));
+    BeamformingVector gnbBfv = {gnbAntennaWeights, BeamId::GetEmptyBeamId()};
 
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
 }

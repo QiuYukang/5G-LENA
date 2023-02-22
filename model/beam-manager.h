@@ -156,6 +156,8 @@ class BeamManager : public Object
                            //!< quasi omni beamforming vector
     uint32_t m_numColumns{0};      //!< Number of columns of antenna array for which is calculated
                                    //!< current quasi omni beamforming vector
+    uint32_t m_numPortElems{0};    //!< Number of analog antenna elements per antenna port
+    bool m_isPolDual{false};       //!< True if the antenna array has dual polarized antennas
     BeamformingVector m_omniTxRxW; //!< Beamforming vector that emulates omnidirectional
                                    //!< transmission and reception
     BeamformingStorage m_beamformingVectorMap; //!< device to beamforming vector mapping

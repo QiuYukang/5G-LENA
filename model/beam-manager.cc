@@ -160,11 +160,14 @@ BeamManager::ChangeToQuasiOmniBeamformingVector()
      * We want to avoid recalculations, if these numbers didn't
      * change. Which will normally be the case.
      */
-    if (numRows.Get() != m_numRows || numColumns.Get() != m_numColumns)
+    if (numRows.Get() != m_numRows || numColumns.Get() != m_numColumns ||
+        m_isPolDual != m_antennaArray->IsDualPol())
     {
+        m_isPolDual = m_antennaArray->IsDualPol();
+        m_numPortElems = m_antennaArray->GetNumElemsPerPort();
         m_numRows = numRows.Get();
         m_numColumns = numColumns.Get();
-        m_omniTxRxW = std::make_pair(CreateQuasiOmniBfv(m_numRows, m_numColumns), OMNI_BEAM_ID);
+        m_omniTxRxW = std::make_pair(CreateQuasiOmniBfv(m_antennaArray), OMNI_BEAM_ID);
     }
 
     m_antennaArray->SetBeamformingVector(m_omniTxRxW.first);
