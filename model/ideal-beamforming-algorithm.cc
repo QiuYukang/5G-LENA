@@ -110,8 +110,8 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
     double maxRxTheta = 0;
     uint16_t maxTxSector = 0;
     uint16_t maxRxSector = 0;
-    complexVector_t maxTxW;
-    complexVector_t maxRxW;
+    PhasedArrayModel::ComplexVector maxTxW;
+    PhasedArrayModel::ComplexVector maxRxW;
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
@@ -131,9 +131,10 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
             NS_ASSERT(txSector < UINT16_MAX);
 
             gnbSpectrumPhy->GetBeamManager()->SetSector(txSector, txTheta);
-            complexVector_t txW = gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
+            PhasedArrayModel::ComplexVector txW =
+                gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-            if (maxTxW.size() == 0)
+            if (maxTxW.GetSize() == 0)
             {
                 maxTxW = txW; // initialize maxTxW
             }
@@ -146,15 +147,15 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                     NS_ASSERT(rxSector < UINT16_MAX);
 
                     ueSpectrumPhy->GetBeamManager()->SetSector(rxSector, rxTheta);
-                    complexVector_t rxW =
+                    PhasedArrayModel::ComplexVector rxW =
                         ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-                    if (maxRxW.size() == 0)
+                    if (maxRxW.GetSize() == 0)
                     {
                         maxRxW = rxW; // initialize maxRxW
                     }
 
-                    NS_ABORT_MSG_IF(txW.size() == 0 || rxW.size() == 0,
+                    NS_ABORT_MSG_IF(txW.GetSize() == 0 || rxW.GetSize() == 0,
                                     "Beamforming vectors must be initialized in order to calculate "
                                     "the long term matrix.");
 
@@ -211,7 +212,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
         << (M_PI * static_cast<double>(maxRxSector) / static_cast<double>(rxNumRows) - 0.5 * M_PI) /
                (M_PI)*180);
 
-    NS_ASSERT(maxTxW.size() && maxRxW.size());
+    NS_ASSERT(maxTxW.GetSize() && maxRxW.GetSize());
 
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
 }
@@ -269,8 +270,8 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
     double maxRxAzimuth = 0;
     double maxTxZenith = 0;
     double maxRxZenith = 0;
-    complexVector_t maxTxW;
-    complexVector_t maxRxW;
+    PhasedArrayModel::ComplexVector maxTxW;
+    PhasedArrayModel::ComplexVector maxRxW;
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
@@ -287,9 +288,10 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
             double zenithTx = m_zenith[ii];
 
             gnbSpectrumPhy->GetBeamManager()->SetSectorAz(azimuthTx, zenithTx);
-            complexVector_t txW = gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
+            PhasedArrayModel::ComplexVector txW =
+                gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-            if (maxTxW.size() == 0)
+            if (maxTxW.GetSize() == 0)
             {
                 maxTxW = txW; // initialize maxTxW
             }
@@ -302,15 +304,15 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
                     double zenithRx = m_zenith[iiii];
 
                     ueSpectrumPhy->GetBeamManager()->SetSectorAz(azimuthRx, zenithRx);
-                    complexVector_t rxW =
+                    PhasedArrayModel::ComplexVector rxW =
                         ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-                    if (maxRxW.size() == 0)
+                    if (maxRxW.GetSize() == 0)
                     {
                         maxRxW = rxW; // initialize maxRxW
                     }
 
-                    NS_ABORT_MSG_IF(txW.size() == 0 || rxW.size() == 0,
+                    NS_ABORT_MSG_IF(txW.GetSize() == 0 || rxW.GetSize() == 0,
                                     "Beamforming vectors must be initialized in "
                                     "order to calculate the long term matrix.");
 
@@ -356,7 +358,7 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
                  << maxTxAzimuth << " zenithTx " << maxTxZenith << " azimuthRx " << maxRxAzimuth
                  << " zenithRx " << maxRxZenith);
 
-    NS_ASSERT(maxTxW.size() && maxRxW.size());
+    NS_ASSERT(maxTxW.GetSize() && maxRxW.GetSize());
 
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
 }
@@ -425,7 +427,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
     double max = 0;
     double maxTxTheta = 0;
     uint16_t maxTxSector = 0;
-    complexVector_t maxTxW;
+    PhasedArrayModel::ComplexVector maxTxW;
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
@@ -436,7 +438,8 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
                                                 // we can perform calculations when calling spectrum
                                                 // model above
 
-    complexVector_t rxW = ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
+    PhasedArrayModel::ComplexVector rxW =
+        ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
     BeamformingVector ueBfv = std::make_pair(rxW, OMNI_BEAM_ID);
 
     uint16_t numRows = static_cast<uint16_t>(txNumRows);
@@ -447,9 +450,10 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
             NS_ASSERT(txSector < UINT16_MAX);
 
             gnbSpectrumPhy->GetBeamManager()->SetSector(txSector, txTheta);
-            complexVector_t txW = gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
+            PhasedArrayModel::ComplexVector txW =
+                gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-            NS_ABORT_MSG_IF(txW.size() == 0 || rxW.size() == 0,
+            NS_ABORT_MSG_IF(txW.GetSize() == 0 || rxW.GetSize() == 0,
                             "Beamforming vectors must be initialized in order to calculate the "
                             "long term matrix.");
             Ptr<SpectrumValue> rxPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
@@ -512,14 +516,15 @@ DirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectr
     Ptr<const UniformPlanarArray> ueAntenna =
         ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
 
-    complexVector_t gNbAntennaWeights = CreateDirectPathBfv(gnbSpectrumPhy->GetMobility(),
-                                                            ueSpectrumPhy->GetMobility(),
-                                                            gnbAntenna);
+    PhasedArrayModel::ComplexVector gNbAntennaWeights =
+        CreateDirectPathBfv(gnbSpectrumPhy->GetMobility(),
+                            ueSpectrumPhy->GetMobility(),
+                            gnbAntenna);
     // store the antenna weights
     BeamformingVector gnbBfv =
         BeamformingVector(std::make_pair(gNbAntennaWeights, BeamId::GetEmptyBeamId()));
 
-    complexVector_t ueAntennaWeights =
+    PhasedArrayModel::ComplexVector ueAntennaWeights =
         CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbSpectrumPhy->GetMobility(), ueAntenna);
     // store the antenna weights
     BeamformingVector ueBfv =
@@ -556,7 +561,7 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
         std::make_pair(CreateQuasiOmniBfv(numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
 
     // configure UE beamforming vector to be directed towards gNB
-    complexVector_t ueAntennaWeights =
+    PhasedArrayModel::ComplexVector ueAntennaWeights =
         CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbSpectrumPhy->GetMobility(), ueAntenna);
     // store the antenna weights
     BeamformingVector ueBfv =
@@ -593,9 +598,10 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
         std::make_pair(CreateQuasiOmniBfv(numRows.Get(), numColumns.Get()), OMNI_BEAM_ID);
 
     // configure gNB beamforming vector to be directed towards UE
-    complexVector_t gnbAntennaWeights = CreateDirectPathBfv(gnbSpectrumPhy->GetMobility(),
-                                                            ueSpectrumPhy->GetMobility(),
-                                                            gnbAntenna);
+    PhasedArrayModel::ComplexVector gnbAntennaWeights =
+        CreateDirectPathBfv(gnbSpectrumPhy->GetMobility(),
+                            ueSpectrumPhy->GetMobility(),
+                            gnbAntenna);
     // store the antenna weights
     BeamformingVector gnbBfv =
         BeamformingVector(std::make_pair(gnbAntennaWeights, BeamId::GetEmptyBeamId()));

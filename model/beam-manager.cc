@@ -34,7 +34,7 @@ BeamManager::Configure(const Ptr<UniformPlanarArray>& antennaArray)
     ChangeToQuasiOmniBeamformingVector();
 }
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 BeamManager::GetVector(const BeamformingVector& v) const
 {
     return v.first;
@@ -66,11 +66,11 @@ BeamManager::GetTypeId()
 }
 
 void
-BeamManager::SetPredefinedBeam(complexVector_t predefinedBeam)
+BeamManager::SetPredefinedBeam(PhasedArrayModel::ComplexVector predefinedBeam)
 {
     NS_LOG_FUNCTION(this);
-    NS_ABORT_MSG_IF(predefinedBeam.size() == 0, "Cannot assign an empty predefined beam");
-    NS_ABORT_MSG_IF(predefinedBeam.size() != m_antennaArray->GetNumberOfElements(),
+    NS_ABORT_MSG_IF(predefinedBeam.GetSize() == 0, "Cannot assign an empty predefined beam");
+    NS_ABORT_MSG_IF(predefinedBeam.GetSize() != m_antennaArray->GetNumberOfElements(),
                     "Cannot assign a predefined beamforming vector whose dimension is not "
                     "compatible with antenna array");
     m_predefinedDirTxRxW = std::make_pair(predefinedBeam, PREDEFINED_BEAM_ID);
@@ -90,7 +90,7 @@ BeamManager::SaveBeamformingVector(const BeamformingVector& bfv, const Ptr<const
     NS_LOG_INFO("Save beamforming vector toward device with node id:"
                 << device->GetNode()->GetId() << " with BeamId:" << bfv.second);
 
-    if (m_predefinedDirTxRxW.first.size() != 0)
+    if (m_predefinedDirTxRxW.first.GetSize() != 0)
     {
         NS_LOG_WARN("Saving beamforming vector for device, while there is also a predefined "
                     "beamforming vector defined to be used for all transmissions.");
@@ -122,7 +122,7 @@ BeamManager::ChangeBeamformingVector(const Ptr<const NetDevice>& device)
 
         // if there is no beam defined for this specific device then use a
         // predefined beam if specified and if not, then use quasi omni
-        if (m_predefinedDirTxRxW.first.size() != 0)
+        if (m_predefinedDirTxRxW.first.GetSize() != 0)
         {
             m_antennaArray->SetBeamformingVector(m_predefinedDirTxRxW.first);
         }
@@ -138,7 +138,7 @@ BeamManager::ChangeBeamformingVector(const Ptr<const NetDevice>& device)
     }
 }
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 BeamManager::GetCurrentBeamformingVector()
 {
     return m_antennaArray->GetBeamformingVector();
@@ -171,11 +171,11 @@ BeamManager::ChangeToQuasiOmniBeamformingVector()
     m_antennaArray->SetBeamformingVector(m_omniTxRxW.first);
 }
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 BeamManager::GetBeamformingVector(const Ptr<NetDevice>& device) const
 {
     NS_LOG_FUNCTION(this);
-    complexVector_t beamformingVector;
+    PhasedArrayModel::ComplexVector beamformingVector;
     BeamformingStorage::const_iterator it = m_beamformingVectorMap.find(device);
     if (it != m_beamformingVectorMap.end())
     {
@@ -185,7 +185,7 @@ BeamManager::GetBeamformingVector(const Ptr<NetDevice>& device) const
     {
         // it there is no specific beam saved for this device, check
         // whether we have a predefined beam set, if yes return its vector
-        if (m_predefinedDirTxRxW.first.size() != 0)
+        if (m_predefinedDirTxRxW.first.GetSize() != 0)
         {
             beamformingVector = m_predefinedDirTxRxW.first;
         }
@@ -210,7 +210,7 @@ BeamManager::GetBeamId(const Ptr<NetDevice>& device) const
     {
         // it there is no specific beam saved for this device, check
         // whether we have a predefined beam set, if yes return its ID
-        if (m_predefinedDirTxRxW.first.size() != 0)
+        if (m_predefinedDirTxRxW.first.GetSize() != 0)
         {
             beamId = m_predefinedDirTxRxW.second;
         }

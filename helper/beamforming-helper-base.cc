@@ -52,7 +52,7 @@ BeamformingHelperBase::RunTask(const Ptr<NrGnbNetDevice>& gNbDev,
                                                  << " and UE:" << ueDev->GetNode()->GetId());
     BeamformingVectorPair bfPair = GetBeamformingVectors(gnbSpectrumPhy, ueSpectrumPhy);
 
-    NS_ASSERT(bfPair.first.first.size() && bfPair.second.first.size());
+    NS_ASSERT(bfPair.first.first.GetSize() && bfPair.second.first.GetSize());
     gnbSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.first, ueDev);
     ueSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.second, gNbDev);
     ueSpectrumPhy->GetBeamManager()->ChangeBeamformingVector(gNbDev);

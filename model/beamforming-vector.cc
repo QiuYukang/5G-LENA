@@ -13,12 +13,13 @@
 namespace ns3
 {
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns)
 {
-    complexVector_t omni;
     uint32_t size = antennaRows * antennaColumns;
     double power = 1 / sqrt(size);
+    PhasedArrayModel::ComplexVector omni(size);
+    uint16_t bfIndex = 0;
     for (uint32_t ind = 0; ind < antennaRows; ind++)
     {
         std::complex<double> c = 0.0;
@@ -42,20 +43,18 @@ CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns)
             {
                 d = exp(std::complex<double>(0, M_PI * ind2 * (ind2 + 1) / antennaColumns));
             }
-
-            omni.push_back(c * d * power);
+            omni[bfIndex] = (c * d * power);
+            bfIndex++;
         }
     }
     return omni;
 }
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
                      uint16_t sector,
                      double elevation)
 {
-    complexVector_t tempVector;
-
     UintegerValue uintValueNumRows;
     antenna->GetAttribute("NumRows", uintValueNumRows);
 
@@ -65,9 +64,10 @@ CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
     double vAngle_radian = elevation * M_PI / 180;
     uint16_t size = antenna->GetNumberOfElements();
     double power = 1 / sqrt(size);
+    PhasedArrayModel::ComplexVector tempVector(size);
     if (size == 1)
     {
-        tempVector.push_back(power); // single AE, no BF
+        tempVector[0] = power; // single AE, no BF
     }
     else
     {
@@ -78,17 +78,15 @@ CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
                 -2 * M_PI *
                 (sin(vAngle_radian) * cos(hAngle_radian) * loc.x +
                  sin(vAngle_radian) * sin(hAngle_radian) * loc.y + cos(vAngle_radian) * loc.z);
-            tempVector.push_back(exp(std::complex<double>(0, phase)) * power);
+            tempVector[ind] = (exp(std::complex<double>(0, phase)) * power);
         }
     }
     return tempVector;
 }
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna, double azimuth, double zenith)
 {
-    complexVector_t tempVector;
-
     UintegerValue uintValueNumRows;
     antenna->GetAttribute("NumRows", uintValueNumRows);
 
@@ -96,9 +94,10 @@ CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna, double azim
     double vAngle_radian = zenith * M_PI / 180;
     uint16_t size = antenna->GetNumberOfElements();
     double power = 1 / sqrt(size);
+    PhasedArrayModel::ComplexVector tempVector(size);
     if (size == 1)
     {
-        tempVector.push_back(power); // single AE, no BF
+        tempVector[0] = power; // single AE, no BF
     }
     else
     {
@@ -109,19 +108,17 @@ CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna, double azim
                 -2 * M_PI *
                 (sin(vAngle_radian) * cos(hAngle_radian) * loc.x +
                  sin(vAngle_radian) * sin(hAngle_radian) * loc.y + cos(vAngle_radian) * loc.z);
-            tempVector.push_back(exp(std::complex<double>(0, phase)) * power);
+            tempVector[ind] = exp(std::complex<double>(0, phase)) * power;
         }
     }
     return tempVector;
 }
 
-complexVector_t
+PhasedArrayModel::ComplexVector
 CreateDirectPathBfv(const Ptr<MobilityModel>& a,
                     const Ptr<MobilityModel>& b,
                     const Ptr<const UniformPlanarArray>& antenna)
 {
-    complexVector_t antennaWeights;
-
     // retrieve the position of the two devices
     Vector aPos = a->GetPosition();
     Vector bPos = b->GetPosition();
@@ -139,6 +136,7 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
     // the total power is divided equally among the antenna elements
     double power = 1 / sqrt(totNoArrayElements);
 
+    PhasedArrayModel::ComplexVector antennaWeights(totNoArrayElements);
     // compute the antenna weights
     for (int ind = 0; ind < totNoArrayElements; ind++)
     {
@@ -146,7 +144,7 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
         double phase = -2 * M_PI *
                        (sin(vAngleRadian) * cos(hAngleRadian) * loc.x +
                         sin(vAngleRadian) * sin(hAngleRadian) * loc.y + cos(vAngleRadian) * loc.z);
-        antennaWeights.push_back(exp(std::complex<double>(0, phase)) * power);
+        antennaWeights[ind] = exp(std::complex<double>(0, phase)) * power;
     }
 
     return antennaWeights;

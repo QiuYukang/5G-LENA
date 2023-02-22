@@ -15,8 +15,6 @@
 namespace ns3
 {
 
-typedef std::vector<std::complex<double>> complexVector_t; //!< type definition for complex vectors
-
 /**
  * \ingroup utils
  * \brief Physical representation of a beam.
@@ -28,7 +26,7 @@ typedef std::vector<std::complex<double>> complexVector_t; //!< type definition 
  * \see GetVector
  * \see GetBeamId
  */
-typedef std::pair<complexVector_t, BeamId> BeamformingVector;
+typedef std::pair<PhasedArrayModel::ComplexVector, BeamId> BeamformingVector;
 
 typedef std::pair<BeamformingVector, BeamformingVector> BeamformingVectorPair;
 
@@ -39,7 +37,7 @@ typedef std::pair<BeamformingVector, BeamformingVector> BeamformingVectorPair;
  * \param antennaColumns Number of columns in the antenna array
  * \return the beamforming vector
  */
-complexVector_t CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns);
+PhasedArrayModel::ComplexVector CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns);
 
 /**
  * \brief Creates a beamforming vector for a given sector and elevation
@@ -49,9 +47,9 @@ complexVector_t CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns
  * \param elevation elevation to be used
  * \return the beamforming vector
  */
-complexVector_t CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
-                                     uint16_t sector,
-                                     double elevation);
+PhasedArrayModel::ComplexVector CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
+                                                     uint16_t sector,
+                                                     double elevation);
 
 /**
  * \brief Creates a beamforming vector for a given azimuth and zenith
@@ -61,9 +59,9 @@ complexVector_t CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenn
  * \param zenith zenith to be used
  * \return the beamforming vector
  */
-complexVector_t CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna,
-                                       double azimuth,
-                                       double zenith);
+PhasedArrayModel::ComplexVector CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna,
+                                                       double azimuth,
+                                                       double zenith);
 
 /**
  * \brief Get directs path beamforming vector bfv for a device with the mobility model
@@ -73,9 +71,9 @@ complexVector_t CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& ante
  * \param [in] antenna antenaArray of the first device
  * \return the resulting beamforming vector for antenna array for the first device
  */
-complexVector_t CreateDirectPathBfv(const Ptr<MobilityModel>& a,
-                                    const Ptr<MobilityModel>& b,
-                                    const Ptr<const UniformPlanarArray>& antenna);
+PhasedArrayModel::ComplexVector CreateDirectPathBfv(const Ptr<MobilityModel>& a,
+                                                    const Ptr<MobilityModel>& b,
+                                                    const Ptr<const UniformPlanarArray>& antenna);
 
 } // namespace ns3
 

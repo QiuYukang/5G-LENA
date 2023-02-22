@@ -50,8 +50,6 @@ DoBeamforming(Ptr<NetDevice> thisDevice,
               Ptr<UniformPlanarArray> thisAntenna,
               Ptr<NetDevice> otherDevice)
 {
-    UniformPlanarArray::ComplexVector antennaWeights;
-
     // retrieve the position of the two devices
     Vector aPos = thisDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
     Vector bPos = otherDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -76,11 +74,11 @@ DoBeamforming(Ptr<NetDevice> thisDevice,
 
     // retrieve the number of antenna elements
     unsigned int totNoArrayElements = thisAntenna->GetNumberOfElements();
-    antennaWeights.resize(totNoArrayElements);
 
     // the total power is divided equally among the antenna elements
     double power = 1 / sqrt(totNoArrayElements);
 
+    UniformPlanarArray::ComplexVector antennaWeights(totNoArrayElements);
     // compute the antenna weights
     for (unsigned int ind = 0; ind < totNoArrayElements; ind++)
     {

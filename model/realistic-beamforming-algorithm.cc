@@ -233,7 +233,7 @@ void
 RealisticBeamformingAlgorithm::RemoveUsedDelayedUpdateInfo()
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT_MSG(m_delayedUpdateInfo.size(), " No elements in m_delayedUpdateInfo queue.");
+    NS_ASSERT_MSG(!m_delayedUpdateInfo.empty(), " No elements in m_delayedUpdateInfo queue.");
     m_delayedUpdateInfo.pop(); // we can now delete this first element
 }
 
@@ -297,8 +297,8 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
     double maxRxTheta = 0;
     uint16_t maxTxSector = 0;
     uint16_t maxRxSector = 0;
-    complexVector_t maxTxW;
-    complexVector_t maxRxW;
+    PhasedArrayModel::ComplexVector maxTxW;
+    PhasedArrayModel::ComplexVector maxRxW;
 
     UintegerValue uintValue;
     m_gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
@@ -333,7 +333,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
         {
             NS_ASSERT(gnbSector < UINT16_MAX);
             m_gnbSpectrumPhy->GetBeamManager()->SetSector(gnbSector, gnbTheta);
-            complexVector_t gnbW =
+            PhasedArrayModel::ComplexVector gnbW =
                 m_gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
             for (double ueTheta = 60; ueTheta < 121;
@@ -343,10 +343,10 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
                 {
                     NS_ASSERT(ueSector < UINT16_MAX);
                     m_ueSpectrumPhy->GetBeamManager()->SetSector(ueSector, ueTheta);
-                    complexVector_t ueW =
+                    PhasedArrayModel::ComplexVector ueW =
                         m_ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-                    NS_ABORT_MSG_IF(gnbW.size() == 0 || ueW.size() == 0,
+                    NS_ABORT_MSG_IF(gnbW.GetSize() == 0 || ueW.GetSize() == 0,
                                     "Beamforming vectors must be initialized in order to calculate "
                                     "the long term matrix.");
 
@@ -417,7 +417,7 @@ RealisticBeamformingAlgorithm::CalculateTheEstimatedLongTermMetric(
     NS_LOG_FUNCTION(this);
 
     double totalSum = 0;
-    for (std::complex<double> c : longTermComponent)
+    for (std::complex<double> c : longTermComponent.GetValues())
     {
         totalSum += c.imag() * c.imag() + c.real() * c.real();
     }
@@ -452,18 +452,17 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent(
         uW = aW;
     }
 
-    uint16_t sAntenna = static_cast<uint16_t>(sW.size());
-    uint16_t uAntenna = static_cast<uint16_t>(uW.size());
+    uint16_t sAntenna = static_cast<uint16_t>(sW.GetSize());
+    uint16_t uAntenna = static_cast<uint16_t>(uW.GetSize());
 
     NS_LOG_DEBUG("Calculate the estimation of the long term component with sAntenna: "
                  << sAntenna << " uAntenna: " << uAntenna);
-    UniformPlanarArray::ComplexVector estimatedlongTerm;
-
     NS_ABORT_IF(srsSinr == 0);
 
     double varError = 1 / (srsSinr); // SINR the SINR from UL SRS reception
-    uint8_t numCluster = static_cast<uint8_t>(channelMatrix->m_channel[0][0].size());
+    uint8_t numCluster = static_cast<uint8_t>(channelMatrix->m_channel.GetNumPages());
 
+    UniformPlanarArray::ComplexVector estimatedlongTerm(numCluster);
     for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)
     {
         std::complex<double> txSum(0, 0);
@@ -478,12 +477,12 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent(
                     std::complex<double>(m_normalRandomVariable->GetValue(0, sqrt(0.5) * varError),
                                          m_normalRandomVariable->GetValue(0, sqrt(0.5) * varError));
                 std::complex<double> hEstimate =
-                    channelMatrix->m_channel[uIndex][sIndex][cIndex] + error;
+                    channelMatrix->m_channel(uIndex, sIndex, cIndex) + error;
                 rxSum += uW[uIndex] * (hEstimate);
             }
             txSum = txSum + sW[sIndex] * rxSum;
         }
-        estimatedlongTerm.push_back(txSum);
+        estimatedlongTerm[cIndex] = txSum;
     }
     return estimatedlongTerm;
 }

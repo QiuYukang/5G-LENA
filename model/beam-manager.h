@@ -53,7 +53,7 @@ class BeamManager : public Object
     /*
      * \brief configures a predefined beam to use for directional transmissions
      */
-    void SetPredefinedBeam(complexVector_t predefinedBeam);
+    void SetPredefinedBeam(PhasedArrayModel::ComplexVector predefinedBeam);
 
     /**
      * \brief configures a predefined beam to use for directional transmissions
@@ -74,7 +74,7 @@ class BeamManager : public Object
      * \param v the BeamformingVector
      * \return the weight vector
      */
-    complexVector_t GetVector(const BeamformingVector& v) const;
+    PhasedArrayModel::ComplexVector GetVector(const BeamformingVector& v) const;
 
     /**
      * \brief Extract the beam id from the beamforming vector specified
@@ -118,14 +118,15 @@ class BeamManager : public Object
      * used by the antenna.
      * \return the current beamforming vector
      */
-    virtual complexVector_t GetCurrentBeamformingVector();
+    virtual PhasedArrayModel::ComplexVector GetCurrentBeamformingVector();
 
     /**
      * \brief Function that returns the beamforming vector weights that is used to
      * communicated with a specified device
      * \return the current beamforming vector
      */
-    virtual complexVector_t GetBeamformingVector(const Ptr<NetDevice>& device) const;
+    virtual PhasedArrayModel::ComplexVector GetBeamformingVector(
+        const Ptr<NetDevice>& device) const;
 
     /**
      * \brief Function that returns the beamId of the beam that is used to
