@@ -71,6 +71,7 @@ class NrMacSchedulerLC
     uint8_t m_resourceType{0};       //!< the resource type associated with the QCI of the flow
     uint8_t m_qci{0};                //!< QoS Class Identifier of the flow
     uint8_t m_priority{0};           //!< the priority associated with the QCI of the flow 3GPP 23.203
+    uint64_t  m_eRabGuaranteedBitrateDl {UINT64_MAX}; //!< ERAB guaranteed bit rate DL
 };
 
 /**
