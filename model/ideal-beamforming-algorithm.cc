@@ -119,8 +119,8 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
     ueSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
     uint32_t rxNumRows = static_cast<uint32_t>(uintValue.Get());
 
-    NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements() &&
-              ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements());
+    NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems() &&
+              ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems());
 
     uint16_t numRowsTx = static_cast<uint16_t>(txNumRows);
     uint16_t numRowsRx = static_cast<uint16_t>(rxNumRows);
@@ -159,7 +159,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                                     "Beamforming vectors must be initialized in order to calculate "
                                     "the long term matrix.");
 
-                    Ptr<SpectrumValue> rxPsd =
+                    Ptr<SpectrumSignalParameters> rxParams =
                         gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
                             fakeParams,
                             gnbSpectrumPhy->GetMobility(),
@@ -167,8 +167,8 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                             gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                             ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
 
-                    size_t nbands = rxPsd->GetSpectrumModel()->GetNumBands();
-                    double power = Sum(*rxPsd) / nbands;
+                    size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
+                    double power = Sum(*(rxParams->psd)) / nbands;
 
                     NS_LOG_LOGIC(
                         " Rx power: "
@@ -277,8 +277,8 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
     ueSpectrumPhy->GetAntenna()->GetAttribute("NumRows", uintValue);
 
-    NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements() &&
-              ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements());
+    NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems() &&
+              ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems());
 
     for (size_t i = 0; i < m_azimuth.size(); i++)
     {
@@ -316,7 +316,7 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
                                     "Beamforming vectors must be initialized in "
                                     "order to calculate the long term matrix.");
 
-                    Ptr<SpectrumValue> rxPsd =
+                    Ptr<SpectrumSignalParameters> rxParams =
                         gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
                             fakeParams,
                             gnbSpectrumPhy->GetMobility(),
@@ -324,8 +324,8 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
                             gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                             ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
 
-                    size_t nbands = rxPsd->GetSpectrumModel()->GetNumBands();
-                    double power = Sum(*rxPsd) / nbands;
+                    size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
+                    double power = Sum(*rxParams->psd) / nbands;
 
                     NS_LOG_LOGIC(" Rx power: " << power << " azimuthTx " << azimuthTx
                                                << " zenithTx " << zenithTx << " azimuthRx "
@@ -456,15 +456,16 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
             NS_ABORT_MSG_IF(txW.GetSize() == 0 || rxW.GetSize() == 0,
                             "Beamforming vectors must be initialized in order to calculate the "
                             "long term matrix.");
-            Ptr<SpectrumValue> rxPsd = txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
-                fakeParams,
-                gnbSpectrumPhy->GetMobility(),
-                ueSpectrumPhy->GetMobility(),
-                gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
-                ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
+            Ptr<SpectrumSignalParameters> rxParams =
+                txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
+                    fakeParams,
+                    gnbSpectrumPhy->GetMobility(),
+                    ueSpectrumPhy->GetMobility(),
+                    gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
+                    ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
 
-            size_t nbands = rxPsd->GetSpectrumModel()->GetNumBands();
-            double power = Sum(*rxPsd) / nbands;
+            size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
+            double power = Sum(*(rxParams->psd)) / nbands;
 
             NS_LOG_LOGIC(" Rx power: "
                          << power << "txTheta " << txTheta << " tx sector "

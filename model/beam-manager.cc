@@ -69,7 +69,7 @@ BeamManager::SetPredefinedBeam(PhasedArrayModel::ComplexVector predefinedBeam)
 {
     NS_LOG_FUNCTION(this);
     NS_ABORT_MSG_IF(predefinedBeam.GetSize() == 0, "Cannot assign an empty predefined beam");
-    NS_ABORT_MSG_IF(predefinedBeam.GetSize() != m_antennaArray->GetNumberOfElements(),
+    NS_ABORT_MSG_IF(predefinedBeam.GetSize() != m_antennaArray->GetNumElems(),
                     "Cannot assign a predefined beamforming vector whose dimension is not "
                     "compatible with antenna array");
     m_predefinedDirTxRxW = std::make_pair(predefinedBeam, PREDEFINED_BEAM_ID);

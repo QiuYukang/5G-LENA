@@ -62,7 +62,7 @@ CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
         M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumRows.Get())) -
         0.5 * M_PI;
     double vAngle_radian = elevation * M_PI / 180;
-    uint16_t size = antenna->GetNumberOfElements();
+    uint16_t size = antenna->GetNumElems();
     double power = 1 / sqrt(size);
     PhasedArrayModel::ComplexVector tempVector(size);
     if (size == 1)
@@ -92,7 +92,7 @@ CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna, double azim
 
     double hAngle_radian = azimuth * M_PI / 180;
     double vAngle_radian = zenith * M_PI / 180;
-    uint16_t size = antenna->GetNumberOfElements();
+    uint16_t size = antenna->GetNumElems();
     double power = 1 / sqrt(size);
     PhasedArrayModel::ComplexVector tempVector(size);
     if (size == 1)
@@ -131,7 +131,7 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
     double vAngleRadian = completeAngle.GetInclination(); // the elevation angle
 
     // retrieve the number of antenna elements
-    int totNoArrayElements = antenna->GetNumberOfElements();
+    int totNoArrayElements = antenna->GetNumElems();
 
     // the total power is divided equally among the antenna elements
     double power = 1 / sqrt(totNoArrayElements);

@@ -745,16 +745,16 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue(RemDevice& device, RemDevice& otherD
     NS_LOG_DEBUG("RX power in dBm after pathloss:" << WToDbm(Integral(*(rxParams->psd))));
 
     // Now we call spectrum model, which in this keys add a beamforming gain
-    Ptr<SpectrumValue> rxPsd =
+    rxParams =
         tempPropModels.remSpectrumLossModelCopy->DoCalcRxPowerSpectralDensity(rxParams,
                                                                               device.mob,
                                                                               otherDevice.mob,
                                                                               device.antenna,
                                                                               otherDevice.antenna);
 
-    NS_LOG_DEBUG("RX power in dBm after fading: " << WToDbm(Integral(*rxPsd)));
+    NS_LOG_DEBUG("RX power in dBm after fading: " << WToDbm(Integral(*(rxParams->psd))));
 
-    return rxPsd;
+    return rxParams->psd;
 }
 
 Ptr<SpectrumValue>

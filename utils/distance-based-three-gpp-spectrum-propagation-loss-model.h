@@ -69,7 +69,7 @@ class DistanceBasedThreeGppSpectrumPropagationLossModel
      * \param bPhasedArrayModel the antenna array of the second node
      * \return the received PSD
      */
-    Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(
+    Ptr<SpectrumSignalParameters> DoCalcRxPowerSpectralDensity(
         Ptr<const SpectrumSignalParameters> params,
         Ptr<const MobilityModel> a,
         Ptr<const MobilityModel> b,
