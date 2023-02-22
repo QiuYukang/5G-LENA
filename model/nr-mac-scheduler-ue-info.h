@@ -160,8 +160,12 @@ class NrMacSchedulerUeInfo
      * \param P The priority associated to the QCI of this LC
      * \return
      */
-    static void PrintLcInfo (uint16_t ue, uint8_t lcgId, uint8_t lcId, uint8_t cqi, uint8_t P, uint8_t minP);
-
+    static void PrintLcInfo(uint16_t ue,
+                            uint8_t lcgId,
+                            uint8_t lcId,
+                            uint8_t cqi,
+                            uint8_t P,
+                            uint8_t minP);
 
     typedef std::function<std::unordered_map<uint8_t, LCGPtr>&(const UePtr& ue)> GetLCGFn;
     typedef std::function<NrMacHarqVector&(const UePtr& ue)> GetHarqVectorFn;

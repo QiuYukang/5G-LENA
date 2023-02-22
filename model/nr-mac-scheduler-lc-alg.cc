@@ -27,8 +27,7 @@ NrMacSchedulerLcAlgorithm::~NrMacSchedulerLcAlgorithm()
 TypeId
 NrMacSchedulerLcAlgorithm::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrMacSchedulerLcAlgorithm")
-                            .SetParent<Object>();
+    static TypeId tid = TypeId("ns3::NrMacSchedulerLcAlgorithm").SetParent<Object>();
     return tid;
 }
 

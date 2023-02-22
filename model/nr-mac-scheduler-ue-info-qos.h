@@ -184,10 +184,13 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
 
                 if (LCPtr->m_resourceType == LogicalChannelConfigListElement_s::QBT_DGBR)
                 {
-                    delayBudgetFactor = CalculateDelayBudgetFactor(LCPtr->m_delayBudget.GetMilliSeconds(), LCPtr->m_rlcTransmissionQueueHolDelay);
+                    delayBudgetFactor =
+                        CalculateDelayBudgetFactor(LCPtr->m_delayBudget.GetMilliSeconds(),
+                                                   LCPtr->m_rlcTransmissionQueueHolDelay);
                 }
-                weight += (100 - LCPtr->m_priority) * std::pow(uePtr->m_potentialTputDl, uePtr->m_alpha) /
-                           std::max(1E-9, uePtr->m_avgTputDl) * delayBudgetFactor;
+                weight += (100 - LCPtr->m_priority) *
+                          std::pow(uePtr->m_potentialTputDl, uePtr->m_alpha) /
+                          std::max(1E-9, uePtr->m_avgTputDl) * delayBudgetFactor;
                 NS_ASSERT_MSG(weight > 0, "Weight must be greater than zero");
             }
         }
@@ -210,7 +213,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
     static double CalculateDelayBudgetFactor(uint64_t pdb, uint16_t hol)
     {
         double denominator = hol >= pdb ? 0.1 : static_cast<double>(pdb) - static_cast<double>(hol);
-        double delayBudgetFactor = static_cast<double>(pdb)/denominator;
+        double delayBudgetFactor = static_cast<double>(pdb) / denominator;
 
         return delayBudgetFactor;
     }
@@ -278,7 +281,12 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                     ueMinPriority = LCPtr->m_priority;
                 }
 
-                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority, ueMinPriority);
+                ue.first->PrintLcInfo(ue.first->m_rnti,
+                                      ueLcg.first,
+                                      lcId,
+                                      LCPtr->m_qci,
+                                      LCPtr->m_priority,
+                                      ueMinPriority);
             }
         }
         return ueMinPriority;
@@ -312,7 +320,12 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                     ueMinPriority = LCPtr->m_priority;
                 }
 
-                ue.first->PrintLcInfo (ue.first->m_rnti, ueLcg.first, lcId, LCPtr->m_qci, LCPtr->m_priority, ueMinPriority);
+                ue.first->PrintLcInfo(ue.first->m_rnti,
+                                      ueLcg.first,
+                                      lcId,
+                                      LCPtr->m_qci,
+                                      LCPtr->m_priority,
+                                      ueMinPriority);
             }
         }
         return ueMinPriority;

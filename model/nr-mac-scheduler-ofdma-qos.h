@@ -71,7 +71,7 @@ class NrMacSchedulerOfdmaQos : public NrMacSchedulerOfdmaRR
      * \return NrMacSchedulerUeInfo instance
      */
     std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
-            const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
+        const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
     /**
      * \brief Return the comparison function to sort DL UE according to the scheduler policy

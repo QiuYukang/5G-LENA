@@ -5,21 +5,22 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include "nr-mac-scheduler-lc-rr.h"
+
 #include "ns3/log.h"
 
+namespace ns3
+{
 
-namespace ns3 {
+NS_LOG_COMPONENT_DEFINE("NrMacSchedulerLcRR");
+NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulerLcRR);
 
-NS_LOG_COMPONENT_DEFINE ("NrMacSchedulerLcRR");
-NS_OBJECT_ENSURE_REGISTERED (NrMacSchedulerLcRR);
-
-NrMacSchedulerLcRR::NrMacSchedulerLcRR ()
+NrMacSchedulerLcRR::NrMacSchedulerLcRR()
     : NrMacSchedulerLcAlgorithm()
 {
-    NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 }
 
-NrMacSchedulerLcRR::~NrMacSchedulerLcRR ()
+NrMacSchedulerLcRR::~NrMacSchedulerLcRR()
 {
 }
 
@@ -40,16 +41,17 @@ NrMacSchedulerLcRR::GetInstanceTypeId() const
 
 std::vector<NrMacSchedulerLcAlgorithm::Assignation>
 NrMacSchedulerLcRR::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                      uint32_t tbs, [[maybe_unused]]Time slotPeriod) const
+                                      uint32_t tbs,
+                                      [[maybe_unused]] Time slotPeriod) const
 {
-    return AssignBytesToLC (ueLCG, tbs);
+    return AssignBytesToLC(ueLCG, tbs);
 }
 
 std::vector<NrMacSchedulerLcAlgorithm::Assignation>
 NrMacSchedulerLcRR::AssignBytesToUlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                       uint32_t tbs) const
 {
-    return AssignBytesToLC (ueLCG, tbs);
+    return AssignBytesToLC(ueLCG, tbs);
 }
 
 std::vector<NrMacSchedulerLcAlgorithm::Assignation>
@@ -103,4 +105,4 @@ NrMacSchedulerLcRR::AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& u
     return ret;
 }
 
-};
+}; // namespace ns3

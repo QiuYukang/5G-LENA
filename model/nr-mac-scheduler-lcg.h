@@ -70,8 +70,8 @@ class NrMacSchedulerLC
     double m_PER{0.0};               //!< PER of the flow
     uint8_t m_resourceType{0};       //!< the resource type associated with the QCI of the flow
     uint8_t m_qci{0};                //!< QoS Class Identifier of the flow
-    uint8_t m_priority{0};           //!< the priority associated with the QCI of the flow 3GPP 23.203
-    uint64_t  m_eRabGuaranteedBitrateDl {UINT64_MAX}; //!< ERAB guaranteed bit rate DL
+    uint8_t m_priority{0}; //!< the priority associated with the QCI of the flow 3GPP 23.203
+    uint64_t m_eRabGuaranteedBitrateDl{UINT64_MAX}; //!< ERAB guaranteed bit rate DL
 };
 
 /**
@@ -192,7 +192,7 @@ class NrMacSchedulerLCG
      * \param lcId LC ID
      * \return the LC Ptr for the LC ID
      */
-    std::unique_ptr<NrMacSchedulerLC> & GetLC(uint8_t lcId);
+    std::unique_ptr<NrMacSchedulerLC>& GetLC(uint8_t lcId);
 
     /**
      * \brief Inform the LCG of the assigned data to a LC id

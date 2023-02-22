@@ -66,12 +66,12 @@ class SystemSchedulerTest : public TestCase
     void DoRun() override;
     void CountPkts(Ptr<const Packet> pkt);
 
-    uint32_t m_numerology;       //!< the numerology to be used
-    double m_bw1;                //!< bandwidth of bandwidth part 1
-    bool m_isDownlink;           //!< whether to generate the downlink traffic
-    bool m_isUplink;             //!< whether to generate the uplink traffic
-    uint32_t m_usersPerBeamNum;  //!< number of users
-    uint32_t m_numOfBeams;       //!< currently the test is supposed to work with maximum 4 beams per gNb
+    uint32_t m_numerology;      //!< the numerology to be used
+    double m_bw1;               //!< bandwidth of bandwidth part 1
+    bool m_isDownlink;          //!< whether to generate the downlink traffic
+    bool m_isUplink;            //!< whether to generate the uplink traffic
+    uint32_t m_usersPerBeamNum; //!< number of users
+    uint32_t m_numOfBeams; //!< currently the test is supposed to work with maximum 4 beams per gNb
     std::string m_schedulerType; //!< Sched type
     std::string m_name;          //!< Name of the test
     uint32_t m_packets{0};       //!< Packets received correctly

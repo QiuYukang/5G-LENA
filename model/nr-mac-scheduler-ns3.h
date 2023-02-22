@@ -697,7 +697,6 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     uint64_t GetNumRbPerRbg() const;
 
-
   protected:
     Ptr<NrAmc> m_dlAmc; //!< AMC pointer
     Ptr<NrAmc> m_ulAmc; //!< AMC pointer
@@ -897,7 +896,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     std::unique_ptr<NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 
     Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
-    Ptr<NrMacSchedulerLcAlgorithm> m_schedLc; //!< Pointer to an instance of the LC scheduling algorithm
+    Ptr<NrMacSchedulerLcAlgorithm>
+        m_schedLc;        //!< Pointer to an instance of the LC scheduling algorithm
     TypeId m_schedLcType; //!< Type of the LC scheduling algorithm
 
     uint32_t m_srsSlotCounter{0}; //!< Counter for UL slots

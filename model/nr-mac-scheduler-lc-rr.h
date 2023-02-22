@@ -26,7 +26,7 @@ class NrMacSchedulerLcRR : public NrMacSchedulerLcAlgorithm
      * \brief Get the type ID.
      * \return the object TypeId
      */
-    static TypeId GetTypeId ();
+    static TypeId GetTypeId();
 
     /**
      * \brief Get the type ID of this instance
@@ -37,12 +37,11 @@ class NrMacSchedulerLcRR : public NrMacSchedulerLcAlgorithm
     /**
      * \brief NrMacSchedulerLcRR constructor
      */
-    NrMacSchedulerLcRR ();
+    NrMacSchedulerLcRR();
     /**
      * \brief NrMacSchedulerLcRR deconstructor
      */
-    ~NrMacSchedulerLcRR () override;
-
+    ~NrMacSchedulerLcRR() override;
 
     /**
      * \brief Method to decide how to distribute the assigned bytes to the different LCs
@@ -53,7 +52,8 @@ class NrMacSchedulerLcRR : public NrMacSchedulerLcAlgorithm
      * \return A vector of Assignation
      */
     std::vector<Assignation> AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                               uint32_t tbs, Time slotPeriod) const override;
+                                               uint32_t tbs,
+                                               Time slotPeriod) const override;
 
     /**
      * \brief Method to decide how to distribute the assigned bytes to the different LCs
@@ -75,9 +75,7 @@ class NrMacSchedulerLcRR : public NrMacSchedulerLcAlgorithm
   private:
     std::vector<Assignation> AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                              uint32_t tbs) const;
-
 };
-}
+} // namespace ns3
 
 #endif /*NR_MAC_SCHEDULER_LC_RR_H*/
-

@@ -42,7 +42,8 @@ SystemSchedulerTest::SystemSchedulerTest(const std::string& name,
     m_isDownlink = isDownlnk;
     m_isUplink = isUplink;
     m_usersPerBeamNum = usersPerBeamNum;
-    NS_ABORT_MSG_UNLESS(numOfBeams <= 4, "Test program is designed to support up to 4 beams per gNB");
+    NS_ABORT_MSG_UNLESS(numOfBeams <= 4,
+                        "Test program is designed to support up to 4 beams per gNB");
     m_numOfBeams = numOfBeams;
     m_schedulerType = schedulerType;
     m_name = name;

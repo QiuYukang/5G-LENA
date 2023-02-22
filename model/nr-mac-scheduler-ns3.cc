@@ -13,9 +13,9 @@
 #include "nr-mac-scheduler-ns3.h"
 
 #include "nr-mac-scheduler-harq-rr.h"
+#include "nr-mac-scheduler-lc-rr.h"
 #include "nr-mac-scheduler-srs-default.h"
 #include "nr-mac-short-bsr-ce.h"
-#include "nr-mac-scheduler-lc-rr.h"
 
 #include <ns3/boolean.h>
 #include <ns3/eps-bearer.h>
@@ -189,12 +189,13 @@ NrMacSchedulerNs3::GetTypeId()
                           MakeBooleanAccessor(&NrMacSchedulerNs3::EnableHarqReTx,
                                               &NrMacSchedulerNs3::IsHarqReTxEnable),
                           MakeBooleanChecker())
-            .AddAttribute("SchedLcAlgorithmType",
-                          "Type of the scheduling algorithm that assigns bytes to the different LCs.",
-                          TypeIdValue(NrMacSchedulerLcRR::GetTypeId()),
-                          MakeTypeIdAccessor(&NrMacSchedulerNs3::SetLcSched),
-                                             //&NrMacSchedulerNs3::GetLcSched),
-                          MakeTypeIdChecker());
+            .AddAttribute(
+                "SchedLcAlgorithmType",
+                "Type of the scheduling algorithm that assigns bytes to the different LCs.",
+                TypeIdValue(NrMacSchedulerLcRR::GetTypeId()),
+                MakeTypeIdAccessor(&NrMacSchedulerNs3::SetLcSched),
+                //&NrMacSchedulerNs3::GetLcSched),
+                MakeTypeIdChecker());
 
     return tid;
 }
@@ -1454,7 +1455,10 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
             {
                 // distribute tbsize of each stream among the LCs of the UE
                 // distributedBytes size is equal to the number of LCs
-                auto distributedBytes = m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG, it, m_macSchedSapUser->GetSlotPeriod ());
+                auto distributedBytes =
+                    m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG,
+                                                 it,
+                                                 m_macSchedSapUser->GetSlotPeriod());
                 if (bytesPerLcPerStream.size() == 0)
                 {
                     bytesPerLcPerStream.resize(distributedBytes.size());
@@ -1463,8 +1467,8 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                 {
                     bytesPerLcPerStream.at(numLc).emplace_back(
                         NrMacSchedulerLcAlgorithm::Assignation(distributedBytes.at(numLc).m_lcg,
-                                                      distributedBytes.at(numLc).m_lcId,
-                                                      distributedBytes.at(numLc).m_bytes));
+                                                               distributedBytes.at(numLc).m_lcId,
+                                                               distributedBytes.at(numLc).m_bytes));
                 }
             }
 
@@ -1701,7 +1705,8 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
                                    << static_cast<uint32_t>(dci->m_rv.at(stream)));
             }
 
-            auto distributedBytes = m_schedLc->AssignBytesToUlLC(ue.first->m_ulLCG, dci->m_tbSize.at(0));
+            auto distributedBytes =
+                m_schedLc->AssignBytesToUlLC(ue.first->m_ulLCG, dci->m_tbSize.at(0));
             bool assignedToLC = false;
             for (const auto& byteDistribution : distributedBytes)
             {

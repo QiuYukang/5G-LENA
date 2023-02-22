@@ -9,8 +9,8 @@
 
 #include "ns3/nr-mac-scheduler-lcg.h"
 #include <ns3/object.h>
-#include <vector>
 
+#include <vector>
 
 namespace ns3
 {
@@ -112,8 +112,10 @@ class NrMacSchedulerLcAlgorithm : public Object
      * \param tbs TBS to divide between the LCG/LC
      * \return A vector of Assignation
      */
-    virtual std::vector<Assignation> AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                                     uint32_t tbs, Time slotPeriod) const = 0;
+    virtual std::vector<Assignation> AssignBytesToDlLC(
+        const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
+        uint32_t tbs,
+        Time slotPeriod) const = 0;
 
     /**
      * \brief Method to decide how to distribute the assigned bytes to the different LCs
@@ -124,10 +126,10 @@ class NrMacSchedulerLcAlgorithm : public Object
      * \param tbs TBS to divide between the LCG/LC
      * \return A vector of Assignation
      */
-    virtual std::vector<Assignation> AssignBytesToUlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                                     uint32_t tbs) const = 0;
-
+    virtual std::vector<Assignation> AssignBytesToUlLC(
+        const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
+        uint32_t tbs) const = 0;
 };
-}
+} // namespace ns3
 
 #endif /*NR_MAC_SCHEDULER_LC_ALGORITHM_H*/
