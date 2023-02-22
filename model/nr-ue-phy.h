@@ -903,13 +903,6 @@ class NrUePhy : public NrPhy
      * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
      */
     TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlCtrlSinrTrace;
-    /**
-     * The `ReportCurrentCellRsrpSinr` trace source. Trace information regarding
-     * RSRP and average SINR (see TS 36.214). Exporting cell ID, RNTI, RSRP, and
-     * SINR, BWP id, and stream id.
-     */
-    TracedCallback<uint16_t, uint16_t, double, double, uint16_t, uint8_t>
-        m_reportCurrentCellRsrpSinrTrace;
     TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
     TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
     TracedCallback<const SfnSf&,

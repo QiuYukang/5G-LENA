@@ -180,10 +180,6 @@ NrUePhy::GetTypeId()
                           TimeValue(MilliSeconds(200)),
                           MakeTimeAccessor(&NrUePhy::m_ueMeasurementsFilterPeriod),
                           MakeTimeChecker())
-            .AddTraceSource("ReportCurrentCellRsrpSinr",
-                            "RSRP and SINR statistics.",
-                            MakeTraceSourceAccessor(&NrUePhy::m_reportCurrentCellRsrpSinrTrace),
-                            "ns3::CurrentCellRsrpSinr::TracedCallback")
             .AddAttribute("NrSpectrumPhyList",
                           "List of all SpectrumPhy instances of this NrUePhy.",
                           ObjectVectorValue(),
