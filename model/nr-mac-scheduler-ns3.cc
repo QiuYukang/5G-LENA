@@ -1454,7 +1454,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
             {
                 // distribute tbsize of each stream among the LCs of the UE
                 // distributedBytes size is equal to the number of LCs
-                auto distributedBytes = m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG, it);
+                auto distributedBytes = m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG, it, m_macSchedSapUser->GetSlotPeriod ());
                 if (bytesPerLcPerStream.size() == 0)
                 {
                     bytesPerLcPerStream.resize(distributedBytes.size());

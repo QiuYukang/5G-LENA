@@ -113,7 +113,7 @@ class NrMacSchedulerLcAlgorithm : public Object
      * \return A vector of Assignation
      */
     virtual std::vector<Assignation> AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                                     uint32_t tbs) const = 0;
+                                                     uint32_t tbs, Time slotPeriod) const = 0;
 
     /**
      * \brief Method to decide how to distribute the assigned bytes to the different LCs

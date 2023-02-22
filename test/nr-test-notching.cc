@@ -101,8 +101,6 @@ TestNotchingPhySapProvider::GetCellId() const
 Time
 TestNotchingPhySapProvider::GetSlotPeriod() const
 {
-    // If in the future the scheduler calls this method, remove this assert"
-    NS_FATAL_ERROR("GetSlotPeriod should not be called");
     return MilliSeconds(1);
 }
 

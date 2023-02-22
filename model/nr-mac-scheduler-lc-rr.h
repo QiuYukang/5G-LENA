@@ -53,7 +53,7 @@ class NrMacSchedulerLcRR : public NrMacSchedulerLcAlgorithm
      * \return A vector of Assignation
      */
     std::vector<Assignation> AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                               uint32_t tbs) const override;
+                                               uint32_t tbs, Time slotPeriod) const override;
 
     /**
      * \brief Method to decide how to distribute the assigned bytes to the different LCs

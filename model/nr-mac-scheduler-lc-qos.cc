@@ -41,7 +41,7 @@ NrMacSchedulerLcQos::GetInstanceTypeId() const
 
 std::vector<NrMacSchedulerLcAlgorithm::Assignation>
 NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
-                                       uint32_t tbs) const
+                                       uint32_t tbs, [[maybe_unused]]Time slotPeriod) const
 {
     NS_LOG_FUNCTION(this);
     GetFirst GetLCGID;
