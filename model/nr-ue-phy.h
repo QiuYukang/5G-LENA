@@ -915,6 +915,12 @@ class NrUePhy : public NrPhy
         m_reportPowerSpectralDensity; //!< Report the Tx power
 
     /**
+     * Trace information regarding RSRP
+     * Exporting cell ID, IMSI, RNTI, RSRP and BWP id
+     */
+    TracedCallback<uint16_t, uint16_t, uint16_t, double, uint8_t> m_reportRsrpTrace;
+
+    /**
      * Trace information regarding Ue PHY Received Control Messages
      * Frame number, Subframe number, slot, VarTtti, nodeId, rnti, bwpId,
      * pointer to message in order to get the msg type

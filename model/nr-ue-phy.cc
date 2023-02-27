@@ -193,6 +193,10 @@ NrUePhy::GetTypeId()
                             "Report allocated downlink TB size for trace.",
                             MakeTraceSourceAccessor(&NrUePhy::m_reportDlTbSize),
                             "ns3::DlTbSize::TracedCallback")
+            .AddTraceSource("ReportRsrp",
+                            "RSRP statistics.",
+                            MakeTraceSourceAccessor(&NrUePhy::m_reportRsrpTrace),
+                            "ns3::CurrentRsrp::TracedCallback")
             .AddTraceSource("UePhyRxedCtrlMsgsTrace",
                             "Ue PHY Control Messages Traces.",
                             MakeTraceSourceAccessor(&NrUePhy::m_phyRxedCtrlMsgsTrace),
@@ -1542,6 +1546,8 @@ NrUePhy::ReportUeMeasurements()
                      << (*it).first << " Reporting UE " << m_rnti << " Av. RSRP " << avg_rsrp
                      << " (nSamples " << +((*it).second.rsrpNum) << ")"
                      << " BwpID " << GetBwpId());
+
+        m_reportRsrpTrace(GetCellId(), m_imsi, m_rnti, avg_rsrp, GetBwpId());
 
         /*LteUeCphySapUser::UeMeasurementsElement newEl;
         newEl.m_cellId = (*it).first;
