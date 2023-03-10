@@ -77,33 +77,31 @@ NrSpectrumValueHelper::GetSpectrumModel(uint32_t numRbs,
                     "and 480000 Hz.");
 
     NrSpectrumModelId modelId = NrSpectrumModelId(centerFrequency, numRbs, subcarrierSpacing);
-
-    if (g_nrSpectrumModelMap.find(modelId) != g_nrSpectrumModelMap.end())
+    if (g_nrSpectrumModelMap.find(modelId) == g_nrSpectrumModelMap.end())
     {
-        return g_nrSpectrumModelMap.find(modelId)->second;
-    }
+        NS_ASSERT_MSG(centerFrequency != 0, "The carrier frequency cannot be set to 0");
+        double f = centerFrequency - (numRbs * subcarrierSpacing * SUBCARRIERS_PER_RB / 2.0);
+        Bands rbs; // A vector representing all resource blocks
+        for (uint32_t numrb = 0; numrb < numRbs; ++numrb)
+        {
+            BandInfo rb;
+            rb.fl = f;
+            f += subcarrierSpacing * SUBCARRIERS_PER_RB / 2;
+            rb.fc = f;
+            f += subcarrierSpacing * SUBCARRIERS_PER_RB / 2;
+            rb.fh = f;
+            rbs.push_back(rb);
+        }
 
-    NS_ASSERT_MSG(centerFrequency != 0, "The carrier frequency cannot be set to 0");
-    double f = centerFrequency - (numRbs * subcarrierSpacing * SUBCARRIERS_PER_RB / 2.0);
-    Bands rbs; // A vector representing all resource blocks
-    for (uint32_t numrb = 0; numrb < numRbs; ++numrb)
-    {
-        BandInfo rb;
-        rb.fl = f;
-        f += subcarrierSpacing * SUBCARRIERS_PER_RB / 2;
-        rb.fc = f;
-        f += subcarrierSpacing * SUBCARRIERS_PER_RB / 2;
-        rb.fh = f;
-        rbs.push_back(rb);
+        Ptr<SpectrumModel> model = Create<SpectrumModel>(rbs);
+        // save this model to the map of spectrum models
+        g_nrSpectrumModelMap.insert(
+            std::pair<NrSpectrumModelId, Ptr<SpectrumModel>>(modelId, model));
+        NS_LOG_INFO("Created SpectrumModel with frequency: "
+                    << f << " NumRB: " << rbs.size() << " subcarrier spacing: " << subcarrierSpacing
+                    << ", and global UID: " << model->GetUid());
     }
-
-    Ptr<SpectrumModel> model = Create<SpectrumModel>(rbs);
-    // save this model to the map of spectrum models
-    g_nrSpectrumModelMap.insert(std::pair<NrSpectrumModelId, Ptr<SpectrumModel>>(modelId, model));
-    NS_LOG_INFO("Created SpectrumModel with frequency: "
-                << f << " NumRB: " << rbs.size() << " subcarrier spacing: " << subcarrierSpacing
-                << ", and global UID: " << model->GetUid());
-    return model;
+    return g_nrSpectrumModelMap.find(modelId)->second;
 }
 
 Ptr<SpectrumValue>

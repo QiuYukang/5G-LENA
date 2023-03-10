@@ -77,7 +77,7 @@ ThreeGppFtpM1Helper::DoConfigureFtpClients()
 
         // Seed the ARP cache by pinging early in the simulation
         // This is a workaround until a static ARP capability is provided
-        V4PingHelper ping(ipAddress);
+        PingHelper ping(ipAddress);
         m_pingApps.Add(ping.Install(*m_clientNodes));
     }
 
