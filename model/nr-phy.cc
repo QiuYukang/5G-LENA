@@ -36,7 +36,10 @@ class NrMemberPhySapProvider : public NrPhySapProvider
   public:
     NrMemberPhySapProvider(NrPhy* phy);
 
-    void SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart) override;
+    void SendMacPdu(const Ptr<Packet>& p,
+                    const SfnSf& sfn,
+                    uint8_t symStart,
+                    uint16_t rnti) override;
 
     void SendControlMessage(Ptr<NrControlMessage> msg) override;
 
@@ -71,9 +74,12 @@ NrMemberPhySapProvider::NrMemberPhySapProvider(NrPhy* phy)
 }
 
 void
-NrMemberPhySapProvider::SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart)
+NrMemberPhySapProvider::SendMacPdu(const Ptr<Packet>& p,
+                                   const SfnSf& sfn,
+                                   uint8_t symStart,
+                                   uint16_t rnti)
 {
-    m_phy->SetMacPdu(p, sfn, symStart);
+    m_phy->SetMacPdu(p, sfn, symStart, rnti);
 }
 
 void
@@ -324,11 +330,11 @@ NrPhy::SendRachPreamble(uint32_t PreambleId, uint32_t Rnti)
 }
 
 void
-NrPhy::SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart)
+NrPhy::SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart, uint16_t rnti)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(sfn.GetNumerology() == GetNumerology());
-    uint64_t key = sfn.GetEncodingWithSymStart(symStart);
+    uint64_t key = sfn.GetEncodingWithSymStartRnti(symStart, rnti);
     auto it = m_packetBurstMap.find(key);
 
     if (it == m_packetBurstMap.end())
@@ -347,12 +353,12 @@ NrPhy::NotifyConnectionSuccessful()
 }
 
 Ptr<PacketBurst>
-NrPhy::GetPacketBurst(SfnSf sfn, uint8_t sym)
+NrPhy::GetPacketBurst(SfnSf sfn, uint8_t sym, uint16_t rnti)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(sfn.GetNumerology() == GetNumerology());
     Ptr<PacketBurst> pburst;
-    auto it = m_packetBurstMap.find(sfn.GetEncodingWithSymStart(sym));
+    auto it = m_packetBurstMap.find(sfn.GetEncodingWithSymStartRnti(sym, rnti));
 
     if (it == m_packetBurstMap.end())
     {
@@ -720,15 +726,16 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
         {
             if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-                Ptr<PacketBurst> pburst = GetPacketBurst(slotSfn, alloc.m_dci->m_symStart);
+                Ptr<PacketBurst> pburst =
+                    GetPacketBurst(slotSfn, alloc.m_dci->m_symStart, alloc.m_dci->m_rnti);
                 if (pburst && pburst->GetNPackets() > 0)
                 {
-                    newBursts.insert(
-                        std::make_pair(currentSfn.GetEncodingWithSymStart(alloc.m_dci->m_symStart),
-                                       pburst));
-                    sfnMap.insert(std::make_pair(
-                        currentSfn.GetEncodingWithSymStart(alloc.m_dci->m_symStart),
-                        it->m_sfnSf.GetEncodingWithSymStart(alloc.m_dci->m_symStart)));
+                    auto newKey = currentSfn.GetEncodingWithSymStartRnti(alloc.m_dci->m_symStart,
+                                                                         alloc.m_dci->m_rnti);
+                    auto oldKey = it->m_sfnSf.GetEncodingWithSymStartRnti(alloc.m_dci->m_symStart,
+                                                                          alloc.m_dci->m_rnti);
+                    newBursts.insert({newKey, pburst});
+                    sfnMap.insert({newKey, oldKey});
                 }
                 else
                 {

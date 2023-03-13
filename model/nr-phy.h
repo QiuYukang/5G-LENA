@@ -96,10 +96,11 @@ class NrPhy : public Object
      * \param p the MAC PDU
      * \param sfn The SfnSf at which store the PDU
      * \param symStart The symbol inside the SfnSf at which the data will be transmitted
+     * \param rnti The RNTI of the UE, to create separate DL PHY signals towards different UEs
      *
      * It will be saved in the PacketBurst map following the SfnSf present in the tag.
      */
-    void SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart);
+    void SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart, uint16_t rnti);
 
     /**
      * \brief Send the RachPreamble
@@ -451,10 +452,12 @@ class NrPhy : public Object
 
     /**
      * \brief Retrieve the PacketBurst at the slot/symbol specified
+     * \param sf System frame and slot number
      * \param sym Symbol at which the PacketBurst should be sent
+     * \param rnti The RNTI associated with this burst
      * \return a pointer to the burst, if present, otherwise nullptr
      */
-    Ptr<PacketBurst> GetPacketBurst(SfnSf sf, uint8_t sym);
+    Ptr<PacketBurst> GetPacketBurst(SfnSf sf, uint8_t sym, uint16_t rnti);
 
     /**
      * \brief Create Noise Power Spectral density

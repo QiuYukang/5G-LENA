@@ -605,10 +605,28 @@ NrGnbPhy::GetTxPower() const
 }
 
 void
-NrGnbPhy::SetSubChannels(const std::vector<int>& rbIndexVector)
+NrGnbPhy::SetSubChannels(const std::vector<int>& rbIndexVector, size_t nTotalAllocRbs)
 {
     Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity(rbIndexVector);
     NS_ASSERT(txPsd);
+
+    // In case of UNIFORM_POWER_ALLOCATION_USED, the txPsd created by GetTxPowerSpectralDensity
+    // assumed that the transmit power would be split only among RBs allocated to this signal/UE.
+    // This assumption is false when there are concurrent transmissions on other RBs to other UEs
+    // (OFDMA DL). To correct this, use the combined number of used RBs to scale down txPsd.
+    if (GetPowerAllocationType() == NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED)
+    {
+        auto scaling = double(rbIndexVector.size()) / double(nTotalAllocRbs);
+        for (auto it = txPsd->ValuesBegin(); it != txPsd->ValuesEnd(); it++)
+        {
+            *it *= scaling;
+        }
+    }
+    else
+    {
+        // UNIFORM_POWER_ALLOCATION_BW: no scaling required
+    }
+
     m_spectrumPhy->SetTxPowerSpectralDensity(txPsd);
 }
 
@@ -1029,31 +1047,13 @@ NrGnbPhy::FillTheEvent()
     NS_LOG_FUNCTION(this);
 
     uint8_t lastSymStart = 0;
-    bool useNextAllocationSameSymbol = true;
     for (const auto& allocation : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
         NS_ASSERT(lastSymStart <= allocation.m_dci->m_symStart);
 
-        if (lastSymStart == allocation.m_dci->m_symStart && !useNextAllocationSameSymbol)
-        {
-            NS_LOG_INFO("Ignored allocation " << *(allocation.m_dci) << " for OFDMA DL trick");
-            continue;
-        }
-        else
-        {
-            useNextAllocationSameSymbol = true;
-        }
-
         auto varTtiStart = GetSymbolPeriod() * allocation.m_dci->m_symStart;
         Simulator::Schedule(varTtiStart, &NrGnbPhy::StartVarTti, this, allocation.m_dci);
         lastSymStart = allocation.m_dci->m_symStart;
-
-        // If the allocation is DL, then don't schedule anything that is in the
-        // same symbol (see OFDMA DL trick documentation)
-        if (allocation.m_dci->m_format == DciInfoElementTdma::DL)
-        {
-            useNextAllocationSameSymbol = false;
-        }
 
         NS_LOG_INFO("Scheduled allocation " << *(allocation.m_dci) << " at " << varTtiStart);
     }
@@ -1267,11 +1267,13 @@ NrGnbPhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("Starting DL DATA TTI at symbol " << +m_currSymStart << " to "
-                                                   << +m_currSymStart + dci->m_numSym);
+                                                   << +m_currSymStart + dci->m_numSym << " for "
+                                                   << +dci->m_rnti);
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart);
+    Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart, dci->m_rnti);
+
     if (!pktBurst || pktBurst->GetNPackets() == 0)
     {
         // sometimes the UE will be scheduled when no data is queued.
@@ -1482,30 +1484,40 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
 {
     NS_LOG_FUNCTION(this);
     // update beamforming vectors (currently supports 1 user only)
-    bool found = false;
-    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
+
+    // In each time instance, there can only be a single BF vector. Only update BF vectors once
+    // unless time has changed
+    if (Simulator::Now() > m_lastBfChange)
     {
-        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
-        uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
-        // NS_LOG_INFO ("Scheduled rnti:"<<rnti <<" ue rnti:"<< ueRnti);
-        if (dci->m_rnti == ueRnti)
+        NS_ASSERT_MSG(!m_spectrumPhy->IsTransmitting(),
+                      "Cannot change analog BF after TX has started");
+        m_lastBfChange = Simulator::Now();
+        bool found = false;
+        for (std::size_t i = 0; i < m_deviceMap.size(); i++)
         {
-            ChangeBeamformingVector(m_deviceMap.at(i));
-            found = true;
-            break;
+            Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
+            uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
+            if (dci->m_rnti == ueRnti)
+            {
+                ChangeBeamformingVector(m_deviceMap.at(i));
+                found = true;
+                break;
+            }
         }
+        NS_ABORT_IF(!found);
     }
-    NS_ABORT_IF(!found);
 
     // in the map we stored the RBG allocated by the MAC for this symbol.
     // If the transmission last n symbol (n > 1 && n < 12) the SetSubChannels
     // doesn't need to be called again. In fact, SendDataChannels will be
     // invoked only when the symStart changes.
     NS_ASSERT(m_rbgAllocationPerSym.find(dci->m_symStart) != m_rbgAllocationPerSym.end());
-    SetSubChannels(FromRBGBitmaskToRBAssignment(m_rbgAllocationPerSym.at(dci->m_symStart)));
+    auto nTotalAllocRbs =
+        FromRBGBitmaskToRBAssignment(m_rbgAllocationPerSym.at(dci->m_symStart)).size();
+    SetSubChannels(FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask), nTotalAllocRbs);
 
     std::list<Ptr<NrControlMessage>> ctrlMsgs;
-    m_spectrumPhy->StartTxDataFrames(pb, ctrlMsgs, varTtiPeriod);
+    m_spectrumPhy->StartTxDataFrames(pb, ctrlMsgs, dci, varTtiPeriod);
 }
 
 void
@@ -1520,7 +1532,10 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
         fullBwRb[i] = static_cast<int>(i);
     }
 
-    SetSubChannels(fullBwRb);
+    // Transmit power for the current signal is distributed over the full bandwidth. This is the
+    // only signal, so the bandwidth occupied by all concurrent transmissions is also the full
+    // bandwidth.
+    SetSubChannels(fullBwRb, fullBwRb.size());
 
     m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
     m_ctrlMsgs.clear();

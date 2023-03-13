@@ -55,12 +55,12 @@ class SfnSf : public SimpleRefCount<SfnSf>
      */
     uint64_t GetEncoding() const;
     /**
-     * \brief Get the encoding number, including a symbol start value
+     * \brief Get an encoding of frame & slot number, plus starting OFDM symbol and RNTI
      * \param symStart the symbol start value to include
-     * \return an uint64_t that can represent this SfnSf plus a short integer to represent the
-     * symbol start
+     * \param rnti the RNTI of the UE
+     * \return an uint64_t that can uniquely represent this SfnSf plus symStart and rnti
      */
-    uint64_t GetEncodingWithSymStart(uint8_t symStart) const;
+    uint64_t GetEncodingWithSymStartRnti(uint8_t symStart, uint16_t rnti) const;
 
     /**
      * \brief Fill the private fields with the value extracted from the parameter

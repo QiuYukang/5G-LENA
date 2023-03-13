@@ -6,7 +6,6 @@
 
 #include "nr-point-to-point-epc-helper.h"
 
-#include <ns3/epc-ue-nas.h>
 #include <ns3/epc-x2.h>
 #include <ns3/log.h>
 #include <ns3/lte-enb-rrc.h>
@@ -16,6 +15,10 @@
 #include <ns3/nr-ue-net-device.h>
 #include <ns3/object.h>
 #include <ns3/point-to-point-helper.h>
+// clang-format off
+#include <ns3/epc-ue-nas.h>
+
+// clang-format on
 
 namespace ns3
 {

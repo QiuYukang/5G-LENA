@@ -601,6 +601,7 @@ class NrUePhy : public NrPhy
      */
     void SendDataChannels(const Ptr<PacketBurst>& pb,
                           const std::list<Ptr<NrControlMessage>>& ctrlMsg,
+                          const std::shared_ptr<DciInfoElementTdma>& dci,
                           const Time& duration);
     /**
      * \brief Transmit the control channel

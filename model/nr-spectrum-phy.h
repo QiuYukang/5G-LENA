@@ -213,6 +213,8 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartRx(Ptr<SpectrumSignalParameters> params) override;
 
+    void SetRnti(uint16_t rnti);
+
     // Attributes setters
     /**
      * \brief Set clear channel assessment (CCA) threshold
@@ -260,11 +262,19 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Starts transmission of data frames on connected spectrum channel object
      * \param pb packet burst to be transmitted
      * \param ctrlMsgList control message list
+     * \param dci downlink control information
      * \param duration the duration of transmission
      */
     void StartTxDataFrames(const Ptr<PacketBurst>& pb,
                            const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
-                           Time duration);
+                           const std::shared_ptr<DciInfoElementTdma> dci,
+                           const Time& duration);
+
+    /**
+     * \brief Return true if the current Phy State is TX
+     */
+    bool IsTransmitting();
+
     /**
      * \brief Starts transmission of DL CTRL
      * \param duration the duration of this transmission
@@ -665,6 +675,10 @@ class NrSpectrumPhy : public SpectrumPhy
     State m_state{IDLE};                //!< spectrum phy state
     SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception
                                    //!< and is used for TB decoding
+
+    uint16_t m_rnti{0};    //!< RNTI; only set if this instance belongs to a UE
+    bool m_hasRnti{false}; //!< set to true if m_rnti was set and this instance belongs to a UE
+
     std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
     std::list<SrsSnrReportCallback> m_srsSnrReportCallback;   //!< list of SRS SNR callbacks
     uint16_t m_currentSrsRnti{0};

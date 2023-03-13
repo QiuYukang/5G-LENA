@@ -950,7 +950,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     SetSubChannelsForTransmission(FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask), dci->m_numSym);
     Time varTtiDuration = GetSymbolPeriod() * dci->m_numSym;
     std::list<Ptr<NrControlMessage>> ctrlMsg;
-    Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart);
+    Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart, dci->m_rnti);
     if (pktBurst && pktBurst->GetNPackets() > 0)
     {
         std::list<Ptr<Packet>> pkts = pktBurst->GetPackets();
@@ -978,6 +978,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
                         this,
                         pktBurst,
                         ctrlMsg,
+                        dci,
                         varTtiDuration - NanoSeconds(2.0));
     return varTtiDuration;
 }
@@ -1069,6 +1070,7 @@ NrUePhy::PhyDataPacketReceived(const Ptr<Packet>& p)
 void
 NrUePhy::SendDataChannels(const Ptr<PacketBurst>& pb,
                           const std::list<Ptr<NrControlMessage>>& ctrlMsg,
+                          const std::shared_ptr<DciInfoElementTdma>& dci,
                           const Time& duration)
 {
     if (pb->GetNPackets() > 0)
@@ -1080,7 +1082,7 @@ NrUePhy::SendDataChannels(const Ptr<PacketBurst>& pb,
         }
     }
 
-    m_spectrumPhy->StartTxDataFrames(pb, ctrlMsg, duration);
+    m_spectrumPhy->StartTxDataFrames(pb, ctrlMsg, dci, duration);
 }
 
 void
@@ -1493,6 +1495,7 @@ void
 NrUePhy::DoSetRnti(uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << rnti);
+    GetSpectrumPhy()->SetRnti(rnti);
     m_rnti = rnti;
 }
 

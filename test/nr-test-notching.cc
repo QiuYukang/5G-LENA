@@ -41,7 +41,10 @@ class TestNotchingPhySapProvider : public NrPhySapProvider
     uint16_t GetBwpId() const override;
     uint16_t GetCellId() const override;
     Time GetSlotPeriod() const override;
-    void SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart) override;
+    void SendMacPdu(const Ptr<Packet>& p,
+                    const SfnSf& sfn,
+                    uint8_t symStart,
+                    uint16_t rnti) override;
     void SendControlMessage(Ptr<NrControlMessage> msg) override;
     void SendRachPreamble(uint8_t PreambleId, uint8_t Rnti) override;
     void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
@@ -102,7 +105,10 @@ TestNotchingPhySapProvider::GetSlotPeriod() const
 }
 
 void
-TestNotchingPhySapProvider::SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart)
+TestNotchingPhySapProvider::SendMacPdu(const Ptr<Packet>& p,
+                                       const SfnSf& sfn,
+                                       uint8_t symStart,
+                                       uint16_t rnti)
 {
 }
 

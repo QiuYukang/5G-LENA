@@ -331,6 +331,13 @@ NrSpectrumPhy::EnableDlCtrlPathlossTrace()
 }
 
 void
+NrSpectrumPhy::SetRnti(uint16_t rnti)
+{
+    m_rnti = rnti;
+    m_hasRnti = true;
+}
+
+void
 NrSpectrumPhy::SetCcaMode1Threshold(double thresholdDBm)
 {
     NS_LOG_FUNCTION(this << thresholdDBm);
@@ -422,7 +429,21 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     {
         if (nrDataRxParams->cellId == GetCellId())
         {
-            StartRxData(nrDataRxParams);
+            // Receive only signals intended for this receiver. Receive only
+            //  - if the receiver is a UE and the signal's RNTI matches the UE's RNTI,
+            //  - or if the receiver device is either a gNB or not configured (has no RNTI)
+            auto isIntendedRx = (nrDataRxParams->rnti == m_rnti) || !m_hasRnti;
+
+            // Workaround: always receive the signal, to keep performance equal to OSS code.
+            // This ensures all UEs can generate CQI feedback from data signals, even from those
+            // signals that are intended for other UEs in the same cell.
+            // TODO: implement proper CSI-RS signalling for CQI and disable this workaround
+            isIntendedRx = true;
+
+            if (isIntendedRx)
+            {
+                StartRxData(nrDataRxParams);
+            }
             if (!m_isEnb and m_enableDlDataPathlossTrace)
             {
                 Ptr<const SpectrumValue> txPsd =
@@ -540,26 +561,31 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
 void
 NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
                                  const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
-                                 Time duration)
+                                 const std::shared_ptr<DciInfoElementTdma> dci,
+                                 const Time& duration)
 {
     NS_LOG_FUNCTION(this);
     switch (m_state)
     {
     case RX_DATA:
         /* no break */
+        [[fallthrough]];
     case RX_DL_CTRL:
         /* no break */
+        [[fallthrough]];
     case RX_UL_CTRL:
         /* no break*/
+        [[fallthrough]];
     case RX_UL_SRS:
         NS_FATAL_ERROR("Cannot TX while RX.");
         break;
     case TX:
-        NS_FATAL_ERROR("Cannot TX while already TX.");
-        break;
+        // No break, gNB may transmit multiple times to multiple UEs
+        [[fallthrough]];
     case CCA_BUSY:
         NS_LOG_WARN("Start transmitting DATA while in CCA_BUSY state.");
         /* no break */
+        [[fallthrough]];
     case IDLE: {
         NS_ASSERT(m_txPsd);
 
@@ -573,6 +599,7 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
         txParams->packetBurst = pb;
         txParams->cellId = GetCellId();
         txParams->ctrlMsgList = ctrlMsgList;
+        txParams->rnti = dci->m_rnti;
 
         /* This section is used for trace */
         if (m_isEnb)
@@ -603,6 +630,12 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
     default:
         NS_LOG_FUNCTION(this << "Programming Error. Code should not reach this point");
     }
+}
+
+bool
+NrSpectrumPhy::IsTransmitting()
+{
+    return m_state == TX;
 }
 
 void
@@ -844,6 +877,13 @@ NrSpectrumPhy::AddExpectedTb(uint16_t rnti,
                              const SfnSf& sfn)
 {
     NS_LOG_FUNCTION(this);
+
+    if (!IsEnb())
+    {
+        NS_ASSERT_MSG(m_hasRnti, "Cannot send TB to a UE whose RNTI has not been set");
+        NS_ASSERT_MSG(m_rnti == rnti, "RNTI of the receiving UE must match the RNTI of the TB");
+    }
+
     auto it = m_transportBlocks.find(rnti);
     if (it != m_transportBlocks.end())
     {
@@ -894,18 +934,18 @@ NrSpectrumPhy::StartRxData(const Ptr<NrSpectrumSignalParametersDataFrame>& param
     switch (m_state)
     {
     case TX:
-        if (m_isEnb) // I am gNB. We are here because some of my rebellious UEs is transmitting at
-                     // the same time as me. -> invalid state.
+        if (m_isEnb) // I am gNB. We are here because some of my rebellious UEs is transmitting
+                     // at the same time as me. -> invalid state.
         {
             NS_FATAL_ERROR("eNB transmission overlaps in time with UE transmission. CellId:"
                            << params->cellId);
         }
         else // I am UE, and while I am transmitting, someone else also transmits. If we are
-             // transmitting on orthogonal TX PSDs then this is most probably valid situation (UEs
-             // transmitting to gNB).
+             // transmitting on orthogonal TX PSDs then this is most probably valid situation
+             // (UEs transmitting to gNB).
         {
-            // Sanity check, that we do not transmit on the same RBs; this sanity check will not be
-            // the same for sidelink/V2X
+            // Sanity check, that we do not transmit on the same RBs; this sanity check will not
+            // be the same for sidelink/V2X
             NS_ASSERT_MSG((Sum((*m_txPsd) * (*params->psd)) == 0),
                           "Transmissions overlap in frequency. Their cellId is:" << params->cellId);
             return;
@@ -921,9 +961,9 @@ NrSpectrumPhy::StartRxData(const Ptr<NrSpectrumSignalParametersDataFrame>& param
     case CCA_BUSY:
         NS_LOG_INFO("Start receiving DATA while in CCA_BUSY state.");
         /* no break */
-    case RX_DATA: // RX_DATA while RX_DATA is possible with OFDMA, i.e. gNB receives from multiple
-                  // UEs at the same time
-                  /* no break */
+    case RX_DATA: // RX_DATA while RX_DATA is possible with OFDMA, i.e. gNB receives from
+                  // multiple UEs at the same time
+        /* no break */
     case IDLE: {
         m_interferenceData->StartRx(params->psd);
 
@@ -1019,8 +1059,8 @@ NrSpectrumPhy::StartRxUlCtrl(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& p
 {
     // The current code of this function assumes:
     // 1) that this function is called only when cellId = m_cellId
-    // 2) this function should be only called for gNB, only gNB should enter into reception of UL
-    // CTRL signals 3) gNB can receive simultaneously signals from various UEs
+    // 2) this function should be only called for gNB, only gNB should enter into reception of
+    // UL CTRL signals 3) gNB can receive simultaneously signals from various UEs
     NS_LOG_FUNCTION(this);
     NS_ASSERT(params->cellId == GetCellId() && m_isEnb);
     // RDF: method currently supports Uplink control only!
@@ -1080,9 +1120,10 @@ NrSpectrumPhy::StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& para
     NS_LOG_FUNCTION(this);
     // The current code of this function assumes:
     // 1) that this function is called only when cellId = m_cellId
-    // 2) this function should be only called for gNB, only gNB should enter into reception of UL
-    // SRS signals 3) SRS should be received only one at a time, otherwise this function should
-    // assert 4) CTRL message list contains only one message and that one is SRS CTRL message
+    // 2) this function should be only called for gNB, only gNB should enter into reception of
+    // UL SRS signals 3) SRS should be received only one at a time, otherwise this function
+    // should assert 4) CTRL message list contains only one message and that one is SRS CTRL
+    // message
     NS_ASSERT(params->cellId == GetCellId() && m_isEnb && m_state != RX_UL_SRS &&
               params->ctrlMsgList.size() == 1 &&
               (*params->ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS);
@@ -1109,7 +1150,8 @@ NrSpectrumPhy::StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& para
         // at the gNB we can receive only one SRS at a time, and the only allowed states before
         // starting it are IDLE or BUSY
         m_interferenceSrs->StartRx(params->psd);
-        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be empty
+        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be
+        // empty
         NS_ASSERT(m_rxControlMessageList.empty());
         m_firstRxStart = Simulator::Now();
         m_firstRxDuration = params->duration;
@@ -1170,7 +1212,11 @@ void
 NrSpectrumPhy::EndTx()
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(m_state == TX);
+
+    // In case of OFDMA DL, this function will be called multiple times, after each transmission
+    // to a different UE. In the first call to this function, m_state is changed to IDLE.
+    // TODO: only change to IDLE after the last transmission ends, and re-enable assert
+    // NS_ASSERT (m_state == TX);
 
     // if in unlicensed mode check after transmission if we are in IDLE or CCA_BUSY mode
     if (m_unlicensedMode)
@@ -1179,6 +1225,9 @@ NrSpectrumPhy::EndTx()
     }
     else
     {
+        // TODO: only change to IDLE when this is the end of the last transmission, e.g.,
+        // create a counter for the number of active TX and change to IDLE when counter reaches
+        // 0
         ChangeState(IDLE, Seconds(0));
     }
 }

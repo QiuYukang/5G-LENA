@@ -1027,7 +1027,10 @@ NrGnbMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
                   "DCI OF " << it->second.m_dci->m_tbSize << " total used " << it->second.m_used);
 
     NS_LOG_INFO("Sending MAC PDU to PHY Layer");
-    m_phySapProvider->SendMacPdu(params.pdu, it->second.m_sfnSf, it->second.m_dci->m_symStart);
+    m_phySapProvider->SendMacPdu(params.pdu,
+                                 it->second.m_sfnSf,
+                                 it->second.m_dci->m_symStart,
+                                 params.rnti);
 }
 
 void
@@ -1184,7 +1187,10 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                          ++j)
                     {
                         Ptr<Packet> pkt = (*j)->Copy();
-                        m_phySapProvider->SendMacPdu(pkt, ind.m_sfnSf, dciElem->m_symStart);
+                        m_phySapProvider->SendMacPdu(pkt,
+                                                     ind.m_sfnSf,
+                                                     dciElem->m_symStart,
+                                                     dciElem->m_rnti);
                     }
                 }
             }

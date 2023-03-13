@@ -368,7 +368,7 @@ NrUeMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
     NS_ASSERT_MSG(m_ulDciTotalUsed <= m_ulDci->m_tbSize,
                   "We used more data than the DCI allowed us.");
 
-    m_phySapProvider->SendMacPdu(params.pdu, m_ulDciSfnsf, m_ulDci->m_symStart);
+    m_phySapProvider->SendMacPdu(params.pdu, m_ulDciSfnsf, m_ulDci->m_symStart, m_ulDci->m_rnti);
 }
 
 void
@@ -487,7 +487,7 @@ NrUeMac::SendReportBufferStatus(const SfnSf& dataSfn, uint8_t symStart)
     NS_ASSERT_MSG(m_ulDciTotalUsed <= m_ulDci->m_tbSize,
                   "We used more data than the DCI allowed us.");
 
-    m_phySapProvider->SendMacPdu(p, dataSfn, symStart);
+    m_phySapProvider->SendMacPdu(p, dataSfn, symStart, m_ulDci->m_rnti);
 }
 
 void
@@ -705,7 +705,7 @@ NrUeMac::TransmitRetx()
         {
             NS_FATAL_ERROR("No radio bearer tag");
         }
-        m_phySapProvider->SendMacPdu(pkt, m_ulDciSfnsf, m_ulDci->m_symStart);
+        m_phySapProvider->SendMacPdu(pkt, m_ulDciSfnsf, m_ulDci->m_symStart, m_ulDci->m_rnti);
     }
 
     m_miUlHarqProcessesPacketTimer.at(m_ulDci->m_harqProcess) = GetNumHarqProcess();

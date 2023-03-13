@@ -47,11 +47,15 @@ class NrPhySapProvider
      * \param p PDU
      * \param sfn SFN
      * \param symStart symbol inside the SFN
+     * \param rnti the RNTI of the receiving or transmitting UE, to map PDU to each UE's PHY signal
      *
      * The MAC sends to the PHY a MAC PDU, represented by the packet p. The PDU
      * MUST have a LteRadioBearerTag and a NrMacPduHeader.
      */
-    virtual void SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart) = 0;
+    virtual void SendMacPdu(const Ptr<Packet>& p,
+                            const SfnSf& sfn,
+                            uint8_t symStart,
+                            uint16_t rnti) = 0;
 
     /**
      * \brief Send a control message

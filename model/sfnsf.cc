@@ -27,21 +27,23 @@ SfnSf::SfnSf(uint32_t frameNum, uint8_t sfNum, uint8_t slotNum, uint8_t numerolo
 uint64_t
 SfnSf::GetEncoding() const
 {
-    NS_ASSERT(m_numerology <= 5);
+    NS_ASSERT(m_numerology >= 0);
     uint64_t ret = 0ULL;
     ret = (static_cast<uint64_t>(m_frameNum) << 32) | (static_cast<uint64_t>(m_subframeNum) << 24) |
-          (static_cast<uint64_t>(m_slotNum) << 16) | (static_cast<uint64_t>(m_numerology) << 8);
+          (static_cast<uint64_t>(m_slotNum) << 8) | (static_cast<uint64_t>(m_numerology) << 5);
     return ret;
 }
 
 uint64_t
-SfnSf::GetEncodingWithSymStart(uint8_t symStart) const
+SfnSf::GetEncodingWithSymStartRnti(uint8_t symStart, uint16_t rnti) const
 {
-    NS_ASSERT(m_numerology <= 5);
+    NS_ASSERT(m_numerology >= 0);
+    NS_ASSERT(m_numerology < 8); // 3 bits
+    NS_ASSERT(symStart < 32);    // 5 bits
     uint64_t ret = 0ULL;
-    ret = (static_cast<uint64_t>(m_frameNum) << 32) | (static_cast<uint64_t>(m_subframeNum) << 24) |
-          (static_cast<uint64_t>(m_slotNum) << 16) | (static_cast<uint64_t>(m_numerology) << 8) |
-          (static_cast<uint64_t>(symStart));
+    ret = (static_cast<uint64_t>(rnti) << 48) | (static_cast<uint64_t>(m_frameNum) << 32) |
+          (static_cast<uint64_t>(m_subframeNum) << 24) | (static_cast<uint64_t>(m_slotNum) << 8) |
+          (static_cast<uint64_t>(m_numerology) << 5) | (static_cast<uint64_t>(symStart));
     return ret;
 }
 
@@ -51,7 +53,7 @@ SfnSf::FromEncoding(uint64_t sfn)
     m_frameNum = (sfn & 0xFFFFFFFF00000000) >> 32;
     m_subframeNum = (sfn & 0x00000000FF000000) >> 24;
     m_slotNum = (sfn & 0x0000000000FF0000) >> 16;
-    m_numerology = (sfn & 0x000000000000FF00) >> 8;
+    m_numerology = (sfn & 0x000000000000FF00) >> 5;
 }
 
 // Static functions
