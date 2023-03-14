@@ -625,6 +625,7 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
         }
 
         Simulator::Schedule(duration, &NrSpectrumPhy::EndTx, this);
+        m_activeTransmissions++;
     }
     break;
     default:
@@ -684,6 +685,7 @@ NrSpectrumPhy::StartTxDlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
         }
 
         Simulator::Schedule(duration, &NrSpectrumPhy::EndTx, this);
+        m_activeTransmissions++;
     }
     }
 }
@@ -732,6 +734,7 @@ NrSpectrumPhy::StartTxUlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
             NS_LOG_WARN("Working without channel (i.e., under test)");
         }
         Simulator::Schedule(duration, &NrSpectrumPhy::EndTx, this);
+        m_activeTransmissions++;
     }
     }
 }
@@ -1213,22 +1216,23 @@ NrSpectrumPhy::EndTx()
 {
     NS_LOG_FUNCTION(this);
 
-    // In case of OFDMA DL, this function will be called multiple times, after each transmission
-    // to a different UE. In the first call to this function, m_state is changed to IDLE.
-    // TODO: only change to IDLE after the last transmission ends, and re-enable assert
-    // NS_ASSERT (m_state == TX);
+    // In case of OFDMA DL, this function will be called multiple times, after each transmission to
+    // a different UE. In the first call to this function, m_state is changed to IDLE.
+    NS_ASSERT(m_state == TX);
+    m_activeTransmissions--;
 
-    // if in unlicensed mode check after transmission if we are in IDLE or CCA_BUSY mode
-    if (m_unlicensedMode)
+    // change to BUSY or IDLE mode when this is the end of the last transmission
+    if (m_activeTransmissions == 0)
     {
-        MaybeCcaBusy();
-    }
-    else
-    {
-        // TODO: only change to IDLE when this is the end of the last transmission, e.g.,
-        // create a counter for the number of active TX and change to IDLE when counter reaches
-        // 0
-        ChangeState(IDLE, Seconds(0));
+        // if in unlicensed mode check after transmission if we are in IDLE or CCA_BUSY mode
+        if (m_unlicensedMode)
+        {
+            MaybeCcaBusy();
+        }
+        else
+        {
+            ChangeState(IDLE, Seconds(0));
+        }
     }
 }
 

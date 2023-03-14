@@ -678,6 +678,8 @@ class NrSpectrumPhy : public SpectrumPhy
 
     uint16_t m_rnti{0};    //!< RNTI; only set if this instance belongs to a UE
     bool m_hasRnti{false}; //!< set to true if m_rnti was set and this instance belongs to a UE
+    uint16_t m_activeTransmissions{0}; //!< the counter that is used in EndRx function to know when
+                                       //!< to change the state from TX to IDLE mode
 
     std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
     std::list<SrsSnrReportCallback> m_srsSnrReportCallback;   //!< list of SRS SNR callbacks
