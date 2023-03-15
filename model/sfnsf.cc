@@ -27,9 +27,17 @@ SfnSf::SfnSf(uint32_t frameNum, uint8_t sfNum, uint8_t slotNum, uint8_t numerolo
 uint64_t
 SfnSf::GetEncoding() const
 {
-    NS_ASSERT(m_numerology >= 0);
+    // represented by 3 bits, but we do not expect the numerology higher than 6, SCS = 960 KHz
+    NS_ASSERT(m_numerology < 7);
+    // represented by 8 bits, but we do not expect the value higher than 64 which
+    // corresponds to numerology 6
+    NS_ASSERT(m_slotNum < 64);
+    // represented by 8 bits, but we do not expect values higher than 9
+    NS_ASSERT(m_subframeNum < 10);
+    // encoded into 24 bits which corresponds to the maximum value of 16777215
+    NS_ASSERT(m_frameNum < 16777215);
     uint64_t ret = 0ULL;
-    ret = (static_cast<uint64_t>(m_frameNum) << 32) | (static_cast<uint64_t>(m_subframeNum) << 24) |
+    ret = (static_cast<uint64_t>(m_frameNum) << 24) | (static_cast<uint64_t>(m_subframeNum) << 16) |
           (static_cast<uint64_t>(m_slotNum) << 8) | (static_cast<uint64_t>(m_numerology) << 5);
     return ret;
 }
@@ -37,12 +45,20 @@ SfnSf::GetEncoding() const
 uint64_t
 SfnSf::GetEncodingWithSymStartRnti(uint8_t symStart, uint16_t rnti) const
 {
-    NS_ASSERT(m_numerology >= 0);
-    NS_ASSERT(m_numerology < 8); // 3 bits
-    NS_ASSERT(symStart < 32);    // 5 bits
+    // represented by 5 bits, but we do not expect the values higher than 13
+    NS_ASSERT(symStart < 14);
+    // represented by 3 bits, but we do not expect the numerology higher than 6, SCS = 960 KHz
+    NS_ASSERT(m_numerology < 7);
+    // represented by 8 bits,  but we do not expect the value higher than 64 which
+    // corresponds to numerology 6
+    NS_ASSERT(m_slotNum < 64);
+    // represented by 8 bits, but we do not expect values higher than 9
+    NS_ASSERT(m_subframeNum < 10);
+    // frame number is encoded into 24 bits which corresponds to the maximum value of 16777215
+    NS_ASSERT(m_frameNum < 16777215);
     uint64_t ret = 0ULL;
-    ret = (static_cast<uint64_t>(rnti) << 48) | (static_cast<uint64_t>(m_frameNum) << 32) |
-          (static_cast<uint64_t>(m_subframeNum) << 24) | (static_cast<uint64_t>(m_slotNum) << 8) |
+    ret = (static_cast<uint64_t>(rnti) << 48) | (static_cast<uint64_t>(m_frameNum) << 24) |
+          (static_cast<uint64_t>(m_subframeNum) << 16) | (static_cast<uint64_t>(m_slotNum) << 8) |
           (static_cast<uint64_t>(m_numerology) << 5) | (static_cast<uint64_t>(symStart));
     return ret;
 }
@@ -50,10 +66,10 @@ SfnSf::GetEncodingWithSymStartRnti(uint8_t symStart, uint16_t rnti) const
 void
 SfnSf::FromEncoding(uint64_t sfn)
 {
-    m_frameNum = (sfn & 0xFFFFFFFF00000000) >> 32;
-    m_subframeNum = (sfn & 0x00000000FF000000) >> 24;
-    m_slotNum = (sfn & 0x0000000000FF0000) >> 16;
-    m_numerology = (sfn & 0x000000000000FF00) >> 5;
+    m_frameNum = (sfn & 0x0000FFFFFF000000) >> 24;
+    m_subframeNum = (sfn & 0x0000000000FF0000) >> 16;
+    m_slotNum = (sfn & 0x000000000000FF00) >> 8;
+    m_numerology = (sfn & 0x00000000000000E0) >> 5;
 }
 
 // Static functions
