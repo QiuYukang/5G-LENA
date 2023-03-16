@@ -458,7 +458,7 @@ main(int argc, char* argv[])
 
     std::ofstream outFile;
     std::string filename = outputDir + "/" + simTag;
-    outFile.open(filename.c_str(), std::ofstream::out | std::ofstream::app);
+    outFile.open(filename.c_str(), std::ofstream::out | std::ofstream::trunc);
     if (!outFile.is_open())
     {
         NS_LOG_ERROR("Can't open file " << filename);
@@ -517,16 +517,42 @@ main(int argc, char* argv[])
         outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-    outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
-    outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
+    double meanFlowThroughput = averageFlowThroughput / stats.size();
+    double meanFlowDelay = averageFlowDelay / stats.size();
+    Ptr<UdpServer> serverApp = serverApps.Get(0)->GetObject<UdpServer>();
+    double totalUdpThroughput =
+        ((serverApp->GetReceived() * udpPacketSize * 8) / (simTime - udpAppStartTime)) * 1e-6;
+
+    outFile << "\n\n  Mean flow throughput: " << meanFlowThroughput << "\n";
+    outFile << "  Mean flow delay: " << meanFlowDelay << "\n";
+    outFile << "\n UDP throughput (bps) for UE with node ID 0:" << totalUdpThroughput << std::endl;
+
     outFile.close();
 
-    Ptr<UdpClient> clientApp = clientApps.Get(0)->GetObject<UdpClient>();
-    Ptr<UdpServer> serverApp = serverApps.Get(0)->GetObject<UdpServer>();
-    std::cout << "\n Total UDP throughput (bps):"
-              << (serverApp->GetReceived() * udpPacketSize * 8) / (simTime - udpAppStartTime)
-              << std::endl;
+    std::ifstream f(filename.c_str());
+
+    if (f.is_open())
+    {
+        std::cout << f.rdbuf();
+    }
 
     Simulator::Destroy();
-    return 0;
+
+    double toleranceMeanFlowThroughput = 383.557857 * 0.0001;
+    double toleranceMeanFlowDelay = 3.533664 * 0.0001;
+    double toleranceUdpThroughput = 372.5066667 * 0.0001;
+
+    if (meanFlowThroughput >= 383.557857 - toleranceMeanFlowThroughput &&
+        meanFlowThroughput <= 383.557857 + toleranceMeanFlowThroughput &&
+        meanFlowDelay >= 3.533664 - toleranceMeanFlowDelay &&
+        meanFlowDelay <= 3.533664 + toleranceMeanFlowDelay &&
+        totalUdpThroughput >= 372.5066667 - toleranceUdpThroughput &&
+        totalUdpThroughput <= 372.5066667 + toleranceUdpThroughput)
+    {
+        return EXIT_SUCCESS;
+    }
+    else
+    {
+        return EXIT_FAILURE;
+    }
 }
