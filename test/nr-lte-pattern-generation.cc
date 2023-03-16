@@ -217,12 +217,29 @@ LtePatternTestCase::DoRun()
                          4,
                      }},
                 },
+                // Explanation of testing DL harq feedback timing:
+                // E.g. {0, 6} means that for the first DL slot from the pattern
+                // the HARQ feedback from the UE can be sent earliest after 4 slots (n1 delay),
+                // but 4th and 5th slots are the DL slots, so UE cannot use any
+                // of these slots for to transmit HARQ feedback, so it has to wait
+                // 6 slots (6th slot is the special slot, which has the uplink CTRL).
+                // Hence having the pattern:
+                // DL,0
+                // S, 1 -> DL HARQ fb can be sent after 5 slots in the S slot
+                // UL,2 -> /
+                // UL,3 -> /
+                // DL,4 -> DL HARQ fb can be sent after 4 slots in the UL slot
+                // DL,5 -> DL HARQ fb can be sent after 6 slots which is the S slot
+                // S, 6 -> DL HARQ fb can be sent after 5 slots which is the S slot
+                // UL,7 -> /
+                // UL,8 -> /
+                // DL,9 -> DL HARQ fb can be sent after 4 slots in the UL slot
                 {
-                    {0, 7},
-                    {1, 6},
+                    {0, 6},
+                    {1, 5},
                     {4, 4},
-                    {5, 7},
-                    {6, 6},
+                    {5, 6},
+                    {6, 5},
                     {9, 4},
                 }};
 
@@ -317,14 +334,14 @@ LtePatternTestCase::DoRun()
                      }},
                 },
                 {
-                    {0, 7},
-                    {1, 6},
+                    {0, 6},
+                    {1, 5},
                     {3, 4},
-                    {4, 8},
-                    {5, 7},
-                    {6, 6},
+                    {4, 7},
+                    {5, 6},
+                    {6, 5},
                     {8, 4},
-                    {9, 8},
+                    {9, 7},
                 }};
     auto two = {
         LteNrTddSlotType::DL,
@@ -425,10 +442,10 @@ LtePatternTestCase::DoRun()
                 },
                 {
                     {0, 4},
-                    {1, 11},
-                    {5, 7},
-                    {6, 6},
-                    {7, 5},
+                    {1, 10},
+                    {5, 6},
+                    {6, 5},
+                    {7, 4},
                     {8, 4},
                     {9, 4},
                 }};
@@ -536,12 +553,12 @@ LtePatternTestCase::DoRun()
                      }},
                 },
                 {
-                    {0, 12},
-                    {1, 11},
-                    {4, 8},
-                    {5, 7},
-                    {6, 6},
-                    {7, 5},
+                    {0, 11},
+                    {1, 10},
+                    {4, 7},
+                    {5, 6},
+                    {6, 5},
+                    {7, 4},
                     {8, 4},
                     {9, 4},
                 }};
@@ -649,15 +666,15 @@ LtePatternTestCase::DoRun()
                      }},
                 },
                 {
-                    {0, 12},
-                    {1, 11},
-                    {3, 9},
-                    {4, 8},
-                    {5, 7},
-                    {6, 6},
-                    {7, 5},
+                    {0, 11},
+                    {1, 10},
+                    {3, 8},
+                    {4, 7},
+                    {5, 6},
+                    {6, 5},
+                    {7, 4},
                     {8, 4},
-                    {9, 13},
+                    {9, 12},
                 }};
     auto five = {
         LteNrTddSlotType::DL,
@@ -758,9 +775,9 @@ LtePatternTestCase::DoRun()
                 },
                 {
                     {0, 4},
-                    {1, 6},
-                    {5, 7},
-                    {6, 6},
+                    {1, 5},
+                    {5, 6},
+                    {6, 5},
                     {9, 4},
                 }};
     auto six = {
@@ -855,9 +872,9 @@ LtePatternTestCase::DoRun()
                 },
                 {
                     {0, 4},
-                    {1, 6},
+                    {1, 5},
                     {5, 4},
-                    {6, 6},
+                    {6, 5},
                 }};
     auto zero = {
         LteNrTddSlotType::DL,
