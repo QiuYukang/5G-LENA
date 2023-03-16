@@ -678,8 +678,11 @@ main(int argc, char* argv[])
         outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-    outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
-    outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
+    double meanFlowThroughput = averageFlowThroughput / stats.size();
+    double meanFlowDelay = averageFlowDelay / stats.size();
+
+    outFile << "\n\n  Mean flow throughput: " << meanFlowThroughput << "\n";
+    outFile << "  Mean flow delay: " << meanFlowDelay << "\n";
 
     outFile.close();
 
@@ -691,5 +694,43 @@ main(int argc, char* argv[])
     }
 
     Simulator::Destroy();
-    return 0;
+
+    if (argc == 0)
+    {
+        double toleranceMeanFlowThroughput = 0.0001 * 56.258560;
+        double toleranceMeanFlowDelay = 0.0001 * 0.553292;
+
+        if (meanFlowThroughput >= 56.258560 - toleranceMeanFlowThroughput &&
+            meanFlowThroughput <= 56.258560 + toleranceMeanFlowThroughput &&
+            meanFlowDelay >= 0.553292 - toleranceMeanFlowDelay &&
+            meanFlowDelay <= 0.553292 + toleranceMeanFlowDelay)
+        {
+            return EXIT_SUCCESS;
+        }
+        else
+        {
+            return EXIT_FAILURE;
+        }
+    }
+    else if (argc == 1 and ueNumPergNb == 9) // called from examples-to-run.py with these parameters
+    {
+        double toleranceMeanFlowThroughput = 0.0001 * 47.858536;
+        double toleranceMeanFlowDelay = 0.0001 * 10.504189;
+
+        if (meanFlowThroughput >= 47.858536 - toleranceMeanFlowThroughput &&
+            meanFlowThroughput <= 47.858536 + toleranceMeanFlowThroughput &&
+            meanFlowDelay >= 10.504189 - toleranceMeanFlowDelay &&
+            meanFlowDelay <= 10.504189 + toleranceMeanFlowDelay)
+        {
+            return EXIT_SUCCESS;
+        }
+        else
+        {
+            return EXIT_FAILURE;
+        }
+    }
+    else
+    {
+        return EXIT_SUCCESS; // we dont check other parameters configurations at the moment
+    }
 }
