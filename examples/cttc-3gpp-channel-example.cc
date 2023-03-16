@@ -317,6 +317,18 @@ main(int argc, char* argv[])
 
     Simulator::Stop(Seconds(simTime));
     Simulator::Run();
+
+    Ptr<UdpServer> serverApp = serverApps.Get(0)->GetObject<UdpServer>();
+    uint64_t receivedPackets = serverApp->GetReceived();
+
     Simulator::Destroy();
-    return 0;
+
+    if (receivedPackets == 10)
+    {
+        return EXIT_SUCCESS;
+    }
+    else
+    {
+        return EXIT_FAILURE;
+    }
 }
