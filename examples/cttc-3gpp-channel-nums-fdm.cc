@@ -624,8 +624,12 @@ main(int argc, char* argv[])
         outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
 
-    outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
-    outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
+    double meanFlowThroughput = averageFlowThroughput / stats.size();
+    double meanFlowDelay = averageFlowDelay / stats.size();
+    double throughputTolerance = meanFlowThroughput * 0.001;
+
+    outFile << "\n\n  Mean flow throughput: " << meanFlowThroughput << "\n";
+    outFile << "  Mean flow delay: " << meanFlowDelay << "\n";
 
     outFile.close();
 
@@ -637,5 +641,14 @@ main(int argc, char* argv[])
     }
 
     Simulator::Destroy();
-    return 0;
+
+    if (meanFlowThroughput >= 0.709696 - throughputTolerance &&
+        meanFlowThroughput <= 0.709696 + throughputTolerance)
+    {
+        return EXIT_SUCCESS;
+    }
+    else
+    {
+        return EXIT_FAILURE;
+    }
 }
