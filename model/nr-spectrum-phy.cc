@@ -591,19 +591,13 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
     switch (m_state)
     {
     case RX_DATA:
-        NS_FATAL_ERROR("Cannot TX while RX_DATA. CellId:" << GetCellId() << " isGnb ()" << IsEnb());
-        break;
+        /* no break */
     case RX_DL_CTRL:
-        NS_FATAL_ERROR("Cannot TX while RX_DL_CTRL. CellId:" << GetCellId() << " isGnb ()"
-                                                             << IsEnb());
-        break;
+        /* no break */
     case RX_UL_CTRL:
-        NS_FATAL_ERROR("Cannot TX while RX_UL_CTRL. CellId:" << GetCellId() << " isGnb ()"
-                                                             << IsEnb());
-        break;
+        /* no break*/
     case RX_UL_SRS:
-        NS_FATAL_ERROR("Cannot TX while RX_UL_SRS. CellId:" << GetCellId() << " isGnb ()"
-                                                            << IsEnb());
+        NS_FATAL_ERROR("Cannot TX while RX.");
         break;
     case TX:
         NS_FATAL_ERROR("Cannot TX while already TX.");
@@ -665,19 +659,13 @@ NrSpectrumPhy::StartTxDlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
     switch (m_state)
     {
     case RX_DATA:
-        NS_FATAL_ERROR("Cannot TX while RX_DATA. CellId:" << GetCellId() << " isGnb ()" << IsEnb());
-        break;
+        /* no break */
     case RX_DL_CTRL:
-        NS_FATAL_ERROR("Cannot TX while RX_DL_CTRL. CellId:" << GetCellId() << " isGnb ()"
-                                                             << IsEnb());
-        break;
+        /* no break */
     case RX_UL_CTRL:
-        NS_FATAL_ERROR("Cannot TX while RX_UL_CTRL. CellId:" << GetCellId() << " isGnb ()"
-                                                             << IsEnb());
-        break;
+        /* no break*/
     case RX_UL_SRS:
-        NS_FATAL_ERROR("Cannot TX while RX_UL_SRS. CellId:" << GetCellId() << " isGnb ()"
-                                                            << IsEnb());
+        NS_FATAL_ERROR("Cannot TX while RX.");
         break;
     case TX:
         NS_FATAL_ERROR("Cannot TX while already TX.");
@@ -721,19 +709,13 @@ NrSpectrumPhy::StartTxUlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
     switch (m_state)
     {
     case RX_DATA:
-        NS_FATAL_ERROR("Cannot TX while RX_DATA. CellId:" << GetCellId() << " isGnb ()" << IsEnb());
-        break;
+        /* no break */
     case RX_DL_CTRL:
-        NS_FATAL_ERROR("Cannot TX while RX_DL_CTRL. CellId:" << GetCellId() << " isGnb ()"
-                                                             << IsEnb());
-        break;
+        /* no break */
     case RX_UL_CTRL:
-        NS_FATAL_ERROR("Cannot TX while RX_UL_CTRL. CellId:" << GetCellId() << " isGnb ()"
-                                                             << IsEnb());
-        break;
+        /* no break */
     case RX_UL_SRS:
-        NS_FATAL_ERROR("Cannot TX while RX_UL_SRS. CellId:" << GetCellId() << " isGnb ()"
-                                                            << IsEnb());
+        NS_FATAL_ERROR("Cannot TX while RX.");
         break;
     case TX:
         NS_FATAL_ERROR("Cannot TX while already TX.");

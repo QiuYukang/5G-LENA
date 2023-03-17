@@ -817,22 +817,18 @@ NrUePhy::StartSlot(const SfnSf& s)
     m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front();
 
     auto nextVarTtiStart = GetSymbolPeriod() * allocation.m_dci->m_symStart;
-    uint64_t currentSlotN = s.Normalize() % m_tddPattern.size();
-    if (m_tddPattern[currentSlotN] > LteNrTddSlotType::DL)
-    {
-        auto ctrlMsgs = PopCurrentSlotCtrlMsgs();
 
-        if (m_netDevice)
+    auto ctrlMsgs = PopCurrentSlotCtrlMsgs();
+    if (m_netDevice)
+    {
+        DynamicCast<NrUeNetDevice>(m_netDevice)->RouteOutgoingCtrlMsgs(ctrlMsgs, GetBwpId());
+    }
+    else
+    {
+        // No netDevice (that could happen in tests) so just redirect them to us
+        for (const auto& msg : ctrlMsgs)
         {
-            DynamicCast<NrUeNetDevice>(m_netDevice)->RouteOutgoingCtrlMsgs(ctrlMsgs, GetBwpId());
-        }
-        else
-        {
-            // No netDevice (that could happen in tests) so just redirect them to us
-            for (const auto& msg : ctrlMsgs)
-            {
-                EncodeCtrlMsg(msg);
-            }
+            EncodeCtrlMsg(msg);
         }
     }
 
@@ -1145,13 +1141,11 @@ NrUePhy::EndVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
         m_currSlotAllocInfo.m_varTtiAllocInfo.pop_front();
 
         Time nextVarTtiStart = GetSymbolPeriod() * allocation.m_dci->m_symStart;
-        Time nextVarTtiTime = nextVarTtiStart + m_lastSlotStart - Simulator::Now();
 
-        NS_LOG_DEBUG("Simulation now:" << Simulator::Now()
-                                       << " at symbol:" << +allocation.m_dci->m_symStart
-                                       << ", nextVarTti will start in: " << nextVarTtiTime);
-
-        Simulator::Schedule(nextVarTtiTime, &NrUePhy::StartVarTti, this, allocation.m_dci);
+        Simulator::Schedule(nextVarTtiStart + m_lastSlotStart - Simulator::Now(),
+                            &NrUePhy::StartVarTti,
+                            this,
+                            allocation.m_dci);
     }
 
     m_receptionEnabled = false;
@@ -1190,7 +1184,6 @@ void
 NrUePhy::SendCtrlChannels(Time duration)
 {
     // Uplink CTRL is sent only through a single stream, the first is assumed
-    NS_LOG_INFO("Time duration from NrUePhy::SendCtrlChannels :" << duration);
     m_spectrumPhys.at(0)->StartTxUlControlFrames(m_ctrlMsgs, duration);
     m_ctrlMsgs.clear();
 }

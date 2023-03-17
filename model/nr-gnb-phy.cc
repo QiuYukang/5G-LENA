@@ -1003,11 +1003,10 @@ NrGnbPhy::DoStartSlot()
 
     DoCheckOrReleaseChannel();
 
-    if (m_tddPattern[currentSlotN] < LteNrTddSlotType::UL)
-    {
-        RetrievePrepareEncodeCtrlMsgs();
-        PrepareRbgAllocationMap(m_currSlotAllocInfo.m_varTtiAllocInfo);
-    }
+    RetrievePrepareEncodeCtrlMsgs();
+
+    PrepareRbgAllocationMap(m_currSlotAllocInfo.m_varTtiAllocInfo);
+
     FillTheEvent();
 }
 
@@ -1237,13 +1236,6 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
 {
     NS_LOG_FUNCTION(this);
 
-    uint64_t currentSlotN = m_currSlotAllocInfo.m_sfnSf.Normalize() % m_tddPattern.size();
-
-    if (m_tddPattern[currentSlotN] == LteNrTddSlotType::UL)
-    {
-        NS_LOG_WARN("We are in the UL slot, the DL CTRL transmission canceled.");
-        return Simulator::Now();
-    }
     NS_LOG_DEBUG("Starting DL CTRL TTI at symbol " << +m_currSymStart << " to "
                                                    << +m_currSymStart + dci->m_numSym);
 
@@ -1300,14 +1292,6 @@ NrGnbPhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("Starting DL DATA TTI at symbol " << +m_currSymStart << " to "
                                                    << +m_currSymStart + dci->m_numSym);
-
-    uint64_t currentSlotN = m_currSlotAllocInfo.m_sfnSf.Normalize() % m_tddPattern.size();
-
-    if (m_tddPattern[currentSlotN] == LteNrTddSlotType::UL)
-    {
-        NS_LOG_WARN("We are in the UL slot, the DL DATA transmission canceled.");
-        return Simulator::Now();
-    }
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
@@ -1483,12 +1467,10 @@ NrGnbPhy::StartVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
         if (dci->m_format == DciInfoElementTdma::DL)
         {
             varTtiPeriod = DlCtrl(dci);
-            NS_LOG_DEBUG("varTtiPeriod at DlCtrl: " << varTtiPeriod);
         }
         else if (dci->m_format == DciInfoElementTdma::UL)
         {
             varTtiPeriod = UlCtrl(dci);
-            NS_LOG_DEBUG("varTtiPeriod at UlCtrl: " << varTtiPeriod);
         }
     }
     else if (dci->m_type == DciInfoElementTdma::DATA)
@@ -1496,12 +1478,10 @@ NrGnbPhy::StartVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
         if (dci->m_format == DciInfoElementTdma::DL)
         {
             varTtiPeriod = DlData(dci);
-            NS_LOG_DEBUG("varTtiPeriod at DlData: " << varTtiPeriod);
         }
         else if (dci->m_format == DciInfoElementTdma::UL)
         {
             varTtiPeriod = UlData(dci);
-            NS_LOG_DEBUG("varTtiPeriod at UlCtrl: " << varTtiPeriod);
         }
     }
     else if (dci->m_type == DciInfoElementTdma::SRS)
