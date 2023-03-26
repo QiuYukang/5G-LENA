@@ -292,10 +292,9 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     /**
      * \brief Point in the Frequency/Time plane
      *
-     * The first element represent the RB (not the RBG), while the second element
-     * represent the symbol.
-     * The struct represents a point in the imaginary 2D space created by having
-     * frequencies on the y and time on the x.
+     * The first element represents the RBG, and the second element represents the symbol. The
+     * struct represents a point in the 2D time frequency space created by having frequencies on the
+     * y and time on the x.
      */
     struct PointInFTPlane
     {
