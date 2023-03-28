@@ -17,6 +17,9 @@ set(base_examples
     cttc-fh-compression
     cttc-nr-notching
     cttc-nr-mimo-demo
+    cttc-nr-traffic-ngmn-mixed
+    cttc-nr-traffic-3gpp-xr
+    traffic-generator-example
 )
 foreach(
   example

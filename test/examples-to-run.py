@@ -30,7 +30,7 @@ cpp_examples = [
     ("cttc-nr-notching --gNbNum=1 --ueNumPergNb=1 --operationMode=TDD --enableOfdma=false --enableUl=0 --enableDl=1 --validationValue1=10.18", "True", "True"),
     ("cttc-nr-notching --gNbNum=1 --ueNumPergNb=1 --operationMode=TDD --enableOfdma=false --enableUl=1 --enableDl=0 --validationValue1=10.12", "True", "True"),
     ("cttc-nr-notching --gNbNum=1 --ueNumPergNb=2 --operationMode=FDD --enableOfdma=true --enableUl=1 --enableDl=1 --notchedRbStartDl=5 --numOfNotchedRbsDl=7 --notchedRbStartUl=15 --numOfNotchedRbsUl=5 --validationValue1=10.15 --validationValue2=10.18", "True", "True"),
-    ("cttc-nr-notching --gNbNum=1 --ueNumPergNb=2 --operationMode=FDD --enableOfdma=true --enableUl=1 --enableDl=1 --notchedRbStartDl=5 --numOfNotchedRbsDl=5 --notchedRbStartUl=15 --numOfNotchedRbsUl=3 --bandwidth=5e6 --validationValue1=8.27 --validationValue2=9.028", "True", "True"), 
+    ("cttc-nr-notching --gNbNum=1 --ueNumPergNb=2 --operationMode=FDD --enableOfdma=true --enableUl=1 --enableDl=1 --notchedRbStartDl=5 --numOfNotchedRbsDl=5 --notchedRbStartUl=15 --numOfNotchedRbsUl=3 --bandwidth=5e6 --validationValue1=8.27 --validationValue2=9.028", "True", "True"),
     ("cttc-3gpp-channel-example", "True", "True"),
     ("cttc-3gpp-channel-nums", "True", "True"),
     ("cttc-3gpp-channel-nums-fdm", "True", "True"),
@@ -62,6 +62,9 @@ cpp_examples = [
     ("cttc-nr-mimo-demo --polSlantAngle1=0 --polSlantAngle2=90 --fixedRankIndicator=1", "True", "True"),
     ("cttc-nr-mimo-demo --polSlantAngle1=0 --polSlantAngle2=90 --useFixedRi=0", "True", "True"),
     ("cttc-nr-mimo-demo --crossPolarizedGnb=0 --crossPolarizedUe=0", "True", "True"),
+    ("cttc-nr-traffic-ngmn-mixed", "True", "True"),
+    ("cttc-nr-traffic-3gpp-xr", "True", "True"),
+    ("traffic-generator-example", "True", "True"),
     ]
 
 # A list of Python examples to run in order to ensure that they remain

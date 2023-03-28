@@ -27,8 +27,8 @@
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/three-gpp-channel-model.h"
-//#include "ns3/component-carrier-gnb.h"
-//#include "ns3/component-carrier-nr-ue.h"
+// #include "ns3/component-carrier-gnb.h"
+// #include "ns3/component-carrier-nr-ue.h"
 using namespace ns3;
 
 /**

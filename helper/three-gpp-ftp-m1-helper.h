@@ -19,12 +19,11 @@
 #ifndef THREE_GPP_FTP_M1_HELPER_H
 #define THREE_GPP_FTP_M1_HELPER_H
 
-#include <ns3/file-transfer-application.h>
-#include <ns3/file-transfer-helper.h>
 #include <ns3/internet-apps-module.h>
 #include <ns3/internet-module.h>
 #include <ns3/network-module.h>
 #include <ns3/node.h>
+#include <ns3/traffic-generator-helper.h>
 #include <ns3/v4ping-helper.h>
 
 namespace ns3

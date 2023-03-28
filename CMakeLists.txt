@@ -90,10 +90,19 @@ set(source_files
     model/nr-ue-power-control.cc
     model/realistic-bf-manager.cc
     model/beam-conf-id.cc
-    utils/file-transfer-helper.cc
-    utils/file-transfer-application.cc
     utils/three-gpp-channel-model-param.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
+    utils/traffic-generators/helper/traffic-generator-helper.cc
+    utils/traffic-generators/model/traffic-generator.cc
+    utils/traffic-generators/model/traffic-generator-ftp-single.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-ftp-multi.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-video.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-gaming.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-voip.cc
+    utils/traffic-generators/model/traffic-generator-3gpp-pose-control.cc
+    utils/traffic-generators/model/traffic-generator-3gpp-audio-data.cc
+    utils/traffic-generators/model/traffic-generator-3gpp-generic-video.cc
+    utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
 )
 
 set(header_files
@@ -194,10 +203,19 @@ set(header_files
     model/nr-ue-power-control.h
     model/realistic-bf-manager.h
     model/beam-conf-id.h
-    utils/file-transfer-helper.h
-    utils/file-transfer-application.h
     utils/three-gpp-channel-model-param.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
+    utils/traffic-generators/model/traffic-generator.h
+    utils/traffic-generators/model/traffic-generator-ftp-single.h
+    utils/traffic-generators/model/traffic-generator-ngmn-ftp-multi.h
+    utils/traffic-generators/model/traffic-generator-ngmn-video.h
+    utils/traffic-generators/model/traffic-generator-ngmn-gaming.h
+    utils/traffic-generators/model/traffic-generator-ngmn-voip.h
+    utils/traffic-generators/model/traffic-generator-3gpp-pose-control.h
+    utils/traffic-generators/model/traffic-generator-3gpp-audio-data.h
+    utils/traffic-generators/model/traffic-generator-3gpp-generic-video.h
+    utils/traffic-generators/helper/traffic-generator-helper.h
+    utils/traffic-generators/helper/xr-traffic-mixer-helper.h
 )
 
 
@@ -227,6 +245,7 @@ set(test_sources
     test/nr-uplink-power-control-test.cc
     test/nr-power-allocation.cc
     test/nr-test-harq.cc
+    utils/traffic-generators/test/traffic-generator-test.cc
 )
 
 build_lib(

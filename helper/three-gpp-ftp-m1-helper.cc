@@ -20,6 +20,7 @@
 #include "three-gpp-ftp-m1-helper.h"
 
 #include <ns3/packet-sink-helper.h>
+#include <ns3/traffic-generator-ftp-single.h>
 
 namespace ns3
 {
@@ -74,8 +75,10 @@ ThreeGppFtpM1Helper::DoConfigureFtpClients()
 {
     NS_LOG_FUNCTION(this);
     uint32_t ftpSegSize = 1448; // bytes
-    FileTransferHelper ftpHelper("ns3::UdpSocketFactory", Address());
-    ftpHelper.SetAttribute("SendSize", UintegerValue(ftpSegSize));
+    TrafficGeneratorHelper ftpHelper("ns3::UdpSocketFactory",
+                                     Address(),
+                                     TrafficGeneratorFtpSingle::GetTypeId());
+    ftpHelper.SetAttribute("PacketSize", UintegerValue(ftpSegSize));
     ftpHelper.SetAttribute("FileSize", UintegerValue(m_ftpFileSize));
 
     for (uint32_t i = 0; i < m_serversIps->GetN(); i++)
@@ -104,9 +107,9 @@ ThreeGppFtpM1Helper::DoStartFileTransfer()
     NS_ASSERT(m_lastClient >= 0 && m_lastClient < m_clientApps->GetN());
     Ptr<Application> app = m_clientApps->Get(m_lastClient);
     NS_ASSERT(app);
-    Ptr<FileTransferApplication> fileTransfer = DynamicCast<FileTransferApplication>(app);
+    Ptr<TrafficGenerator> fileTransfer = DynamicCast<TrafficGenerator>(app);
     NS_ASSERT(fileTransfer);
-    fileTransfer->SendFile();
+    fileTransfer->SendPacketBurst();
 
     m_lastClient += 1;
     if (m_lastClient == m_clientApps->GetN())

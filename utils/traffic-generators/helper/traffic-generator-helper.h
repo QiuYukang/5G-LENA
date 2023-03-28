@@ -18,10 +18,11 @@
  * Author: Geoge Riley <riley@ece.gatech.edu>
  * Adapted from OnOffHelper by:
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Edited/extended by: Biljana Bojovic <bbojovic@cttc.es>
  */
 
-#ifndef FILE_TRANSFER_HELPER_H
-#define FILE_TRANSFER_HELPER_H
+#ifndef TRAFFIC_GENERATOR_HELPER_H
+#define TRAFFIC_GENERATOR_HELPER_H
 
 #include "ns3/address.h"
 #include "ns3/application-container.h"
@@ -37,15 +38,17 @@ namespace ns3
 {
 
 /**
- * \ingroup filetransfer
- * \brief A helper to make it easier to instantiate an ns3::FileTransferApplication
+ * \ingroup traffic
+ * \brief A helper to make it easier to instantiate an ns3::TrafficGenerator types
+ * of applications
  * on a set of nodes.
  */
-class FileTransferHelper
+class TrafficGeneratorHelper
 {
   public:
     /**
-     * Create an FileTransferHelper to make it easier to work with FileTransferApplications
+     * Create an TrafficGeneratorHelper to make it easier to work with TrafficGenerator
+     * types
      *
      * \param protocol the name of the protocol to use to send traffic
      *        by the applications. This string identifies the socket
@@ -53,8 +56,9 @@ class FileTransferHelper
      *        A typical value would be ns3::UdpSocketFactory.
      * \param address the address of the remote node to send traffic
      *        to.
+     * \param ftpTypeId a TypeId of the FTP application to be used by this helper
      */
-    FileTransferHelper(std::string protocol, Address address);
+    TrafficGeneratorHelper(std::string protocol, Address address, TypeId ftpTypeId);
 
     /**
      * Helper function used to set the underlying application attributes,
@@ -66,39 +70,39 @@ class FileTransferHelper
     void SetAttribute(std::string name, const AttributeValue& value);
 
     /**
-     * Install an ns3::FileTransferApplication on each node of the input container
+     * Install an ns3::TrafficGenerator on each node of the input container
      * configured with all the attributes set with SetAttribute.
      *
-     * \param c NodeContainer of the set of nodes on which an FileTransferApplication
+     * \param c NodeContainer of the set of nodes on which an TrafficGenerator
      * will be installed.
      * \returns Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(NodeContainer c) const;
 
     /**
-     * Install an ns3::FileTransferApplication on the node configured with all the
+     * Install an ns3::TrafficGenerator on the node configured with all the
      * attributes set with SetAttribute.
      *
-     * \param node The node on which an FileTransferApplication will be installed.
+     * \param node The node on which an TrafficGenerator will be installed.
      * \returns Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(Ptr<Node> node) const;
 
     /**
-     * Install an ns3::FileTransferApplication on the node configured with all the
+     * Install an ns3::TrafficGenerator on the node configured with all the
      * attributes set with SetAttribute.
      *
-     * \param nodeName The node on which an FileTransferApplication will be installed.
+     * \param nodeName The node on which an TrafficGenerator will be installed.
      * \returns Container of Ptr to the applications installed.
      */
     ApplicationContainer Install(std::string nodeName) const;
 
   private:
     /**
-     * Install an ns3::FileTransferApplication on the node configured with all the
+     * Install an ns3::TrafficGenerator on the node configured with all the
      * attributes set with SetAttribute.
      *
-     * \param node The node on which an FileTransferApplication will be installed.
+     * \param node The node on which an TrafficGenerator will be installed.
      * \returns Ptr to the application installed.
      */
     Ptr<Application> InstallPriv(Ptr<Node> node) const;
@@ -108,4 +112,4 @@ class FileTransferHelper
 
 } // namespace ns3
 
-#endif /* FILE_TRANSFER_HELPER_H */
+#endif /* TRAFFIC_GENERATOR_HELPER_H */
