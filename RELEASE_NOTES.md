@@ -17,6 +17,10 @@ Availability
 ------------
 Available since November 23, 2022
 
+Cite this version
+-----------------
+DOI: 10.5281/zenodo.7780747
+
 Supported platforms
 -------------------
 The supported platforms are the same as for the NR-v2.1 release, except that
