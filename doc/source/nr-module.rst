@@ -1469,7 +1469,7 @@ However, there are situations where RI value is not considered. The first one is
 
 HARQ feedback processing
 ########################
-The scheduler in the NR module is responsible for embedding a unique HARQ process id in every DCI it creates, and this functionality remains the same in the MIMO extension. Specifically, the simulator schedules multiple streams using a single DCI; thus, the same HARQ process id is used for all of them. It is worth mentioning that this implementation choice is aligned with the 3GPP standard. In particular, in the DCI format 1-1, which is a commonly used DCI for DL in NR, unlike TB-related information, the HARQ process id field is not repeated for each stream while using MIMO spatial multiplexing~\cite{DAHLMAN20181}. Moreover, similar to a real network, a UE in our simulator reports HARQ feedback (i.e., ACK or NACK) for both the streams since it decodes them independently. To do that, we have modified the C++ struct DlHarqInfo, which is used to report the HARQ feedback in downlink following the Femto forum MAC API. Specifically, this modification replaces the simple C++ enumeration (that represents ACK or NACK) with a vector of such enumeration so that a UE can report the HARQ feedback for the TB of each stream to its serving gNB.
+The scheduler in the NR module is responsible for embedding a unique HARQ process id in every DCI it creates, and this functionality remains the same in the MIMO extension. Specifically, the simulator schedules multiple streams using a single DCI; thus, the same HARQ process id is used for all of them. It is worth mentioning that this implementation choice is aligned with the 3GPP standard. In particular, in the DCI format 1-1, which is a commonly used DCI for DL in NR, unlike TB-related information, the HARQ process id field is not repeated for each stream while using MIMO spatial multiplexing. Moreover, similar to a real network, a UE in our simulator reports HARQ feedback (i.e., ACK or NACK) for both the streams since it decodes them independently. To do that, we have modified the C++ struct DlHarqInfo, which is used to report the HARQ feedback in downlink following the Femto forum MAC API. Specifically, this modification replaces the simple C++ enumeration (that represents ACK or NACK) with a vector of such enumeration so that a UE can report the HARQ feedback for the TB of each stream to its serving gNB.
 
 At the gNB side, a HARQ feedback (i.e., DlHarqInfo struct) from a UE is forwarded to the NrMacSchedulerNs3 class for processing. In particular, we extended the ProcessHarqFeedbacks function of this class to read the HARQ feedback of each stream. Upon processing a HARQ feedback, if a UE has reported ACK for both streams' TB, the HARQ process id is released, i.e., it can be reassigned to a new DCI. However, it may happen that a UE is able to decode the TB of only one stream, i.e., it reports ACK for one stream and NACK for the other. In this case, while processing the feedback, the scheduler will not release the HARQ process id and reschedules the TB of the failed stream using the same HARQ process id. Moreover, the scheduler will prioritize retransmission of the TB of this single stream over scheduling new data during such retransmission. It will keep scheduling only one stream (for which it received NACK) until the TB is successfully decoded or the maximum number of retransmissions is reached.
 
@@ -1630,6 +1630,31 @@ channel is re-created to avoid spatial and temporal dependencies among
 independent REM calculations. Moreover, the calculations are the average of
 N iterations (specified by the user) in order to consider the randomness of
 the channel.
+
+
+NGMN mixed and 3GPP XR traffic models
+*************************************
+We have implemented in nr/utils/traffic-generators various NGMN traffic applications for mixed traffic scenarios and 3GPP XR traffic applications, to simulate advanced traffic applications. NGMN traffic models are defined in Annex A and Annex B of [NGMN-traffics]_ to simulate mixed traffic scenarios, in which a percentage of users is associated to a different traffic type each. In particular, NGMN provides models for: FTP, web browsing using HTTP, video streaming, VoIP, and gaming. On the other hand, 3GPP traffic models for XR traffic are defined in [TR38838]_, which includes traffic models for Virtual Reality (VR), Augmented Reality (AR), and Cloud Gaming (CG) applications.
+
+The 'NR' module includes the following models:
+
+* NGMN FTP
+* NGMN video streaming
+* NGMN gaming
+* NGMN VoIP
+* 3GPP AR Model 3A 3 streams: pose/control, scene/video and audio/data
+* 3GPP VR downlink 1 stream: scene/video
+* 3GPP VR downlink 2 streams: scene/video and audio/data
+* 3GPP VR uplink: pose/control
+* 3GPP CG downlink 1 stream: scene/video
+* 3GPP CG downlink 2 streams: scene/video and audio/data
+* 3GPP CG uplink: pose/control
+
+Let us note that the NGMN HTTP model is already available in ns-3-dev.
+
+We have created a general C++ base class called TrafficGenerator to support many different traffic types such as video streaming, gaming, VoIP, web browsing, FTP, scene/video, pose/control, audio/data. The implementation details can be found in [WNS32022-ngmn]_. 
+
+The 3GPP traffic models have been parameterized and combined to model different single or multi-stream XR applications, as defined in [TR38838]_. A simulation helper allows to combine various data flows (or streams) into a single PDU session for XR inside a network device. 
 
 
 NR-U extension
@@ -2128,6 +2153,27 @@ community an open source tool that allows the testing, evaluation, validation, a
 experimentation of existing and/or new features, guaranteeing the resemblance of
 the results to that of an industrial private product or of a real network.
 
+traffic-generator-example.cc
+============================
+The program ``traffic-generator-example`` included in the ``nr`` module consists of a simple topology with two nodes, a TX and an RX node. We install on each of these nodes a SimpleNetDevice that assumes an infinite bandwidth and we connect them through s SimpleChannel which does not introduce neither error nor delay to the packet transmission/reception. On the TX node we install the traffic generator by specifying the type of the NGMN traffic generator (FTP, VoIP, video, gaming) and on the RX node we install the PacketSink application. The example supports several command line parameters. The parameter trafficType can be used to configure the traffic type (NGMN FTP, video, gaming and VoIP). The example gathers the measurements (the bytes transmitted) per the measurement window interval, and writes them to the output file in the root ns-3-dev folder, so one can plot this to see the pattern of each traffic type.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/traffic-generator-example_8cc.html.
+
+cttc-nr-traffic-ngmn-mixed.cc
+=============================
+The program ``cttc-nr-traffic-ngmn-mixed`` included in the ``nr`` is an hegagonal topology example used to show how to configure different NGMN types of traffics or NGMN mixed scenario. The example consists of an hexagonal grid deployment consisting on a central site and a number of outer rings of sites around this central site. Each site is sectorized with three cells, pointing to 30º, 150º and 270º w.r.t. the horizontal axis, and we allocate a different band to each sector of the site. We provide a number of simulation parameters that can be configured through the command line. The parameter trafficTypeConf defines the NGMN traffic to be simulated (UDP CBR, FTP Model 1, NGMN FTP, NGMN VIDEO, HTTP, NGMN GAMING, NGMN VOIP, NGMN MIXED). In the case of NGMN MIXED, among the multiple UEs in a cell, we can define (through command line parameters) the percentage of UEs with each traffic type, to simulate mixed traffic scenarios, e.g., 10% FTP, 20% HTTP, 20% VIDEO STREAMING, 30% VoIP, 20% GAMING. 
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-traffic-ngmn-mixed_8cc.html.
+
+cttc-nr-traffic-generator-3gpp-xr.cc
+====================================
+The program ``cttc-nr-traffic-generator-3gpp-xr`` included in the ``nr`` consists on a simple topology of 1 gNB and various UEs, and is used to show how to configure different 3GPP XR types of traffics or mixed scenario. It can be configured with different 3GPP XR traffic generators (by using XR traffic mixer helper). We provide a number of simulation parameters that can be configured through the command line. For example, we can define the number of VR UEs, the number of AR UEs and the number of CG UEs to be simulated, resulting in a mixed XR traffic scenario.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-traffic-generator-3gpp-xr_8cc.html.
+
 
 
 .. _Validation:
@@ -2346,6 +2392,17 @@ The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-realistic-beamforming-test_8cc.html
 
 
+Test for NGMN traffic models
+============================
+Test case called ``traffic-generator-test`` validates the NGMN traffic models. It is composed of various tests cases that check that the traffic generator works correctly by validating that the probabilistic distributions of specific variables of each of the implemented traffic generators is according to the NGMN document. 
+
+TrafficGeneratorTestCase checks that the traffic generator is correctly being configured, connected to the socket, that different transport protocols can be used (TCP or UDP depending on the configuration), and that all the packets that are transmitted are correctly received. TrafficGeneratorNgmnFtpTestCase checks that the probability distributions of the NGMN FTP traffic generator are generated correctly. The test case calls 1000 times the function to generate the file size and the reading time of the NGMN FTP traffic generator, and it checks whether the mean file size value and the mean reading time correspond to those that are defined in the NGMN document. TrafficGeneratorNgmnGamingTestCase checks whether the mean value of the initial packet arrival time, the mean packet arrival time, and the mean packet size for the downlink and uplink NGMN gaming traffic generator have the expected values. TrafficGeneratorNgmnVideoTestCase checks that the probability distributions of the NGMN video traffic generator are generated correctly. The test case calls 1000 times the function to generate the packet size and the packet arrival time of the NGMN video traffic generator, and it checks whether the mean packet size value, and the mean packet arrival time correspond to those that are defined in the NGMN document. TrafficGeneratorNgmnVoipTestCase checks whether the implemented NGMN VoIP traffic generator provides the average source rate equal to the average VoIP source rate as defined in the NGMN document, i.e., the one of RTP AMR 12.2 traffic. For a given parameter specified in the NGMN document, such as encoder frame length, voice activity factor, etc. 
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/html/traffic-generator-test_8cc.html
+
+
+
 Open issues and future work
 ---------------------------
 
@@ -2383,14 +2440,20 @@ Open issues and future work
 
 .. [lte-ulpc] LTE ns-3 implementation of uplink power control: https://www.nsnam.org/docs/models/html/lte-design.html#power-control
 
-.. [SigProc5G] F.-L. Luo and C. J. Zhang. 2016. "Signal Processing for 5G: Algorithms and Implementations", John Wiley & Sons., Aug. 2016
+.. [SigProc5G] F.-L. Luo and C. J. Zhang, "Signal Processing for 5G: Algorithms and Implementations", John Wiley & Sons., Aug. 2016.
 
-.. [TS38331]  3GPP  TS  38.331, Radio Resource Control (RRC). (Rel. 15). 2018.
+.. [TS38331]  3GPP TS 38.331, Radio Resource Control (RRC), (Rel. 15), 2018.
 
-.. [IMT-2020] ITU-R, Submission, evaluation process and consensus building for IMT-2020, ITU-R IMT-2020/2-E, 2019
+.. [IMT-2020] ITU-R, Submission, evaluation process and consensus building for IMT-2020, ITU-R IMT-2020/2-E, 2019.
 
-.. [SIMPAT-calibration] K. Koutlia, B. Bojovic, Z. Ali, S. Lag ́en, Calibration of the 5G-LENA system level simulator in 3GPP reference scenarios, Simulation Modelling Practice and Theory 119, 2022
+.. [SIMPAT-calibration] K. Koutlia, B. Bojovic, Z. Ali, S. Laǵen, Calibration of the 5G-LENA system level simulator in 3GPP reference scenarios, Simulation Modelling Practice and Theory 119, 2022.
 
-.. [TR38901] 3GPP TR 38.901 "Study on Channel Model for Frequencies from 0.5 to 100 GHz", (Release 15) TR 38.901v16.1.0 (2020), 3rd Generation Partnership Project, 2020
+.. [TR38901] 3GPP TR 38.901 "Study on Channel Model for Frequencies from 0.5 to 100 GHz", (Release 15) TR 38.901v16.1.0 (2020), 3rd Generation Partnership Project, 2020.
 
-.. [RP180524] Huawei RP-180524, "Summary of Calibration Results for IMT-2020 Self Evaluation", 3GPP TSG RAN Meeting #79, 2018
+.. [RP180524] Huawei RP-180524, "Summary of Calibration Results for IMT-2020 Self Evaluation", 3GPP TSG RAN Meeting #79, 2018.
+
+.. [NGMN-traffics] NGMN Alliance, "NGMN Radio Access Performance Evaluation Methodology", 2008.
+
+.. [TR38838] 3GPP TR 38.838, "Study on XR (Extended Reality) Evaluations for NR", V17.0.0, 2022.
+
+.. [WNS32022-ngmn] B. Bojovic, S. Lagen, Enabling NGMN mixed traffic models for ns-3, in Workshop on ns-3, June 2022.
