@@ -303,7 +303,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
          * \param rbg RBG
          * \param sym Symbol
          */
-        PointInFTPlane(uint8_t rbg, uint8_t sym)
+        PointInFTPlane(uint32_t rbg, uint8_t sym)
             : m_rbg(rbg),
               m_sym(sym)
         {

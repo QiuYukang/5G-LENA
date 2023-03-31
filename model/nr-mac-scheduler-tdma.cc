@@ -577,9 +577,8 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
         oss << std::to_string(x) << " ";
     }
 
-    NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from "
-                      << static_cast<uint32_t>(spoint->m_rbg) << " with mask " << oss.str()
-                      << " for " << static_cast<uint32_t>(numSym) << " SYM ");
+    NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from " << spoint->m_rbg << " with mask "
+                      << oss.str() << " for " << static_cast<uint32_t>(numSym) << " SYM ");
 
     NS_ASSERT(std::count(dci->m_rbgBitmask.begin(), dci->m_rbgBitmask.end(), 0) !=
               GetBandwidthInRbg());

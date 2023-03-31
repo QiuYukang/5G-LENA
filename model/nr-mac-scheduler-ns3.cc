@@ -1443,10 +1443,9 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
 
         NS_LOG_DEBUG(activeDl.size()
                      << " active DL beam, this beam has " << symPerBeam.at(GetBeam(beam))
-                     << " SYM, starts from RB " << static_cast<uint32_t>(spoint->m_rbg)
-                     << " and symbol " << static_cast<uint32_t>(spoint->m_sym) << " for a total of "
-                     << availableRBG << " RBG. In one symbol we have " << GetBandwidthInRbg()
-                     << " RBG.");
+                     << " SYM, starts from RB " << spoint->m_rbg << " and symbol "
+                     << static_cast<uint32_t>(spoint->m_sym) << " for a total of " << availableRBG
+                     << " RBG. In one symbol we have " << GetBandwidthInRbg() << " RBG.");
 
         if (symPerBeam.at(GetBeam(beam)) == 0)
         {
@@ -1688,10 +1687,10 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
 
         NS_LOG_DEBUG(activeUl.size()
                      << " active UL beam, this beam has " << symPerBeam.at(GetBeam(beam))
-                     << " SYM, starts from RBG " << static_cast<uint32_t>(spoint->m_rbg)
-                     << " and symbol " << static_cast<uint32_t>(spoint->m_sym)
-                     << " (going backward) for a total of " << availableRBG
-                     << " RBG. In one symbol we have " << GetBandwidthInRbg() << " RBG.");
+                     << " SYM, starts from RBG " << spoint->m_rbg << " and symbol "
+                     << static_cast<uint32_t>(spoint->m_sym) << " (going backward) for a total of "
+                     << availableRBG << " RBG. In one symbol we have " << GetBandwidthInRbg()
+                     << " RBG.");
 
         if (symPerBeam.at(GetBeam(beam)) == 0)
         {

@@ -229,16 +229,16 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
 
             for (std::size_t stream = 0; stream < dciInfoReTx->m_tbSize.size(); stream++)
             {
-                NS_LOG_DEBUG(
-                    "UE" << dciInfoReTx->m_rnti << " gets DL symbols "
-                         << static_cast<uint32_t>(dciInfoReTx->m_symStart) << "-"
-                         << static_cast<uint32_t>(dciInfoReTx->m_symStart + dciInfoReTx->m_numSym -
-                                                  1)
-                         << " tbs " << dciInfoReTx->m_tbSize.at(stream) << " harqId "
-                         << static_cast<uint32_t>(dciInfoReTx->m_harqProcess) << " rv "
-                         << static_cast<uint32_t>(dciInfoReTx->m_rv.at(stream)) << " RBG start: "
-                         << static_cast<uint32_t>(startingPoint->m_rbg - rbgAssigned)
-                         << " RBG end: " << static_cast<uint32_t>(startingPoint->m_rbg) << " RETX");
+                NS_LOG_DEBUG("UE" << dciInfoReTx->m_rnti << " gets DL symbols "
+                                  << static_cast<uint32_t>(dciInfoReTx->m_symStart) << "-"
+                                  << static_cast<uint32_t>(dciInfoReTx->m_symStart +
+                                                           dciInfoReTx->m_numSym - 1)
+                                  << " tbs " << dciInfoReTx->m_tbSize.at(stream) << " harqId "
+                                  << static_cast<uint32_t>(dciInfoReTx->m_harqProcess) << " rv "
+                                  << static_cast<uint32_t>(dciInfoReTx->m_rv.at(stream))
+                                  << " RBG start: "
+                                  << static_cast<uint32_t>(startingPoint->m_rbg - rbgAssigned)
+                                  << " RBG end: " << startingPoint->m_rbg << " RETX");
             }
 
             for (const auto& rlcPdu : harqProcess.m_rlcPduInfo)
@@ -302,7 +302,7 @@ NrMacSchedulerHarqRr::ScheduleUlHarq(
     NS_ASSERT(startingPoint->m_rbg == 0);
 
     NS_LOG_INFO("Scheduling UL HARQ starting from sym "
-                << +startingPoint->m_sym << " and RBG " << +startingPoint->m_rbg
+                << +startingPoint->m_sym << " and RBG " << startingPoint->m_rbg
                 << ". Available symbols: " << symAvail
                 << " number of feedback: " << ulHarqFeedback.size());
 

@@ -506,9 +506,8 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
         oss << std::to_string(x) << " ";
     }
 
-    NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from "
-                      << static_cast<uint32_t>(spoint->m_rbg) << " with mask " << oss.str()
-                      << " for " << static_cast<uint32_t>(maxSym) << " SYM.");
+    NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from " << spoint->m_rbg << " with mask "
+                      << oss.str() << " for " << static_cast<uint32_t>(maxSym) << " SYM.");
 
     std::shared_ptr<DciInfoElementTdma> dci =
         std::make_shared<DciInfoElementTdma>(ueInfo->m_rnti,
@@ -588,10 +587,9 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
         RBGNum == 0,
         "If you see this message, it means that the AssignRBG and CreateDci method are unaligned");
 
-    NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from "
-                      << static_cast<uint32_t>(spoint->m_rbg) << " to "
-                      << static_cast<uint32_t>(spoint->m_rbg + assigned) << " for "
-                      << static_cast<uint32_t>(maxSym) << " SYM.");
+    NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from " << spoint->m_rbg << " to "
+                      << spoint->m_rbg + assigned << " for " << static_cast<uint32_t>(maxSym)
+                      << " SYM.");
 
     // Due to MIMO implementation MCS, TB size, ndi, rv, are vectors
     std::vector<uint8_t> ulMcs = {ueInfo->m_ulMcs};
