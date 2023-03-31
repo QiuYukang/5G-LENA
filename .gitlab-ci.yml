@@ -1,9 +1,8 @@
 stages:
   - code-linting
   - reuse
-  - documentation
   - build
-
+  - documentation
 ###################### BUILD STAGE #############################################
 
 # Defines the steps to run the tests
@@ -89,6 +88,14 @@ gcc-optimized:
   before_script:
     - pacman -Syu --noconfirm
     - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+
+reuse:
+  stage: reuse
+  image:
+    name: fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
 
 pages:
   stage: documentation
