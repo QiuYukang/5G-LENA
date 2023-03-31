@@ -41,7 +41,8 @@ TrafficGeneratorTestCase::~TrafficGeneratorTestCase()
 {
 }
 
-void TrafficGeneratorTestCase::DoRun()
+void
+TrafficGeneratorTestCase::DoRun()
 {
     NodeContainer nodes;
     nodes.Create(2);
