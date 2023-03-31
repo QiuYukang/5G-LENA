@@ -1,3 +1,7 @@
+# Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 # ns-3 CI/CD script with the code-linting stage
 #
 # Contains jobs to check the ns-3 coding style and perform lint checking.

@@ -1,3 +1,7 @@
+# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 set(source_files
     helper/nr-helper.cc
     helper/nr-phy-rx-trace.cc
