@@ -53,7 +53,7 @@ $ git checkout ns-3.x
 
 ```
 
-where x corresponds to the specific ns-3 release branch that you want to use, which has to be supported as indicated in the table in the README file. 
+where x corresponds to the specific ns-3 release branch that you want to use, which has to be supported as indicated in the table in the README file.
 For example, you can use "git checkout ns-3.37" to switch to the ns-3.37 release branch, which is supported together with NR v2.3 release branch. If the recommended ns-3 release is not available yet (such in the case that NR is released before the recommended ns-3 release), then you can use ns-3 master until ns-3 recommended release is ready.
 
 \subsection test-ns3 Test the installation
