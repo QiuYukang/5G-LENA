@@ -774,11 +774,12 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
                     if (pburst && pburst->GetNPackets() > 0)
                     {
                         newBursts.insert(std::make_pair(
-                            currentSfn.GetEncodingWithSymStart(alloc.m_dci->m_symStart),
+                            currentSfn.GetEncForStreamWithSymStart(stream, alloc.m_dci->m_symStart),
                             pburst));
                         sfnMap.insert(std::make_pair(
-                            currentSfn.GetEncodingWithSymStart(alloc.m_dci->m_symStart),
-                            it->m_sfnSf.GetEncodingWithSymStart(alloc.m_dci->m_symStart)));
+                            currentSfn.GetEncForStreamWithSymStart(stream, alloc.m_dci->m_symStart),
+                            it->m_sfnSf.GetEncForStreamWithSymStart(stream,
+                                                                    alloc.m_dci->m_symStart)));
                     }
                     else
                     {
