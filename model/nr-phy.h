@@ -343,32 +343,32 @@ class NrPhy : public Object
     void EncodeCtrlMsg(const Ptr<NrControlMessage>& msg);
 
     /**
-     * \brief Go through the current pattern and see if at least one slot is DL or F.
+     * \brief Go through the current pattern and see if at least one slot is DL, F or S.
      *
-     * \return true if at least one slot is DL or F.
+     * \return true if at least one slot is DL, F or S.
      */
     bool HasDlSlot() const;
 
     /**
-     * \brief Go trough the current pattern and see if at least one slot is UL or F.
+     * \brief Go trough the current pattern and see if at least one slot is UL, F or S.
      *
-     * \return true if at least one slot is UL or F.
+     * \return true if at least one slot is UL, F or S.
      */
     bool HasUlSlot() const;
 
     /**
-     * \brief See if at least one slot is DL or F.
+     * \brief See if at least one slot is DL, F or S.
      *
      * \param pattern Pattern to check
-     * \return true if at least one slot is DL or F.
+     * \return true if at least one slot is DL, F or S.
      */
     static bool HasDlSlot(const std::vector<LteNrTddSlotType>& pattern);
 
     /**
-     * \brief See if at least one slot is UL or F.
+     * \brief See if at least one slot is UL, F or S.
      *
      * \param pattern Pattern to check
-     * \return true if at least one slot is UL or F.
+     * \return true if at least one slot is UL, F or S.
      */
     static bool HasUlSlot(const std::vector<LteNrTddSlotType>& pattern);
 
