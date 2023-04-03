@@ -59,17 +59,17 @@ number, to list git branches run `git branch -r`). For example, for NR Release v
 
 ```
 cd nr
-git checkout 5g-lena-v2.3.y
+git checkout 5g-lena-v2.4.y
 ```
 
 ### Switch to the recommended ns-3 release branch:
 
 Check in the [NR RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the recommended ns-3 release, and then check out the corresponding ns-3 release branch.
-For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".37" you can run:
+For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".38" you can run:
 
 ```
 cd ../..
-git checkout ns-3.37
+git checkout ns-3.38
 ```
 
 For a quicker reference we provide a table with the supported versions of ns-3-dev
@@ -77,6 +77,7 @@ for each NR release.
 
 | NR version     | ns-3 version | Build system  |
 | :------------: | :-----------:| :-----------: |
+| 5g-lena-v2.4.y | ns-3.38      | cmake         |
 | 5g-lena-v2.3.y | ns-3.37      | cmake         |
 | 5g-lena-v2.2.y | ns-3.36.1    | cmake         |
 | 5g-lena-v2.1.y | ns-3.36      | cmake         |
