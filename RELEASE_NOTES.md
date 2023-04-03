@@ -16,6 +16,116 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+
+Release NR-v2.4
+----------------
+
+Availability
+------------
+Available since April 5, 2023
+
+Cite this version
+-----------------
+DOI:
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-9 or later
+- clang-8 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- ArchLinux with g++-9, 10 and 11, and clang-8, 9, 10, 11 and 12.
+
+Recommended ns-3 release: ns-3.38
+
+Important news
+--------------
+Starting with this NR release, the `NR` module is compatible with REUSE software
+(https://reuse.software/).
+The old way of licensing the code is replaced by REUSE format and syntax.
+The `NR` module pipelines have been extended to include `REUSE` job.
+
+This release adds new traffic models to the NR module, NGMN and 3GPP Extended
+Reality (XR) models.
+
+With this release we have started to test the reproducibility of the examples,
+e.g. the examples that are part of this reproducibility testing will fail if
+the result is not as expected for the specific parameters configuration.
+
+The `NR` module now has its `DOI` number which can be found in `RELEASE_NOTES.md`.
+
+The `NR` module has a new pipeline job that checks the compatibility with the
+latest ns-3 clang-format.
+
+Remember to follow the instructions from the README.md file, i.e., to checkout
+the correct release branch of both, ns-3 and the NR module. E.g., the current
+NR module Release 2.4 is compatible with the ns-3.38 release branch. The
+information about compatibility with the corresponding ns-3 release branch
+is stated in the `README.md` file.
+
+New user-visible features (old first)
+-------------------------
+- The testing of the `NR` module has been extended to test the reproducibility of
+the NR module examples results. To achieve this we have extended some of the `NR`
+examples to include the verification of the produced results in terms of KPIs,
+such as throughput and/or delay. This verification can help us
+detect when some of the changes either in ns-3 modules or in the NR
+features implementation or configurations affects and changes the original
+performance of the `NR` module. The goal of this testing is not only to
+guarantee the reproducibility, but also to allow an early detection of the
+bugs in the code or in the configuration. The examples that are currently
+covered to some extent with this reproducibility check are:
+`cttc-nr-notching.cc`, `cttc-3gpp-channel-example`, `cttc-3gpp-channel-nums-fdm`,
+`cttc-3gpp-channel-nums`, and `cttc-nr-demo`.
+
+- The `NR` module now includes a new traffic generators framework that allows to
+simulate NGMN traffic applications for mixed traffic scenarios and advanced
+and multi-flow 3GPP XR traffic applications, such as Virtual Reality (VR),
+Augmented Reality (AR), and Cloud Gaming (CG) applications.
+The traffic models are included in `nr/utils/traffic-generators`,
+with a goal to port them in the future to the ns-3 applications
+module. To do that, we currently lack of tests for the 3GPP traffic generators.
+This NR traffic generators framework adds the following traffic models to the
+`NR` module: NGMN FTP, NGMN video streaming, NGMN gaming, NGMN VoIP, 3GPP AR Model
+3A 3 streams: pose/control, scene/video and audio/data, 3GPP VR downlink 1 stream:
+scene/video, 3GPP VR downlink 2 streams: scene/video and audio/data, 3GPP VR
+uplink: pose/control, 3GPP CG downlink 1 stream: scene/video, 3GPP CG downlink
+2 streams: scene/video and audio/data, and 3GPP CG uplink: pose/control.
+The traffic generator framework can be easily extended to include more traffic
+types. For more information about these models, please take a look in the NR
+manual sections `NGMN mixed and 3GPP XR traffic models`, `Examples` and
+`Test for NGMN traffic models`. New examples are added to demonstrate the usage
+of the new traffic models. These are: `traffic-generator-example.cc`,
+`cttc-nr-traffic-ngmn-mixed.cc`, and `cttc-nr-traffic-generator-3gpp-xr.cc`. Also,
+`traffic-generator-test` is added to test traffic generator framework, and it
+currently supports testing of NGMN traffic types.
+
+Bugs fixed
+----------
+- Detected and fixed a bug when postponing transmissions in NR-U simulations.
+
+- Fixed an error in PointInFTPlane constructor, i.e., m_rbg was defined
+as `uint32_t`, but the constructor parameter was using `uint8_t`.
+
+* Fixed an issue with `S` slots in `NrGnbPhy` and `NrPhy` to treat correctly `S`
+slots when evaluating if they can be used for DL or UL transmissions.
+
+* Fixed a bug in the `NrMacSchedulerNs3` in functions `DoScheduleDl` and
+`DoScheduleUl` when updating the active DL and UL users list.
+
+* Fixed a bug in `NrGnbPhy::StartSlot` that was not allowing to use a flexible
+and configurable number of `CTRL` symbols per slot.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.cttc.es/ns3-new-radio/nr
+
+
+
 Release NR-v2.3
 ----------------
 

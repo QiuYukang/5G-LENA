@@ -13,7 +13,7 @@ NR module: API and model change history
 <!-- This ChangeLog is updated in the reverse order with the most recent changes coming first.  Date format:  DD-MM-YYYY -->
 
 ns-3 is an evolving system and there will be API or behavioral changes
-from time to time.   Users who try to use scripts or models across
+from time to time. Users who try to use scripts or models across
 versions of ns-3 may encounter problems at compile time, run time, or
 may see the simulation output change.
 
@@ -47,6 +47,83 @@ our best but can guarantee that there will be things that fall through
 the cracks, unfortunately.  If you, as a user, can suggest improvements
 to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
+
+---
+
+## Changes from NR-v2.3 to v2.4
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.37 to ns-3.38, including updating to the new and updated interfaces in
+antenna and spectrum module (ns-3 !1046 abd ns-3 !1269).
+
+### New API:
+
+* The `NR` module now includes a new traffic generators framework that allows to
+simulate NGMN traffic applications for mixed traffic scenarios and advanced
+and multi-flow 3GPP XR traffic applications, such as Virtual Reality (VR),
+Augmented Reality (AR), and Cloud Gaming (CG) applications.
+The traffic models are included in `nr/utils/traffic-generators`,
+with a goal to extend them and in future port them to the ns-3 applications
+module. In particular, this NR release adds the following traffic applications:
+`TrafficGenerator3gppAudioData`, `TrafficGenerator3gppGenericVideo`,
+`TrafficGeneratorPoseControl`, `TrafficGeneratorNgmnFtpMulti`,
+`TrafficGeneratorNgmnGaming`, `TrafficGeneratorNgmnVideo`, and `TrafficGeneratorNgmnVoip`.
+Additionally, the framework offers `TrafficGeneratorHelper` that helps
+installing traffic generator application on a client node. And, the model
+offers also `XrTrafficMixerHelper` that helps mixing 3GPP traffic applications
+to simulate more complex multi-stream 3GPP XR models such as 3GPP AR Model 3A
+that is composed of 3 streams (pose/control, scene/video, audio/data),
+3GPP VR composed of 2 streams (scene/video and audio/data), and 3GPP CG downlink
+composed of 2 streams (scene/video and audio/data). Usage of these new APIs in
+the NR module can be seen in the examples `cttc-nr-traffic-ngmn-mixed.cc`, and
+`cttc-nr-traffic-generator-3gpp-xr.cc`.
+
+* Added RSRP trace source to `NrUePhy`.
+
+* Added function `GetDlCtrlSymbols` to `NrGnbMac` that allows to obtain the number
+of symbols used for `CTRL`.
+
+### Changes to existing API:
+
+* Removed unused folders: `BeamFormingMatrix`and `Raytraycing`. If you were maybe
+using these folders and you would like that we return them back to the `NR`
+module please let us know.
+
+### Changed behavior:
+
+* Detected and fixed a bug when postponing transmission in NR-U simulations,
+i.e., when channel was busy and `PushFrontSlotAllocInfo` was being called to
+postpone currently scheduled transmission, a wrong function for encoding the
+SfnSf was being called. It was called `GetEncodingWithSymStart` instead of
+`GetEncForStreamWithSymStart`. Thanks to George Frangulea for helping to find and
+resolve this bug.
+
+* Fixed an error in PointInFTPlane constructor, i.e., m_rbg was defined
+as `uint32_t`, but the constructor parameter was using `uint8_t`.
+
+* Fixed an issue with `S` slots in `NrGnbPhy` and `NrPhy`, whose previous
+implementation was not considering correctly that `S` slot could contain the
+`UL` control for the HARQ, and also it was not considering `S` slot as an
+option for the `DL` and neither the `UL` in the functions `HasDlSlot` and
+`HasUlSlot`.
+
+* Fixed a bug in the `NrMacSchedulerNs3` in functions `DoScheduleDl` and `DoScheduleUl`
+when updating the active DL and UL users list. Since these two maps were not
+being updated correctly, in some situations the function `GetSymPerBeam` was
+being called with activeDlUe or activeUlUE map containing all empty elements,
+and then the assert was being hit in `GetSymPerBeam` function:
+`NS_ASSERT(symAvail >= symUsed);`.
+
+* Fixed `NrGnbPhy::StartSlot` to allow a flexible and configurable number of
+`CTRL` symbols per slot. Removed an assumption of only a single DL CTRL symbol
+per slot which was valid for the first versions of the NR module.
+
+* Previously offered `FileTransferApplication` is now implemented in
+`TrafficGeneratorFtpSingle`. Also, previously offered `FileTransferHelper` is now
+offered in `TrafficGeneratorHelper`. FTP M1 continues to be supported by the `NR`
+module, just that `ThreeGppFtpM1Helper` is using now `TrafficGeneratorHelper` and
+`TrafficGeneratorFtpSingle`. Hence, the `NR` user still uses `ThreeGppFtpM1Helper`,
+but this class is now using a new traffic generator framework.
 
 ---
 
