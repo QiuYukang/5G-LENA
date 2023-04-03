@@ -1,6 +1,7 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 
 // Copyright (c) 2018 Natale Patriciello <natale.patriciello\gmail.com>
+// Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
@@ -41,8 +42,12 @@ $ git checkout ns-3.x
 
 ```
 
-where x corresponds to the specific ns-3 release branch that you want to use, which has to be supported as indicated in the table in the README file.
-For example, you can use "git checkout ns-3.37" to switch to the ns-3.37 release branch, which is supported together with NR v2.3 release branch. If the recommended ns-3 release is not available yet (such in the case that NR is released before the recommended ns-3 release), then you can use ns-3 master until ns-3 recommended release is ready.
+where x corresponds to the specific ns-3 release branch that you want to use, which has to be
+supported as indicated in the table in the README file. For example, you can use "git checkout
+ns-3.38" to switch to the ns-3.38 release branch, which is supported together with NR v2.4 release
+branch. If the recommended ns-3 release is not available yet (such in the case that NR is released
+before the recommended ns-3 release), then you can use ns-3 master until ns-3 recommended release is
+ready.
 
 \subsection test-ns3 Test the installation
 
@@ -76,7 +81,10 @@ cd nr
 git checkout 5g-lena-v2.x.y
 \endcode
 
-where x corresponds to the specific NR release branch that you want to use, which has to be supported together with the configured ns-3-dev release branch as indicated in the table in the README file. For example, to switch to the NR version 2.3 (compatible with ns-3.37 release) you should do the following: "git checkout 5g-lena-v2.3.y".
+where x corresponds to the specific NR release branch that you want to use, which has to be
+supported together with the configured ns-3-dev release branch as indicated in the table in the
+README file. For example, to switch to the NR version 2.4 (compatible with ns-3.38 release) you
+should do the following: "git checkout 5g-lena-v2.4.y".
 
 Please note that the contrib/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
@@ -112,7 +120,7 @@ If you do some of the following with 5G-LENA:
   - find and solve some bug,
   - add some new parameter,
   - create a completely and different example or test,
-  - parametrize existing piece of code,
+  - parameterize existing piece of code,
   - develop a completely new feature,
   - extend the tracing system through files or the databases,
   - improve visualization of the scenario through the python scripts
@@ -142,8 +150,10 @@ three categories tutorial, manual and documentation (describing models):
 
 The NR documentation is divided into two categories:
 
-- The NR module general documentation describing models: <https://cttc-lena.gitlab.io/nr/nrmodule.pdf>
-- The NR doxygen documentation (very detailed code documentation): <https://cttc-lena.gitlab.io/nr/html/>
+- The NR module general documentation describing models:
+<https://cttc-lena.gitlab.io/nr/nrmodule.pdf>
+- The NR doxygen documentation (very detailed code documentation):
+<https://cttc-lena.gitlab.io/nr/html/>
 
 
 The publications related to the NR module and its extensions are also very
