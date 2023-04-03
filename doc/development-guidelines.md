@@ -269,26 +269,38 @@ script is used by "test.py" to fetch the list of examples for each module that w
 be run along with the tests (when running test.py) in order to check the correct
 functioning of each module.
 
-### 2. Fix code style
-
-**Note: check-style.py script should be run to fix the code style format of new files
-only (i.e., .cc or .h).**
+### 2. Fix code style (clang-format, clang-tidy and doxygen)
 
 At all time, if possible, one should follow the ns-3 coding style guidelines
-listed [here](https://www.nsnam.org/develop/contributing-code/coding-style/).
+listed [here](https://gitlab.com/nsnam/ns-3-dev/-/blob/master/doc/contributing/source/coding-style.rst).
 
-To expedite this process, ***ns-3*** provides a script **check-style.py**, found
-in **utils** directory. More details about this script and its usage can be
-found [here](https://www.nsnam.org/doxygen/group___check_style.html).
+Mainly, please configure your IDE to automatically format your code according
+to clang-format and to notify you about any clang-tidy issue.
 
-To fix the style of a new file, issue the following command from the root folder of
-**ns-3-dev**:
+To help users check and fix the code according to clang-format,
+***ns-3*** provides a script **check-style-clang-format.py**,
+found in ns-3 **utils** directory. To check the style,
+run the following command from the root folder of **ns-3-dev**:
 
 ```
-utils/check-style.py --level=3 --in-place -f src/nr/model/your-new-file.cc
+utils/check-style-clang-format.py contrib/nr
 ```
 
-After the above two steps, we can commit our changes.
+And to fix the formatting run the following command:
+
+```
+utils/check-style-clang-format.py contrib/nr --fix
+```
+
+Also, the code should be checked against clang-tidy. To to that, when
+configuring the ns-3 with the command "./ns3 configure", the parameter to be
+provided in order to check clang-tidy is "--enable-clang-tidy". There is no
+automatic way of fixing the detected issues, the user should fix them manually.
+
+Male sure that all the newly added APIs (classes, structures, functions,
+class members, etc.) have the Doxygen documentation.
+
+After the above steps, you can commit your changes.
 
 ### 3. Commit message format
 
