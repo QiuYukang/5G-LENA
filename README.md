@@ -4,6 +4,8 @@ Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 SPDX-License-Identifier: GPL-2.0-only
 -->
 
+[![REUSE status](https://api.reuse.software/badge/gitlab.com/cttc-lena/nr)](https://api.reuse.software/info/gitlab.com/cttc-lena/nr)
+
 # 3GPP NR ns-3 module #
 
 This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the
