@@ -713,7 +713,7 @@ main(int argc, char* argv[])
                                    "wrt to the previous version of the ns-3 and NR module");
                 }
             }
-            else if (validationValue2 != 0 && (i->first == 2))
+            else if (validationValue2 && (i->first == 2))
             {
                 if ((validationValue2 >
                      (i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000) * 1.1) ||

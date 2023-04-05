@@ -529,17 +529,18 @@ main(int argc, char* argv[])
     double toleranceMeanFlowDelay = 3.533664 * 0.0001;
     double toleranceUdpThroughput = 372.5066667 * 0.0001;
 
-    if (meanFlowThroughput >= 383.557857 - toleranceMeanFlowThroughput &&
-        meanFlowThroughput <= 383.557857 + toleranceMeanFlowThroughput &&
-        meanFlowDelay >= 3.533664 - toleranceMeanFlowDelay &&
-        meanFlowDelay <= 3.533664 + toleranceMeanFlowDelay &&
-        totalUdpThroughput >= 372.5066667 - toleranceUdpThroughput &&
-        totalUdpThroughput <= 372.5066667 + toleranceUdpThroughput)
+    // called from examples-to-run.py with all default parameters
+    if (argc == 0 && (meanFlowThroughput < 383.557857 - toleranceMeanFlowThroughput ||
+                      meanFlowThroughput > 383.557857 + toleranceMeanFlowThroughput ||
+                      meanFlowDelay < 3.533664 - toleranceMeanFlowDelay ||
+                      meanFlowDelay > 3.533664 + toleranceMeanFlowDelay ||
+                      totalUdpThroughput < 372.5066667 - toleranceUdpThroughput ||
+                      totalUdpThroughput > 372.5066667 + toleranceUdpThroughput))
     {
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
     else
     {
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 }

@@ -629,13 +629,14 @@ main(int argc, char* argv[])
 
     Simulator::Destroy();
 
-    if (meanFlowThroughput >= 0.709696 - throughputTolerance &&
-        meanFlowThroughput <= 0.709696 + throughputTolerance)
+    // called from examples-to-run.py with all default parameters
+    if (argc == 0 && (meanFlowThroughput < 0.709696 - throughputTolerance ||
+                      meanFlowThroughput > 0.709696 + throughputTolerance))
     {
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
     else
     {
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 }
