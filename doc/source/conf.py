@@ -20,8 +20,8 @@ add_function_parentheses = True
 #modindex_common_prefix = []
 
 project = u'NR Module'
-copyright = u'2022'
+copyright = u'2023'
 author = u'OpenSim CTTC/CERCA'
 
-version = '2.3'
-release = '2.3'
+version = '2.4'
+release = '2.4'
