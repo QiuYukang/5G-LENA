@@ -26,7 +26,7 @@ Available since April 5, 2023
 
 Cite this version
 -----------------
-DOI:
+DOI: 10.5281/zenodo.7807983
 
 Supported platforms
 -------------------
