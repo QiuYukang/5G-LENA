@@ -1727,7 +1727,7 @@ NrUePhy::DoResetRlfParams()
 }
 
 void
-NrUePhy::DoStartInSnycDetection()
+NrUePhy::DoStartInSyncDetection()
 {
     NS_LOG_FUNCTION(this);
     NS_FATAL_ERROR("NrUePhy does not have RLF functionality yet");

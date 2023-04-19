@@ -769,7 +769,7 @@ class NrUePhy : public NrPhy
      * consecutive times.
      *
      */
-    void DoStartInSnycDetection();
+    void DoStartInSyncDetection();
 
     /**
      * \brief Set IMSI
