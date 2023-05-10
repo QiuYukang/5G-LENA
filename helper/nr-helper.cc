@@ -24,6 +24,7 @@
 #include <ns3/nr-epc-gnb-application.h>
 #include <ns3/nr-epc-ue-nas.h>
 #include <ns3/nr-epc-x2.h>
+#include <ns3/nr-fh-control.h>
 #include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-gnb-phy.h>
@@ -83,6 +84,7 @@ NrHelper::NrHelper()
     // When the TypeId is changed, the user-set attribute will be maintained.
     m_pathlossModelFactory.SetTypeId(ThreeGppPropagationLossModel::GetTypeId());
     m_channelConditionModelFactory.SetTypeId(ThreeGppChannelConditionModel::GetTypeId());
+    m_fhControlFactory.SetTypeId(NrFhControl::GetTypeId());
 
     Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(18));
 }
@@ -781,6 +783,7 @@ NrHelper::InstallSingleUeDevice(
     }
 
     dev->Initialize();
+
     return dev;
 }
 
@@ -890,6 +893,15 @@ NrHelper::CreateGnbSched()
     return sched;
 }
 
+Ptr<NrFhControl>
+NrHelper::CreateNrFhControl()
+{
+    NS_LOG_FUNCTION(this);
+
+    Ptr<NrFhControl> fhControl = m_fhControlFactory.Create<NrFhControl>();
+    return fhControl;
+}
+
 Ptr<NetDevice>
 NrHelper::InstallSingleGnbDevice(
     const Ptr<Node>& n,
@@ -907,6 +919,8 @@ NrHelper::InstallSingleGnbDevice(
 
     // create component carrier map for this gNB device
     std::map<uint8_t, Ptr<BandwidthPartGnb>> ccMap;
+
+    auto fhControl = CreateNrFhControl();
 
     for (uint32_t bwpId = 0; bwpId < allBwps.size(); ++bwpId)
     {
@@ -937,6 +951,15 @@ NrHelper::InstallSingleGnbDevice(
 
         auto sched = CreateGnbSched();
         cc->SetNrMacScheduler(sched);
+
+        // FH Control SAPs
+        if (m_fhEnabled)
+        {
+            sched->SetNrFhSchedSapProvider(fhControl->GetNrFhSchedSapProvider());
+            fhControl->SetNrFhSchedSapUser(cc->GetScheduler()->GetNrFhSchedSapUser());
+            phy->SetNrFhPhySapProvider(fhControl->GetNrFhPhySapProvider());
+            fhControl->SetNrFhPhySapUser(cc->GetPhy()->GetNrFhPhySapUser());
+        }
 
         if (bwpId == 0)
         {
@@ -1489,6 +1512,12 @@ NrHelper::SetDlErrorModel(const std::string& errorModelTypeId)
 
     SetGnbDlAmcAttribute("ErrorModelType", TypeIdValue(TypeId::LookupByName(errorModelTypeId)));
     SetUeSpectrumAttribute("ErrorModelType", TypeIdValue(TypeId::LookupByName(errorModelTypeId)));
+}
+
+void
+NrHelper::EnablebleFhControl()
+{
+    m_fhEnabled = true;
 }
 
 int64_t

@@ -168,6 +168,11 @@ NrMacSchedulerTdma::AssignRBGTDMA(
             break;
         }
 
+        if (m_nrFhSchedSapProvider)
+        {
+            DoesFhAllocationFit();
+        }
+
         // Assign 1 entire symbol (full RBG) to the selected UE and to the total
         // resources assigned count
         GetRBGFn(GetUe(*schedInfoIt)) += numOfAssignableRbgs;

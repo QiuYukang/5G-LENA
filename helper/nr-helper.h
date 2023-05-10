@@ -37,6 +37,7 @@ class NrUeNetDevice;
 class NrUeMac;
 class BwpManagerGnb;
 class BwpManagerUe;
+class NrFhControl;
 
 /**
  * \ingroup helper
@@ -696,6 +697,8 @@ class NrHelper : public Object
      */
     void SetDlErrorModel(const std::string& errorModelTypeId);
 
+    void EnablebleFhControl();
+
     /**
      * \brief Enable DL DATA PHY traces
      */
@@ -962,6 +965,7 @@ class NrHelper : public Object
                                const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback);
     Ptr<NrMacScheduler> CreateGnbSched();
     Ptr<NrGnbMac> CreateGnbMac();
+    Ptr<NrFhControl> CreateNrFhControl();
 
     Ptr<NrUeMac> CreateUeMac() const;
     Ptr<NrUePhy> CreateUePhy(const Ptr<Node>& n,
@@ -1006,6 +1010,7 @@ class NrHelper : public Object
     ObjectFactory m_gnbBeamManagerFactory;          //!< gNb Beam manager factory
     ObjectFactory m_ueBeamManagerFactory;           //!< UE beam manager factory
     ObjectFactory m_handoverAlgorithmFactory;       //!< Handover algorithm factory
+    ObjectFactory m_fhControlFactory;
 
     uint16_t m_cellIdCounter{1}; //!< CellId Counter
 
@@ -1013,6 +1018,7 @@ class NrHelper : public Object
     Ptr<BeamformingHelperBase> m_beamformingHelper{nullptr}; //!< Ptr to the beamforming helper
 
     bool m_snrTest{false};
+    bool m_fhEnabled{false};
 
     Ptr<NrPhyRxTrace> m_phyStats; //!< Pointer to the PhyRx stats
     Ptr<NrMacRxTrace> m_macStats; //!< Pointer to the MacRx stats

@@ -7,6 +7,7 @@
 
 #include "ideal-beamforming-algorithm.h"
 #include "nr-control-messages.h"
+#include "nr-fh-phy-sap.h"
 #include "nr-gnb-cphy-sap.h"
 #include "nr-harq-phy.h"
 #include "nr-phy-sap.h"
@@ -23,6 +24,8 @@ class NrUePhy;
 class NrGnbMac;
 class NrChAccessManager;
 class BeamManager;
+class NrFhPhySapUser;
+class NrFhPhySapProvider;
 
 /**
  *
@@ -115,6 +118,10 @@ class NrGnbPhy : public NrPhy
      * \return the C PHY SAP provider pointer
      */
     NrGnbCphySapProvider* GetGnbCphySapProvider();
+
+    // FH Control SAPs
+    void SetNrFhPhySapProvider(NrFhPhySapProvider* s);
+    NrFhPhySapUser* GetNrFhPhySapUser();
 
     /**
      * \brief: Set the minimum processing delay (in slots)
@@ -411,6 +418,12 @@ class NrGnbPhy : public NrPhy
      * \brief DoDispose method inherited from Object
      */
     void DoDispose() override;
+
+    void DoesFhAllocationFit() const;
+
+    // FFR SAPs
+    NrFhPhySapUser* m_nrFhPhySapUser{nullptr};         //!< FH Control SAP user
+    NrFhPhySapProvider* m_nrFhPhySapProvider{nullptr}; //!< FH Control SAP provider
 
   private:
     /**

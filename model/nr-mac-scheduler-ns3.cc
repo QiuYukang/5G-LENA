@@ -51,11 +51,15 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
 
     // If more Srs allocators will be created, then we will add an attribute
     m_schedulerSrs = CreateObject<NrMacSchedulerSrsDefault>();
+    m_nrFhSchedSapUser = new MemberNrFhSchedSapUser<NrMacSchedulerNs3>(this);
 }
 
 NrMacSchedulerNs3::~NrMacSchedulerNs3()
 {
     m_ueMap.clear();
+    delete m_nrFhSchedSapUser;
+    m_nrFhSchedSapUser = nullptr;
+    m_nrFhSchedSapProvider = nullptr;
 }
 
 void
@@ -435,6 +439,18 @@ bool
 NrMacSchedulerNs3::IsHarqReTxEnable() const
 {
     return m_enableHarqReTx;
+}
+
+void
+NrMacSchedulerNs3::SetNrFhSchedSapProvider(NrFhSchedSapProvider* s)
+{
+    m_nrFhSchedSapProvider = s;
+}
+
+NrFhSchedSapUser*
+NrMacSchedulerNs3::GetNrFhSchedSapUser()
+{
+    return m_nrFhSchedSapUser;
 }
 
 uint8_t
@@ -2208,6 +2224,14 @@ uint16_t
 NrMacSchedulerNs3::GetBandwidthInRbg() const
 {
     return m_bandwidth;
+}
+
+void
+NrMacSchedulerNs3::DoesFhAllocationFit() const
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(m_nrFhSchedSapProvider);
+    m_nrFhSchedSapProvider->DoesAllocationFit();
 }
 
 /**

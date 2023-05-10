@@ -12,6 +12,9 @@
 namespace ns3
 {
 
+class NrFhSchedSapProvider;
+class NrFhSchedSapUser;
+
 /**
  * \ingroup scheduler
  * \brief Interface for all the nr schedulers
@@ -74,6 +77,22 @@ class NrMacScheduler : public Object
     {
         return m_macCschedSapProvider;
     }
+
+    // FH Control SAPs
+    /**
+     *
+     * Set the Provider part of the NrFhSchedSap that this Scheduler will
+     * interact with
+     *
+     * \param s
+     */
+    virtual void SetNrFhSchedSapProvider(NrFhSchedSapProvider* s) = 0;
+
+    /**
+     *
+     * \return the User part of the NrFhSchedSap provided by the FhControl
+     */
+    virtual NrFhSchedSapUser* GetNrFhSchedSapUser() = 0;
 
     //
     // Implementation of the CSCHED API primitives

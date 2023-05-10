@@ -87,6 +87,9 @@ set(source_files
     model/nr-eps-bearer-tag.cc
     model/nr-eps-bearer.cc
     model/nr-error-model.cc
+    model/nr-fh-control.cc
+    model/nr-fh-sched-sap.cc
+    model/nr-fh-phy-sap.cc
     model/nr-gnb-component-carrier-manager.cc
     model/nr-gnb-mac.cc
     model/nr-gnb-net-device.cc
@@ -262,6 +265,9 @@ set(header_files
     model/nr-eps-bearer-tag.h
     model/nr-eps-bearer.h
     model/nr-error-model.h
+    model/nr-fh-control.h
+    model/nr-fh-sched-sap.h
+    model/nr-fh-phy-sap.h
     model/nr-gnb-cmac-sap.h
     model/nr-gnb-component-carrier-manager.h
     model/nr-gnb-cphy-sap.h

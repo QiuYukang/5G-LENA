@@ -45,6 +45,7 @@ NrGnbPhy::NrGnbPhy()
 {
     NS_LOG_FUNCTION(this);
     m_gnbCphySapProvider = new MemberNrGnbCphySapProvider<NrGnbPhy>(this);
+    m_nrFhPhySapUser = new MemberNrFhPhySapUser<NrGnbPhy>(this);
 }
 
 NrGnbPhy::~NrGnbPhy()
@@ -56,6 +57,9 @@ NrGnbPhy::DoDispose()
 {
     NS_LOG_FUNCTION(this);
     delete m_gnbCphySapProvider;
+    delete m_nrFhPhySapUser;
+    m_nrFhPhySapUser = nullptr;
+    m_nrFhPhySapProvider = nullptr;
     NrPhy::DoDispose();
 }
 
@@ -515,6 +519,18 @@ NrGnbPhy::GetGnbCphySapProvider()
     return m_gnbCphySapProvider;
 }
 
+void
+NrGnbPhy::SetNrFhPhySapProvider(NrFhPhySapProvider* s)
+{
+    m_nrFhPhySapProvider = s;
+}
+
+NrFhPhySapUser*
+NrGnbPhy::GetNrFhPhySapUser()
+{
+    return m_nrFhPhySapUser;
+}
+
 uint32_t
 NrGnbPhy::GetN0Delay() const
 {
@@ -552,6 +568,14 @@ NrGnbPhy::SetN2Delay(uint32_t delay)
 {
     m_n2Delay = delay;
     SetTddPattern(m_tddPattern); // Update the generate/send structures
+}
+
+void
+NrGnbPhy::DoesFhAllocationFit() const
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(m_nrFhPhySapProvider);
+    m_nrFhPhySapProvider->DoesAllocationFit();
 }
 
 BeamId
@@ -1567,6 +1591,11 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
     for (uint32_t i = 0; i < fullBwRb.size(); ++i)
     {
         fullBwRb[i] = static_cast<int>(i);
+    }
+
+    if (m_nrFhPhySapProvider)
+    {
+        DoesFhAllocationFit();
     }
 
     // Transmit power for the current signal is distributed over the full bandwidth. This is the

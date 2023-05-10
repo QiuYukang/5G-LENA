@@ -5,6 +5,7 @@
 #pragma once
 
 #include "nr-amc.h"
+#include "nr-fh-sched-sap.h"
 #include "nr-mac-harq-vector.h"
 #include "nr-mac-scheduler-cqi-management.h"
 #include "nr-mac-scheduler-lcg.h"
@@ -23,6 +24,8 @@ class NrSchedGeneralTestCase;
 class NrMacSchedulerHarqRr;
 class NrMacSchedulerSrsDefault;
 class NrMacSchedulerLcAlgorithm;
+class NrFhSchedSapUser;
+class NrFhSchedSapProvider;
 
 /**
  * \ingroup scheduler
@@ -247,6 +250,10 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \brief NrMacSchedulerNs3 deconstructor
      */
     ~NrMacSchedulerNs3() override;
+
+    // FH Control SAPs
+    virtual void SetNrFhSchedSapProvider(NrFhSchedSapProvider* s) override;
+    virtual NrFhSchedSapUser* GetNrFhSchedSapUser() override;
 
     /**
      * \brief Install the AMC for the DL part
@@ -863,6 +870,12 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \return the bandwidth in RBG
      */
     uint16_t GetBandwidthInRbg() const;
+
+    void DoesFhAllocationFit() const;
+
+    // FFR SAPs
+    NrFhSchedSapUser* m_nrFhSchedSapUser{nullptr};         //!< FH Control SAP user
+    NrFhSchedSapProvider* m_nrFhSchedSapProvider{nullptr}; //!< FH Control SAP provider
 
   private:
     std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>
