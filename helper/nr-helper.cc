@@ -1497,6 +1497,13 @@ NrHelper::SetGnbBeamManagerTypeId(const TypeId& typeId)
 }
 
 void
+NrHelper::SetFhControlAttribute(const std::string& n, const AttributeValue& v)
+{
+    NS_LOG_FUNCTION(this);
+    m_fhControlFactory.Set(n, v);
+}
+
+void
 NrHelper::SetUlErrorModel(const std::string& errorModelTypeId)
 {
     NS_LOG_FUNCTION(this);

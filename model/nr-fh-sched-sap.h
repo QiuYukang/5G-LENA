@@ -1,5 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -28,6 +26,7 @@ class NrFhSchedSapProvider
     virtual ~NrFhSchedSapProvider();
 
     virtual void DoesAllocationFit() = 0;
+    virtual uint8_t GetFhControlMethod() = 0;
 };
 
 /**
@@ -61,6 +60,7 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
     MemberNrFhSchedSapProvider(C* owner);
 
     virtual void DoesAllocationFit();
+    virtual uint8_t GetFhControlMethod();
 
   private:
     MemberNrFhSchedSapProvider();
@@ -79,6 +79,13 @@ void
 MemberNrFhSchedSapProvider<C>::DoesAllocationFit()
 {
     return m_owner->DoGetDoesAllocationFit();
+}
+
+template <class C>
+uint8_t
+MemberNrFhSchedSapProvider<C>::GetFhControlMethod()
+{
+    return m_owner->DoGetFhControlMethod();
 }
 
 /**

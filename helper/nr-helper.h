@@ -697,7 +697,20 @@ class NrHelper : public Object
      */
     void SetDlErrorModel(const std::string& errorModelTypeId);
 
+    /**
+     * \brief Enable FH Control
+     *
+     * If enabled, the MAC scheduler operation is constrained by the
+     * FH Capacity.
+     */
     void EnablebleFhControl();
+
+    /*
+     * \brief Sets the FH Control attributes.
+     * \param n the name of the attribute
+     * \param v the value of the attribute
+     */
+    void SetFhControlAttribute(const std::string& n, const AttributeValue& v);
 
     /**
      * \brief Enable DL DATA PHY traces
