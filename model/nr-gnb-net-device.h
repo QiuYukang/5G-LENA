@@ -5,6 +5,7 @@
 #ifndef NR_GNB_NET_DEVICE_H
 #define NR_GNB_NET_DEVICE_H
 
+#include "nr-fh-control.h"
 #include "nr-net-device.h"
 
 #include "ns3/traced-callback.h"
@@ -79,6 +80,18 @@ class NrGnbNetDevice : public NrNetDevice
     uint32_t GetCcMapSize() const;
 
     /**
+     * \brief Set the NrFhControl for this cell
+     * \param nrFh The ptr to the NrFhControl
+     */
+    void SetNrFhControl(Ptr<NrFhControl> nrFh);
+
+    /**
+     * \brief Get the NrFhControl for this cell
+     * \return the ptr to NrFhControl
+     */
+    Ptr<NrFhControl> GetNrFhControl();
+
+    /**
      * \brief The gNB received a CTRL message list.
      *
      * The gNB should divide the messages to the BWP they pertain to.
@@ -144,6 +157,7 @@ class NrGnbNetDevice : public NrNetDevice
 
     Ptr<NrGnbComponentCarrierManager>
         m_componentCarrierManager; ///< the component carrier manager of this gNB
+    Ptr<NrFhControl> m_nrFhControl;
 };
 
 } // namespace ns3

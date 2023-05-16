@@ -921,6 +921,12 @@ NrHelper::InstallSingleGnbDevice(
     std::map<uint8_t, Ptr<BandwidthPartGnb>> ccMap;
 
     auto fhControl = CreateNrFhControl();
+    fhControl->SetPhysicalCellId(cellId);
+
+    if (m_fhEnabled)
+    {
+        dev->SetNrFhControl(fhControl);
+    }
 
     for (uint32_t bwpId = 0; bwpId < allBwps.size(); ++bwpId)
     {
@@ -951,15 +957,6 @@ NrHelper::InstallSingleGnbDevice(
 
         auto sched = CreateGnbSched();
         cc->SetNrMacScheduler(sched);
-
-        // FH Control SAPs
-        if (m_fhEnabled)
-        {
-            sched->SetNrFhSchedSapProvider(fhControl->GetNrFhSchedSapProvider());
-            fhControl->SetNrFhSchedSapUser(cc->GetScheduler()->GetNrFhSchedSapUser());
-            phy->SetNrFhPhySapProvider(fhControl->GetNrFhPhySapProvider());
-            fhControl->SetNrFhPhySapUser(cc->GetPhy()->GetNrFhPhySapUser());
-        }
 
         if (bwpId == 0)
         {
@@ -1068,6 +1065,19 @@ NrHelper::InstallSingleGnbDevice(
         // insert the pointer to the NrMacSapProvider interface of the MAC layer of the specific
         // component carrier
         ccmGnbManager->SetMacSapProvider(it.first, it.second->GetMac()->GetMacSapProvider());
+
+        // FH Control SAPs
+        if (m_fhEnabled)
+        {
+            // Multiple sched/phy instances (as many as BWPs) - 1 NrFhControl instance (1 per cell)
+            it.second->GetScheduler()->SetNrFhSchedSapProvider(
+                dev->GetNrFhControl()->GetNrFhSchedSapProvider());
+            dev->GetNrFhControl()->SetNrFhSchedSapUser(
+                it.second->GetScheduler()->GetNrFhSchedSapUser());
+            it.second->GetPhy()->SetNrFhPhySapProvider(
+                dev->GetNrFhControl()->GetNrFhPhySapProvider());
+            dev->GetNrFhControl()->SetNrFhPhySapUser(it.second->GetPhy()->GetNrFhPhySapUser());
+        }
     }
 
     dev->SetAttribute("NrGnbComponentCarrierManager", PointerValue(ccmGnbManager));

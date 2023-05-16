@@ -12,20 +12,6 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("NrFhControl");
 NS_OBJECT_ENSURE_REGISTERED(NrFhControl);
 
-NrFhControl::NrFhControl()
-    : m_fhPhySapUser(0),
-      m_fhSchedSapUser(0)
-{
-    NS_LOG_FUNCTION(this);
-    NS_LOG_UNCOND("Initialze Fh Control");
-    m_fhPhySapProvider = new MemberNrFhPhySapProvider<NrFhControl>(this);
-    m_fhSchedSapProvider = new MemberNrFhSchedSapProvider<NrFhControl>(this);
-}
-
-NrFhControl::~NrFhControl()
-{
-}
-
 TypeId
 NrFhControl::GetTypeId()
 {
@@ -76,11 +62,24 @@ NrFhControl::GetTypeId()
     return tid;
 }
 
+NrFhControl::NrFhControl()
+    : m_physicalCellId(0),
+      m_fhPhySapUser(0),
+      m_fhSchedSapUser(0)
+{
+    NS_LOG_FUNCTION(this);
+    m_fhPhySapProvider = new MemberNrFhPhySapProvider<NrFhControl>(this);
+    m_fhSchedSapProvider = new MemberNrFhSchedSapProvider<NrFhControl>(this);
+}
+
+NrFhControl::~NrFhControl()
+{
+}
+
 void
 NrFhControl::SetNrFhPhySapUser(NrFhPhySapUser* s)
 {
     NS_LOG_FUNCTION(this << s);
-
     m_fhPhySapUser = s;
 }
 
@@ -96,7 +95,6 @@ void
 NrFhControl::SetNrFhSchedSapUser(NrFhSchedSapUser* s)
 {
     NS_LOG_FUNCTION(this << s);
-
     m_fhSchedSapUser = s;
 }
 
@@ -104,7 +102,6 @@ NrFhSchedSapProvider*
 NrFhControl::GetNrFhSchedSapProvider()
 {
     NS_LOG_FUNCTION(this);
-
     return m_fhSchedSapProvider;
 }
 
@@ -145,9 +142,23 @@ NrFhControl::SetOverheadDyn(uint8_t overhead)
 }
 
 void
+NrFhControl::SetPhysicalCellId(uint16_t physicalCellId)
+{
+    NS_LOG_FUNCTION(this);
+    m_physicalCellId = physicalCellId;
+    NS_LOG_DEBUG("NrFhControl initialized for cell Id: " << m_physicalCellId);
+}
+
+uint16_t
+NrFhControl::DoGetPhysicalCellId() const
+{
+    return m_physicalCellId;
+}
+
+void
 NrFhControl::DoGetDoesAllocationFit()
 {
-    NS_LOG_UNCOND("Call the Fh Control DoGetDoesAllocationFit");
+    NS_LOG_UNCOND("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId);
 }
 
 } // namespace ns3

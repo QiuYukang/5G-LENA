@@ -1,3 +1,5 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+
 // Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -49,10 +51,28 @@ class NrFhControl : public Object
      */
     // TypeId GetInstanceTypeId() const override;
 
+    /**
+     * \brief Set the Fh control - PHY SAP User
+     * \param s The ptr of the SAP User
+     */
     void SetNrFhPhySapUser(NrFhPhySapUser* s);
+
+    /**
+     * \brief Get the Fh control - PHY SAP User ptr
+     * \return the ptr of the SAP User
+     */
     NrFhPhySapProvider* GetNrFhPhySapProvider();
 
+    /**
+     * \brief Set the Fh control - Sched SAP User
+     * \param s The ptr of the SAP User
+     */
     void SetNrFhSchedSapUser(NrFhSchedSapUser* s);
+
+    /**
+     * \brief Get the Fh control - Sched SAP User ptr
+     * \return the ptr of the SAP User
+     */
     NrFhSchedSapProvider* GetNrFhSchedSapProvider();
 
     /// let the forwarder class access the protected and private members
@@ -60,6 +80,9 @@ class NrFhControl : public Object
     /// let the forwarder class access the protected and private members
     friend class MemberNrFhSchedSapProvider<NrFhControl>;
 
+    /**
+     * \brief The optimization models (FH Control method) of the NrFhControl
+     */
     enum FhControlMethod
     {
         Dropping,    //!< Drop DCI + DATA at the PHY Layer
@@ -70,45 +93,55 @@ class NrFhControl : public Object
 
     /**
      * \brief Set the FH Control method type.
-     *
      * \param model The FH Control method type
      */
     void SetFhControlMethod(FhControlMethod model);
 
     /**
      * \brief Set the available fronthaul capacity
-     *
-     * \param fh the fronthaul capacity (in Gbps)
+     * \param capacity The fronthaul capacity (in Gbps)
      */
     void SetFhCapacity(uint16_t capacity);
 
     /**
      * \brief Set the overhead for dynamic modulation compression
-     *
-     * \param oh the overhead for dynamic modulation compression (in bits)
+     * \param overhead The overhead for dynamic modulation compression (in bits)
      */
     void SetOverheadDyn(uint8_t overhead);
+
+    /**
+     * \brief Set the physical cell Id of the cell to which this NrFhControl
+     *        instance belongs to.
+     * \param physCellId The physical cell Id
+     */
+    void SetPhysicalCellId(uint16_t physCellId);
 
   private:
     /**
      * \brief Get the FH Control method.
-     *
      * \return the FH Control method type
      */
     FhControlMethod GetFhControlMethod() const;
 
     /**
      * \brief Get the FH control method through the SAP interfaces.
-     *
      * \return the FH control method (uint8_t)
      */
     uint8_t DoGetFhControlMethod() const;
+
+    /**
+     * \brief Get the physical CellId for this NrFhControl instance.
+     * \return the physical CellId
+     */
+    uint16_t DoGetPhysicalCellId() const;
 
     /**
      * \brief Returns a boolean indicating whether the current allocation can
      * fit in the available FH bandwidth.
      */
     void DoGetDoesAllocationFit();
+
+    uint16_t m_physicalCellId; //!< Physical cell ID to which the NrFhControl instance belongs to.
 
     // FH Control - PHY SAP
     NrFhPhySapUser* m_fhPhySapUser;         //!< FH Control - PHY SAP User

@@ -82,6 +82,20 @@ NrGnbNetDevice::GetCcMapSize() const
 }
 
 void
+NrGnbNetDevice::SetNrFhControl(Ptr<NrFhControl> nrFh)
+{
+    NS_LOG_FUNCTION(this);
+    m_nrFhControl = nrFh;
+}
+
+Ptr<NrFhControl>
+NrGnbNetDevice::GetNrFhControl()
+{
+    NS_LOG_FUNCTION(this);
+    return m_nrFhControl;
+}
+
+void
 NrGnbNetDevice::RouteIngoingCtrlMsgs(const std::list<Ptr<NrControlMessage>>& msgList,
                                      uint8_t sourceBwpId)
 {
