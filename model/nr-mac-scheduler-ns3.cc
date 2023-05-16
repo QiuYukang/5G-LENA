@@ -10,6 +10,7 @@
 
 #include "nr-mac-scheduler-ns3.h"
 
+#include "nr-fh-control.h"
 #include "nr-mac-scheduler-harq-rr.h"
 #include "nr-mac-scheduler-lc-rr.h"
 #include "nr-mac-scheduler-srs-default.h"
@@ -771,6 +772,13 @@ NrMacSchedulerNs3::DoSchedDlRlcBufferReq(
             NS_LOG_INFO("Updating DL LC Info: " << params
                                                 << " in LCG: " << static_cast<uint32_t>(lcg.first));
             lcg.second->UpdateInfo(params);
+
+            if (m_nrFhSchedSapProvider)
+            {
+                m_nrFhSchedSapProvider->SetActiveUe(GetBwpId(),
+                                                    params.m_rnti,
+                                                    lcg.second->GetTotalSize());
+            }
             return;
         }
     }
@@ -1834,6 +1842,18 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
 
     NS_LOG_INFO("Total DCI for DL : " << dlSlot.m_slotAllocInfo.m_varTtiAllocInfo.size()
                                       << " including DL CTRL");
+
+    if (m_nrFhSchedSapProvider)
+    {
+        if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing)
+            Simulator::Schedule(
+                NanoSeconds(1),
+                &NrMacSchedulerNs3::CallNrFhControlForMapUpdate,
+                this,
+                dlSlot.m_slotAllocInfo
+                    .m_varTtiAllocInfo); // 1ns delay to give time for scheduling in all cells
+    }
+
     m_macSchedSapUser->SchedConfigInd(dlSlot);
 }
 
@@ -2232,6 +2252,24 @@ NrMacSchedulerNs3::DoesFhAllocationFit() const
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_nrFhSchedSapProvider);
     m_nrFhSchedSapProvider->DoesAllocationFit();
+}
+
+/**
+ * \brief Call to the centralized intelligence (which stores a map of the active
+ * UEs and cells with the bytes in their queues) to update the maps based on the
+ * allocations.
+ * \param allocation the list of allocations
+ */
+void
+NrMacSchedulerNs3::CallNrFhControlForMapUpdate(const std::deque<VarTtiAllocInfo>& allocation)
+{
+    m_nrFhSchedSapProvider->UpdateActiveUesMap(GetBwpId(), allocation);
+}
+
+uint64_t
+NrMacSchedulerNs3::DoGetRbPerRbgForNrFhControl()
+{
+    return GetNumRbPerRbg();
 }
 
 /**

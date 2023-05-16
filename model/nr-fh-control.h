@@ -141,6 +141,29 @@ class NrFhControl : public Object
      */
     void DoGetDoesAllocationFit();
 
+    /**
+     * \brief Set the a UE as active (with data in RLC queue) for a slot, saving
+     *        a map of the bwpId, and rnti for such a UE, and the amount of bytes
+     *        in its RLC buffers.
+     *
+     * \param bwpId the BWP ID
+     * \param rnti the RNTI
+     * \param bytes the bytes in RLC buffers of the UE
+     */
+    void DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
+
+    /**
+     * \brief Updates the map of the UEs that have been served by this cell in a
+     *        bwpId, based on the allocation. If a UE has been fully served (no
+     *        remaining bytes in its RLC queues), then the entry of the map is
+     *        removed. Otherwise, if a UE has still bytes in its RLC queues after
+     *        the allocation, the amount of bytes stored in the map is updated.
+     *
+     * \param bwpId the BWP ID
+     * \param allocation the allocation structure of a slot
+     */
+    void DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation);
+
     uint16_t m_physicalCellId; //!< Physical cell ID to which the NrFhControl instance belongs to.
 
     // FH Control - PHY SAP
@@ -155,6 +178,12 @@ class NrFhControl : public Object
     uint16_t m_fhCapacity{
         1000}; //!< the available FH capacity (in Mbps) for DL and UL (full-duplex FH link)
     uint8_t m_overheadDyn{32}; //!< the overhead (OH) for dynamic adaptation (in bits)
+    uint8_t m_numRbPerRbg{1};  //!< the number of RBs per RBG
+
+    std::unordered_map<uint32_t, uint32_t>
+        m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
+                         //!< rnti, bytes)
+    std::unordered_map<uint16_t, uint16_t> m_activeUes; //!< Map active bwpIds and active Ues
 };
 
 } // end namespace ns3

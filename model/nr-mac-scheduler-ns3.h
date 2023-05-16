@@ -339,6 +339,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         const NrMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
     uint8_t GetDlCtrlSyms() const override;
     uint8_t GetUlCtrlSyms() const override;
+    uint64_t DoGetRbPerRbgForNrFhControl();
+
     /**
      * \brief Assign a fixed random variable stream number to the random variables
      * used by this model. Return the number of streams (possibly zero) that
@@ -878,6 +880,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     NrFhSchedSapProvider* m_nrFhSchedSapProvider{nullptr}; //!< FH Control SAP provider
 
   private:
+    void CallNrFhControlForMapUpdate(const std::deque<VarTtiAllocInfo>& allocation);
+
     std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>
         m_ueMap; //!< The map of between RNTI and their data
 
