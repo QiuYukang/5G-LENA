@@ -42,6 +42,8 @@ class NrFhPhySapUser
 {
   public:
     virtual ~NrFhPhySapUser();
+
+    virtual uint16_t GetNumerology() const = 0;
 };
 
 /**
@@ -96,6 +98,8 @@ class MemberNrFhPhySapUser : public NrFhPhySapUser
      */
     MemberNrFhPhySapUser(C* owner);
 
+    virtual uint16_t GetNumerology() const;
+
   private:
     MemberNrFhPhySapUser();
     C* m_owner; ///< the owner class
@@ -106,6 +110,13 @@ template <class C>
 MemberNrFhPhySapUser<C>::MemberNrFhPhySapUser(C* owner)
     : m_owner(owner)
 {
+}
+
+template <class C>
+uint16_t
+MemberNrFhPhySapUser<C>::GetNumerology() const
+{
+    return m_owner->GetNumerology();
 }
 
 } // namespace ns3
