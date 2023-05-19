@@ -110,6 +110,15 @@ class NrFhControl : public Object
     void SetOverheadDyn(uint8_t overhead);
 
     /**
+     * \brief Set the ErrorModelType based on which the MCS Table
+     *        (1 or 2) will be set."
+              "ns3::NrEesmIrT1 and ns3::NrEesmCcT1 for MCS Table 1"
+              "ns3::NrEesmIrT2 and ns3::NrEesmCcT2 for MCS Table 2.
+     * \param erroModelType The error model type
+     */
+    void SetErrorModelType(std::string erroModelType);
+
+    /**
      * \brief Set the physical cell Id of the cell to which this NrFhControl
      *        instance belongs to.
      * \param physCellId The physical cell Id
@@ -164,6 +173,26 @@ class NrFhControl : public Object
      */
     void DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation);
 
+    /**
+     * \brief Returns the modulation order of a specific mcs of MCS Table1.
+     */
+    uint32_t GetModulationOrderTable1(const uint32_t mcs) const;
+
+    /**
+     * \brief Returns the modulation order of a specific mcs of MCS Table2.
+     */
+    uint32_t GetModulationOrderTable2(const uint32_t mcs) const;
+
+    /**
+     * \brief Returns the max MCS index of a given modulation order of MCS Table1.
+     */
+    uint8_t GetMcsTable1(const uint8_t modOrder) const;
+
+    /**
+     * \brief Returns the max MCS index of a given modulation order of MCS Table2.
+     */
+    uint8_t GetMcsTable2(const uint8_t modOrder) const;
+
     uint16_t m_physicalCellId; //!< Physical cell ID to which the NrFhControl instance belongs to.
 
     // FH Control - PHY SAP
@@ -177,8 +206,10 @@ class NrFhControl : public Object
     enum FhControlMethod m_fhControlMethod;
     uint16_t m_fhCapacity{
         1000}; //!< the available FH capacity (in Mbps) for DL and UL (full-duplex FH link)
-    uint8_t m_overheadDyn{32}; //!< the overhead (OH) for dynamic adaptation (in bits)
-    uint8_t m_numRbPerRbg{1};  //!< the number of RBs per RBG
+    uint8_t m_overheadDyn{32};    //!< the overhead (OH) for dynamic adaptation (in bits)
+    uint8_t m_numRbPerRbg{1};     //!< the number of RBs per RBG
+    uint8_t m_mcsTable{2};        //!< the MCS table
+    std::string m_errorModelType; //!< the error model type besed on which the MCS Table will be set
 
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,

@@ -63,8 +63,13 @@ NrFhControl::GetTypeId()
                           UintegerValue(32),
                           MakeUintegerAccessor(&NrFhControl::SetOverheadDyn),
                           MakeUintegerChecker<uint8_t>(0, 100))
-
-        ;
+            .AddAttribute("ErrorModelType",
+                          "The ErrorModelType based on which the MCS Table (1 or 2) will be set."
+                          "Select among: ns3::NrEesmIrT1 and ns3::NrEesmCcT1 for MCS Table 1 "
+                          "and among ns3::NrEesmIrT2 and ns3::NrEesmCcT2 for MCS Table 2.",
+                          StringValue("ns3::NrEesmIrT1"),
+                          MakeStringAccessor(&NrFhControl::SetErrorModelType),
+                          MakeStringChecker());
     return tid;
 }
 
@@ -148,6 +153,27 @@ NrFhControl::SetOverheadDyn(uint8_t overhead)
 }
 
 void
+NrFhControl::SetErrorModelType(std::string errorModelType)
+{
+    m_errorModelType = errorModelType;
+
+    if (m_errorModelType == "ns3::NrEesmIrT1" || m_errorModelType == "ns3::NrEesmCcT1")
+    {
+        m_mcsTable = 1;
+    }
+    else if (m_errorModelType == "ns3::NrEesmIrT2" || m_errorModelType == "ns3::NrEesmCcT2")
+    {
+        m_mcsTable = 2;
+    }
+    else
+    {
+        NS_ABORT_MSG("Wrong error model type. Please select among: ns3::NrEesmIrT1,"
+                     "ns3::NrEesmCcT1 for MCS Table 1 and ns3::NrEesmIrT2 and ns3::NrEesmCcT2"
+                     "for MCS Table 2");
+    }
+}
+
+void
 NrFhControl::SetPhysicalCellId(uint16_t physicalCellId)
 {
     NS_LOG_FUNCTION(this);
@@ -206,7 +232,8 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
             static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched());
 
         NS_LOG_DEBUG("Get num of RBs per RBG from sched: "
-                     << m_fhSchedSapUser->GetNumRbPerRbgFromSched() << " numRbs = " << numRbs);
+                     << m_fhSchedSapUser->GetNumRbPerRbgFromSched() << " numRbs = " << numRbs
+                     << " MCS Table: " << +m_mcsTable);
 
         // TODO: Add traces!
 
@@ -242,6 +269,109 @@ void
 NrFhControl::DoGetDoesAllocationFit()
 {
     // NS_LOG_UNCOND("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId);
+}
+
+uint32_t
+NrFhControl::GetModulationOrderTable1(const uint32_t mcs) const
+{
+    std::vector<uint8_t> McsMTable1 = {// QPSK (modulationOrder = 2)
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       // 16QAM (modulationOrder = 4)
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       // 64QAM (modulationOrder = 6)
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6};
+    return McsMTable1.at(mcs);
+}
+
+uint32_t
+NrFhControl::GetModulationOrderTable2(const uint32_t mcs) const
+{
+    NS_ASSERT_MSG(mcs <= 27, "MCS must be up to 27");
+    std::vector<uint8_t> McsMTable2 = {// QPSK (modulationOrder = 2)
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       2,
+                                       // 16QAM (modulationOrder = 4)
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       4,
+                                       // 64QAM (modulationOrder = 6)
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       6,
+                                       // 256QAM (modulationOrder = 8)
+                                       8,
+                                       8,
+                                       8,
+                                       8,
+                                       8,
+                                       8,
+                                       8,
+                                       8};
+    return McsMTable2.at(mcs);
+}
+
+uint8_t
+NrFhControl::GetMcsTable1(const uint8_t modOrd) const
+{
+    std::vector<uint8_t> McsTable1 = {// QPSK (modulationOrder = 2)
+                                      9,
+                                      // 16QAM (modulationOrder = 4)
+                                      16,
+                                      // 64QAM (modulationOrder = 6)
+                                      28};
+    return McsTable1.at(modOrd);
+}
+
+uint8_t
+NrFhControl::GetMcsTable2(const uint8_t modOrd) const
+{
+    std::vector<uint8_t> McsTable2 = {// QPSK (modulationOrder = 2)
+                                      4,
+                                      // 16QAM (modulationOrder = 4)
+                                      10,
+                                      // 64QAM (modulationOrder = 6)
+                                      19,
+                                      // 256QAM (modulationOrder = 8)
+                                      27};
+    return McsTable2.at(modOrd);
 }
 
 } // namespace ns3
