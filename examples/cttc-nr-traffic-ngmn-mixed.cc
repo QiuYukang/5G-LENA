@@ -47,6 +47,7 @@ $ ./ns3 run "cttc-nr-traffic-ngmn-mixed --PrintHelp"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 #include <ns3/antenna-module.h>
+#include <ns3/ping-helper.h>
 #include <ns3/radio-environment-map-helper.h>
 #include <ns3/rng-seed-manager.h>
 #include <ns3/three-gpp-ftp-m1-helper.h>
@@ -58,7 +59,6 @@ $ ./ns3 run "cttc-nr-traffic-ngmn-mixed --PrintHelp"
 #include <ns3/traffic-generator-ngmn-gaming.h>
 #include <ns3/traffic-generator-ngmn-video.h>
 #include <ns3/traffic-generator-ngmn-voip.h>
-#include <ns3/v4ping-helper.h>
 
 #include <algorithm>
 #include <iostream>
@@ -1295,7 +1295,7 @@ main(int argc, char* argv[])
                 clientApps.Add(ftpHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 2
@@ -1313,7 +1313,7 @@ main(int argc, char* argv[])
                 clientApps.Add(ftpHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 3
@@ -1332,7 +1332,7 @@ main(int argc, char* argv[])
                 clientApps.Add(ftpHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
 
@@ -1392,7 +1392,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 2
@@ -1412,7 +1412,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 3
@@ -1432,7 +1432,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
 
@@ -1506,7 +1506,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 2
@@ -1526,7 +1526,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 3
@@ -1546,7 +1546,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
 
@@ -1620,7 +1620,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 2
@@ -1639,7 +1639,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
             // configure clients on sector 3
@@ -1658,7 +1658,7 @@ main(int argc, char* argv[])
                 clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
-                V4PingHelper ping(ipAddress);
+                PingHelper ping(ipAddress);
                 pingApps.Add(ping.Install(remoteHostContainer));
             }
 
@@ -1754,7 +1754,7 @@ main(int argc, char* argv[])
             }
 
             Ipv4Address ipAddress = ueSector1IpIface.GetAddress(i, 0);
-            V4PingHelper ping(ipAddress);
+            PingHelper ping(ipAddress);
             pingApps.Add(ping.Install(remoteHostContainer));
         }
         // configure clients on sector 2
@@ -1768,7 +1768,7 @@ main(int argc, char* argv[])
             }
 
             Ipv4Address ipAddress = ueSector2IpIface.GetAddress(i, 0);
-            V4PingHelper ping(ipAddress);
+            PingHelper ping(ipAddress);
             pingApps.Add(ping.Install(remoteHostContainer));
         }
         // configure clients on sector 3
@@ -1782,7 +1782,7 @@ main(int argc, char* argv[])
             }
 
             Ipv4Address ipAddress = ueSector3IpIface.GetAddress(i, 0);
-            V4PingHelper ping(ipAddress);
+            PingHelper ping(ipAddress);
             pingApps.Add(ping.Install(remoteHostContainer));
         }
     }

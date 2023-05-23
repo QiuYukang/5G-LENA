@@ -103,7 +103,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
 
     // Seed the ARP cache by pinging early in the simulation
     // This is a workaround until a static ARP capability is provided
-    V4PingHelper ping(ipAddress);
+    PingHelper ping(ipAddress);
     pingApps.Add(ping.Install(remoteHostContainer));
 
     Ptr<NetDevice> ueDevice = ueNetDev.Get(i);

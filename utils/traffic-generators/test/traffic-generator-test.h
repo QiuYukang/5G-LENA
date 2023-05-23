@@ -27,7 +27,6 @@
 #include <ns3/traffic-generator-ngmn-video.h>
 #include <ns3/traffic-generator-ngmn-voip.h>
 #include <ns3/uinteger.h>
-#include <ns3/v4ping-helper.h>
 
 #include <fstream>
 #include <list>

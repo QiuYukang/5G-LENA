@@ -21,6 +21,7 @@
 #include <ns3/log.h>
 #include <ns3/packet-sink-helper.h>
 #include <ns3/packet-sink.h>
+#include <ns3/ping-helper.h>
 #include <ns3/simple-channel.h>
 #include <ns3/simple-net-device.h>
 #include <ns3/simulator.h>
@@ -33,7 +34,6 @@
 #include <ns3/traffic-generator-ngmn-video.h>
 #include <ns3/traffic-generator-ngmn-voip.h>
 #include <ns3/uinteger.h>
-#include <ns3/v4ping-helper.h>
 
 #include <fstream>
 #include <list>
@@ -203,7 +203,7 @@ main(int argc, char* argv[])
 
     // Seed the ARP cache by pinging early in the simulation
     // This is a workaround until a static ARP capability is provided
-    V4PingHelper pingHelper(ipv4Interfaces.GetAddress(1, 0));
+    PingHelper pingHelper(ipv4Interfaces.GetAddress(1, 0));
     ApplicationContainer pingApps = pingHelper.Install(nodes.Get(0));
     pingApps.Start(MilliSeconds(10));
     pingApps.Stop(MilliSeconds(500));

@@ -6,6 +6,7 @@
 #include "traffic-generator-test.h"
 
 #include <ns3/boolean.h>
+#include <ns3/ping-helper.h>
 
 namespace ns3
 {
@@ -71,7 +72,7 @@ TrafficGeneratorTestCase::DoRun()
 
     // Seed the ARP cache by pinging early in the simulation
     // This is a workaround until a static ARP capability is provided
-    V4PingHelper pingHelper(ipv4Interfaces.GetAddress(1, 0));
+    PingHelper pingHelper(ipv4Interfaces.GetAddress(1, 0));
     ApplicationContainer pingApps = pingHelper.Install(nodes.Get(0));
     pingApps.Start(Seconds(1));
     pingApps.Stop(Seconds(2));
@@ -487,7 +488,7 @@ TrafficGeneratorNgmnVoipTestCase::DoRun()
 
     // Seed the ARP cache by pinging early in the simulation
     // This is a workaround until a static ARP capability is provided
-    V4PingHelper pingHelper(ipv4Interfaces.GetAddress(1, 0));
+    PingHelper pingHelper(ipv4Interfaces.GetAddress(1, 0));
     ApplicationContainer pingApps = pingHelper.Install(nodes.Get(0));
     pingApps.Start(Seconds(1));
     pingApps.Stop(Seconds(2));
