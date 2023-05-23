@@ -200,7 +200,7 @@ TrafficGenerator::StopApplication() // Called at time specified by Stop
     // so that if any event is being scheduled to cancel it
     m_stopped = true;
 
-    if (m_socket == 0)
+    if (!m_socket)
     {
         NS_LOG_WARN("TrafficGenerator found null socket to close in StopApplication");
         return;
@@ -252,7 +252,7 @@ TrafficGenerator::SendNextPacket()
         NS_LOG_WARN("Ignore SendNextPacket because the application is stopped.");
         return;
     }
-    if (m_socket == 0)
+    if (!m_socket)
     {
         NS_LOG_DEBUG("Socket closed. Ignoring the call for send next packet.");
         return;
