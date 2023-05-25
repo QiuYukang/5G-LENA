@@ -1846,12 +1846,14 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
     if (m_nrFhSchedSapProvider)
     {
         if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing)
+        {
             Simulator::Schedule(
                 NanoSeconds(1),
                 &NrMacSchedulerNs3::CallNrFhControlForMapUpdate,
                 this,
                 dlSlot.m_slotAllocInfo
                     .m_varTtiAllocInfo); // 1ns delay to give time for scheduling in all cells
+        }
     }
 
     m_macSchedSapUser->SchedConfigInd(dlSlot);

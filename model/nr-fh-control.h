@@ -1,5 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -174,6 +172,45 @@ class NrFhControl : public Object
     void DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation);
 
     /**
+     * \brief Returns a boolean indicating whether the current allocation can
+     *        fit in the available FH bandwidth.
+     */
+    void DoGetDoesAllocationFit();
+
+    /**
+     * \brief Returns the maximum MCS that can be assigned to a
+     *        specific UE (rnti, bwpId) with a RB allocation.
+     *
+     * \param bwpId the BWP ID
+     * \param reg the allocated REGs
+     * \param rnti the RNTI
+     *
+     * \return the maximum MCS
+     */
+    uint8_t DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti);
+
+    /**
+     * \brief Returns the maximum number of REGs that can be assigned to a
+     *        specific UE (rnti, bwpId) with a specific MCS (mcs).
+     *
+     * \param bwpId the BWP ID
+     * \param mcs the MCS
+     * \param rnti the RNTI
+     */
+    uint32_t DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
+
+    /**
+     * \brief Returns the FH throughput associated to a specific allocation
+     */
+    uint64_t GetFhThr (uint32_t mcs, uint32_t Nres) const;
+
+    /**
+     * \brief Returns the max MCS based on the MCS Table (1 or 2)
+     *        and the max modulation order.
+     */
+    uint8_t GetMaxMcs(uint8_t mcsTable, uint16_t modOrder);
+
+    /**
      * \brief Returns the modulation order of a specific mcs of MCS Table1.
      */
     uint32_t GetModulationOrderTable1(const uint32_t mcs) const;
@@ -209,7 +246,7 @@ class NrFhControl : public Object
     uint8_t m_overheadDyn{32};    //!< the overhead (OH) for dynamic adaptation (in bits)
     uint8_t m_numRbPerRbg{1};     //!< the number of RBs per RBG
     uint8_t m_mcsTable{2};        //!< the MCS table
-    std::string m_errorModelType; //!< the error model type besed on which the MCS Table will be set
+    std::string m_errorModelType; //!< the error model type based on which the MCS Table will be set
 
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,

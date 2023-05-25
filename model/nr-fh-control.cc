@@ -214,7 +214,7 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 void
 NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation)
 {
-    NS_LOG_DEBUG("Cell: " << m_physicalCellId << " We got called for reset for " << bwpId);
+    NS_LOG_INFO("Cell: " << m_physicalCellId << " We got called for reset for " << bwpId);
 
     for (const auto& alloc : allocation)
     {
@@ -231,16 +231,17 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
                 std::count(alloc.m_dci->m_rbgBitmask.begin(), alloc.m_dci->m_rbgBitmask.end(), 1)) *
             static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched());
 
-        NS_LOG_DEBUG("Get num of RBs per RBG from sched: "
-                     << m_fhSchedSapUser->GetNumRbPerRbgFromSched() << " numRbs = " << numRbs
-                     << " MCS Table: " << +m_mcsTable);
+        NS_LOG_INFO("Get num of RBs per RBG from sched: "
+                    << m_fhSchedSapUser->GetNumRbPerRbgFromSched() << " numRbs = " << numRbs
+                    << " MCS Table: " << +m_mcsTable);
 
-        // TODO: Add traces!
+        uint16_t num = m_fhPhySapUser->GetNumerology();
+        NS_LOG_INFO("Numerology: " << num); // TODO: Add traces and remove this
 
         // update stored maps
         if (m_rntiQueueSize.size() == 0)
         {
-            NS_LOG_DEBUG("empty MAP");
+            NS_LOG_INFO("empty MAP");
             NS_ABORT_MSG_IF(m_activeUes.size() > 0, "No UE in map, but something in activeUes map");
             continue;
         }
@@ -269,6 +270,150 @@ void
 NrFhControl::DoGetDoesAllocationFit()
 {
     // NS_LOG_UNCOND("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId);
+}
+
+uint8_t
+NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId [[maybe_unused]], uint32_t reg, uint32_t rnti)
+{
+    uint16_t numActiveUes = static_cast<uint16_t>(m_rntiQueueSize.size()); // number of active UEs
+    // This map is for all the BWPs. If we get all the active UEs of all the BWPs
+    // it is not correct, no? Maybe we should keep track of the active UEs per BWP
+    // in different map or vector.
+
+    uint16_t Kp = numActiveUes;
+
+    uint16_t numerology = m_fhPhySapUser->GetNumerology();
+    Time slotLength =
+        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
+    uint32_t overheadMac = static_cast<uint32_t>(
+        10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
+
+    if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+        numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
+    {
+        while (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+               Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
+        {
+            Kp--;
+        }
+    }
+
+    NS_ABORT_MSG_IF(m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+                        Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
+                    "Not enough fronthaul capacity to send intra-PHY split overhead");
+
+    uint32_t num = static_cast<uint32_t>(m_fhCapacity * 1e6 * slotLength.GetSeconds() -
+                                         Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
+
+    uint16_t modOrderMax =
+        num / (12 * Kp * reg) / m_numRbPerRbg; // REGs, otherwise, should divide by nSymb
+
+    uint8_t mcsMax = GetMaxMcs(m_mcsTable, modOrderMax); // MCS max
+
+    NS_ABORT_MSG_IF(mcsMax == 0, "could not compute correctly the maxMCS");
+
+    return mcsMax;
+}
+
+uint32_t
+NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId [[maybe_unused]], uint32_t mcs, uint32_t rnti)
+{
+    uint32_t modulationOrder = m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
+
+    uint16_t numActiveUes = static_cast<uint16_t>(m_rntiQueueSize.size()); // number of active UEs
+    // This map is for all the BWPs. If we get all the active UEs of all the BWPs
+    // it is not correct, no? Maybe we should keep track of the active UEs per BWP
+    // in different map or vector.
+
+    uint16_t Kp = numActiveUes;
+
+    uint16_t numerology = m_fhPhySapUser->GetNumerology();
+    Time slotLength =
+        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
+    uint32_t overheadMac = static_cast<uint32_t>(
+        10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
+
+    if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+        numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
+    {
+        while (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+               Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
+        {
+            Kp--;
+        }
+    }
+
+    NS_ABORT_MSG_IF(m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+                        Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
+                    "Not enough fronthaul capacity to send intra-PHY split overhead");
+
+    uint32_t num = static_cast<uint32_t>(m_fhCapacity * 1e6 * slotLength.GetSeconds() -
+                                         Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
+    uint32_t nMax = num / (12 * Kp * modulationOrder) /
+                    m_numRbPerRbg; // in REGs, otherwise, should divide by nSymb
+
+    NS_LOG_DEBUG("Scheduler GetMaxRegAssignable " << nMax << " for UE " << rnti << " with mcs "
+                                                  << mcs);
+
+    return nMax;
+}
+
+uint64_t
+NrFhControl::GetFhThr (uint32_t mcs, uint32_t Nres) const
+{
+    uint64_t thr;
+    uint32_t modulationOrder = m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
+
+    uint16_t numerology = m_fhPhySapUser->GetNumerology();
+    Time slotLength =
+        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
+    uint32_t overheadMac = static_cast<uint32_t>(
+        10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
+
+    thr = (12 * modulationOrder * Nres + m_overheadDyn + overheadMac + 12 * 2 * 10) / slotLength.GetSeconds(); // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
+
+    return thr;
+}
+
+uint8_t
+NrFhControl::GetMaxMcs(uint8_t mcsTable, uint16_t modOrder)
+{
+    uint8_t mcsMax = 0;
+    if (mcsTable == 1)
+    {
+        if (modOrder < 4)
+        {
+            mcsMax = GetMcsTable1(0);
+        }
+        else if (modOrder >= 4 && modOrder < 6)
+        {
+            mcsMax = GetMcsTable1(1);
+        }
+        else if (modOrder >= 6)
+        {
+            mcsMax = GetMcsTable1(2);
+        }
+    }
+    else if (m_mcsTable == 2)
+    {
+        if (modOrder < 4)
+        {
+            mcsMax = GetMcsTable2(0);
+        }
+        else if (modOrder >= 4 && modOrder < 6)
+        {
+            mcsMax = GetMcsTable2(1);
+        }
+        else if (modOrder >= 6 && modOrder < 8)
+        {
+            mcsMax = GetMcsTable2(2);
+        }
+        else if (modOrder >= 8)
+        {
+            mcsMax = GetMcsTable2(3);
+        }
+    }
+    return mcsMax;
 }
 
 uint32_t

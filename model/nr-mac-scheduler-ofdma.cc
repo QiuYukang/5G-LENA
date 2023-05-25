@@ -10,6 +10,8 @@
 
 #include "nr-mac-scheduler-ofdma.h"
 
+#include "nr-fh-control.h"
+
 #include <ns3/log.h>
 
 #include <algorithm>
@@ -200,6 +202,35 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 }
             }
 
+            if (m_nrFhSchedSapProvider)
+            {
+                if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
+                {
+                    uint32_t quantizationStep = rbgAssignable;
+
+                    while (schedInfoIt != ueVector.end())
+                    {
+                        uint32_t maxAssignable = m_nrFhSchedSapProvider->GetMaxRegAssignable(
+                            GetBwpId(),
+                            GetUe(*schedInfoIt)->m_dlMcs,
+                            GetUe(*schedInfoIt)->m_rnti); // maxAssignable is in REGs
+                        // set a minimum of the maxAssignable equal to 5 RBGs
+                        maxAssignable = std::max(maxAssignable, 5 * rbgAssignable);
+
+                        // the minimum allocation is one resource in freq, containing rbgAssignable
+                        // in time (REGs)
+                        if (GetUe(*schedInfoIt)->m_dlRBG + quantizationStep > maxAssignable)
+                        {
+                            schedInfoIt++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
             // In the case that all the UE already have their requirements fulfilled,
             // then stop the beam processing and pass to the next
             if (schedInfoIt == ueVector.end())
@@ -237,6 +268,33 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
                 {
                     NotAssignedDlResources(ue, FTResources(rbgAssignable, beamSym), assigned);
+                }
+            }
+        }
+
+        if (m_nrFhSchedSapProvider)
+        {
+            if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs)
+            {
+                GetFirst GetUe;
+                auto schedInfoIt = GetUeVector(el).begin();
+                while (schedInfoIt != GetUeVector(el).end()) // over all UEs with data
+                {
+                    if (GetUe(*schedInfoIt)->m_dlRBG > 0) // UEs with an actual allocation
+                    {
+                        uint8_t maxMcsAssignable = m_nrFhSchedSapProvider->GetMaxMcsAssignable(
+                            GetBwpId(),
+                            GetUe(*schedInfoIt)->m_dlRBG,
+                            GetUe(*schedInfoIt)->m_rnti); // max MCS index assignable
+
+                        NS_LOG_INFO("UE " << GetUe(*schedInfoIt)->m_rnti << " MCS form sched: "
+                                          << +GetUe(*schedInfoIt)->m_dlMcs
+                                          << " FH max MCS: " << +maxMcsAssignable);
+
+                        GetUe(*schedInfoIt)->m_dlMcs =
+                            std::min(GetUe(*schedInfoIt)->m_dlMcs, maxMcsAssignable);
+                    }
+                    schedInfoIt++;
                 }
             }
         }

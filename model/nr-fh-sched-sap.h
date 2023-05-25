@@ -33,6 +33,8 @@ class NrFhSchedSapProvider
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) = 0;
     virtual void UpdateActiveUesMap(uint16_t bwpId,
                                     const std::deque<VarTtiAllocInfo>& allocation) = 0;
+    virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti) = 0;
+    virtual uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti) = 0;
 };
 
 /**
@@ -72,6 +74,8 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
     virtual uint16_t GetNrFhPhysicalCellId();
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
     virtual void UpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation);
+    virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti);
+    virtual uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
 
   private:
     MemberNrFhSchedSapProvider();
@@ -119,6 +123,20 @@ MemberNrFhSchedSapProvider<C>::UpdateActiveUesMap(uint16_t bwpId,
                                                   const std::deque<VarTtiAllocInfo>& allocation)
 {
     return m_owner->DoUpdateActiveUesMap(bwpId, allocation);
+}
+
+template <class C>
+uint8_t
+MemberNrFhSchedSapProvider<C>::GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
+{
+    return m_owner->DoGetMaxMcsAssignable(bwpId, reg, rnti);
+}
+
+template <class C>
+uint32_t
+MemberNrFhSchedSapProvider<C>::GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
+{
+    return m_owner->DoGetMaxRegAssignable(bwpId, mcs, rnti);
 }
 
 /**
