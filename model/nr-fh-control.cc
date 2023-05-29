@@ -188,6 +188,19 @@ NrFhControl::DoGetPhysicalCellId() const
 }
 
 void
+NrFhControl::SetNumerology(uint8_t bwpId, uint16_t num)
+{
+    if (m_numerologyPerBwp.find(bwpId) == m_numerologyPerBwp.end()) // bwpId not in the map
+    {
+        m_numerologyPerBwp.insert(std::make_pair(bwpId, num));
+    }
+    else
+    {
+        NS_ABORT_MSG("Configure NrFhControl should be called only once");
+    }
+}
+
+void
 NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 {
     uint32_t c1 = Cantor(bwpId, rnti);
@@ -235,8 +248,9 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
                     << m_fhSchedSapUser->GetNumRbPerRbgFromSched() << " numRbs = " << numRbs
                     << " MCS Table: " << +m_mcsTable);
 
-        uint16_t num = m_fhPhySapUser->GetNumerology();
-        NS_LOG_INFO("Numerology: " << num); // TODO: Add traces and remove this
+        uint16_t numerology = m_fhPhySapUser->GetNumerology();
+        NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId), " Numerology has not been configured properly for bwpId: " << +bwpId);
+        NS_LOG_INFO("Numerology: " << numerology); // TODO: Add traces and remove this
 
         // update stored maps
         if (m_rntiQueueSize.size() == 0)
@@ -273,7 +287,7 @@ NrFhControl::DoGetDoesAllocationFit()
 }
 
 uint8_t
-NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId [[maybe_unused]], uint32_t reg, uint32_t rnti)
+NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
 {
     uint16_t numActiveUes = static_cast<uint16_t>(m_rntiQueueSize.size()); // number of active UEs
     // This map is for all the BWPs. If we get all the active UEs of all the BWPs
@@ -282,11 +296,10 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId [[maybe_unused]], uint32_t reg
 
     uint16_t Kp = numActiveUes;
 
-    uint16_t numerology = m_fhPhySapUser->GetNumerology();
     Time slotLength =
-        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
+        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
     uint32_t overheadMac = static_cast<uint32_t>(
-        10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
+        10e6 * 1e-3 / std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
     if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
@@ -316,7 +329,7 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId [[maybe_unused]], uint32_t reg
 }
 
 uint32_t
-NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId [[maybe_unused]], uint32_t mcs, uint32_t rnti)
+NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
 {
     uint32_t modulationOrder = m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
 
@@ -327,11 +340,10 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId [[maybe_unused]], uint32_t mcs
 
     uint16_t Kp = numActiveUes;
 
-    uint16_t numerology = m_fhPhySapUser->GetNumerology();
     Time slotLength =
-        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
+        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
     uint32_t overheadMac = static_cast<uint32_t>(
-        10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
+        10e6 * 1e-3 / std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
     if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)

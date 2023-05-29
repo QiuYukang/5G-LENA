@@ -705,6 +705,14 @@ class NrHelper : public Object
      */
     void EnablebleFhControl();
 
+    /**
+     * \brief Configure FH Control of each cell
+     *
+     * It sets the numerology as configured in the cell to which it
+     * belongs to.
+     */
+    void ConfigureFhControl(NetDeviceContainer gnbNetDevices);
+
     /*
      * \brief Sets the FH Control attributes.
      * \param n the name of the attribute

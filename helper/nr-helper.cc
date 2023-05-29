@@ -1537,6 +1537,20 @@ NrHelper::EnablebleFhControl()
     m_fhEnabled = true;
 }
 
+void
+NrHelper::ConfigureFhControl(NetDeviceContainer gnbNetDevices)
+{
+    for (NetDeviceContainer::Iterator i = gnbNetDevices.Begin(); i != gnbNetDevices.End(); ++i)
+    {
+        Ptr<NrGnbNetDevice> gnbNetDev = DynamicCast<NrGnbNetDevice>(*i);
+
+        for (uint32_t j = 0; j < gnbNetDev->GetCcMapSize(); j++)
+        {
+            gnbNetDev->GetNrFhControl()->SetNumerology(j, gnbNetDev->GetPhy(j)->GetNumerology());
+        }
+    }
+}
+
 int64_t
 NrHelper::AssignStreams(NetDeviceContainer c, int64_t stream)
 {

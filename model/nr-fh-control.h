@@ -123,6 +123,14 @@ class NrFhControl : public Object
      */
     void SetPhysicalCellId(uint16_t physCellId);
 
+    /**
+     * \brief Set the numerology
+     * \param num the numerology
+     *
+     */
+    void SetNumerology (uint8_t bwpId, uint16_t num);
+
+
   private:
     /**
      * \brief Get the FH Control method.
@@ -252,6 +260,7 @@ class NrFhControl : public Object
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
     std::unordered_map<uint16_t, uint16_t> m_activeUes; //!< Map active bwpIds and active Ues
+    std::unordered_map<uint8_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
 };
 
 } // end namespace ns3
