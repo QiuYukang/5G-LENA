@@ -95,7 +95,7 @@ Let's configure the ns-3 + NR project:
 ./ns3 configure --enable-examples --enable-tests
 ```
 
-In the output you should see: `SQLite stats support: enabled`.
+In the output you should see: `SQLite support: ON`.
 
 If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
 
