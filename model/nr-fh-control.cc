@@ -6,6 +6,8 @@
 
 #include <ns3/core-module.h>
 
+#include <unordered_set>
+
 namespace ns3
 {
 
@@ -206,9 +208,9 @@ void
 NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 {
     uint32_t c1 = Cantor(bwpId, rnti);
-    if (m_activeUesPerBwp.find(bwpId) == m_activeUesPerBwp.end()) // bwpId not in the map
+    if (m_activeBwps.find(c1) == m_activeBwps.end()) // bwpId not in the map
     {
-        m_activeUesPerBwp.insert(std::make_pair(bwpId, rnti));
+        m_activeBwps.insert(std::make_pair(c1, bwpId));
     }
 
     if (m_rntiQueueSize.find(c1) == m_rntiQueueSize.end()) // UE not in the map
@@ -275,7 +277,7 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
         if (m_rntiQueueSize.size() == 0)
         {
             NS_LOG_INFO("empty MAP");
-            NS_ABORT_MSG_IF(m_activeUesPerBwp.size() > 0,
+            NS_ABORT_MSG_IF(m_activeBwps.size() > 0,
                             "No UE in map, but something in activeUes map");
             continue;
         }
@@ -295,18 +297,72 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
                          << m_rntiQueueSize.at(c1)
                          << " and allocation of: " << (alloc.m_dci->m_tbSize - 3));
             m_rntiQueueSize.erase(c1);
-            m_activeUesPerBwp.erase(bwpId);
+            m_activeBwps.erase(c1);
         }
     }
+}
+
+uint16_t
+NrFhControl::GetNumberActiveBwps() const
+{
+    std::unordered_set<uint32_t> bwpIds;
+    for (const auto& it : m_activeBwps)
+    {
+        bwpIds.insert(it.second);
+    }
+    NS_LOG_INFO("active bwps: " << bwpIds.size());
+    return static_cast<uint16_t>(bwpIds.size());
 }
 
 bool
 NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
 {
-    NS_LOG_UNCOND("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
-                                                                   << bwpId << " mcs: " << mcs
-                                                                   << " nRegs: " << nRegs);
-    return false;
+    NS_LOG_INFO("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
+                                                                 << bwpId << " mcs: " << mcs
+                                                                 << " nRegs: " << nRegs);
+    uint16_t numBwps =
+        GetNumberActiveBwps(); // considers only active cells as BWPs with new data in queue
+    if (numBwps == 0) // if we are at this point with numBWPs=0, it means there are BWPs with just
+                      // remaining HARQ allocations
+    {
+        numBwps++;
+    }
+    uint64_t thr =
+        GetFhThr(mcs, nRegs * static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched()));
+
+    NS_LOG_INFO("Throughput: " << thr);
+    if (m_allocCellThrPerBwp.find(bwpId) == m_allocCellThrPerBwp.end()) // bwpId not in the map
+    {
+        NS_LOG_INFO("BWP not in the map ");
+        if (thr < (m_fhCapacity * 1e6 / numBwps) &&
+            (m_allocFhThroughput + thr < m_fhCapacity * 1e6)) // divide with active BWPs?
+        {
+            m_allocCellThrPerBwp.insert(std::make_pair(bwpId, thr));
+            m_allocFhThroughput += thr;
+            NS_LOG_INFO("Return True");
+            return 1;
+        }
+        else
+        {
+            NS_LOG_INFO("Return False");
+            return 0;
+        }
+    }
+    else if (((m_allocCellThrPerBwp[bwpId] + thr) < (m_fhCapacity * 1e6 / numBwps)) &&
+             (m_allocFhThroughput + thr <
+              m_fhCapacity * 1e6)) // cell in the map & we can store the allocation
+    {
+        NS_LOG_INFO("BWP exists in the map ");
+        m_allocCellThrPerBwp[bwpId] += thr;
+        m_allocFhThroughput += thr; // double check
+        NS_LOG_INFO("Return True");
+        return 1;
+    }
+    else // we cannot include the allocation
+    {
+        NS_LOG_INFO("Allocation cannot be included");
+        return 0;
+    }
 }
 
 uint8_t
@@ -435,7 +491,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
         if (m_rbsAirTracedValue.size() == 0)
         {
             m_rbsAirTrace(currentSlot, rbSum); // store SfnSf and 0 used RBs
-            NS_LOG_DEBUG("Average RBs used at end slot " << rbSum);
+            NS_LOG_DEBUG("Size 0, Average RBs used at the end of slot: " << rbSum);
         }
         else
         {
@@ -445,7 +501,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
             }
             rbSum = rbSum / m_rbsAirTracedValue.size();
             m_rbsAirTrace(currentSlot, rbSum); // store SfnSf and AVERAGE used RBs
-            NS_LOG_DEBUG("Average RBs used at end slot " << rbSum);
+            NS_LOG_DEBUG("Average RBs used at the end of slot: " << rbSum);
         }
         m_reqFhDlThrTracedValue = 0;  // reset it, for next slot
         m_rbsAirTracedValue.clear();  // reset it, for next slot
