@@ -1532,7 +1532,7 @@ NrGnbPhy::EndSlot()
 
     if (m_nrFhPhySapProvider)
     {
-        NS_LOG_DEBUG ("End slot notified from PHY"); // TODO: Add active UEs nad BWPs?
+        NS_LOG_DEBUG("End slot notified from PHY"); // TODO: Add active UEs nad BWPs?
         m_nrFhPhySapProvider->NotifyEndSlot(GetBwpId(), m_currentSlot);
     }
 
@@ -1618,7 +1618,10 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
                 long rbgAssigned = std::count(dciInfoElem->m_rbgBitmask.begin(),
                                               dciInfoElem->m_rbgBitmask.end(),
                                               1);
-                if (DoesFhAllocationFit(GetBwpId(), dciInfoElem->m_mcs, rbgAssigned * dciInfoElem->m_numSym) == 0)
+
+                if (DoesFhAllocationFit(GetBwpId(),
+                                        dciInfoElem->m_mcs,
+                                        rbgAssigned * dciInfoElem->m_numSym) == 0)
                 {
                     // drop DL DCI because data does not fit in available FH BW
                     ctrlIt = m_ctrlMsgs.erase(ctrlIt);

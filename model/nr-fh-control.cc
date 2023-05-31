@@ -206,9 +206,9 @@ void
 NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 {
     uint32_t c1 = Cantor(bwpId, rnti);
-    if (m_activeUes.find(bwpId) == m_activeUes.end()) // bwpId not in the map
+    if (m_activeUesPerBwp.find(bwpId) == m_activeUesPerBwp.end()) // bwpId not in the map
     {
-        m_activeUes.insert(std::make_pair(bwpId, rnti));
+        m_activeUesPerBwp.insert(std::make_pair(bwpId, rnti));
     }
 
     if (m_rntiQueueSize.find(c1) == m_rntiQueueSize.end()) // UE not in the map
@@ -251,30 +251,32 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
                     << " MCS Table: " << +m_mcsTable);
 
         uint16_t numerology = m_fhPhySapUser->GetNumerology();
-        NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId), " Numerology has not been configured properly for bwpId: " << +bwpId);
+        NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId),
+                      " Numerology has not been configured properly for bwpId: " << +bwpId);
 
         // update FH trace and AI trace
-        m_reqFhDlThrTracedValue += GetFhThr (static_cast<uint32_t>(alloc.m_dci->m_mcs)),
-                                             static_cast<uint32_t>(alloc.m_dci->m_numSym) * numRbs);
-        if (m_rbsAirTracedValue.find (bwpId) == m_rbsAirTracedValue.end()) // bwp not in the map
+        m_reqFhDlThrTracedValue += GetFhThr(static_cast<uint32_t>(alloc.m_dci->m_mcs),
+                                            static_cast<uint32_t>(alloc.m_dci->m_numSym) * numRbs);
+        if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwp not in the map
         {
-            m_rbsAirTracedValue.insert(std::make_pair (bwpId, numRbs));
+            m_rbsAirTracedValue.insert(std::make_pair(bwpId, numRbs));
         }
-        else  //bwpId already in the map: increase traced value
+        else // bwpId already in the map: increase traced value
         {
             m_rbsAirTracedValue[bwpId] += numRbs;
         }
         if (alloc.m_dci->m_ndi == 0)  // retx
         {
-            continue;  // retx are not considered in the optimization (focuses on DL new data), but stored for the trace
+            continue; // retx are not considered in the optimization (focuses on DL new data), but
+                      // stored for the trace
         }
-
 
         // update stored maps
         if (m_rntiQueueSize.size() == 0)
         {
             NS_LOG_INFO("empty MAP");
-            NS_ABORT_MSG_IF(m_activeUes.size() > 0, "No UE in map, but something in activeUes map");
+            NS_ABORT_MSG_IF(m_activeUesPerBwp.size() > 0,
+                            "No UE in map, but something in activeUes map");
             continue;
         }
 
@@ -293,7 +295,7 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
                          << m_rntiQueueSize.at(c1)
                          << " and allocation of: " << (alloc.m_dci->m_tbSize - 3));
             m_rntiQueueSize.erase(c1);
-            m_activeUes.erase(bwpId);
+            m_activeUesPerBwp.erase(bwpId);
         }
     }
 }
@@ -304,7 +306,6 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
     NS_LOG_UNCOND("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
                                                                    << bwpId << " mcs: " << mcs
                                                                    << " nRegs: " << nRegs);
-
     return false;
 }
 
@@ -314,14 +315,15 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
     uint16_t numActiveUes = static_cast<uint16_t>(m_rntiQueueSize.size()); // number of active UEs
     // This map is for all the BWPs. If we get all the active UEs of all the BWPs
     // it is not correct, no? Maybe we should keep track of the active UEs per BWP
-    // in different map or vector (use m_activeUes).
+    // in different map or vector (use m_activeUesPerBwp).
 
     uint16_t Kp = numActiveUes;
 
-    Time slotLength =
-        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
+    Time slotLength = MicroSeconds(
+        static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
     uint32_t overheadMac = static_cast<uint32_t>(
-        10e6 * 1e-3 / std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
+        10e6 * 1e-3 /
+        std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
     if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
@@ -341,7 +343,9 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
                                          Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
 
     uint16_t modOrderMax =
-        num / (12 * Kp * reg) / static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched()); // REGs, otherwise, should divide by nSymb
+        num / (12 * Kp * reg) /
+        static_cast<uint32_t>(
+            m_fhSchedSapUser->GetNumRbPerRbgFromSched()); // REGs, otherwise, should divide by nSymb
 
     uint8_t mcsMax = GetMaxMcs(m_mcsTable, modOrderMax); // MCS max
 
@@ -353,19 +357,21 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
 uint32_t
 NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
 {
-    uint32_t modulationOrder = m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
+    uint32_t modulationOrder =
+        m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
 
     uint16_t numActiveUes = static_cast<uint16_t>(m_rntiQueueSize.size()); // number of active UEs
     // This map is for all the BWPs. If we get all the active UEs of all the BWPs
     // it is not correct, no? Maybe we should keep track of the active UEs per BWP
-    // in different map or vector (use m_activeUes).
+    // in different map or vector (use m_activeUesPerBwp).
 
     uint16_t Kp = numActiveUes;
 
-    Time slotLength =
-        MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
+    Time slotLength = MicroSeconds(
+        static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
     uint32_t overheadMac = static_cast<uint32_t>(
-        10e6 * 1e-3 / std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
+        10e6 * 1e-3 /
+        std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
     if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
@@ -383,8 +389,11 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
 
     uint32_t num = static_cast<uint32_t>(m_fhCapacity * 1e6 * slotLength.GetSeconds() -
                                          Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
-    uint32_t nMax = num / (12 * Kp * modulationOrder) /
-                    static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched()); // in REGs, otherwise, should divide by nSymb
+    uint32_t nMax =
+        num / (12 * Kp * modulationOrder) /
+        static_cast<uint32_t>(
+            m_fhSchedSapUser
+                ->GetNumRbPerRbgFromSched()); // in REGs, otherwise, should divide by nSymb
 
     NS_LOG_DEBUG("Scheduler GetMaxRegAssignable " << nMax << " for UE " << rnti << " with mcs "
                                                   << mcs);
@@ -393,36 +402,40 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
 }
 
 void
-NrFhControl::DoUpdateTracesBasedOnDroppedData (uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb)
+NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
+                                              uint32_t mcs,
+                                              uint32_t nRbgs,
+                                              uint32_t nSymb)
 {
     // in Dropping, the trace is computed from PHY layer
     uint32_t numRbs = nRbgs * static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched());
 
     // update FH trace and AI trace
-    m_reqFhDlThrTracedValue += GetFhThr (mcs, numRbs * nSymb);
+    m_reqFhDlThrTracedValue += GetFhThr(mcs, numRbs * nSymb);
     if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwpId not in the map
     {
-        m_rbsAirTracedValue.insert(std::make_pair (bwpId, numRbs));
+        m_rbsAirTracedValue.insert(std::make_pair(bwpId, numRbs));
     }
-    else  //bwpId already in the map: increase traced value
+    else // bwpId already in the map: increase traced value
     {
         m_rbsAirTracedValue[bwpId] += numRbs;
     }
 }
 
 void
-NrFhControl::DoNotifyEndSlot (uint16_t bwpId, SfnSf currentSlot)
+NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
 {
     // we only want to save it once (per slot) in the trace. note that every cell that calls EndSlot
     if (currentSlot == m_waitingSlotPerBwp.at(bwpId))
     {
-        m_reqFhDlThrTrace (currentSlot, m_reqFhDlThrTracedValue);  // store SfnSf and required FH thr (in DL)
-        NS_LOG_INFO ("Req FH DL thr at end slot " << m_reqFhDlThrTracedValue);
+        m_reqFhDlThrTrace(currentSlot,
+                          m_reqFhDlThrTracedValue); // store SfnSf and required FH thr (in DL)
+        NS_LOG_INFO("Req FH DL thr at end slot " << m_reqFhDlThrTracedValue);
         uint32_t rbSum = 0;
         if (m_rbsAirTracedValue.size() == 0)
         {
-            m_rbsAirTrace (currentSlot, rbSum); // store SfnSf and 0 used RBs
-            NS_LOG_DEBUG ("Average RBs used at end slot " << rbSum);
+            m_rbsAirTrace(currentSlot, rbSum); // store SfnSf and 0 used RBs
+            NS_LOG_DEBUG("Average RBs used at end slot " << rbSum);
         }
         else
         {
@@ -431,22 +444,23 @@ NrFhControl::DoNotifyEndSlot (uint16_t bwpId, SfnSf currentSlot)
                 rbSum += element.second;
             }
             rbSum = rbSum / m_rbsAirTracedValue.size();
-            m_rbsAirTrace (currentSlot, rbSum); // store SfnSf and AVERAGE used RBs
-            NS_LOG_DEBUG ("Average RBs used at end slot " << rbSum);
+            m_rbsAirTrace(currentSlot, rbSum); // store SfnSf and AVERAGE used RBs
+            NS_LOG_DEBUG("Average RBs used at end slot " << rbSum);
         }
-        m_reqFhDlThrTracedValue=0;    // reset it, for next slot
+        m_reqFhDlThrTracedValue = 0;  // reset it, for next slot
         m_rbsAirTracedValue.clear();  // reset it, for next slot
-        m_allocFhThroughput=0;        // reset it, for next slot
+        m_allocFhThroughput = 0;      // reset it, for next slot
         m_allocCellThrPerBwp.clear(); // reset it, for next slot
         m_waitingSlotPerBwp.at(bwpId).Add(1);
     }
 }
 
 uint64_t
-NrFhControl::GetFhThr (uint32_t mcs, uint32_t Nres) const
+NrFhControl::GetFhThr(uint32_t mcs, uint32_t Nres) const
 {
     uint64_t thr;
-    uint32_t modulationOrder = m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
+    uint32_t modulationOrder =
+        m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
 
     uint16_t numerology = m_fhPhySapUser->GetNumerology();
     Time slotLength =
@@ -454,7 +468,8 @@ NrFhControl::GetFhThr (uint32_t mcs, uint32_t Nres) const
     uint32_t overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
 
-    thr = (12 * modulationOrder * Nres + m_overheadDyn + overheadMac + 12 * 2 * 10) / slotLength.GetSeconds(); // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
+    thr = (12 * modulationOrder * Nres + m_overheadDyn + overheadMac + 12 * 2 * 10) /
+          slotLength.GetSeconds(); // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
 
     return thr;
 }

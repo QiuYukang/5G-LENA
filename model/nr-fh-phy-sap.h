@@ -27,8 +27,11 @@ class NrFhPhySapProvider
 
     virtual uint8_t GetFhControlMethod() = 0;
     virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) = 0;
-    virtual void UpdateTracesBasedOnDroppedData (uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb) = 0;
-    virtual void NotifyEndSlot (uint16_t bwpId, SfnSf currentSlot) = 0;
+    virtual void UpdateTracesBasedOnDroppedData(uint16_t bwpId,
+                                                uint32_t mcs,
+                                                uint32_t nRbgs,
+                                                uint32_t nSymb) = 0;
+    virtual void NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot) = 0;
 };
 
 /**
@@ -100,7 +103,10 @@ MemberNrFhPhySapProvider<C>::DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uin
 
 template <class C>
 void
-MemberNrFhPhySapProvider<C>::UpdateTracesBasedOnDroppedData(uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb)
+MemberNrFhPhySapProvider<C>::UpdateTracesBasedOnDroppedData(uint16_t bwpId,
+                                                            uint32_t mcs,
+                                                            uint32_t nRbgs,
+                                                            uint32_t nSymb)
 {
     return m_owner->DoUpdateTracesBasedOnDroppedData(bwpId, mcs, nRbgs, nSymb);
 }
@@ -111,7 +117,6 @@ MemberNrFhPhySapProvider<C>::NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
 {
     return m_owner->DoNotifyEndSlot(bwpId, currentSlot);
 }
-
 
 /**
  * \brief Template for the implementation of the NrFhPhySapUser as a member of an

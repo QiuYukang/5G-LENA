@@ -128,8 +128,7 @@ class NrFhControl : public Object
      * \param num the numerology
      *
      */
-    void SetNumerology (uint16_t bwpId, uint16_t num);
-
+    void SetNumerology(uint16_t bwpId, uint16_t num);
 
   private:
     /**
@@ -216,7 +215,10 @@ class NrFhControl : public Object
      * \param nRbgs the number of RBGs
      * \param nSymb the number of symbols
      */
-    void DoUpdateTracesBasedOnDroppedData (uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb);
+    void DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
+                                          uint32_t mcs,
+                                          uint32_t nRbgs,
+                                          uint32_t nSymb);
 
     /**
      * \brief End slot notification from gnb-phy, to track the required fronthaul
@@ -224,12 +226,12 @@ class NrFhControl : public Object
      *
      * \param currentSlot The current slot
      */
-    void DoNotifyEndSlot (uint16_t bwpId, SfnSf currentSlot);
+    void DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot);
 
     /**
      * \brief Returns the FH throughput associated to a specific allocation
      */
-    uint64_t GetFhThr (uint32_t mcs, uint32_t Nres) const;
+    uint64_t GetFhThr(uint32_t mcs, uint32_t Nres) const;
 
     /**
      * \brief Returns the max MCS based on the MCS Table (1 or 2)
@@ -277,18 +279,20 @@ class NrFhControl : public Object
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
-    std::unordered_map<uint16_t, uint16_t> m_activeUes; //!< Map active bwpIds and active Ues
+    std::unordered_map<uint16_t, uint16_t> m_activeUesPerBwp;  //!< Map active bwpIds and active Ues
     std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
-    uint64_t m_allocFhThroughput{0};     //!< the allocated fronthaul throughput after scheduling (in DL)
-    std::unordered_map<uint16_t, uint64_t> m_allocCellThrPerBwp;  //!< Map for FH allocated throughput of a specific bwpId (in DL)
+    uint64_t m_allocFhThroughput{
+        0}; //!< the allocated fronthaul throughput after scheduling (in DL)
+    std::unordered_map<uint16_t, uint64_t>
+        m_allocCellThrPerBwp; //!< Map for FH allocated throughput of a specific bwpId (in DL)
     uint64_t m_reqFhDlThrTracedValue{0}; //!< the required fronthaul throughput (in DL)
     std::unordered_map<uint16_t, uint32_t>
         m_rbsAirTracedValue; //!< Map for the used RBs of the air of a specific bwpId
     std::unordered_map<uint16_t, SfnSf> m_waitingSlotPerBwp;
 
-    TracedCallback<const SfnSf &, uint64_t> m_reqFhDlThrTrace; //!< Report the required FH throughput (in DL)
-    TracedCallback<const SfnSf &, uint32_t> m_rbsAirTrace;     //!< Report the RBs used of the AI (in DL)
-
+    TracedCallback<const SfnSf&, uint64_t>
+        m_reqFhDlThrTrace; //!< Report the required FH throughput (in DL)
+    TracedCallback<const SfnSf&, uint32_t> m_rbsAirTrace; //!< Report the RBs used of the AI (in DL)
 };
 
 } // end namespace ns3
