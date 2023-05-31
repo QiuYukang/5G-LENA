@@ -170,7 +170,7 @@ NrMacSchedulerTdma::AssignRBGTDMA(
 
         if (m_nrFhSchedSapProvider)
         {
-            DoesFhAllocationFit();
+            // DoesFhAllocationFit();
         }
 
         // Assign 1 entire symbol (full RBG) to the selected UE and to the total

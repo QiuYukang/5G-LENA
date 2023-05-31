@@ -128,7 +128,7 @@ class NrFhControl : public Object
      * \param num the numerology
      *
      */
-    void SetNumerology (uint8_t bwpId, uint16_t num);
+    void SetNumerology (uint16_t bwpId, uint16_t num);
 
 
   private:
@@ -183,7 +183,7 @@ class NrFhControl : public Object
      * \brief Returns a boolean indicating whether the current allocation can
      *        fit in the available FH bandwidth.
      */
-    void DoGetDoesAllocationFit();
+    bool DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
 
     /**
      * \brief Returns the maximum MCS that can be assigned to a
@@ -206,6 +206,25 @@ class NrFhControl : public Object
      * \param rnti the RNTI
      */
     uint32_t DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
+
+    /**
+     * \brief Updates the FH DL trace based on some dropped data+allocation,
+     *        called from phy.
+     *
+     * \param bwpId the BWP ID
+     * \param mcs the MCS
+     * \param nRbgs the number of RBGs
+     * \param nSymb the number of symbols
+     */
+    void DoUpdateTracesBasedOnDroppedData (uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb);
+
+    /**
+     * \brief End slot notification from gnb-phy, to track the required fronthaul
+     *        throughput for that slot
+     *
+     * \param currentSlot The current slot
+     */
+    void DoNotifyEndSlot (uint16_t bwpId, SfnSf currentSlot);
 
     /**
      * \brief Returns the FH throughput associated to a specific allocation
@@ -252,7 +271,6 @@ class NrFhControl : public Object
     uint16_t m_fhCapacity{
         1000}; //!< the available FH capacity (in Mbps) for DL and UL (full-duplex FH link)
     uint8_t m_overheadDyn{32};    //!< the overhead (OH) for dynamic adaptation (in bits)
-    uint8_t m_numRbPerRbg{1};     //!< the number of RBs per RBG
     uint8_t m_mcsTable{2};        //!< the MCS table
     std::string m_errorModelType; //!< the error model type based on which the MCS Table will be set
 
@@ -260,7 +278,17 @@ class NrFhControl : public Object
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
     std::unordered_map<uint16_t, uint16_t> m_activeUes; //!< Map active bwpIds and active Ues
-    std::unordered_map<uint8_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
+    std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
+    uint64_t m_allocFhThroughput{0};     //!< the allocated fronthaul throughput after scheduling (in DL)
+    std::unordered_map<uint16_t, uint64_t> m_allocCellThrPerBwp;  //!< Map for FH allocated throughput of a specific bwpId (in DL)
+    uint64_t m_reqFhDlThrTracedValue{0}; //!< the required fronthaul throughput (in DL)
+    std::unordered_map<uint16_t, uint32_t>
+        m_rbsAirTracedValue; //!< Map for the used RBs of the air of a specific bwpId
+    std::unordered_map<uint16_t, SfnSf> m_waitingSlotPerBwp;
+
+    TracedCallback<const SfnSf &, uint64_t> m_reqFhDlThrTrace; //!< Report the required FH throughput (in DL)
+    TracedCallback<const SfnSf &, uint32_t> m_rbsAirTrace;     //!< Report the RBs used of the AI (in DL)
+
 };
 
 } // end namespace ns3

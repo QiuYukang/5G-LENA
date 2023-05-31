@@ -1,5 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -27,7 +25,7 @@ class NrFhSchedSapProvider
   public:
     virtual ~NrFhSchedSapProvider();
 
-    virtual void DoesAllocationFit() = 0;
+    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) = 0;
     virtual uint8_t GetFhControlMethod() = 0;
     virtual uint16_t GetNrFhPhysicalCellId() = 0;
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) = 0;
@@ -69,7 +67,7 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
      */
     MemberNrFhSchedSapProvider(C* owner);
 
-    virtual void DoesAllocationFit();
+    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
     virtual uint8_t GetFhControlMethod();
     virtual uint16_t GetNrFhPhysicalCellId();
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
@@ -90,10 +88,10 @@ MemberNrFhSchedSapProvider<C>::MemberNrFhSchedSapProvider(C* owner)
 }
 
 template <class C>
-void
-MemberNrFhSchedSapProvider<C>::DoesAllocationFit()
+bool
+MemberNrFhSchedSapProvider<C>::DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
 {
-    return m_owner->DoGetDoesAllocationFit();
+    return m_owner->DoGetDoesAllocationFit(bwpId, mcs, nRegs);
 }
 
 template <class C>

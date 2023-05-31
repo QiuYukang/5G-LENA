@@ -570,12 +570,12 @@ NrGnbPhy::SetN2Delay(uint32_t delay)
     SetTddPattern(m_tddPattern); // Update the generate/send structures
 }
 
-void
-NrGnbPhy::DoesFhAllocationFit() const
+bool
+NrGnbPhy::DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_nrFhPhySapProvider);
-    m_nrFhPhySapProvider->DoesAllocationFit();
+    return m_nrFhPhySapProvider->DoesAllocationFit(bwpId, mcs, nRegs);
 }
 
 BeamId
@@ -1529,6 +1529,13 @@ NrGnbPhy::EndSlot()
     }
 
     NS_LOG_DEBUG("Slot started at " << m_lastSlotStart << " ended");
+
+    if (m_nrFhPhySapProvider)
+    {
+        NS_LOG_DEBUG ("End slot notified from PHY"); // TODO: Add active UEs nad BWPs?
+        m_nrFhPhySapProvider->NotifyEndSlot(GetBwpId(), m_currentSlot);
+    }
+
     m_currentSlot.Add(1);
     Simulator::Schedule(slotStart, &NrGnbPhy::StartSlot, this, m_currentSlot);
 }
@@ -1593,18 +1600,54 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
         fullBwRb[i] = static_cast<int>(i);
     }
 
-    if (m_nrFhPhySapProvider)
-    {
-        DoesFhAllocationFit();
-    }
-
     // Transmit power for the current signal is distributed over the full bandwidth. This is the
     // only signal, so the bandwidth occupied by all concurrent transmissions is also the full
     // bandwidth.
     SetSubChannels(fullBwRb, fullBwRb.size());
 
-    m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
-    m_ctrlMsgs.clear();
+    if (m_nrFhPhySapProvider &&
+        m_nrFhPhySapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Dropping)
+    {
+        for (auto ctrlIt = m_ctrlMsgs.begin(); ctrlIt != m_ctrlMsgs.end(); /* no incr */)
+        {
+            Ptr<NrControlMessage> msg = (*ctrlIt);
+            if (msg->GetMessageType() == NrControlMessage::DL_DCI)
+            {
+                auto dciMsg = DynamicCast<NrDlDciMessage>(msg);
+                auto dciInfoElem = dciMsg->GetDciInfoElement();
+                long rbgAssigned = std::count(dciInfoElem->m_rbgBitmask.begin(),
+                                              dciInfoElem->m_rbgBitmask.end(),
+                                              1);
+                if (DoesFhAllocationFit(GetBwpId(), dciInfoElem->m_mcs, rbgAssigned * dciInfoElem->m_numSym) == 0)
+                {
+                    // drop DL DCI because data does not fit in available FH BW
+                    ctrlIt = m_ctrlMsgs.erase(ctrlIt);
+                }
+                else
+                {
+                    ++ctrlIt;
+                    m_nrFhPhySapProvider->UpdateTracesBasedOnDroppedData(GetBwpId(),
+                                                                         dciInfoElem->m_mcs,
+                                                                         rbgAssigned,
+                                                                         dciInfoElem->m_numSym);
+                }
+            }
+            else
+            {
+                ++ctrlIt;
+            }
+        }
+        if (m_ctrlMsgs.size() > 0)
+        {
+            m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
+        }
+        m_ctrlMsgs.clear();
+    }
+    else
+    {
+        m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
+        m_ctrlMsgs.clear();
+    }
 }
 
 bool

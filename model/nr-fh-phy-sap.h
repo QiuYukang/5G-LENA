@@ -25,7 +25,10 @@ class NrFhPhySapProvider
   public:
     virtual ~NrFhPhySapProvider();
 
-    virtual void DoesAllocationFit() = 0;
+    virtual uint8_t GetFhControlMethod() = 0;
+    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) = 0;
+    virtual void UpdateTracesBasedOnDroppedData (uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb) = 0;
+    virtual void NotifyEndSlot (uint16_t bwpId, SfnSf currentSlot) = 0;
 };
 
 /**
@@ -61,7 +64,13 @@ class MemberNrFhPhySapProvider : public NrFhPhySapProvider
      */
     MemberNrFhPhySapProvider(C* owner);
 
-    virtual void DoesAllocationFit();
+    virtual uint8_t GetFhControlMethod();
+    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
+    virtual void UpdateTracesBasedOnDroppedData(uint16_t bwpId,
+                                                uint32_t mcs,
+                                                uint32_t nRbgs,
+                                                uint32_t nSymb);
+    virtual void NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot);
 
   private:
     MemberNrFhPhySapProvider();
@@ -76,11 +85,33 @@ MemberNrFhPhySapProvider<C>::MemberNrFhPhySapProvider(C* owner)
 }
 
 template <class C>
-void
-MemberNrFhPhySapProvider<C>::DoesAllocationFit()
+uint8_t
+MemberNrFhPhySapProvider<C>::GetFhControlMethod()
 {
-    return m_owner->DoGetDoesAllocationFit();
+    return m_owner->DoGetFhControlMethod();
 }
+
+template <class C>
+bool
+MemberNrFhPhySapProvider<C>::DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
+{
+    return m_owner->DoGetDoesAllocationFit(bwpId, mcs, nRegs);
+}
+
+template <class C>
+void
+MemberNrFhPhySapProvider<C>::UpdateTracesBasedOnDroppedData(uint16_t bwpId, uint32_t mcs, uint32_t nRbgs, uint32_t nSymb)
+{
+    return m_owner->DoUpdateTracesBasedOnDroppedData(bwpId, mcs, nRbgs, nSymb);
+}
+
+template <class C>
+void
+MemberNrFhPhySapProvider<C>::NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
+{
+    return m_owner->DoNotifyEndSlot(bwpId, currentSlot);
+}
+
 
 /**
  * \brief Template for the implementation of the NrFhPhySapUser as a member of an

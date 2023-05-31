@@ -873,7 +873,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     uint16_t GetBandwidthInRbg() const;
 
-    void DoesFhAllocationFit() const;
+    bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const;
 
     // FFR SAPs
     NrFhSchedSapUser* m_nrFhSchedSapUser{nullptr};         //!< FH Control SAP user

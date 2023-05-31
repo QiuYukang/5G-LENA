@@ -2248,12 +2248,12 @@ NrMacSchedulerNs3::GetBandwidthInRbg() const
     return m_bandwidth;
 }
 
-void
-NrMacSchedulerNs3::DoesFhAllocationFit() const
+bool
+NrMacSchedulerNs3::DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_nrFhSchedSapProvider);
-    m_nrFhSchedSapProvider->DoesAllocationFit();
+    return m_nrFhSchedSapProvider->DoesAllocationFit(bwpId, mcs, nRegs);
 }
 
 /**
