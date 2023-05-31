@@ -911,8 +911,6 @@ class NrHelper : public Object
         uint8_t numberOfPanels);
     void AttachToClosestEnb(Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
 
-    std::map<uint8_t, ComponentCarrier> GetBandwidthPartMap();
-
     ObjectFactory m_gnbNetDeviceFactory;            //!< NetDevice factory for gnb
     ObjectFactory m_ueNetDeviceFactory;             //!< NetDevice factory for ue
     ObjectFactory m_channelFactory;                 //!< Channel factory
