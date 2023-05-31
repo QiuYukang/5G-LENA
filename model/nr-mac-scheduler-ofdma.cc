@@ -297,6 +297,28 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                     schedInfoIt++;
                 }
             }
+            if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing ||
+                m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs ||
+                m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
+            {
+                GetFirst GetUe;
+                auto schedInfoIt = GetUeVector(el).begin();
+                while (schedInfoIt != GetUeVector(el).end()) // over all UEs with data
+                {
+                    if (GetUe(*schedInfoIt)->m_dlRBG > 0) // UEs with an actual allocation
+                    {
+                        if (DoesFhAllocationFit(GetBwpId(),
+                                                GetUe(*schedInfoIt)->m_dlMcs,
+                                                GetUe(*schedInfoIt)->m_dlRBG) == 0)
+                        {
+                            GetUe(*schedInfoIt)->m_dlRBG =
+                                0; // remove allocation if the UE does not fit in the available FH
+                                   // capacity
+                        }
+                    }
+                    schedInfoIt++;
+                }
+            }
         }
     }
 
