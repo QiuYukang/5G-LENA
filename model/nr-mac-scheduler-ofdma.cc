@@ -206,8 +206,6 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
             {
                 if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
                 {
-                    uint32_t quantizationStep = rbgAssignable;
-
                     while (schedInfoIt != ueVector.end())
                     {
                         uint32_t maxAssignable = m_nrFhSchedSapProvider->GetMaxRegAssignable(
@@ -219,7 +217,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
 
                         // the minimum allocation is one resource in freq, containing rbgAssignable
                         // in time (REGs)
-                        if (GetUe(*schedInfoIt)->m_dlRBG + quantizationStep > maxAssignable)
+                        if (GetUe(*schedInfoIt)->m_dlRBG > maxAssignable)
                         {
                             schedInfoIt++;
                         }
