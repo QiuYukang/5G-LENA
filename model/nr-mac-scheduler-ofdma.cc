@@ -297,9 +297,9 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                     schedInfoIt++;
                 }
             }
-            if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing ||
-                m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs ||
-                m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
+            if (GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing ||
+                GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs ||
+                GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
             {
                 GetFirst GetUe;
                 auto schedInfoIt = GetUeVector(el).begin();

@@ -873,6 +873,16 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     uint16_t GetBandwidthInRbg() const;
 
+    /**
+     * \brief Get the FH Control Method.
+     * \return the FH Control Method (uint8_t)
+     */
+    uint8_t GetFhControlMethod() const;
+
+    /**
+     * \brief Returns a boolean indicating whether the current allocation can
+     *        fit in the available FH bandwidth (when FH Control is enabled).
+     */
     bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const;
 
     // FFR SAPs

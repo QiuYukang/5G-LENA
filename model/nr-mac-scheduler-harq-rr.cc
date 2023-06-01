@@ -8,6 +8,7 @@
         std::clog << " [ CellId " << GetCellId() << ", bwpId " << GetBwpId() << "] ";              \
     } while (false);
 #include "nr-mac-scheduler-harq-rr.h"
+#include "nr-fh-control.h"
 
 #include <ns3/log.h>
 
@@ -38,6 +39,19 @@ void
 NrMacSchedulerHarqRr::InstallGetBwInRBG(const std::function<uint16_t()>& fn)
 {
     m_getBwInRbg = fn;
+}
+
+void
+NrMacSchedulerHarqRr::InstallGetFhControlMethodFn(const std::function<uint8_t()>& fn)
+{
+    m_getFhControlMethod = fn;
+}
+
+void
+NrMacSchedulerHarqRr::InstallDoesFhAllocationFitFn(
+    const std::function<bool(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)>& fn)
+{
+    m_getDoesAllocationFit = fn;
 }
 
 /**
@@ -125,6 +139,20 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                                    dciInfoReTx->m_rnti,
                                    dciInfoReTx->m_harqProcess);
                 continue;
+            }
+            if (GetFromSchedFhControlMethod() == NrFhControl::FhControlMethod::Postponing ||
+                GetFromSchedFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs ||
+                GetFromSchedFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
+            {
+                if (GetDoesFhAllocationFit(GetBwpId(), dciInfoReTx->m_mcs, rbgAssigned) == 0)
+                {
+                    NS_LOG_INFO("No FH resources for this retx, we have to buffer it");
+                    BufferHARQFeedback(dlHarqFeedback,
+                                       dlHarqToRetransmit,
+                                       dciInfoReTx->m_rnti,
+                                       dciInfoReTx->m_harqProcess);
+                    continue;
+                }
             }
 
             allocatedUe.push_back(dciInfoReTx->m_rnti);
@@ -400,6 +428,18 @@ uint16_t
 NrMacSchedulerHarqRr::GetBandwidthInRbg() const
 {
     return m_getBwInRbg();
+}
+
+uint8_t
+NrMacSchedulerHarqRr::GetFromSchedFhControlMethod() const
+{
+    return m_getFhControlMethod();
+}
+
+bool
+NrMacSchedulerHarqRr::GetDoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
+{
+    return m_getDoesAllocationFit(bwpId, mcs, nRegs);
 }
 
 } // namespace ns3

@@ -42,6 +42,12 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
     m_schedHarq->InstallGetBwInRBG(std::bind(&NrMacSchedulerNs3::GetBandwidthInRbg, this));
     m_schedHarq->InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_schedHarq->InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
+    m_schedHarq->InstallGetFhControlMethodFn(std::bind(&NrMacSchedulerNs3::GetFhControlMethod, this));
+    m_schedHarq->InstallDoesFhAllocationFitFn(std::bind(&NrMacSchedulerNs3::DoesFhAllocationFit,
+                                                        this,
+                                                        std::placeholders::_1,
+                                                        std::placeholders::_2,
+                                                        std::placeholders::_3));
 
     m_cqiManagement.InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_cqiManagement.InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
@@ -2246,6 +2252,20 @@ uint16_t
 NrMacSchedulerNs3::GetBandwidthInRbg() const
 {
     return m_bandwidth;
+}
+
+uint8_t
+NrMacSchedulerNs3::GetFhControlMethod() const
+{
+    NS_LOG_FUNCTION(this);
+    if (m_nrFhSchedSapProvider)
+    {
+        return m_nrFhSchedSapProvider->GetFhControlMethod();
+    }
+    else
+    {
+        return UINT8_MAX;
+    }
 }
 
 bool
