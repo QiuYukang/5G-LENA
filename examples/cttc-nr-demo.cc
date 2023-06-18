@@ -149,8 +149,8 @@ main(int argc, char* argv[])
      * Check if the frequency is in the allowed range.
      * If you need to add other checks, here is the best position to put them.
      */
-    NS_ABORT_IF(centralFrequencyBand1 > 100e9);
-    NS_ABORT_IF(centralFrequencyBand2 > 100e9);
+    NS_ABORT_IF(centralFrequencyBand1 < 0.5e9 && centralFrequencyBand1 > 100e9);
+    NS_ABORT_IF(centralFrequencyBand2 < 0.5e9 && centralFrequencyBand2 > 100e9);
 
     /*
      * If the logging variable is set to true, enable the log of some components
