@@ -82,19 +82,28 @@ gcc-10-optimized:
 # GCC 11
 gcc-11-debug:
   extends: .build-gcc
-  image: gcc:11
+  only:
+    variables:
+      - $RELEASE == "weekly"
+  image: gcc:11-bullseye
   variables:
     MODE: debug
 
 gcc-11-release:
   extends: .build-gcc
-  image: gcc:11
+  only:
+    variables:
+      - $RELEASE == "weekly"
+  image: gcc:11-bullseye
   variables:
     MODE: release
 
 gcc-11-optimized:
   extends: .build-gcc
-  image: gcc:11
+  only:
+    variables:
+      - $RELEASE == "weekly"
+  image: gcc:11-bullseye
   variables:
     MODE: optimized
 
