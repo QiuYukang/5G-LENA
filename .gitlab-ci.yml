@@ -30,8 +30,8 @@ stages:
     - ccache -z
     - ./ns3 build
     - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
-        ./test.py --no-build --constrain example
-        ./test.py --no-build --suite 'nr*'
+        ./test.py --no-build --constrain example;
+        ./test.py --no-build --suite 'nr*';
       fi
     - ccache -s
     - ./ns3 clean
