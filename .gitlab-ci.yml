@@ -3,10 +3,11 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
 stages:
+  - build
   - code-linting
   - reuse
-  - build
   - documentation
+
 ###################### BUILD STAGE #############################################
 
 # Defines the steps to run the tests
@@ -16,23 +17,25 @@ stages:
 .base-build:
   stage: build
   script:
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone --branch=ns-$NS3_RELEASE_VERSION --depth=1 https://gitlab.com/nsnam/ns-3-dev.git
     - mkdir -p $CCACHE_BASEDIR_VALUE
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
-    - mkdir -p ns-3-dev/contrib/nr
-    - cp -r doc examples helper model test utils ns-3-dev/contrib/nr/
-    - cp -r CMakeLists.txt ns-3-dev/contrib/nr/
-    - cd ns-3-dev
-    - git checkout ns-3.38
+    - ln -s ${PWD} ns-3-dev/contrib/nr
+    - pushd ns-3-dev
     - git log -1
     - export MPI_CI=1
-    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
+    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts $ENABLE_MPI
     - cmake --version
+    - ccache -z
     - ./ns3 build
-    - ./test.py -c example
-    - ./test.py -s "nr*"
-    - cd ../
+    - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
+        ./test.py --no-build --constrain example
+        ./test.py --no-build --suite 'nr*'
+      fi
+    - ccache -s
+    - ./ns3 clean
+    - popd
     - rm -rf ns-3-dev
   cache:
     # Use separate key for each (debug/optimized/release) jobs because
@@ -49,49 +52,50 @@ stages:
   timeout: 9h
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
+    NS3_RELEASE_VERSION: 3.38
 
 # Defines the per-commit jobs. They are executed for any branch
-gcc-debug:
+.base-per-commit-compile:
   extends: .base-build
-  only:
+  except:
     variables:
       - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
+      - $RELEASE == "daily"
   image: archlinux
+  before_script:
+    - pacman-key --init
+    - pacman -Syu --noconfirm
+      base-devel gcc clang cmake ninja ccache
+      git
+      python
+      boost gsl gtk3 openmpi
+      openssh
   variables:
-    COMPILER: g++
+    ENABLE_MPI: --enable-mpi
+
+per-commit-clang-debug:
+  extends: .base-per-commit-compile
+  variables:
     MODE: debug
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+    COMPILER: clang++
 
-gcc-release:
-  extends: .base-build
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
-  image: archlinux
+per-commit-gcc-debug:
+  extends: .base-per-commit-compile
   variables:
+    MODE: debug
     COMPILER: g++
-    MODE: release
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
 
-gcc-optimized:
-  extends: .base-build
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
-  image: archlinux
+per-commit-gcc-default:
+  extends: .base-per-commit-compile
   variables:
+    MODE: default
     COMPILER: g++
+
+per-commit-gcc-optimized:
+  extends: .base-per-commit-compile
+  variables:
     MODE: optimized
-  before_script:
-    - pacman -Syu --noconfirm
-    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+    COMPILER: g++
 
 reuse:
   stage: reuse
@@ -122,40 +126,6 @@ pages:
   artifacts:
     paths:
       - public
-
-#whitespaces:
-  #stage: build
-  #before_script:
-  #  - apt-get update
-  #  - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-  #  - apt-get install -y git python3
-  #image: ubuntu
-  #script:
-  #  - mkdir -p nr/
-  #  - mv doc/m.css doc/.m.css
-  #  - cp -r CMakeLists.txt  doc  examples  helper  model  README.md  RELEASE_NOTES.md  test  utils nr/
-  #  - git clone https://gitlab.com/nsnam/ns-3-dev.git
-  #  - python3 ns-3-dev/utils/trim-trailing-whitespace.py --check nr/
-
-#doxygen-linux:
-#  stage: build
-#  image: archlinux
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel ninja cmake python ccache gsl gtk3 boost --noconfirm
-#    - pacman -Sy git doxygen graphviz imagemagick dia texlive-core texlive-bin texlive-latexextra python-sphinx --noconfirm
-#    - mv /etc/ImageMagick-7/policy.xml /etc/ImageMagick-7/policy.xml.bak
-#  script:
-#    - mkdir -p public/
-#    - git submodule sync --recursive
-#    - git submodule update --init --recursive
-#    - doxygen --version
-#    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
-#    - mv doc/doc/html/ public/
-#  artifacts:
-#    paths:
-#      - public
-
 
 include:
   - '.gitlab-ci-clang.yml'

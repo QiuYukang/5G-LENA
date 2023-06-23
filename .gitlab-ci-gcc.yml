@@ -1,127 +1,135 @@
-# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-#
-# SPDX-License-Identifier: GPL-2.0-only
-
 # NS3 CI script for GCC
 
 # Any scheduled pipeline for GCC should define a variable, named
 # "RELEASE", that has a value "weekly". Also, a variable "GCC" should be set
 # to True.
 
-# We support GCC 9-12. Check if everything builds fine
-# under debug, release, and optimized, on Linux.
+# We support from 9 to the latest version. Check if everything builds fine
+# under debug, default, and optimized, on Linux.
 
-.build-gcc:
+.weekly-build-gcc-base:
   extends: .base-build
+  only:
+    variables:
+      - $RELEASE == "weekly"
+      - $UBUNTU == "True"
   before_script:
-    - apt-get --quiet update --yes
-    - update-alternatives --install /usr/bin/gfortran gfortran /usr/local/bin/gfortran 999
-    - apt-get --quiet install git gcc g++ cmake ninja-build python3 python3-dev openmpi-bin openmpi-common openmpi-doc libopenmpi-dev ccache flex bison libfl-dev sqlite3 libsqlite3-dev libxml2 libxml2-dev libgtk-3-dev libboost-all-dev gsl-bin libgsl0-dev ssh --yes
+    - apt update
+    - apt upgrade --yes
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends --yes
+      $COMPILER cmake ninja-build ccache
+      python3 python3-dev
+      git
+      gsl-bin libgsl-dev $LIBGSL
+      libboost-all-dev
+      libc6-dev
+      libgtk-3-dev
+      libfl-dev
+      libxml2 libxml2-dev
+      libopenmpi-dev openmpi-bin openmpi-common openmpi-doc
+      libsqlite3-dev sqlite3
+      libeigen3-dev
+      qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+      ssh
   variables:
-    COMPILER: g++
+    ENABLE_MPI: --enable-mpi
 
 # GCC 9
-gcc-9-debug:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
-  image: gcc:9
+weekly-build-gcc-9-debug:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:20.04
   variables:
     MODE: debug
+    COMPILER: g++-9
+    LIBGSL: libgsl23
 
-gcc-9-release:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
-  image: gcc:9
+weekly-build-gcc-9-default:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:20.04
   variables:
-    MODE: release
+    MODE: default
+    COMPILER: g++-9
+    LIBGSL: libgsl23
 
-gcc-9-optimized:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $GCC_BUILD_ENABLE == "True"
-  image: gcc:9
+weekly-build-gcc-9-optimized:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:20.04
   variables:
     MODE: optimized
+    COMPILER: g++-9
+    LIBGSL: libgsl23
 
 # GCC 10
-gcc-10-debug:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-  image: gcc:10
+weekly-build-gcc-10-debug:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:20.04
   variables:
     MODE: debug
+    COMPILER: g++-10
+    LIBGSL: libgsl23
 
-gcc-10-release:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-  image: gcc:10
+weekly-build-gcc-10-default:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:20.04
   variables:
-    MODE: release
+    MODE: default
+    COMPILER: g++-10
+    LIBGSL: libgsl23
 
-gcc-10-optimized:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-  image: gcc:10
+weekly-build-gcc-10-optimized:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:20.04
   variables:
     MODE: optimized
+    COMPILER: g++-10
+    LIBGSL: libgsl23
 
 # GCC 11
-gcc-11-debug:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-  image: gcc:11-bullseye
+weekly-build-gcc-11-debug:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:22.04
   variables:
     MODE: debug
+    COMPILER: g++-11
+    LIBGSL: libgsl27
 
-gcc-11-release:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-  image: gcc:11-bullseye
+weekly-build-gcc-11-default:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:22.04
   variables:
-    MODE: release
+    MODE: default
+    COMPILER: g++-11
+    LIBGSL: libgsl27
 
-gcc-11-optimized:
-  extends: .build-gcc
-  only:
-    variables:
-      - $RELEASE == "weekly"
-  image: gcc:11-bullseye
+weekly-build-gcc-11-optimized:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:22.04
   variables:
     MODE: optimized
+    COMPILER: g++-11
+    LIBGSL: libgsl27
 
 # GCC 12
-gcc-12-debug:
-  extends: .build-gcc
-  image: gcc:12
+weekly-build-gcc-12-debug:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:22.04
   variables:
     MODE: debug
+    COMPILER: g++-12
+    LIBGSL: libgsl27
 
-gcc-12-release:
-  extends: .build-gcc
-  image: gcc:12
+weekly-build-gcc-12-default:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:22.04
   variables:
-    MODE: release
+    MODE: default
+    COMPILER: g++-12
+    LIBGSL: libgsl27
 
-gcc-12-optimized:
-  extends: .build-gcc
-  image: gcc:12
+weekly-build-gcc-12-optimized:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:22.04
   variables:
     MODE: optimized
+    COMPILER: g++-12
+    LIBGSL: libgsl27
