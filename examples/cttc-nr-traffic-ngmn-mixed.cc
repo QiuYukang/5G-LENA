@@ -436,7 +436,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
 
     // Sectors (cells) of a site are pointing at different directions
     double orientationRads = gridScenario.GetAntennaOrientationRadians(0);
-    uint32_t globalCellId = 0;
     for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN(); ++numCell)
     {
         Ptr<NetDevice> gnb = gnbSector1NetDev.Get(numCell);
@@ -480,7 +479,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         {
             NS_ABORT_MSG("Incorrect number of BWPs per CC");
         }
-        globalCellId++;
     }
 
     orientationRads = gridScenario.GetAntennaOrientationRadians(1);
@@ -526,7 +524,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         {
             NS_ABORT_MSG("Incorrect number of BWPs per CC");
         }
-        globalCellId++;
     }
 
     orientationRads = gridScenario.GetAntennaOrientationRadians(2);
@@ -572,7 +569,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         {
             NS_ABORT_MSG("Incorrect number of BWPs per CC");
         }
-        globalCellId++;
     }
 
     // Set the UE routing:

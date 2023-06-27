@@ -913,7 +913,6 @@ void
 NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
 {
     NS_LOG_FUNCTION(this);
-    uint16_t calcRxPsdCounter = 0;
 
     uint32_t remSizeNextReport = m_rem.size() / 100;
     uint32_t remPointCounter = 0;
@@ -941,8 +940,6 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
             for (std::list<RemDevice>::iterator itRtd = m_remDev.begin(); itRtd != m_remDev.end();
                  ++itRtd)
             {
-                calcRxPsdCounter++;
-
                 // calculate received power from the current RTD device
                 receivedPowerList.push_back(CalcRxPsdValue(*itRtd, m_rrd));
             } // end for std::list<RemDev>::iterator  (RTDs)
