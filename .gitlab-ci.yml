@@ -24,8 +24,7 @@ stages:
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - git log -1
-    - export MPI_CI=1
-    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts $ENABLE_MPI
+    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
     - cmake --version
     - ccache -z
     - ./ns3 build
@@ -68,10 +67,8 @@ stages:
       base-devel gcc clang cmake ninja ccache
       git
       python
-      boost gsl gtk3 openmpi
+      boost gsl gtk3
       openssh
-  variables:
-    ENABLE_MPI: --enable-mpi
 
 per-commit-clang-debug:
   extends: .base-per-commit-compile
