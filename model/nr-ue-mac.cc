@@ -22,6 +22,7 @@
 #include <ns3/log.h>
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/random-variable-stream.h>
+#include <ns3/uinteger.h>
 
 namespace ns3
 {

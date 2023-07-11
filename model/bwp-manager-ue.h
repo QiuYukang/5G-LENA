@@ -7,6 +7,7 @@
 #ifndef BWPMANAGERUE_H
 #define BWPMANAGERUE_H
 
+#include <ns3/eps-bearer.h>
 #include <ns3/nr-phy-mac-common.h>
 #include <ns3/simple-ue-component-carrier-manager.h>
 

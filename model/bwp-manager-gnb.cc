@@ -11,6 +11,7 @@
 
 #include <ns3/log.h>
 #include <ns3/object-map.h>
+#include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 
 namespace ns3

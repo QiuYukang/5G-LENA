@@ -28,6 +28,7 @@
 #include <ns3/node.h>
 #include <ns3/object-vector.h>
 #include <ns3/pointer.h>
+#include <ns3/uinteger.h>
 
 #include <algorithm>
 #include <functional>
