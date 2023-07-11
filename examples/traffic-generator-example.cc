@@ -129,7 +129,7 @@ main(int argc, char* argv[])
     uint32_t appStartMs = 500;
     uint32_t appDurationMs = 100;
 
-    CommandLine cmd;
+    CommandLine cmd(__FILE__);
     cmd.AddValue("trafficType",
                  "The traffic type to be configured. Currently the following options are "
                  "available: 0 (ftp), 1 (video), 2 (gaming) and 3 (voip).",

@@ -150,7 +150,7 @@ main(int argc, char* argv[])
     double distance = 450;
     uint32_t rngRun = 1;
 
-    CommandLine cmd;
+    CommandLine cmd(__FILE__);
     cmd.AddValue("arUeNum", "The number of AR UEs", arUeNum);
     cmd.AddValue("vrUeNum", "The number of VR UEs", vrUeNum);
     cmd.AddValue("cgUeNum", "The number of CG UEs", cgUeNum);
