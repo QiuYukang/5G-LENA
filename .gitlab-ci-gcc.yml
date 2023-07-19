@@ -21,6 +21,7 @@
     - apt update
     - apt upgrade --yes
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends --yes
+      ca-certificates
       $COMPILER cmake ninja-build ccache
       python3 python3-dev
       git

@@ -23,6 +23,7 @@
     - apt-get --quiet update
     - apt-get --quiet upgrade --yes
     - apt-get --quiet install --yes --no-install-recommends
+      ca-certificates
       clang-$CLANG cmake ninja-build ccache build-essential
       git
       libboost-all-dev
@@ -48,6 +49,7 @@
     - apt --quiet update
     - apt --quiet upgrade --yes
     - apt --quiet install --yes --no-install-recommends
+      ca-certificates
       clang-$CLANG cmake ninja-build ccache build-essential
       git
       libboost-all-dev
