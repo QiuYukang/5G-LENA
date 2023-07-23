@@ -5,3 +5,4 @@
 sim-campaigns
 *.orig
 doc/build
+tutorial/build
