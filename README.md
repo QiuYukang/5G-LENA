@@ -108,6 +108,7 @@ To compile the ns-3 with NR you can run the following command:
 If the NR module is recognized correctly, you should see "nr" in the list of
 built modules. If that is the case, _Welcome to the NR world !_
 
+Further instructions on how to run the examples are given in the [Getting Started instructions](https://cttc-lena.gitlab.io/nr/html/getting-started.html).
 
 ## Upgrading 5G-LENA
 
