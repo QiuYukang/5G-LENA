@@ -1311,6 +1311,91 @@ In an NR system, the UL decisions for a slot are taken in a different moment tha
 At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
 
 
+.. _QosSchedulers:
+
+QoS Schedulers
+==============
+The 'NR' module includes QoS MAC schedulers that perform the allocation of the available
+resources (i.e., symbols and Physical Resource Blocks (PRBs)) based on the different
+traffic requirements of the active users (users with data in their buffers). For this,
+it considers the QoS profile characteristics of each QoS flow and in particular the
+5QI information, such as the resource type, the priority level and the Packet Delay
+Budget (PDB), along with real-time measurements as provided at the MAC layer, i.e.,
+the head-of-line delay (HOL) and the PF metric.
+The user classification is based on the selection of weights that reflect the users
+(or the traffic flow) to be prioritized. The calculation of the scheduling weight for
+a single flow is:
+
+.. math::
+   :nowrap:
+
+   \[
+   w =
+   \left\{
+   \begin{array}{
+     @{}% no padding
+     l@{\quad}% some padding
+     r@{}% no padding
+     >{{}}r@{}% no padding
+     >{{}}l@{}% no padding
+   }
+     (100 - P) \frac{r^{\gamma}}{R(\tau)},&       &     \text{for non-GBR and GBR} \\
+     (100 - P) \frac{r^{\gamma}}{R(\tau)},&       &     \text{for GBR} \\
+   \end{array}
+   \right.
+   \]
+
+where :math:`P` is the default Priority Level of the QoS flow mapped to
+the DRB (lower :math:`P` indicates higher priority for scheduling),
+:math:`r` is the instantaneous achievable data rate calculated by
+the spectrum efficiency and the channel bandwidth, :math:`R(\tau)` is the
+past average data rate updated within the updated window size :math:`\tau`,
+:math:`F = 100` when the DRB has retransmission data and :math:`F = 10`
+otherwise, and :math:`\gamma` is a configurable parameter. Moreover, we include
+the newly introduced delay budget factor :math:`D`, that is the delay-aware
+weight related to the HOL packet delay and the PDB, and is calculated as:
+
+:math:`D = \frac{\text{PDB}}{\text{PDB}-\text{HOL}}`
+
+Notice that when :math:`\gamma=1`, and assuming the same priority for all users and
+ignoring :math:`D`, the scheduler corresponds to a typical PF scheduler.
+The past average data rate is calculated as:
+
+:math:`R(\tau) = (1-\alpha) R(\tau-1) + \alpha A(\tau)`
+
+In this equation, :math:`A(\tau)` is the current data rate over the updated window size
+:math:`\tau` computed as the ratio of all successfully delivered bits (including those
+bits still in retransmission) in the past updated window size, and :math:`\alpha` balances
+between the current data rate (:math:`A(\tau)`) and the past average data rate in the
+previous window (:math:`R(\tau-1)`).
+
+The active users are then classified in descending order in each TTI based on the sum of
+the calculated scheduling weights for all their active flows:
+
+:math:`W = \sum_{n=1}^{N} w`
+
+where :math:`N` is the number of active logical channels for a given user.
+This classification results in scheduling first the users that have
+higher :math:`W`.
+
+.. _LcAssignment:
+
+QoS LC Assignment
+=================
+The default implementation of the NR module assigns bytes to the LCs of each user
+in a RR fashion. However, we also offer the option of assigning bytes to the LCs
+of a user considering the load of each LC and its QoS requirements.
+Notice that in the past, the implementation was located as a method in the
+``NrMacSchedulerNs3`` class, thus it was not permitting any additional designs to
+be considered. For this reason, the NR module in its current status includes the
+base class ``NrMacSchedulerLcAlgorithm`` and two child classes, the
+``NrMacSchedulerLcRR`` and the ``NrMacSchedulerLcQoS``. The former assigns bytes
+to the active LCs as in the initial implementation in RR fashion, while the latter
+performs the assignment by taking into account the resource type and the
+``e_rabGuaranteedBitRate`` of a flow. More details with respect to the algorithm
+considered for the QoS LC Assignment can found in [WNS3-QosSchedulers]_.
+
+
 Timing relations
 ================
 The 'NR' module supports flexible scheduling and DL HARQ Feedback timings in the
@@ -2178,7 +2263,33 @@ The program ``cttc-nr-traffic-generator-3gpp-xr`` included in the ``nr`` consist
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-nr-traffic-generator-3gpp-xr_8cc.html.
 
+cttc-nr-simple-qos-sched.cc
+===========================
+The program ``examples/cttc-nr-simple-qos-sched`` is a simple example for the
+QoS schedulers (see :ref:`QosSchedulers`) that is composed of 1 gNB and
+various UEs (even UEs get voice 5QI=1 and odd UEs get AR 5QI=80), to test and
+validate the correct functionality of the new QoS MAC schedulers. In this example,
+we can configure the load (full buffer or medium load) of the voice UEs, and see
+the proper behaviour of the scheduler. More precisely, when full buffer of voice
+UEs is configured, we can see that the resulting throughputs follow the proportion
+of scheduling priorities ratio.
 
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-simple-qos-sched_8cc.html.
+
+cttc-nr-multi-flow-qos-sched
+============================
+
+The program ``examples/cttc-nr-multi-flow-qos-sched`` is an example that allows
+testing the performance of the QoS schedulers (see :ref:`QosSchedulers`)
+in conjunction with the LC QoS Assignment (see :ref:`LcAssignment`) versus other
+schedulers, such as the RR and PF in conjunction with the LC RR scheduler.
+The example has been designed to test the E2E delay and throughput in a single-cell
+scenario with 2 UEs, where 1 UE has a NON-GBR flow and the other UE has 2 flows,
+the QCI of which can be set as desired.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-multi-flow-qos-sched_8cc.html.
 
 .. _Validation:
 
@@ -2272,6 +2383,22 @@ https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-rr_8cc.html
 The base class for all the scheduler tests is
 https://cttc-lena.gitlab.io/nr/html/system-scheduler-test_8h.html
 
+Test for NR QoS Schedulers
+==========================
+To test the correct functionality of the QoS MAC schedulers presented in :ref:`QosSchedulers`
+we have implemented a system test, known as ``system-scheduler-test-qos``. The
+test in its current form verifies the implemented QoS MAC schedulers by checking
+that the obtained throughput is as expected for the QoS scheduling logic. In
+particular, it considers a scenario with 2 users, each one generating one traffic
+flow with different priority, under good propagation conditions and without
+retransmissions. Based on this priority, it checks if the ratio of the throughput
+obtained is equal to the ratio of the priorities for the case that the generated
+load saturates the system, i.e.:
+
+:math:`\frac{100-P_1}{100-P_2} = \frac{Th_1}{Th_2}`
+
+Let us point out that the test for the case of DC-GBR flows is envisioned to be
+included in the short-term future.
 
 Test for NR error model
 =======================
@@ -2461,3 +2588,5 @@ Open issues and future work
 .. [TR38838] 3GPP TR 38.838, "Study on XR (Extended Reality) Evaluations for NR", V17.0.0, 2022.
 
 .. [WNS32022-ngmn] B. Bojovic, S. Lagen, Enabling NGMN mixed traffic models for ns-3, in Workshop on ns-3, June 2022.
+
+.. [WNS3-QosSchedulers] K. Koutlia, S. Lagen, and B. Bojovic. 2023. Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA. In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.
