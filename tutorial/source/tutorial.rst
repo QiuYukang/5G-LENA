@@ -1,5 +1,9 @@
-cttc-nr-demo tutorial
----------------------
+.. Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+..
+.. SPDX-License-Identifier: GPL-2.0-only
+
+Example Module Documentation
+----------------------------
 
 .. include:: replace.txt
 .. highlight:: cpp
