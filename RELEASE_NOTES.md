@@ -16,6 +16,67 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+Release NR-v2.5
+----------------
+
+Availability
+------------
+Available since July 26, 2023
+
+Cite this version
+-----------------
+DOI:
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-9 or later
+- clang-6 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-13.
+- Ubuntu 20.04 with g++-9 and 10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+
+Recommended ns-3 release: ns-3.39
+
+Important news
+--------------
+This release is compatible with ns-3.39.
+
+Remember to follow the instructions from the README.md file, i.e., to checkout
+the correct release branch of both, ns-3 and the NR module. The information
+about compatibility with the corresponding ns-3 release branch is stated in the
+`README.md` file.
+
+New user-visible features
+-------------------------
+- New QoS schedulers are included that perform scheduling by taking into account the
+QoS requirements of QoS flows. `NrMacSchedulerTdmaQos` and `NrMacSchedulerOfdmaQos`
+classes are responsible for setting the scheduler and access mode types when desired
+by the user and updating the DL and UL metrics of each UE. `NrMacSchedulerUeInfoQos`
+performs the sorting of the UEs (based on DL and UL metrics).
+
+- New design for LC bytes assignment that allows the implementation of various
+algorithms. A new base class is added, known as `NrMacSchedulerLcAlgorithm` that
+allows the implementation of various algorithms for the LC byte assignment. Two
+algorithms are implemented. `NrMacSchedulerLcRR` that includes the original
+implementation of assigning bytes to LCs in RR fashion and `NrMacSchedulerLcQos`
+that shares bytes among the active LCs by taking into account the resource type
+and the e_rabGuaranteedBitRate of a flow.
+
+Bugs fixed
+----------
+None.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
+
 
 Release NR-v2.4
 ----------------

@@ -50,6 +50,44 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v2.4 to v2.5
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.38 to ns-3.39.
+
+### New API:
+
+* New QoS MAC schedulers are implemented that perform scheduling by taking into
+account the QoS requirements of QoS flows. The implemented scheduler classes are
+the `NrMacSchedulerTdmaQos` and `NrMacSchedulerOfdmaQos`. These classes are
+responsible for setting the scheduler and access mode types when desired by the
+user and updating the DL and UL metrics of each UE. The sorting of the UEs
+(based on these metrics) is done by the newly implemented class `NrMacSchedulerUeInfoQos`.
+
+* New design for the LC bytes assignment. A new base class is added, known as
+`NrMacSchedulerLcAlgorithm` that allows the implementation of various algorithms
+for the LC bytes assignment. We implement two classes, the `NrMacSchedulerLcRR`
+and the `NrMacSchedulerLcQos`. The former is the original implementation of
+assigning bytes to LCs in RR fashion (see method AssignBytesToLC in previous releases).
+The latter includes a new algorithm that shares bytes among the active LCs by taking
+into account the resource type and the e_rabGuaranteedBitRate of a flow.
+
+### Changes to existing API:
+
+* Extend the `BwpManagerAlgorithm` to support Release 18 5QIs.
+
+* Code is updated based on the lte module extension for delay-critical GBR.
+
+* Method `AssignBytesToLC` of `NrMacSchedulerNs3` is moved to a class (`NrMacSchedulerLcRR`).
+
+* Deprecate use of `V4PingHelper` (now `PingHelper`) to be compatible with ns-3.
+
+* NrHelper undefined method `GetBandwidthPartMap` is dropped.
+
+### Changed behavior:
+
+---
+
 ## Changes from NR-v2.3 to v2.4
 
 This release contains the upgrade of the supported ns-3 release, i.e., upgrade
