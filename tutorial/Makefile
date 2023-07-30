@@ -15,6 +15,9 @@ FIGURES = $(SOURCE)/figures
 # specify dia figures from which .png and .pdf figures need to be built
 
 IMAGES_DIA = \
+	$(FIGURES)/sequence-diagram-control-plane.dia \
+	$(FIGURES)/sequence-diagram-data-plane.dia \
+	$(FIGURES)/sequence-diagram-E2E.dia
 
 
 # specify eps figures from which .png and .pdf figures need to be built
