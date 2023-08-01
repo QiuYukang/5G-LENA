@@ -2,8 +2,8 @@
 ..
 .. SPDX-License-Identifier: GPL-2.0-only
 
-Example Module Documentation
-----------------------------
+cttc-nr-demo Tutorial
+---------------------
 
 .. include:: replace.txt
 .. highlight:: cpp
@@ -113,3 +113,170 @@ References
 
 .. _cttc-nr-demo: https://gitlab.com/cttc-lena/nr/-/blob/master/examples/cttc-nr-demo.cc
 .. _Getting Started page: https://cttc-lena.gitlab.io/nr/html/getting-started.html
+
+End-to-end observations
+***********************
+
+We are mainly interested in observing the packet lifecycle as it moves through the radio access
+network (RAN) stack.  We can make a few initial observations about the packet flow.  The code
+is using ``UdpClient`` and ``UdpServer`` objects at the application layer.  One client sents
+a stream of 1252 byte packets to the server, and the other client sends a stream of 100 byte
+packets to the server.  This configuration can be seen in these lines of code:
+
+.. sourcecode:: cpp
+
+    UdpClientHelper dlClientLowLat;
+    ...
+    dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
+    ...
+    UdpClientHelper dlClientVoice;
+    ...
+    dlClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
+
+Using the following logging-enabled command, generate the log information from the UdpClient and
+UdpServer objects in the simulation, and redirect the output to two files, as follows:
+
+.. sourcecode:: bash
+
+    $ NS_LOG="UdpClient=info|prefix_time|prefix_node|prefix_func" ./ns3 run 'cttc-nr-demo' > log.client.out 2>&1
+    $ NS_LOG="UdpServer=info|prefix_time|prefix_node|prefix_func" ./ns3 run 'cttc-nr-demo' > log.server.out 2>&1
+
+Looking at the first couple of lines of the ``log.client.out`` file, one can see:
+
+.. sourcecode:: text
+
+    +0.400000000s 6 UdpClient:Send(): TraceDelay TX 100 bytes to 7.0.0.2 Uid: 8 Time: +0.4s
+    +0.400000000s 6 UdpClient:Send(): TraceDelay TX 1252 bytes to 7.0.0.3 Uid: 9 Time: +0.4s
+
+These first two packets were sent at the same time to two different UEs, from node 6.  Next, 
+observe the first packet arrivals on the UEs via the ``log.server.out`` file:
+
+.. sourcecode:: text
+
+    +0.400408031s 1 UdpServer:HandleRead(): TraceDelay: RX 100 bytes from 1.0.0.2 Sequence Number: 0 Uid: 8 TXtime: +4e+08ns RXtime: +4.00408e+08ns Delay: +408031ns
+    ...
+    +0.401832140s 2 UdpServer:HandleRead(): TraceDelay: RX 1252 bytes from 1.0.0.2 Sequence Number: 0 Uid: 9 TXtime: +4e+08ns RXtime: +4.01832e+08ns Delay: +1.83214e+06ns
+
+The reception times (and packet delays) are quite different.  One takes only 408 us to be delivered,
+the other takes 1832 us to be delivered.  In this tutorial, we will explain why this is so.
+
+This also illustrates that one does not have to let the simulation run for longer than 0.402 seconds
+if the focus is on these two packets.  One can use a command-line argument to shrink
+the total simulation time, such as:
+
+.. sourcecode:: bash
+
+    ./ns3 run 'cttc-nr-demo --simTime=0.402s'
+
+or one can edit the C++ program directly to change the default simTime value:
+
+.. sourcecode:: cpp
+
+    Time simTime = MilliSeconds(402);
+
+While working through this tutorial, we recommend the latter (temporarily editing the C++ program),
+to shorten the log files.  The below example statements omit the ``--simTime`` argument because
+it is changed in the C++ program.
+
+RAN lifecycle
+*************
+
+The figure XXX depicts the objects that each packet will traverse through the RAN.  This tutorial
+will walk through each step of the way, starting with the entry point for these packets-- the
+``NrGnbNetDevice``.
+
+EpcEnbApplicaiton
+-----------------
+The ``EpcEnbApplication`` is responsible for receiving packets tunneled through the EPC model
+and sending them into the ``NrGnbNetDevice``.  Conceptually, this is just an application-level
+relay function.  Using the following command:
+
+.. sourcecode:: bash
+
+  $ NS_LOG="EpcEnbApplication" ./ns3 run 'cttc-nr-demo' > log.out 2>&1
+
+one can observe this relay function on the first packet, as follows:
+
+.. sourcecode:: text
+
+  +0.400000282s 0 EpcEnbApplication:RecvFromS1uSocket(0x564d4016b3d0, 0x564d400fe520)
+  +0.400000282s 0 EpcEnbApplication:SendToLteSocket(0x564d4016b3d0, 0x564d403f7fb0, 2, 2, 128)
+
+The file ``src/lte/model/epc-enb-application.cc`` contains the source code.  In that code, one
+can observe the following in ``EpcEnbApplication::SendToLteSocket()``:
+
+.. sourcecode:: text
+
+    if (ipType == 0x04)
+    {
+        sentBytes = m_lteSocket->Send(packet);
+    }
+    else if (ipType == 0x06)
+    {
+        sentBytes = m_lteSocket6->Send(packet);
+    }
+
+The LTE sockets are actually created in the EPC helper; specifically, in the file
+``src/lte/helper/no-backhaul-epc-helper.cc``.  The socket is created and bound to a NetDevice; in
+this case, even though the variable name is ``lteEnbNetDevice``, it will be of type 
+``NrGnbNetDevice``:
+
+.. sourcecode:: cpp
+
+      // create LTE socket for the ENB
+    Ptr<Socket> enbLteSocket =
+        Socket::CreateSocket(enb, TypeId::LookupByName("ns3::PacketSocketFactory"));
+    PacketSocketAddress enbLteSocketBindAddress;
+    enbLteSocketBindAddress.SetSingleDevice(lteEnbNetDevice->GetIfIndex());
+    ...
+
+Packet latency
+##############
+Packets cannot incur latency in the ``EnbEpcApplication``.
+
+Packet drops
+############
+Packets cannot be dropped in the ``EnbEpcApplication``.
+
+NrGnbNetDevice
+--------------
+
+After the ``EpcEnbApplication`` sends a packet, it is immediately received on the 
+``NrGnbNetDevice::DoSend()`` method.  We can observe this in the logs:
+
+.. sourcecode:: bash
+
+  $ NS_LOG="NrGnbNetDevice" ./ns3 run 'cttc-nr-demo' > log.out 2>&1
+
+.. sourcecode:: text
+
+    +0.400000282s 0 NrGnbNetDevice:DoSend(0x5648f6414b40, 0x5648f6747a20, 02-06-ff:ff:ff:ff:ff:ff, 2048)
+    +0.400002262s 0 NrGnbNetDevice:DoSend(0x5648f6414b40, 0x5648f6747d40, 02-06-ff:ff:ff:ff:ff:ff, 2048)
+
+The source code for this method is in the file ``contrib/nr/model/nr-gnb-net-device.cc``.  As an
+aside, notice how we are bouncing back and forth between the source code directories
+``src/lte/`` and ``contrib/nr/``; this is true of the upper layers of the current ``nr`` module,
+that it reuses pieces originally implemented for LTE.
+
+The source code reveals that the packets are immediately sent down to the RRC, if some sanity
+checks are passed:
+
+.. sourcecode:: bash
+
+    NS_ABORT_MSG_IF(protocolNumber != Ipv4L3Protocol::PROT_NUMBER &&
+                        protocolNumber != Ipv6L3Protocol::PROT_NUMBER,
+                    "unsupported protocol " << protocolNumber
+                                            << ", only IPv4 and IPv6 are supported");
+    return m_rrc->SendData(packet);
+
+Packet latency
+##############
+Packets cannot incur latency in the ``NrGnbNetDevice``.
+
+Packet drops
+############
+Packets cannot be dropped in the ``NrGnbNetDevice``.
+
+LteEnbRrc
+---------
+Describe LteEnbRrc::SendPacket ...
