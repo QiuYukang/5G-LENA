@@ -11,6 +11,11 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
 
 latex_engine = 'xelatex'
 todo_include_todos = True
+html_theme = 'ns3_html_theme'
+html_theme_path = ['../../../../doc/']
+html_title = 'Tutorial'
+#html_static_path = ['_static']
+html_last_updated_fmt = '%b %d, %Y %H:%M'
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'tutorial'

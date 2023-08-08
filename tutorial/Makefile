@@ -15,10 +15,17 @@ FIGURES = $(SOURCE)/figures
 # specify dia figures from which .png and .pdf figures need to be built
 
 IMAGES_DIA = \
+	$(FIGURES)/EpcEnbApplication-RecvFromS1uSocket-packet.dia \
+	$(FIGURES)/entities.dia \
+	$(FIGURES)/LtePdcp-DoTransmitPdcpSdu-packet.dia \
+	$(FIGURES)/LteRlcUm-DoNotifyTxOpportunity-fragmentation.dia \
+	$(FIGURES)/LteRlcUm-DoTransmitPdcpPdu-packet.dia \
+	$(FIGURES)/nr-gnb.dia \
+	$(FIGURES)/NrGnbMac-DoTransmitPdu-packet.dia \
+	$(FIGURES)/nr-ue.dia \
 	$(FIGURES)/sequence-diagram-control-plane.dia \
 	$(FIGURES)/sequence-diagram-data-plane.dia \
 	$(FIGURES)/sequence-diagram-E2E.dia
-
 
 # specify eps figures from which .png and .pdf figures need to be built
 
