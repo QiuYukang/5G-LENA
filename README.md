@@ -17,11 +17,12 @@ simulator, on top of which can be added our NR module as plug-in.
 
 ### ns-3 prerequisites:
 
-Make sure to install all [ns-3 preresquisites](https://www.nsnam.org/wiki/Installation#Prerequisites).
+Make sure to install all [ns-3 prerequisites](https://www.nsnam.org/docs/installation/html/index.html)
 
 ### NR prerequisites:
 
-Install libc6-dev (it provides `semaphore.h` header file):
+Install libc6-dev (it provides `semaphore.h` header file).  The Ubuntu
+package name is:
 
 ```
 sudo apt-get install libc6-dev
@@ -58,7 +59,7 @@ directory will be listed as "Untracked files". This is normal.
 ### Switch to the latest NR release branch:
 
 Checkout the latest NR release branch (usually the branch with the highest version
-number, to list git branches run `git branch -r`). For example, for NR Release v2.2 run:
+number, to list git branches run `git branch -r`). For example, for NR Release v2.5 run:
 
 ```
 cd nr
@@ -72,7 +73,7 @@ For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 rele
 
 ```
 cd ../..
-git checkout ns-3.38
+git checkout -b ns-3.39-branch ns-3.39
 ```
 
 For a quicker reference we provide a table with the supported versions of ns-3-dev
@@ -104,7 +105,7 @@ If that is not the case, return to "ns-3 and NR prerequisites" section, and inst
 To compile the ns-3 with NR you can run the following command:
 
 ```
-./ns3
+./ns3 build
 ```
 
 If the NR module is recognized correctly, you should see "nr" in the list of
