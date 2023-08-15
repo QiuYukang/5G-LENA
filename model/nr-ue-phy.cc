@@ -59,6 +59,16 @@ NrUePhy::DoDispose()
     NS_LOG_FUNCTION(this);
     delete m_ueCphySapProvider;
     m_phyDlHarqFeedbackCallback = MakeNullCallback<void, const DlHarqInfo&>();
+    if (m_powerControl)
+    {
+        m_powerControl->Dispose();
+        m_powerControl = nullptr;
+    }
+    if (m_cam)
+    {
+        m_cam->Dispose();
+        m_cam = nullptr;
+    }
     NrPhy::DoDispose();
 }
 
