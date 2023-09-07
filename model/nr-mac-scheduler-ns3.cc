@@ -1851,7 +1851,8 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
 
     if (m_nrFhSchedSapProvider)
     {
-        if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing)
+        if (m_nrFhSchedSapProvider->GetFhControlMethod() != NrFhControl::FhControlMethod::Dropping &&
+            m_nrFhSchedSapProvider->GetFhControlMethod() != UINT8_MAX)
         {
             Simulator::Schedule(
                 NanoSeconds(1),

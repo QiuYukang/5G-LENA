@@ -51,9 +51,12 @@ class NrFhControl : public Object
 
     /**
      * \brief Set the Fh control - PHY SAP User
+     *        PHY is per bwp as such we store in a map the bwpId
+     *        and the corresponding NrFhPhySapUser ptr.
+     * \param bwpId The bwpId
      * \param s The ptr of the SAP User
      */
-    void SetNrFhPhySapUser(NrFhPhySapUser* s);
+    void SetNrFhPhySapUser(uint16_t bwpId, NrFhPhySapUser* s);
 
     /**
      * \brief Get the Fh control - PHY SAP User ptr
@@ -63,9 +66,12 @@ class NrFhControl : public Object
 
     /**
      * \brief Set the Fh control - Sched SAP User
+     *        Sched is per bwp as such we store in a map the bwpId
+     *        and the corresponding SetNrFhSchedSapUser ptr.
+     * \param bwpId The bwpId
      * \param s The ptr of the SAP User
      */
-    void SetNrFhSchedSapUser(NrFhSchedSapUser* s);
+    void SetNrFhSchedSapUser(uint16_t bwpId, NrFhSchedSapUser* s);
 
     /**
      * \brief Get the Fh control - Sched SAP User ptr
@@ -231,13 +237,21 @@ class NrFhControl : public Object
     /**
      * \brief Returns the FH throughput associated to a specific allocation
      */
-    uint64_t GetFhThr(uint32_t mcs, uint32_t Nres) const;
+    uint64_t GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t Nres) const;
 
     /**
      * \brief Returns the number of active BWPs, i.e., BWPs with data in their
      *        RLC queues.
      */
     uint16_t GetNumberActiveBwps() const;
+
+    /**
+     * \brief Returns the number of active UEs in a BWP
+     *
+     * \param bwpId The bwpId for which we want the number of active UEs
+     * \return the number of active UEs in a BWP
+     */
+    uint16_t GetNumberActiveUes(uint16_t bwpId) const;
 
     /**
      * \brief Returns the max MCS based on the MCS Table (1 or 2)
@@ -268,11 +282,12 @@ class NrFhControl : public Object
     uint16_t m_physicalCellId; //!< Physical cell ID to which the NrFhControl instance belongs to.
 
     // FH Control - PHY SAP
-    NrFhPhySapUser* m_fhPhySapUser;         //!< FH Control - PHY SAP User
-    NrFhPhySapProvider* m_fhPhySapProvider; //!< FH Control - PHY SAP Provider
+    std::map<uint16_t, NrFhPhySapUser*> m_fhPhySapUser; //!< FH Control - PHY SAP User (per bwpId)
+    NrFhPhySapProvider* m_fhPhySapProvider;             //!< FH Control - PHY SAP Provider
 
     // FH Control - SCHEDULER SAP
-    NrFhSchedSapUser* m_fhSchedSapUser;         //!< FH Control -  SCHED SAP User
+    std::map<uint16_t, NrFhSchedSapUser*>
+        m_fhSchedSapUser;                       //!< FH Control - PHY SAP User (per bwpId)
     NrFhSchedSapProvider* m_fhSchedSapProvider; //!< FH Control -  SCHED SAP Provider
 
     enum FhControlMethod m_fhControlMethod;
@@ -285,7 +300,7 @@ class NrFhControl : public Object
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
-    std::unordered_map<uint16_t, uint16_t> m_activeBwps;       //!< Map of active bwpIds
+    std::unordered_map<uint16_t, uint16_t> m_activeUesPerBwp;  //!< Map of active bwpIds
     std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
     uint64_t m_allocFhThroughput{
         0}; //!< the allocated fronthaul throughput after scheduling (in DL)

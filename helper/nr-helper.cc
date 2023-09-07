@@ -1073,10 +1073,11 @@ NrHelper::InstallSingleGnbDevice(
             it.second->GetScheduler()->SetNrFhSchedSapProvider(
                 dev->GetNrFhControl()->GetNrFhSchedSapProvider());
             dev->GetNrFhControl()->SetNrFhSchedSapUser(
-                it.second->GetScheduler()->GetNrFhSchedSapUser());
+                it.first, it.second->GetScheduler()->GetNrFhSchedSapUser());
             it.second->GetPhy()->SetNrFhPhySapProvider(
                 dev->GetNrFhControl()->GetNrFhPhySapProvider());
-            dev->GetNrFhControl()->SetNrFhPhySapUser(it.second->GetPhy()->GetNrFhPhySapUser());
+            dev->GetNrFhControl()->SetNrFhPhySapUser(it.first,
+                it.second->GetPhy()->GetNrFhPhySapUser());
         }
     }
 
