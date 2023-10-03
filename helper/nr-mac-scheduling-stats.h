@@ -7,8 +7,9 @@
 #ifndef NR_MAC_SCHEDULING_STATS_H_
 #define NR_MAC_SCHEDULING_STATS_H_
 
+#include "nr-stats-calculator.h"
+
 #include "ns3/nr-gnb-mac.h"
-#include "ns3/nr-stats-calculator.h"
 #include "ns3/nstime.h"
 #include "ns3/uinteger.h"
 

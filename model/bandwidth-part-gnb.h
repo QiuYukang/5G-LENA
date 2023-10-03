@@ -7,9 +7,10 @@
 #ifndef COMPONENT_CARRIER_GNB_H
 #define COMPONENT_CARRIER_GNB_H
 
-#include "ns3/nr-phy.h"
+#include "nr-gnb-phy.h"
+#include "nr-phy.h"
+
 #include <ns3/component-carrier.h>
-#include <ns3/nr-gnb-phy.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
 #include <ns3/packet.h>

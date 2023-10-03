@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <ns3/nr-phy-mac-common.h>
+#include "nr-phy-mac-common.h"
 
 #include <memory>
 #include <vector>

@@ -7,8 +7,8 @@
 #ifndef NR_AMC_H
 #define NR_AMC_H
 
-#include <ns3/nr-error-model.h>
-#include <ns3/nr-phy-mac-common.h>
+#include "nr-error-model.h"
+#include "nr-phy-mac-common.h"
 
 namespace ns3
 {

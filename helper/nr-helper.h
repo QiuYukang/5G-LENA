@@ -9,12 +9,12 @@
 
 #include "cc-bwp-helper.h"
 #include "ideal-beamforming-helper.h"
+#include "nr-bearer-stats-connector.h"
 #include "nr-mac-scheduling-stats.h"
 
 #include <ns3/eps-bearer.h>
 #include <ns3/net-device-container.h>
 #include <ns3/node-container.h>
-#include <ns3/nr-bearer-stats-connector.h>
 #include <ns3/nr-control-messages.h>
 #include <ns3/nr-spectrum-phy.h>
 #include <ns3/object-factory.h>

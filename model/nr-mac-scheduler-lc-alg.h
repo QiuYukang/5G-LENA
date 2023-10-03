@@ -7,7 +7,8 @@
 #ifndef NR_MAC_SCHEDULER_LC_ALGORITHM_H
 #define NR_MAC_SCHEDULER_LC_ALGORITHM_H
 
-#include "ns3/nr-mac-scheduler-lcg.h"
+#include "nr-mac-scheduler-lcg.h"
+
 #include <ns3/object.h>
 
 #include <vector>

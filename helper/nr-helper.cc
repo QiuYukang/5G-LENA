@@ -7,6 +7,8 @@
 #include "nr-helper.h"
 
 #include "nr-bearer-stats-calculator.h"
+#include "nr-mac-rx-trace.h"
+#include "nr-phy-rx-trace.h"
 
 #include <ns3/bandwidth-part-gnb.h>
 #include <ns3/bandwidth-part-ue.h>
@@ -29,9 +31,7 @@
 #include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-gnb-phy.h>
-#include <ns3/nr-mac-rx-trace.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
-#include <ns3/nr-phy-rx-trace.h>
 #include <ns3/nr-rrc-protocol-ideal.h>
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-ue-net-device.h>

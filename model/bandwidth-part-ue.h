@@ -7,9 +7,10 @@
 #ifndef COMPONENT_CARRIER_NR_UE_H
 #define COMPONENT_CARRIER_NR_UE_H
 
-#include "ns3/nr-phy.h"
+#include "nr-phy.h"
+#include "nr-ue-phy.h"
+
 #include <ns3/component-carrier.h>
-#include <ns3/nr-ue-phy.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
 #include <ns3/packet.h>

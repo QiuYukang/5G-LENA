@@ -6,12 +6,13 @@
 
 #include "bandwidth-part-gnb.h"
 
+#include "nr-gnb-mac.h"
+#include "nr-gnb-phy.h"
+
 #include <ns3/abort.h>
 #include <ns3/boolean.h>
 #include <ns3/ff-mac-scheduler.h>
 #include <ns3/log.h>
-#include <ns3/nr-gnb-mac.h>
-#include <ns3/nr-gnb-phy.h>
 #include <ns3/pointer.h>
 #include <ns3/simulator.h>
 #include <ns3/uinteger.h>

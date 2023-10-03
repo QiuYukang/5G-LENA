@@ -8,10 +8,10 @@
 #define NR_PHY_SAP_H
 
 #include "beam-conf-id.h"
+#include "nr-control-messages.h"
+#include "nr-mac-sched-sap.h"
+#include "nr-phy-mac-common.h"
 
-#include <ns3/nr-control-messages.h>
-#include <ns3/nr-mac-sched-sap.h>
-#include <ns3/nr-phy-mac-common.h>
 #include <ns3/packet-burst.h>
 
 namespace ns3

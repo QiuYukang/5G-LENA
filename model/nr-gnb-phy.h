@@ -8,13 +8,13 @@
 #define NR_ENB_PHY_H
 
 #include "beam-conf-id.h"
+#include "ideal-beamforming-algorithm.h"
 #include "nr-control-messages.h"
+#include "nr-harq-phy.h"
 #include "nr-phy.h"
 
-#include "ns3/ideal-beamforming-algorithm.h"
 #include <ns3/lte-enb-cphy-sap.h>
 #include <ns3/lte-enb-phy-sap.h>
-#include <ns3/nr-harq-phy.h>
 
 #include <functional>
 
