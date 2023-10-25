@@ -26,7 +26,7 @@ add_function_parentheses = True
 
 #project = u'cttc-nr-demo tutorial'
 copyright = u'2023'
-author = u'Giovanni Grieco and OpenSim CTTC/CERCA'
+author = u''
 
 version = '2.6'
 release = '2.6'
@@ -67,8 +67,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('tutorial', 'cttc-nr-demo-tutorial.tex', u'cttc-nr-demo tutorial',
-     u'Giovanni Grieco and OpenSim CTTC/CERCA', 'manual'),
+    ('tutorial', 'cttc-nr-demo-tutorial.tex', u'cttc-nr-demo tutorial', u'', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -98,3 +97,5 @@ latex_documents = [
 #
 # latex_domain_indices = True
 
+# Enable Figure references by number (:numref:)
+numfig = True

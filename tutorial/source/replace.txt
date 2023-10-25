@@ -1,7 +1,0 @@
-.. Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-..
-.. SPDX-License-Identifier: GPL-2.0-only
-
-.. |ns3| replace:: *ns-3*
-
-.. |ns2| replace:: *ns-2*
