@@ -30,9 +30,14 @@ IMAGES_DIA = \
 # specify eps figures from which .png and .pdf figures need to be built
 
 IMAGES_EPS = \
+	$(FIGURES)/nr-ue.eps \
+	$(FIGURES)/nr-gnb.eps \
 
 # rescale pdf figures as necessary
+${FIGURES}/nr-ue.pdf_width = 2in
+${FIGURES}/nr-gnb.pdf_width = 2in
 
+IMAGES_PDF = ${IMAGES_EPS:.eps=.pdf}
 
 IMAGES_SEQDIAG = \
 #	$(FIGURES)/figure-name.seqdiag \

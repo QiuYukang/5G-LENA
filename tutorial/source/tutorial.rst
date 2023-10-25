@@ -283,16 +283,16 @@ RAN lifecycle
 
    Schematic topology.
 
-.. _fig-nr-gnb
+.. _fig-nr-gnb:
 
-.. figure:: figures/nr-gnb.png
+.. figure:: figures/nr-gnb.*
    :align: center
 
    gNB's downlink packet processing pipeline.
 
-.. _fig-nr-ue
+.. _fig-nr-ue:
 
-.. figure:: figures/nr-ue.png
+.. figure:: figures/nr-ue.*
    :align: center
 
    UE's downlink packet processing pipeline.
