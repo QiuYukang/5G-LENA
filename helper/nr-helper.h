@@ -708,8 +708,13 @@ class NrHelper : public Object
     /**
      * \brief Configure FH Control of each cell
      *
-     * It sets the numerology as configured in the cell to which it
-     * belongs to.
+     * It sets the numerology as configured in the BWP to which it
+     * belongs to and passes the number of active BWPs so that FH
+     * Control will share the available FH Capacity among all the
+     * active BWPs.
+     *
+     * \param gnbNetDevices The gNB Net Devices for which we want
+     *        to configure the FH Capacity Control.
      */
     void ConfigureFhControl(NetDeviceContainer gnbNetDevices);
 

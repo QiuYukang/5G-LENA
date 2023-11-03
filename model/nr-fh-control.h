@@ -102,10 +102,23 @@ class NrFhControl : public Object
     void SetFhControlMethod(FhControlMethod model);
 
     /**
-     * \brief Set the available fronthaul capacity
-     * \param capacity The fronthaul capacity (in Gbps)
+     * \brief Set the available fronthaul capacity of the cell.
+     *        The capacity will be shared among all the active
+     *        BWPs of the cell. This is done later on when
+     *        nrHelper configures the nrFhControl through the
+     *        function NrHelper::ConfigureFhControl.
+     * \param capacity The fronthaul capacity (in Mbps)
      */
-    void SetFhCapacity(uint16_t capacity);
+    void SetCellFhCapacity(uint16_t capacity);
+
+    /**
+     * \brief Split the available FH capacity based on the number
+     *        of active BWPs of the cell. This function is called
+     *        when the nrHelper configures the nrFhControl through
+     *        the function NrHelper::ConfigureFhControl.
+     * \param numberOfActiveBwps The number of active BWPs
+     */
+    void ConfigureFhCapacityPerBwp(uint32_t numberOfActiveBwps);
 
     /**
      * \brief Set the overhead for dynamic modulation compression

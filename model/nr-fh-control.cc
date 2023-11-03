@@ -56,9 +56,11 @@ NrFhControl::GetTypeId()
                                 NrFhControl::OptimizeRBs,
                                 "OptimizeRBs"))
             .AddAttribute("FhCapacity",
-                          "The available fronthaul capacity (in MHz)",
+                          "The available fronthaul capacity (in Mbps)."
+                          "The capacity is shared among the active BWPs"
+                          "of a cell.",
                           UintegerValue(1000),
-                          MakeUintegerAccessor(&NrFhControl::SetFhCapacity),
+                          MakeUintegerAccessor(&NrFhControl::SetCellFhCapacity),
                           MakeUintegerChecker<uint16_t>(0, 50000))
             .AddAttribute("OverheadDyn",
                           "The overhead for dynamic adaptation (in bits)",
@@ -160,10 +162,20 @@ NrFhControl::DoGetFhControlMethod() const
 }
 
 void
-NrFhControl::SetFhCapacity(uint16_t capacity)
+NrFhControl::SetCellFhCapacity(uint16_t capacity)
 {
     NS_LOG_FUNCTION(this);
     m_fhCapacity = capacity;
+}
+
+void
+NrFhControl::ConfigureFhCapacityPerBwp(uint32_t numberOfActiveBwps)
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(numberOfActiveBwps > 0, "Active BWPs cannot be 0");
+    m_fhCapacity = static_cast<uint16_t>(m_fhCapacity / numberOfActiveBwps);
+    NS_LOG_DEBUG("Active BWPs set by nrHelper: " << numberOfActiveBwps
+                                                 << " FH capacity per BWP: " << m_fhCapacity);
 }
 
 void
