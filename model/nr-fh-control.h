@@ -315,18 +315,24 @@ class NrFhControl : public Object
                          //!< rnti, bytes)
     std::unordered_map<uint16_t, uint16_t> m_activeUesPerBwp;  //!< Map of active bwpIds
     std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
+
     uint64_t m_allocFhThroughput{
         0}; //!< the allocated fronthaul throughput after scheduling (in DL)
     std::unordered_map<uint16_t, uint64_t>
         m_allocCellThrPerBwp; //!< Map for FH allocated throughput of a specific bwpId (in DL)
-    uint64_t m_reqFhDlThrTracedValue{0}; //!< the required fronthaul throughput (in DL)
+
+    std::unordered_map<uint16_t, uint64_t>
+        m_reqFhDlThrTracedValuePerBwp; //!< the required fronthaul throughput (in DL) per BWP
     std::unordered_map<uint16_t, uint32_t>
         m_rbsAirTracedValue; //!< Map for the used RBs of the air of a specific bwpId
     std::unordered_map<uint16_t, SfnSf> m_waitingSlotPerBwp;
 
-    TracedCallback<const SfnSf&, uint64_t>
-        m_reqFhDlThrTrace; //!< Report the required FH throughput (in DL)
-    TracedCallback<const SfnSf&, uint32_t> m_rbsAirTrace; //!< Report the RBs used of the AI (in DL)
+    // SfnSf, bwpId, FH throughput
+    TracedCallback<const SfnSf&, uint16_t, uint64_t>
+        m_reqFhDlThrTrace; //!< Report the required FH throughput (in DL) per BWP
+    // SfnSf, bwpId, RBs used
+    TracedCallback<const SfnSf&, uint16_t, uint32_t>
+        m_rbsAirTrace; //!< Report the RBs used of the AI (in DL) per BWP
 };
 
 } // end namespace ns3

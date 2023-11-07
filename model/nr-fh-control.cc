@@ -73,7 +73,17 @@ NrFhControl::GetTypeId()
                           "and among ns3::NrEesmIrT2 and ns3::NrEesmCcT2 for MCS Table 2.",
                           StringValue("ns3::NrEesmIrT1"),
                           MakeStringAccessor(&NrFhControl::SetErrorModelType),
-                          MakeStringChecker());
+                          MakeStringChecker())
+            .AddTraceSource(
+                "RequiredFhDlThroughput",
+                "Report required fronthaul throughput in DL per BWP (Sfnfn, bwpId, reqFhThr)",
+                MakeTraceSourceAccessor(&NrFhControl::m_reqFhDlThrTrace),
+                "ns3::ReqFhDlThr::TracedCallback")
+            .AddTraceSource(
+                "UsedAirRbs",
+                "Report the employed RBs of the air interface in DL per BWP (Sfnfn, bwpId, rbsAir)",
+                MakeTraceSourceAccessor(&NrFhControl::m_rbsAirTrace),
+                "ns3::rbsAir::TracedCallback");
     return tid;
 }
 
@@ -157,7 +167,6 @@ NrFhControl::GetFhControlMethod() const
 uint8_t
 NrFhControl::DoGetFhControlMethod() const
 {
-    NS_LOG_FUNCTION(this);
     return m_fhControlMethod;
 }
 
@@ -238,13 +247,13 @@ NrFhControl::SetNumerology(uint16_t bwpId, uint16_t num)
 void
 NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 {
-    uint32_t c1 = Cantor(bwpId, rnti);
     if (m_activeUesPerBwp.find(rnti) == m_activeUesPerBwp.end()) // UE not in the map
     {
         NS_LOG_DEBUG("Creating pair for rnti: " << rnti << " and bwpId: " << bwpId);
         m_activeUesPerBwp.insert(std::make_pair(rnti, bwpId));
     }
 
+    uint32_t c1 = Cantor(bwpId, rnti);
     if (m_rntiQueueSize.find(c1) == m_rntiQueueSize.end()) // UE not in the map
     {
         NS_LOG_DEBUG("Cell: " << m_physicalCellId << " Creating pair " << c1 << " for bwpId: "
@@ -263,8 +272,6 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 void
 NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation)
 {
-    NS_LOG_INFO("Cell: " << m_physicalCellId << " We got called for reset for bwpId: " << bwpId);
-
     for (const auto& alloc : allocation)
     {
         if (alloc.m_dci->m_type != DciInfoElementTdma::DATA ||
@@ -280,34 +287,38 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
                 std::count(alloc.m_dci->m_rbgBitmask.begin(), alloc.m_dci->m_rbgBitmask.end(), 1)) *
             static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched());
 
-        NS_LOG_DEBUG("Get num of RBs per RBG from sched: "
-                     << m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched()
-                     << " numRbs = " << numRbs << " MCS Table: " << +m_mcsTable << " UE: " << rnti);
+        NS_LOG_INFO("Cell: " << m_physicalCellId << " We got called for Update for bwpId: " << bwpId
+                             << " RNTI: " << rnti);
 
-        uint16_t numerology = m_fhPhySapUser.at(bwpId)->GetNumerology();
-        NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId),
-                      " Numerology has not been configured properly for bwpId: " << +bwpId);
+        // Create/Update FH DL Throughput per BWP
+        uint64_t fhDlThr = GetFhThr(bwpId,
+                                    static_cast<uint32_t>(alloc.m_dci->m_mcs),
+                                    static_cast<uint32_t>(alloc.m_dci->m_numSym) * numRbs);
+        if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
+        {
+            m_reqFhDlThrTracedValuePerBwp.insert(std::make_pair(bwpId, fhDlThr));
+            NS_LOG_DEBUG("Create pair for m_reqFhDlThrTracedValuePerBwp.at("
+                         << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+        }
+        else
+        {
+            m_reqFhDlThrTracedValuePerBwp.at(bwpId) += fhDlThr;
+            NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
+                         << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+        }
 
-        // update FH trace and AI trace
-        m_reqFhDlThrTracedValue += GetFhThr(bwpId,
-                                            static_cast<uint32_t>(alloc.m_dci->m_mcs),
-                                            static_cast<uint32_t>(alloc.m_dci->m_numSym) * numRbs);
-        NS_LOG_DEBUG("bwpId: " << bwpId << " rnti: " << rnti
-                               << " m_reqFhDlThrTracedValue: " << m_reqFhDlThrTracedValue);
-
+        // Create/Update used RBs of the air of a specific bwpId (AI Trace)
         if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwp not in the map
         {
-            NS_LOG_DEBUG("Make new m_rbsAirTracedValue pair for bwpId: "
-                         << bwpId << " (rnti: " << rnti << ")"
-                         << " and numRbs: " << numRbs);
             m_rbsAirTracedValue.insert(std::make_pair(bwpId, numRbs));
+            NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at("
+                         << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
         }
         else // bwpId already in the map: increase traced value
         {
             m_rbsAirTracedValue[bwpId] += numRbs;
-            NS_LOG_DEBUG("Update m_rbsAirTracedValue for bwpId: "
-                         << bwpId << " (rnti: " << rnti << ")"
-                         << " increase traced value to: " << m_rbsAirTracedValue[bwpId] << " RBs");
+            NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << ")"
+                                                          << m_rbsAirTracedValue[bwpId] << " RBs");
         }
         if (alloc.m_dci->m_ndi == 0)  // retx
         {
@@ -329,9 +340,8 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
         if (m_rntiQueueSize.at(c1) > (alloc.m_dci->m_tbSize - 3)) // 3 bytes MAC subPDU header
         {
             m_rntiQueueSize.at(c1) = m_rntiQueueSize.at(c1) - (alloc.m_dci->m_tbSize - 3);
-            NS_LOG_DEBUG("Updating queue size for cell: " << m_physicalCellId << " bwpId: " << bwpId
-                                                          << " RNTI: " << rnti << " to "
-                                                          << m_rntiQueueSize.at(c1) << " bytes");
+            NS_LOG_DEBUG("Updating queue size for bwpId: " << bwpId << " RNTI: " << rnti << " to "
+                                                           << m_rntiQueueSize.at(c1) << " bytes");
         }
         else
         {
@@ -355,7 +365,6 @@ NrFhControl::GetNumberActiveUes(uint16_t bwpId) const
             numActiveUes++;
         }
     }
-    NS_LOG_DEBUG("active Ues Per bwp: " << numActiveUes);
     return numActiveUes;
 }
 
@@ -513,39 +522,67 @@ NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
         nRbgs * static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched());
 
     // update FH trace and AI trace
-    m_reqFhDlThrTracedValue += GetFhThr(bwpId, mcs, numRbs * nSymb);
-    NS_LOG_DEBUG("Update Traces based on Dropped Data - m_reqFhDlThrTracedValue: "
-                 << m_reqFhDlThrTracedValue);
+    NS_LOG_DEBUG("Update Traces based on Dropped Data");
+    // bwpId not in the map
+    if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
+    {
+        m_reqFhDlThrTracedValuePerBwp.insert(
+            std::make_pair(bwpId, GetFhThr(bwpId, mcs, (numRbs * nSymb))));
+        NS_LOG_DEBUG("Create pair for"
+                     << " m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
+                     << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+    }
+    else // bwpId already in the map: increase traced value
+    {
+        m_reqFhDlThrTracedValuePerBwp.at(bwpId) += GetFhThr(bwpId, mcs, (numRbs * nSymb));
+        NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
+                     << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+    }
+
     if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwpId not in the map
     {
         m_rbsAirTracedValue.insert(std::make_pair(bwpId, numRbs));
-        NS_LOG_DEBUG("BwpId not in the map m_reqFhDlThrTracedValue - Create pair: "
-                     << bwpId << " numRbs: " << numRbs);
+        NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at("
+                     << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
     }
     else // bwpId already in the map: increase traced value
     {
         m_rbsAirTracedValue[bwpId] += numRbs;
-        NS_LOG_DEBUG("Update BwpId: " << bwpId << " new numRbs (m_rbsAirTracedValue): "
-                                      << m_rbsAirTracedValue[bwpId]);
+        NS_LOG_DEBUG("Update m_rbsAirTracedValue.at("
+                     << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
     }
 }
 
 void
 NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
 {
-    // we only want to save it once (per slot) in the trace. note that every cell that calls EndSlot
+    // we only want to save it once (per slot) in the trace. Note that every cell that calls EndSlot
     if (currentSlot == m_waitingSlotPerBwp.at(bwpId))
     {
         NS_LOG_INFO(currentSlot);
-        m_reqFhDlThrTrace(currentSlot,
-                          m_reqFhDlThrTracedValue); // store SfnSf and required FH thr (in DL)
-        NS_LOG_INFO("Req FH DL thr at end slot for bwpId:"
-                    << bwpId << " (m_reqFhDlThrTracedValue): " << m_reqFhDlThrTracedValue);
+
+        // store SfnSf and required FH thr (in DL)
+        if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
+        {
+            m_reqFhDlThrTrace(currentSlot, bwpId, 0);
+            NS_LOG_DEBUG("Size 0, bwpId: " << bwpId << " FH DL Throughput 0");
+        }
+        else
+        {
+            NS_LOG_INFO("Req FH DL thr at end slot for m_reqFhDlThrTracedValuePerBwp.at("
+                        << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+            m_reqFhDlThrTrace(currentSlot,
+                              bwpId,
+                              m_reqFhDlThrTracedValuePerBwp.at(
+                                  bwpId)); // store SfnSf, bwpId and required FH thr (in DL)
+        }
+
         uint32_t rbSum = 0;
         if (m_rbsAirTracedValue.size() == 0)
         {
-            m_rbsAirTrace(currentSlot, rbSum); // store SfnSf and 0 used RBs
-            NS_LOG_DEBUG("Size 0, Average RBs used at the end of slot: " << rbSum);
+            m_rbsAirTrace(currentSlot, bwpId, rbSum); // store SfnSf, bwpId and 0 used RBs
+            NS_LOG_DEBUG("Size 0, bwpId: " << bwpId
+                                           << " Average RBs used at the end of slot: " << rbSum);
         }
         else
         {
@@ -554,14 +591,15 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
                 rbSum += element.second;
             }
             rbSum = rbSum / m_rbsAirTracedValue.size();
-            m_rbsAirTrace(currentSlot, rbSum); // store SfnSf and AVERAGE used RBs
+            m_rbsAirTrace(currentSlot, bwpId, rbSum); // store SfnSf, bwpId and AVERAGE used RBs
             NS_LOG_DEBUG("Average RBs used at the end of slot: " << rbSum);
         }
-        NS_LOG_DEBUG("Reset traces");
-        m_reqFhDlThrTracedValue = 0;      // reset it, for next slot
-        m_rbsAirTracedValue.erase(bwpId); // reset it, for next slot
-        m_allocFhThroughput = 0;          // reset it, for next slot
-        m_allocCellThrPerBwp.clear();     // reset it, for next slot
+
+        NS_LOG_DEBUG("Reset traces for next slot");
+        m_reqFhDlThrTracedValuePerBwp.erase(bwpId);
+        m_rbsAirTracedValue.erase(bwpId);
+        m_allocFhThroughput = 0;
+        m_allocCellThrPerBwp.clear();
         m_waitingSlotPerBwp.at(bwpId).Add(1);
     }
 }
@@ -574,6 +612,8 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t Nres) const
         m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
 
     uint16_t numerology = m_fhPhySapUser.at(bwpId)->GetNumerology();
+    NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId),
+                  " Numerology has not been configured properly for bwpId: " << bwpId);
     Time slotLength =
         MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
     uint32_t overheadMac = static_cast<uint32_t>(
