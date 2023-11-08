@@ -327,11 +327,11 @@ class NrFhControl : public Object
         m_rbsAirTracedValue; //!< Map for the used RBs of the air of a specific bwpId
     std::unordered_map<uint16_t, SfnSf> m_waitingSlotPerBwp;
 
-    // SfnSf, bwpId, FH throughput
-    TracedCallback<const SfnSf&, uint16_t, uint64_t>
+    // SfnSf, physicalCellId, bwpId, FH throughput
+    TracedCallback<const SfnSf&, uint16_t, uint16_t, uint64_t>
         m_reqFhDlThrTrace; //!< Report the required FH throughput (in DL) per BWP
-    // SfnSf, bwpId, RBs used
-    TracedCallback<const SfnSf&, uint16_t, uint32_t>
+    // SfnSf, physicalCellId, bwpId, RBs used
+    TracedCallback<const SfnSf&, uint16_t, uint16_t, uint32_t>
         m_rbsAirTrace; //!< Report the RBs used of the AI (in DL) per BWP
 };
 

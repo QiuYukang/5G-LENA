@@ -565,7 +565,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
         // store SfnSf and required FH thr (in DL)
         if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
         {
-            m_reqFhDlThrTrace(currentSlot, bwpId, 0);
+            m_reqFhDlThrTrace(currentSlot, m_physicalCellId, bwpId, 0);
             NS_LOG_DEBUG("Size 0, bwpId: " << bwpId << " FH DL Throughput 0");
         }
         else
@@ -573,6 +573,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
             NS_LOG_INFO("Req FH DL thr at end slot for m_reqFhDlThrTracedValuePerBwp.at("
                         << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
             m_reqFhDlThrTrace(currentSlot,
+                              m_physicalCellId,
                               bwpId,
                               m_reqFhDlThrTracedValuePerBwp.at(
                                   bwpId)); // store SfnSf, bwpId and required FH thr (in DL)
@@ -581,7 +582,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
         uint32_t rbSum = 0;
         if (m_rbsAirTracedValue.size() == 0)
         {
-            m_rbsAirTrace(currentSlot, bwpId, rbSum); // store SfnSf, bwpId and 0 used RBs
+            m_rbsAirTrace(currentSlot, m_physicalCellId, bwpId, rbSum); // store SfnSf, bwpId and 0 used RBs
             NS_LOG_DEBUG("Size 0, bwpId: " << bwpId
                                            << " Average RBs used at the end of slot: " << rbSum);
         }
@@ -592,7 +593,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
                 rbSum += element.second;
             }
             rbSum = rbSum / m_rbsAirTracedValue.size();
-            m_rbsAirTrace(currentSlot, bwpId, rbSum); // store SfnSf, bwpId and AVERAGE used RBs
+            m_rbsAirTrace(currentSlot, m_physicalCellId, bwpId, rbSum); // store SfnSf, bwpId and AVERAGE used RBs
             NS_LOG_DEBUG("Average RBs used at the end of slot: " << rbSum);
         }
 
