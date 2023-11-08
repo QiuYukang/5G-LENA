@@ -118,7 +118,7 @@ class NrFhControl : public Object
      *        the function NrHelper::ConfigureFhControl.
      * \param numberOfActiveBwps The number of active BWPs
      */
-    void ConfigureFhCapacityPerBwp(uint32_t numberOfActiveBwps);
+    void ConfigureFhCapacityPerBwp(uint32_t numberOfConfiguredBwps);
 
     /**
      * \brief Set the overhead for dynamic modulation compression
@@ -147,7 +147,7 @@ class NrFhControl : public Object
      * \param num the numerology
      *
      */
-    void SetNumerology(uint16_t bwpId, uint16_t num);
+    void SetFhNumerology(uint16_t bwpId, uint16_t num);
 
   private:
     /**

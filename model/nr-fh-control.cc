@@ -178,12 +178,12 @@ NrFhControl::SetCellFhCapacity(uint16_t capacity)
 }
 
 void
-NrFhControl::ConfigureFhCapacityPerBwp(uint32_t numberOfActiveBwps)
+NrFhControl::ConfigureFhCapacityPerBwp(uint32_t numberOfConfiguredBwps)
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT_MSG(numberOfActiveBwps > 0, "Active BWPs cannot be 0");
-    m_fhCapacity = static_cast<uint16_t>(m_fhCapacity / numberOfActiveBwps);
-    NS_LOG_DEBUG("Active BWPs set by nrHelper: " << numberOfActiveBwps
+    NS_ASSERT_MSG(numberOfConfiguredBwps > 0, "Active BWPs cannot be 0");
+    m_fhCapacity = static_cast<uint16_t>(m_fhCapacity / numberOfConfiguredBwps);
+    NS_LOG_DEBUG("Active BWPs set by nrHelper: " << numberOfConfiguredBwps
                                                  << " FH capacity per BWP: " << m_fhCapacity);
 }
 
@@ -230,13 +230,14 @@ NrFhControl::DoGetPhysicalCellId() const
 }
 
 void
-NrFhControl::SetNumerology(uint16_t bwpId, uint16_t num)
+NrFhControl::SetFhNumerology(uint16_t bwpId, uint16_t num)
 {
     if (m_numerologyPerBwp.find(bwpId) == m_numerologyPerBwp.end()) // bwpId not in the map
     {
         m_numerologyPerBwp.insert(std::make_pair(bwpId, num));
         SfnSf waitingSlot = {0, 0, 0, static_cast<uint8_t>(num)};
         m_waitingSlotPerBwp.insert(std::make_pair(bwpId, waitingSlot));
+        NS_LOG_DEBUG("Cell: " << m_physicalCellId << " BWP: " << bwpId << " num: " << num);
     }
     else
     {
