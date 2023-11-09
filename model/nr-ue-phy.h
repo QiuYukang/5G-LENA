@@ -10,6 +10,7 @@
 #include "nr-amc.h"
 #include "nr-harq-phy.h"
 #include "nr-phy.h"
+#include "nr-pm-search.h"
 
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/lte-ue-phy-sap.h>
@@ -17,6 +18,9 @@
 
 namespace ns3
 {
+
+const Time NR_DEFAULT_PMI_INTERVAL_WB{MilliSeconds(10)}; // Wideband PMI update interval
+const Time NR_DEFAULT_PMI_INTERVAL_SB{MilliSeconds(2)};  // Subband PMI update interval
 
 class NrChAccessManager;
 class BeamManager;
@@ -424,6 +428,28 @@ class NrUePhy : public NrPhy
                                                        uint16_t bwpId,
                                                        uint16_t cellId);
 
+    /// \brief Report the SINR value in the RSRP and SINR trace.
+    /// In OSS code, this functionality is piggy-backed onto GenerateDlCqiReport.
+    /// The RSRP is unknown and reported as 0.0, like in OSS code.
+    /// \param sinr the SINR
+    void ReportRsrpSinrTrace(const SpectrumValue& sinr);
+
+    /// \brief Generate DL CQI, PMI, and RI (channel quality precoding matrix and rank indicators)
+    /// \param mimoChunks a vector of parameters of the received signals and interference
+    void GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks);
+
+    /// \brief Check if updates to wideband and/or subband PMI are necessary.
+    /// This function is used to limit the frequency of PMI updates because computational complexity
+    /// of PMI feedback can be very high, and because PMI feedback requires PUSCH/PUCCH resources.
+    NrPmSearch::PmiUpdate CheckUpdatePmi();
+
+    /// \brief Set the precoding matrix search engine
+    /// \param pmSearch the PM search engine
+    void SetPmSearch(Ptr<NrPmSearch> pmSearch);
+
+    /// \brief Get the precoding matrix search engine
+    Ptr<NrPmSearch> GetPmSearch() const;
+
   protected:
     /**
      * \brief DoDispose method inherited from Object
@@ -723,6 +749,13 @@ class NrUePhy : public NrPhy
     Ptr<NrUePowerControl> m_powerControl; //!< UE power control entity
 
     Ptr<const NrAmc> m_amc; //!< AMC model used to compute the CQI feedback
+
+    Ptr<NrPmSearch> m_pmSearch{nullptr}; ///< The precoding matrix search engine
+
+    Time m_sbPmiLastUpdate{};                               ///< Time of last wideband PMI update
+    Time m_wbPmiLastUpdate{};                               ///< Time of last subband PMI update
+    Time m_wbPmiUpdateInterval{NR_DEFAULT_PMI_INTERVAL_WB}; ///< Interval of wideband PMI updates
+    Time m_sbPmiUpdateInterval{NR_DEFAULT_PMI_INTERVAL_SB}; ///< Interval of subband PMI updates
 
     Time m_wbCqiLast;
     Time m_lastSlotStart; //!< Time of the last slot start

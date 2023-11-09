@@ -600,6 +600,7 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
         txParams->cellId = GetCellId();
         txParams->ctrlMsgList = ctrlMsgList;
         txParams->rnti = dci->m_rnti;
+        txParams->precodingMatrix = dci->m_precMats;
 
         /* This section is used for trace */
         if (m_isEnb)
@@ -1259,7 +1260,7 @@ NrSpectrumPhy::GetMimoSinrForRnti(uint16_t rnti, uint8_t rank)
             res.emplace_back(chunk);
         }
     }
-    if (res.size() == 0)
+    if (res.empty())
     {
         // No received signal found, create all-zero SINR matrix with minimum duration
         NS_LOG_WARN("Did not find any SINR matrix matching the current UE's RNTI " << rnti);
@@ -1343,19 +1344,20 @@ NrSpectrumPhy::EndRxData()
         // Output is the output of the error model. From the TBLER we decide
         // if the entire TB is corrupted or not
 
-        if (m_mimoSinrPerceived.size() > 0)
+        if (!m_mimoSinrPerceived.empty())
         {
             // The received signal information supports MIMO
             const auto& expectedTb = GetTBInfo(tbIt).m_expected;
             auto sinrChunks = GetMimoSinrForRnti(expectedTb.m_rnti, expectedTb.m_rank);
-            NS_ASSERT(sinrChunks.size() > 0);
+            NS_ASSERT(!sinrChunks.empty());
 
-            GetTBInfo(tbIt).m_outputOfEM = em->GetTbDecodificationStatsMimo(sinrChunks,
-                                                                            expectedTb.m_rbBitmap,
-                                                                            expectedTb.m_tbSize,
-                                                                            expectedTb.m_mcs,
-                                                                            expectedTb.m_rank,
-                                                                            harqInfoList);
+            GetTBInfo(tbIt).m_outputOfEM =
+                m_errorModel->GetTbDecodificationStatsMimo(sinrChunks,
+                                                           expectedTb.m_rbBitmap,
+                                                           expectedTb.m_tbSize,
+                                                           expectedTb.m_mcs,
+                                                           expectedTb.m_rank,
+                                                           harqInfoList);
         }
         else
         {
@@ -1363,11 +1365,11 @@ NrSpectrumPhy::EndRxData()
             // TODO: change nr-uplink-power-control-test to create a 3gpp channel, and remove this
             // code
             GetTBInfo(tbIt).m_outputOfEM =
-                em->GetTbDecodificationStats(m_sinrPerceived,
-                                             GetTBInfo(tbIt).m_expected.m_rbBitmap,
-                                             GetTBInfo(tbIt).m_expected.m_tbSize,
-                                             GetTBInfo(tbIt).m_expected.m_mcs,
-                                             harqInfoList);
+                m_errorModel->GetTbDecodificationStats(m_sinrPerceived,
+                                                       GetTBInfo(tbIt).m_expected.m_rbBitmap,
+                                                       GetTBInfo(tbIt).m_expected.m_tbSize,
+                                                       GetTBInfo(tbIt).m_expected.m_mcs,
+                                                       harqInfoList);
         }
 
         GetTBInfo(tbIt).m_isCorrupted =

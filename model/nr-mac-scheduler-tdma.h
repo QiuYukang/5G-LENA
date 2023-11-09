@@ -259,6 +259,7 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
         DciInfoElementTdma::DciFormat fmt,
         uint32_t mcs,
         uint8_t rank,
+        Ptr<const ComplexMatrixArray> precMats,
         uint8_t numSym) const;
 };
 

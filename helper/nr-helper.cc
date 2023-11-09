@@ -32,6 +32,7 @@
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-gnb-phy.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
+#include <ns3/nr-pm-search-full.h>
 #include <ns3/nr-rrc-protocol-ideal.h>
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-ue-net-device.h>
@@ -101,6 +102,16 @@ NrHelper::GetTypeId()
     static TypeId tid = TypeId("ns3::NrHelper")
                             .SetParent<Object>()
                             .AddConstructor<NrHelper>()
+                            .AddAttribute("EnableMimoFeedback",
+                                          "Generate CQI feedback with RI and PMI for MIMO support",
+                                          BooleanValue(false),
+                                          MakeBooleanAccessor(&NrHelper::m_enableMimoFeedback),
+                                          MakeBooleanChecker())
+                            .AddAttribute("PmSearchMethod",
+                                          "Type of the precoding matrix search method.",
+                                          TypeIdValue(NrPmSearchFull::GetTypeId()),
+                                          MakeTypeIdAccessor(&NrHelper::SetPmSearchTypeId),
+                                          MakeTypeIdChecker())
                             .AddAttribute("HarqEnabled",
                                           "Enable Hybrid ARQ",
                                           BooleanValue(true),
@@ -562,9 +573,26 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     cam->SetNrSpectrumPhy(channelPhy); // connect CAM
 
     Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor>();
-    pData->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReport, phy));
     pData->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSinrPerceived, channelPhy));
     channelPhy->AddDataSinrChunkProcessor(pData);
+
+    Ptr<NrMimoChunkProcessor> pDataMimo{nullptr};
+    if (bwp->m_3gppChannel)
+    {
+        pDataMimo = Create<NrMimoChunkProcessor>();
+        pDataMimo->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateMimoSinrPerceived, channelPhy));
+        channelPhy->AddDataMimoChunkProcessor(pDataMimo);
+    }
+    if (bwp->m_3gppChannel && m_enableMimoFeedback)
+    {
+        // Report DL CQI, PMI, RI (channel quality, MIMO precoding matrix and rank indicators)
+        pDataMimo->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReportMimo, phy));
+    }
+    else
+    {
+        // SISO CQI feedback
+        pData->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReport, phy));
+    }
 
     Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor>();
     pRs->AddCallback(MakeCallback(&NrUePhy::ReportRsReceivedPower, phy));
@@ -773,6 +801,7 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         Create<LteChunkProcessor>(); // create pSrs per processor per NrSpectrumPhy
     if (!m_snrTest)
     {
+        // TODO: rename to GeneratePuschCqiReport, replace when enabling uplink MIMO
         pData->AddCallback(MakeCallback(&NrGnbPhy::GenerateDataCqiReport,
                                         phy)); // connect DATA chunk processor that will
         // call GenerateDataCqiReport function
@@ -782,6 +811,13 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         pSrs->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSrsSinrPerceived,
                                        channelPhy)); // connect SRS chunk processor that will
                                                      // call UpdateSrsSinrPerceived function
+        if (bwp->m_3gppChannel)
+        {
+            auto pDataMimo = Create<NrMimoChunkProcessor>();
+            pDataMimo->AddCallback(
+                MakeCallback(&NrSpectrumPhy::UpdateMimoSinrPerceived, channelPhy));
+            channelPhy->AddDataMimoChunkProcessor(pDataMimo);
+        }
     }
     channelPhy->AddDataSinrChunkProcessor(pData); // set DATA chunk processor to NrSpectrumPhy
     channelPhy->AddSrsSinrChunkProcessor(pSrs);   // set SRS chunk processor to NrSpectrumPhy
@@ -1068,6 +1104,22 @@ NrHelper::AttachToEnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         ueNetDev->GetPhy(i)->SetPattern(enbNetDev->GetPhy(i)->GetPattern());
         Ptr<EpcUeNas> ueNas = ueNetDev->GetNas();
         ueNas->Connect(enbNetDev->GetBwpId(i), enbNetDev->GetEarfcn(i));
+
+        if (m_enableMimoFeedback)
+        {
+            // Initialize parameters for MIMO precoding matrix search (PMI feedback)
+            auto pmSearch = m_pmSearchFactory.Create<NrPmSearch>();
+            ueNetDev->GetPhy(i)->SetPmSearch(pmSearch);
+            auto gnbAnt =
+                enbNetDev->GetPhy(i)->GetSpectrumPhy()->GetAntenna()->GetObject<PhasedArrayModel>();
+            auto ueAnt =
+                ueNetDev->GetPhy(i)->GetSpectrumPhy()->GetAntenna()->GetObject<PhasedArrayModel>();
+            pmSearch->SetGnbParams(gnbAnt->IsDualPol(),
+                                   gnbAnt->GetNumHorizontalPorts(),
+                                   gnbAnt->GetNumVerticalPorts());
+            pmSearch->SetUeParams(ueAnt->GetNumPorts());
+            pmSearch->InitCodebooks();
+        }
     }
 
     if (m_epcHelper)
@@ -1792,6 +1844,64 @@ NrHelper::EnableDlDataPathlossTraces(NetDeviceContainer& ueDevs)
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/"
                     "DlDataPathloss",
                     MakeBoundCallback(&NrPhyRxTrace::ReportDlDataPathloss, m_phyStats));
+}
+
+void
+NrHelper::SetPmSearchTypeId(const TypeId& typeId)
+{
+    m_pmSearchFactory.SetTypeId(typeId);
+}
+
+void
+NrHelper::SetPmSearchAttribute(const std::string& name, const AttributeValue& value)
+{
+    NS_LOG_FUNCTION(this);
+    m_pmSearchFactory.Set(name, value);
+}
+
+void
+NrHelper::SetupGnbAntennas(const NrHelper::AntennaParams& ap)
+{
+    auto antFactory = ObjectFactory{};
+    antFactory.SetTypeId(ap.antennaElem);
+    SetGnbAntennaAttribute("AntennaElement", PointerValue(antFactory.Create()));
+    SetGnbAntennaAttribute("NumColumns", UintegerValue(ap.nAntCols));
+    SetGnbAntennaAttribute("NumRows", UintegerValue(ap.nAntRows));
+    SetGnbAntennaAttribute("IsDualPolarized", BooleanValue(ap.isDualPolarized));
+    SetGnbAntennaAttribute("NumHorizontalPorts", UintegerValue(ap.nHorizPorts));
+    SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(ap.nVertPorts));
+    SetGnbAntennaAttribute("BearingAngle", DoubleValue(ap.bearingAngle));
+    SetGnbAntennaAttribute("PolSlantAngle", DoubleValue(ap.polSlantAngle));
+}
+
+void
+NrHelper::SetupUeAntennas(const NrHelper::AntennaParams& ap)
+{
+    auto antFactory = ObjectFactory{};
+    antFactory.SetTypeId(ap.antennaElem);
+    SetUeAntennaAttribute("AntennaElement", PointerValue(antFactory.Create()));
+    SetUeAntennaAttribute("NumColumns", UintegerValue(ap.nAntCols));
+    SetUeAntennaAttribute("NumRows", UintegerValue(ap.nAntRows));
+    SetUeAntennaAttribute("IsDualPolarized", BooleanValue(ap.isDualPolarized));
+    SetUeAntennaAttribute("NumHorizontalPorts", UintegerValue(ap.nHorizPorts));
+    SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(ap.nVertPorts));
+    SetUeAntennaAttribute("BearingAngle", DoubleValue(ap.bearingAngle));
+    SetUeAntennaAttribute("PolSlantAngle", DoubleValue(ap.polSlantAngle));
+}
+
+void
+NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
+{
+    // Set parameters for MIMO precoding matrix search
+    SetAttribute("EnableMimoFeedback", BooleanValue(true));
+    auto searchTypeId = TypeId::LookupByName(mp.pmSearchMethod);
+    SetPmSearchTypeId(searchTypeId);
+    SetPmSearchAttribute("RankLimit", UintegerValue(mp.rankLimit));
+    if (searchTypeId == NrPmSearchFull::GetTypeId())
+    {
+        SetPmSearchAttribute("NrPmSearchFull::CodebookType",
+                             TypeIdValue(TypeId::LookupByName(mp.fullSearchCb)));
+    }
 }
 
 } // namespace ns3

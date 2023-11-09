@@ -2141,6 +2141,7 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
         uint8_t numSym{1};
         uint8_t mcs{0};
         uint8_t rank{1};
+        Ptr<const ComplexMatrixArray> precMats{nullptr};
         uint32_t tbs{0};
         uint8_t ndi{1};
         uint8_t rv{0};
@@ -2150,6 +2151,7 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
                                                         numSym,
                                                         mcs,
                                                         rank,
+                                                        precMats,
                                                         tbs,
                                                         ndi,
                                                         rv,

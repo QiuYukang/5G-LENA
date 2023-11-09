@@ -132,6 +132,16 @@ NrUePhy::GetTypeId()
                           BooleanValue(false),
                           MakeBooleanAccessor(&NrUePhy::SetEnableUplinkPowerControl),
                           MakeBooleanChecker())
+            .AddAttribute("WbPmiUpdateInterval",
+                          "Wideband PMI update interval",
+                          TimeValue(NR_DEFAULT_PMI_INTERVAL_WB),
+                          MakeTimeAccessor(&NrUePhy::m_wbPmiUpdateInterval),
+                          MakeTimeChecker())
+            .AddAttribute("SbPmiUpdateInterval",
+                          "Subband PMI update interval",
+                          TimeValue(NR_DEFAULT_PMI_INTERVAL_SB),
+                          MakeTimeAccessor(&NrUePhy::m_sbPmiUpdateInterval),
+                          MakeTimeChecker())
             .AddTraceSource("DlDataSinr",
                             "DL DATA SINR statistics.",
                             MakeTraceSourceAccessor(&NrUePhy::m_dlDataSinrTrace),
@@ -252,6 +262,11 @@ void
 NrUePhy::SetDlAmc(const Ptr<const NrAmc>& amc)
 {
     m_amc = amc;
+
+    if (m_pmSearch)
+    {
+        m_pmSearch->SetAmc(amc);
+    }
 }
 
 void
@@ -1546,6 +1561,87 @@ NrUePhy::DoSetImsi(uint64_t imsi)
 {
     NS_LOG_FUNCTION(this);
     m_imsi = imsi;
+}
+
+void
+NrUePhy::GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks)
+{
+    NS_LOG_FUNCTION(this);
+    // Adopted from NrUePhy::GenerateDlCqiReport: CQI feedback requires properly configured UE
+    if (!m_ulConfigured || (m_rnti == 0))
+    {
+        return;
+    }
+    // Adopted from NrUePhy::GenerateDlCqiReport: Do not send feedback if this UE was not
+    // receiving downlink data (was not scheduled)
+    if (!m_receptionEnabled)
+    {
+        return;
+    }
+
+    // Combine multiple signal chunks into a single channel matrix and interference covariance
+    auto rxSignal = NrMimoSignal{mimoChunks};
+
+    // Determine if an update to wideband or subband PMI is needed and possible
+    auto pmiUpdateParams = CheckUpdatePmi();
+
+    // Create DL CQI message for CQI, PMI, and RI. PMI values are updated only if specified by
+    // pmiUpdateParams, otherwise assume same PMI values as during last CQI feedback
+    auto cqi = m_pmSearch->CreateCqiFeedbackMimo(rxSignal, pmiUpdateParams);
+    auto dlcqi = DlCqiInfo{
+        .m_rnti = m_rnti,
+        .m_ri = cqi.m_rank,
+        .m_cqiType = cqi.m_cqiType,
+        .m_wbCqi = cqi.m_wbCqi,
+        .m_wbPmi = cqi.m_wbPmi,
+        .m_sbCqis = cqi.m_sbCqis,
+        .m_sbPmis = cqi.m_sbPmis,
+        .m_mcs = cqi.m_mcs,
+        .m_optPrecMat = cqi.m_optPrecMat,
+    };
+
+    auto msg = Create<NrDlCqiMessage>();
+    msg->SetSourceBwp(GetBwpId());
+    msg->SetDlCqi(dlcqi);
+
+    DoSendControlMessage(msg);
+}
+
+NrPmSearch::PmiUpdate
+NrUePhy::CheckUpdatePmi()
+{
+    // This implementation only checks if sufficient time has passed since the last update.
+    // TODO: Improve following logic that defines when to update wideband and/or
+    // subband PMIs for two-stage codebooks. The algorithm must allow managing the computational
+    // complexity of PMI updates, and take into account availability of PUCCH/PUSCH resources for
+    // sending PMI.
+    auto pmiUpdate = NrPmSearch::PmiUpdate{};
+    auto now = Simulator::Now();
+    if (now > m_wbPmiLastUpdate + m_wbPmiUpdateInterval)
+    {
+        pmiUpdate.updateWb = true;
+        m_wbPmiLastUpdate = now;
+    }
+    if (now > m_sbPmiLastUpdate + m_sbPmiUpdateInterval)
+    {
+        pmiUpdate.updateSb = true;
+        m_sbPmiLastUpdate = now;
+    }
+    return pmiUpdate;
+}
+
+void
+NrUePhy::SetPmSearch(Ptr<NrPmSearch> pmSearch)
+{
+    m_pmSearch = pmSearch;
+    NS_ASSERT(m_amc);
+    m_pmSearch->SetAmc(m_amc);
+}
+
+Ptr<NrPmSearch>
+NrUePhy::GetPmSearch() const
+{
+    return m_pmSearch;
 }
 
 } // namespace ns3

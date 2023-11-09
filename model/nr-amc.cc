@@ -447,7 +447,6 @@ NrAmc::CalcTblerForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const
     auto mimoChunks = std::vector<MimoSinrChunk>{mimoChunk};
     auto rank = sinrMat.GetRank();
 
-    // APPLE OSS postback note: this code mirrors OSS L237-L244
     // Create the RB map (indices of used RBs, i.e., indices of RBs where SINR is non-zero)
     std::vector<int> rbMap{}; // TODO: change type of rbMap from int to size_t
     int nRbs = static_cast<int>(sinrMat.GetNumRbs());

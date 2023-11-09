@@ -98,48 +98,6 @@ struct GetSecond
 
 /**
  * \ingroup utils
- * \brief The TbInfoElement struct
- */
-struct TbInfoElement
-{
-    TbInfoElement()
-        : m_isUplink(false),
-          m_varTtiIdx(0),
-          m_rbBitmap(0),
-          m_rbShift(0),
-          m_rbStart(0),
-          m_rbLen(0),
-          m_symStart(0),
-          m_numSym(0),
-          m_resAlloc(0),
-          m_mcs(0),
-          m_rank(0),
-          m_tbSize(0),
-          m_ndi(0),
-          m_rv(0),
-          m_harqProcess(0)
-    {
-    }
-
-    bool m_isUplink;     // is uplink grant?
-    uint8_t m_varTtiIdx; // var tti index
-    uint32_t m_rbBitmap; // Resource Block Group bitmap
-    uint8_t m_rbShift;   // shift for res alloc type 1
-    uint8_t m_rbStart;   // starting RB index for uplink res alloc type 0
-    uint16_t m_rbLen;
-    uint8_t m_symStart; // starting symbol index for flexible TTI scheme
-    uint8_t m_numSym;   // number of symbols for flexible TTI scheme
-    uint8_t m_resAlloc; // resource allocation type
-    uint8_t m_mcs;
-    uint8_t m_rank;
-    uint32_t m_tbSize;
-    uint8_t m_ndi;
-    uint8_t m_rv;
-    uint8_t m_harqProcess;
-};
-
-/**
- * \ingroup utils
  * \brief Scheduling information. Despite the name, it is not TDMA.
  */
 struct DciInfoElementTdma
@@ -190,8 +148,9 @@ struct DciInfoElementTdma
      * \param format DCI format
      * \param symStart starting symbol index for flexible TTI scheme
      * \param numSym number of symbols for flexible TTI scheme
-     * \param rank the Rank number
      * \param mcs MCS
+     * \param rank the Rank number
+     * \param precMats the precoding matrix
      * \param tbs TB size
      * \param ndi New Data Indicator
      * \param rv Redundancy Version
@@ -202,6 +161,7 @@ struct DciInfoElementTdma
                        uint8_t numSym,
                        uint8_t mcs,
                        uint8_t rank,
+                       Ptr<const ComplexMatrixArray> precMats,
                        uint32_t tbs,
                        uint8_t ndi,
                        uint8_t rv,
@@ -214,6 +174,7 @@ struct DciInfoElementTdma
           m_numSym(numSym),
           m_mcs(mcs),
           m_rank(rank),
+          m_precMats(precMats),
           m_tbSize(tbs),
           m_ndi(ndi),
           m_rv(rv),
@@ -242,6 +203,7 @@ struct DciInfoElementTdma
           m_numSym(numSym),
           m_mcs(o.m_mcs),
           m_rank(o.m_rank),
+          m_precMats(o.m_precMats),
           m_tbSize(o.m_tbSize),
           m_ndi(ndi),
           m_rv(rv),
@@ -258,7 +220,8 @@ struct DciInfoElementTdma
     const uint8_t m_symStart{0};  //!< starting symbol index for flexible TTI scheme
     const uint8_t m_numSym{0};    //!< number of symbols for flexible TTI scheme
     const uint8_t m_mcs{0};       //!< MCS
-    const uint8_t m_rank{1};
+    const uint8_t m_rank{1};      //!< the rank number (the number of MIMO layers)
+    Ptr<const ComplexMatrixArray> m_precMats{nullptr};
     const uint32_t m_tbSize{0};   //!< TB size
     const uint8_t m_ndi{0};       //!< New Data Indicator
     const uint8_t m_rv{0};        //!< Redundancy Version
@@ -267,24 +230,6 @@ struct DciInfoElementTdma
     uint8_t m_harqProcess{0};     //!< HARQ process id
     std::vector<uint8_t> m_rbgBitmask{}; //!< RBG mask: 0 if the RBG is not used, 1 otherwise
     const uint8_t m_tpc{0};              //!< Tx power control command
-};
-
-/**
- * \ingroup utils
- * \brief The TbAllocInfo struct
- */
-struct TbAllocInfo
-{
-    TbAllocInfo()
-        : m_rnti(0)
-    {
-    }
-
-    // struct
-    SfnSf m_sfnSf;
-    uint16_t m_rnti;
-    std::vector<unsigned> m_rbMap;
-    TbInfoElement m_tbInfo;
 };
 
 /**
@@ -396,7 +341,7 @@ struct DlCqiInfo
 {
     uint16_t m_rnti{0}; //!< The RNTI
     // TODO: Rename to m_rank (m_ri is set directly to the rank).
-    uint8_t m_ri{0};
+    uint8_t m_ri{0}; //!< the rank indicator, or simply the rank number
 
     // TODO: use NrMacSchedulerUeInfo::CqiInfo
     enum DlCqiType
@@ -414,6 +359,10 @@ struct DlCqiInfo
     Ptr<const ComplexMatrixArray> m_optPrecMat{}; ///< Precoding matrix for each RB
 };
 
+/**
+ * \brief The structure used for the CQI feedback message that contains the optimum CQI, RI, PMI,
+ and full precoding matrix (dimensions: nGnbPorts * rank * nRbs).
+ */
 struct PmCqiInfo
 {
     uint8_t m_mcs{0};              //!< Modulation and coding scheme supported by current channel

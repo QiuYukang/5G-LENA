@@ -28,6 +28,7 @@ NrMacSchedulerCQIManagement::DlSBCQIReported(
 {
     NS_LOG_FUNCTION(this);
     // TODO
+    NS_ABORT_MSG("SB CQI Type is not supported");
 }
 
 void
@@ -154,6 +155,16 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
     NS_LOG_INFO("Updated WB CQI of UE "
                 << ueInfo->m_rnti << " to " << static_cast<uint32_t>(ueInfo->m_dlCqi.m_wbCqi)
                 << ". It will expire in " << ueInfo->m_dlCqi.m_timer << " slots.");
+
+    if (info.m_optPrecMat)
+    {
+        // Set the number of layers (rank) directly to m_ri (do not decode m_ri)
+        NS_ASSERT(info.m_ri > 0);
+        ueInfo->m_dlRank = info.m_ri;
+
+        // Set the precoding matrix
+        ueInfo->m_dlPrecMats = info.m_optPrecMat;
+    }
 }
 
 void

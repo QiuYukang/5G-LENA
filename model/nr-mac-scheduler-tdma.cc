@@ -345,6 +345,7 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
                          DciInfoElementTdma::DL,
                          ueInfo->m_dlMcs,
                          ueInfo->m_dlRank,
+                         ueInfo->m_dlPrecMats,
                          std::max(numSym, static_cast<uint8_t>(1)));
 
     // The starting point must advance.
@@ -403,6 +404,7 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                          DciInfoElementTdma::UL,
                          ueInfo->m_ulMcs,
                          ueInfo->m_ulRank,
+                         ueInfo->m_ulPrecMats,
                          numSym);
 
     // Reset the RBG (we are TDMA)
@@ -439,6 +441,7 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                               DciInfoElementTdma::DciFormat fmt,
                               uint32_t mcs,
                               uint8_t rank,
+                              Ptr<const ComplexMatrixArray> precMats,
                               uint8_t numSym) const
 {
     NS_LOG_FUNCTION(this);
@@ -452,6 +455,7 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                              numSym,
                                              mcs,
                                              rank,
+                                             precMats,
                                              tbs,
                                              1,
                                              0,

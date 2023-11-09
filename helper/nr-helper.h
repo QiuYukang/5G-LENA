@@ -853,7 +853,52 @@ class NrHelper : public Object
      */
     int64_t AssignStreams(NetDeviceContainer c, int64_t stream);
 
+    /// \brief parameters of the gNB or UE antenna arrays
+    struct AntennaParams
+    {
+        std::string antennaElem{"ns3::IsotropicAntennaModel"}; ///< Antenna type
+        size_t nAntCols{1};          ///< Number of antenna element columns (horizontal width)
+        size_t nAntRows{1};          ///< Number of antenna element rows (vertical height)
+        bool isDualPolarized{false}; ///< true if antennas are cross-polarized (dual-polarized)
+        size_t nHorizPorts{1};       ///< Number of antenna ports in horizontal direction
+        size_t nVertPorts{1};        ///< Number of antenna ports in vertical direction
+        double bearingAngle{0.0};    ///< Bearing angle in radians
+        double polSlantAngle{0.0};   ///< Polarization slant angle in radians
+    };
+
+    /// \brief parameters for the search of optimal rank and precoding matrix indicator (RI, PMI)
+    struct MimoPmiParams
+    {
+        std::string pmSearchMethod{"ns3::NrPmSearchFull"}; ///< Precoding matrix search algorithm
+        std::string fullSearchCb{"ns3::NrCbTwoPort"}; ///< Codebook when using full-search algorithm
+        uint8_t rankLimit{UINT8_MAX}; ///< Limit maximum MIMO rank to model limited UE capabilities.
+    };
+
+    /// \brief Set TypeId of the precoding matrix search algorithm
+    /// \param typeId Class TypeId
+    void SetPmSearchTypeId(const TypeId& typeId);
+
+    /// \brief Set attribute of the precoding matrix search algorithm
+    /// \param name attribute to set
+    /// \param value value of the attribute
+    void SetPmSearchAttribute(const std::string& name, const AttributeValue& value);
+
+    /// \brief Set parameters for gNB and UE antenna arrays
+    /// \param ap the struct with antenna parameters
+    void SetupGnbAntennas(const AntennaParams& ap);
+
+    /// \brief Set parameters for gNB and UE antenna arrays
+    /// \param ap the struct with antenna parameters
+    void SetupUeAntennas(const AntennaParams& ap);
+
+    /// \brief Set parameters for PMI search in MIMO operation
+    /// \param mp the struct with MIMO PMI parameters
+    void SetupMimoPmi(const MimoPmiParams& mp);
+
   private:
+    bool m_enableMimoFeedback{false}; ///< Let UE compute MIMO feedback with PMI and RI
+    ObjectFactory m_pmSearchFactory;  ///< Factory for precoding matrix search algorithm
+
     /**
      * Assign a fixed random variable stream number to the channel and propagation
      * objects. This function will save the objects to which it has assigned stream
