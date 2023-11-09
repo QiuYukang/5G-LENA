@@ -408,12 +408,12 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     NS_LOG_INFO("Start receiving signal: " << rxPsd << " duration= " << duration);
 
     // pass it to interference calculations regardless of the type (nr or non-nr)
-    m_interferenceData->AddSignal(rxPsd, duration);
+    m_interferenceData->AddSignalMimo(params, duration);
 
     // pass the signal to the interference calculator regardless of the type (nr or non-nr)
     if (m_interferenceSrs)
     {
-        m_interferenceSrs->AddSignal(rxPsd, duration);
+        m_interferenceSrs->AddSignalMimo(params, duration);
     }
 
     Ptr<NrSpectrumSignalParametersDataFrame> nrDataRxParams =
@@ -466,7 +466,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     }
     else if (dlCtrlRxParams != nullptr)
     {
-        m_interferenceCtrl->AddSignal(rxPsd, duration);
+        m_interferenceCtrl->AddSignalMimo(params, duration);
 
         if (!m_isEnb)
         {
@@ -491,7 +491,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
 
             if (dlCtrlRxParams->cellId == GetCellId())
             {
-                m_interferenceCtrl->StartRx(rxPsd);
+                m_interferenceCtrl->StartRxMimo(params);
                 StartRxDlCtrl(dlCtrlRxParams);
 
                 if (m_enableDlCtrlPathlossTrace)
@@ -978,7 +978,7 @@ NrSpectrumPhy::StartRxData(const Ptr<NrSpectrumSignalParametersDataFrame>& param
                   // multiple UEs at the same time
         /* no break */
     case IDLE: {
-        m_interferenceData->StartRx(params->psd);
+        m_interferenceData->StartRxMimo(params);
 
         if (m_rxPacketBurstList.empty())
         {
@@ -1162,9 +1162,8 @@ NrSpectrumPhy::StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& para
     case IDLE: {
         // at the gNB we can receive only one SRS at a time, and the only allowed states before
         // starting it are IDLE or BUSY
-        m_interferenceSrs->StartRx(params->psd);
-        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be
-        // empty
+        m_interferenceSrs->StartRxMimo(params);
+        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be empty
         NS_ASSERT(m_rxControlMessageList.empty());
         m_firstRxStart = Simulator::Now();
         m_firstRxDuration = params->duration;

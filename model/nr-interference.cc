@@ -6,6 +6,8 @@
 
 #include "nr-interference.h"
 
+#include "nr-mimo-chunk-processor.h"
+
 #include <ns3/log.h>
 #include <ns3/lte-chunk-processor.h>
 #include <ns3/simulator.h>
@@ -34,6 +36,11 @@ void
 NrInterference::DoDispose()
 {
     NS_LOG_FUNCTION(this);
+
+    m_mimoChunkProcessors.clear();
+    m_rxSignalsMimo.clear();
+    m_allSignalsMimo.clear();
+
     LteInterference::DoDispose();
 }
 
@@ -115,6 +122,11 @@ NrInterference::EndRx()
         {
             (*it)->End();
         }
+
+        for (auto& cp : m_mimoChunkProcessors)
+        {
+            cp->End();
+        }
     }
 }
 
@@ -155,6 +167,30 @@ NrInterference::ConditionallyEvaluateChunk()
              ++it)
         {
             (*it)->EvaluateChunk(sinr, duration);
+        }
+
+        for (auto& cp : m_mimoChunkProcessors)
+        {
+            // Covariance matrix of noise plus out-of-cell interference
+            auto outOfCellInterfCov = CalcOutOfCellInterfCov();
+
+            // Compute the MIMO SINR separately for each received signal.
+            for (auto& rxSignal : m_rxSignalsMimo)
+            {
+                // Use the UE's RNTI to distinguish multiple received signals
+                auto nrRxSignal = DynamicCast<const NrSpectrumSignalParametersDataFrame>(rxSignal);
+                uint16_t rnti = nrRxSignal ? nrRxSignal->rnti : 0;
+
+                // MimoSinrChunk is used to store SINR and compute TBLER of the data transmission
+                auto sinrMatrix = ComputeSinr(outOfCellInterfCov, rxSignal);
+                MimoSinrChunk mimoSinr{sinrMatrix, rnti, duration};
+                cp->EvaluateChunk(mimoSinr);
+
+                // MimoSignalChunk is used to compute PMI feedback.
+                auto& chanSpct = *(rxSignal->spectrumChannelMatrix);
+                MimoSignalChunk mimoSignal{chanSpct, outOfCellInterfCov, rnti, duration};
+                cp->EvaluateChunk(mimoSignal);
+            }
         }
         m_lastChangeTime = Now();
     }
@@ -304,6 +340,184 @@ NrInterference::AppendEvent(Time startTime, Time endTime, double rxPowerW)
 
     // for the endTime create event that will subtract energy
     AddNiChangeEvent(NiChange(endTime, -rxPowerW));
+}
+
+void
+NrInterference::AddSignalMimo(Ptr<const SpectrumSignalParameters> params, const Time& duration)
+{
+    NS_LOG_FUNCTION(this << *params->psd << duration);
+    auto rxPowerW = Integral(*params->psd);
+
+    NS_LOG_FUNCTION(this << *params->psd << duration);
+    LteInterference::DoAddSignal(params->psd);
+    m_allSignalsMimo.push_back(params);
+    // Update signal ID to match signal ID in LteInterference
+    if (++m_lastSignalId == m_lastSignalIdBeforeReset)
+    {
+        m_lastSignalIdBeforeReset += NR_LTE_SIGNALID_INCR;
+    }
+    Simulator::Schedule(duration,
+                        &NrInterference::DoSubtractSignalMimo,
+                        this,
+                        params,
+                        m_lastSignalId);
+
+    AppendEvent(Simulator::Now(), Simulator::Now() + duration, rxPowerW);
+}
+
+void
+NrInterference::StartRxMimo(Ptr<const SpectrumSignalParameters> params)
+{
+    auto rxPsd = params->psd;
+    if (!m_receiving)
+    {
+        // This must be the first receive signal, clear any lingering previous signals
+        m_rxSignalsMimo.clear();
+    }
+    m_rxSignalsMimo.push_back(params);
+    for (auto& cp : m_mimoChunkProcessors)
+    {
+        // Clear the list of stored chunks
+        cp->Start();
+    }
+    LteInterference::StartRx(rxPsd);
+}
+
+void
+NrInterference::DoSubtractSignalMimo(Ptr<const SpectrumSignalParameters> params, uint32_t signalId)
+{
+    DoSubtractSignal(params->psd, signalId);
+    auto numSignals = m_allSignalsMimo.size();
+    // In many instances the signal subtracted is the last signal. Check first for speedup.
+    if (m_allSignalsMimo.back() == params)
+    {
+        m_allSignalsMimo.pop_back();
+    }
+    else
+    {
+        m_allSignalsMimo.erase(
+            std::remove_if(m_allSignalsMimo.begin(),
+                           m_allSignalsMimo.end(),
+                           [params](Ptr<const SpectrumSignalParameters> p) { return p == params; }),
+            m_allSignalsMimo.end());
+    }
+    NS_ASSERT_MSG(m_allSignalsMimo.size() == (numSignals - 1),
+                  "MIMO signal was not found for removal");
+}
+
+void
+NrInterference::AddMimoChunkProcessor(Ptr<NrMimoChunkProcessor> cp)
+{
+    NS_LOG_FUNCTION(this << cp);
+    m_mimoChunkProcessors.push_back(cp);
+}
+
+NrCovMat
+NrInterference::CalcOutOfCellInterfCov() const
+{
+    // Extract dimensions from first receive signal. Interference signals have equal dimensions
+    NS_ASSERT_MSG(!(m_rxSignalsMimo.empty()), "At least one receive signal is required");
+    const auto& firstSignal = m_rxSignalsMimo[0];
+    NS_ASSERT_MSG(firstSignal->spectrumChannelMatrix, "signal must have a channel matrix");
+    auto nRbs = firstSignal->spectrumChannelMatrix->GetNumPages();
+    auto nRxPorts = firstSignal->spectrumChannelMatrix->GetNumRows();
+
+    // Create white noise covariance matrix
+    auto allSignalsNoiseCov = NrCovMat{ComplexMatrixArray(nRxPorts, nRxPorts, nRbs)};
+    for (size_t iRb = 0; iRb < nRbs; iRb++)
+    {
+        for (size_t iRxPort = 0; iRxPort < nRxPorts; iRxPort++)
+        {
+            allSignalsNoiseCov(iRxPort, iRxPort, iRb) = m_noise->ValuesAt(iRb);
+        }
+    }
+
+    // Add all external interference signals to the covariance matrix
+    for (const auto& intfSignal : m_allSignalsMimo)
+    {
+        if (std::find(m_rxSignalsMimo.begin(), m_rxSignalsMimo.end(), intfSignal) !=
+            m_rxSignalsMimo.end())
+        {
+            // This is one of the signals in the current cell
+            continue;
+        }
+
+        AddInterference(allSignalsNoiseCov, intfSignal);
+    }
+    return allSignalsNoiseCov;
+}
+
+NrCovMat
+NrInterference::CalcCurrInterfCov(Ptr<const SpectrumSignalParameters> rxSignal,
+                                  const NrCovMat& outOfCellInterfCov) const
+{
+    // Add also the potential interfering signals intended for this device but belonging to other
+    // transmissions. This is required for a gNB receiving MU-MIMO UL signals from multiple UEs
+    auto interfNoiseCov = outOfCellInterfCov;
+    for (auto& otherSignal : m_rxSignalsMimo)
+    {
+        if (otherSignal == rxSignal)
+        {
+            continue; // this is the current receive signal of interest, do not add to interference
+        }
+        NS_ASSERT_MSG((std::find(m_allSignalsMimo.begin(), m_allSignalsMimo.end(), otherSignal) !=
+                       m_allSignalsMimo.end()),
+                      "RX signal already deleted from m_allSignalsMimo");
+
+        AddInterference(interfNoiseCov, otherSignal);
+    }
+    return interfNoiseCov;
+}
+
+void
+NrInterference::AddInterference(NrCovMat& covMat, Ptr<const SpectrumSignalParameters> signal) const
+{
+    const auto& chanSpct = *(signal->spectrumChannelMatrix);
+    if (signal->precodingMatrix)
+    {
+        auto& precMats = *(signal->precodingMatrix);
+        NS_ASSERT_MSG((precMats.GetNumPages() > 0) && (chanSpct.GetNumPages() > 0),
+                      "precMats and channel cannot be empty");
+        NS_ASSERT_MSG(precMats.GetNumPages() == chanSpct.GetNumPages(),
+                      "dim mismatch " << precMats.GetNumPages() << " vs "
+                                      << chanSpct.GetNumPages());
+        covMat.AddInterferenceSignal(chanSpct * precMats);
+    }
+    else
+    {
+        covMat.AddInterferenceSignal(chanSpct);
+    }
+}
+
+NrSinrMatrix
+NrInterference::ComputeSinr(NrCovMat& outOfCellInterfCov,
+                            Ptr<const SpectrumSignalParameters> rxSignal) const
+{
+    // Calculate the interference+noise (I+N) covariance matrix for this signal,
+    // including interference from other RX signals
+    auto interfNoiseCov = CalcCurrInterfCov(rxSignal, outOfCellInterfCov);
+
+    // Interference whitening: normalize the signal such that interference + noise covariance matrix
+    // is the identity matrix
+    const auto& chanSpct = *(rxSignal->spectrumChannelMatrix);
+    auto intfNormChanMat = interfNoiseCov.CalcIntfNormChannel(chanSpct);
+
+    // Get the precoding matrix or create a dummy precoding matrix
+    ComplexMatrixArray precMat;
+    if (rxSignal->precodingMatrix)
+    {
+        precMat = *(rxSignal->precodingMatrix);
+    }
+    else
+    {
+        precMat = ComplexMatrixArray{chanSpct.GetNumRows(), 1, chanSpct.GetNumPages()};
+        for (size_t p = 0; p < chanSpct.GetNumPages(); p++)
+        {
+            precMat(0, 0, p) = 1.0;
+        }
+    }
+
+    return intfNormChanMat.ComputeSinrForPrecoding(precMat);
 }
 
 } // namespace ns3

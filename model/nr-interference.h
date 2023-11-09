@@ -7,10 +7,13 @@
 #ifndef NR_INTERFERENCE_H
 #define NR_INTERFERENCE_H
 
+#include "nr-spectrum-signal-parameters.h"
+
 #include <ns3/lte-interference.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
 #include <ns3/packet.h>
+#include <ns3/spectrum-signal-parameters.h>
 #include <ns3/spectrum-value.h>
 #include <ns3/trace-source-accessor.h>
 #include <ns3/traced-callback.h>
@@ -20,6 +23,14 @@
 
 namespace ns3
 {
+
+// Signal ID increment used in LteInterference
+static constexpr uint32_t NR_LTE_SIGNALID_INCR = 0x10000000;
+
+class NrCovMat;
+class NrSinrMatrix;
+class NrErrorModel;
+class NrMimoChunkProcessor;
 
 /**
  * \ingroup spectrum
@@ -90,7 +101,68 @@ class NrInterference : public LteInterference
     // inherited from LteInterference
     void EndRx() override;
 
+    /// \brief Notify that a new signal is being perceived in the medium.
+    /// This method is to be called for all incoming signals, including interference.
+    /// This method handles MIMO signals and also calls LteInterference to cover SISO signals.
+    /// \param params The spectrum signal parameters of the new signal
+    /// \param duration The duration of the new signal
+    virtual void AddSignalMimo(Ptr<const SpectrumSignalParameters> params, const Time& duration);
+
+    /// \brief Notify the intended receiver that a new signal is being received.
+    /// This method is to be called only for the useful signal-of-interest.
+    /// This method handles MIMO signals and also calls LteInterference to cover SISO signals.
+    /// \param params The spectrum signal parameters of the new signal
+    virtual void StartRxMimo(Ptr<const SpectrumSignalParameters> params);
+
+    /// \brief Notify that a signals transmission is ending.
+    /// This means that the signal will be removed from the lists of RX and interfering signals.
+    /// This method handles MIMO signals and also calls LteInterference to cover SISO signals.
+    /// \param params The spectrum signal parameters of the ending signal
+    /// \param signalId The LteInterference signalId
+    virtual void DoSubtractSignalMimo(Ptr<const SpectrumSignalParameters> params,
+                                      uint32_t signalId);
+
+    /// \brief Add a chunk processor for MIMO signals
+    /// \param cp The NrMimoChunkProcessor to be added
+    virtual void AddMimoChunkProcessor(Ptr<NrMimoChunkProcessor> cp);
+
   private:
+    /// \brief Calculate interference-plus-noise covariance matrix for signals not in m_rxSignals
+    /// This function computes the interference signals from all out-of-cell interferers. The
+    /// intra-cell interference signals that are part of m_rxSignals are skipped.
+    /// \return the interference+noise covariance matrix for out-of-cell interference
+    NrCovMat CalcOutOfCellInterfCov() const;
+
+    /// \brief Add the remaining interference to the interference-and-noise covariance matrix
+    /// This function is required for MU-MIMO UL, where the signal from a different UE within the
+    /// same cell can act as interference towards the current signal.
+    /// \param rxSignal the parameters of the received signal-of-interest
+    /// \param outOfCellInterfCov the covariance matrix of out-of-cell signals, plus noise
+    /// \return the interference+noise covariance matrix for the current signal
+    NrCovMat CalcCurrInterfCov(Ptr<const SpectrumSignalParameters> rxSignal,
+                               const NrCovMat& outOfCellInterfCov) const;
+
+    /// \brief Add the covariance of the signal to an existing covariance matrix
+    /// \param covMat the existing interference-and-noise covariance matrix
+    /// \param signal the signal to be added
+    void AddInterference(NrCovMat& covMat, Ptr<const SpectrumSignalParameters> signal) const;
+
+    /// \brief Compute the SINR of the current receive signal
+    /// \param outOfCellInterfCov the covariance matrix of out-of-cell signals, plus noise
+    /// \param rxSignal the receive signal
+    /// \return the SINR of the receive signal
+    NrSinrMatrix ComputeSinr(NrCovMat& outOfCellInterfCov,
+                             Ptr<const SpectrumSignalParameters> rxSignal) const;
+
+    /// Stores the params of all incoming signals, including the interference signals
+    std::vector<Ptr<const SpectrumSignalParameters>> m_allSignalsMimo;
+
+    /// Stores the params of all incoming signals intended for this receiver
+    std::vector<Ptr<const SpectrumSignalParameters>> m_rxSignalsMimo;
+
+    /// The processor instances that are notified whenever a new interference chunk is calculated
+    std::list<Ptr<NrMimoChunkProcessor>> m_mimoChunkProcessors;
+
     /**
      * Noise and Interference (thus Ni) event.
      */

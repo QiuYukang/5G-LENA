@@ -78,6 +78,8 @@ set(source_files
     model/nr-mac-scheduler-lc-alg.cc
     model/nr-mac-scheduler-lc-rr.cc
     model/nr-mac-scheduler-lc-qos.cc
+    model/nr-mimo-chunk-processor.cc
+    model/nr-mimo-matrices.cc
     model/nr-eesm-error-model.cc
     model/nr-eesm-t1.cc
     model/nr-eesm-t2.cc
@@ -194,6 +196,8 @@ set(header_files
     model/nr-mac-scheduler-lc-alg.h
     model/nr-mac-scheduler-lc-rr.h
     model/nr-mac-scheduler-lc-qos.h
+    model/nr-mimo-chunk-processor.h
+    model/nr-mimo-matrices.h
     model/nr-eesm-error-model.h
     model/nr-eesm-t1.h
     model/nr-eesm-t2.h
@@ -271,3 +275,13 @@ build_lib(
     ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )
+
+if(${ENABLE_EIGEN})
+  target_sources(
+    libnr PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
+  )
+else()
+  target_sources(
+    libnr PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
+  )
+endif()
