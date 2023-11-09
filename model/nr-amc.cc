@@ -359,4 +359,124 @@ NrAmc::GetBer() const
     }
 }
 
+NrAmc::McsParams
+NrAmc::GetMaxMcsParams(const NrSinrMatrix& sinrMat, size_t subbandSize) const
+{
+    auto mcs = uint8_t{0};
+    switch (m_amcModel)
+    {
+    case ShannonModel:
+        NS_ABORT_MSG("ShannonModel is not yet supported");
+        break;
+    case ErrorModel:
+        mcs = GetMaxMcsForErrorModel(sinrMat);
+        break;
+    default:
+        NS_ABORT_MSG("AMC model not supported");
+        break;
+    }
+    auto wbCqi = GetWbCqiFromMcs(mcs);
+    auto nRbs = sinrMat.GetNumRbs();
+    auto nSbs = (nRbs + subbandSize - 1) / subbandSize;
+
+    // Create subband CQI. Workaround: using WB-CQI as SB-CQI
+    // TODO: remove workaround and compute actual SB-CQI
+    auto sbCqis = std::vector<uint8_t>(nSbs, wbCqi);
+
+    auto tbSize = CalcTbSizeForMimoMatrix(mcs, sinrMat);
+    return McsParams{mcs, wbCqi, sbCqis, tbSize};
+}
+
+uint8_t
+NrAmc::GetMaxMcsForErrorModel(const NrSinrMatrix& sinrMat) const
+{
+    auto mcs = uint8_t{0};
+    while (mcs <= m_errorModel->GetMaxMcs())
+    {
+        auto tbler = CalcTblerForMimoMatrix(mcs, sinrMat);
+        // TODO: Change target TBLER from default 0.1 when using MCS table 3
+        if (tbler > 0.1)
+        {
+            break;
+        }
+        // The current configuration produces a sufficiently low TBLER, try next value
+        mcs++;
+    }
+    if (mcs > 0)
+    {
+        // The loop exited because the MCS exceeded max MCS or because of high TBLER. Reduce MCS
+        mcs--;
+    }
+
+    return mcs;
+}
+
+uint8_t
+NrAmc::GetWbCqiFromMcs(uint8_t mcs) const
+{
+    // Based on OSS CreateCqiFeedbackWbTdma
+    auto cqi = uint8_t{0};
+    if (mcs == 0)
+    {
+        cqi = 0;
+    }
+    else if (mcs == m_errorModel->GetMaxMcs())
+    {
+        // TODO: define constant for max CQI
+        cqi = 15;
+    }
+    else
+    {
+        auto s = m_errorModel->GetSpectralEfficiencyForMcs(mcs);
+        cqi = 0;
+        // TODO: define constant for max CQI
+        while ((cqi < 15) && (m_errorModel->GetSpectralEfficiencyForCqi(cqi + 1) <= s))
+        {
+            ++cqi;
+        }
+    }
+    return cqi;
+}
+
+double
+NrAmc::CalcTblerForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const
+{
+    auto dummyRnti = uint16_t{0};
+    auto duration = Time{1.0}; // Use an arbitrary non-zero time as the chunk duration
+    auto mimoChunk = MimoSinrChunk{sinrMat, dummyRnti, duration};
+    auto mimoChunks = std::vector<MimoSinrChunk>{mimoChunk};
+    auto rank = sinrMat.GetRank();
+
+    // APPLE OSS postback note: this code mirrors OSS L237-L244
+    // Create the RB map (indices of used RBs, i.e., indices of RBs where SINR is non-zero)
+    std::vector<int> rbMap{}; // TODO: change type of rbMap from int to size_t
+    int nRbs = static_cast<int>(sinrMat.GetNumRbs());
+    for (int rbIdx = 0; rbIdx < nRbs; rbIdx++)
+    {
+        if (sinrMat(0, rbIdx) != 0.0)
+        {
+            rbMap.push_back(rbIdx);
+        }
+    }
+
+    auto tbSize = CalcTbSizeForMimoMatrix(mcs, sinrMat);
+    auto dummyHistory = NrErrorModel::NrErrorModelHistory{}; // Create empty HARQ history
+    auto outputOfEm = m_errorModel->GetTbDecodificationStatsMimo(mimoChunks,
+                                                                 rbMap,
+                                                                 tbSize,
+                                                                 mcs,
+                                                                 rank,
+                                                                 dummyHistory);
+    return outputOfEm->m_tbler;
+}
+
+uint32_t
+NrAmc::CalcTbSizeForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const
+{
+    auto nRbs = sinrMat.GetNumRbs();
+    auto nRbSyms = nRbs * NR_AMC_NUM_SYMBOLS_DEFAULT;
+    auto rank = sinrMat.GetRank();
+    return CalculateTbSize(mcs, rank, nRbSyms);
+}
+
 } // namespace ns3

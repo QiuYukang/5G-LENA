@@ -78,8 +78,6 @@ set(source_files
     model/nr-mac-scheduler-lc-alg.cc
     model/nr-mac-scheduler-lc-rr.cc
     model/nr-mac-scheduler-lc-qos.cc
-    model/nr-mimo-chunk-processor.cc
-    model/nr-mimo-matrices.cc
     model/nr-eesm-error-model.cc
     model/nr-eesm-t1.cc
     model/nr-eesm-t2.cc
@@ -113,6 +111,13 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-3gpp-audio-data.cc
     utils/traffic-generators/model/traffic-generator-3gpp-generic-video.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
+    model/nr-cb-two-port.cc
+    model/nr-cb-type-one.cc
+    model/nr-mimo-chunk-processor.cc
+    model/nr-mimo-matrices.cc
+    model/nr-pm-search-full.cc
+    model/nr-pm-search.cc
+    model/nr-mimo-signal.cc
 )
 
 set(header_files
@@ -196,8 +201,6 @@ set(header_files
     model/nr-mac-scheduler-lc-alg.h
     model/nr-mac-scheduler-lc-rr.h
     model/nr-mac-scheduler-lc-qos.h
-    model/nr-mimo-chunk-processor.h
-    model/nr-mimo-matrices.h
     model/nr-eesm-error-model.h
     model/nr-eesm-t1.h
     model/nr-eesm-t2.h
@@ -233,6 +236,13 @@ set(header_files
     utils/traffic-generators/model/traffic-generator-3gpp-generic-video.h
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
+    model/nr-cb-two-port.h
+    model/nr-cb-type-one.h
+    model/nr-mimo-chunk-processor.h
+    model/nr-mimo-matrices.h
+    model/nr-pm-search-full.h
+    model/nr-pm-search.h
+    model/nr-mimo-signal.h
 )
 
 set(test_sources
@@ -278,10 +288,12 @@ build_lib(
 
 if(${ENABLE_EIGEN})
   target_sources(
-    libnr PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
+    libnr
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
   )
 else()
   target_sources(
-    libnr PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
+    libnr
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
   )
 endif()

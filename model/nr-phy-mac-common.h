@@ -14,6 +14,7 @@
 #include <ns3/component-carrier.h>
 #include <ns3/enum.h>
 #include <ns3/log.h>
+#include <ns3/matrix-array.h>
 #include <ns3/object.h>
 #include <ns3/packet.h>
 #include <ns3/simulator.h>
@@ -394,8 +395,10 @@ struct SlotAllocInfo
 struct DlCqiInfo
 {
     uint16_t m_rnti{0}; //!< The RNTI
+    // TODO: Rename to m_rank (m_ri is set directly to the rank).
     uint8_t m_ri{0};
 
+    // TODO: use NrMacSchedulerUeInfo::CqiInfo
     enum DlCqiType
     {
         WB,
@@ -404,6 +407,27 @@ struct DlCqiInfo
 
     uint8_t m_wbCqi{0}; //!< Wideband CQI
     size_t m_wbPmi{0};  //!< Wideband precoding matrix index
+
+    std::vector<uint8_t> m_sbCqis; //!< Subband CQI values
+    std::vector<size_t> m_sbPmis;  //!< Subband PMI values (i2, indices of W2 matrices)
+    uint8_t m_mcs{0};              //!< MCS (can be derived from CQI feedback)
+    Ptr<const ComplexMatrixArray> m_optPrecMat{}; ///< Precoding matrix for each RB
+};
+
+struct PmCqiInfo
+{
+    uint8_t m_mcs{0};              //!< Modulation and coding scheme supported by current channel
+    uint8_t m_rank{0};             //!< Rank of the channel matrix (supported number of MIMO layers)
+    size_t m_wbPmi{0};             //!< Wideband precoding matrix index
+    uint8_t m_wbCqi{0};            //!< Wideband CQI
+    std::vector<uint8_t> m_sbCqis; //!< Subband CQI values
+    std::vector<size_t> m_sbPmis;  //!< Subband PMI values (i2, indices of W2 matrices)
+    Ptr<const ComplexMatrixArray> m_optPrecMat{}; ///< Precoding matrix for each RB
+
+    // TODO: Fix/remove empty DlSBCQIReported, then change default type to SB.
+
+    DlCqiInfo::DlCqiType m_cqiType{DlCqiInfo::WB}; ///< CQI type (WB or SB)
+    size_t m_tbSize{}; //!< Expected TB size when allocating all resources
 };
 
 /**
