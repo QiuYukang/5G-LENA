@@ -479,6 +479,14 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void ReportWbDlDataSnrPerceived(const double dlDataSnr);
 
+    void AddDataMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p);
+
+    /// \brief Store the SINR chunks for all received signals at end of interference calculations
+    /// \param sinr The vector of all SINR values of receive signals. A new chunk is generated for
+    /// each different receive signal (for example for each UL reception of a signal from a
+    /// different UE) and at each time instant where the interference changes.
+    void UpdateMimoSinrPerceived(const std::vector<MimoSinrChunk>& sinr);
+
   protected:
     /**
      * \brief DoDispose method inherited from Object
@@ -486,6 +494,10 @@ class NrSpectrumPhy : public SpectrumPhy
     void DoDispose() override;
 
   private:
+    std::vector<MimoSinrChunk>
+        m_mimoSinrPerceived; //!< received SINR values during data reception for TB decoding, to
+                             //!< replace m_sinrPerceived for all (MIMO and SISO) receivers
+
     /**
      * \brief Function is called when what is being received is holding data
      * \para params spectrum parameters that are holding information regarding data frame
@@ -523,6 +535,14 @@ class NrSpectrumPhy : public SpectrumPhy
      * used to update spectrum phy state.
      */
     void EndTx();
+
+    /// \brief Filter the received SINR chunks for a particular DL or UL signal
+    /// \param rnti The RNTI for the expected receive signal (transmitting or receiving UE)
+    /// \param rank The number of MIMO layers of the expected signal
+    /// \return the SINR chunks in m_mimoSinrPerceived which match the rnti, or a chunk with an
+    /// all-zero SINR matrix when no matching signal is found
+    std::vector<MimoSinrChunk> GetMimoSinrForRnti(uint16_t rnti, uint8_t rank);
+
     /**
      * \brief Function that is called when the spectrum phy finishes the reception of DATA. This
      * function processed the data being received and generated HARQ feedback.

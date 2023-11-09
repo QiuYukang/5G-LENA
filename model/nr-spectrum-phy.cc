@@ -1245,6 +1245,31 @@ NrSpectrumPhy::EndTx()
     }
 }
 
+std::vector<MimoSinrChunk>
+NrSpectrumPhy::GetMimoSinrForRnti(uint16_t rnti, uint8_t rank)
+{
+    // Filter chunks by RNTI of the expected TB. For DL, this step selects only the RX signals that
+    // were sent towards this UE. For UL, it selects only signals that were sent from the UE that is
+    // currently being decoded.
+    std::vector<MimoSinrChunk> res;
+    for (const auto& chunk : m_mimoSinrPerceived)
+    {
+        if (chunk.rnti == rnti)
+        {
+            res.emplace_back(chunk);
+        }
+    }
+    if (res.size() == 0)
+    {
+        // No received signal found, create all-zero SINR matrix with minimum duration
+        NS_LOG_WARN("Did not find any SINR matrix matching the current UE's RNTI " << rnti);
+        auto sinrMat = NrSinrMatrix{rank, m_rxSpectrumModel->GetNumBands()};
+        auto dur = NanoSeconds(1);
+        res.emplace_back(MimoSinrChunk{sinrMat, rnti, dur});
+    }
+    return res;
+}
+
 void
 NrSpectrumPhy::EndRxData()
 {
@@ -1318,12 +1343,33 @@ NrSpectrumPhy::EndRxData()
         // Output is the output of the error model. From the TBLER we decide
         // if the entire TB is corrupted or not
 
-        GetTBInfo(tbIt).m_outputOfEM =
-            m_errorModel->GetTbDecodificationStats(m_sinrPerceived,
-                                                   GetTBInfo(tbIt).m_expected.m_rbBitmap,
-                                                   GetTBInfo(tbIt).m_expected.m_tbSize,
-                                                   GetTBInfo(tbIt).m_expected.m_mcs,
-                                                   harqInfoList);
+        if (m_mimoSinrPerceived.size() > 0)
+        {
+            // The received signal information supports MIMO
+            const auto& expectedTb = GetTBInfo(tbIt).m_expected;
+            auto sinrChunks = GetMimoSinrForRnti(expectedTb.m_rnti, expectedTb.m_rank);
+            NS_ASSERT(sinrChunks.size() > 0);
+
+            GetTBInfo(tbIt).m_outputOfEM = em->GetTbDecodificationStatsMimo(sinrChunks,
+                                                                            expectedTb.m_rbBitmap,
+                                                                            expectedTb.m_tbSize,
+                                                                            expectedTb.m_mcs,
+                                                                            expectedTb.m_rank,
+                                                                            harqInfoList);
+        }
+        else
+        {
+            // SISO code, required only when there is no NrMimoChunkProcessor
+            // TODO: change nr-uplink-power-control-test to create a 3gpp channel, and remove this
+            // code
+            GetTBInfo(tbIt).m_outputOfEM =
+                em->GetTbDecodificationStats(m_sinrPerceived,
+                                             GetTBInfo(tbIt).m_expected.m_rbBitmap,
+                                             GetTBInfo(tbIt).m_expected.m_tbSize,
+                                             GetTBInfo(tbIt).m_expected.m_mcs,
+                                             harqInfoList);
+        }
+
         GetTBInfo(tbIt).m_isCorrupted =
             m_random->GetValue() <= GetTBInfo(tbIt).m_outputOfEM->m_tbler;
 
@@ -1691,6 +1737,19 @@ NrSpectrumPhy::AssignStreams(int64_t stream)
     NS_LOG_FUNCTION(this << stream);
     m_random->SetStream(stream);
     return 1;
+}
+
+void
+NrSpectrumPhy::UpdateMimoSinrPerceived(const std::vector<MimoSinrChunk>& mimoChunks)
+{
+    m_mimoSinrPerceived = mimoChunks;
+}
+
+void
+NrSpectrumPhy::AddDataMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p)
+{
+    NS_LOG_FUNCTION(this);
+    m_interferenceData->AddMimoChunkProcessor(p);
 }
 
 } // namespace ns3

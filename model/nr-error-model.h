@@ -7,6 +7,8 @@
 #ifndef NRERRORMODEL_H
 #define NRERRORMODEL_H
 
+#include "nr-mimo-chunk-processor.h"
+
 #include <ns3/object.h>
 #include <ns3/spectrum-value.h>
 
@@ -185,6 +187,46 @@ class NrErrorModel : public Object
      * \return the maximum MCS that is permitted with the error model
      */
     virtual uint8_t GetMaxMcs() const = 0;
+
+    /// \brief Get an output for the decoding error probability of a given transport block.
+    /// This method is not purely virtual. If derived ErrorModel does not override, the MIMO matrix
+    /// is converted to a linear SpectrumValue, and the non-MIMO method is called.
+    /// \param mimoChunks vector of SINR chunks containing MIMO SINR matrices
+    /// \param map RB map (must be vector<int> as created by OSS code)
+    /// \param size Transport block size
+    /// \param mcs MCS
+    /// \param history History of the retransmission
+    /// \return A pointer to an output, with the tbler and other customized values
+    virtual Ptr<NrErrorModelOutput> GetTbDecodificationStatsMimo(
+        const std::vector<MimoSinrChunk>& mimoChunks,
+        const std::vector<int>& map,
+        uint32_t size,
+        uint8_t mcs,
+        uint8_t rank,
+        const NrErrorModelHistory& history);
+
+    /// \brief Compute an average SINR matrix
+    /// \param mimoChunks vector of SINR chunks containing MIMO SINR matrices
+    /// \return A 2D matrix of the average SINR for this TB reception, dimensions nMimoLayers x nRbs
+    virtual NrSinrMatrix ComputeAvgSinrMimo(const std::vector<MimoSinrChunk>& sinrChunks);
+
+    /// \brief Linearize a 2D matrix into a vector, and convert that vector to a SpectrumValue
+    /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
+    /// \param sinrMat A 2D matrix of average SINR values, dimensions nMimoLayers x nRbs
+    /// \return A SpectrumValue with the (nRB * nMimoLayers) SINR values
+    SpectrumValue CreateVectorizedSpecVal(const NrSinrMatrix& sinrMat);
+
+    /// \brief Create an equivalent RB index map for vectorized SINR values
+    /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
+    /// If map contains index "j", the output vectorized map contains
+    /// {j * rank, j * rank + 1, ..., j * rank + rank - 1}.
+    /// Example: input RB map = {0, 1, 7, 11}, rank = 2
+    /// vectorizedMap = {0, 1, 2, 3, 14, 15, 22, 23}
+    /// \param map The indices of used RBs for this transmission (the columns of the SINR matrix)
+    /// \param rank The number of MIMO layers
+    /// \return the indices corresponding to "map" when the SINR matrix is vectorized
+    /// Note: result will be used in OSS function which require vector<int> type
+    std::vector<int> CreateVectorizedRbMap(std::vector<int> map, uint8_t rank);
 };
 
 } // namespace ns3
