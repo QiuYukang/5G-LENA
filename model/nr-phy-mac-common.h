@@ -112,6 +112,7 @@ struct TbInfoElement
           m_numSym(0),
           m_resAlloc(0),
           m_mcs(0),
+          m_rank(0),
           m_tbSize(0),
           m_ndi(0),
           m_rv(0),
@@ -129,6 +130,7 @@ struct TbInfoElement
     uint8_t m_numSym;   // number of symbols for flexible TTI scheme
     uint8_t m_resAlloc; // resource allocation type
     uint8_t m_mcs;
+    uint8_t m_rank;
     uint32_t m_tbSize;
     uint8_t m_ndi;
     uint8_t m_rv;
@@ -187,6 +189,7 @@ struct DciInfoElementTdma
      * \param format DCI format
      * \param symStart starting symbol index for flexible TTI scheme
      * \param numSym number of symbols for flexible TTI scheme
+     * \param rank the Rank number
      * \param mcs MCS
      * \param tbs TB size
      * \param ndi New Data Indicator
@@ -197,6 +200,7 @@ struct DciInfoElementTdma
                        uint8_t symStart,
                        uint8_t numSym,
                        uint8_t mcs,
+                       uint8_t rank,
                        uint32_t tbs,
                        uint8_t ndi,
                        uint8_t rv,
@@ -208,6 +212,7 @@ struct DciInfoElementTdma
           m_symStart(symStart),
           m_numSym(numSym),
           m_mcs(mcs),
+          m_rank(rank),
           m_tbSize(tbs),
           m_ndi(ndi),
           m_rv(rv),
@@ -235,6 +240,7 @@ struct DciInfoElementTdma
           m_symStart(symStart),
           m_numSym(numSym),
           m_mcs(o.m_mcs),
+          m_rank(o.m_rank),
           m_tbSize(o.m_tbSize),
           m_ndi(ndi),
           m_rv(rv),
@@ -251,6 +257,7 @@ struct DciInfoElementTdma
     const uint8_t m_symStart{0};  //!< starting symbol index for flexible TTI scheme
     const uint8_t m_numSym{0};    //!< number of symbols for flexible TTI scheme
     const uint8_t m_mcs{0};       //!< MCS
+    const uint8_t m_rank{1};
     const uint32_t m_tbSize{0};   //!< TB size
     const uint8_t m_ndi{0};       //!< New Data Indicator
     const uint8_t m_rv{0};        //!< Redundancy Version
@@ -395,8 +402,8 @@ struct DlCqiInfo
         SB
     } m_cqiType{WB}; //!< The type of the CQI
 
-    uint8_t m_wbCqi{0}; //!< Wide band CQI
-    uint8_t m_wbPmi{0}; //!< The reported wideband pre-coding matrix index
+    uint8_t m_wbCqi{0}; //!< Wideband CQI
+    size_t m_wbPmi{0};  //!< Wideband precoding matrix index
 };
 
 /**
@@ -505,6 +512,7 @@ struct RxPacketTraceParams
     uint8_t m_numSym{std::numeric_limits<uint8_t>::max()};
     uint32_t m_tbSize{0};
     uint8_t m_mcs{std::numeric_limits<uint8_t>::max()};
+    uint8_t m_rank{std::numeric_limits<uint8_t>::max()};
     uint8_t m_rv{std::numeric_limits<uint8_t>::max()};
     double m_sinr{-1.0};
     double m_sinrMin{-1.0};

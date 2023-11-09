@@ -320,8 +320,9 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
                                 [[maybe_unused]] uint32_t maxSym) const
 {
     NS_LOG_FUNCTION(this);
-
-    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs, ueInfo->m_dlRBG * GetNumRbPerRbg());
+    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs,
+                                            ueInfo->m_dlRank,
+                                            ueInfo->m_dlRBG * GetNumRbPerRbg());
     // If is less than 10 (3 mac header, 2 rlc header, 5 data), then we can't
     // transmit any new data, so don't create dci.
     if (tbs < 10)
@@ -343,6 +344,7 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
                          tbs,
                          DciInfoElementTdma::DL,
                          ueInfo->m_dlMcs,
+                         ueInfo->m_dlRank,
                          std::max(numSym, static_cast<uint8_t>(1)));
 
     // The starting point must advance.
@@ -369,7 +371,9 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                 uint32_t maxSym) const
 {
     NS_LOG_FUNCTION(this);
-    uint32_t tbs = m_ulAmc->CalculateTbSize(ueInfo->m_ulMcs, ueInfo->m_ulRBG * GetNumRbPerRbg());
+    uint32_t tbs = m_ulAmc->CalculateTbSize(ueInfo->m_ulMcs,
+                                            ueInfo->m_ulRank,
+                                            ueInfo->m_ulRBG * GetNumRbPerRbg());
 
     // If is less than 12, 7 (3 mac header, 2 rlc header, 2 data) + SHORT_BSR (5),
     // then we can't transmit any new data, so don't create dci.
@@ -393,7 +397,13 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     // The starting point must go backward to accommodate the needed sym
     spoint->m_sym -= numSym;
 
-    auto dci = CreateDci(spoint, ueInfo, tbs, DciInfoElementTdma::UL, ueInfo->m_ulMcs, numSym);
+    auto dci = CreateDci(spoint,
+                         ueInfo,
+                         tbs,
+                         DciInfoElementTdma::UL,
+                         ueInfo->m_ulMcs,
+                         ueInfo->m_ulRank,
+                         numSym);
 
     // Reset the RBG (we are TDMA)
     spoint->m_rbg = 0;
@@ -428,6 +438,7 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                               uint32_t tbs,
                               DciInfoElementTdma::DciFormat fmt,
                               uint32_t mcs,
+                              uint8_t rank,
                               uint8_t numSym) const
 {
     NS_LOG_FUNCTION(this);
@@ -440,6 +451,7 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                              spoint->m_sym,
                                              numSym,
                                              mcs,
+                                             rank,
                                              tbs,
                                              1,
                                              0,

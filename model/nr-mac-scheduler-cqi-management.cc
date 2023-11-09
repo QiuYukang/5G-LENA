@@ -87,7 +87,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     NS_LOG_INFO("Values of SINR to pass to the AMC: " << out.str());
 
     // MCS updated inside the function; crappy API... but we can't fix everything
-    ueInfo->m_ulCqi.m_cqi = GetAmcUl()->CreateCqiFeedbackWbTdma(specVals, ueInfo->m_ulMcs);
+    ueInfo->m_ulCqi.m_wbCqi = GetAmcUl()->CreateCqiFeedbackWbTdma(specVals, ueInfo->m_ulMcs);
     NS_LOG_DEBUG("Calculated MCS for RNTI " << ueInfo->m_rnti << " is " << ueInfo->m_ulMcs);
 }
 
@@ -142,16 +142,17 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
     NS_LOG_FUNCTION(this);
 
     ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
+    ueInfo->m_dlCqi.m_wbCqi = info.m_wbCqi;
     ueInfo->m_dlCqi.m_timer = expirationTime;
-    ueInfo->m_dlCqi.m_cqi = info.m_wbCqi;
+    ueInfo->m_dlCqi.m_wbCqi = info.m_wbCqi;
     ueInfo->m_dlMcs =
-        std::min(static_cast<uint8_t>(GetAmcDl()->GetMcsFromCqi(ueInfo->m_dlCqi.m_cqi)),
+        std::min(static_cast<uint8_t>(GetAmcDl()->GetMcsFromCqi(ueInfo->m_dlCqi.m_wbCqi)),
                  static_cast<uint8_t>(maxDlMcs));
     NS_LOG_INFO("Calculated MCS for UE " << ueInfo->m_rnti << " is "
                                          << static_cast<uint32_t>(ueInfo->m_dlMcs));
 
     NS_LOG_INFO("Updated WB CQI of UE "
-                << ueInfo->m_rnti << " to " << static_cast<uint32_t>(ueInfo->m_dlCqi.m_cqi)
+                << ueInfo->m_rnti << " to " << static_cast<uint32_t>(ueInfo->m_dlCqi.m_wbCqi)
                 << ". It will expire in " << ueInfo->m_dlCqi.m_timer << " slots.");
 }
 
@@ -167,7 +168,7 @@ NrMacSchedulerCQIManagement::RefreshDlCqiMaps(
 
         if (ue->m_dlCqi.m_timer == 0)
         {
-            ue->m_dlCqi.m_cqi = 1; // lowest value for trying a transmission
+            ue->m_dlCqi.m_wbCqi = 1; // lowest value for trying a transmission
             ue->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
             ue->m_dlMcs = GetStartMcsDl();
         }
@@ -190,7 +191,7 @@ NrMacSchedulerCQIManagement::RefreshUlCqiMaps(
 
         if (ue->m_ulCqi.m_timer == 0)
         {
-            ue->m_ulCqi.m_cqi = 1; // lowest value for trying a transmission
+            ue->m_ulCqi.m_wbCqi = 1; // lowest value for trying a transmission
             ue->m_ulCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
             ue->m_ulMcs = GetStartMcsUl();
         }

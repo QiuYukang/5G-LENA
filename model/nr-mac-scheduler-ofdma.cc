@@ -347,7 +347,9 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
 {
     NS_LOG_FUNCTION(this);
 
-    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs, ueInfo->m_dlRBG * GetNumRbPerRbg());
+    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs,
+                                            ueInfo->m_dlRank,
+                                            ueInfo->m_dlRBG * GetNumRbPerRbg());
     NS_ASSERT_MSG(ueInfo->m_dlRBG % maxSym == 0,
                   " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
     NS_ASSERT(ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg());
@@ -414,6 +416,7 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                              spoint->m_sym,
                                              maxSym,
                                              ueInfo->m_dlMcs,
+                                             ueInfo->m_dlRank,
                                              tbs,
                                              1,
                                              0,
@@ -438,7 +441,9 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
 {
     NS_LOG_FUNCTION(this);
 
-    uint32_t tbs = m_ulAmc->CalculateTbSize(ueInfo->m_ulMcs, ueInfo->m_ulRBG * GetNumRbPerRbg());
+    uint32_t tbs = m_ulAmc->CalculateTbSize(ueInfo->m_ulMcs,
+                                            ueInfo->m_ulRank,
+                                            ueInfo->m_ulRBG * GetNumRbPerRbg());
 
     // If is less than 12, i.e., 7 (3 mac header, 2 rlc header, 2 data) + 5 bytes for
     // the SHORT_BSR. then we can't transmit any new data, so don't create dci.
@@ -497,6 +502,7 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
                                              spoint->m_sym - maxSym,
                                              maxSym,
                                              ueInfo->m_ulMcs,
+                                             ueInfo->m_ulRank,
                                              tbs,
                                              1,
                                              0,

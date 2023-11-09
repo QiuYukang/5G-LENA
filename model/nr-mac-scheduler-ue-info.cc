@@ -130,7 +130,7 @@ NrMacSchedulerUeInfo::UpdateDlMetric(const Ptr<const NrAmc>& amc)
     }
     else
     {
-        m_dlTbSize = amc->CalculateTbSize(m_dlMcs, m_dlRBG * GetNumRbPerRbg());
+        m_dlTbSize = amc->CalculateTbSize(m_dlMcs, m_dlRank, m_dlRBG * GetNumRbPerRbg());
     }
 }
 
@@ -149,7 +149,7 @@ NrMacSchedulerUeInfo::UpdateUlMetric(const Ptr<const NrAmc>& amc)
     }
     else
     {
-        m_ulTbSize = amc->CalculateTbSize(m_ulMcs, m_ulRBG * GetNumRbPerRbg());
+        m_ulTbSize = amc->CalculateTbSize(m_ulMcs, m_ulRank, m_ulRBG * GetNumRbPerRbg());
     }
 }
 

@@ -12,6 +12,8 @@
 #include "nr-mac-sched-sap.h"
 #include "nr-mac-scheduler-lcg.h"
 
+#include <ns3/matrix-array.h>
+
 #include <functional>
 #include <unordered_map>
 
@@ -229,11 +231,10 @@ class NrMacSchedulerUeInfo
             SB           //!< Sub-band
         } m_cqiType{WB}; //!< CQI type
 
-        std::vector<double> m_sinr;   //!< Vector of SINR for the entire band
-        std::vector<int16_t> m_rbCqi; //!< CQI for each Rsc Block, set to -1 if SINR < Threshold
-        uint8_t m_cqi{0};             //!< CQI reported value
-        uint32_t m_timer{0};          //!< Timer (in slot number).
-                                      //!< When the timer is 0, the value is discarded
+        std::vector<double> m_sinr; //!< Vector of SINR for the entire band
+        uint8_t m_wbCqi{0};         //!< CQI reported value
+        uint32_t m_timer{0};        //!< Timer (in slot number).
+                                    //!< When the timer is 0, the value is discarded
     };
 
     uint16_t m_rnti{0}; //!< RNTI of the UE
@@ -258,6 +259,10 @@ class NrMacSchedulerUeInfo
                             //!< updated in UpdateDlMetric()
     uint32_t m_ulTbSize{0}; //!< UL Transport Block Size, depends on MCS and RBG,
                             //!< updated in UpdateDlMetric()
+    uint8_t m_dlRank{1};    //!< DL rank (number of MIMO layers)
+    uint8_t m_ulRank{1};    //!< UL rank (number of MIMO layers)
+    Ptr<const ComplexMatrixArray> m_dlPrecMats{nullptr}; //!< DL Precoding matrices
+    Ptr<const ComplexMatrixArray> m_ulPrecMats{nullptr}; //!< UL Precoding matrices
 
     CqiInfo m_dlCqi; //!< DL CQI information
     CqiInfo m_ulCqi; //!< UL CQI information

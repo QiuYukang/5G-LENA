@@ -383,6 +383,7 @@ NrEesmErrorModel::GetSpectralEfficiencyForMcs(uint8_t mcs) const
 uint32_t
 NrEesmErrorModel::GetPayloadSize(uint32_t usefulSc,
                                  uint8_t mcs,
+                                 uint8_t rank,
                                  uint32_t rbNum,
                                  [[maybe_unused]] Mode mode) const
 {
@@ -392,7 +393,7 @@ NrEesmErrorModel::GetPayloadSize(uint32_t usefulSc,
     double Rcode = GetMcsEcrTable()->at(mcs);
     uint8_t Qm = GetMcsMTable()->at(mcs);
 
-    const double spectralEfficiency = rscElement * Qm * Rcode;
+    const double spectralEfficiency = rscElement * Qm * Rcode * rank;
 
     return static_cast<uint32_t>(std::floor(spectralEfficiency / 8));
 }

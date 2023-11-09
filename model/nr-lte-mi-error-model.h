@@ -115,6 +115,7 @@ class NrLteMiErrorModel : public NrErrorModel
      */
     uint32_t GetPayloadSize(uint32_t usefulSC,
                             uint8_t mcs,
+                            uint8_t rank,
                             uint32_t rbNum,
                             Mode mode) const override;
     /**

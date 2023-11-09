@@ -166,6 +166,7 @@ class NrErrorModel : public Object
      */
     virtual uint32_t GetPayloadSize(uint32_t usefulSc,
                                     uint8_t mcs,
+                                    uint8_t rank,
                                     uint32_t rbNum,
                                     Mode mode) const = 0;
 

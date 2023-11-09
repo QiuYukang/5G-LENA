@@ -63,7 +63,7 @@ NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl(
     NS_LOG_FUNCTION(this);
 
     uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg();
-    m_potentialTputDl = amc->CalculateTbSize(m_dlMcs, rbsAssignable);
+    m_potentialTputDl = amc->CalculateTbSize(m_dlMcs, m_dlRank, rbsAssignable);
     m_potentialTputDl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputDl " << m_potentialTputDl << " lastAvgThDl "
@@ -79,7 +79,7 @@ NrMacSchedulerUeInfoPF::CalculatePotentialTPutUl(
     NS_LOG_FUNCTION(this);
 
     uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg();
-    m_potentialTputUl = amc->CalculateTbSize(m_ulMcs, rbsAssignable);
+    m_potentialTputUl = amc->CalculateTbSize(m_ulMcs, m_ulRank, rbsAssignable);
     m_potentialTputUl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputUl " << m_potentialTputUl << " lastAvgThUl "

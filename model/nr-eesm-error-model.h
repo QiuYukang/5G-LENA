@@ -137,12 +137,14 @@ class NrEesmErrorModel : public NrErrorModel
      * quantizations and and limits (i.e., only up to Step 2)
      * \param usefulSc the number of useful subcarrier per RB, subtracting DMRS overhead
      * \param mcs MCS
+     * \param rank the MIMO rank
      * \param rbNum the number of RBs (time x frequency)
      * \param mode Mode
      *
      */
     uint32_t GetPayloadSize(uint32_t usefulSc,
                             uint8_t mcs,
+                            uint8_t rank,
                             uint32_t rbNum,
                             Mode mode) const override;
     /**

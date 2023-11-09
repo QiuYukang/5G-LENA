@@ -722,18 +722,21 @@ class NrMacSchedulerNs3 : public NrMacScheduler
          * \param tbs Transport Block Size
          * \param numSym Number of symbols
          * \param mcs MCS
+         * \param rank rank
          */
         AllocElem(uint16_t rnti,
                   uint32_t tbs,
                   uint8_t symStart,
                   uint8_t numSym,
                   uint8_t mcs,
+                  uint8_t rank,
                   const std::vector<uint8_t>& rbgMask)
             : m_rnti(rnti),
               m_tbs(tbs),
               m_symStart(symStart),
               m_numSym(numSym),
               m_mcs(mcs),
+              m_rank(rank),
               m_rbgMask(rbgMask)
         {
         }
@@ -743,6 +746,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         uint8_t m_symStart{0};          //!< Sym start
         uint8_t m_numSym{0};            //!< Allocated symbols
         uint8_t m_mcs{0};               //!< MCS of the transmission
+        uint8_t m_rank{1};              //!< rank of the transmission
         std::vector<uint8_t> m_rbgMask; //!< RBG Mask
     };
 

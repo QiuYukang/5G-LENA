@@ -1264,6 +1264,7 @@ NrLteMiErrorModel::GetSpectralEfficiencyForMcs(uint8_t mcs) const
 uint32_t
 NrLteMiErrorModel::GetPayloadSize(uint32_t usefulSC,
                                   uint8_t mcs,
+                                  uint8_t rank,
                                   uint32_t rbNum,
                                   [[maybe_unused]] Mode mode) const
 {
@@ -1271,7 +1272,7 @@ NrLteMiErrorModel::GetPayloadSize(uint32_t usefulSC,
     const uint32_t rscElement = usefulSC * rbNum;
     const double Rcode = McsEcrTable[mcs];
     const uint8_t Qm = ModulationSchemeForMcs[mcs];
-    const double spectralEfficiency = rscElement * Qm * Rcode;
+    const double spectralEfficiency = rscElement * Qm * Rcode * rank;
 
     NS_LOG_INFO(" mcs:" << mcs << " subcarriers" << usefulSC << " rsc element:" << rscElement);
 

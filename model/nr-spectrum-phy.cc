@@ -871,6 +871,7 @@ NrSpectrumPhy::AddExpectedTb(uint16_t rnti,
                              uint8_t ndi,
                              uint32_t size,
                              uint8_t mcs,
+                             uint8_t rank,
                              const std::vector<int>& rbMap,
                              uint8_t harqId,
                              uint8_t rv,
@@ -894,10 +895,19 @@ NrSpectrumPhy::AddExpectedTb(uint16_t rnti,
         m_transportBlocks.erase(it);
     }
 
-    m_transportBlocks.emplace(
-        rnti,
-        TransportBlockInfo(
-            ExpectedTb(ndi, size, mcs, rbMap, harqId, rv, downlink, symStart, numSym, sfn)));
+    m_transportBlocks.emplace(rnti,
+                              TransportBlockInfo(ExpectedTb(ndi,
+                                                            size,
+                                                            mcs,
+                                                            rank,
+                                                            rnti,
+                                                            rbMap,
+                                                            harqId,
+                                                            rv,
+                                                            downlink,
+                                                            symStart,
+                                                            numSym,
+                                                            sfn)));
     NS_LOG_INFO("Add expected TB for rnti "
                 << rnti << " size=" << size << " mcs=" << static_cast<uint32_t>(mcs) << " symstart="
                 << static_cast<uint32_t>(symStart) << " numSym=" << static_cast<uint32_t>(numSym));
@@ -1323,7 +1333,8 @@ NrSpectrumPhy::EndRxData()
             NS_LOG_INFO("RNTI " << GetRnti(tbIt) << " processId "
                                 << +GetTBInfo(tbIt).m_expected.m_harqProcessId << " size "
                                 << GetTBInfo(tbIt).m_expected.m_tbSize << " mcs "
-                                << (uint32_t)GetTBInfo(tbIt).m_expected.m_mcs << " bitmap "
+                                << (uint32_t)GetTBInfo(tbIt).m_expected.m_mcs << "rank"
+                                << +GetTBInfo(tbIt).m_expected.m_rank << " bitmap "
                                 << GetTBInfo(tbIt).m_expected.m_rbBitmap.size()
                                 << " rv from MAC: " << +GetTBInfo(tbIt).m_expected.m_rv
                                 << " elements in the history: " << harqInfoList.size() << " TBLER "
@@ -1373,6 +1384,7 @@ NrSpectrumPhy::EndRxData()
             traceParams.m_slotNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSlot();
             traceParams.m_rnti = rnti;
             traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
+            traceParams.m_rank = GetTBInfo(*itTb).m_expected.m_rank;
             traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;
             traceParams.m_sinr = GetTBInfo(*itTb).m_sinrAvg;
             traceParams.m_sinrMin = GetTBInfo(*itTb).m_sinrMin;

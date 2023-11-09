@@ -29,9 +29,11 @@ LenaErrorModel::~LenaErrorModel()
 uint32_t
 LenaErrorModel::GetPayloadSize([[maybe_unused]] uint32_t usefulSC,
                                uint8_t mcs,
+                               uint8_t rank,
                                uint32_t rbNum,
                                NrErrorModel::Mode mode) const
 {
+    NS_ASSERT_MSG(rank == 1, "Lena error model does not support MIMO");
     NS_LOG_FUNCTION(this);
 
     // Since we call here LteAmc which assumes that for data is assigned 11 or 13 symbols

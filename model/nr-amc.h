@@ -174,18 +174,20 @@ class NrAmc : public Object
      * Please note that this function expects in input the RB, not the RBG of the transmission.
      *
      * \param mcs the MCS of the transmission
+     * \param rank the MIMO rank
      * \param nprb The number of physical resource blocks used in the transmission
      * \return the TBS in bytes
      */
-    uint32_t CalculateTbSize(uint8_t mcs, uint32_t nprb) const;
+    uint32_t CalculateTbSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const;
 
     /**
      * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB
      * \param mcs MCS of the transmission
+     * \param rank the MIMO rank
      * \param nprb Number of Physical Resource Blocks (not RBG)
      * \return the payload size in bytes
      */
-    uint32_t GetPayloadSize(uint8_t mcs, uint32_t nprb) const;
+    uint32_t GetPayloadSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const;
 
   private:
     /**

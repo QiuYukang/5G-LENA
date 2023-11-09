@@ -1313,6 +1313,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
                                  dci->m_ndi,
                                  dci->m_tbSize,
                                  dci->m_mcs,
+                                 dci->m_rank,
                                  FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
                                  dci->m_harqProcess,
                                  dci->m_rv,

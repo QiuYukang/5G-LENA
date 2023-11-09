@@ -2065,6 +2065,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
                                          alloc.m_dci->m_symStart,
                                          alloc.m_dci->m_numSym,
                                          alloc.m_dci->m_mcs,
+                                         alloc.m_dci->m_rank,
                                          alloc.m_dci->m_rbgBitmask);
             }
         }
@@ -2137,14 +2138,21 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
 
         spoint->m_sym--;
 
+        uint8_t numSym{1};
+        uint8_t mcs{0};
+        uint8_t rank{1};
+        uint32_t tbs{0};
+        uint8_t ndi{1};
+        uint8_t rv{0};
         auto dci = std::make_shared<DciInfoElementTdma>(rnti,
                                                         DciInfoElementTdma::UL,
                                                         spoint->m_sym,
-                                                        1,
-                                                        0,
-                                                        0,
-                                                        1,
-                                                        0,
+                                                        numSym,
+                                                        mcs,
+                                                        rank,
+                                                        tbs,
+                                                        ndi,
+                                                        rv,
                                                         DciInfoElementTdma::SRS,
                                                         GetBwpId(),
                                                         GetTpc());

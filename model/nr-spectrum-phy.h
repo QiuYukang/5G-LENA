@@ -379,6 +379,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \param ndi New data indicator (0 for retx)
      * \param size TB Size
      * \param mcs MCS of the transmission
+     * \param rank MIMO rank
      * \param rbMap Resource Block map (PHY-ready vector of SINR indices)
      * \param harqId ID of the HARQ process in the MAC
      * \param rv Redundancy Version: number of times the HARQ has been retransmitted
@@ -391,6 +392,7 @@ class NrSpectrumPhy : public SpectrumPhy
                        uint8_t ndi,
                        uint32_t size,
                        uint8_t mcs,
+                       uint8_t rank,
                        const std::vector<int>& rbMap,
                        uint8_t harqId,
                        uint8_t rv,
@@ -570,6 +572,8 @@ class NrSpectrumPhy : public SpectrumPhy
         ExpectedTb(uint8_t ndi,
                    uint32_t tbSize,
                    uint8_t mcs,
+                   uint8_t rank,
+                   uint16_t rnti,
                    const std::vector<int>& rbBitmap,
                    uint8_t harqProcessId,
                    uint8_t rv,
@@ -580,6 +584,8 @@ class NrSpectrumPhy : public SpectrumPhy
             : m_ndi(ndi),
               m_tbSize(tbSize),
               m_mcs(mcs),
+              m_rank(rank),
+              m_rnti(rnti),
               m_rbBitmap(rbBitmap),
               m_harqProcessId(harqProcessId),
               m_rv(rv),
@@ -596,6 +602,8 @@ class NrSpectrumPhy : public SpectrumPhy
         uint8_t m_ndi{0};            //!< New data indicator
         uint32_t m_tbSize{0};        //!< TBSize
         uint8_t m_mcs{0};            //!< MCS
+        uint8_t m_rank{1};           //!< MIMO rank
+        uint16_t m_rnti{0};          //!< RNTI
         std::vector<int> m_rbBitmap; //!< RB Bitmap
         uint8_t m_harqProcessId{0};  //!< HARQ process ID (MAC)
         uint8_t m_rv{0};             //!< RV

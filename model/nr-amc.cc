@@ -117,7 +117,7 @@ NrAmc::SetNumRefScPerRb(uint8_t nref)
 }
 
 uint32_t
-NrAmc::CalculateTbSize(uint8_t mcs, uint32_t nprb) const
+NrAmc::CalculateTbSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const
 {
     NS_LOG_FUNCTION(this << static_cast<uint32_t>(mcs));
 
@@ -125,7 +125,7 @@ NrAmc::CalculateTbSize(uint8_t mcs, uint32_t nprb) const
                   "MCS=" << static_cast<uint32_t>(mcs) << " while maximum MCS is "
                          << static_cast<uint32_t>(m_errorModel->GetMaxMcs()));
 
-    uint32_t payloadSize = GetPayloadSize(mcs, nprb);
+    uint32_t payloadSize = GetPayloadSize(mcs, rank, nprb);
     uint32_t tbSize = payloadSize;
 
     if (m_errorModelType != LenaErrorModel::GetTypeId())
@@ -153,11 +153,12 @@ NrAmc::CalculateTbSize(uint8_t mcs, uint32_t nprb) const
 }
 
 uint32_t
-NrAmc::GetPayloadSize(uint8_t mcs, uint32_t nprb) const
+NrAmc::GetPayloadSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const
 {
     return m_errorModel->GetPayloadSize(NrSpectrumValueHelper::SUBCARRIERS_PER_RB -
                                             GetNumRefScPerRb(),
                                         mcs,
+                                        rank,
                                         nprb,
                                         m_emMode);
 }
@@ -233,9 +234,11 @@ NrAmc::CreateCqiFeedbackWbTdma(const SpectrumValue& sinr, uint8_t& mcs) const
         Ptr<NrErrorModelOutput> output;
         while (mcs <= m_errorModel->GetMaxMcs())
         {
+            uint8_t rank = 1; // This function is SISO only
+            auto tbSize = CalculateTbSize(mcs, rank, rbMap.size());
             output = m_errorModel->GetTbDecodificationStats(sinr,
                                                             rbMap,
-                                                            CalculateTbSize(mcs, rbMap.size()),
+                                                            tbSize,
                                                             mcs,
                                                             NrErrorModel::NrErrorModelHistory());
             if (output->m_tbler > 0.1)
