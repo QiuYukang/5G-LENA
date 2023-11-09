@@ -272,5 +272,6 @@ build_lib(
   LIBRARIES_TO_LINK
     ${liblte}
     ${libinternet-apps}
+    ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )
