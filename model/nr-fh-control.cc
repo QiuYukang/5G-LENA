@@ -271,7 +271,10 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 }
 
 void
-NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation)
+NrFhControl::DoUpdateActiveUesMap(
+    uint16_t bwpId,
+    const std::deque<VarTtiAllocInfo>& allocation,
+    const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap)
 {
     for (const auto& alloc : allocation)
     {
@@ -336,21 +339,33 @@ NrFhControl::DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocIn
             continue;
         }
 
-        NS_LOG_DEBUG("Looking for key " << c1 << " map size " << m_rntiQueueSize.size());
-
-        if (m_rntiQueueSize.at(c1) > (alloc.m_dci->m_tbSize - 3)) // 3 bytes MAC subPDU header
+        if (ueMap.find(rnti) != ueMap.end())
         {
-            m_rntiQueueSize.at(c1) = m_rntiQueueSize.at(c1) - (alloc.m_dci->m_tbSize - 3);
-            NS_LOG_DEBUG("Updating queue size for bwpId: " << bwpId << " RNTI: " << rnti << " to "
-                                                           << m_rntiQueueSize.at(c1) << " bytes");
+            uint32_t totBuffer = 0;
+            // compute total DL bytes buffered
+            for (const auto& lcgInfo : ueMap.at(rnti)->m_dlLCG)
+            {
+                const auto& lcg = lcgInfo.second;
+                totBuffer += lcg->GetTotalSize();
+            }
+            if (totBuffer > 0)
+            {
+                m_rntiQueueSize.at(c1) = totBuffer;
+                NS_LOG_DEBUG("Updating queue size for bwpId: " << bwpId << " RNTI: " << rnti
+                                                               << " to " << m_rntiQueueSize.at(c1)
+                                                               << " bytes");
+            }
+            else
+            {
+                NS_LOG_DEBUG(
+                    "Removing UE because we served it. RLC queue size: " << m_rntiQueueSize.at(c1));
+                m_rntiQueueSize.erase(c1);
+                m_activeUesPerBwp.erase(rnti);
+            }
         }
         else
         {
-            NS_LOG_DEBUG("Removing UE because we served it. RLC queue size: "
-                         << m_rntiQueueSize.at(c1)
-                         << " and allocation of: " << (alloc.m_dci->m_tbSize - 3));
-            m_rntiQueueSize.erase(c1);
-            m_activeUesPerBwp.erase(rnti);
+            NS_ABORT_MSG("UE not in the map, but has an allocation");
         }
     }
 }
@@ -582,7 +597,10 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
         uint32_t rbSum = 0;
         if (m_rbsAirTracedValue.size() == 0)
         {
-            m_rbsAirTrace(currentSlot, m_physicalCellId, bwpId, rbSum); // store SfnSf, bwpId and 0 used RBs
+            m_rbsAirTrace(currentSlot,
+                          m_physicalCellId,
+                          bwpId,
+                          rbSum); // store SfnSf, bwpId and 0 used RBs
             NS_LOG_DEBUG("Size 0, bwpId: " << bwpId
                                            << " Average RBs used at the end of slot: " << rbSum);
         }
@@ -593,7 +611,10 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
                 rbSum += element.second;
             }
             rbSum = rbSum / m_rbsAirTracedValue.size();
-            m_rbsAirTrace(currentSlot, m_physicalCellId, bwpId, rbSum); // store SfnSf, bwpId and AVERAGE used RBs
+            m_rbsAirTrace(currentSlot,
+                          m_physicalCellId,
+                          bwpId,
+                          rbSum); // store SfnSf, bwpId and AVERAGE used RBs
             NS_LOG_DEBUG("Average RBs used at the end of slot: " << rbSum);
         }
 

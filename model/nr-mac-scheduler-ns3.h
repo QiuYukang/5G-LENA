@@ -890,7 +890,9 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     NrFhSchedSapProvider* m_nrFhSchedSapProvider{nullptr}; //!< FH Control SAP provider
 
   private:
-    void CallNrFhControlForMapUpdate(const std::deque<VarTtiAllocInfo>& allocation);
+    void CallNrFhControlForMapUpdate(
+        const std::deque<VarTtiAllocInfo>& allocation,
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap);
 
     std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>
         m_ueMap; //!< The map of between RNTI and their data

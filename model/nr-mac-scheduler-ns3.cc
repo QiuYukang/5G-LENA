@@ -1854,12 +1854,11 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
         if (m_nrFhSchedSapProvider->GetFhControlMethod() != NrFhControl::FhControlMethod::Dropping &&
             m_nrFhSchedSapProvider->GetFhControlMethod() != UINT8_MAX)
         {
-            Simulator::Schedule(
-                NanoSeconds(1),
-                &NrMacSchedulerNs3::CallNrFhControlForMapUpdate,
-                this,
-                dlSlot.m_slotAllocInfo
-                    .m_varTtiAllocInfo); // 1ns delay to give time for scheduling in all cells
+            Simulator::Schedule(NanoSeconds(1),
+                                &NrMacSchedulerNs3::CallNrFhControlForMapUpdate,
+                                this,
+                                dlSlot.m_slotAllocInfo.m_varTtiAllocInfo,
+                                m_ueMap); // 1ns delay to give time for scheduling in all cells
         }
     }
 
@@ -2284,9 +2283,11 @@ NrMacSchedulerNs3::DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nR
  * \param allocation the list of allocations
  */
 void
-NrMacSchedulerNs3::CallNrFhControlForMapUpdate(const std::deque<VarTtiAllocInfo>& allocation)
+NrMacSchedulerNs3::CallNrFhControlForMapUpdate(
+    const std::deque<VarTtiAllocInfo>& allocation,
+    const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap)
 {
-    m_nrFhSchedSapProvider->UpdateActiveUesMap(GetBwpId(), allocation);
+    m_nrFhSchedSapProvider->UpdateActiveUesMap(GetBwpId(), allocation, ueMap);
 }
 
 uint64_t

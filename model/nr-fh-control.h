@@ -186,16 +186,17 @@ class NrFhControl : public Object
     void DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
 
     /**
-     * \brief Updates the map of the UEs that have been served by this cell in a
-     *        bwpId, based on the allocation. If a UE has been fully served (no
-     *        remaining bytes in its RLC queues), then the entry of the map is
-     *        removed. Otherwise, if a UE has still bytes in its RLC queues after
-     *        the allocation, the amount of bytes stored in the map is updated.
+     * \brief Updates the traces and the map of the UEs that have been served
+     *        by this cell in a bwpId, based on the allocation and the scheduler
+     *        UE map, respectively.
      *
      * \param bwpId the BWP ID
      * \param allocation the allocation structure of a slot
      */
-    void DoUpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation);
+    void DoUpdateActiveUesMap(
+        uint16_t bwpId,
+        const std::deque<VarTtiAllocInfo>& allocation,
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap);
 
     /**
      * \brief Returns a boolean indicating whether the current allocation can

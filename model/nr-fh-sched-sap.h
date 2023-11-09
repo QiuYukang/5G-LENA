@@ -6,6 +6,7 @@
 #define NR_FH_SCHED_SAP_H
 
 #include "nr-mac-scheduler-ns3.h"
+#include "nr-mac-scheduler-ue-info.h"
 
 // #include "nr-fh-control.h"
 
@@ -29,8 +30,10 @@ class NrFhSchedSapProvider
     virtual uint8_t GetFhControlMethod() = 0;
     virtual uint16_t GetNrFhPhysicalCellId() = 0;
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) = 0;
-    virtual void UpdateActiveUesMap(uint16_t bwpId,
-                                    const std::deque<VarTtiAllocInfo>& allocation) = 0;
+    virtual void UpdateActiveUesMap(
+        uint16_t bwpId,
+        const std::deque<VarTtiAllocInfo>& allocation,
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap) = 0;
     virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti) = 0;
     virtual uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti) = 0;
 };
@@ -71,7 +74,10 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
     virtual uint8_t GetFhControlMethod();
     virtual uint16_t GetNrFhPhysicalCellId();
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
-    virtual void UpdateActiveUesMap(uint16_t bwpId, const std::deque<VarTtiAllocInfo>& allocation);
+    virtual void UpdateActiveUesMap(
+        uint16_t bwpId,
+        const std::deque<VarTtiAllocInfo>& allocation,
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap);
     virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti);
     virtual uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
 
@@ -117,10 +123,12 @@ MemberNrFhSchedSapProvider<C>::SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32
 
 template <class C>
 void
-MemberNrFhSchedSapProvider<C>::UpdateActiveUesMap(uint16_t bwpId,
-                                                  const std::deque<VarTtiAllocInfo>& allocation)
+MemberNrFhSchedSapProvider<C>::UpdateActiveUesMap(
+    uint16_t bwpId,
+    const std::deque<VarTtiAllocInfo>& allocation,
+    const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap)
 {
-    return m_owner->DoUpdateActiveUesMap(bwpId, allocation);
+    return m_owner->DoUpdateActiveUesMap(bwpId, allocation, ueMap);
 }
 
 template <class C>
