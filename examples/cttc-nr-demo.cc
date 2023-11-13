@@ -240,6 +240,8 @@ main(int argc, char* argv[])
     /*
      * TODO: Add a print, or a plot, that shows the scenario.
      */
+    NS_LOG_INFO("Creating " << gridScenario.GetUserTerminals().GetN() << " user terminals and "
+                            << gridScenario.GetBaseStations().GetN() << " gNBs");
 
     /*
      * Setup the NR module. We create the various helpers needed for the
