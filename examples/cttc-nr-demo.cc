@@ -186,8 +186,10 @@ main(int argc, char* argv[])
     }
 
     /*
-     * Default values for the simulation. We are progressively removing all
-     * the instances of SetDefault, but we need it for legacy code (LTE)
+     * In general, attributes for the NR module are typically configured in NrHelper.  However, some
+     * attributes need to be configured globally through the Config::SetDefault() method. Below is
+     * an example: if you want to make the RLC buffer very large, you can pass a very large integer
+     * here.
      */
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
@@ -200,6 +202,7 @@ main(int argc, char* argv[])
     GridScenarioHelper gridScenario;
     gridScenario.SetRows(1);
     gridScenario.SetColumns(gNbNum);
+    // All units below are in meters
     gridScenario.SetHorizontalBsDistance(5.0);
     gridScenario.SetVerticalBsDistance(5.0);
     gridScenario.SetBsHeight(1.5);
