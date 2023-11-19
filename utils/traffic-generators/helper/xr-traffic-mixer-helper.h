@@ -24,6 +24,7 @@
 #include "ns3/traffic-generator.h"
 
 #include <list>
+#include <map>
 
 namespace ns3
 {
