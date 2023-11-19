@@ -1856,7 +1856,7 @@ cttc-3gpp-indoor-calibration.cc
 The program ``examples/cttc-3gpp-indoor-calibration`` is the simulation
 script created for the NR-MIMO Phase 1 system-level calibration.
 The scenario implemented in this simulation script is according to
-the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
+the topology described in 3GPP TR 38.901 V17.0.0 (2022-03) Figure 7.2-1:
 "Layout of indoor office scenarios".
 The simulation assumptions and the configuration parameters follow
 the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,

@@ -10,7 +10,7 @@
  * \brief A cozy, simple, NR MIMO demo (in a tutorial style)
  *
  * This example describes how to setup a MIMO simulation using the 3GPP channel model
- * from TR 38.900. This example consists of a simple topology, in which there
+ * from TR 38.901. This example consists of a simple topology, in which there
  * is only one gNB and one UE. Have a look at the possible parameters
  * to know what you can configure through the command line.
  *

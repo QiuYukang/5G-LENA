@@ -17,7 +17,7 @@ using namespace ns3;
  * \brief A multi-cell network deployment with site sectorization
  *
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of an hexagonal grid deployment
+ * from TR 38.901. This example consists of an hexagonal grid deployment
  * consisting on a central site and a number of outer rings of sites around this
  * central site. Each site is sectorized, meaning that a number of three antenna
  * arrays or panels are deployed per gNB. These three antennas are pointing to

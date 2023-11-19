@@ -9,8 +9,10 @@
  * \file cttc-nr-demo.cc
  * \brief A cozy, simple, NR demo (in a tutorial style)
  *
- * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of a simple grid topology, in which you
+ * Notice: this entire program uses technical terms defined by the 3GPP TS 38.300 [1].
+ *
+ * This example describes how to setup a simulation using the 3GPP channel model from TR 38.901 [2].
+ * This example consists of a simple grid topology, in which you
  * can choose the number of gNbs and UEs. Have a look at the possible parameters
  * to know what you can configure through the command line.
  *
@@ -27,6 +29,19 @@ $ ./ns3 run "cttc-nr-demo --PrintHelp"
     \endcode
  *
  */
+
+// NOLINTBEGIN
+// clang-format off
+
+/**
+ * Useful references that will be used for this tutorial:
+ * [1] <a href="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3191">3GPP TS 38.300</a>
+ * [2] <a href="https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3173">3GPP channel model from TR 38.901</a>
+ * [3] <a href="https://www.nsnam.org/docs/release/3.38/tutorial/html/tweaking.html#using-the-logging-module">ns-3 documentation</a>
+ */
+
+// clang-format on
+// NOLINTEND
 
 /*
  * Include part. Often, you will have to include the headers for an entire module;
@@ -53,7 +68,8 @@ using namespace ns3;
 
 /*
  * With this line, we will be able to see the logs of the file by enabling the
- * component "CttcNrDemo"
+ * component "CttcNrDemo".
+ * Further information on how logging works can be found in the ns-3 documentation [3].
  */
 NS_LOG_COMPONENT_DEFINE("CttcNrDemo");
 

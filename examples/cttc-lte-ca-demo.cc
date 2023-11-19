@@ -10,7 +10,7 @@
  * \brief Example for setting LTE CA scenario
  *
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of 1 gNb and 1 UE. Have a look at the
+ * from TR 38.901. This example consists of 1 gNb and 1 UE. Have a look at the
  * possible parameters to know what you can configure through the command line.
  *
  * The example allows 2 configurations:

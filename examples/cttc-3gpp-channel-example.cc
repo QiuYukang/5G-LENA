@@ -10,7 +10,7 @@
  * \brief Channel Example
  *
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. Topology consists by default of 2 UEs and 2 gNbs, and can be
+ * from TR 38.901. Topology consists by default of 2 UEs and 2 gNbs, and can be
  * configured to be either mobile or static scenario.
  *
  * The output of this example are default NR trace files that can be found in

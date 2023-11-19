@@ -23,7 +23,7 @@ using namespace ns3;
  * \brief Simulation script for the NR-MIMO Phase 1 system-level calibration
  *
  * The scenario implemented in the present simulation script is according to
- * the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
+ * the topology described in 3GPP TR 38.901 V17.0.0 (2022-03) Figure 7.2-1:
  * "Layout of indoor office scenarios".
  *
  * The simulation assumptions and the configuration parameters follow
@@ -444,7 +444,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     gNbNodes.Create(12);
     ueNodes.Create(ueCount);
 
-    // Creating positions of the gNB according to the 3gpp TR 38.900 Figure 7.2.-1
+    // Creating positions of the gNB according to the 3GPP TR 38.901 Figure 7.2.-1
     Ptr<ListPositionAllocator> gNbPositionAlloc = CreateObject<ListPositionAllocator>();
 
     for (uint8_t j = 0; j < 2; j++)
@@ -464,7 +464,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     double maxBigBoxX = 110.0;
     double maxBigBoxY = 35.0;
 
-    // Creating positions of the UEs according to the 3gpp TR 38.900 and
+    // Creating positions of the UEs according to the 3GPP TR 38.901 and
     // R11700144, uniformly randombly distributed in the rectangular area
 
     NodeContainer selectedUeNodes;

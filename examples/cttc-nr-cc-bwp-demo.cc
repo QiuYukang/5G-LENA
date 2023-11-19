@@ -31,7 +31,7 @@
 flows.
  *
  * This example describes how to setup a simulation using the 3GPP channel model
- * from TR 38.900. This example consists of configurable number of NR base stations
+ * from TR 38.901. This example consists of configurable number of NR base stations
  * (gNBs) with an also configurable number of UEs attached to each gNB.
  *
  * In this example, the network operates in TDD in a given band. This band is
