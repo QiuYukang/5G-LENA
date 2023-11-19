@@ -427,7 +427,7 @@ NrMacSchedulerHarqRr::BufferHARQFeedback(const std::vector<DlHarqInfo>& dlHarqFe
                                          uint16_t rnti,
                                          uint8_t harqProcess) const
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 
     bool found = false;
     for (const auto& feedback : dlHarqFeedback)

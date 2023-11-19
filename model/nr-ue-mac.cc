@@ -1053,7 +1053,7 @@ NrUeMac::RandomlySelectAndSendRaPreamble()
 void
 NrUeMac::SendRaPreamble([[maybe_unused]] bool contention)
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     // m_raPreambleId = m_raPreambleUniformVariable->GetInteger (0, 64 - 1);
     m_raPreambleId = g_raPreambleId++;
     /*raRnti should be subframeNo -1 */

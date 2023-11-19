@@ -15,12 +15,12 @@ NS_LOG_COMPONENT_DEFINE("nrControlMessage");
 
 NrControlMessage::NrControlMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 }
 
 NrControlMessage::~NrControlMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 }
 
 void
@@ -50,13 +50,13 @@ NrControlMessage::GetSourceBwp() const
 
 NrSRMessage::NrSRMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     SetMessageType(NrControlMessage::SR);
 }
 
 NrSRMessage::~NrSRMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 }
 
 void
@@ -74,13 +74,13 @@ NrSRMessage::GetRNTI() const
 NrDlDciMessage::NrDlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci)
     : m_dciInfoElement(dci)
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     SetMessageType(NrControlMessage::DL_DCI);
 }
 
 NrDlDciMessage::~NrDlDciMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 }
 
 std::shared_ptr<DciInfoElementTdma>
@@ -116,13 +116,13 @@ NrDlDciMessage::GetK1Delay() const
 NrUlDciMessage::NrUlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci)
     : m_dciInfoElement(dci)
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     SetMessageType(NrControlMessage::UL_DCI);
 }
 
 NrUlDciMessage::~NrUlDciMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 }
 
 std::shared_ptr<DciInfoElementTdma>
@@ -145,13 +145,13 @@ NrUlDciMessage::GetKDelay() const
 
 NrDlCqiMessage::NrDlCqiMessage()
 {
+    NS_LOG_FUNCTION(this);
     SetMessageType(NrControlMessage::DL_CQI);
-    NS_LOG_INFO(this);
 }
 
 NrDlCqiMessage::~NrDlCqiMessage()
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 }
 
 void

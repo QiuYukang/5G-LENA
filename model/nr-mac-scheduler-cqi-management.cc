@@ -26,7 +26,7 @@ NrMacSchedulerCQIManagement::DlSBCQIReported(
     [[maybe_unused]] const DlCqiInfo& info,
     [[maybe_unused]] const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo) const
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     // TODO
 }
 
@@ -40,7 +40,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     uint32_t numRbPerRbg,
     const Ptr<const SpectrumModel>& model) const
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     NS_ASSERT(rbgMask.size() > 0);
 
     NS_LOG_INFO("Computing SB CQI for UE " << ueInfo->m_rnti);
@@ -139,7 +139,7 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
                                              uint32_t expirationTime,
                                              int8_t maxDlMcs) const
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
 
     ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::DlCqiInfo::WB;
     ueInfo->m_dlCqi.m_timer = expirationTime;

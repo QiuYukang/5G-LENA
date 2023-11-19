@@ -2286,7 +2286,7 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
                                 const SlotElem& ulAllocations,
                                 SlotAllocInfo* allocInfo)
 {
-    NS_LOG_INFO(this);
+    NS_LOG_FUNCTION(this);
     NS_ASSERT(activeDlUe != nullptr);
 
     uint8_t dataSymPerSlot = m_macSchedSapUser->GetSymbolsPerSlot() - m_dlCtrlSymbols;
