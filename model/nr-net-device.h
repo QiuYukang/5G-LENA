@@ -10,6 +10,7 @@
 #include "nr-phy.h"
 
 #include <ns3/net-device.h>
+#include <ns3/traced-callback.h>
 
 namespace ns3
 {
@@ -75,7 +76,11 @@ class NrNetDevice : public NetDevice
   protected:
     void DoDispose() override;
 
+    TracedCallback<Ptr<const Packet>, const Address&>
+        m_txTrace;                               ///< Traced Callback for transmitted packets
+    TracedCallback<Ptr<const Packet>> m_rxTrace; ///< Traced Callback for received packets
     NetDevice::ReceiveCallback m_rxCallback;
+
     virtual bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
 
   private:

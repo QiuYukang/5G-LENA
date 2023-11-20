@@ -31,7 +31,15 @@ NrNetDevice::GetTypeId()
                           "The MAC-level Maximum Transmission Unit",
                           UintegerValue(30000),
                           MakeUintegerAccessor(&NrNetDevice::SetMtu, &NrNetDevice::GetMtu),
-                          MakeUintegerChecker<uint16_t>());
+                          MakeUintegerChecker<uint16_t>())
+            .AddTraceSource("Tx",
+                            "A packet has been transmitted with the Address as the recipient",
+                            MakeTraceSourceAccessor(&NrNetDevice::m_txTrace),
+                            "ns3::Packet::AddressTracedCallback")
+            .AddTraceSource("Rx",
+                            "A packet has been received",
+                            MakeTraceSourceAccessor(&NrNetDevice::m_rxTrace),
+                            "ns3::Packet::TracedCallback");
 
     return tid;
 }
@@ -207,17 +215,23 @@ NrNetDevice::Receive(Ptr<Packet> p)
 
     if (p->PeekHeader(ipv4Header) != 0)
     {
-        NS_LOG_INFO("IPv4 stack...");
+        NS_LOG_INFO("Received " << p->GetSize() << " bytes on " << m_macaddress
+                                << ". IPv4 packet from " << ipv4Header.GetSource() << " to "
+                                << ipv4Header.GetDestination());
+        m_rxTrace(p);
         m_rxCallback(this, p, Ipv4L3Protocol::PROT_NUMBER, Address());
     }
     else if (p->PeekHeader(ipv6Header) != 0)
     {
-        NS_LOG_INFO("IPv6 stack...");
+        NS_LOG_INFO("Received " << p->GetSize() << " bytes on " << m_macaddress
+                                << ". IPv6 packet from " << ipv6Header.GetSource() << " to "
+                                << ipv6Header.GetDestination());
+        m_rxTrace(p);
         m_rxCallback(this, p, Ipv6L3Protocol::PROT_NUMBER, Address());
     }
     else
     {
-        NS_ABORT_MSG("NrNetDevice::Receive - Unknown IP type...");
+        NS_ABORT_MSG("Unknown IP type");
     }
 }
 
@@ -225,6 +239,7 @@ bool
 NrNetDevice::Send(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
     bool ret = DoSend(packet, dest, protocolNumber);
+    m_txTrace(packet, dest);
     return ret;
 }
 
