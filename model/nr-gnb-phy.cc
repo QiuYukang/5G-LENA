@@ -658,8 +658,8 @@ NrGnbPhy::CallMacForSlotIndication(const SfnSf& currentSlot)
 
     uint64_t currentSlotN = currentSlot.Normalize() % m_tddPattern.size();
 
-    NS_LOG_INFO("Start Slot " << currentSlot << ". In position " << currentSlotN
-                              << " there is a slot of type " << m_tddPattern[currentSlotN]);
+    NS_LOG_DEBUG("Start Slot " << currentSlot << ". In position " << currentSlotN
+                               << " there is a slot of type " << m_tddPattern[currentSlotN]);
 
     for (const auto& k2WithLatency : m_generateUl[currentSlotN])
     {
@@ -668,8 +668,8 @@ NrGnbPhy::CallMacForSlotIndication(const SfnSf& currentSlot)
 
         uint64_t pos = targetSlot.Normalize() % m_tddPattern.size();
 
-        NS_LOG_INFO(" in slot " << currentSlot << " generate UL for " << targetSlot
-                                << " which is of type " << m_tddPattern[pos]);
+        NS_LOG_DEBUG(" in slot " << currentSlot << " generate UL for " << targetSlot
+                                 << " which is of type " << m_tddPattern[pos]);
 
         m_phySapUser->SlotUlIndication(targetSlot, m_tddPattern[pos]);
     }
@@ -681,8 +681,8 @@ NrGnbPhy::CallMacForSlotIndication(const SfnSf& currentSlot)
 
         uint64_t pos = targetSlot.Normalize() % m_tddPattern.size();
 
-        NS_LOG_INFO(" in slot " << currentSlot << " generate DL for " << targetSlot
-                                << " which is of type " << m_tddPattern[pos]);
+        NS_LOG_DEBUG(" in slot " << currentSlot << " generate DL for " << targetSlot
+                                 << " which is of type " << m_tddPattern[pos]);
 
         m_phySapUser->SlotDlIndication(targetSlot, m_tddPattern[pos]);
     }
@@ -988,7 +988,7 @@ NrGnbPhy::DoStartSlot()
         return;
     }
 
-    NS_LOG_INFO("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
+    NS_LOG_DEBUG("Allocations of the current slot: " << std::endl << m_currSlotAllocInfo);
 
     DoCheckOrReleaseChannel();
 
@@ -1118,8 +1118,9 @@ NrGnbPhy::RetrieveDciFromAllocation(const SlotAllocInfo& alloc,
                                        << " symPerSlot: "
                                        << static_cast<uint32_t>(GetSymbolsPerSlot()));
 
-            NS_LOG_INFO("Send DCI to " << dciElem->m_rnti << " from sym " << +dciElem->m_symStart
-                                       << " to " << +dciElem->m_symStart + dciElem->m_numSym);
+            NS_LOG_INFO("Send DCI to RNTI " << dciElem->m_rnti << " from sym "
+                                            << +dciElem->m_symStart << " to "
+                                            << +dciElem->m_symStart + dciElem->m_numSym);
 
             Ptr<NrControlMessage> msg;
 
@@ -1165,7 +1166,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
 
         if (targetSlot == currentSlot)
         {
-            NS_LOG_INFO(" in slot " << currentSlot << " send DL DCI for the same slot");
+            NS_LOG_DEBUG(" in slot " << currentSlot << " send DL DCI for the same slot");
 
             ctrlMsgs.merge(RetrieveDciFromAllocation(m_currSlotAllocInfo,
                                                      DciInfoElementTdma::DL,
@@ -1174,7 +1175,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
         }
         else if (SlotAllocInfoExists(targetSlot))
         {
-            NS_LOG_INFO(" in slot " << currentSlot << " send DL DCI for " << targetSlot);
+            NS_LOG_DEBUG(" in slot " << currentSlot << " send DL DCI for " << targetSlot);
 
             ctrlMsgs.merge(RetrieveDciFromAllocation(PeekSlotAllocInfo(targetSlot),
                                                      DciInfoElementTdma::DL,
@@ -1183,7 +1184,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
         }
         else
         {
-            NS_LOG_INFO("No allocation found for slot " << targetSlot);
+            NS_LOG_DEBUG("No allocation found for slot " << targetSlot);
         }
     }
 
@@ -1195,7 +1196,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
 
         if (targetSlot == currentSlot)
         {
-            NS_LOG_INFO(" in slot " << currentSlot << " send UL DCI for the same slot");
+            NS_LOG_DEBUG(" in slot " << currentSlot << " send UL DCI for the same slot");
 
             ctrlMsgs.merge(RetrieveDciFromAllocation(m_currSlotAllocInfo,
                                                      DciInfoElementTdma::UL,
@@ -1204,7 +1205,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
         }
         else if (SlotAllocInfoExists(targetSlot))
         {
-            NS_LOG_INFO(" in slot " << currentSlot << " send UL DCI for " << targetSlot);
+            NS_LOG_DEBUG(" in slot " << currentSlot << " send UL DCI for " << targetSlot);
 
             ctrlMsgs.merge(RetrieveDciFromAllocation(PeekSlotAllocInfo(targetSlot),
                                                      DciInfoElementTdma::UL,
@@ -1213,7 +1214,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
         }
         else
         {
-            NS_LOG_INFO("No allocation found for slot " << targetSlot);
+            NS_LOG_DEBUG("No allocation found for slot " << targetSlot);
         }
     }
 
@@ -1234,12 +1235,12 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     // The function that is filling m_ctrlMsgs is NrPhy::encodeCtrlMsgs
     if (m_ctrlMsgs.size() > 0)
     {
-        NS_LOG_INFO("ENB TXing DL CTRL with "
-                    << m_ctrlMsgs.size() << " msgs, frame " << m_currentSlot << " symbols "
-                    << static_cast<uint32_t>(dci->m_symStart) << "-"
-                    << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
-                    << Simulator::Now() << " end "
-                    << Simulator::Now() + varTtiPeriod - NanoSeconds(1.0));
+        NS_LOG_DEBUG("ENB TXing DL CTRL with "
+                     << m_ctrlMsgs.size() << " msgs, frame " << m_currentSlot << " symbols "
+                     << static_cast<uint32_t>(dci->m_symStart) << "-"
+                     << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
+                     << Simulator::Now() << " end "
+                     << Simulator::Now() + varTtiPeriod - NanoSeconds(1.0));
 
         for (auto ctrlIt = m_ctrlMsgs.begin(); ctrlIt != m_ctrlMsgs.end(); ++ctrlIt)
         {
@@ -1252,7 +1253,7 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     }
     else
     {
-        NS_LOG_INFO("No messages to send, skipping");
+        NS_LOG_DEBUG("No messages to send, skipping");
     }
 
     return varTtiPeriod;
@@ -1268,10 +1269,10 @@ NrGnbPhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    NS_LOG_INFO("ENB RXng UL CTRL frame "
-                << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
-                << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
-                << Simulator::Now() << " end " << Simulator::Now() + varTtiPeriod);
+    NS_LOG_DEBUG("ENB RXng UL CTRL frame "
+                 << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
+                 << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
+                 << Simulator::Now() << " end " << Simulator::Now() + varTtiPeriod);
     return varTtiPeriod;
 }
 
@@ -1846,10 +1847,9 @@ NrGnbPhy::ChannelAccessGranted(const Time& time)
     Time grant = time - toNextSlot;
     int64_t slotGranted = grant.GetNanoSeconds() / GetSlotPeriod().GetNanoSeconds();
 
-    NS_LOG_INFO("Channel access granted for "
-                << time.GetMilliSeconds() << " ms, which corresponds to " << slotGranted
-                << " slot in which each slot is " << GetSlotPeriod() << " ms. We lost "
-                << toNextSlot.GetMilliSeconds() << " ms. ");
+    NS_LOG_INFO("Channel access granted for " << time << ", which corresponds to " << slotGranted
+                                              << " slot in which each slot is " << GetSlotPeriod()
+                                              << ". We lost " << toNextSlot);
     NS_ASSERT(!m_channelLostTimer.IsRunning());
 
     if (slotGranted < 1)

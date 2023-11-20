@@ -567,7 +567,7 @@ NrUePhy::PhyCtrlMessagesReceived(const Ptr<NrControlMessage>& msg)
     }
     else if (msg->GetMessageType() == NrControlMessage::MIB)
     {
-        NS_LOG_INFO("received MIB");
+        NS_LOG_DEBUG("received MIB");
         Ptr<NrMibMessage> msg2 = DynamicCast<NrMibMessage>(msg);
         m_phyRxedCtrlMsgsTrace(m_currentSlot, GetCellId(), m_rnti, GetBwpId(), msg);
         m_ueCphySapUser->RecvMasterInformationBlock(GetCellId(), msg2->GetMib());
@@ -657,14 +657,14 @@ NrUePhy::TryToPerformLbt()
         {
             Time sched = m_lastSlotStart - Simulator::Now() + (GetSymbolPeriod() * ulCtrlSymStart) -
                          MicroSeconds(25);
-            NS_LOG_INFO("Scheduling an LBT for sending the UL CTRL at "
-                        << Simulator::Now() + sched);
+            NS_LOG_DEBUG("Scheduling an LBT for sending the UL CTRL at "
+                         << Simulator::Now() + sched);
             m_lbtEvent.Cancel();
             m_lbtEvent = Simulator::Schedule(sched, &NrUePhy::RequestAccess, this);
         }
         else
         {
-            NS_LOG_INFO("Not scheduling LBT: the UE has a channel status that is GRANTED");
+            NS_LOG_DEBUG("Not scheduling LBT: the UE has a channel status that is GRANTED");
         }
     }
     else
@@ -677,7 +677,7 @@ void
 NrUePhy::RequestAccess()
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("Request access at " << Simulator::Now() << " because we have to transmit UL CTRL");
+    NS_LOG_DEBUG("Request access because we have to transmit UL CTRL");
     m_cam->RequestAccess(); // This will put the m_channelStatus to granted when
                             // the channel will be granted.
 }
@@ -725,9 +725,9 @@ NrUePhy::PushCtrlAllocations(const SfnSf currentSfnSf)
 
     if (m_tddPattern[currentSlotN] < LteNrTddSlotType::UL)
     {
-        NS_LOG_INFO("The current TDD pattern indicates that we are in a "
-                    << m_tddPattern[currentSlotN]
-                    << " slot, so insert DL CTRL at the beginning of the slot");
+        NS_LOG_DEBUG("The current TDD pattern indicates that we are in a "
+                     << m_tddPattern[currentSlotN]
+                     << " slot, so insert DL CTRL at the beginning of the slot");
         VarTtiAllocInfo dlCtrlSlot(std::make_shared<DciInfoElementTdma>(0,
                                                                         m_dlCtrlSyms,
                                                                         DciInfoElementTdma::DL,
@@ -737,9 +737,9 @@ NrUePhy::PushCtrlAllocations(const SfnSf currentSfnSf)
     }
     if (m_tddPattern[currentSlotN] > LteNrTddSlotType::DL)
     {
-        NS_LOG_INFO("The current TDD pattern indicates that we are in a "
-                    << m_tddPattern[currentSlotN]
-                    << " slot, so insert UL CTRL at the end of the slot");
+        NS_LOG_DEBUG("The current TDD pattern indicates that we are in a "
+                     << m_tddPattern[currentSlotN]
+                     << " slot, so insert UL CTRL at the end of the slot");
         VarTtiAllocInfo ulCtrlSlot(
             std::make_shared<DciInfoElementTdma>(GetSymbolsPerSlot() - m_ulCtrlSyms,
                                                  m_ulCtrlSyms,
@@ -775,25 +775,13 @@ NrUePhy::StartSlot(const SfnSf& s)
 
     NS_ASSERT(m_currSlotAllocInfo.m_sfnSf == m_currentSlot);
 
-    NS_LOG_INFO("UE " << m_rnti << " start slot " << m_currSlotAllocInfo.m_sfnSf
-                      << " composed by the following allocations, total "
-                      << m_currSlotAllocInfo.m_varTtiAllocInfo.size());
+    NS_LOG_DEBUG("UE " << m_rnti << " start slot " << m_currSlotAllocInfo.m_sfnSf
+                       << " composed by the following allocations, total "
+                       << m_currSlotAllocInfo.m_varTtiAllocInfo.size());
     for (const auto& alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {
         std::string direction;
         std::string type;
-        if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
-        {
-            type = "CTRL";
-        }
-        else if (alloc.m_dci->m_type == DciInfoElementTdma::SRS)
-        {
-            type = "SRS";
-        }
-        else
-        {
-            type = "DATA";
-        }
 
         if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
@@ -803,10 +791,33 @@ NrUePhy::StartSlot(const SfnSf& s)
         {
             direction = "DL";
         }
-        NS_LOG_INFO("Allocation from sym "
-                    << static_cast<uint32_t>(alloc.m_dci->m_symStart) << " to sym "
-                    << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
-                    << " direction " << direction << " type " << type);
+
+        switch (alloc.m_dci->m_type)
+        {
+        case DciInfoElementTdma::VarTtiType::SRS:
+            type = "SRS";
+            NS_LOG_DEBUG("Allocation from sym "
+                         << static_cast<uint32_t>(alloc.m_dci->m_symStart) << " to sym "
+                         << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
+                         << " direction " << direction << " type " << type);
+            break;
+        case DciInfoElementTdma::VarTtiType::DATA:
+            type = "DATA";
+            NS_LOG_INFO("Allocation from sym "
+                        << static_cast<uint32_t>(alloc.m_dci->m_symStart) << " to sym "
+                        << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
+                        << " direction " << direction << " type " << type);
+            break;
+        case DciInfoElementTdma::VarTtiType::CTRL:
+            type = "CTRL";
+            NS_LOG_DEBUG("Allocation from sym "
+                         << static_cast<uint32_t>(alloc.m_dci->m_symStart) << " to sym "
+                         << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
+                         << " direction " << direction << " type " << type);
+            break;
+        default:
+            NS_LOG_ERROR("Unknown type DciInfoElementTdma::VarTtiType " << alloc.m_dci->m_type);
+        }
     }
 
     TryToPerformLbt();
@@ -900,11 +911,11 @@ NrUePhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     if (m_ctrlMsgs.size() == 0)
     {
-        NS_LOG_INFO("UE" << m_rnti << " reserved space for UL CTRL frame for symbols "
-                         << +dci->m_symStart << "-" << +(dci->m_symStart + dci->m_numSym - 1)
-                         << "\t start " << Simulator::Now() << " end "
-                         << (Simulator::Now() + varTtiDuration - NanoSeconds(1.0))
-                         << " but no data to transmit");
+        NS_LOG_DEBUG("UE" << m_rnti << " reserved space for UL CTRL frame for symbols "
+                          << +dci->m_symStart << "-" << +(dci->m_symStart + dci->m_numSym - 1)
+                          << "\t start " << Simulator::Now() << " end "
+                          << (Simulator::Now() + varTtiDuration - NanoSeconds(1.0))
+                          << " but no data to transmit");
         m_cam->Cancel();
         return varTtiDuration;
     }
@@ -1007,14 +1018,11 @@ NrUePhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 
             m_reportDlTbSize(m_netDevice->GetObject<NrUeNetDevice>()->GetImsi(),
                              dci->m_tbSize.at(streamIndex));
-            NS_LOG_DEBUG("UE" << m_rnti << " stream " << streamIndex
-                              << " RXing DL DATA frame for"
-                                 " symbols "
-                              << +dci->m_symStart << "-" << +(dci->m_symStart + dci->m_numSym - 1)
-                              << " num of rbg assigned: "
-                              << FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask).size()
-                              << "\t start " << Simulator::Now() << " end "
-                              << (Simulator::Now() + varTtiDuration));
+            NS_LOG_INFO("UE" << m_rnti << " stream " << streamIndex
+                             << " RXing DL DATA frame for symbols " << +dci->m_symStart << "-"
+                             << +(dci->m_symStart + dci->m_numSym - 1) << " num of rbg assigned: "
+                             << FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask).size()
+                             << ". RX will take place for " << varTtiDuration);
         }
     }
 
@@ -1113,9 +1121,9 @@ void
 NrUePhy::EndVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("DCI started at symbol "
-                << static_cast<uint32_t>(dci->m_symStart) << " which lasted for "
-                << static_cast<uint32_t>(dci->m_numSym) << " symbols finished");
+    NS_LOG_DEBUG("DCI started at symbol "
+                 << static_cast<uint32_t>(dci->m_symStart) << " which lasted for "
+                 << static_cast<uint32_t>(dci->m_numSym) << " symbols finished");
 
     if (m_tryToPerformLbt)
     {
@@ -1599,24 +1607,24 @@ NrUePhy::StartEventLoop(uint16_t frame, uint8_t subframe, uint16_t slot)
 
     if (GetChannelBandwidth() == 0)
     {
-        NS_LOG_INFO("Initial bandwidth not set, configuring the default one for Cell ID:"
-                    << GetCellId() << ", RNTI" << GetRnti() << ", BWP ID:" << GetBwpId());
+        NS_LOG_INFO("Initial bandwidth not set, configuring the default one for Cell ID: "
+                    << GetCellId() << ", RNTI: " << GetRnti() << ", BWP ID: " << GetBwpId());
         DoSetInitialBandwidth();
     }
 
-    NS_LOG_DEBUG("PHY starting. Configuration: "
-                 << std::endl
-                 << "\t TxPower: " << m_txPower << " dB" << std::endl
-                 << "\t NoiseFigure: " << m_noiseFigure << std::endl
-                 << "\t TbDecodeLatency: " << GetTbDecodeLatency().GetMicroSeconds() << " us "
-                 << std::endl
-                 << "\t Numerology: " << GetNumerology() << std::endl
-                 << "\t SymbolsPerSlot: " << GetSymbolsPerSlot() << std::endl
-                 << "\t Pattern: " << NrPhy::GetPattern(m_tddPattern) << std::endl
-                 << "Attached to physical channel: " << std::endl
-                 << "\t Channel bandwidth: " << GetChannelBandwidth() << " Hz" << std::endl
-                 << "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl
-                 << "\t Num. RB: " << GetRbNum());
+    NS_LOG_INFO("PHY starting. Configuration: "
+                << std::endl
+                << "\t TxPower: " << m_txPower << " dB" << std::endl
+                << "\t NoiseFigure: " << m_noiseFigure << std::endl
+                << "\t TbDecodeLatency: " << GetTbDecodeLatency().GetMicroSeconds() << " us "
+                << std::endl
+                << "\t Numerology: " << GetNumerology() << std::endl
+                << "\t SymbolsPerSlot: " << GetSymbolsPerSlot() << std::endl
+                << "\t Pattern: " << NrPhy::GetPattern(m_tddPattern) << std::endl
+                << "Attached to physical channel: " << std::endl
+                << "\t Channel bandwidth: " << GetChannelBandwidth() << " Hz" << std::endl
+                << "\t Channel central freq: " << GetCentralFrequency() << " Hz" << std::endl
+                << "\t Num. RB: " << GetRbNum());
     SfnSf startSlot(frame, subframe, slot, GetNumerology());
     StartSlot(startSlot);
 }

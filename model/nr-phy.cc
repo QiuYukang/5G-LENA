@@ -271,8 +271,8 @@ NrPhy::SetNumerology(uint16_t numerology)
     }
     else
     {
-        NS_LOG_INFO("Numerology is set, but the channel bandwidth not yet, so the number of RBs "
-                    "cannot be updated now.");
+        NS_LOG_DEBUG("Numerology is set, but the channel bandwidth not yet, so the number of RBs "
+                     "cannot be updated now.");
     }
 }
 
@@ -572,7 +572,7 @@ NrPhy::DoUpdateRbNum()
                 NS_LOG_WARN("Working without channel (i.e., under test)");
             }
         }
-        NS_LOG_INFO("Noise Power Spectral Density updated");
+        NS_LOG_DEBUG("Noise Power Spectral Density updated");
     }
 }
 
@@ -648,8 +648,8 @@ NrPhy::InstallSpectrumPhy(const Ptr<NrSpectrumPhy>& spectrumPhy)
 {
     NS_LOG_FUNCTION(this);
     m_spectrumPhys.push_back(spectrumPhy);
-    NS_LOG_INFO("Added NrSpectrumPhy. Now this NrPhy has in total:"
-                << m_spectrumPhys.size() << " instances of NrSpectrumPhy");
+    NS_LOG_DEBUG("Added NrSpectrumPhy. Now this NrPhy has in total:"
+                 << m_spectrumPhys.size() << " instances of NrSpectrumPhy");
 }
 
 void
@@ -709,7 +709,7 @@ NrPhy::PushBackSlotAllocInfo(const SlotAllocInfo& slotAllocInfo)
     {
         if (alloc.m_sfnSf == slotAllocInfo.m_sfnSf)
         {
-            NS_LOG_INFO("Merging inside existing allocation");
+            NS_LOG_DEBUG("Merging inside existing allocation");
             alloc.Merge(slotAllocInfo);
             updated = true;
             break;
@@ -719,7 +719,7 @@ NrPhy::PushBackSlotAllocInfo(const SlotAllocInfo& slotAllocInfo)
     {
         m_slotAllocInfo.push_back(slotAllocInfo);
         m_slotAllocInfo.sort();
-        NS_LOG_INFO("Pushing allocation at the end of the list");
+        NS_LOG_DEBUG("Pushing allocation at the end of the list");
     }
 
     std::stringstream output;
@@ -728,7 +728,7 @@ NrPhy::PushBackSlotAllocInfo(const SlotAllocInfo& slotAllocInfo)
     {
         output << alloc;
     }
-    NS_LOG_INFO(output.str());
+    NS_LOG_DEBUG(output.str());
 }
 
 void

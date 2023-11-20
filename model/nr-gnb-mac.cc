@@ -558,7 +558,7 @@ void
 NrGnbMac::DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("Perform things on DL, slot on the air: " << sfnSf);
+    NS_LOG_LOGIC("Perform things on DL, slot on the air: " << sfnSf);
 
     // --- DOWNLINK ---
     // Send Dl-CQI info to the scheduler    if(m_dlCqiReceived.size () > 0)
@@ -591,8 +591,9 @@ NrGnbMac::DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
         {
             uint16_t rnti = m_cmacSapUser->AllocateTemporaryCellRnti();
 
-            NS_LOG_INFO("Informing MAC scheduler of the RACH preamble for "
-                        << static_cast<uint16_t>(it->first) << " in slot " << sfnSf);
+            NS_LOG_INFO("Informing MAC scheduler of the RACH preamble for RAPID "
+                        << static_cast<uint16_t>(it->first) << " in slot " << sfnSf
+                        << "; Allocated RNTI: " << rnti);
             RachListElement_s rachLe;
             rachLe.m_rnti = rnti;
             rachLe.m_estimatedSize = 144; // to be confirmed
@@ -643,7 +644,7 @@ void
 NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("Perform things on UL, slot on the air: " << sfnSf);
+    NS_LOG_LOGIC("Perform things on UL, slot on the air: " << sfnSf);
 
     // --- UPLINK ---
     // Send UL-CQI info to the scheduler
@@ -929,7 +930,7 @@ NrGnbMac::DoReceiveControlMessage(Ptr<NrControlMessage> msg)
         break;
     }
     default:
-        NS_LOG_INFO("Control message not supported/expected");
+        NS_LOG_WARN("Control message not supported/expected");
     }
 }
 
@@ -957,18 +958,21 @@ NrGnbMac::DoDlHarqFeedback(const DlHarqInfo& params)
             Ptr<PacketBurst> emptyBuf = CreateObject<PacketBurst>();
             (*it).second.at(params.m_harqProcessId).m_infoPerStream.at(stream).m_pktBurst =
                 emptyBuf;
-            NS_LOG_DEBUG(this << " HARQ-ACK UE " << params.m_rnti << " harqId "
-                              << (uint16_t)params.m_harqProcessId << " stream id " << stream);
+            NS_LOG_INFO(" HARQ-ACK UE RNTI " << params.m_rnti << " HARQ Process ID "
+                                             << (uint16_t)params.m_harqProcessId << " Stream ID "
+                                             << stream);
         }
         else if (params.m_harqStatus.at(stream) == DlHarqInfo::NACK)
         {
-            NS_LOG_DEBUG(this << " HARQ-NACK UE " << params.m_rnti << " harqId "
-                              << (uint16_t)params.m_harqProcessId << " stream id " << stream);
+            NS_LOG_INFO(" HARQ-NACK UE RNTI " << params.m_rnti << " HARQ Process ID "
+                                              << (uint16_t)params.m_harqProcessId << " Stream ID "
+                                              << stream);
         }
         else if (params.m_harqStatus.at(stream) == DlHarqInfo::NONE)
         {
-            NS_LOG_DEBUG(this << " HARQ-NONE UE " << params.m_rnti << " harqId "
-                              << (uint16_t)params.m_harqProcessId << " stream id " << stream);
+            NS_LOG_INFO(" HARQ-NONE UE RNTI " << params.m_rnti << " HARQ Process ID "
+                                              << (uint16_t)params.m_harqProcessId << " Stream ID "
+                                              << stream);
         }
         else
         {
@@ -994,6 +998,13 @@ NrGnbMac::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters p
     schedParams.m_rlcTransmissionQueueHolDelay = params.txQueueHolDelay;
     schedParams.m_rlcTransmissionQueueSize = params.txQueueSize;
     schedParams.m_rnti = params.rnti;
+
+    NS_LOG_INFO("Reporting RLC buffer status update to MAC Scheduler for RNTI="
+                << params.rnti << ", LCID=" << (uint32_t)params.lcid << ", Transmission Queue Size="
+                << params.txQueueSize << ", Transmission Queue HOL Delay=" << params.txQueueHolDelay
+                << ", Retransmission Queue Size=" << params.retxQueueSize
+                << ", Retransmission Queue HOL delay=" << params.retxQueueHolDelay
+                << ", PDU Size=" << params.statusPduSize);
 
     m_macSchedSapProvider->SchedDlRlcBufferReq(schedParams);
 }
@@ -1029,6 +1040,7 @@ NrGnbMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
     NS_ASSERT_MSG(it->second.m_maxBytes >= it->second.m_used,
                   "DCI OF " << it->second.m_maxBytes << " total used " << it->second.m_used);
 
+    NS_LOG_INFO("Sending MAC PDU to PHY Layer");
     m_phySapProvider->SendMacPdu(params.pdu,
                                  it->second.m_sfnSf,
                                  it->second.m_dci->m_symStart,
@@ -1076,8 +1088,10 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
     std::sort(ind.m_slotAllocInfo.m_varTtiAllocInfo.begin(),
               ind.m_slotAllocInfo.m_varTtiAllocInfo.end());
 
-    NS_LOG_DEBUG("Received from scheduler a new allocation: " << ind.m_slotAllocInfo);
-
+    if (ind.m_slotAllocInfo.ContainsDataAllocation())
+    {
+        NS_LOG_INFO("New scheduled allocation: " << ind.m_slotAllocInfo);
+    }
     m_phySapProvider->SetSlotAllocInfo(ind.m_slotAllocInfo);
 
     SendRar(ind.m_buildRarList);
@@ -1095,7 +1109,34 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
 
             // Call RLC entities to generate RLC PDUs
             auto dciElem = varTtiAllocInfo.m_dci;
-            uint8_t tbUid = dciElem->m_harqProcess;
+            uint8_t harqId = dciElem->m_harqProcess;
+
+            if (ind.m_slotAllocInfo.ContainsDataAllocation())
+            {
+                std::ostringstream ossTbs;
+                ossTbs << "[ ";
+                for (auto& tbs : varTtiAllocInfo.m_dci->m_tbSize)
+                {
+                    ossTbs << tbs << " ";
+                }
+                ossTbs << "]";
+
+                std::ostringstream ossMcs;
+                ossMcs << "[ ";
+                for (auto& mcs : varTtiAllocInfo.m_dci->m_mcs)
+                {
+                    ossMcs << (uint32_t)mcs << " ";
+                }
+                ossMcs << "]";
+
+                NS_LOG_INFO("New scheduled data TX in DL for HARQ Process ID: "
+                            << (uint32_t)harqId << ", Var. TTI from symbol "
+                            << (uint32_t)varTtiAllocInfo.m_dci->m_symStart << " to "
+                            << (uint32_t)varTtiAllocInfo.m_dci->m_symStart +
+                                   (uint32_t)varTtiAllocInfo.m_dci->m_numSym
+                            << ". " << varTtiAllocInfo.m_dci->m_tbSize.size() << " TBs of sizes "
+                            << ossTbs.str() << " with MCS " << ossMcs.str());
+            }
 
             std::unordered_map<uint16_t, NrDlHarqProcessesBuffer_t>::iterator harqIt =
                 m_miDlHarqProcessesPackets.find(rnti);
@@ -1112,7 +1153,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                     // if any of the stream is carrying new data
                     // we refresh the info for all the streams in the
                     // HARQ buffer.
-                    for (auto& it : harqIt->second.at(tbUid).m_infoPerStream)
+                    for (auto& it : harqIt->second.at(harqId).m_infoPerStream)
                     {
                         Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
                         it.m_pktBurst = pb;
@@ -1124,7 +1165,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                     // it is done for only new data.
                     NrMacPduInfo macPduInfo(ind.m_sfnSf, dciElem);
                     // insert into MAC PDU map
-                    uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (tbUid & 0xFF);
+                    uint32_t tbMapKey = ((rnti & 0xFFFF) << 8) | (harqId & 0xFF);
                     mapRet = m_macPduMap.insert(
                         std::pair<uint32_t, struct NrMacPduInfo>(tbMapKey, macPduInfo));
                     if (!mapRet.second)
@@ -1149,19 +1190,19 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                             rntiIt->second.find(rlcPduInfo.m_lcid);
                         NS_ASSERT_MSG(lcidIt != rntiIt->second.end(),
                                       "could not find LCID" << rlcPduInfo.m_lcid);
-                        NS_LOG_DEBUG("Notifying RLC of TX opportunity for TB "
-                                     << (unsigned int)tbUid << " LC ID " << +rlcPduInfo.m_lcid
-                                     << " stream " << +k << " size "
-                                     << (unsigned int)rlcPduInfo.m_size << " bytes");
+                        NS_LOG_INFO("Notifying RLC of TX opportunity for HARQ Process ID "
+                                    << (unsigned int)harqId << " LC ID " << +rlcPduInfo.m_lcid
+                                    << " stream " << +k << " size "
+                                    << (unsigned int)rlcPduInfo.m_size << " bytes");
 
                         (*lcidIt).second->NotifyTxOpportunity(
                             LteMacSapUser::TxOpportunityParameters((rlcPduInfo.m_size),
                                                                    k,
-                                                                   tbUid,
+                                                                   harqId,
                                                                    GetBwpId(),
                                                                    rnti,
                                                                    rlcPduInfo.m_lcid));
-                        harqIt->second.at(tbUid).m_infoPerStream.at(k).m_lcidList.push_back(
+                        harqIt->second.at(harqId).m_infoPerStream.at(k).m_lcidList.push_back(
                             rlcPduInfo.m_lcid);
                     }
                     else
@@ -1169,12 +1210,13 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                         if (varTtiAllocInfo.m_dci->m_tbSize.at(k) > 0)
                         {
                             Ptr<PacketBurst> pb =
-                                harqIt->second.at(tbUid).m_infoPerStream.at(k).m_pktBurst;
+                                harqIt->second.at(harqId).m_infoPerStream.at(k).m_pktBurst;
                             for (std::list<Ptr<Packet>>::const_iterator j = pb->Begin();
                                  j != pb->End();
                                  ++j)
                             {
                                 Ptr<Packet> pkt = (*j)->Copy();
+                                NS_LOG_INFO("Sending MAC PDU to PHY Layer");
                                 m_phySapProvider->SendMacPdu(pkt,
                                                              ind.m_sfnSf,
                                                              dciElem->m_symStart,

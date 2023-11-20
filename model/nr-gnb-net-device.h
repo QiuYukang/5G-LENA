@@ -9,6 +9,8 @@
 
 #include "nr-net-device.h"
 
+#include "ns3/traced-callback.h"
+
 namespace ns3
 {
 

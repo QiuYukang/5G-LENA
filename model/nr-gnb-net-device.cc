@@ -222,6 +222,10 @@ NrGnbNetDevice::DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protoco
                         protocolNumber != Ipv6L3Protocol::PROT_NUMBER,
                     "unsupported protocol " << protocolNumber
                                             << ", only IPv4 and IPv6 are supported");
+
+    NS_LOG_INFO("Forward received packet to RRC Layer");
+    m_txTrace(packet, dest);
+
     return m_rrc->SendData(packet);
 }
 
