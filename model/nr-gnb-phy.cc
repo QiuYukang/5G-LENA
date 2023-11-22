@@ -482,7 +482,7 @@ NrGnbPhy::StartEventLoop(uint16_t frame, uint8_t subframe, uint16_t slot)
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("PHY starting. Configuration: "
                  << std::endl
-                 << "\t TxPower: " << m_txPower << " dB" << std::endl
+                 << "\t TxPower: " << m_txPower << " dBm" << std::endl
                  << "\t NoiseFigure: " << m_noiseFigure << std::endl
                  << "\t N0: " << m_n0Delay << std::endl
                  << "\t N1: " << m_n1Delay << std::endl
