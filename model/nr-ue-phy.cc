@@ -1614,7 +1614,7 @@ NrUePhy::StartEventLoop(uint16_t frame, uint8_t subframe, uint16_t slot)
 
     NS_LOG_INFO("PHY starting. Configuration: "
                 << std::endl
-                << "\t TxPower: " << m_txPower << " dB" << std::endl
+                << "\t TxPower: " << m_txPower << " dBm" << std::endl
                 << "\t NoiseFigure: " << m_noiseFigure << std::endl
                 << "\t TbDecodeLatency: " << GetTbDecodeLatency().GetMicroSeconds() << " us "
                 << std::endl
@@ -1678,7 +1678,7 @@ NrUePhy::DoSetDlBandwidth(uint16_t dlBandwidth)
 
     NS_LOG_DEBUG("PHY reconfiguring. Result: "
                  << std::endl
-                 << "\t TxPower: " << m_txPower << " dB" << std::endl
+                 << "\t TxPower: " << m_txPower << " dBm" << std::endl
                  << "\t NoiseFigure: " << m_noiseFigure << std::endl
                  << "\t TbDecodeLatency: " << GetTbDecodeLatency().GetMicroSeconds() << " us "
                  << std::endl
