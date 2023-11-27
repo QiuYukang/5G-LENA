@@ -1549,7 +1549,6 @@ NrHelper::ConfigureFhControl(NetDeviceContainer gnbNetDevices)
         {
             gnbNetDev->GetNrFhControl()->SetFhNumerology(j, gnbNetDev->GetPhy(j)->GetNumerology());
         }
-        gnbNetDev->GetNrFhControl()->ConfigureFhCapacityPerBwp(gnbNetDev->GetCcMapSize());
     }
 }
 

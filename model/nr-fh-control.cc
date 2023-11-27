@@ -177,16 +177,6 @@ NrFhControl::SetCellFhCapacity(uint16_t capacity)
 }
 
 void
-NrFhControl::ConfigureFhCapacityPerBwp(uint32_t numberOfConfiguredBwps)
-{
-    NS_LOG_FUNCTION(this);
-    NS_ASSERT_MSG(numberOfConfiguredBwps > 0, "Active BWPs cannot be 0");
-    m_fhCapacity = static_cast<uint16_t>(m_fhCapacity / numberOfConfiguredBwps);
-    NS_LOG_DEBUG("Active BWPs set by nrHelper: " << numberOfConfiguredBwps
-                                                 << " FH capacity per BWP: " << m_fhCapacity);
-}
-
-void
 NrFhControl::SetOverheadDyn(uint8_t overhead)
 {
     NS_LOG_FUNCTION(this);
@@ -465,6 +455,9 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
 uint8_t
 NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
 {
+    uint16_t numOfActiveBwps =
+        GetNumberActiveBwps(); // considers only active BWPs with data in queue
+
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);
     uint16_t Kp = numActiveUes;
@@ -475,10 +468,10 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
         10e6 * 1e-3 /
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
-    if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+    if ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
     {
-        while (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+        while ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
                Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
         {
             NS_LOG_DEBUG("Inside if while loop - reduce Kp");
@@ -487,11 +480,11 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
     }
 
     NS_LOG_DEBUG("Kp: " << Kp);
-    NS_ABORT_MSG_IF(m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+    NS_ABORT_MSG_IF((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
                         Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
-    uint32_t num = static_cast<uint32_t>(m_fhCapacity * 1e6 * slotLength.GetSeconds() -
+    uint32_t num = static_cast<uint32_t>((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() -
                                          Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
     if (Kp == 0)
     {
@@ -515,6 +508,9 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
     uint32_t modulationOrder =
         m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
 
+    uint16_t numOfActiveBwps =
+        GetNumberActiveBwps(); // considers only active BWPs with data in queue
+
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);
     uint16_t Kp = numActiveUes;
@@ -525,21 +521,21 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
         10e6 * 1e-3 /
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
-    if (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+    if ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
     {
-        while (m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+        while ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
                Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
         {
             Kp--;
         }
     }
 
-    NS_ABORT_MSG_IF(m_fhCapacity * 1e6 * slotLength.GetSeconds() <=
+    NS_ABORT_MSG_IF((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
                         Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
-    uint32_t num = static_cast<uint32_t>(m_fhCapacity * 1e6 * slotLength.GetSeconds() -
+    uint32_t num = static_cast<uint32_t>((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() -
                                          Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
     uint32_t nMax =
         num / (12 * Kp * modulationOrder) /

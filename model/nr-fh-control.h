@@ -103,22 +103,13 @@ class NrFhControl : public Object
 
     /**
      * \brief Set the available fronthaul capacity of the cell.
-     *        The capacity will be shared among all the active
-     *        BWPs of the cell. This is done later on when
-     *        nrHelper configures the nrFhControl through the
-     *        function NrHelper::ConfigureFhControl.
+     *        Notice that throughout the code, the capacity will
+     *        be shared among all the active BWPs of the cell.
+     *        ActiveBWPs are considered the BWPs that at least
+     *        one of its UEs has data.
      * \param capacity The fronthaul capacity (in Mbps)
      */
     void SetCellFhCapacity(uint16_t capacity);
-
-    /**
-     * \brief Split the available FH capacity based on the number
-     *        of active BWPs of the cell. This function is called
-     *        when the nrHelper configures the nrFhControl through
-     *        the function NrHelper::ConfigureFhControl.
-     * \param numberOfActiveBwps The number of active BWPs
-     */
-    void ConfigureFhCapacityPerBwp(uint32_t numberOfConfiguredBwps);
 
     /**
      * \brief Set the overhead for dynamic modulation compression
