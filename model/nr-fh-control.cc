@@ -403,53 +403,48 @@ NrFhControl::GetNumberActiveBwps() const
 bool
 NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
 {
-    return 1;
-    /*NS_LOG_INFO("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
+    NS_LOG_INFO("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
                                                                  << bwpId << " mcs: " << mcs
                                                                  << " nRegs: " << nRegs);
-    uint16_t numBwps =
-        GetNumberActiveBwps(); // considers only active cells as BWPs with new data in queue
-    if (numBwps == 0) // if we are at this point with numBWPs=0, it means there are BWPs with just
-                      // remaining HARQ allocations
+   uint16_t numOfActiveBwps =
+        GetNumberActiveBwps(); // considers only active BWPs with data in queue
+
+   NS_LOG_DEBUG("Number of active BWPs in DoesAllocFit: " << numOfActiveBwps);
+
+    if (numOfActiveBwps == 0) // if we are at this point with numBWPs=0, it means there are
+                              // BWPs with just remaining HARQ allocations
     {
-        numBwps++;
+        numOfActiveBwps++;
     }
     uint64_t thr =
-        GetFhThr(mcs, nRegs * static_cast<uint32_t>(m_fhSchedSapUser->GetNumRbPerRbgFromSched()));
+        GetFhThr(bwpId, mcs, nRegs * static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched()));
 
-    NS_LOG_INFO("Throughput: " << thr);
-    if (m_allocCellThrPerBwp.find(bwpId) == m_allocCellThrPerBwp.end()) // bwpId not in the map
+    if (m_allocThrPerBwp.find(bwpId) == m_allocThrPerBwp.end()) // bwpId not in the map
     {
-        NS_LOG_INFO("BWP not in the map ");
-        if (thr < (m_fhCapacity * 1e6 / numBwps) &&
-            (m_allocFhThroughput + thr < m_fhCapacity * 1e6)) // divide with active BWPs?
+    if (thr < ((m_fhCapacity / numOfActiveBwps) * 1e6))
         {
-            m_allocCellThrPerBwp.insert(std::make_pair(bwpId, thr));
-            m_allocFhThroughput += thr;
-            NS_LOG_INFO("Return True");
+            m_allocThrPerBwp.insert(std::make_pair(bwpId, thr));
+            NS_LOG_DEBUG("BWP not in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
             return 1;
         }
         else
         {
-            NS_LOG_INFO("Return False");
+            NS_LOG_DEBUG("BWP not in the map, Allocation cannot be included");
             return 0;
         }
-    }
-    else if (((m_allocCellThrPerBwp[bwpId] + thr) < (m_fhCapacity * 1e6 / numBwps)) &&
-             (m_allocFhThroughput + thr <
-              m_fhCapacity * 1e6)) // cell in the map & we can store the allocation
+    } // bwp in the map & we can store the allocation
+    else if ((m_allocThrPerBwp[bwpId] + thr) < ((m_fhCapacity / numOfActiveBwps) * 1e6))
     {
-        NS_LOG_INFO("BWP exists in the map ");
-        m_allocCellThrPerBwp[bwpId] += thr;
-        m_allocFhThroughput += thr; // double check
-        NS_LOG_INFO("Return True");
+        m_allocThrPerBwp[bwpId] += thr;
+        NS_LOG_DEBUG("BWP in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
+
         return 1;
     }
     else // we cannot include the allocation
     {
-        NS_LOG_INFO("Allocation cannot be included");
+        NS_LOG_INFO("BWP in the map, Allocation cannot be included");
         return 0;
-    }*/
+    }
 }
 
 uint8_t
@@ -643,8 +638,8 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
         NS_LOG_DEBUG("Reset traces for next slot");
         m_reqFhDlThrTracedValuePerBwp.erase(bwpId);
         m_rbsAirTracedValue.erase(bwpId);
-        m_allocFhThroughput = 0;
-        m_allocCellThrPerBwp.clear();
+        m_allocThrPerCell = 0;
+        m_allocThrPerBwp.erase(bwpId);
         m_waitingSlotPerBwp.at(bwpId).Add(1);
     }
 }

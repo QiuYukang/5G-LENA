@@ -310,10 +310,9 @@ class NrFhControl : public Object
     std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
     std::unordered_map<uint16_t, uint16_t> m_activeBwps;
 
-    uint64_t m_allocFhThroughput{
-        0}; //!< the allocated fronthaul throughput after scheduling (in DL)
+    uint64_t m_allocThrPerCell{0}; //!< the allocated fronthaul throughput after scheduling (in DL)
     std::unordered_map<uint16_t, uint64_t>
-        m_allocCellThrPerBwp; //!< Map for FH allocated throughput of a specific bwpId (in DL)
+        m_allocThrPerBwp; //!< Map for FH allocated throughput of a specific bwpId (in DL)
 
     std::unordered_map<uint16_t, uint64_t>
         m_reqFhDlThrTracedValuePerBwp; //!< the required fronthaul throughput (in DL) per BWP
