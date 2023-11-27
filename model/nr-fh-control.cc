@@ -6,7 +6,6 @@
 
 #include <ns3/core-module.h>
 
-#include <unordered_set>
 
 namespace ns3
 {
@@ -261,6 +260,17 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
                               << bwpId << " and rnti: " << rnti << " with bytes: " << bytes);
 
         m_rntiQueueSize.insert(std::make_pair(c1, bytes));
+
+        if (m_activeBwps.find(bwpId) == m_activeBwps.end())
+        {
+            NS_LOG_DEBUG("Creating activeBWPs pair for bwp: " << bwpId << " with 1 UE");
+            m_activeBwps.insert((std::make_pair(bwpId, 1)));
+        }
+        else
+        {
+            m_activeBwps.at(bwpId)++;
+            NS_LOG_DEBUG("Update activeBWPs pair for bwp: " << bwpId << " with: " << m_activeBwps.at(bwpId) << " UEs");
+        }
     }
     else
     {
@@ -343,9 +353,9 @@ NrFhControl::DoUpdateActiveUesMap(
         {
             uint32_t totBuffer = 0;
             // compute total DL bytes buffered
-            for (const auto& lcgInfo : ueMap.at(rnti)->m_dlLCG)
+            for (const auto &lcgInfo : ueMap.at(rnti)->m_dlLCG)
             {
-                const auto& lcg = lcgInfo.second;
+                const auto &lcg = lcgInfo.second;
                 totBuffer += lcg->GetTotalSize();
             }
             if (totBuffer > 0)
@@ -357,10 +367,19 @@ NrFhControl::DoUpdateActiveUesMap(
             }
             else
             {
-                NS_LOG_DEBUG(
+                NS_LOG_INFO(
                     "Removing UE because we served it. RLC queue size: " << m_rntiQueueSize.at(c1));
                 m_rntiQueueSize.erase(c1);
                 m_activeUesPerBwp.erase(rnti);
+                m_activeBwps.at(bwpId)--;
+                NS_ASSERT_MSG(m_activeBwps.at(bwpId) >= 0, "ActiveBwps map negative, sth is wrong");
+                NS_LOG_DEBUG("Update ActiveBwps map for bwpId: " << bwpId << " with: " << m_activeBwps.at(bwpId) << " UEs");
+
+                if (m_activeBwps.at(bwpId) == 0)
+                {
+                    NS_LOG_DEBUG("Remove BWP from Active BWPs because we served all its UEs");
+                    m_activeBwps.erase(bwpId);
+                }
             }
         }
         else
@@ -382,6 +401,13 @@ NrFhControl::GetNumberActiveUes(uint16_t bwpId) const
         }
     }
     return numActiveUes;
+}
+
+uint16_t
+NrFhControl::GetNumberActiveBwps() const
+{
+    NS_LOG_DEBUG("Number of active BWPs calculated: " << m_activeBwps.size());
+    return m_activeBwps.size();
 }
 
 bool

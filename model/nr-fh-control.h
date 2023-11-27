@@ -314,8 +314,10 @@ class NrFhControl : public Object
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
-    std::unordered_map<uint16_t, uint16_t> m_activeUesPerBwp;  //!< Map of active bwpIds
+    std::unordered_map<uint16_t, uint16_t>
+        m_activeUesPerBwp; //!< Map of active UEs per BWP (rnti, bwpId)
     std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
+    std::unordered_map<uint16_t, uint16_t> m_activeBwps;
 
     uint64_t m_allocFhThroughput{
         0}; //!< the allocated fronthaul throughput after scheduling (in DL)
