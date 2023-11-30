@@ -213,7 +213,7 @@ NrUeMac::GetTypeId()
             .AddAttribute(
                 "NumHarqProcess",
                 "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
-                UintegerValue(20),
+                UintegerValue(16),
                 MakeUintegerAccessor(&NrUeMac::SetNumHarqProcess, &NrUeMac::GetNumHarqProcess),
                 MakeUintegerChecker<uint8_t>())
             .AddTraceSource("UeMacRxedCtrlMsgsTrace",

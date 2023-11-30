@@ -403,7 +403,7 @@ NrGnbMac::GetTypeId()
             .AddAttribute(
                 "NumHarqProcess",
                 "Number of concurrent stop-and-wait Hybrid ARQ processes per user",
-                UintegerValue(20),
+                UintegerValue(16),
                 MakeUintegerAccessor(&NrGnbMac::SetNumHarqProcess, &NrGnbMac::GetNumHarqProcess),
                 MakeUintegerChecker<uint8_t>())
             .AddTraceSource("DlScheduling",
