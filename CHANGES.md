@@ -50,6 +50,31 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v2.5 to v2.6
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.39 to ns-3.40.
+
+### New API:
+
+- Added `Tx` and `Rx` trace sources in NrNetDevice to allow easier tracing of
+the events when the packet is transmitted or received.
+
+### Changes to existing API:
+
+None.
+
+### Changed behavior:
+
+- With the #157 fix the default number of HARQ processes for the downlink and
+the uplink has changed from 20 to 16.
+
+- In general, the NR module logging is refactored. Many log messages have now
+different logging levels. E.g., instead of NS_LOG_INFO is used NS_LOG_FUNCTION.
+There are new log messages at the different layers at gNB and UE.
+
+---
+
 ## Changes from NR-v2.4 to v2.5
 
 This release contains the upgrade of the supported ns-3 release, i.e., upgrade

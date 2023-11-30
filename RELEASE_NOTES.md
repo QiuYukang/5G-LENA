@@ -16,6 +16,75 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+
+Release NR-v2.6
+----------------
+
+Availability
+------------
+Available since November 30, 2023
+
+Cite this version
+-----------------
+DOI:
+
+Supported platforms
+-------------------
+This release is intended to work on systems with the following minimal
+requirements (Note: not all features available on all platforms):
+- g++-9 or later
+- clang-6 or later
+- (macOS only) Xcode 10.1 or later
+
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-13.
+- Ubuntu 18.04 with clang-6, and 10.
+- Ubuntu 20.04 with g++-9 and 10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+
+Recommended ns-3 release: ns-3.40
+
+Important news
+--------------
+This release is compatible with ns-3.40.
+
+Remember to follow the instructions from the README.md file, i.e., to checkout
+the correct release branch of both, ns-3 and the NR module. The information
+about compatibility with the corresponding ns-3 release branch is stated in the
+`README.md` file.
+
+New user-visible features
+-------------------------
+- This NR release comes with the first NR module tutorial created by Giovanni
+Grieco in the scope of GSoC 2023 project `IUNS-3 5G NR: Improving the Usability of ns-3's 5G NR Module`
+mentored by Tom Henderson, Katerina Koutlia, and Biljana Bojovic. This tutorial
+focuses on a `cttc-nr-demo` example and explains the internal functionality of the
+NR RAN by providing a detailed, layer-by-layer insights on the packet lifecycle
+as they traverse the RAN. The tutorial highlights all the points in the NR protocol
+stack where packets may be delayed or dropped, and how to log and trace such events.
+
+- Overall enhancement of the logging in the NR module. For many log messages
+the log level is refactored to provide easier overall logging, which allows to
+focus on the main events in the RAN protocol stack. In many places the logging
+information is expanded and improved its comprehension.
+
+- Added `Tx` and `Rx` trace sources in NrNetDevice to allow easier tracing of
+the events when the packet is transmitted or received.
+
+- The references in the examples are updated to point to the latest 3GPP documents.
+
+Bugs fixed
+----------
+- nr:(fixes #157) Changed default value of NumHarqProcess to 16.
+- Fixed to use NS_LOG_FUNCTION instead of NS_LOG_INFO for function calls.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
+
+
 Release NR-v2.5
 ----------------
 

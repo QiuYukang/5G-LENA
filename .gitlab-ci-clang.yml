@@ -8,7 +8,7 @@
 # "RELEASE", that has a value "weekly". Also, a variable "CLANG" should be set
 # to True.
 
-# We support CLANG 8 - 14
+# We support CLANG 6 - 14
 # We test only CLANG 6 and 10 on Ubuntu 18.04, and 11 and 14 on Ubuntu 22.04
 # The test is done under Linux.
 

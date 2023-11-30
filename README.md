@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 
 SPDX-License-Identifier: GPL-2.0-only
 -->
@@ -59,21 +59,21 @@ directory will be listed as "Untracked files". This is normal.
 ### Switch to the latest NR release branch:
 
 Checkout the latest NR release branch (usually the branch with the highest version
-number, to list git branches run `git branch -r`). For example, for NR Release v2.5 run:
+number, to list git branches run `git branch -r`). For example, for NR Release v2.6 run:
 
 ```
 cd nr
-git checkout 5g-lena-v2.5.y
+git checkout 5g-lena-v2.6.y
 ```
 
 ### Switch to the recommended ns-3 release branch:
 
 Check in the [NR RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the recommended ns-3 release, and then check out the corresponding ns-3 release branch.
-For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".39" you can run:
+For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".40" you can run:
 
 ```
 cd ../..
-git checkout -b ns-3.39-branch ns-3.39
+git checkout -b ns-3.40-branch ns-3.40
 ```
 
 For a quicker reference we provide a table with the supported versions of ns-3-dev
@@ -81,6 +81,7 @@ for each NR release.
 
 | NR version     | ns-3 version | Build system  |
 | :------------: | :-----------:| :-----------: |
+| 5g-lena-v2.6.y | ns-3.40      | cmake         |
 | 5g-lena-v2.5.y | ns-3.39      | cmake         |
 | 5g-lena-v2.4.y | ns-3.38      | cmake         |
 | 5g-lena-v2.3.y | ns-3.37      | cmake         |
