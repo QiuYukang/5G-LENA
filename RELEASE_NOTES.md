@@ -30,16 +30,9 @@ DOI:
 
 Supported platforms
 -------------------
-This release is intended to work on systems with the following minimal
-requirements (Note: not all features available on all platforms):
-- g++-9 or later
-- clang-6 or later
-- (macOS only) Xcode 10.1 or later
-
 This release has been tested on the following platforms:
-- Arch Linux with g++-13 and clang-13.
-- Ubuntu 18.04 with clang-6, and 10.
-- Ubuntu 20.04 with g++-9 and 10.
+- Arch Linux with g++-13 and clang-16.
+- Ubuntu 20.04 with g++-9 and 10, and clang-10.
 - Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
 
 Recommended ns-3 release: ns-3.40
