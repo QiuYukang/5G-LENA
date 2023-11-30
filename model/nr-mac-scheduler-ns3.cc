@@ -1253,6 +1253,7 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
                                                 << " marked as active");
         NS_ASSERT(schedInfo->m_dlHarq.Find(feedback.m_harqProcessId)->second.m_status ==
                   HarqProcess::RECEIVED_FEEDBACK);
+        m_nrFhSchedSapProvider->SetActiveHarqUes(GetBwpId(), rnti);
     }
 
     SortDlHarq(activeDlHarq);

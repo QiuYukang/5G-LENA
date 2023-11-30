@@ -151,7 +151,7 @@ void
 NrFhControl::SetFhControlMethod(FhControlMethod model)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_DEBUG("Set the Fh Control Limit Model to: " << model);
+    NS_LOG_DEBUG("Set the Fh Control Method to: " << model);
     m_fhControlMethod = model;
 }
 
@@ -271,6 +271,29 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 }
 
 void
+NrFhControl::DoSetActiveHarqUes(uint16_t bwpId, uint16_t rnti)
+{
+    if (m_activeHarqUesPerBwp.find(rnti) == m_activeHarqUesPerBwp.end()) // UE not in the map
+    {
+        NS_LOG_DEBUG("Creating m_activeHarqUesPerBwp pair for rnti: " << rnti
+                                                                      << " and bwpId: " << bwpId);
+        m_activeHarqUesPerBwp.insert(std::make_pair(rnti, bwpId));
+
+        if (m_activeHarqBwps.find(bwpId) == m_activeHarqBwps.end())
+        {
+            NS_LOG_DEBUG("Creating m_activeHarqBwps pair for bwp: " << bwpId << " with 1 UE");
+            m_activeHarqBwps.insert((std::make_pair(bwpId, 1)));
+        }
+        else
+        {
+            m_activeHarqBwps.at(bwpId)++;
+            NS_LOG_DEBUG("Update m_activeHarqBwps pair for bwp: "
+                         << bwpId << " with: " << m_activeHarqBwps.at(bwpId) << " UEs");
+        }
+    }
+}
+
+void
 NrFhControl::DoUpdateActiveUesMap(
     uint16_t bwpId,
     const std::deque<VarTtiAllocInfo>& allocation,
@@ -326,8 +349,23 @@ NrFhControl::DoUpdateActiveUesMap(
         }
         if (alloc.m_dci->m_ndi == 0)  // retx
         {
-            continue; // retx are not considered in the optimization (focuses on DL new data), but
-                      // stored for the trace
+            NS_LOG_DEBUG("Retransmission, update only m_activeHarqUesPerBwp");
+            if (m_activeHarqUesPerBwp.find(rnti) != m_activeHarqUesPerBwp.end())
+            {
+                m_activeHarqUesPerBwp.erase(rnti);
+                m_activeHarqBwps.at(bwpId)--;
+                NS_ASSERT_MSG(m_activeHarqBwps.at(bwpId) >= 0,
+                              "m_activeHarqBwps map negative, sth is wrong");
+                NS_LOG_DEBUG("Update m_activeHarqBwps map for bwpId: "
+                             << bwpId << " with: " << m_activeHarqBwps.at(bwpId) << " UEs");
+                if (m_activeHarqBwps.at(bwpId) == 0)
+                {
+                    NS_LOG_DEBUG(
+                        "Remove BWP from m_activeHarqBwps because we served all its HARQ UEs");
+                    m_activeHarqBwps.erase(bwpId);
+                }
+            }
+            continue;
         }
 
         // update stored maps
@@ -397,8 +435,19 @@ NrFhControl::GetNumberActiveUes(uint16_t bwpId) const
 uint16_t
 NrFhControl::GetNumberActiveBwps() const
 {
-    NS_LOG_DEBUG("Number of active BWPs calculated: " << m_activeBwps.size());
-    return m_activeBwps.size();
+    // BWPs with active UEs with new data
+    uint16_t numActiveBwps = m_activeBwps.size();
+    for (auto& it : m_activeHarqBwps)
+    {
+        // If there is an active BWP with active HARQ UE(s)
+        // and it is not included in the active BWPs list
+        if (m_activeBwps.find(it.first) == m_activeBwps.end())
+        {
+            numActiveBwps++; // increment the number of active BWPs
+        }
+    }
+    NS_LOG_DEBUG("Number of active BWPs calculated: " << numActiveBwps);
+    return numActiveBwps;
 }
 
 bool
@@ -407,25 +456,28 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
     NS_LOG_INFO("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
                                                                  << bwpId << " mcs: " << mcs
                                                                  << " nRegs: " << nRegs);
-   uint16_t numOfActiveBwps =
+    uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
 
-   NS_LOG_DEBUG("Number of active BWPs in DoesAllocFit: " << numOfActiveBwps);
+    NS_LOG_DEBUG("Number of active BWPs in DoesAllocFit: " << numOfActiveBwps);
 
     if (numOfActiveBwps == 0) // if we are at this point with numBWPs=0, it means there are
                               // BWPs with just remaining HARQ allocations
     {
         numOfActiveBwps++;
     }
-    uint64_t thr =
-        GetFhThr(bwpId, mcs, nRegs * static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched()));
+    uint64_t thr = GetFhThr(
+        bwpId,
+        mcs,
+        nRegs * static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched()));
 
     if (m_allocThrPerBwp.find(bwpId) == m_allocThrPerBwp.end()) // bwpId not in the map
     {
-    if (thr < ((m_fhCapacity / numOfActiveBwps) * 1e6))
+        if (thr < ((m_fhCapacity / numOfActiveBwps) * 1e6))
         {
             m_allocThrPerBwp.insert(std::make_pair(bwpId, thr));
-            NS_LOG_DEBUG("BWP not in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
+            NS_LOG_DEBUG("BWP not in the map, Allocation can be included. BWP Thr: "
+                         << m_allocThrPerBwp.at(bwpId));
             return 1;
         }
         else
@@ -437,7 +489,8 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
     else if ((m_allocThrPerBwp[bwpId] + thr) < ((m_fhCapacity / numOfActiveBwps) * 1e6))
     {
         m_allocThrPerBwp[bwpId] += thr;
-        NS_LOG_DEBUG("BWP in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
+        NS_LOG_DEBUG(
+            "BWP in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
 
         return 1;
     }

@@ -160,15 +160,9 @@ class NrFhControl : public Object
     uint16_t DoGetPhysicalCellId() const;
 
     /**
-     * \brief Returns a boolean indicating whether the current allocation can
-     * fit in the available FH bandwidth.
-     */
-    void DoGetDoesAllocationFit();
-
-    /**
-     * \brief Set the a UE as active (with data in RLC queue) for a slot, saving
-     *        a map of the bwpId, and rnti for such a UE, and the amount of bytes
-     *        in its RLC buffers.
+     * \brief Set a UE as active (with data in RLC queue) for a slot, saving
+     *        a map of the bwpId, and rnti for such a UE, and the amount of
+     *        bytes in its RLC buffers.
      *
      * \param bwpId the BWP ID
      * \param rnti the RNTI
@@ -188,6 +182,15 @@ class NrFhControl : public Object
         uint16_t bwpId,
         const std::deque<VarTtiAllocInfo>& allocation,
         const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap);
+
+    /**
+     * \brief Set a UE as active (with active HARQ) for a slot, saving
+     *        a map of the bwpId, and rnti for such a UE.
+     *
+     * \param bwpId the BWP ID
+     * \param rnti the RNTI
+     */
+    void DoSetActiveHarqUes(uint16_t bwpId, uint16_t rnti);
 
     /**
      * \brief Returns a boolean indicating whether the current allocation can
@@ -245,8 +248,8 @@ class NrFhControl : public Object
     uint64_t GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t Nres) const;
 
     /**
-     * \brief Returns the number of active BWPs, i.e., BWPs with data in their
-     *        RLC queues.
+     * \brief Returns the number of all active BWPs, i.e., BWPs with new data
+     *        in their RLC queues and BWPs with active HARQ.
      */
     uint16_t GetNumberActiveBwps() const;
 
@@ -302,13 +305,18 @@ class NrFhControl : public Object
     uint8_t m_mcsTable{2};        //!< the MCS table
     std::string m_errorModelType; //!< the error model type based on which the MCS Table will be set
 
+    std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
     std::unordered_map<uint16_t, uint16_t>
-        m_activeUesPerBwp; //!< Map of active UEs per BWP (rnti, bwpId)
-    std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
-    std::unordered_map<uint16_t, uint16_t> m_activeBwps;
+        m_activeUesPerBwp; //!< Map of active UEs (with new data) per BWP (rnti, bwpId)
+    std::unordered_map<uint16_t, uint16_t>
+        m_activeBwps; //!< Map of active BWPs - with UEs with new data (bwpId, number of UEs)
+    std::unordered_map<uint16_t, uint16_t>
+        m_activeHarqUesPerBwp; //!< Map of UEs with active HARQ per BWP (rnti, bwpId)
+    std::unordered_map<uint16_t, uint16_t>
+        m_activeHarqBwps; //!< Map of active BWPs - with UEs with active HARQ (bwpId, number of UEs)
 
     uint64_t m_allocThrPerCell{0}; //!< the allocated fronthaul throughput after scheduling (in DL)
     std::unordered_map<uint16_t, uint64_t>

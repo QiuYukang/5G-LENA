@@ -30,6 +30,7 @@ class NrFhSchedSapProvider
     virtual uint8_t GetFhControlMethod() = 0;
     virtual uint16_t GetNrFhPhysicalCellId() = 0;
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) = 0;
+    virtual void SetActiveHarqUes(uint16_t bwpId, uint16_t rnti) = 0;
     virtual void UpdateActiveUesMap(
         uint16_t bwpId,
         const std::deque<VarTtiAllocInfo>& allocation,
@@ -74,6 +75,7 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
     virtual uint8_t GetFhControlMethod();
     virtual uint16_t GetNrFhPhysicalCellId();
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
+    virtual void SetActiveHarqUes(uint16_t bwpId, uint16_t rnti);
     virtual void UpdateActiveUesMap(
         uint16_t bwpId,
         const std::deque<VarTtiAllocInfo>& allocation,
@@ -119,6 +121,13 @@ void
 MemberNrFhSchedSapProvider<C>::SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 {
     return m_owner->DoSetActiveUe(bwpId, rnti, bytes);
+}
+
+template <class C>
+void
+MemberNrFhSchedSapProvider<C>::SetActiveHarqUes(uint16_t bwpId, uint16_t rnti)
+{
+    return m_owner->DoSetActiveHarqUes(bwpId, rnti);
 }
 
 template <class C>
