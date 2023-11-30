@@ -17,15 +17,15 @@ cttc-nr-demo Tutorial
 Acknowledgements
 ****************
 
-This tutorial has been originally created by Giovanni Grieco in the scope of GSoC 2023 project 
-`IUNS-3 5G NR: Improving the Usability of ns-3's 5G NR Module`_ mentored by Tom Henderson, Katerina Koutlia, and Biljana 
-Bojovic. 
+This tutorial has been originally created by Giovanni Grieco in the scope of GSoC 2023 project
+`IUNS-3 5G NR: Improving the Usability of ns-3's 5G NR Module`_ mentored by Tom Henderson, Katerina Koutlia, and Biljana
+Bojovic.
 
-The main idea of this ns-3 GSoC project was to ease the learning curve for new users of the NR module. To achieve this 
-goal, the first version of the NR tutorial created by Giovanni Grieco focuses on a cttc-nr-demo example and explains the 
-internal functionality of the NR RAN by providing a detailed, layer-by-layer insights on the packet lifecycle as they 
-traverse the RAN. The tutorial highlights all the points in the NR protocol stack where packets may be delayed or 
-dropped, and how to log and trace such events. The first version of this tutorial was released with NR 2.6 in November 
+The main idea of this ns-3 GSoC project was to ease the learning curve for new users of the NR module. To achieve this
+goal, the first version of the NR tutorial created by Giovanni Grieco focuses on a cttc-nr-demo example and explains the
+internal functionality of the NR RAN by providing a detailed, layer-by-layer insights on the packet lifecycle as they
+traverse the RAN. The tutorial highlights all the points in the NR protocol stack where packets may be delayed or
+dropped, and how to log and trace such events. The first version of this tutorial was released with NR 2.6 in November
 2023.
 
 .. _`IUNS-3 5G NR: Improving the Usability of ns-3's 5G NR Module`: https://www.nsnam.org/wiki/GSOC20235GUsabilityFinalReport
@@ -37,11 +37,11 @@ dropped, and how to log and trace such events. The first version of this tutoria
   | Version | Release Date | Authors                                      |
   +=========+==============+==============================================+
   | 1.0     | N/A          | Giovanni Grieco <giovanni@grieco.dev>        |
-  |         |              |                                              | 
+  |         |              |                                              |
   |         |              | Tom Henderson <tomh@tomh.org>                |
-  |         |              |                                              | 
+  |         |              |                                              |
   |         |              | Katerina Koutlia <katerina.koutlia@cttc.es>  |
-  |         |              |                                              | 
+  |         |              |                                              |
   |         |              | Biljana Bojović <biljana.bojovic@cttc.es>    |
   +---------+--------------+----------------------------------------------+
 
@@ -1050,9 +1050,9 @@ total transmission of the data of interest requested 54 us.
 
 Packet drops
 ############
-Packets cannot be dropped in the ``NrGnbPhy``, but they may be dropped in ``NrSpectrumPhy`` upon their reception if they 
-are found to be corrupted. Whether the packet is corrupted is evaluated in ``NrSpectrumPhy`` by calling 
-the function ``NrErrorModel::GetTbDecodificationStats()`` which takes into account the HARQ history (used for the HARQ 
+Packets cannot be dropped in the ``NrGnbPhy``, but they may be dropped in ``NrSpectrumPhy`` upon their reception if they
+are found to be corrupted. Whether the packet is corrupted is evaluated in ``NrSpectrumPhy`` by calling
+the function ``NrErrorModel::GetTbDecodificationStats()`` which takes into account the HARQ history (used for the HARQ
 model being configured for this simulation, i.e., Chase Combining or Incremental Redundancy.)
 
 .. _`NR doxygen regarding the LteNrTddSlotType`: https://cttc-lena.gitlab.io/nr/html/group__utils.html#gae35a1a716a8137bb283336e7f988646f
@@ -1141,7 +1141,7 @@ UE.
 Packet drops
 ############
 
-Upon the same logic of ``NrGnbPhy`` and the corresponding ``NrSpectrumPhy``, the TBs dropped by ``NrSpectrumPhy`` on UE 
+Upon the same logic of ``NrGnbPhy`` and the corresponding ``NrSpectrumPhy``, the TBs dropped by ``NrSpectrumPhy`` on UE
 side cause a HARQ feedback at this layer in order to repeat the transmission.
 
 NrUeMac
@@ -1247,7 +1247,7 @@ For the former, it is 132 bytes, while for the latter, 3210.
 Packet drops
 ############
 
-The RLC PDU is dropped if it was already received or its sequence number falls outside the reordering window, as per 
+The RLC PDU is dropped if it was already received or its sequence number falls outside the reordering window, as per
 `Section 5.1.2.2 of the LTE RLC protocol specification`_.
 
 .. _`Section 5.1.2.2 of the LTE RLC protocol specification`: https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2438
