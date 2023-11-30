@@ -116,7 +116,7 @@ NrAlwaysOnAccessManager::RequestAccess()
     // We are always on!!
     for (const auto& cb : m_accessGrantedCb)
     {
-        cb(Time::Max());
+        cb(Time::Max() - Simulator::Now());
     }
 }
 
