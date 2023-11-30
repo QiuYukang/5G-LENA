@@ -6,7 +6,6 @@
 
 #include <ns3/core-module.h>
 
-
 namespace ns3
 {
 
@@ -259,7 +258,8 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
         else
         {
             m_activeBwps.at(bwpId)++;
-            NS_LOG_DEBUG("Update activeBWPs pair for bwp: " << bwpId << " with: " << m_activeBwps.at(bwpId) << " UEs");
+            NS_LOG_DEBUG("Update activeBWPs pair for bwp: " << bwpId << " with: "
+                                                            << m_activeBwps.at(bwpId) << " UEs");
         }
     }
     else
@@ -343,9 +343,9 @@ NrFhControl::DoUpdateActiveUesMap(
         {
             uint32_t totBuffer = 0;
             // compute total DL bytes buffered
-            for (const auto &lcgInfo : ueMap.at(rnti)->m_dlLCG)
+            for (const auto& lcgInfo : ueMap.at(rnti)->m_dlLCG)
             {
-                const auto &lcg = lcgInfo.second;
+                const auto& lcg = lcgInfo.second;
                 totBuffer += lcg->GetTotalSize();
             }
             if (totBuffer > 0)
@@ -363,7 +363,8 @@ NrFhControl::DoUpdateActiveUesMap(
                 m_activeUesPerBwp.erase(rnti);
                 m_activeBwps.at(bwpId)--;
                 NS_ASSERT_MSG(m_activeBwps.at(bwpId) >= 0, "ActiveBwps map negative, sth is wrong");
-                NS_LOG_DEBUG("Update ActiveBwps map for bwpId: " << bwpId << " with: " << m_activeBwps.at(bwpId) << " UEs");
+                NS_LOG_DEBUG("Update ActiveBwps map for bwpId: "
+                             << bwpId << " with: " << m_activeBwps.at(bwpId) << " UEs");
 
                 if (m_activeBwps.at(bwpId) == 0)
                 {
@@ -452,6 +453,8 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
 {
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
+    NS_ASSERT_MSG(numOfActiveBwps > 0, "No Active BWPs, sth is wrong");
+    uint16_t availableCapacity = m_fhCapacity / numOfActiveBwps;
 
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);
@@ -463,23 +466,20 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
         10e6 * 1e-3 /
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
-    if ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
+    if (availableCapacity * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
     {
-        while ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
+        while (availableCapacity * 1e6 * slotLength.GetSeconds() <=
                Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
         {
-            NS_LOG_DEBUG("Inside if while loop - reduce Kp");
             Kp--;
         }
     }
-
-    NS_LOG_DEBUG("Kp: " << Kp);
-    NS_ABORT_MSG_IF((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
+    NS_ABORT_MSG_IF(availableCapacity * 1e6 * slotLength.GetSeconds() <=
                         Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
-    uint32_t num = static_cast<uint32_t>((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() -
+    uint32_t num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
                                          Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
     if (Kp == 0)
     {
@@ -505,6 +505,8 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
 
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
+    NS_ASSERT_MSG(numOfActiveBwps > 0, "No Active BWPs, sth is wrong");
+    uint16_t availableCapacity = m_fhCapacity / numOfActiveBwps;
 
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);
@@ -516,22 +518,25 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
         10e6 * 1e-3 /
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
-    if ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
+    if (availableCapacity * 1e6 * slotLength.GetSeconds() <=
         numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
     {
-        while ((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
+        while (availableCapacity * 1e6 * slotLength.GetSeconds() <=
                Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
         {
             Kp--;
         }
     }
-
-    NS_ABORT_MSG_IF((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() <=
+    NS_ABORT_MSG_IF(availableCapacity * 1e6 * slotLength.GetSeconds() <=
                         Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
-    uint32_t num = static_cast<uint32_t>((m_fhCapacity / numOfActiveBwps) * 1e6 * slotLength.GetSeconds() -
+    uint32_t num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
                                          Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
+    if (Kp == 0)
+    {
+        return 0;
+    }
     uint32_t nMax =
         num / (12 * Kp * modulationOrder) /
         static_cast<uint32_t>(
