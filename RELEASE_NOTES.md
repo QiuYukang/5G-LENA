@@ -10,7 +10,7 @@ SPDX-License-Identifier: GPL-2.0-only
 This file contains release notes for the NR module (most recent releases first).
 
 All of the ns-3 documentation is accessible from the ns-3 website:
-http://www.nsnam.org including tutorials: http://www.nsnam.org/tutorials.html
+http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
