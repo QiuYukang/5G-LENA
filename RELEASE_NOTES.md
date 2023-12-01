@@ -68,7 +68,8 @@ the events when the packet is transmitted or received.
 
 Bugs fixed
 ----------
-- nr:(fixes #157) Changed default value of NumHarqProcess to 16.
+- #157 Changed default value of NumHarqProcess to 16.
+- #166 Avoid Time overflow in nr-ch-access-manager.cc.
 - Fixed to use NS_LOG_FUNCTION instead of NS_LOG_INFO for function calls.
 
 Known issues
