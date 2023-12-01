@@ -6,6 +6,7 @@
 
 #include "ns3/log.h"
 
+// clang-format off
 /*!
 \file
 \ingroup utils
@@ -2715,4 +2716,4 @@ This is a list of all \ref tracing sources.  For more information see the  \ref 
 <li><b>UePhyTxedHarqFeedbackTrace</b>: Ue PHY DL HARQ Feedback Traces.</li>
 </ul>
 */
-
+// clang-format on

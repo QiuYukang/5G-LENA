@@ -5,6 +5,8 @@
 #ifndef GROUPS_H
 #define GROUPS_H
 
+// clang-format off
+
 /**
   * \defgroup test Test
   *
@@ -204,4 +206,7 @@
  * \brief Classes that are used in different points of the code
  *
  */
+
+// clang-format on
+
 #endif // GROUPS_H

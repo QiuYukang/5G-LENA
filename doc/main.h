@@ -4,6 +4,8 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
+// clang-format off
+
 /** \mainpage 5G-LENA
 
  * This is a documentation for 5G-LENA. To see high-level feature
@@ -93,3 +95,5 @@
  * All our files are stored under the ns3 namespace. In your script, remember to
  * use such namespace or to use the prefix "ns3::" for the classes.
  */
+
+// clang-format on
