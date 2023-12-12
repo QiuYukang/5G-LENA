@@ -157,8 +157,7 @@ NrPhyRxTrace::DlDataSinrCallback([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                                  uint16_t cellId,
                                  uint16_t rnti,
                                  double avgSinr,
-                                 uint16_t bwpId,
-                                 uint8_t streamId)
+                                 uint16_t bwpId)
 {
     NS_LOG_INFO("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId
                      << "->Generate RsrpSinrTrace");
@@ -177,8 +176,6 @@ NrPhyRxTrace::DlDataSinrCallback([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                          << "\t"
                          << "BWPId"
                          << "\t"
-                         << "StreamId"
-                         << "\t"
                          << "SINR(dB)" << std::endl;
 
         if (!m_dlDataSinrFile.is_open())
@@ -188,7 +185,7 @@ NrPhyRxTrace::DlDataSinrCallback([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
     }
 
     m_dlDataSinrFile << Simulator::Now().GetSeconds() << "\t" << cellId << "\t" << rnti << "\t"
-                     << bwpId << "\t" << +streamId << "\t" << 10 * log10(avgSinr) << std::endl;
+                     << bwpId << "\t" << 10 * log10(avgSinr) << std::endl;
 }
 
 void
@@ -197,8 +194,7 @@ NrPhyRxTrace::DlCtrlSinrCallback([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                                  uint16_t cellId,
                                  uint16_t rnti,
                                  double avgSinr,
-                                 uint16_t bwpId,
-                                 uint8_t streamId)
+                                 uint16_t bwpId)
 {
     NS_LOG_INFO("UE" << rnti << "of " << cellId << " over bwp ID " << bwpId
                      << "->Generate DlCtrlSinrTrace");
@@ -218,8 +214,6 @@ NrPhyRxTrace::DlCtrlSinrCallback([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                          << "\t"
                          << "BWPId"
                          << "\t"
-                         << "StreamId"
-                         << "\t"
                          << "SINR(dB)" << std::endl;
 
         if (!m_dlCtrlSinrFile.is_open())
@@ -229,7 +223,7 @@ NrPhyRxTrace::DlCtrlSinrCallback([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
     }
 
     m_dlCtrlSinrFile << Simulator::Now().GetSeconds() << "\t" << cellId << "\t" << rnti << "\t"
-                     << bwpId << "\t" << +streamId << "\t" << 10 * log10(avgSinr) << std::endl;
+                     << bwpId << "\t" << 10 * log10(avgSinr) << std::endl;
 }
 
 void
@@ -839,8 +833,6 @@ NrPhyRxTrace::RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
                             << "\t"
                             << "bwpId"
                             << "\t"
-                            << "streamId"
-                            << "\t"
                             << "rnti"
                             << "\t"
                             << "tbSize"
@@ -868,8 +860,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
                         << "\t" << params.m_frameNum << "\t" << (unsigned)params.m_subframeNum
                         << "\t" << (unsigned)params.m_slotNum << "\t" << (unsigned)params.m_symStart
                         << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId << "\t"
-                        << (unsigned)params.m_bwpId << "\t"
-                        << static_cast<uint16_t>(params.m_streamId) << "\t" << params.m_rnti << "\t"
+                        << (unsigned)params.m_bwpId << "\t" << params.m_rnti << "\t"
                         << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
                         << (unsigned)params.m_rv << "\t" << 10 * log10(params.m_sinr) << "\t"
                         << (unsigned)params.m_cqi << "\t" << params.m_corrupt << "\t"
@@ -918,8 +909,6 @@ NrPhyRxTrace::RxPacketTraceEnbCallback(Ptr<NrPhyRxTrace> phyStats,
                             << "\t"
                             << "bwpId"
                             << "\t"
-                            << "streamId"
-                            << "\t"
                             << "rnti"
                             << "\t"
                             << "tbSize"
@@ -944,8 +933,7 @@ NrPhyRxTrace::RxPacketTraceEnbCallback(Ptr<NrPhyRxTrace> phyStats,
                         << "\t" << params.m_frameNum << "\t" << (unsigned)params.m_subframeNum
                         << "\t" << (unsigned)params.m_slotNum << "\t" << (unsigned)params.m_symStart
                         << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId << "\t"
-                        << (unsigned)params.m_bwpId << "\t"
-                        << static_cast<uint16_t>(params.m_streamId) << "\t" << params.m_rnti << "\t"
+                        << (unsigned)params.m_bwpId << "\t" << params.m_rnti << "\t"
                         << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
                         << (unsigned)params.m_rv << "\t" << 10 * log10(params.m_sinr) << "\t"
                         << params.m_corrupt << "\t" << params.m_tbler << std::endl;
@@ -985,10 +973,7 @@ NrPhyRxTrace::PathlossTraceCallback(Ptr<NrPhyRxTrace> phyStats,
                 rxNrSpectrumPhy->GetDevice()->GetObject<NrUeNetDevice>()->GetCellId();
             uint16_t txBwpId = txNrSpectrumPhy->GetBwpId();
             uint16_t rxBwpId = rxNrSpectrumPhy->GetBwpId();
-            uint16_t txStreamId = txNrSpectrumPhy->GetStreamId();
-            uint16_t rxStreamId = rxNrSpectrumPhy->GetStreamId();
-
-            if (txCellId == rxCellId && txBwpId == rxBwpId && txStreamId == rxStreamId)
+            if (txCellId == rxCellId && txBwpId == rxBwpId)
             {
                 // We multiply loss values with -1 to get the notion of loss
                 // instead of a gain.
@@ -1009,9 +994,7 @@ NrPhyRxTrace::PathlossTraceCallback(Ptr<NrPhyRxTrace> phyStats,
                 rxNrSpectrumPhy->GetDevice()->GetObject<NrGnbNetDevice>()->GetCellId();
             uint16_t txBwpId = txNrSpectrumPhy->GetBwpId();
             uint16_t rxBwpId = rxNrSpectrumPhy->GetBwpId();
-            uint16_t txStreamId = txNrSpectrumPhy->GetStreamId();
-            uint16_t rxStreamId = rxNrSpectrumPhy->GetStreamId();
-            if (txCellId == rxCellId && txBwpId == rxBwpId && txStreamId == rxStreamId)
+            if (txCellId == rxCellId && txBwpId == rxBwpId)
             {
                 // We multiply loss values with -1 to get the notion of loss
                 // instead of a gain.
@@ -1039,11 +1022,7 @@ NrPhyRxTrace::WriteDlPathlossTrace(Ptr<NrSpectrumPhy> txNrSpectrumPhy,
                          << "\t"
                          << "BwpId"
                          << "\t"
-                         << "txStreamId "
-                         << "\t"
                          << "IMSI"
-                         << "\t"
-                         << "rxStreamId"
                          << "\t"
                          << "pathLoss(dB)" << std::endl;
 
@@ -1056,9 +1035,8 @@ NrPhyRxTrace::WriteDlPathlossTrace(Ptr<NrSpectrumPhy> txNrSpectrumPhy,
     m_dlPathlossFile << Simulator::Now().GetSeconds() << "\t"
                      << txNrSpectrumPhy->GetDevice()->GetObject<NrGnbNetDevice>()->GetCellId()
                      << "\t" << txNrSpectrumPhy->GetBwpId() << "\t"
-                     << +txNrSpectrumPhy->GetStreamId() << "\t"
                      << rxNrSpectrumPhy->GetDevice()->GetObject<NrUeNetDevice>()->GetImsi() << "\t"
-                     << +rxNrSpectrumPhy->GetStreamId() << "\t" << lossDb << std::endl;
+                     << lossDb << std::endl;
 }
 
 void
@@ -1079,11 +1057,7 @@ NrPhyRxTrace::WriteUlPathlossTrace(Ptr<NrSpectrumPhy> txNrSpectrumPhy,
                          << "\t"
                          << "BwpId"
                          << "\t"
-                         << "txStreamId "
-                         << "\t"
                          << "IMSI"
-                         << "\t"
-                         << "rxStreamId"
                          << "\t"
                          << "pathLoss(dB)" << std::endl;
 
@@ -1096,9 +1070,8 @@ NrPhyRxTrace::WriteUlPathlossTrace(Ptr<NrSpectrumPhy> txNrSpectrumPhy,
     m_ulPathlossFile << Simulator::Now().GetSeconds() << "\t"
                      << txNrSpectrumPhy->GetDevice()->GetObject<NrUeNetDevice>()->GetCellId()
                      << "\t" << txNrSpectrumPhy->GetBwpId() << "\t"
-                     << +txNrSpectrumPhy->GetStreamId() << "\t"
                      << txNrSpectrumPhy->GetDevice()->GetObject<NrUeNetDevice>()->GetImsi() << "\t"
-                     << +rxNrSpectrumPhy->GetStreamId() << "\t" << lossDb << std::endl;
+                     << lossDb << std::endl;
 }
 
 void
@@ -1106,7 +1079,6 @@ NrPhyRxTrace::ReportDlCtrlPathloss([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                                    [[maybe_unused]] std::string path,
                                    uint16_t cellId,
                                    uint8_t bwpId,
-                                   uint8_t streamId,
                                    uint32_t ueNodeId,
                                    double lossDb)
 {
@@ -1126,8 +1098,6 @@ NrPhyRxTrace::ReportDlCtrlPathloss([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                              << "\t"
                              << "BwpId"
                              << "\t"
-                             << "streamId "
-                             << "\t"
                              << "ueNodeId"
                              << "\t"
                              << "pathLoss(dB)" << std::endl;
@@ -1139,7 +1109,7 @@ NrPhyRxTrace::ReportDlCtrlPathloss([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
     }
 
     m_dlCtrlPathlossFile << Simulator::Now().GetSeconds() << "\t" << cellId << "\t" << +bwpId
-                         << "\t" << +streamId << "\t" << ueNodeId << "\t" << lossDb << std::endl;
+                         << "\t" << ueNodeId << "\t" << lossDb << std::endl;
 }
 
 void
@@ -1147,7 +1117,6 @@ NrPhyRxTrace::ReportDlDataPathloss([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                                    [[maybe_unused]] std::string path,
                                    uint16_t cellId,
                                    uint8_t bwpId,
-                                   uint8_t streamId,
                                    uint32_t ueNodeId,
                                    double lossDb,
                                    uint8_t cqi)
@@ -1168,8 +1137,6 @@ NrPhyRxTrace::ReportDlDataPathloss([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
                              << "\t"
                              << "BwpId"
                              << "\t"
-                             << "streamId "
-                             << "\t"
                              << "ueNodeId"
                              << "\t"
                              << "pathLoss(dB)"
@@ -1183,8 +1150,7 @@ NrPhyRxTrace::ReportDlDataPathloss([[maybe_unused]] Ptr<NrPhyRxTrace> phyStats,
     }
 
     m_dlDataPathlossFile << Simulator::Now().GetSeconds() << "\t" << cellId << "\t" << +bwpId
-                         << "\t" << +streamId << "\t" << ueNodeId << "\t" << lossDb << "\t" << +cqi
-                         << std::endl;
+                         << "\t" << ueNodeId << "\t" << lossDb << "\t" << +cqi << std::endl;
 }
 
 } /* namespace ns3 */

@@ -177,7 +177,7 @@ class NrMacSchedulerLcAlgorithm;
  * the scheduler should compute beforehand the number of active UEs, as well as
  * the number of retransmission to be done. These operations are done, respectively,
  * by the methods ComputeActiveUe() and ComputeActiveHarq(). These methods work on
- * data structures that group UE and retransmission by BeamConfId
+ * data structures that group UE and retransmission by BeamID
  * (ActiveUeMap and ActiveHarqMap).
  *
  * \section scheduler_sched_ul Scheduling UL
@@ -353,18 +353,17 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     typedef std::pair<UePtr, uint32_t> UePtrAndBufferReq;
     /**
-     * \brief Map between a BeamConfId and a vector of UE (the UE are in that beam)
+     * \brief Map between a BeamId and a vector of UE (the UE are in that beam)
      */
-    typedef std::unordered_map<BeamConfId, std::vector<UePtrAndBufferReq>, BeamConfIdHash>
-        ActiveUeMap;
+    typedef std::unordered_map<BeamId, std::vector<UePtrAndBufferReq>, BeamIdHash> ActiveUeMap;
     /**
-     * \brief Map between a BeamConfId and the symbol assigned to that beam
+     * \brief Map between a BeamId and the symbol assigned to that beam
      */
-    typedef std::unordered_map<BeamConfId, uint32_t, BeamConfIdHash> BeamSymbolMap;
+    typedef std::unordered_map<BeamId, uint32_t, BeamIdHash> BeamSymbolMap;
     /**
-     * \brief Map between a BeamConfId and the HARQ of that beam
+     * \brief Map between a beamID and the HARQ of that beam
      */
-    typedef std::unordered_map<BeamConfId, HarqVectorIteratorList, BeamConfIdHash> ActiveHarqMap;
+    typedef std::unordered_map<BeamId, HarqVectorIteratorList, BeamIdHash> ActiveHarqMap;
 
     /**
      * \brief Set the CqiTimerThreshold

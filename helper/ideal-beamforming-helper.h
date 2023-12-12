@@ -94,11 +94,7 @@ class IdealBeamformingHelper : public BeamformingHelperBase
     Ptr<IdealBeamformingAlgorithm>
         m_beamformingAlgorithm; //!< The beamforming algorithm that will be used
 
-    typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy>> SpectrumPhyPair;
-    typedef std::pair<Ptr<NrGnbNetDevice>, Ptr<NrUeNetDevice>>
-        DevicePair; //!< The list of beamforming tasks to be executed
-
-    std::map<SpectrumPhyPair, DevicePair> m_spectrumPhyPairToDevicePair;
+    std::list<SpectrumPhyPair> m_spectrumPhyPair; //!< The list of beamforming tasks to be executed
 };
 
 }; // namespace ns3

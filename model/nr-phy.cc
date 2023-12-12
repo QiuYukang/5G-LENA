@@ -36,10 +36,7 @@ class NrMemberPhySapProvider : public NrPhySapProvider
   public:
     NrMemberPhySapProvider(NrPhy* phy);
 
-    void SendMacPdu(const Ptr<Packet>& p,
-                    const SfnSf& sfn,
-                    uint8_t symStart,
-                    uint8_t streamId) override;
+    void SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart) override;
 
     void SendControlMessage(Ptr<NrControlMessage> msg) override;
 
@@ -47,7 +44,7 @@ class NrMemberPhySapProvider : public NrPhySapProvider
 
     void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
 
-    BeamConfId GetBeamConfId(uint8_t rnti) const override;
+    BeamId GetBeamId(uint8_t rnti) const override;
 
     Ptr<const SpectrumModel> GetSpectrumModel() override;
 
@@ -74,12 +71,9 @@ NrMemberPhySapProvider::NrMemberPhySapProvider(NrPhy* phy)
 }
 
 void
-NrMemberPhySapProvider::SendMacPdu(const Ptr<Packet>& p,
-                                   const SfnSf& sfn,
-                                   uint8_t symStart,
-                                   uint8_t streamId)
+NrMemberPhySapProvider::SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart)
 {
-    m_phy->SetMacPdu(p, sfn, symStart, streamId);
+    m_phy->SetMacPdu(p, sfn, symStart);
 }
 
 void
@@ -100,10 +94,10 @@ NrMemberPhySapProvider::SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo)
     m_phy->PushBackSlotAllocInfo(slotAllocInfo);
 }
 
-BeamConfId
-NrMemberPhySapProvider::GetBeamConfId(uint8_t rnti) const
+BeamId
+NrMemberPhySapProvider::GetBeamId(uint8_t rnti) const
 {
-    return m_phy->GetBeamConfId(rnti);
+    return m_phy->GetBeamId(rnti);
 }
 
 Ptr<const SpectrumModel>
@@ -202,15 +196,11 @@ NrPhy::DoDispose()
     m_ctrlMsgs.clear();
     m_tddPattern.clear();
     m_netDevice = nullptr;
-
-    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
+    if (m_spectrumPhy)
     {
-        if (m_spectrumPhys.at(streamIndex))
-        {
-            m_spectrumPhys.at(streamIndex)->Dispose();
-        }
-        m_spectrumPhys.at(streamIndex) = nullptr;
+        m_spectrumPhy->Dispose();
     }
+    m_spectrumPhy = nullptr;
     delete m_phySapProvider;
 }
 
@@ -334,11 +324,11 @@ NrPhy::SendRachPreamble(uint32_t PreambleId, uint32_t Rnti)
 }
 
 void
-NrPhy::SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart, uint8_t streamId)
+NrPhy::SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(sfn.GetNumerology() == GetNumerology());
-    uint64_t key = sfn.GetEncForStreamWithSymStart(streamId, symStart);
+    uint64_t key = sfn.GetEncodingWithSymStart(symStart);
     auto it = m_packetBurstMap.find(key);
 
     if (it == m_packetBurstMap.end())
@@ -357,12 +347,12 @@ NrPhy::NotifyConnectionSuccessful()
 }
 
 Ptr<PacketBurst>
-NrPhy::GetPacketBurst(SfnSf sfn, uint8_t sym, uint8_t streamId)
+NrPhy::GetPacketBurst(SfnSf sfn, uint8_t sym)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(sfn.GetNumerology() == GetNumerology());
     Ptr<PacketBurst> pburst;
-    auto it = m_packetBurstMap.find(sfn.GetEncForStreamWithSymStart(streamId, sym));
+    auto it = m_packetBurstMap.find(sfn.GetEncodingWithSymStart(sym));
 
     if (it == m_packetBurstMap.end())
     {
@@ -387,17 +377,11 @@ NrPhy::GetNoisePowerSpectralDensity()
 }
 
 Ptr<SpectrumValue>
-NrPhy::GetTxPowerSpectralDensity(const std::vector<int>& rbIndexVector, uint8_t activeStreams)
+NrPhy::GetTxPowerSpectralDensity(const std::vector<int>& rbIndexVector)
 {
-    NS_LOG_FUNCTION(this);
     Ptr<const SpectrumModel> sm = GetSpectrumModel();
-    NS_ASSERT_MSG(activeStreams, "There should be at least one active stream.");
-    // Convert txPower to linear units
-    double txPowerLinear = pow(10, m_txPower / 10);
-    // Share the total transmission power among active streams
-    double txPowerPerStreamDbm = 10 * log10(txPowerLinear / activeStreams);
-    // Pass the TX power per stream, each stream will have the same TX PSD
-    return NrSpectrumValueHelper::CreateTxPowerSpectralDensity(txPowerPerStreamDbm,
+
+    return NrSpectrumValueHelper::CreateTxPowerSpectralDensity(m_txPower,
                                                                rbIndexVector,
                                                                sm,
                                                                m_powerAllocationType);
@@ -550,30 +534,23 @@ NrPhy::DoUpdateRbNum()
 
     NS_LOG_INFO("Updated RbNum to " << GetRbNum());
 
-    if (!m_spectrumPhys.empty())
-    {
-        // Update the noisePowerSpectralDensity, as it depends on m_rbNum
-        for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
-        {
-            m_spectrumPhys.at(streamIndex)
-                ->SetNoisePowerSpectralDensity(GetNoisePowerSpectralDensity());
+    NS_ASSERT(m_spectrumPhy);
 
-            // once we have set noise power spectral density which will
-            // initialize SpectrumModel of our SpectrumPhy, we can
-            // call AddRx function of the SpectrumChannel
-            if (m_spectrumPhys.at(streamIndex)->GetSpectrumChannel())
-            {
-                m_spectrumPhys.at(streamIndex)
-                    ->GetSpectrumChannel()
-                    ->AddRx(m_spectrumPhys.at(streamIndex));
-            }
-            else
-            {
-                NS_LOG_WARN("Working without channel (i.e., under test)");
-            }
-        }
-        NS_LOG_DEBUG("Noise Power Spectral Density updated");
+    // Update the noisePowerSpectralDensity, as it depends on m_rbNum
+    m_spectrumPhy->SetNoisePowerSpectralDensity(GetNoisePowerSpectralDensity());
+
+    // once we have set noise power spectral density which will
+    // initialize SpectrumModel of our SpectrumPhy, we can
+    // call AddRx function of the SpectrumChannel
+    if (m_spectrumPhy->GetSpectrumChannel())
+    {
+        m_spectrumPhy->GetSpectrumChannel()->AddRx(m_spectrumPhy);
     }
+    else
+    {
+        NS_LOG_WARN("Working without channel (i.e., under test)");
+    }
+    NS_LOG_DEBUG("Noise Power Spectral Density updated");
 }
 
 bool
@@ -647,9 +624,7 @@ void
 NrPhy::InstallSpectrumPhy(const Ptr<NrSpectrumPhy>& spectrumPhy)
 {
     NS_LOG_FUNCTION(this);
-    m_spectrumPhys.push_back(spectrumPhy);
-    NS_LOG_DEBUG("Added NrSpectrumPhy. Now this NrPhy has in total:"
-                 << m_spectrumPhys.size() << " instances of NrSpectrumPhy");
+    m_spectrumPhy = spectrumPhy;
 }
 
 void
@@ -676,17 +651,10 @@ NrPhy::GetL1L2CtrlLatency() const
     return 2;
 }
 
-uint8_t
-NrPhy::GetNumberOfStreams() const
-{
-    return m_spectrumPhys.size();
-}
-
 Ptr<NrSpectrumPhy>
-NrPhy::GetSpectrumPhy(uint8_t streamIndex) const
+NrPhy::GetSpectrumPhy() const
 {
-    NS_ABORT_MSG_IF(m_spectrumPhys.size() <= streamIndex, "The stream index is not valid.");
-    return m_spectrumPhys.at(streamIndex);
+    return m_spectrumPhy;
 }
 
 NrPhySapProvider*
@@ -752,26 +720,19 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
         {
             if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
-                // move the pkt burst of all the streams correctly.
-                uint8_t streams = static_cast<uint8_t>(alloc.m_dci->m_tbSize.size());
-                for (uint8_t stream = 0; stream < streams; stream++)
+                Ptr<PacketBurst> pburst = GetPacketBurst(slotSfn, alloc.m_dci->m_symStart);
+                if (pburst && pburst->GetNPackets() > 0)
                 {
-                    Ptr<PacketBurst> pburst =
-                        GetPacketBurst(slotSfn, alloc.m_dci->m_symStart, stream);
-                    if (pburst && pburst->GetNPackets() > 0)
-                    {
-                        newBursts.insert(std::make_pair(
-                            currentSfn.GetEncForStreamWithSymStart(stream, alloc.m_dci->m_symStart),
-                            pburst));
-                        sfnMap.insert(std::make_pair(
-                            currentSfn.GetEncForStreamWithSymStart(stream, alloc.m_dci->m_symStart),
-                            it->m_sfnSf.GetEncForStreamWithSymStart(stream,
-                                                                    alloc.m_dci->m_symStart)));
-                    }
-                    else
-                    {
-                        NS_LOG_INFO("No packet burst found for " << slotSfn);
-                    }
+                    newBursts.insert(
+                        std::make_pair(currentSfn.GetEncodingWithSymStart(alloc.m_dci->m_symStart),
+                                       pburst));
+                    sfnMap.insert(std::make_pair(
+                        currentSfn.GetEncodingWithSymStart(alloc.m_dci->m_symStart),
+                        it->m_sfnSf.GetEncodingWithSymStart(alloc.m_dci->m_symStart)));
+                }
+                else
+                {
+                    NS_LOG_INFO("No packet burst found for " << slotSfn);
                 }
             }
         }
@@ -889,14 +850,10 @@ void
 NrPhy::SetNoiseFigure(double d)
 {
     m_noiseFigure = d;
-
-    if (!m_spectrumPhys.empty() && GetRbNum() != 0)
+    // as we don't know the order in which will be configured the parameters
+    if (m_spectrumPhy && GetRbNum())
     {
-        for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
-        {
-            m_spectrumPhys.at(streamIndex)
-                ->SetNoisePowerSpectralDensity(GetNoisePowerSpectralDensity());
-        }
+        m_spectrumPhy->SetNoisePowerSpectralDensity(GetNoisePowerSpectralDensity());
     }
 }
 

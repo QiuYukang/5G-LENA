@@ -49,15 +49,13 @@ class NrPhyRxTrace : public Object
      * \param [in] rnti the RNTI
      * \param [in] avgSinr the average SINR
      * \param [in] bwpId the BWP ID
-     * \param [in] streamId the stream ID
      */
     static void DlDataSinrCallback(Ptr<NrPhyRxTrace> phyStats,
                                    std::string path,
                                    uint16_t cellId,
                                    uint16_t rnti,
                                    double avgSinr,
-                                   uint16_t bwpId,
-                                   uint8_t streamId);
+                                   uint16_t bwpId);
 
     /**
      * \brief Trace sink for DL Average SINR of CTRL (in dB).
@@ -67,15 +65,13 @@ class NrPhyRxTrace : public Object
      * \param [in] rnti the RNTI
      * \param [in] avgSinr the average SINR
      * \param [in] bwpId the BWP ID
-     * \param [in] streamId the stream ID
      */
     static void DlCtrlSinrCallback(Ptr<NrPhyRxTrace> phyStats,
                                    std::string path,
                                    uint16_t cellId,
                                    uint16_t rnti,
                                    double avgSinr,
-                                   uint16_t bwpId,
-                                   uint8_t streamId);
+                                   uint16_t bwpId);
 
     static void UlSinrTraceCallback(Ptr<NrPhyRxTrace> phyStats,
                                     std::string path,
@@ -102,9 +98,9 @@ class NrPhyRxTrace : public Object
     /**
      *  Trace sink for Enb Phy Received Control Messages.
      *
-     * \param [in] frame Frame number
-     * \param [in] subframe Subframe number
-     * \param [in] slot number
+     * \param [in] phyStats Physical layer statistics.
+     * \param [in] path Path of the file where the traces will be written
+     * \param [in] sfn frame, subframe and slot number
      * \param [in] nodeId
      * \param [in] rnti
      * \param [in] bwpId
@@ -198,9 +194,9 @@ class NrPhyRxTrace : public Object
     /**
      *  Trace sink for Ue Phy Received Control Messages.
      *
-     * \param [in] frame Frame number
-     * \param [in] subframe Subframe number
-     * \param [in] slot number
+     * \param [in] phyStats Physical layer statistics
+     * \param [in] path Where to write PHY layer statistics
+     * \param [in] sfn Frame, subframe, slot number.
      * \param [in] nodeId
      * \param [in] rnti
      * \param [in] bwpId
@@ -236,7 +232,6 @@ class NrPhyRxTrace : public Object
      * \param [in] path context path
      * \param cellId cell ID
      * \param bwpId BWP ID
-     * \param streamId stream ID
      * \param ueNodeId UE node ID
      * \param lossdB loss in dB
      */
@@ -244,7 +239,6 @@ class NrPhyRxTrace : public Object
                                      std::string path,
                                      uint16_t cellId,
                                      uint8_t bwpId,
-                                     uint8_t streamId,
                                      uint32_t ueNodeId,
                                      double lossDb);
 
@@ -254,7 +248,6 @@ class NrPhyRxTrace : public Object
      * \param [in] path context path
      * \param cellId cell ID
      * \param bwpId BWP ID
-     * \param streamId stream ID
      * \param ueNodeId UE node ID
      * \param lossdB loss in dB
      * \param cqi the CQI that corresponds to the received signal (calculated based on the received
@@ -264,7 +257,6 @@ class NrPhyRxTrace : public Object
                                      std::string path,
                                      uint16_t cellId,
                                      uint8_t bwpId,
-                                     uint8_t streamId,
                                      uint32_t ueNodeId,
                                      double lossDb,
                                      uint8_t cqi);

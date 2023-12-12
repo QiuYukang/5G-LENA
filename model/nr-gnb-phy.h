@@ -7,7 +7,6 @@
 #ifndef NR_ENB_PHY_H
 #define NR_ENB_PHY_H
 
-#include "beam-conf-id.h"
 #include "ideal-beamforming-algorithm.h"
 #include "nr-control-messages.h"
 #include "nr-harq-phy.h"
@@ -21,9 +20,8 @@
 namespace ns3
 {
 
-class NetDevice;
-class NrNetDevice;
 class PacketBurst;
+class NrNetDevice;
 class NrUePhy;
 class NrGnbMac;
 class NrChAccessManager;
@@ -177,11 +175,11 @@ class NrGnbPhy : public NrPhy
     uint32_t GetN2Delay() const;
 
     /**
-     * \brief Get the BeamConfId for the selected user
-     * \param rnti the selected UE
-     * \return the BeamConfId of the UE
+     * \brief Get the BeamId for the selected user
+     * \param rnti the selected user
+     * \return the beam id of the user
      */
-    BeamConfId GetBeamConfId(uint16_t rnti) const override;
+    BeamId GetBeamId(uint16_t rnti) const override;
 
     /**
      * \brief Set the channel access manager interface for this instance of the PHY
@@ -215,9 +213,8 @@ class NrGnbPhy : public NrPhy
      * \brief Set the Tx power spectral density based on the RB index vector
      * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
      * in which there is a transmission
-     * \param activeStreams the number of active streams
      */
-    void SetSubChannels(const std::vector<int>& rbIndexVector, uint8_t activeStreams);
+    void SetSubChannels(const std::vector<int>& rbIndexVector);
 
     /**
      * \brief Add the UE to the list of this gnb UEs.
@@ -244,9 +241,8 @@ class NrGnbPhy : public NrPhy
      * Connected by the helper to a callback in corresponding ChunkProcessor
      *
      * \param sinr the SINR
-     * \param streamId the index of the stream
      */
-    void GenerateDataCqiReport(const SpectrumValue& sinr, uint8_t streamId) const;
+    void GenerateDataCqiReport(const SpectrumValue& sinr);
 
     /**
      * \brief Receive a list of CTRL messages
@@ -405,7 +401,7 @@ class NrGnbPhy : public NrPhy
     /**
      * TODO change to private and add documentation
      */
-    void ChangeBeamformingVector(Ptr<NetDevice> dev);
+    void ChangeBeamformingVector(Ptr<NrNetDevice> dev);
     /**
      * TODO change to private and add documentation
      */
@@ -485,13 +481,10 @@ class NrGnbPhy : public NrPhy
      * \param pb Data to transmit
      * \param varTtiPeriod period of transmission
      * \param dci DCI of the transmission
-     * \param streamId The id of the stream, which identifies the instance of the
-     *        NrSpectrumPhy to be used to transmit the packet burst
      */
     void SendDataChannels(const Ptr<PacketBurst>& pb,
                           const Time& varTtiPeriod,
-                          const std::shared_ptr<DciInfoElementTdma>& dci,
-                          const uint8_t& streamId);
+                          const std::shared_ptr<DciInfoElementTdma>& dci);
 
     /**
      * \brief Transmit the control channel
@@ -722,10 +715,10 @@ class NrGnbPhy : public NrPhy
                                             //!< PHY, implements e.g. ReceiveRachPreamble
     LteEnbCphySapProvider* m_enbCphySapProvider{
         nullptr}; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call
-                  //!< e.g SetBandwidth
+    //!< e.g SetBandwidth
     LteEnbCphySapUser* m_enbCphySapUser{
         nullptr}; //!< PHY CSAP user pointer, RRC can receive control information by PHY, currently
-                  //!< configured but not used
+    //!< configured but not used
 
     std::set<uint64_t> m_ueAttached;             //!< Set of attached UE (by IMSI)
     std::set<uint16_t> m_ueAttachedRnti;         //!< Set of attached UE (by RNTI)
@@ -738,7 +731,7 @@ class NrGnbPhy : public NrPhy
         m_rbgAllocationPerSym; //!< RBG allocation in each sym
     std::unordered_map<uint8_t, std::vector<uint8_t>>
         m_rbgAllocationPerSymDataStat; //!< RBG allocation in each sym, for statistics (UL and DL
-                                       //!< included, only data)
+    //!< included, only data)
 
     TracedCallback<uint64_t, SpectrumValue&, SpectrumValue&> m_ulSinrTrace; //!< SINR trace
 
@@ -820,7 +813,7 @@ class NrGnbPhy : public NrPhy
                            //!< decode DL data (UE side)
     uint32_t m_n1Delay{
         0}; //!< minimum processing delay (in slots) from the end of DL Data reception to the
-            //!< earliest possible start of the corresponding ACK/NACK transmission (UE side)
+    //!< earliest possible start of the corresponding ACK/NACK transmission (UE side)
     uint32_t m_n2Delay{0}; //!< minimum processing delay (in slots) needed to decode UL DCI and
                            //!< prepare UL data (UE side)
 

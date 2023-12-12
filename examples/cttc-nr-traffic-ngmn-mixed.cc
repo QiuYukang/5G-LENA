@@ -448,7 +448,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
-                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
@@ -460,11 +460,11 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
-                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
-                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
@@ -494,7 +494,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
-                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
@@ -506,11 +506,11 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
-                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
-                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
@@ -539,7 +539,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
-                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
@@ -551,11 +551,11 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
-                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
-                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(

@@ -84,7 +84,7 @@ NrMacSchedulerOfdmaQos::CreateUeRepresentation(
     return std::make_shared<NrMacSchedulerUeInfoQos>(
         m_alpha,
         params.m_rnti,
-        params.m_beamConfId,
+        params.m_beamId,
         std::bind(&NrMacSchedulerOfdmaQos::GetNumRbPerRbg, this));
 }
 

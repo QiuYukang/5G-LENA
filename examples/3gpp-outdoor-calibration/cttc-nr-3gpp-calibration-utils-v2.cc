@@ -27,8 +27,7 @@ LenaV2Utils::ReportSinrNr(SinrOutputStats* stats,
                           uint16_t cellId,
                           uint16_t rnti,
                           double avgSinr,
-                          uint16_t bwpId,
-                          [[maybe_unused]] uint8_t streamId)
+                          uint16_t bwpId)
 {
     stats->SaveSinr(cellId, rnti, avgSinr, bwpId);
 }
@@ -118,12 +117,12 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
     // Change the antenna orientation
     Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0); // BWP 0
     Ptr<UniformPlanarArray> antenna0 = ConstCast<UniformPlanarArray>(
-        phy0->GetSpectrumPhy(0)->GetAntenna()->GetObject<UniformPlanarArray>());
+        phy0->GetSpectrumPhy()->GetAntenna()->GetObject<UniformPlanarArray>());
     antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
 
     // configure the beam that points toward the center of hexagonal
     // In case of beamforming, it will be overwritten.
-    phy0->GetSpectrumPhy(0)->GetBeamManager()->SetPredefinedBeam(beamConfSector, beamConfElevation);
+    phy0->GetSpectrumPhy()->GetBeamManager()->SetPredefinedBeam(beamConfSector, beamConfElevation);
 
     // Set numerology
     nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Numerology", UintegerValue(numerology)); // BWP
@@ -133,21 +132,6 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
 
     // Set TDD pattern
     nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern", StringValue(pattern));
-
-    ObjectVectorValue gnbSpectrumPhys;
-    Ptr<NrSpectrumPhy> nrSpectrumPhy;
-    phy0->GetAttribute("NrSpectrumPhyList", gnbSpectrumPhys);
-    nrSpectrumPhy = gnbSpectrumPhys.Get(0)->GetObject<NrSpectrumPhy>();
-    phy0->GetSpectrumPhy(0)->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-        "PolSlantAngle",
-        DoubleValue(gnbFirstSubArray));
-    if (gnbSpectrumPhys.GetN() == 2)
-    {
-        nrSpectrumPhy = gnbSpectrumPhys.Get(1)->GetObject<NrSpectrumPhy>();
-        nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-            "PolSlantAngle",
-            DoubleValue(gnbSecondSubArray));
-    }
 }
 
 } // unnamed namespace
@@ -756,9 +740,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                          PointerValue(CreateObject<IsotropicAntennaModel>()));
     }
 
-    uint8_t subArraysGnb = crossPolarizedGnb ? 2 : 1;
-    uint8_t subArraysUe = crossPolarizedUe ? 2 : 1;
-
     double gnbFirstSubArray = (polSlantAngleGnb1 * M_PI) / 180.0;  // converting to radians
     double gnbSecondSubArray = (polSlantAngleGnb2 * M_PI) / 180.0; // converting to radians
     double ueFirstSubArray = (polSlantAngleUe1 * M_PI) / 180.0;    // converting to radians
@@ -821,17 +802,17 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
 
     //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (),
     //  allBwps);
-    gnbSector1NetDev = nrHelper->InstallGnbDevice(gnbSector1Container, sector1Bwps, subArraysGnb);
+    gnbSector1NetDev = nrHelper->InstallGnbDevice(gnbSector1Container, sector1Bwps);
     NetDeviceContainer gnbNetDevs(gnbSector1NetDev);
-    gnbSector2NetDev = nrHelper->InstallGnbDevice(gnbSector2Container, sector2Bwps, subArraysGnb);
+    gnbSector2NetDev = nrHelper->InstallGnbDevice(gnbSector2Container, sector2Bwps);
     gnbNetDevs.Add(gnbSector2NetDev);
-    gnbSector3NetDev = nrHelper->InstallGnbDevice(gnbSector3Container, sector3Bwps, subArraysGnb);
+    gnbSector3NetDev = nrHelper->InstallGnbDevice(gnbSector3Container, sector3Bwps);
     gnbNetDevs.Add(gnbSector3NetDev);
-    ueSector1NetDev = nrHelper->InstallUeDevice(ueSector1Container, sector1Bwps, subArraysUe);
+    ueSector1NetDev = nrHelper->InstallUeDevice(ueSector1Container, sector1Bwps);
     NetDeviceContainer ueNetDevs(ueSector1NetDev);
-    ueSector2NetDev = nrHelper->InstallUeDevice(ueSector2Container, sector2Bwps, subArraysUe);
+    ueSector2NetDev = nrHelper->InstallUeDevice(ueSector2Container, sector2Bwps);
     ueNetDevs.Add(ueSector2NetDev);
-    ueSector3NetDev = nrHelper->InstallUeDevice(ueSector3Container, sector3Bwps, subArraysUe);
+    ueSector3NetDev = nrHelper->InstallUeDevice(ueSector3Container, sector3Bwps);
     ueNetDevs.Add(ueSector3NetDev);
 
     int64_t randomStream = 1;
@@ -965,7 +946,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                            MakeBoundCallback(&ReportSlotStatsNr, slotStats));
         gnbPhy->TraceConnectWithoutContext("RBDataStats",
                                            MakeBoundCallback(&ReportRbStatsNr, rbStats));
-        gnbPhy->GetSpectrumPhy(0)->TraceConnectWithoutContext(
+        gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext(
             "RxDataTrace",
             MakeBoundCallback(&ReportGnbRxDataNr, gnbRxPowerStats));
 

@@ -6,10 +6,8 @@
 
 #include "realistic-beamforming-algorithm.h"
 
-#include "nr-gnb-net-device.h"
 #include "nr-gnb-phy.h"
 #include "nr-mac-scheduler-ns3.h"
-#include "nr-ue-net-device.h"
 #include "nr-ue-phy.h"
 
 #include <ns3/angles.h>
@@ -31,23 +29,18 @@ NS_OBJECT_ENSURE_REGISTERED(RealisticBeamformingAlgorithm);
 RealisticBeamformingAlgorithm::RealisticBeamformingAlgorithm()
 {
     m_normalRandomVariable = CreateObject<NormalRandomVariable>();
-    m_gnbDevice = nullptr;
-    m_ueDevice = nullptr;
 }
 
 void
-RealisticBeamformingAlgorithm::Install(const Ptr<NrGnbNetDevice>& gnbDevice,
-                                       const Ptr<NrUeNetDevice>& ueDevice,
-                                       const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+RealisticBeamformingAlgorithm::Install(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                        const Ptr<NrSpectrumPhy>& ueSpectrumPhy,
                                        const Ptr<NrMacScheduler>& scheduler)
 {
     NS_LOG_FUNCTION(this);
-    m_gnbDevice = gnbDevice;
-    m_ueDevice = ueDevice;
     m_gnbSpectrumPhy = gnbSpectrumPhy;
     m_ueSpectrumPhy = ueSpectrumPhy;
     m_scheduler = scheduler;
+    m_nrUePhy = DynamicCast<NrUePhy>(m_ueSpectrumPhy->GetPhy());
 }
 
 int64_t
@@ -161,18 +154,14 @@ void
 RealisticBeamformingAlgorithm::NotifySrsReport(uint16_t cellId, uint16_t rnti, double srsReport)
 {
     NS_LOG_FUNCTION(this);
-    NS_ABORT_MSG_UNLESS(
-        m_ueDevice && m_gnbDevice,
-        "Function install must be called to install gNB and UE pair, and set ccId.");
-
-    // before anything check if RNTI corresponds to RNTI of UE of this algorithm instance
-    if (m_ueDevice->GetRrc()->GetRnti() != rnti)
+    NS_ABORT_MSG_UNLESS(m_gnbSpectrumPhy && m_ueSpectrumPhy,
+                        "Function install must be called to install gNB and UE pair");
+    if (m_nrUePhy->GetRnti() != rnti)
     {
         NS_LOG_INFO("Ignoring SRS report. Not for me. Report for RNTI:"
-                    << rnti << ", and my RNTI is:" << m_ueDevice->GetRrc()->GetRnti());
+                    << rnti << ", and my RNTI is:" << m_nrUePhy->GetRnti());
         return;
     }
-
     // update SRS symbols counter
     m_srsSymbolsCounter++;
 
@@ -241,7 +230,7 @@ void
 RealisticBeamformingAlgorithm::NotifyHelper()
 {
     NS_LOG_FUNCTION(this);
-    m_helperCallback(m_gnbDevice, m_ueDevice, m_gnbSpectrumPhy, m_ueSpectrumPhy);
+    m_helperCallback(m_gnbSpectrumPhy, m_ueSpectrumPhy);
 }
 
 void
@@ -271,8 +260,8 @@ RealisticBeamformingAlgorithm::GetChannelMatrix() const
     NS_ASSERT(channelModel != nullptr);
 
     Ptr<const MatrixBasedChannelModel::ChannelMatrix> originalChannelMatrix =
-        channelModel->GetChannel(m_gnbDevice->GetNode()->GetObject<MobilityModel>(),
-                                 m_ueDevice->GetNode()->GetObject<MobilityModel>(),
+        channelModel->GetChannel(m_gnbSpectrumPhy->GetMobility(),
+                                 m_ueSpectrumPhy->GetMobility(),
                                  m_gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                                  m_ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
 
@@ -285,7 +274,7 @@ BeamformingVectorPair
 RealisticBeamformingAlgorithm::GetBeamformingVectors()
 {
     NS_ABORT_MSG_IF(m_gnbSpectrumPhy == nullptr || m_ueSpectrumPhy == nullptr,
-                    "Something went wrong, gnb or UE PHY layer not set.");
+                    "Gnb or UE PHY layer not set.");
     double distance =
         m_gnbSpectrumPhy->GetMobility()->GetDistanceFrom(m_ueSpectrumPhy->GetMobility());
     NS_ABORT_MSG_IF(distance == 0,
@@ -317,7 +306,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
         NS_ABORT_MSG_UNLESS(dui.updateTime == Simulator::Now(),
                             "Current time should be equal to the updateTime from the "
                             "DelayedUpdateInfo structure."); // sanity check that we are using
-                                                             // correct dui
+        // correct dui
         srsSinr = dui.srsSinr;
         channelMatrix = dui.channelMatrix;
     }

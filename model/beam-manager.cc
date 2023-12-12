@@ -6,8 +6,7 @@
 
 #include "beam-manager.h"
 
-#include "nr-gnb-net-device.h"
-#include "nr-ue-net-device.h"
+#include "nr-net-device.h"
 #include "nr-ue-phy.h"
 
 #include <ns3/boolean.h>

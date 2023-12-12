@@ -187,19 +187,19 @@ struct DciInfoElementTdma
      * \param format DCI format
      * \param symStart starting symbol index for flexible TTI scheme
      * \param numSym number of symbols for flexible TTI scheme
-     * \param mcs MCS per stream
-     * \param tbs TB size per stream
-     * \param ndi New Data Indicator per stream
-     * \param rv Redundancy Version per stream
+     * \param mcs MCS
+     * \param tbs TB size
+     * \param ndi New Data Indicator
+     * \param rv Redundancy Version
      */
     DciInfoElementTdma(uint16_t rnti,
                        DciFormat format,
                        uint8_t symStart,
                        uint8_t numSym,
-                       std::vector<uint8_t> mcs,
-                       std::vector<uint32_t> tbs,
-                       std::vector<uint8_t> ndi,
-                       std::vector<uint8_t> rv,
+                       uint8_t mcs,
+                       uint32_t tbs,
+                       uint8_t ndi,
+                       uint8_t rv,
                        VarTtiType type,
                        uint8_t bwpIndex,
                        uint8_t tpc)
@@ -227,8 +227,8 @@ struct DciInfoElementTdma
      */
     DciInfoElementTdma(uint8_t symStart,
                        uint8_t numSym,
-                       std::vector<uint8_t> ndi,
-                       std::vector<uint8_t> rv,
+                       uint8_t ndi,
+                       uint8_t rv,
                        const DciInfoElementTdma& o)
         : m_rnti(o.m_rnti),
           m_format(o.m_format),
@@ -246,19 +246,17 @@ struct DciInfoElementTdma
     {
     }
 
-    const uint16_t m_rnti{0};             //!< RNTI of the UE
-    const DciFormat m_format{DL};         //!< DCI format
-    const uint8_t m_symStart{0};          //!< starting symbol index for flexible TTI scheme
-    const uint8_t m_numSym{0};            //!< number of symbols for flexible TTI scheme
-    const std::vector<uint8_t> m_mcs;     //!< MCS per stream
-    const std::vector<uint32_t> m_tbSize; //!< TB size per stream
-    const std::vector<uint8_t> m_ndi; //!< New Data Indicator per stream (Old comment: By default is
-                                      //!< retransmission. Zoraze to check if it has any effect)
-    const std::vector<uint8_t> m_rv;  //!< Redundancy Version per stream (Old comment: // not used
-                                      //!< for UL DCI. Zoraze to check why?)
-    const VarTtiType m_type{SRS};     //!< Var TTI type
-    const uint8_t m_bwpIndex{0};      //!< BWP Index to identify to which BWP this DCI applies to.
-    uint8_t m_harqProcess{0};         //!< HARQ process id
+    const uint16_t m_rnti{0};     //!< RNTI of the UE
+    const DciFormat m_format{DL}; //!< DCI format
+    const uint8_t m_symStart{0};  //!< starting symbol index for flexible TTI scheme
+    const uint8_t m_numSym{0};    //!< number of symbols for flexible TTI scheme
+    const uint8_t m_mcs{0};       //!< MCS
+    const uint32_t m_tbSize{0};   //!< TB size
+    const uint8_t m_ndi{0};       //!< New Data Indicator
+    const uint8_t m_rv{0};        //!< Redundancy Version
+    const VarTtiType m_type{SRS}; //!< Var TTI type
+    const uint8_t m_bwpIndex{0};  //!< BWP Index to identify to which BWP this DCI applies to.
+    uint8_t m_harqProcess{0};     //!< HARQ process id
     std::vector<uint8_t> m_rbgBitmask{}; //!< RBG mask: 0 if the RBG is not used, 1 otherwise
     const uint8_t m_tpc{0};              //!< Tx power control command
 };
@@ -312,7 +310,7 @@ struct VarTtiAllocInfo
 
     bool m_isOmni{false};
     std::shared_ptr<DciInfoElementTdma> m_dci;
-    std::vector<std::vector<RlcPduInfo>> m_rlcPduInfo;
+    std::vector<RlcPduInfo> m_rlcPduInfo;
 
     bool operator<(const VarTtiAllocInfo& o) const
     {
@@ -389,7 +387,7 @@ struct SlotAllocInfo
 struct DlCqiInfo
 {
     uint16_t m_rnti{0}; //!< The RNTI
-    uint8_t m_ri{0};    //!< The rank indicator
+    uint8_t m_ri{0};
 
     enum DlCqiType
     {
@@ -397,8 +395,8 @@ struct DlCqiInfo
         SB
     } m_cqiType{WB}; //!< The type of the CQI
 
-    std::vector<uint8_t> m_wbCqi; //!< WB CQI for each MIMO stream
-    uint8_t m_wbPmi{0};           //!< The reported wideband pre-coding matrix index
+    uint8_t m_wbCqi{0}; //!< Wide band CQI
+    uint8_t m_wbPmi{0}; //!< The reported wideband pre-coding matrix index
 };
 
 /**
@@ -513,7 +511,6 @@ struct RxPacketTraceParams
     double m_tbler{-1.0};
     bool m_corrupt{false};
     uint16_t m_bwpId{std::numeric_limits<uint16_t>::max()};
-    uint8_t m_streamId{std::numeric_limits<uint8_t>::max()};
     uint32_t m_rbAssignedNum{std::numeric_limits<uint32_t>::max()};
     uint8_t m_cqi{std::numeric_limits<uint8_t>::max()};
 };
@@ -557,62 +554,14 @@ struct DlHarqInfo : public HarqInfo
     enum HarqStatus
     {
         ACK,
-        NACK,
-        NONE
-    };
+        NACK
+    } m_harqStatus{NACK}; //!< HARQ status
 
-    std::vector<enum HarqStatus> m_harqStatus; //!< HARQ status
-    std::vector<uint8_t> m_numRetx;            //!< Num of Retx
+    uint8_t m_numRetx; //!< Num of Retx
 
     bool IsReceivedOk() const override
     {
-        bool ok = false;
-        auto allStatus = NONE;
-        for (const auto& it : m_harqStatus)
-        {
-            if (it == ACK || it == NONE)
-            {
-                // example case: In MIMO, if there is a feedback for only
-                // second stream, UE has to put NONE HARQ feedback status
-                // for the first stream to indicate that there is no feedback
-                // for the first stream. So, consider it as an ok status and
-                // move to the status of second stream.
-                ok = true;
-                if (it != NONE)
-                {
-                    allStatus = it;
-                }
-            }
-            else
-            {
-                allStatus = it;
-                ok = false;
-                // found NACK, feedback is not OK.
-                break;
-            }
-        }
-
-        NS_ASSERT_MSG(allStatus != NONE, "All HARQ feedbacks are NONE");
-
-        return ok;
-    }
-
-    bool IsReceivedOk(uint8_t stream)
-    {
-        return m_harqStatus.at(stream) == ACK;
-    }
-
-    std::vector<uint8_t> GetNackStreamIndexes()
-    {
-        std::vector<uint8_t> indexes;
-        for (std::size_t i = 0; i < m_harqStatus.size(); i++)
-        {
-            if (m_harqStatus.at(i) == NACK)
-            {
-                indexes.push_back(i);
-            }
-        }
-        return indexes;
+        return m_harqStatus == ACK;
     }
 };
 
@@ -638,16 +587,6 @@ struct UlHarqInfo : public HarqInfo
     {
         return m_receptionStatus == Ok;
     }
-
-    std::vector<uint8_t> GetNackStreamIndexes() const
-    {
-        std::vector<uint8_t> indexes;
-        if (m_receptionStatus == NotOk)
-        {
-            indexes.push_back(0);
-        }
-        return indexes;
-    }
 };
 
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma& item);
@@ -667,7 +606,6 @@ struct NrSchedulingCallbackInfo
     uint16_t m_slotNum{UINT16_MAX};   //!< slot number
     uint8_t m_symStart{UINT8_MAX};    //!< starting symbol index
     uint8_t m_numSym{UINT8_MAX};      //!< number of symbols
-    uint8_t m_streamId{UINT8_MAX};    //!< stream number
     uint16_t m_rnti{UINT16_MAX};      //!< RNTI
     uint8_t m_mcs{UINT8_MAX};         //!< MCS
     uint32_t m_tbSize{UINT32_MAX};    //!< TB size

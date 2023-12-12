@@ -42,20 +42,21 @@ BeamformingHelperBase::GetTypeId()
 }
 
 void
-BeamformingHelperBase::RunTask(const Ptr<NrGnbNetDevice>& gNbDev,
-                               const Ptr<NrUeNetDevice>& ueDev,
-                               const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+BeamformingHelperBase::RunTask(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO(" Run beamforming task for gNB:" << gNbDev->GetNode()->GetId()
-                                                 << " and UE:" << ueDev->GetNode()->GetId());
+    NS_LOG_INFO(" Run beamforming task for gNB node Id:"
+                << gnbSpectrumPhy->GetDevice()->GetNode()->GetId()
+                << " and UE node Id:" << ueSpectrumPhy->GetDevice()->GetNode()->GetId());
     BeamformingVectorPair bfPair = GetBeamformingVectors(gnbSpectrumPhy, ueSpectrumPhy);
 
     NS_ASSERT(bfPair.first.first.GetSize() && bfPair.second.first.GetSize());
-    gnbSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.first, ueDev);
-    ueSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.second, gNbDev);
-    ueSpectrumPhy->GetBeamManager()->ChangeBeamformingVector(gNbDev);
+    gnbSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.first,
+                                                            ueSpectrumPhy->GetDevice());
+    ueSpectrumPhy->GetBeamManager()->SaveBeamformingVector(bfPair.second,
+                                                           gnbSpectrumPhy->GetDevice());
+    ueSpectrumPhy->GetBeamManager()->ChangeBeamformingVector(gnbSpectrumPhy->GetDevice());
 }
 
 void

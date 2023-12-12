@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/beam-conf-id.h>
+#include <ns3/beam-id.h>
 #include <ns3/node.h>
 #include <ns3/nr-control-messages.h>
 #include <ns3/nr-gnb-mac.h>
@@ -41,16 +41,13 @@ class TestNotchingPhySapProvider : public NrPhySapProvider
     uint16_t GetBwpId() const override;
     uint16_t GetCellId() const override;
     Time GetSlotPeriod() const override;
-    void SendMacPdu(const Ptr<Packet>& p,
-                    const SfnSf& sfn,
-                    uint8_t symStart,
-                    uint8_t streamId) override;
+    void SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart) override;
     void SendControlMessage(Ptr<NrControlMessage> msg) override;
     void SendRachPreamble(uint8_t PreambleId, uint8_t Rnti) override;
     void SetSlotAllocInfo(const SlotAllocInfo& slotAllocInfo) override;
     void NotifyConnectionSuccessful() override;
     uint32_t GetRbNum() const override;
-    BeamConfId GetBeamConfId(uint8_t rnti) const override;
+    BeamId GetBeamId(uint8_t rnti) const override;
     void SetParams(uint32_t numOfUesPerBeam, uint32_t numOfBeams);
 
   private:
@@ -105,10 +102,7 @@ TestNotchingPhySapProvider::GetSlotPeriod() const
 }
 
 void
-TestNotchingPhySapProvider::SendMacPdu(const Ptr<Packet>& p,
-                                       const SfnSf& sfn,
-                                       uint8_t symStart,
-                                       uint8_t streamId)
+TestNotchingPhySapProvider::SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart)
 {
 }
 
@@ -140,8 +134,8 @@ TestNotchingPhySapProvider::GetRbNum() const
     return 53;
 }
 
-BeamConfId
-TestNotchingPhySapProvider::GetBeamConfId(uint8_t rnti) const
+BeamId
+TestNotchingPhySapProvider::GetBeamId(uint8_t rnti) const
 {
     BeamId beamId = BeamId(0, 0.0);
     uint8_t rntiCnt = 1;
@@ -164,7 +158,7 @@ TestNotchingPhySapProvider::GetBeamConfId(uint8_t rnti) const
             rntiCnt++;
         }
     }
-    return BeamConfId(beamId, BeamId::GetEmptyBeamId());
+    return beamId;
 }
 
 class TestNotchingGnbMac : public NrGnbMac
@@ -362,13 +356,13 @@ NrNotchingTestCase::DoRun()
         {
             NrMacCschedSapProvider::CschedUeConfigReqParameters paramsUe;
             paramsUe.m_rnti = rntiCnt;
-            paramsUe.m_beamConfId = m_phySapProvider->GetBeamConfId(rntiCnt);
+            paramsUe.m_beamId = m_phySapProvider->GetBeamId(rntiCnt);
 
             if (m_verbose)
             {
                 std::cout << "beam: " << beam << " ue: " << u << " rnti: " << paramsUe.m_rnti
-                          << " beam Id: " << paramsUe.m_beamConfId
-                          << " scheduler: " << m_schedulerType << std::endl;
+                          << " beam Id: " << paramsUe.m_beamId << " scheduler: " << m_schedulerType
+                          << std::endl;
                 if (beam == (m_beamsNum - 1) && u == (m_numOfUesPerBeam - 1))
                 {
                     std::ostringstream ss;

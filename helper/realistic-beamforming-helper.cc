@@ -41,45 +41,32 @@ RealisticBeamformingHelper::AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev
     NS_LOG_FUNCTION(this);
     for (std::size_t ccId = 0; ccId < gNbDev->GetCcMapSize(); ccId++)
     {
-        uint8_t gnbAntennaArrays = gNbDev->GetPhy(ccId)->GetNumberOfStreams();
-        uint8_t ueAntennaArrays = ueDev->GetPhy(ccId)->GetNumberOfStreams();
-        uint8_t arrays = std::min(gnbAntennaArrays, ueAntennaArrays);
-        NS_ASSERT(arrays);
+        Ptr<NrSpectrumPhy> gnbSpectrumPhy = gNbDev->GetPhy(ccId)->GetSpectrumPhy();
+        Ptr<NrSpectrumPhy> ueSpectrumPhy = ueDev->GetPhy(ccId)->GetSpectrumPhy();
 
-        // TODO add assert to check if they are of the same polarization
+        auto itAlgorithms =
+            m_spectrumPhyPairToAlgorithm.find(std::make_pair(gnbSpectrumPhy, ueSpectrumPhy));
+        NS_ABORT_MSG_IF(itAlgorithms != m_spectrumPhyPairToAlgorithm.end(),
+                        "Realistic beamforming task already created for the provided devices");
 
-        for (uint8_t arrayIndex = 0; arrayIndex < arrays; arrayIndex++)
-        {
-            Ptr<NrSpectrumPhy> gnbSpectrumPhy = gNbDev->GetPhy(ccId)->GetSpectrumPhy(arrayIndex);
-            Ptr<NrSpectrumPhy> ueSpectrumPhy = ueDev->GetPhy(ccId)->GetSpectrumPhy(arrayIndex);
+        // for each pair of antenna arrays of transmitter and receiver create an instance of
+        // beamforming algorithm
+        Ptr<RealisticBeamformingAlgorithm> beamformingAlgorithm =
+            m_algorithmFactory.Create<RealisticBeamformingAlgorithm>();
 
-            auto itAlgorithms =
-                m_antennaPairToAlgorithm.find(std::make_pair(gnbSpectrumPhy, ueSpectrumPhy));
-            NS_ABORT_MSG_IF(itAlgorithms != m_antennaPairToAlgorithm.end(),
-                            "Realistic beamforming task already created for the provided devices");
+        beamformingAlgorithm->Install(gnbSpectrumPhy, ueSpectrumPhy, gNbDev->GetScheduler(ccId));
 
-            // for each pair of antenna arrays of transmitter and receiver create an instance of
-            // beamforming algorithm
-            Ptr<RealisticBeamformingAlgorithm> beamformingAlgorithm =
-                m_algorithmFactory.Create<RealisticBeamformingAlgorithm>();
-
-            Ptr<NrMacScheduler> sched = gNbDev->GetScheduler(ccId);
-
-            beamformingAlgorithm->Install(gNbDev, ueDev, gnbSpectrumPhy, ueSpectrumPhy, sched);
-
-            m_antennaPairToAlgorithm[std::make_pair(gnbSpectrumPhy, ueSpectrumPhy)] =
-                beamformingAlgorithm;
-            // connect trace of the corresponding gNB PHY to the RealisticBeamformingAlgorithm
-            // funcition
-            gnbSpectrumPhy->AddSrsSinrReportCallback(
-                MakeCallback(&RealisticBeamformingAlgorithm::NotifySrsSinrReport,
-                             beamformingAlgorithm));
-            gnbSpectrumPhy->AddSrsSnrReportCallback(
-                MakeCallback(&RealisticBeamformingAlgorithm::NotifySrsSnrReport,
-                             beamformingAlgorithm));
-            beamformingAlgorithm->SetTriggerCallback(
-                MakeCallback(&RealisticBeamformingHelper::RunTask, this));
-        }
+        m_spectrumPhyPairToAlgorithm[std::make_pair(gnbSpectrumPhy, ueSpectrumPhy)] =
+            beamformingAlgorithm;
+        // connect trace of the corresponding gNB PHY to the RealisticBeamformingAlgorithm
+        // funcition
+        gnbSpectrumPhy->AddSrsSinrReportCallback(
+            MakeCallback(&RealisticBeamformingAlgorithm::NotifySrsSinrReport,
+                         beamformingAlgorithm));
+        gnbSpectrumPhy->AddSrsSnrReportCallback(
+            MakeCallback(&RealisticBeamformingAlgorithm::NotifySrsSnrReport, beamformingAlgorithm));
+        beamformingAlgorithm->SetTriggerCallback(
+            MakeCallback(&RealisticBeamformingHelper::RunTask, this));
     }
 }
 
@@ -87,8 +74,8 @@ BeamformingVectorPair
 RealisticBeamformingHelper::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                                                   const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
 {
-    auto itAlgo = m_antennaPairToAlgorithm.find(std::make_pair(gnbSpectrumPhy, ueSpectrumPhy));
-    NS_ABORT_MSG_IF(itAlgo == m_antennaPairToAlgorithm.end(),
+    auto itAlgo = m_spectrumPhyPairToAlgorithm.find(std::make_pair(gnbSpectrumPhy, ueSpectrumPhy));
+    NS_ABORT_MSG_IF(itAlgo == m_spectrumPhyPairToAlgorithm.end(),
                     "There is no created task/algorithm for the specified pair of antenna arrays.");
     return itAlgo->second->GetBeamformingVectors();
 }

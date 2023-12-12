@@ -31,7 +31,6 @@ namespace ns3
  *   - Frame number
  *   - Subframe number
  *   - Slot number
- *   - Stream id
  *   - MCS
  *   - Size of transport block
  */

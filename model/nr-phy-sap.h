@@ -7,7 +7,7 @@
 #ifndef NR_PHY_SAP_H
 #define NR_PHY_SAP_H
 
-#include "beam-conf-id.h"
+#include "beam-id.h"
 #include "nr-control-messages.h"
 #include "nr-mac-sched-sap.h"
 #include "nr-phy-mac-common.h"
@@ -47,15 +47,11 @@ class NrPhySapProvider
      * \param p PDU
      * \param sfn SFN
      * \param symStart symbol inside the SFN
-     * \param streamId The stream id through which this pkt would be transmitted
      *
      * The MAC sends to the PHY a MAC PDU, represented by the packet p. The PDU
      * MUST have a LteRadioBearerTag and a NrMacPduHeader.
      */
-    virtual void SendMacPdu(const Ptr<Packet>& p,
-                            const SfnSf& sfn,
-                            uint8_t symStart,
-                            uint8_t streamId) = 0;
+    virtual void SendMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart) = 0;
 
     /**
      * \brief Send a control message
@@ -89,13 +85,13 @@ class NrPhySapProvider
     virtual void NotifyConnectionSuccessful() = 0;
 
     /**
-     * \brief Get the beam conf ID from the RNTI specified. Not in any standard.
+     * \brief Get the beam ID from the RNTI specified. Not in any standard.
      * \param rnti RNTI of the user
-     * \return Beam conf ID of the user
+     * \return Beam ID of the user
      *
-     * The MAC asks for the BeamConfId of the specified used.
+     * The MAC asks for the BeamId of the specified used.
      */
-    virtual BeamConfId GetBeamConfId(uint8_t rnti) const = 0;
+    virtual BeamId GetBeamId(uint8_t rnti) const = 0;
 
     /**
      * \brief Retrieve the spectrum model used by the PHY layer.
@@ -223,10 +219,10 @@ class NrGnbPhySapUser
 
     /**
      * \brief Called by the PHY to notify MAC that beam has changed. Not in any standard
-     * \param beamConfId the new beam ID
+     * \param beamId the new beam ID
      * \param rnti the RNTI of the user
      */
-    virtual void BeamChangeReport(BeamConfId beamConfId, uint8_t rnti) = 0;
+    virtual void BeamChangeReport(BeamId beamId, uint8_t rnti) = 0;
 
     /**
      * \brief PHY requests information from MAC.

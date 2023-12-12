@@ -20,7 +20,6 @@ set(base_examples
     rem-beam-example
     cttc-fh-compression
     cttc-nr-notching
-    cttc-nr-mimo-demo
     cttc-nr-traffic-ngmn-mixed
     cttc-nr-traffic-3gpp-xr
     traffic-generator-example

@@ -26,8 +26,7 @@ LenaV2Utils::ReportSinrNr(SinrOutputStats* stats,
                           uint16_t cellId,
                           uint16_t rnti,
                           double avgSinr,
-                          uint16_t bwpId,
-                          [[maybe_unused]] uint8_t streamId)
+                          uint16_t bwpId)
 {
     stats->SaveSinr(cellId, rnti, avgSinr, bwpId);
 }
@@ -118,7 +117,7 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
 
     // configure the beam that points toward the center of hexagonal
     // In case of beamforming, it will be overwritten.
-    phy0->GetSpectrumPhy(0)->GetBeamManager()->SetPredefinedBeam(3, 30);
+    phy0->GetSpectrumPhy()->GetBeamManager()->SetPredefinedBeam(3, 30);
 
     // Set numerology
     nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Numerology", UintegerValue(numerology)); // BWP

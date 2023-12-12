@@ -41,7 +41,7 @@ NrMacSchedulerTdmaRR::CreateUeRepresentation(
     NS_LOG_FUNCTION(this);
     return std::make_shared<NrMacSchedulerUeInfoRR>(
         params.m_rnti,
-        params.m_beamConfId,
+        params.m_beamId,
         std::bind(&NrMacSchedulerTdmaRR::GetNumRbPerRbg, this));
 }
 

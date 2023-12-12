@@ -23,7 +23,7 @@ namespace ns3
 
 class NrControlMessage;
 class NrRarMessage;
-class BeamConfId;
+class BeamId;
 
 /**
  * \ingroup gnb-mac
@@ -169,11 +169,11 @@ class NrGnbMac : public Object
     void SetLteCcmMacSapUser(LteCcmMacSapUser* s);
 
     /**
-     * \brief A BeamConf for a user has changed
-     * \param beamConfId new beam ID
+     * \brief A Beam for a user has changed
+     * \param beamId new beam ID
      * \param rnti RNTI of the user
      */
-    void BeamChangeReport(BeamConfId beamConfId, uint8_t rnti);
+    void BeamChangeReport(BeamId beamId, uint8_t rnti);
 
     /**
      * TracedCallback signature for DL and UL data scheduling events.
@@ -183,7 +183,6 @@ class NrGnbMac : public Object
      * \param [in] slotNum Slot number
      * \param [in] symStart Symbol start
      * \param [in] numSym Number of symbols
-     * \param [in] streamId Stream id
      * \param [in] tbSize The TB size
      * \param [in] mcs MCS
      * \param [in] rnti RNTI
@@ -195,7 +194,6 @@ class NrGnbMac : public Object
                                              uint32_t slotNum,
                                              uint8_t symStart,
                                              uint8_t numSym,
-                                             uint8_t streamId,
                                              uint32_t tbSize,
                                              uint32_t mcs,
                                              uint32_t rnti,
@@ -331,17 +329,12 @@ class NrGnbMac : public Object
     void SendRar(const std::vector<BuildRarListElement_s>& rarList);
 
   private:
-    struct HarqProcessInfoSingleStream
+    struct NrDlHarqProcessInfo
     {
         Ptr<PacketBurst> m_pktBurst;
         // maintain list of LCs contained in this TB
         // used to signal HARQ failure to RLC handlers
         std::vector<uint8_t> m_lcidList;
-    };
-
-    struct NrDlHarqProcessInfo
-    {
-        std::vector<HarqProcessInfoSingleStream> m_infoPerStream;
     };
 
     typedef std::vector<NrDlHarqProcessInfo> NrDlHarqProcessesBuffer_t;

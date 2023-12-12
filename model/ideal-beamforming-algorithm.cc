@@ -7,10 +7,8 @@
 #include "ideal-beamforming-algorithm.h"
 
 #include "beam-manager.h"
-#include "nr-gnb-net-device.h"
 #include "nr-gnb-phy.h"
 #include "nr-spectrum-phy.h"
-#include "nr-ue-net-device.h"
 #include "nr-ue-phy.h"
 
 #include <ns3/angles.h>
@@ -28,8 +26,10 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("IdealBeamformingAlgorithm");
 NS_OBJECT_ENSURE_REGISTERED(CellScanBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(CellScanBeamformingAzimuthZenith);
+NS_OBJECT_ENSURE_REGISTERED(CellScanQuasiOmniBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(DirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(QuasiOmniDirectPathBeamforming);
+NS_OBJECT_ENSURE_REGISTERED(DirectPathQuasiOmniBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(OptimalCovMatrixBeamforming);
 
 TypeId

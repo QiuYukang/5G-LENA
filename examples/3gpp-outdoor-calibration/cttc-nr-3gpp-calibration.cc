@@ -986,7 +986,7 @@ Nr3gppCalibration(Parameters& params)
         {
             auto antArray = DynamicCast<NrGnbNetDevice>(remDevice)
                                 ->GetPhy(0)
-                                ->GetSpectrumPhy(0)
+                                ->GetSpectrumPhy()
                                 ->GetAntenna()
                                 ->GetObject<UniformPlanarArray>();
             auto antenna = ConstCast<UniformPlanarArray>(antArray);
@@ -1016,7 +1016,8 @@ Nr3gppCalibration(Parameters& params)
                         ->Get(siteId)
                         ->GetObject<NrGnbNetDevice>()
                         ->GetPhy(remPhyIndex)
-                        ->ChangeBeamformingVector(ueNdBySector[sectorIndex]->Get(siteId));
+                        ->ChangeBeamformingVector(
+                            DynamicCast<NrUeNetDevice>(ueNdBySector[sectorIndex]->Get(siteId)));
                 }
             }
         }

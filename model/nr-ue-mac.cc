@@ -357,7 +357,7 @@ NrUeMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
 
     params.pdu->AddHeader(header);
 
-    LteRadioBearerTag bearerTag(params.rnti, params.lcid, params.layer);
+    LteRadioBearerTag bearerTag(params.rnti, params.lcid, 0);
     params.pdu->AddPacketTag(bearerTag);
 
     m_miUlHarqProcessesPacket.at(params.harqProcessId).m_pktBurst->AddPacket(params.pdu);
@@ -365,10 +365,10 @@ NrUeMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
 
     m_ulDciTotalUsed += params.pdu->GetSize();
 
-    NS_ASSERT_MSG(m_ulDciTotalUsed <= m_ulDci->m_tbSize.at(0),
+    NS_ASSERT_MSG(m_ulDciTotalUsed <= m_ulDci->m_tbSize,
                   "We used more data than the DCI allowed us.");
 
-    m_phySapProvider->SendMacPdu(params.pdu, m_ulDciSfnsf, m_ulDci->m_symStart, params.layer);
+    m_phySapProvider->SendMacPdu(params.pdu, m_ulDciSfnsf, m_ulDci->m_symStart);
 }
 
 void
@@ -484,15 +484,10 @@ NrUeMac::SendReportBufferStatus(const SfnSf& dataSfn, uint8_t symStart)
     p->AddPacketTag(bearerTag);
 
     m_ulDciTotalUsed += p->GetSize();
-    NS_ASSERT_MSG(m_ulDciTotalUsed <= m_ulDci->m_tbSize.at(0),
+    NS_ASSERT_MSG(m_ulDciTotalUsed <= m_ulDci->m_tbSize,
                   "We used more data than the DCI allowed us.");
 
-    // MIMO is not supported for UL yet.
-    // Therefore, there will be only
-    // one stream with stream Id 0.
-    uint8_t streamId = 0;
-
-    m_phySapProvider->SendMacPdu(p, dataSfn, symStart, streamId);
+    m_phySapProvider->SendMacPdu(p, dataSfn, symStart);
 }
 
 void
@@ -629,9 +624,9 @@ NrUeMac::ProcessUlDci(const Ptr<NrUlDciMessage>& dciMsg)
 
     NS_LOG_INFO("UL DCI received, transmit data in slot "
                 << dataSfn << " Harq Process " << +m_ulDci->m_harqProcess << " TBS "
-                << m_ulDci->m_tbSize.at(0) << " total queue " << GetTotalBufSize());
+                << m_ulDci->m_tbSize << " total queue " << GetTotalBufSize());
 
-    if (m_ulDci->m_ndi.at(0) == 0)
+    if (m_ulDci->m_ndi == 0)
     {
         // This method will retransmit the data saved in the harq buffer
         TransmitRetx();
@@ -639,7 +634,7 @@ NrUeMac::ProcessUlDci(const Ptr<NrUlDciMessage>& dciMsg)
         // This method will transmit a new BSR.
         SendReportBufferStatus(dataSfn, m_ulDci->m_symStart);
     }
-    else if (m_ulDci->m_ndi.at(0) == 1)
+    else if (m_ulDci->m_ndi == 1)
     {
         SendNewData();
 
@@ -650,7 +645,7 @@ NrUeMac::ProcessUlDci(const Ptr<NrUlDciMessage>& dciMsg)
         SendReportBufferStatus(dataSfn, m_ulDci->m_symStart);
 
         NS_LOG_INFO("UL DCI processing done, sent to PHY a total of "
-                    << m_ulDciTotalUsed << " B out of " << m_ulDci->m_tbSize.at(0)
+                    << m_ulDciTotalUsed << " B out of " << m_ulDci->m_tbSize
                     << " allocated bytes ");
 
         if (GetTotalBufSize() == 0)
@@ -710,11 +705,7 @@ NrUeMac::TransmitRetx()
         {
             NS_FATAL_ERROR("No radio bearer tag");
         }
-        // MIMO is not supported for UL yet.
-        // Therefore, there will be only
-        // one stream with stream Id 0.
-        uint8_t streamId = 0;
-        m_phySapProvider->SendMacPdu(pkt, m_ulDciSfnsf, m_ulDci->m_symStart, streamId);
+        m_phySapProvider->SendMacPdu(pkt, m_ulDciSfnsf, m_ulDci->m_symStart);
     }
 
     m_miUlHarqProcessesPacketTimer.at(m_ulDci->m_harqProcess) = GetNumHarqProcess();
@@ -766,8 +757,8 @@ NrUeMac::SendRetxData(uint32_t usefulTbs, uint32_t activeLcsRetx)
             NS_LOG_DEBUG("Something wrong with the calculation of overhead."
                          "Active LCS Retx: "
                          << activeLcsRetx << " assigned to this: " << bytesPerLcId
-                         << ", with TBS of " << m_ulDci->m_tbSize.at(0) << " usefulTbs "
-                         << usefulTbs << " and total used " << m_ulDciTotalUsed);
+                         << ", with TBS of " << m_ulDci->m_tbSize << " usefulTbs " << usefulTbs
+                         << " and total used " << m_ulDciTotalUsed);
         }
     }
 }
@@ -816,10 +807,10 @@ NrUeMac::SendTxData(uint32_t usefulTbs, uint32_t activeTx)
         else
         {
             NS_LOG_DEBUG("Something wrong with the calculation of overhead."
-                         "Active LCS Retx: "
+                         "Active LCS TX: "
                          << activeTx << " assigned to this: " << bytesPerLcId << ", with TBS of "
-                         << m_ulDci->m_tbSize.at(0) << " usefulTbs " << usefulTbs
-                         << " and total used " << m_ulDciTotalUsed);
+                         << m_ulDci->m_tbSize << " usefulTbs " << usefulTbs << " and total used "
+                         << m_ulDciTotalUsed);
         }
     }
 }
@@ -857,11 +848,11 @@ NrUeMac::SendNewData()
     // where we didn't check much as it is the most important data, that has to go
     // out. For the rest that we have left, we can use only a part of it because of
     // the overhead of the SHORT_BSR, which is 5 bytes.
-    NS_ASSERT_MSG(m_ulDciTotalUsed + 5 <= m_ulDci->m_tbSize.at(0),
+    NS_ASSERT_MSG(m_ulDciTotalUsed + 5 <= m_ulDci->m_tbSize,
                   "The StatusPDU used " << m_ulDciTotalUsed
                                         << " B, we don't have any for the SHORT_BSR.");
     // reserve some data for the SHORT_BSR
-    uint32_t usefulTbs = m_ulDci->m_tbSize.at(0) - m_ulDciTotalUsed - 5;
+    uint32_t usefulTbs = m_ulDci->m_tbSize - m_ulDciTotalUsed - 5;
 
     // Now, we have 3 bytes of overhead for each subPDU. Let's try to serve all
     // the queues with some RETX data.
@@ -894,9 +885,9 @@ NrUeMac::SendNewData()
     // Remember that m_ulDciTotalUsed keep count of data and overhead that we
     // used till now.
     NS_ASSERT_MSG(
-        m_ulDciTotalUsed + 5 <= m_ulDci->m_tbSize.at(0),
+        m_ulDciTotalUsed + 5 <= m_ulDci->m_tbSize,
         "The StatusPDU and RETX sending required all space, we don't have any for the SHORT_BSR.");
-    usefulTbs = m_ulDci->m_tbSize.at(0) - m_ulDciTotalUsed - 5; // Update the usefulTbs.
+    usefulTbs = m_ulDci->m_tbSize - m_ulDciTotalUsed - 5; // Update the usefulTbs.
 
     // The last part is for the queues with some non-RETX data. If there is no space left,
     // then nothing.
@@ -944,7 +935,7 @@ NrUeMac::SendNewStatusData()
             hasStatusPdu = true;
 
             // Check if we have room to transmit the statusPdu
-            if (m_ulDciTotalUsed + bsr.statusPduSize <= m_ulDci->m_tbSize.at(0))
+            if (m_ulDciTotalUsed + bsr.statusPduSize <= m_ulDci->m_tbSize)
             {
                 LteMacSapUser::TxOpportunityParameters txParams;
                 txParams.lcid = bsr.lcid;
@@ -975,7 +966,7 @@ NrUeMac::SendNewStatusData()
     }
 
     NS_ABORT_MSG_IF(hasStatusPdu && !sentOneStatusPdu,
-                    "The TBS of size " << m_ulDci->m_tbSize.at(0)
+                    "The TBS of size " << m_ulDci->m_tbSize
                                        << " doesn't allow us "
                                           "to send one status PDU...");
 }

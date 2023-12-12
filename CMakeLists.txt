@@ -99,8 +99,6 @@ set(source_files
     model/nr-mac-scheduler-srs-default.cc
     model/nr-ue-power-control.cc
     model/realistic-bf-manager.cc
-    model/beam-conf-id.cc
-    utils/three-gpp-channel-model-param.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
     utils/traffic-generators/helper/traffic-generator-helper.cc
     utils/traffic-generators/model/traffic-generator.cc
@@ -210,6 +208,7 @@ set(header_files
     model/beam-id.h
     model/beamforming-vector.h
     model/beam-manager.h
+    model/beamforming-algorithm.h
     model/ideal-beamforming-algorithm.h
     model/realistic-beamforming-algorithm.h
     model/sfnsf.h
@@ -218,8 +217,6 @@ set(header_files
     model/nr-mac-scheduler-srs-default.h
     model/nr-ue-power-control.h
     model/realistic-bf-manager.h
-    model/beam-conf-id.h
-    utils/three-gpp-channel-model-param.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
     utils/traffic-generators/model/traffic-generator.h
     utils/traffic-generators/model/traffic-generator-ftp-single.h

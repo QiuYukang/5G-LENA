@@ -192,60 +192,8 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
             while (schedInfoIt != ueVector.end())
             {
                 uint32_t bufQueueSize = schedInfoIt->second;
-
-                // if there are two streams we add the TbSizes of the two
-                // streams to satisfy the bufQueueSize
-                uint32_t tbSize = 0;
-                for (const auto& it : GetUe(*schedInfoIt)->m_dlTbSize)
+                if (GetUe(*schedInfoIt)->m_dlTbSize >= std::max(bufQueueSize, 10U))
                 {
-                    tbSize += it;
-                }
-
-                if (tbSize >= std::max(bufQueueSize, 10U))
-                {
-                    if (GetUe(*schedInfoIt)->m_dlTbSize.size() > 1)
-                    {
-                        // This "if" is purely for MIMO. In MIMO, for example, if the
-                        // first TB size is big enough to empty the buffer then we
-                        // should not allocate anything to the second stream. In this
-                        // case, if we allocate bytes to the second stream, the UE
-                        // would expect the TB but the gNB would not be able to transmit
-                        // it. This would break HARQ TX state machine at UE PHY.
-
-                        uint8_t streamCounter = 0;
-                        uint32_t copyBufQueueSize = bufQueueSize;
-                        auto dlTbSizeIt = GetUe(*schedInfoIt)->m_dlTbSize.begin();
-                        while (dlTbSizeIt != GetUe(*schedInfoIt)->m_dlTbSize.end())
-                        {
-                            if (copyBufQueueSize != 0)
-                            {
-                                NS_LOG_DEBUG("Stream " << +streamCounter << " with TB size "
-                                                       << *dlTbSizeIt << " needed to TX MIMO TB");
-                                if (*dlTbSizeIt >= copyBufQueueSize)
-                                {
-                                    copyBufQueueSize = 0;
-                                }
-                                else
-                                {
-                                    copyBufQueueSize = copyBufQueueSize - *dlTbSizeIt;
-                                }
-                                streamCounter++;
-                                dlTbSizeIt++;
-                            }
-                            else
-                            {
-                                // if we are here, that means previously iterated
-                                // streams were enough to empty the buffer. We do
-                                // not need this stream. Make its TB size zero.
-                                NS_LOG_DEBUG("Stream " << +streamCounter << " with TB size "
-                                                       << *dlTbSizeIt
-                                                       << " not needed to TX MIMO TB");
-                                *dlTbSizeIt = 0;
-                                streamCounter++;
-                                dlTbSizeIt++;
-                            }
-                        }
-                    }
                     schedInfoIt++;
                 }
                 else
@@ -274,11 +222,6 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
             // Update metrics
             NS_LOG_DEBUG("Assigned " << rbgAssignable << " DL RBG, spanned over " << beamSym
                                      << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
-            // Following call to AssignedDlResources would update the
-            // TB size in the NrMacSchedulerUeInfo of this particular UE
-            // according the Rank Indicator reported by it. Only one call
-            // to this method is enough even if the UE reported rank indicator 2,
-            // since the number of RBG assigned to both the streams are the same.
             AssignedDlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
 
             // Update metrics for the unsuccessful UEs (who did not get any resource in this
@@ -404,50 +347,19 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
 {
     NS_LOG_FUNCTION(this);
 
-    uint16_t countLessThanMinBytes = 0;
-
-    // we do not need to recalculate the TB size here because we already
-    // computed it in side the method AssignDLRBG called before this method.
-    // otherwise, we need to repeat the logic of NrMacSchedulerUeInfo::UpdateDlMetric
-    // here to cover MIMO
-
-    // Due to MIMO implementation MCS, TB size, ndi, rv, are vectors
-    std::vector<uint8_t> ndi;
-    ndi.resize(ueInfo->m_dlTbSize.size());
-    std::vector<uint8_t> rv;
-    rv.resize(ueInfo->m_dlTbSize.size());
-
-    for (uint32_t numTb = 0; numTb < ueInfo->m_dlTbSize.size(); numTb++)
-    {
-        uint32_t tbs = ueInfo->m_dlTbSize.at(numTb);
-        if (tbs < 10)
-        {
-            countLessThanMinBytes++;
-            NS_LOG_DEBUG("While creating DCI for UE "
-                         << ueInfo->m_rnti << " stream " << numTb << " assigned " << ueInfo->m_dlRBG
-                         << " DL RBG, but TBS < 10, resetting its size to zero in UE info");
-            ueInfo->m_dlTbSize.at(numTb) = 0;
-            ndi.at(numTb) = 0;
-            rv.at(numTb) = 0;
-            continue;
-        }
-        ndi.at(numTb) = 1;
-        rv.at(numTb) = 0;
-    }
-
+    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs, ueInfo->m_dlRBG * GetNumRbPerRbg());
     NS_ASSERT_MSG(ueInfo->m_dlRBG % maxSym == 0,
                   " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
     NS_ASSERT(ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg());
     NS_ASSERT(spoint->m_rbg < GetBandwidthInRbg());
     NS_ASSERT(maxSym <= UINT8_MAX);
 
-    // If the size of all the TBs is less than 10 bytes,
-    // i.e. 7 bytes (the minimum TX opportunity by RLC AM) + 3 bytes of the MAC header
-    // then we can't transmit any new data, so don't create dci.
-    if (countLessThanMinBytes == ueInfo->m_dlTbSize.size())
+    // 5 bytes for headers (3 mac header, 2 rlc header)
+    if (tbs < 10)
     {
         NS_LOG_DEBUG("While creating DCI for UE " << ueInfo->m_rnti << " assigned "
                                                   << ueInfo->m_dlRBG << " DL RBG, but TBS < 10");
+        ueInfo->m_dlTbSize = 0;
         return nullptr;
     }
 
@@ -502,9 +414,9 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                              spoint->m_sym,
                                              maxSym,
                                              ueInfo->m_dlMcs,
-                                             ueInfo->m_dlTbSize,
-                                             ndi,
-                                             rv,
+                                             tbs,
+                                             1,
+                                             0,
                                              DciInfoElementTdma::DATA,
                                              GetBwpId(),
                                              GetTpc());
@@ -578,22 +490,16 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
                       << spoint->m_rbg + assigned << " for " << static_cast<uint32_t>(maxSym)
                       << " SYM.");
 
-    // Due to MIMO implementation MCS, TB size, ndi, rv, are vectors
-    std::vector<uint8_t> ulMcs = {ueInfo->m_ulMcs};
-    std::vector<uint32_t> ulTbs = {tbs};
-    std::vector<uint8_t> ndi = {1};
-    std::vector<uint8_t> rv = {0};
-
     NS_ASSERT(spoint->m_sym >= maxSym);
     std::shared_ptr<DciInfoElementTdma> dci =
         std::make_shared<DciInfoElementTdma>(ueInfo->m_rnti,
                                              DciInfoElementTdma::UL,
                                              spoint->m_sym - maxSym,
                                              maxSym,
-                                             ulMcs,
-                                             ulTbs,
-                                             ndi,
-                                             rv,
+                                             ueInfo->m_ulMcs,
+                                             tbs,
+                                             1,
+                                             0,
                                              DciInfoElementTdma::DATA,
                                              GetBwpId(),
                                              GetTpc());

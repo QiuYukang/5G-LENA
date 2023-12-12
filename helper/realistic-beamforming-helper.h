@@ -99,10 +99,10 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
-    typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy>> BfAntennaPair;
-    typedef std::map<BfAntennaPair, Ptr<RealisticBeamformingAlgorithm>> AntennaPairToAlgorithm;
+    typedef std::map<SpectrumPhyPair, Ptr<RealisticBeamformingAlgorithm>>
+        SpectrumPhyPairToAlgorithm;
 
-    AntennaPairToAlgorithm m_antennaPairToAlgorithm;
+    SpectrumPhyPairToAlgorithm m_spectrumPhyPairToAlgorithm;
 };
 
 }; // namespace ns3

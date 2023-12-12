@@ -75,7 +75,7 @@ class NrMacSchedulerCQIManagement
      *
      * Store the CQI information inside the m_dlCqi value of the UE, and then
      * calculate the corresponding MCS through NrAmc. The information is
-     * contained in the structure DlCqiInfo, so no need to make calculation
+     * contained in the structure CqiInfo, so no need to make calculation
      * here.
      */
     void DlWBCQIReported(const DlCqiInfo& info,

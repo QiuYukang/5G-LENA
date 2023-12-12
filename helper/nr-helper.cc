@@ -474,8 +474,7 @@ NrHelper::GetSnrTest() const
 
 NetDeviceContainer
 NrHelper::InstallUeDevice(const NodeContainer& c,
-                          const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps,
-                          uint8_t numberOfStreams)
+                          const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps)
 {
     NS_LOG_FUNCTION(this);
     Initialize(); // Run DoInitialize (), if necessary
@@ -483,7 +482,7 @@ NrHelper::InstallUeDevice(const NodeContainer& c,
     for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
         Ptr<Node> node = *i;
-        Ptr<NetDevice> device = InstallSingleUeDevice(node, allBwps, numberOfStreams);
+        Ptr<NetDevice> device = InstallSingleUeDevice(node, allBwps);
         device->SetAddress(Mac48Address::Allocate());
         devices.Add(device);
     }
@@ -492,8 +491,7 @@ NrHelper::InstallUeDevice(const NodeContainer& c,
 
 NetDeviceContainer
 NrHelper::InstallGnbDevice(const NodeContainer& c,
-                           const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-                           uint8_t numberOfStreams)
+                           const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps)
 {
     NS_LOG_FUNCTION(this);
     Initialize(); // Run DoInitialize (), if necessary
@@ -501,7 +499,7 @@ NrHelper::InstallGnbDevice(const NodeContainer& c,
     for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
         Ptr<Node> node = *i;
-        Ptr<NetDevice> device = InstallSingleGnbDevice(node, allBwps, numberOfStreams);
+        Ptr<NetDevice> device = InstallSingleGnbDevice(node, allBwps);
         device->SetAddress(Mac48Address::Allocate());
         devices.Add(device);
     }
@@ -520,8 +518,8 @@ Ptr<NrUePhy>
 NrHelper::CreateUePhy(const Ptr<Node>& n,
                       const std::unique_ptr<BandwidthPartInfo>& bwp,
                       const Ptr<NrUeNetDevice>& dev,
-                      const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback,
-                      uint8_t numberOfStreams)
+                      const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback& dlHarqCallback,
+                      const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback)
 {
     NS_LOG_FUNCTION(this);
 
@@ -545,60 +543,54 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
         mm,
         "MobilityModel needs to be set on node before calling NrHelper::InstallUeDevice ()");
 
-    for (uint8_t streamIndex = 0; streamIndex < numberOfStreams; streamIndex++)
+    Ptr<NrSpectrumPhy> channelPhy =
+        m_ueSpectrumFactory.Create<NrSpectrumPhy>(); // Create NrSpectrumPhy
+
+    if (m_harqEnabled)
     {
-        Ptr<NrSpectrumPhy> channelPhy =
-            m_ueSpectrumFactory.Create<NrSpectrumPhy>(); // Create NrSpectrumPhy per stream
-        channelPhy->SetStreamId(streamIndex);
-
-        Ptr<NrHarqPhy> harq = Create<NrHarqPhy>(); // Create HARQ instance per stream
+        Ptr<NrHarqPhy> harq = Create<NrHarqPhy>(); // Create HARQ instance
         channelPhy->InstallHarqPhyModule(harq);
-        channelPhy->SetIsEnb(false);
-        channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
-
-        Ptr<UniformPlanarArray> antenna =
-            m_ueAntennaFactory.Create<UniformPlanarArray>(); // Create antenna per stream
-        channelPhy->SetAntenna(antenna);
-
-        if (streamIndex == 0)
-        {
-            cam->SetNrSpectrumPhy(
-                channelPhy); // TODO currently we connect CAM only to the first stream
-        }
-
-        Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor>();
-        pData->AddCallback(MakeCallback(&NrSpectrumPhy::GenerateDlCqiReport, channelPhy));
-        pData->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSinrPerceived, channelPhy));
-        channelPhy->AddDataSinrChunkProcessor(pData);
-
-        Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor>();
-        pRs->AddCallback(MakeCallback(&NrSpectrumPhy::ReportRsReceivedPower, channelPhy));
-        channelPhy->AddRsPowerChunkProcessor(pRs);
-
-        Ptr<LteChunkProcessor> pSinr = Create<LteChunkProcessor>();
-        pSinr->AddCallback(MakeCallback(&NrSpectrumPhy::ReportDlCtrlSinr, channelPhy));
-        channelPhy->AddDlCtrlSinrChunkProcessor(pSinr);
-
-        channelPhy->SetChannel(bwp->m_channel);
-        channelPhy->InstallPhy(phy);
-        channelPhy->SetMobility(mm);
-        channelPhy->SetPhyRxDataEndOkCallback(MakeCallback(&NrUePhy::PhyDataPacketReceived, phy));
-        channelPhy->SetPhyRxCtrlEndOkCallback(phyRxCtrlCallback);
-        channelPhy->SetPhyRxPssCallback(MakeCallback(&NrUePhy::ReceivePss, phy));
-
-        Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
-        beamManager->Configure(antenna);
-        channelPhy->SetBeamManager(beamManager);
-        phy->InstallSpectrumPhy(channelPhy);
+        channelPhy->SetPhyDlHarqFeedbackCallback(dlHarqCallback);
     }
+    channelPhy->SetIsEnb(false);
+    channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
+
+    Ptr<UniformPlanarArray> antenna =
+        m_ueAntennaFactory.Create<UniformPlanarArray>(); // Create antenna per panel
+    channelPhy->SetAntenna(antenna);
+
+    cam->SetNrSpectrumPhy(channelPhy); // connect CAM
+
+    Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor>();
+    pData->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReport, phy));
+    pData->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSinrPerceived, channelPhy));
+    channelPhy->AddDataSinrChunkProcessor(pData);
+
+    Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor>();
+    pRs->AddCallback(MakeCallback(&NrUePhy::ReportRsReceivedPower, phy));
+    channelPhy->AddRsPowerChunkProcessor(pRs);
+
+    Ptr<LteChunkProcessor> pSinr = Create<LteChunkProcessor>();
+    pSinr->AddCallback(MakeCallback(&NrSpectrumPhy::ReportDlCtrlSinr, channelPhy));
+    channelPhy->AddDlCtrlSinrChunkProcessor(pSinr);
+
+    channelPhy->SetChannel(bwp->m_channel);
+    channelPhy->InstallPhy(phy);
+    channelPhy->SetMobility(mm);
+    channelPhy->SetPhyRxDataEndOkCallback(MakeCallback(&NrUePhy::PhyDataPacketReceived, phy));
+    channelPhy->SetPhyRxCtrlEndOkCallback(phyRxCtrlCallback);
+
+    Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
+    beamManager->Configure(antenna);
+    channelPhy->SetBeamManager(beamManager);
+    phy->InstallSpectrumPhy(channelPhy);
     return phy;
 }
 
 Ptr<NetDevice>
 NrHelper::InstallSingleUeDevice(
     const Ptr<Node>& n,
-    const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-    uint8_t numberOfStreams)
+    const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps)
 {
     NS_LOG_FUNCTION(this);
 
@@ -626,14 +618,8 @@ NrHelper::InstallSingleUeDevice(
             n,
             allBwps[bwpId].get(),
             dev,
-            std::bind(&NrUeNetDevice::RouteIngoingCtrlMsgs, dev, std::placeholders::_1, bwpId),
-            numberOfStreams);
-
-        if (m_harqEnabled)
-        {
-            phy->SetPhyDlHarqFeedbackCallback(
-                MakeCallback(&NrUeNetDevice::EnqueueDlHarqFeedback, dev));
-        }
+            MakeCallback(&NrUeNetDevice::EnqueueDlHarqFeedback, dev),
+            std::bind(&NrUeNetDevice::RouteIngoingCtrlMsgs, dev, std::placeholders::_1, bwpId));
 
         phy->SetBwpId(bwpId);
         cc->SetPhy(phy);
@@ -745,8 +731,7 @@ Ptr<NrGnbPhy>
 NrHelper::CreateGnbPhy(const Ptr<Node>& n,
                        const std::unique_ptr<BandwidthPartInfo>& bwp,
                        const Ptr<NrGnbNetDevice>& dev,
-                       const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback,
-                       uint8_t numberOfStreams)
+                       const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback)
 {
     NS_LOG_FUNCTION(this);
 
@@ -768,61 +753,50 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         mm,
         "MobilityModel needs to be set on node before calling NrHelper::InstallEnbDevice ()");
 
-    for (uint8_t streamIndex = 0; streamIndex < numberOfStreams; streamIndex++)
+    Ptr<NrSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create<NrSpectrumPhy>();
+    Ptr<UniformPlanarArray> antenna = m_gnbAntennaFactory.Create<UniformPlanarArray>();
+    channelPhy->SetAntenna(antenna);
+    cam->SetNrSpectrumPhy(channelPhy);
+
+    channelPhy->InstallHarqPhyModule(
+        Create<NrHarqPhy>()); // there should be one HARQ instance per NrSpectrumPhy
+    channelPhy->SetIsEnb(true);
+    channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
+    channelPhy->SetChannel(
+        bwp->m_channel); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel
+    // object of the corresponding spectrum part
+    channelPhy->InstallPhy(phy); // each NrSpectrumPhy should have a pointer to its NrPhy
+
+    Ptr<LteChunkProcessor> pData =
+        Create<LteChunkProcessor>(); // create pData chunk processor per NrSpectrumPhy
+    Ptr<LteChunkProcessor> pSrs =
+        Create<LteChunkProcessor>(); // create pSrs per processor per NrSpectrumPhy
+    if (!m_snrTest)
     {
-        Ptr<NrSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create<NrSpectrumPhy>();
-        Ptr<UniformPlanarArray> antenna = m_gnbAntennaFactory.Create<UniformPlanarArray>();
-        channelPhy->SetAntenna(antenna);
-
-        if (streamIndex == 0)
-        {
-            // TODO currently we set to CAM only the first spectrum phy, this feature needs to be
-            // further extended
-            cam->SetNrSpectrumPhy(channelPhy);
-        }
-
-        channelPhy->InstallHarqPhyModule(
-            Create<NrHarqPhy>()); // there should be one HARQ instance per NrSpectrumPhy
-        channelPhy->SetIsEnb(true);
-        channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
-        channelPhy->SetChannel(
-            bwp->m_channel); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel
-                             // object of the corresponding spectrum part
-        channelPhy->InstallPhy(phy); // each NrSpectrumPhy should have a pointer to its NrPhy
-                                     // device, in this case NrGnbPhy
-        channelPhy->SetStreamId(streamIndex);
-
-        Ptr<LteChunkProcessor> pData =
-            Create<LteChunkProcessor>(); // create pData chunk processor per NrSpectrumPhy
-        Ptr<LteChunkProcessor> pSrs =
-            Create<LteChunkProcessor>(); // create pSrs per processor per NrSpectrumPhy
-        if (!m_snrTest)
-        {
-            pData->AddCallback(MakeCallback(&NrSpectrumPhy::GenerateDataCqiReport,
-                                            channelPhy)); // connect DATA chunk processor that will
-                                                          // call GenerateDataCqiReport function
-            pData->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSinrPerceived,
-                                            channelPhy)); // connect DATA chunk processor that will
-                                                          // call UpdateSinrPerceived function
-            pSrs->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSrsSinrPerceived,
-                                           channelPhy)); // connect SRS chunk processor that will
-                                                         // call UpdateSrsSinrPerceived function
-        }
-        channelPhy->AddDataSinrChunkProcessor(pData); // set DATA chunk processor to NrSpectrumPhy
-        channelPhy->AddSrsSinrChunkProcessor(pSrs);   // set SRS chunk processor to NrSpectrumPhy
-        channelPhy->SetMobility(mm);                  // set mobility model to this NrSpectrumPhy
-        channelPhy->SetPhyRxDataEndOkCallback(
-            MakeCallback(&NrGnbPhy::PhyDataPacketReceived, phy)); // connect PhyRxDataEndOk callback
-        channelPhy->SetPhyRxCtrlEndOkCallback(phyEndCtrlCallback); // connect PhyRxCtrlEndOk
-                                                                   // callback
-        channelPhy->SetPhyUlHarqFeedbackCallback(
-            MakeCallback(&NrGnbPhy::ReportUlHarqFeedback, phy)); // PhyUlHarqFeedback callback
-
-        Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
-        beamManager->Configure(antenna);
-        channelPhy->SetBeamManager(beamManager);
-        phy->InstallSpectrumPhy(channelPhy); // finally let know phy that there is this spectrum phy
+        pData->AddCallback(MakeCallback(&NrGnbPhy::GenerateDataCqiReport,
+                                        phy)); // connect DATA chunk processor that will
+        // call GenerateDataCqiReport function
+        pData->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSinrPerceived,
+                                        channelPhy)); // connect DATA chunk processor that will
+        // call UpdateSinrPerceived function
+        pSrs->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSrsSinrPerceived,
+                                       channelPhy)); // connect SRS chunk processor that will
+                                                     // call UpdateSrsSinrPerceived function
     }
+    channelPhy->AddDataSinrChunkProcessor(pData); // set DATA chunk processor to NrSpectrumPhy
+    channelPhy->AddSrsSinrChunkProcessor(pSrs);   // set SRS chunk processor to NrSpectrumPhy
+    channelPhy->SetMobility(mm);                  // set mobility model to this NrSpectrumPhy
+    channelPhy->SetPhyRxDataEndOkCallback(
+        MakeCallback(&NrGnbPhy::PhyDataPacketReceived, phy));  // connect PhyRxDataEndOk callback
+    channelPhy->SetPhyRxCtrlEndOkCallback(phyEndCtrlCallback); // connect PhyRxCtrlEndOk
+                                                               // callback
+    channelPhy->SetPhyUlHarqFeedbackCallback(
+        MakeCallback(&NrGnbPhy::ReportUlHarqFeedback, phy)); // PhyUlHarqFeedback callback
+
+    Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
+    beamManager->Configure(antenna);
+    channelPhy->SetBeamManager(beamManager);
+    phy->InstallSpectrumPhy(channelPhy); // finally let know phy that there is this spectrum phy
 
     return phy;
 }
@@ -854,8 +828,7 @@ NrHelper::CreateGnbSched()
 Ptr<NetDevice>
 NrHelper::InstallSingleGnbDevice(
     const Ptr<Node>& n,
-    const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-    uint8_t numberOfStreams)
+    const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps)
 {
     NS_ABORT_MSG_IF(m_cellIdCounter == 65535, "max num gNBs exceeded");
 
@@ -888,8 +861,7 @@ NrHelper::InstallSingleGnbDevice(
             n,
             allBwps[bwpId].get(),
             dev,
-            std::bind(&NrGnbNetDevice::RouteIngoingCtrlMsgs, dev, std::placeholders::_1, bwpId),
-            numberOfStreams);
+            std::bind(&NrGnbNetDevice::RouteIngoingCtrlMsgs, dev, std::placeholders::_1, bwpId));
         phy->SetBwpId(bwpId);
         cc->SetPhy(phy);
 
@@ -1359,18 +1331,11 @@ NrHelper::AssignStreams(NetDeviceContainer c, int64_t stream)
         {
             for (uint32_t bwp = 0; bwp < nrGnb->GetCcMapSize(); bwp++)
             {
+                currentStream += nrGnb->GetPhy(bwp)->GetSpectrumPhy()->AssignStreams(currentStream);
                 currentStream += nrGnb->GetScheduler(bwp)->AssignStreams(currentStream);
-                for (uint8_t streamIndex = 0;
-                     streamIndex < nrGnb->GetPhy(bwp)->GetNumberOfStreams();
-                     streamIndex++)
-                {
-                    currentStream += nrGnb->GetPhy(bwp)
-                                         ->GetSpectrumPhy(streamIndex)
-                                         ->AssignStreams(currentStream);
-                    currentStream += DoAssignStreamsToChannelObjects(
-                        nrGnb->GetPhy(bwp)->GetSpectrumPhy(streamIndex),
-                        currentStream);
-                }
+                currentStream +=
+                    DoAssignStreamsToChannelObjects(nrGnb->GetPhy(bwp)->GetSpectrumPhy(),
+                                                    currentStream);
             }
         }
 
@@ -1379,17 +1344,11 @@ NrHelper::AssignStreams(NetDeviceContainer c, int64_t stream)
         {
             for (uint32_t bwp = 0; bwp < nrUe->GetCcMapSize(); bwp++)
             {
+                currentStream += nrUe->GetPhy(bwp)->GetSpectrumPhy()->AssignStreams(currentStream);
                 currentStream += nrUe->GetMac(bwp)->AssignStreams(currentStream);
-                for (uint8_t streamIndex = 0; streamIndex < nrUe->GetPhy(bwp)->GetNumberOfStreams();
-                     streamIndex++)
-                {
-                    currentStream += nrUe->GetPhy(bwp)
-                                         ->GetSpectrumPhy(streamIndex)
-                                         ->AssignStreams(currentStream);
-                    currentStream += DoAssignStreamsToChannelObjects(
-                        nrUe->GetPhy(bwp)->GetSpectrumPhy(streamIndex),
-                        currentStream);
-                }
+                currentStream +=
+                    DoAssignStreamsToChannelObjects(nrUe->GetPhy(bwp)->GetSpectrumPhy(),
+                                                    currentStream);
             }
         }
     }
@@ -1622,9 +1581,9 @@ NrHelper::EnableDlDataPhyTraces()
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr",
                     MakeBoundCallback(&NrPhyRxTrace::DlDataSinrCallback, m_phyStats));
 
-    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/"
-                    "RxPacketTraceUe",
-                    MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
+    Config::Connect(
+        "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
+        MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
 }
 
 void
@@ -1686,7 +1645,7 @@ NrHelper::EnableUlPhyTraces()
 {
     NS_LOG_FUNCTION_NOARGS();
     Config::Connect(
-        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/RxPacketTraceEnb",
+        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/RxPacketTraceEnb",
         MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceEnbCallback, m_phyStats));
 }
 
@@ -1694,16 +1653,16 @@ void
 NrHelper::EnableGnbPacketCountTrace()
 {
     NS_LOG_FUNCTION_NOARGS();
-    Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/"
-                    "ReportEnbTxRxPacketCount",
-                    MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountEnbCallback, m_phyStats));
+    Config::Connect(
+        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/ReportEnbTxRxPacketCount",
+        MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountEnbCallback, m_phyStats));
 }
 
 void
 NrHelper::EnableUePacketCountTrace()
 {
     NS_LOG_FUNCTION_NOARGS();
-    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/"
+    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/"
                     "ReportUeTxRxPacketCount",
                     MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountUeCallback, m_phyStats));
 }
@@ -1798,12 +1757,8 @@ NrHelper::EnableDlCtrlPathlossTraces(NetDeviceContainer& ueDevs)
         for (uint32_t j = 0; j < ueDev->GetCcMapSize(); j++)
         {
             Ptr<NrUePhy> nrUePhy = ueDev->GetPhy(j);
-
-            for (uint8_t k = 0; k < nrUePhy->GetNumberOfStreams(); k++)
-            {
-                Ptr<NrSpectrumPhy> nrSpectrumPhy = nrUePhy->GetSpectrumPhy(k);
-                nrSpectrumPhy->EnableDlCtrlPathlossTrace();
-            }
+            Ptr<NrSpectrumPhy> nrSpectrumPhy = nrUePhy->GetSpectrumPhy();
+            nrSpectrumPhy->EnableDlCtrlPathlossTrace();
         }
     }
 
@@ -1829,11 +1784,8 @@ NrHelper::EnableDlDataPathlossTraces(NetDeviceContainer& ueDevs)
         for (uint32_t j = 0; j < ueDev->GetCcMapSize(); j++)
         {
             Ptr<NrUePhy> nrUePhy = ueDev->GetPhy(j);
-            for (uint8_t k = 0; k < nrUePhy->GetNumberOfStreams(); k++)
-            {
-                Ptr<NrSpectrumPhy> nrSpectrumPhy = nrUePhy->GetSpectrumPhy(k);
-                nrSpectrumPhy->EnableDlDataPathlossTrace();
-            }
+            Ptr<NrSpectrumPhy> nrSpectrumPhy = nrUePhy->GetSpectrumPhy();
+            nrSpectrumPhy->EnableDlDataPathlossTrace();
         }
     }
 

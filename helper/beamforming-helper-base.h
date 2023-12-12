@@ -74,26 +74,25 @@ class BeamformingHelperBase : public Object
     /**
      * \brief This function runs the beamforming algorithm among the provided gNB and UE
      * device, and for a specified bwp index
-     * \param gNbDev a pointer to a gNB device
-     * \param ueDev a pointer to a UE device
-     * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
-     * \param [in] ueSpectrumPhy the spectrum phy of the UE
+     * \param gNbSpectrumPhy a pointer to SpectrumPhy of gNb device
+     * \param ueDev a pointer to SpectrumPhy of UE device
      */
-    virtual void RunTask(const Ptr<NrGnbNetDevice>& gNbDev,
-                         const Ptr<NrUeNetDevice>& ueDev,
-                         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+    virtual void RunTask(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                          const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const;
 
     /**
      * \brief Function that will call the configured algorithm for the specified devices and obtain
      * the beamforming vectors for each of them.
-     * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
-     * \param [in] ueSpectrumPhy the spectrum phy of the UE
-     * \return the beamforming vector pair of the gNB and the UE
+     * \param gnbDev gNB device
+     * \param ueDev UE device
+     * \return the pair of beamforming vectors, one corresponding to the gNB device, and one
+     * corresponding to the UE device
      */
     virtual BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const = 0;
+
+    typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy>> SpectrumPhyPair;
 
     ObjectFactory
         m_algorithmFactory; //!< Object factory that will be used to create beamforming algorithms

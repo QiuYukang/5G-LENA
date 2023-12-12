@@ -532,9 +532,8 @@ NrMacSchedulerNs3::DoCschedUeConfigReq(
             static_cast<uint8_t>(m_macSchedSapUser->GetNumHarqProcess()));
         UeInfoOf(*itUe)->m_ulHarq.SetMaxSize(
             static_cast<uint8_t>(m_macSchedSapUser->GetNumHarqProcess()));
-        UeInfoOf(*itUe)->m_dlMcs.push_back(m_startMcsDl);
+        UeInfoOf(*itUe)->m_dlMcs = m_startMcsDl;
         UeInfoOf(*itUe)->m_startMcsDlUe = m_startMcsDl;
-        UeInfoOf(*itUe)->m_dlCqi.m_ri = 1;
         UeInfoOf(*itUe)->m_ulMcs = m_startMcsUl;
 
         NrMacSchedulerSrs::SrsPeriodicityAndOffset srs = m_schedulerSrs->AddUe();
@@ -552,14 +551,14 @@ NrMacSchedulerNs3::DoCschedUeConfigReq(
             UeInfoOf(*itUe)->m_srsOffset = srs.m_offset;
         }
 
-        NS_LOG_INFO("Creating user, beam " << params.m_beamConfId << " and ue " << params.m_rnti
+        NS_LOG_INFO("Creating user, beam " << params.m_beamId << " and ue " << params.m_rnti
                                            << " assigned SRS periodicity " << srs.m_periodicity
                                            << " and offset " << srs.m_offset);
     }
     else
     {
-        NS_LOG_LOGIC("Updating Beam for UE " << params.m_rnti << " beam " << params.m_beamConfId);
-        UeInfoOf(*itUe)->m_beamConfId = params.m_beamConfId;
+        NS_LOG_LOGIC("Updating Beam for UE " << params.m_rnti << " beam " << params.m_beamId);
+        UeInfoOf(*itUe)->m_beamId = params.m_beamId;
     }
 }
 
@@ -1036,15 +1035,11 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks(
         }
         NS_ABORT_IF(ueProcess.m_dciElement == nullptr);
 
-        std::vector<uint8_t>::const_iterator rvIt;
-        rvIt = std::max_element(ueProcess.m_dciElement->m_rv.begin(),
-                                ueProcess.m_dciElement->m_rv.end());
-        // RV number should not be greater than 3. An unscheduled stream should
-        // be assigned RV = 0 in MIMO.
-        NS_ASSERT(*rvIt < 4);
+        // RV number should not be greater than 3
+        NS_ASSERT(ueProcess.m_dciElement->m_rv < 4);
         uint8_t maxHarqReTx = m_enableHarqReTx ? 3 : 0;
 
-        if (harqFeedbackIt->IsReceivedOk() || *rvIt == maxHarqReTx)
+        if (harqFeedbackIt->IsReceivedOk() || ueProcess.m_dciElement->m_rv == maxHarqReTx)
         {
             ueHarqVector.Erase(harqId);
             harqFeedbackIt = harqInfo->erase(harqFeedbackIt);
@@ -1054,7 +1049,6 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks(
         else if (!harqFeedbackIt->IsReceivedOk())
         {
             ueProcess.m_status = HarqProcess::RECEIVED_FEEDBACK;
-            ueProcess.nackStreamIndexes = harqFeedbackIt->GetNackStreamIndexes();
             nackReceived++;
             ++harqFeedbackIt;
             NS_LOG_INFO("NACK received for UE " << static_cast<uint32_t>(rnti) << " process "
@@ -1205,7 +1199,7 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
     {
         uint16_t rnti = feedback.m_rnti;
         auto& schedInfo = m_ueMap.find(rnti)->second;
-        auto beamIterator = activeDlHarq->find(schedInfo->m_beamConfId);
+        auto beamIterator = activeDlHarq->find(schedInfo->m_beamId);
 
         if (beamIterator == activeDlHarq->end())
         {
@@ -1213,7 +1207,7 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
             NS_ASSERT(schedInfo->m_dlHarq.Find(feedback.m_harqProcessId)->second.m_active);
 
             harqVector.emplace_back(schedInfo->m_dlHarq.Find(feedback.m_harqProcessId));
-            activeDlHarq->emplace(std::make_pair(schedInfo->m_beamConfId, harqVector));
+            activeDlHarq->emplace(std::make_pair(schedInfo->m_beamId, harqVector));
         }
         else
         {
@@ -1233,7 +1227,7 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
 /**
  * \brief Compute the number of activeUL HARQ to perform
  *
- * \param activeDlHarq list of UL HARQ to perform
+ * \param activeUlHarq list of UL HARQ to perform
  * \param ulHarqFeedback list of UL HARQ feedback
  *
  * After calculating the active HARQ, they should be sorted. It is done by
@@ -1250,14 +1244,14 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeUlHarq,
     {
         uint16_t rnti = feedback.m_rnti;
         auto& schedInfo = m_ueMap.find(rnti)->second;
-        auto beamIterator = activeUlHarq->find(schedInfo->m_beamConfId);
+        auto beamIterator = activeUlHarq->find(schedInfo->m_beamId);
 
         if (beamIterator == activeUlHarq->end())
         {
             std::vector<NrMacHarqVector::iterator> harqVector;
             NS_ASSERT(schedInfo->m_ulHarq.Find(feedback.m_harqProcessId)->second.m_active);
             harqVector.emplace_back(schedInfo->m_ulHarq.Find(feedback.m_harqProcessId));
-            activeUlHarq->emplace(std::make_pair(schedInfo->m_beamConfId, harqVector));
+            activeUlHarq->emplace(std::make_pair(schedInfo->m_beamId, harqVector));
         }
         else
         {
@@ -1309,12 +1303,12 @@ NrMacSchedulerNs3::ComputeActiveUe(ActiveUeMap* activeUe,
 
         if (totBuffer > 0 && harqV.CanInsert())
         {
-            auto it = activeUe->find(ue->m_beamConfId);
+            auto it = activeUe->find(ue->m_beamId);
             if (it == activeUe->end())
             {
                 std::vector<std::pair<std::shared_ptr<NrMacSchedulerUeInfo>, uint32_t>> tmp;
                 tmp.emplace_back(ue, totBuffer);
-                activeUe->insert(std::make_pair(ue->m_beamConfId, tmp));
+                activeUe->insert(std::make_pair(ue->m_beamId, tmp));
             }
             else
             {
@@ -1340,7 +1334,7 @@ NrMacSchedulerNs3::ComputeActiveUe(ActiveUeMap* activeUe,
  * - How to place the blocks in the 2D plan (in other words, how to create the DCIs)?
  *
  * The first two phases are managed by the function AssignDLRBG. Once the map
- * between the beamConfId and the symbols assigned to it has been returned, the
+ * between the beamId and the symbols assigned to it has been returned, the
  * active user list has been updated by assigning to each user an amount of
  * RBG. Then, it is necessary to iterate through the beams, and for each beam,
  * iterating through the users of that beam, creating a DCI (function CreateDlDci).
@@ -1445,99 +1439,53 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
             ue.first->m_dlHarq.Insert(&id, harqProcess);
             ue.first->m_dlHarq.Get(id).m_dciElement->m_harqProcess = id;
 
-            std::vector<std::vector<NrMacSchedulerLcAlgorithm::Assignation>> bytesPerLcPerStream;
+            // distribute tbsize among the LCs of the UE
+            // distributedBytes size is equal to the number of LCs
+            auto distributedBytes =
+                m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG,
+                                             dci->m_tbSize,
+                                             m_macSchedSapUser->GetSlotPeriod());
 
-            for (const auto& it : dci->m_tbSize)
+            std::vector<std::vector<NrMacSchedulerLcAlgorithm::Assignation>> bytesPerLc(
+                distributedBytes.size());
+
+            for (std::size_t numLc = 0; numLc < distributedBytes.size(); numLc++)
             {
-                // distribute tbsize of each stream among the LCs of the UE
-                // distributedBytes size is equal to the number of LCs
-                auto distributedBytes =
-                    m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG,
-                                                 it,
-                                                 m_macSchedSapUser->GetSlotPeriod());
-                if (bytesPerLcPerStream.empty())
-                {
-                    bytesPerLcPerStream.resize(distributedBytes.size());
-                }
-                for (std::size_t numLc = 0; numLc < distributedBytes.size(); numLc++)
-                {
-                    bytesPerLcPerStream.at(numLc).emplace_back(distributedBytes.at(numLc).m_lcg,
-                                                               distributedBytes.at(numLc).m_lcId,
-                                                               distributedBytes.at(numLc).m_bytes);
-                }
+                bytesPerLc.at(numLc).emplace_back(distributedBytes.at(numLc).m_lcg,
+                                                  distributedBytes.at(numLc).m_lcId,
+                                                  distributedBytes.at(numLc).m_bytes);
             }
-
-            //      auto distributedBytes = AssignBytesToLC (ue.first->m_dlLCG, dci->m_tbSize);
 
             VarTtiAllocInfo slotInfo(dci);
 
             NS_LOG_INFO("Assigned process ID " << static_cast<uint32_t>(dci->m_harqProcess)
                                                << " to UE " << ue.first->m_rnti);
-            for (std::size_t stream = 0; stream < dci->m_tbSize.size(); stream++)
-            {
-                NS_LOG_DEBUG(" UE" << dci->m_rnti << " stream " << stream << " gets DL symbols "
-                                   << static_cast<uint32_t>(dci->m_symStart) << "-"
-                                   << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym)
-                                   << " tbs " << dci->m_tbSize.at(stream) << " mcs "
-                                   << static_cast<uint32_t>(dci->m_mcs.at(stream)) << " harqId "
-                                   << static_cast<uint32_t>(id) << " rv "
-                                   << static_cast<uint32_t>(dci->m_rv.at(stream)));
-            }
+            NS_LOG_DEBUG(" UE" << dci->m_rnti << " gets DL symbols "
+                               << static_cast<uint32_t>(dci->m_symStart) << "-"
+                               << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym) << " tbs "
+                               << dci->m_tbSize << " mcs " << static_cast<uint32_t>(dci->m_mcs)
+                               << " harqId " << static_cast<uint32_t>(id) << " rv "
+                               << static_cast<uint32_t>(dci->m_rv));
 
-            for (const auto& bytesPerLc : bytesPerLcPerStream)
+            for (const auto& byteDistribution : distributedBytes)
             {
-                // bytesPerLc is a vector
-                std::vector<RlcPduInfo> rlcPdusInfoPerStream;
-                for (const auto& bytesPerStream : bytesPerLc)
-                {
-                    if (bytesPerStream.m_bytes != 0)
-                    {
-                        NS_ASSERT(bytesPerStream.m_bytes >= 3);
-                        uint8_t lcId = bytesPerStream.m_lcId;
-                        uint8_t lcgId = bytesPerStream.m_lcg;
-                        uint32_t bytes = bytesPerStream.m_bytes - 3; // Consider the subPdu overhead
-                        RlcPduInfo newRlcPdu(lcId, bytes);
-                        rlcPdusInfoPerStream.push_back(newRlcPdu);
-                        ue.first->m_dlLCG.at(lcgId)->AssignedData(lcId, bytes, "DL");
+                NS_ASSERT(byteDistribution.m_bytes >= 3);
+                uint8_t lcId = byteDistribution.m_lcId;
+                uint8_t lcgId = byteDistribution.m_lcg;
+                uint32_t bytes = byteDistribution.m_bytes - 3; // Consider the subPdu overhead
 
-                        NS_LOG_DEBUG("DL LCG " << static_cast<uint32_t>(lcgId) << " LCID "
-                                               << static_cast<uint32_t>(lcId) << " got bytes "
-                                               << newRlcPdu.m_size);
-                    }
-                    else
-                    {
-                        uint8_t lcId = bytesPerStream.m_lcId;
-                        RlcPduInfo newRlcPdu(lcId, 0);
-                        rlcPdusInfoPerStream.push_back(newRlcPdu);
-                    }
-                }
-                // insert rlcPduInforPerStream of a LC
-                slotInfo.m_rlcPduInfo.push_back(rlcPdusInfoPerStream);
+                RlcPduInfo newRlcPdu(lcId, bytes);
                 HarqProcess& process = ue.first->m_dlHarq.Get(dci->m_harqProcess);
-                process.m_rlcPduInfo.push_back(rlcPdusInfoPerStream);
+
+                slotInfo.m_rlcPduInfo.push_back(newRlcPdu);
+                process.m_rlcPduInfo.push_back(newRlcPdu);
+
+                ue.first->m_dlLCG.at(lcgId)->AssignedData(lcId, bytes, "DL");
+
+                NS_LOG_DEBUG("DL LCG " << static_cast<uint32_t>(lcgId) << " LCID "
+                                       << static_cast<uint32_t>(lcId) << " got bytes "
+                                       << newRlcPdu.m_size);
             }
-
-            /*
-                      for (const auto & byteDistribution : distributedBytes)
-                        {
-                          NS_ASSERT (byteDistribution.m_bytes >= 3);
-                          uint8_t lcId = byteDistribution.m_lcId;
-                          uint8_t lcgId = byteDistribution.m_lcg;
-                          uint32_t bytes = byteDistribution.m_bytes - 3; // Consider the subPdu
-               overhead
-
-                          RlcPduInfo newRlcPdu (lcId, bytes);
-                          HarqProcess & process = ue.first->m_dlHarq.Get (dci->m_harqProcess);
-
-                          slotInfo.m_rlcPduInfo.push_back (newRlcPdu);
-                          process.m_rlcPduInfo.push_back (newRlcPdu);
-
-                          ue.first->m_dlLCG.at (lcgId)->AssignedData (lcId, bytes);
-
-                          NS_LOG_DEBUG ("DL LCG " << static_cast<uint32_t> (lcgId) <<
-                                        " LCID " << static_cast<uint32_t> (lcId) <<
-                                        " got bytes " << newRlcPdu.m_size);
-                        }*/
 
             NS_ABORT_IF(slotInfo.m_rlcPduInfo.empty());
 
@@ -1581,7 +1529,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
  * - How to place the blocks in the 2D plan (in other words, how to create the DCIs)?
  *
  * The first two phases are managed by the function AssignULRBG. Once the map
- * between the beamConfId and the symbols assigned to it has been returned, the
+ * between the beamId and the symbols assigned to it has been returned, the
  * active user list has been updated by assigning to each user an amount of
  * RBG. Then, it is necessary to iterate through the beams, and for each beam,
  * iterating through the users of that beam, creating a DCI (function CreateUlDci).
@@ -1658,8 +1606,8 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
                 // TODO To avoid this, a more accurate solution
                 // is needed to assign resources. That is, a solution
                 // that would not assign resources to a UE if the assigned resources
-                // result a TB size of less than 7 bytes (3 mac header, 2 rlc header, 2 data).
-                // Because if this happens CreateUlDci will not create DCI.
+                // result a TB size of less than 7 bytes (3 mac header, 2 rlc header, 2
+                // data). Because if this happens CreateUlDci will not create DCI.
                 NS_LOG_DEBUG("No DCI has been created, ignoring");
                 ue.first->ResetUlMetric();
                 continue;
@@ -1689,19 +1637,14 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
 
             NS_LOG_INFO("Assigned process ID " << static_cast<uint32_t>(dci->m_harqProcess)
                                                << " to UE " << ue.first->m_rnti);
-            for (uint32_t stream = 0; stream < dci->m_tbSize.size(); stream++)
-            {
-                NS_LOG_DEBUG(" UE" << dci->m_rnti << " gets UL symbols "
-                                   << static_cast<uint32_t>(dci->m_symStart) << "-"
-                                   << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym)
-                                   << " tbs " << dci->m_tbSize.at(stream) << " mcs "
-                                   << static_cast<uint32_t>(dci->m_mcs.at(stream)) << " harqId "
-                                   << static_cast<uint32_t>(id) << " rv "
-                                   << static_cast<uint32_t>(dci->m_rv.at(stream)));
-            }
+            NS_LOG_DEBUG(" UE" << dci->m_rnti << " gets UL symbols "
+                               << static_cast<uint32_t>(dci->m_symStart) << "-"
+                               << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym) << " tbs "
+                               << dci->m_tbSize << " mcs " << static_cast<uint32_t>(dci->m_mcs)
+                               << " harqId " << static_cast<uint32_t>(id) << " rv "
+                               << static_cast<uint32_t>(dci->m_rv));
 
-            auto distributedBytes =
-                m_schedLc->AssignBytesToUlLC(ue.first->m_ulLCG, dci->m_tbSize.at(0));
+            auto distributedBytes = m_schedLc->AssignBytesToUlLC(ue.first->m_ulLCG, dci->m_tbSize);
             bool assignedToLC = false;
             for (const auto& byteDistribution : distributedBytes)
             {
@@ -1775,12 +1718,12 @@ NrMacSchedulerNs3::DoScheduleUlSr(PointInFTPlane* spoint, const std::list<uint16
  * different for the slot for UL decision. This offset is due to the parameter
  * N2Delay (previously: UlSchedDelay).
  *
- * Another parameter to consider is the L1L2CtrlLatency that defines the delay (in slots number)
- * between the slot that is currently "in the air" and the slot which is being prepared for DL. The
- * default value for both L1L2CtrlLatency and N2Delay (previously: UlSchedDelay) is 2, so it means
- * that while the slot number (frame, subframe, slot) is in the air, the scheduler in this function
- * will take decisions for DL in slot number (frame, subframe, slot) + 2 and for UL in slot number
- * (frame, subframe, slot) + 4.
+ * Another parameter to consider is the L1L2CtrlLatency that defines the delay (in slots
+ * number) between the slot that is currently "in the air" and the slot which is being
+ * prepared for DL. The default value for both L1L2CtrlLatency and N2Delay (previously:
+ * UlSchedDelay) is 2, so it means that while the slot number (frame, subframe, slot) is in
+ * the air, the scheduler in this function will take decisions for DL in slot number (frame,
+ * subframe, slot) + 2 and for UL in slot number (frame, subframe, slot) + 4.
  *
  * The consequences are an additional complexity derived from the fact that the
  * DL scheduling for a slot should remember the previous UL scheduling done in the
@@ -1852,7 +1795,7 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
     }
     m_rachList.clear();
 
-    // compute active ue in the current subframe, group them by BeamConfId
+    // compute active ue in the current subframe, group them by BeamId
     ActiveHarqMap activeDlHarq;
     ComputeActiveHarq(&activeDlHarq, dlHarqFeedback);
 
@@ -1869,8 +1812,8 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
                  ulAllocations,
                  &dlSlot.m_slotAllocInfo);
 
-    // if the number of allocated symbols is greater than GetUlCtrlSymbols (), then don't delete
-    // the allocation, as it will be removed when the CQI will be processed.
+    // if the number of allocated symbols is greater than GetUlCtrlSymbols (), then don't
+    // delete the allocation, as it will be removed when the CQI will be processed.
     // Otherwise, delete the allocation history for the slot.
     if (ulAllocations.m_totUlSym <= GetUlCtrlSyms())
     {
@@ -1895,12 +1838,12 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
  * different for the slot for UL decision. This offset is due to the parameter
  * N2Delay (previously: UlSchedDelay).
  *
- * Another parameter to consider is the L1L2CtrlLatency  that defines the delay (in slots number)
- * between the slot that is currently "in the air" and the slot which is being prepared for DL. The
- * default value for both L1L2CtrlLatency and N2Delay (previously: UlSchedDelay) is 2, so it means
- * that while the slot number (frame, subframe, slot) is in the air, the scheduler in this function
- * will take decisions for DL in slot number (frame, subframe, slot) + 2 and for UL in slot number
- * (frame, subframe, slot) + 4.
+ * Another parameter to consider is the L1L2CtrlLatency  that defines the delay (in slots
+ * number) between the slot that is currently "in the air" and the slot which is being
+ * prepared for DL. The default value for both L1L2CtrlLatency and N2Delay (previously:
+ * UlSchedDelay) is 2, so it means that while the slot number (frame, subframe, slot) is in
+ * the air, the scheduler in this function will take decisions for DL in slot number (frame,
+ * subframe, slot) + 2 and for UL in slot number (frame, subframe, slot) + 4.
  *
  * The consequences are an additional complexity derived from the fact that the
  * DL scheduling for a slot should remember the previous UL scheduling done in the
@@ -2118,10 +2061,10 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
             {
                 NS_LOG_INFO("Placed the above allocation in the CQI map");
                 allocations.emplace_back(alloc.m_dci->m_rnti,
-                                         alloc.m_dci->m_tbSize.at(0),
+                                         alloc.m_dci->m_tbSize,
                                          alloc.m_dci->m_symStart,
                                          alloc.m_dci->m_numSym,
-                                         alloc.m_dci->m_mcs.at(0),
+                                         alloc.m_dci->m_mcs,
                                          alloc.m_dci->m_rbgBitmask);
             }
         }
@@ -2194,20 +2137,14 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
 
         spoint->m_sym--;
 
-        // Due to MIMO implementation MCS, TB size, ndi, rv, are vectors
-        std::vector<uint8_t> mcs = {0};
-        std::vector<uint32_t> tbs = {0};
-        std::vector<uint8_t> ndi = {1};
-        std::vector<uint8_t> rv = {0};
-
         auto dci = std::make_shared<DciInfoElementTdma>(rnti,
                                                         DciInfoElementTdma::UL,
                                                         spoint->m_sym,
                                                         1,
-                                                        mcs,
-                                                        tbs,
-                                                        ndi,
-                                                        rv,
+                                                        0,
+                                                        0,
+                                                        1,
+                                                        0,
                                                         DciInfoElementTdma::SRS,
                                                         GetBwpId(),
                                                         GetTpc());

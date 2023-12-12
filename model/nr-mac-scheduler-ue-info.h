@@ -6,13 +6,12 @@
 
 #pragma once
 
-#include "beam-conf-id.h"
+#include "beam-id.h"
 #include "nr-amc.h"
 #include "nr-mac-harq-vector.h"
 #include "nr-mac-sched-sap.h"
 #include "nr-mac-scheduler-lcg.h"
 
-#include <algorithm>
 #include <functional>
 #include <unordered_map>
 
@@ -62,9 +61,9 @@ class NrMacSchedulerUeInfo
     /**
      * \brief Create a new UE representation
      * \param rnti the RNTI of the UE
-     * \param beamConfId the BeamConfId of the UE (can be updated later)
+     * \param beamId the BeamID of the UE (can be updated later)
      */
-    NrMacSchedulerUeInfo(uint16_t rnti, BeamConfId beamConfId, const GetRbPerRbgFn& fn);
+    NrMacSchedulerUeInfo(uint16_t rnti, BeamId beamId, const GetRbPerRbgFn& fn);
 
     /**
      * \brief ~NrMacSchedulerUeInfo deconstructor
@@ -100,7 +99,7 @@ class NrMacSchedulerUeInfo
      * \param ue UE pointer from which obtain the value
      * \return
      */
-    static uint8_t& GetDlMcs(const UePtr& ue, uint8_t stream);
+    static uint8_t& GetDlMcs(const UePtr& ue);
     /**
      * \brief GetUlMcs
      * \param ue UE pointer from which obtain the value
@@ -108,24 +107,22 @@ class NrMacSchedulerUeInfo
      */
     static uint8_t& GetUlMcs(const UePtr& ue);
     /**
-     * \brief GetDlTBSPerStream
-     * \param ue UE pointer from which obtain the value
-     * \param stream The stream id UE pointer from which obtain the value
-     * \return The TB size of the stream whose id is passed as an argument
-     */
-    static uint32_t& GetDlTBSPerStream(const UePtr& ue, uint8_t stream);
-    /**
      * \brief GetDlTBS
      * \param ue UE pointer from which obtain the value
-     * \return
+     * \return The TB size
      */
-    static uint32_t GetDlTBS(const UePtr& ue);
+    static uint32_t& GetDlTBS(const UePtr& ue);
+
     /**
      * \brief GetUlTBS
      * \param ue UE pointer from which obtain the value
      * \return
      */
-    static uint32_t GetUlTBS(const UePtr& ue);
+    static uint32_t& GetUlTBS(const UePtr& ue)
+    {
+        return ue->m_ulTbSize;
+    }
+
     /**
      * \brief GetDlLCG
      * \param ue UE pointer from which obtain the value
@@ -210,7 +207,7 @@ class NrMacSchedulerUeInfo
     virtual void UpdateUlMetric(const Ptr<const NrAmc>& amc);
 
     /**
-     * \brief ResetDlMetric
+     * \brief ResetUlMetric
      *
      * Called when the scheduler has assigned RBGs, but the sum does not arrive
      * to a TBS > 0. The assignation is, therefore, not transformed in DCI.
@@ -235,57 +232,35 @@ class NrMacSchedulerUeInfo
         std::vector<double> m_sinr;   //!< Vector of SINR for the entire band
         std::vector<int16_t> m_rbCqi; //!< CQI for each Rsc Block, set to -1 if SINR < Threshold
         uint8_t m_cqi{0};             //!< CQI reported value
-        uint32_t m_timer{
-            0}; //!< Timer (in slot number). When the timer is 0, the value is discarded
+        uint32_t m_timer{0};          //!< Timer (in slot number).
+                                      //!< When the timer is 0, the value is discarded
     };
 
-    /**
-     * \brief Received CQI information
-     */
-    struct DlCqiInfo
-    {
-        /**
-         * \brief Type of CQI
-         */
-        enum CqiType
-        {
-            WB,          //!< Wide-band
-            SB           //!< Sub-band
-        } m_cqiType{WB}; //!< CQI type
-
-        uint8_t m_ri{0}; //!< The rank indicator, by default UE would have only one stream
-        std::vector<double> m_sinr;   //!< Vector of SINR for the entire band
-        std::vector<uint8_t> m_wbCqi; //!< CQI for each stream
-        uint32_t m_timer{
-            0}; //!< Timer (in slot number). When the timer is 0, the value is discarded
-    };
-
-    uint16_t m_rnti{0};      //!< RNTI of the UE
-    BeamConfId m_beamConfId; //!< Beam ID of the UE (kept updated as much as possible by MAC)
+    uint16_t m_rnti{0}; //!< RNTI of the UE
+    BeamId m_beamId;    //!< Beam ID of the UE (kept updated as much as possible by MAC)
 
     std::unordered_map<uint8_t, LCGPtr> m_dlLCG; //!< DL LCG
     std::unordered_map<uint8_t, LCGPtr> m_ulLCG; //!< UL LCG
 
-    uint32_t m_dlMRBRetx{
-        0}; //!< MRB assigned for retx. To update the name, what is MRB is not defined
-    uint32_t m_ulMRBRetx{
-        0};              //!< MRB assigned for retx. To update the name, what is MRB is not defined
-    uint32_t m_dlRBG{0}; //!< DL Resource Block Group assigned in this slot
-    uint32_t m_ulRBG{0}; //!< UL Resource Block Group assigned in this slot
-    uint8_t m_dlSym{0};  //!< Number of (new data) symbols assigned in this slot.
-    uint8_t m_ulSym{0};  //!< Number of (new data) symbols assigned in this slot.
+    uint32_t m_dlMRBRetx{0}; //!< MRB assigned for retx. To update the name,
+                             //!< what is MRB is not defined
+    uint32_t m_ulMRBRetx{0}; //!< MRB assigned for retx. To update the name,
+                             //!< what is MRB is not defined
+    uint32_t m_dlRBG{0};     //!< DL Resource Block Group assigned in this slot
+    uint32_t m_ulRBG{0};     //!< UL Resource Block Group assigned in this slot
+    uint8_t m_dlSym{0};      //!< Number of (new data) symbols assigned in this slot.
+    uint8_t m_ulSym{0};      //!< Number of (new data) symbols assigned in this slot.
 
-    std::vector<uint8_t> m_dlMcs; //!< DL MCS per stream, it is initialized with a starting MCS upon
-                                  //!< UE addition to gNB and the scheduler
-    uint8_t m_ulMcs{0};           //!< UL MCS
+    uint8_t m_dlMcs{0}; //!< DL MCS
+    uint8_t m_ulMcs{0}; //!< UL MCS
 
-    std::vector<uint32_t> m_dlTbSize{0}; //!< DL Transport Block Size per stream, depends on MCS and
-                                         //!< RBG, updated in UpdateDlMetric()
-    uint32_t m_ulTbSize{
-        0}; //!< UL Transport Block Size, depends on MCS and RBG, updated in UpdateDlMetric()
+    uint32_t m_dlTbSize{0}; //!< DL Transport Block Size, depends on MCS and RBG,
+                            //!< updated in UpdateDlMetric()
+    uint32_t m_ulTbSize{0}; //!< UL Transport Block Size, depends on MCS and RBG,
+                            //!< updated in UpdateDlMetric()
 
-    DlCqiInfo m_dlCqi; //!< DL CQI information
-    CqiInfo m_ulCqi;   //!< UL CQI information
+    CqiInfo m_dlCqi; //!< DL CQI information
+    CqiInfo m_ulCqi; //!< UL CQI information
 
     NrMacHarqVector m_dlHarq; //!< HARQ process vector for DL
     NrMacHarqVector m_ulHarq; //!< HARQ process vector for UL

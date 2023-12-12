@@ -179,12 +179,12 @@ main(int argc, char* argv[])
     // configure beam that will be shown in REM map
     DynamicCast<NrGnbNetDevice>(gnbNetDev.Get(0))
         ->GetPhy(0)
-        ->GetSpectrumPhy(0)
+        ->GetSpectrumPhy()
         ->GetBeamManager()
         ->SetSector(sector, theta);
     DynamicCast<NrUeNetDevice>(ueNetDev.Get(0))
         ->GetPhy(0)
-        ->GetSpectrumPhy(0)
+        ->GetSpectrumPhy()
         ->GetBeamManager()
         ->ChangeToQuasiOmniBeamformingVector();
     remHelper->CreateRem(gnbNetDev, ueNetDev.Get(0), 0);

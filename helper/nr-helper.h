@@ -228,8 +228,7 @@ class NrHelper : public Object
      */
     NetDeviceContainer InstallUeDevice(
         const NodeContainer& c,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps,
-        uint8_t numberOfPanels = 1);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps);
     /**
      * \brief Install one (or more) GNBs
      * \param c Node container with the GNB
@@ -238,8 +237,7 @@ class NrHelper : public Object
      */
     NetDeviceContainer InstallGnbDevice(
         const NodeContainer& c,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-        uint8_t numberOfPanels = 1);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
 
     /**
      * \brief Get the number of configured BWP for a specific GNB NetDevice
@@ -889,8 +887,7 @@ class NrHelper : public Object
     Ptr<NrGnbPhy> CreateGnbPhy(const Ptr<Node>& n,
                                const std::unique_ptr<BandwidthPartInfo>& bwp,
                                const Ptr<NrGnbNetDevice>& dev,
-                               const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback,
-                               uint8_t numberOfPanels);
+                               const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback);
     Ptr<NrMacScheduler> CreateGnbSched();
     Ptr<NrGnbMac> CreateGnbMac();
 
@@ -898,17 +895,15 @@ class NrHelper : public Object
     Ptr<NrUePhy> CreateUePhy(const Ptr<Node>& n,
                              const std::unique_ptr<BandwidthPartInfo>& bwp,
                              const Ptr<NrUeNetDevice>& dev,
-                             const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback,
-                             uint8_t numberOfPanels);
+                             const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback& dlHarqCallback,
+                             const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback);
 
     Ptr<NetDevice> InstallSingleUeDevice(
         const Ptr<Node>& n,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-        uint8_t numberOfPanels);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
     Ptr<NetDevice> InstallSingleGnbDevice(
         const Ptr<Node>& n,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-        uint8_t numberOfPanels);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
     void AttachToClosestEnb(Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
 
     ObjectFactory m_gnbNetDeviceFactory;            //!< NetDevice factory for gnb
@@ -957,8 +952,8 @@ class NrHelper : public Object
     std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
     std::vector<Ptr<Object>>
         m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper
-                                             //!< has assigned streams in order to avoid double
-                                             //!< assignments
+    //!< has assigned streams in order to avoid double
+    //!< assignments
     Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
 };
 

@@ -104,6 +104,12 @@ NrGnbPhy::GetTypeId()
                                 "UniformPowerAllocBw",
                                 NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED,
                                 "UniformPowerAllocUsed"))
+            .AddAttribute("SpectrumPhy",
+                          "The downlink NrSpectrumPhy associated to this NrPhy",
+                          TypeId::ATTR_GET,
+                          PointerValue(),
+                          MakePointerAccessor(&NrPhy::GetSpectrumPhy),
+                          MakePointerChecker<NrSpectrumPhy>())
             .AddTraceSource("UlSinrTrace",
                             "UL SINR statistics.",
                             MakeTraceSourceAccessor(&NrGnbPhy::m_ulSinrTrace),
@@ -153,11 +159,6 @@ NrGnbPhy::GetTypeId()
                           StringValue("F|F|F|F|F|F|F|F|F|F|"),
                           MakeStringAccessor(&NrGnbPhy::SetPattern, &NrGnbPhy::GetPattern),
                           MakeStringChecker())
-            .AddAttribute("NrSpectrumPhyList",
-                          "List of all SpectrumPhy instances of this NrUePhy.",
-                          ObjectVectorValue(),
-                          MakeObjectVectorAccessor(&NrGnbPhy::m_spectrumPhys),
-                          MakeObjectVectorChecker<NrSpectrumPhy>())
             .AddTraceSource("SlotDataStats",
                             "Data statistics for the current slot: SfnSf, active UE, used RE, "
                             "used symbols, available RBs, available symbols, bwp ID, cell ID",
@@ -554,14 +555,10 @@ NrGnbPhy::SetN2Delay(uint32_t delay)
     SetTddPattern(m_tddPattern); // Update the generate/send structures
 }
 
-BeamConfId
-NrGnbPhy::GetBeamConfId(uint16_t rnti) const
+BeamId
+NrGnbPhy::GetBeamId(uint16_t rnti) const
 {
     NS_LOG_FUNCTION(this);
-
-    NS_ABORT_MSG_UNLESS(m_spectrumPhys.size() == 1 || m_spectrumPhys.size() == 2,
-                        " Currently the BeamConfId implementation supports up to 2 antenna arrays "
-                        "per PHY instance.");
 
     for (std::size_t i = 0; i < m_deviceMap.size(); i++)
     {
@@ -570,18 +567,11 @@ NrGnbPhy::GetBeamConfId(uint16_t rnti) const
 
         if (ueRnti == rnti)
         {
-            NS_ASSERT(m_spectrumPhys[0]->GetBeamManager());
-            BeamId beamId1 = m_spectrumPhys[0]->GetBeamManager()->GetBeamId(m_deviceMap.at(i));
-            BeamId beamId2 = BeamId::GetEmptyBeamId();
-
-            if (m_spectrumPhys.size() > 1)
-            {
-                m_spectrumPhys[1]->GetBeamManager()->GetBeamId(m_deviceMap.at(i));
-            }
-            return BeamConfId(beamId1, beamId2);
+            NS_ASSERT(m_spectrumPhy->GetBeamManager());
+            return m_spectrumPhy->GetBeamManager()->GetBeamId(m_deviceMap.at(i));
         }
     }
-    return BeamConfId(BeamId(0, 0), BeamId::GetEmptyBeamId());
+    return BeamId(0, 0);
 }
 
 void
@@ -615,14 +605,11 @@ NrGnbPhy::GetTxPower() const
 }
 
 void
-NrGnbPhy::SetSubChannels(const std::vector<int>& rbIndexVector, uint8_t activeStreams)
+NrGnbPhy::SetSubChannels(const std::vector<int>& rbIndexVector)
 {
-    Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity(rbIndexVector, activeStreams);
+    Ptr<SpectrumValue> txPsd = GetTxPowerSpectralDensity(rbIndexVector);
     NS_ASSERT(txPsd);
-    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
-    {
-        m_spectrumPhys.at(streamIndex)->SetTxPowerSpectralDensity(txPsd);
-    }
+    m_spectrumPhy->SetTxPowerSpectralDensity(txPsd);
 }
 
 void
@@ -1284,32 +1271,26 @@ NrGnbPhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    uint8_t streams = static_cast<uint8_t>(m_spectrumPhys.size());
-    for (uint8_t streamIndex = 0; streamIndex < streams; streamIndex++)
+    Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart);
+    if (!pktBurst || pktBurst->GetNPackets() == 0)
     {
-        Ptr<PacketBurst> pktBurst = GetPacketBurst(m_currentSlot, dci->m_symStart, streamIndex);
-        if (!pktBurst || pktBurst->GetNPackets() == 0)
-        {
-            // sometimes the UE will be scheduled when no data is queued.
-            // In this case, don't send anything, don't put power... don't do nothing!
-            // go to the next stream if any.
-            continue;
-        }
-
-        NS_LOG_INFO("ENB TXing DL DATA frame "
-                    << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
-                    << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
-                    << Simulator::Now() + NanoSeconds(1) << " end "
-                    << Simulator::Now() + varTtiPeriod - NanoSeconds(2.0));
-
-        Simulator::Schedule(NanoSeconds(1.0),
-                            &NrGnbPhy::SendDataChannels,
-                            this,
-                            pktBurst,
-                            varTtiPeriod - NanoSeconds(2.0),
-                            dci,
-                            streamIndex);
+        // sometimes the UE will be scheduled when no data is queued.
+        // In this case, don't send anything, don't put power... do nothing!
+        return varTtiPeriod;
     }
+
+    NS_LOG_INFO("ENB TXing DL DATA frame "
+                << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
+                << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
+                << Simulator::Now() + NanoSeconds(1) << " end "
+                << Simulator::Now() + varTtiPeriod - NanoSeconds(2.0));
+
+    Simulator::Schedule(NanoSeconds(1.0),
+                        &NrGnbPhy::SendDataChannels,
+                        this,
+                        pktBurst,
+                        varTtiPeriod - NanoSeconds(2.0),
+                        dci);
 
     return varTtiPeriod;
 }
@@ -1324,25 +1305,17 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    // We do not support MIMO in UL yet. DCI is prepared for stream 0. So, if there is
-    // only one stream, do we need this for loop?
-    uint8_t streamIndex = 0;
-
-    if (dci->m_tbSize.at(streamIndex) > 0)
-    {
-        m_spectrumPhys.at(streamIndex)
-            ->AddExpectedTb(dci->m_rnti,
-                            dci->m_ndi.at(streamIndex),
-                            dci->m_tbSize.at(streamIndex),
-                            dci->m_mcs.at(streamIndex),
-                            FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
-                            dci->m_harqProcess,
-                            dci->m_rv.at(streamIndex),
-                            false,
-                            dci->m_symStart,
-                            dci->m_numSym,
-                            m_currentSlot);
-    }
+    m_spectrumPhy->AddExpectedTb(dci->m_rnti,
+                                 dci->m_ndi,
+                                 dci->m_tbSize,
+                                 dci->m_mcs,
+                                 FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
+                                 dci->m_harqProcess,
+                                 dci->m_rv,
+                                 false,
+                                 dci->m_symStart,
+                                 dci->m_numSym,
+                                 m_currentSlot);
 
     bool found = false;
     for (std::size_t i = 0; i < m_deviceMap.size(); i++)
@@ -1369,21 +1342,15 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 }
 
 void
-NrGnbPhy::ChangeBeamformingVector(Ptr<NetDevice> dev)
+NrGnbPhy::ChangeBeamformingVector(Ptr<NrNetDevice> dev)
 {
-    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
-    {
-        m_spectrumPhys.at(streamIndex)->GetBeamManager()->ChangeBeamformingVector(dev);
-    }
+    m_spectrumPhy->GetBeamManager()->ChangeBeamformingVector(dev);
 }
 
 void
 NrGnbPhy::ChangeToQuasiOmniBeamformingVector()
 {
-    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
-    {
-        m_spectrumPhys.at(streamIndex)->GetBeamManager()->ChangeToQuasiOmniBeamformingVector();
-    }
+    m_spectrumPhy->GetBeamManager()->ChangeToQuasiOmniBeamformingVector();
 }
 
 Time
@@ -1396,16 +1363,13 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
-    {
-        m_spectrumPhys.at(streamIndex)->AddExpectedSrsRnti(dci->m_rnti);
-    }
+    m_spectrumPhy->AddExpectedSrsRnti(dci->m_rnti);
 
     bool found = false;
     uint16_t notValidRntiCounter =
         0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
-           // if yes, and the rnti for the current SRS is not found in the list,
-           // the code will not abort
+    // if yes, and the rnti for the current SRS is not found in the list,
+    // the code will not abort
     for (std::size_t i = 0; i < m_deviceMap.size(); i++)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
@@ -1514,8 +1478,7 @@ NrGnbPhy::EndSlot()
 void
 NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
                            const Time& varTtiPeriod,
-                           const std::shared_ptr<DciInfoElementTdma>& dci,
-                           const uint8_t& streamId)
+                           const std::shared_ptr<DciInfoElementTdma>& dci)
 {
     NS_LOG_FUNCTION(this);
     // update beamforming vectors (currently supports 1 user only)
@@ -1539,20 +1502,10 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
     // doesn't need to be called again. In fact, SendDataChannels will be
     // invoked only when the symStart changes.
     NS_ASSERT(m_rbgAllocationPerSym.find(dci->m_symStart) != m_rbgAllocationPerSym.end());
-
-    uint8_t activeStreams = 0;
-    for (const auto& tbSize : dci->m_tbSize)
-    {
-        if (tbSize)
-        {
-            activeStreams++;
-        }
-    }
-    SetSubChannels(FromRBGBitmaskToRBAssignment(m_rbgAllocationPerSym.at(dci->m_symStart)),
-                   activeStreams);
+    SetSubChannels(FromRBGBitmaskToRBAssignment(m_rbgAllocationPerSym.at(dci->m_symStart)));
 
     std::list<Ptr<NrControlMessage>> ctrlMsgs;
-    m_spectrumPhys.at(streamId)->StartTxDataFrames(pb, ctrlMsgs, varTtiPeriod);
+    m_spectrumPhy->StartTxDataFrames(pb, ctrlMsgs, varTtiPeriod);
 }
 
 void
@@ -1567,11 +1520,9 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
         fullBwRb[i] = static_cast<int>(i);
     }
 
-    // Currently all DL CTRL is sent only through one stream
-    SetSubChannels(fullBwRb, 1);
-    // DL control will be transmitted only through a single stream, we assume that it is the first
-    // one
-    m_spectrumPhys.at(0)->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
+    SetSubChannels(fullBwRb);
+
+    m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
     m_ctrlMsgs.clear();
 }
 
@@ -1606,7 +1557,7 @@ NrGnbPhy::PhyDataPacketReceived(const Ptr<Packet>& p)
 }
 
 void
-NrGnbPhy::GenerateDataCqiReport(const SpectrumValue& sinr, uint8_t streamId) const
+NrGnbPhy::GenerateDataCqiReport(const SpectrumValue& sinr)
 {
     NS_LOG_FUNCTION(this << sinr);
 

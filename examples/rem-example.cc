@@ -585,7 +585,7 @@ main(int argc, char* argv[])
     gnbNetDev.Get(0)
         ->GetObject<NrGnbNetDevice>()
         ->GetPhy(remBwpId)
-        ->GetSpectrumPhy(0)
+        ->GetSpectrumPhy()
         ->GetBeamManager()
         ->ChangeBeamformingVector(ueNetDev.Get(0));
 
@@ -594,7 +594,7 @@ main(int argc, char* argv[])
         gnbNetDev.Get(1)
             ->GetObject<NrGnbNetDevice>()
             ->GetPhy(remBwpId)
-            ->GetSpectrumPhy(0)
+            ->GetSpectrumPhy()
             ->GetBeamManager()
             ->ChangeBeamformingVector(ueNetDev.Get(1));
     }
@@ -604,19 +604,19 @@ main(int argc, char* argv[])
         gnbNetDev.Get(1)
             ->GetObject<NrGnbNetDevice>()
             ->GetPhy(remBwpId)
-            ->GetSpectrumPhy(0)
+            ->GetSpectrumPhy()
             ->GetBeamManager()
             ->ChangeBeamformingVector(ueNetDev.Get(1));
         gnbNetDev.Get(2)
             ->GetObject<NrGnbNetDevice>()
             ->GetPhy(remBwpId)
-            ->GetSpectrumPhy(0)
+            ->GetSpectrumPhy()
             ->GetBeamManager()
             ->ChangeBeamformingVector(ueNetDev.Get(2));
         gnbNetDev.Get(3)
             ->GetObject<NrGnbNetDevice>()
             ->GetPhy(remBwpId)
-            ->GetSpectrumPhy(0)
+            ->GetSpectrumPhy()
             ->GetBeamManager()
             ->ChangeBeamformingVector(ueNetDev.Get(3));
     }

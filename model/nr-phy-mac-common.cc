@@ -125,14 +125,9 @@ operator<<(std::ostream& os, const DlHarqInfo& item)
         os << "NACK feedback ";
     }
     os << "for ProcessID: " << static_cast<uint32_t>(item.m_harqProcessId) << " of UE "
-       << static_cast<uint32_t>(item.m_rnti);
-    for (std::size_t stream = 0; stream < item.m_numRetx.size(); stream++)
-    {
-        os << "stream " << stream << " Num Retx: " << static_cast<uint32_t>(item.m_numRetx[stream]);
-    }
-
-    os << " BWP index: " << static_cast<uint32_t>(item.m_bwpIndex);
-
+       << static_cast<uint32_t>(item.m_rnti)
+       << " Num Retx: " << static_cast<uint32_t>(item.m_numRetx)
+       << " BWP index: " << static_cast<uint32_t>(item.m_bwpIndex);
     return os;
 }
 
@@ -228,30 +223,9 @@ std::ostream&
 operator<<(std::ostream& os, const DciInfoElementTdma& item)
 {
     os << "RNTI=" << item.m_rnti << "|" << item.m_format << "|SYM=" << +item.m_symStart
-       << "|NSYM=" << +item.m_numSym;
-
-    for (std::size_t imcs = 0; imcs < item.m_mcs.size(); imcs++)
-    {
-        os << "|McsStream" << imcs << "=" << +item.m_mcs.at(imcs);
-    }
-
-    for (std::size_t itbs = 0; itbs < item.m_tbSize.size(); itbs++)
-    {
-        os << "|TBsStream" << itbs << "=" << item.m_tbSize.at(itbs);
-    }
-
-    for (std::size_t indi = 0; indi < item.m_ndi.size(); indi++)
-    {
-        os << "|NdiStream" << indi << "=" << +item.m_ndi.at(indi);
-    }
-
-    for (std::size_t irv = 0; irv < item.m_rv.size(); irv++)
-    {
-        os << "|RvStream" << irv << "=" << +item.m_rv.at(irv);
-    }
-
-    os << "|TYPE=" << item.m_type << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess
-       << "|RBG=";
+       << "|NSYM=" << +item.m_numSym << "|MCS=" << +item.m_mcs << "|TBS=" << item.m_tbSize
+       << "|NDI=" << +item.m_ndi << "|RV=" << +item.m_rv << "|TYPE=" << item.m_type
+       << "|BWP=" << +item.m_bwpIndex << "|HARQP=" << +item.m_harqProcess << "|RBG=";
 
     uint16_t start = 65000;
     uint16_t end = 0;

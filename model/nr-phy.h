@@ -20,7 +20,6 @@ class NrControlMessage;
 class NrSpectrumPhy;
 class AntennaArrayBasicModel;
 class UniformPlanarArray;
-class BeamConfId;
 
 /**
  * \ingroup ue-phy
@@ -97,11 +96,10 @@ class NrPhy : public Object
      * \param p the MAC PDU
      * \param sfn The SfnSf at which store the PDU
      * \param symStart The symbol inside the SfnSf at which the data will be transmitted
-     * \param streamId The stream id through which this pkt would be transmitted
      *
      * It will be saved in the PacketBurst map following the SfnSf present in the tag.
      */
-    void SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart, uint8_t streamId);
+    void SetMacPdu(const Ptr<Packet>& p, const SfnSf& sfn, uint8_t symStart);
 
     /**
      * \brief Send the RachPreamble
@@ -142,11 +140,11 @@ class NrPhy : public Object
     virtual Time GetTbDecodeLatency() const;
 
     /**
-     * \brief Get the beam conf id for the specified user
+     * \brief Get the beam id for the specified user
      * \param rnti RNTI
-     * \return the BeamConfId associated to the specified RNTI
+     * \return the BeamId associated to the specified RNTI
      */
-    virtual BeamConfId GetBeamConfId(uint16_t rnti) const = 0;
+    virtual BeamId GetBeamId(uint16_t rnti) const = 0;
 
     /**
      * \brief Get the spectrum model of the PHY
@@ -247,20 +245,13 @@ class NrPhy : public Object
     double GetRbOverhead() const;
 
     /**
-     * \brief Returns the number of streams, which corresponds to the number of NrSpectrumPhys per
-     * NrPhy
-     */
-    uint8_t GetNumberOfStreams() const;
-
-    /**
      * \brief Retrieve the SpectrumPhy pointer
      *
      * As this function is used mainly to get traced values out of Spectrum,
      * it should be removed and the traces connected (and redirected) here.
-     * \param streamIndex the index of the stream of which we will return the SpectrumPhy
      * \return A pointer to the SpectrumPhy of this UE
      */
-    Ptr<NrSpectrumPhy> GetSpectrumPhy(uint8_t streamIndex = 0) const;
+    Ptr<NrSpectrumPhy> GetSpectrumPhy() const;
 
     /**
      * \brief Set the SpectrumPhy associated with this PHY
@@ -461,10 +452,9 @@ class NrPhy : public Object
     /**
      * \brief Retrieve the PacketBurst at the slot/symbol specified
      * \param sym Symbol at which the PacketBurst should be sent
-     * \param streamId The stream id through which this pkt burst would be transmitted
      * \return a pointer to the burst, if present, otherwise nullptr
      */
-    Ptr<PacketBurst> GetPacketBurst(SfnSf sf, uint8_t sym, uint8_t streamId);
+    Ptr<PacketBurst> GetPacketBurst(SfnSf sf, uint8_t sym);
 
     /**
      * \brief Create Noise Power Spectral density
@@ -477,14 +467,12 @@ class NrPhy : public Object
      * Create Tx Power Spectral Density
      * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
      * in which there is a transmission
-     * \param activeStreams the number of active streams
      * \return A SpectrumValue array with fixed size, in which each value
      * is updated to a particular value if the correspond RB index was inside the rbIndexVector,
      * or is left untouched otherwise.
      * \see NrSpectrumValueHelper::CreateTxPowerSpectralDensity
      */
-    Ptr<SpectrumValue> GetTxPowerSpectralDensity(const std::vector<int>& rbIndexVector,
-                                                 uint8_t activeStreams);
+    Ptr<SpectrumValue> GetTxPowerSpectralDensity(const std::vector<int>& rbIndexVector);
 
     /**
      * \brief Store the slot allocation info at the front
@@ -561,9 +549,8 @@ class NrPhy : public Object
     virtual std::list<Ptr<NrControlMessage>> PopCurrentSlotCtrlMsgs();
 
   protected:
-    Ptr<NrNetDevice> m_netDevice; //!< Pointer to the owner netDevice.
-    std::vector<Ptr<NrSpectrumPhy>>
-        m_spectrumPhys; //!< vector to the (owned) spectrum phy instances
+    Ptr<NrNetDevice> m_netDevice;     //!< Pointer to the owner netDevice.
+    Ptr<NrSpectrumPhy> m_spectrumPhy; //!< Pointer to the (owned) spectrum phy
 
     double m_txPower{0.0};     //!< Transmission power (attribute)
     double m_noiseFigure{0.0}; //!< Noise figure (attribute)
@@ -575,8 +562,7 @@ class NrPhy : public Object
 
     NrPhySapProvider* m_phySapProvider; //!< Pointer to the MAC
 
-    uint32_t m_raPreambleId{0}; //!< Preamble ID
-
+    uint32_t m_raPreambleId{0};                  //!< Preamble ID
     std::list<Ptr<NrControlMessage>> m_ctrlMsgs; //!< CTRL messages to be sent
 
     std::vector<LteNrTddSlotType> m_tddPattern = {F, F, F, F, F, F, F, F, F, F}; //!< Pattern

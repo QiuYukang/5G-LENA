@@ -104,6 +104,7 @@ NrSpectrumPhy::DoDispose()
     m_phy = nullptr;
 
     m_phyRxDataEndOkCallback = MakeNullCallback<void, const Ptr<Packet>&>();
+    m_phyDlHarqFeedbackCallback = MakeNullCallback<void, const DlHarqInfo&>();
     m_phyUlHarqFeedbackCallback = MakeNullCallback<void, const UlHarqInfo&>();
 
     SpectrumPhy::DoDispose();
@@ -141,13 +142,6 @@ NrSpectrumPhy::GetTypeId()
                           MakeDoubleAccessor(&NrSpectrumPhy::SetCcaMode1Threshold,
                                              &NrSpectrumPhy::GetCcaMode1Threshold),
                           MakeDoubleChecker<double>())
-            .AddAttribute("InterStreamInterferenceRatio",
-                          "Inter-stream interference ratio in the range of 0 to 1, e.g.,"
-                          "0 means no interference and 1 means full interference",
-                          DoubleValue(0.0),
-                          MakeDoubleAccessor(&NrSpectrumPhy::SetInterStreamInterferenceRatio),
-                          MakeDoubleChecker<double>(0.0, 1.0))
-
             .AddTraceSource("RxPacketTraceEnb",
                             "The no. of packets received and transmitted by the Base Station",
                             MakeTraceSourceAccessor(&NrSpectrumPhy::m_rxPacketTraceEnb),
@@ -215,6 +209,13 @@ NrSpectrumPhy::SetPhyRxPssCallback(const NrPhyRxPssCallback& c)
 {
     NS_LOG_FUNCTION(this);
     m_phyRxPssCallback = c;
+}
+
+void
+NrSpectrumPhy::SetPhyDlHarqFeedbackCallback(const NrPhyDlHarqFeedbackCallback& c)
+{
+    NS_LOG_FUNCTION(this);
+    m_phyDlHarqFeedbackCallback = c;
 }
 
 void
@@ -399,6 +400,15 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     Time duration = params->duration;
     NS_LOG_INFO("Start receiving signal: " << rxPsd << " duration= " << duration);
 
+    // pass it to interference calculations regardless of the type (nr or non-nr)
+    m_interferenceData->AddSignal(rxPsd, duration);
+
+    // pass the signal to the interference calculator regardless of the type (nr or non-nr)
+    if (m_interferenceSrs)
+    {
+        m_interferenceSrs->AddSignal(rxPsd, duration);
+    }
+
     Ptr<NrSpectrumSignalParametersDataFrame> nrDataRxParams =
         DynamicCast<NrSpectrumSignalParametersDataFrame>(params);
 
@@ -410,45 +420,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
 
     if (nrDataRxParams)
     {
-        if (nrDataRxParams->cellId == GetCellId() &&
-            nrDataRxParams->txPhy->GetObject<NrSpectrumPhy>()->GetStreamId() != m_streamId)
-        {
-            NS_LOG_INFO("Inter stream interference DATA signal. Interference Ratio "
-                        << m_interStrInerfRatio);
-            (*params->psd) *= m_interStrInerfRatio;
-            Ptr<const SpectrumValue> rxPsdData = params->psd;
-            m_interferenceData->AddSignal(rxPsdData, duration);
-            return;
-        }
-    }
-
-    if (dlCtrlRxParams)
-    {
-        if (dlCtrlRxParams->cellId == GetCellId() &&
-            dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy>()->GetStreamId() != m_streamId)
-        {
-            NS_LOG_INFO("Inter stream interference DL CTRL signal. Interference Ratio "
-                        << m_interStrInerfRatio);
-            (*params->psd) *= m_interStrInerfRatio;
-            Ptr<const SpectrumValue> rxPsdDlCtrl = params->psd;
-            m_interferenceCtrl->AddSignal(rxPsdDlCtrl, duration);
-            return;
-        }
-    }
-
-    // pass it to interference calculations regardless of the type (nr or non-nr)
-    m_interferenceData->AddSignal(rxPsd, duration);
-
-    // pass the signal to the interference calculator regardless of the type (nr or non-nr)
-    if (m_interferenceSrs)
-    {
-        m_interferenceSrs->AddSignal(rxPsd, duration);
-    }
-
-    if (nrDataRxParams != nullptr)
-    {
-        if (nrDataRxParams->cellId == GetCellId() &&
-            nrDataRxParams->txPhy->GetObject<NrSpectrumPhy>()->GetStreamId() == m_streamId)
+        if (nrDataRxParams->cellId == GetCellId())
         {
             StartRxData(nrDataRxParams);
             if (!m_isEnb and m_enableDlDataPathlossTrace)
@@ -460,7 +432,6 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
                 Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
                 m_dlDataPathlossTrace(GetCellId(),
                                       GetBwpId(),
-                                      GetStreamId(),
                                       GetMobility()->GetObject<Node>()->GetId(),
                                       pathloss,
                                       phy->ComputeCqi(m_sinrPerceived));
@@ -497,8 +468,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
                 }
             }
 
-            if (dlCtrlRxParams->cellId == GetCellId() &&
-                dlCtrlRxParams->txPhy->GetObject<NrSpectrumPhy>()->GetStreamId() == m_streamId)
+            if (dlCtrlRxParams->cellId == GetCellId())
             {
                 m_interferenceCtrl->StartRx(rxPsd);
                 StartRxDlCtrl(dlCtrlRxParams);
@@ -512,7 +482,6 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
                     double pathloss = 10 * log10(Integral(*txPsd)) - 10 * log10(Integral(*rxPsd));
                     m_dlCtrlPathlossTrace(GetCellId(),
                                           GetBwpId(),
-                                          GetStreamId(),
                                           GetMobility()->GetObject<Node>()->GetId(),
                                           pathloss);
                 }
@@ -532,8 +501,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     {
         if (m_isEnb) // only gNBs should enter into reception of UL CTRL signals
         {
-            if (ulCtrlRxParams->cellId == GetCellId() &&
-                ulCtrlRxParams->txPhy->GetObject<NrSpectrumPhy>()->GetStreamId() == m_streamId)
+            if (ulCtrlRxParams->cellId == GetCellId())
             {
                 if (IsOnlySrs(ulCtrlRxParams->ctrlMsgList))
                 {
@@ -767,7 +735,7 @@ NrSpectrumPhy::ReportDlCtrlSinr(const SpectrumValue& sinr)
     NS_ABORT_MSG_UNLESS(
         phy,
         "This function should only be called for NrSpectrumPhy belonging to NrUEPhy");
-    phy->ReportDlCtrlSinr(sinr, m_streamId);
+    phy->ReportDlCtrlSinr(sinr);
 }
 
 void
@@ -819,39 +787,6 @@ NrSpectrumPhy::UpdateSinrPerceived(const SpectrumValue& sinr)
 }
 
 void
-NrSpectrumPhy::GenerateDataCqiReport(const SpectrumValue& sinr)
-{
-    NS_LOG_FUNCTION(this);
-    Ptr<const NrGnbPhy> phy = (DynamicCast<const NrGnbPhy>(m_phy));
-    NS_ABORT_MSG_UNLESS(
-        phy,
-        "This function should only be called for NrSpectrumPhy belonging to NrGnbPhy");
-    phy->GenerateDataCqiReport(sinr, m_streamId);
-}
-
-void
-NrSpectrumPhy::ReportRsReceivedPower(const SpectrumValue& power)
-{
-    NS_LOG_FUNCTION(this);
-    Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
-    NS_ABORT_MSG_UNLESS(
-        phy,
-        "This function should only be called for NrSpectrumPhy belonging to NrUEPhy");
-    phy->ReportRsReceivedPower(power, m_streamId);
-}
-
-void
-NrSpectrumPhy::GenerateDlCqiReport(const SpectrumValue& sinr)
-{
-    NS_LOG_FUNCTION(this);
-    Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
-    NS_ABORT_MSG_UNLESS(
-        phy,
-        "This function should only be called for NrSpectrumPhy belonging to NrUEPhy");
-    phy->GenerateDlCqiReport(sinr, m_streamId);
-}
-
-void
 NrSpectrumPhy::InstallHarqPhyModule(const Ptr<NrHarqPhy>& harq)
 {
     NS_ABORT_IF(m_harqPhyModule != nullptr);
@@ -862,6 +797,12 @@ void
 NrSpectrumPhy::InstallPhy(const Ptr<NrPhy>& phyModel)
 {
     m_phy = phyModel;
+}
+
+Ptr<NrPhy>
+NrSpectrumPhy::GetPhy() const
+{
+    return m_phy;
 }
 
 void
@@ -935,18 +876,6 @@ void
 NrSpectrumPhy::AddSrsSnrReportCallback(SrsSnrReportCallback callback)
 {
     m_srsSnrReportCallback.push_back(callback);
-}
-
-void
-NrSpectrumPhy::SetStreamId(uint8_t streamId)
-{
-    m_streamId = streamId;
-}
-
-uint8_t
-NrSpectrumPhy::GetStreamId() const
-{
-    return m_streamId;
 }
 
 // private
@@ -1350,6 +1279,7 @@ NrSpectrumPhy::EndRxData()
         }
     }
 
+    std::map<uint16_t, DlHarqInfo> harqDlInfoMap;
     for (auto packetBurst : m_rxPacketBurstList)
     {
         for (auto packet : packetBurst->GetPackets())
@@ -1409,7 +1339,6 @@ NrSpectrumPhy::EndRxData()
             traceParams.m_symStart = GetTBInfo(*itTb).m_expected.m_symStart;
             traceParams.m_numSym = GetTBInfo(*itTb).m_expected.m_numSym;
             traceParams.m_bwpId = GetBwpId();
-            traceParams.m_streamId = m_streamId;
             traceParams.m_rbAssignedNum =
                 static_cast<uint32_t>(GetTBInfo(*itTb).m_expected.m_rbBitmap.size());
 
@@ -1471,20 +1400,28 @@ NrSpectrumPhy::EndRxData()
                 else
                 {
                     // Generate the feedback
-                    DlHarqInfo::HarqStatus harqFeedback;
+                    DlHarqInfo harqDlInfo;
+                    harqDlInfo.m_rnti = rnti;
+                    harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
+                    harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                    harqDlInfo.m_bwpIndex = GetBwpId();
                     if (GetTBInfo(*itTb).m_isCorrupted)
                     {
-                        harqFeedback = DlHarqInfo::NACK;
+                        harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
                     }
                     else
                     {
-                        harqFeedback = DlHarqInfo::ACK;
+                        harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
                     }
-                    (DynamicCast<NrUePhy>(m_phy))
-                        ->NotifyDlHarqFeedback(m_streamId,
-                                               harqFeedback,
-                                               GetTBInfo(*itTb).m_expected.m_harqProcessId,
-                                               GetTBInfo(*itTb).m_expected.m_rv);
+
+                    NS_ASSERT(harqDlInfoMap.find(rnti) == harqDlInfoMap.end());
+                    harqDlInfoMap.insert(std::make_pair(rnti, harqDlInfo));
+
+                    // Send the feedback
+                    if (!m_phyDlHarqFeedbackCallback.IsNull())
+                    {
+                        m_phyDlHarqFeedbackCallback(harqDlInfo);
+                    }
 
                     // Arrange the history
                     if (!GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)
@@ -1680,7 +1617,6 @@ NrSpectrumPhy::ReportWbDlDataSnrPerceived(const double dlDataSnr)
     m_dlDataSnrTrace(m_phy->GetCurrentSfnSf(),
                      m_phy->GetCellId(),
                      m_phy->GetBwpId(),
-                     GetStreamId(),
                      ueNetDevice->GetImsi(),
                      dlDataSnr);
 }
@@ -1691,13 +1627,6 @@ NrSpectrumPhy::AssignStreams(int64_t stream)
     NS_LOG_FUNCTION(this << stream);
     m_random->SetStream(stream);
     return 1;
-}
-
-void
-NrSpectrumPhy::SetInterStreamInterferenceRatio(double ratio)
-{
-    NS_LOG_FUNCTION_NOARGS();
-    m_interStrInerfRatio = ratio;
 }
 
 } // namespace ns3

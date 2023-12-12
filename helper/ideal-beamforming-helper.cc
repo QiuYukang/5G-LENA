@@ -79,21 +79,11 @@ IdealBeamformingHelper::AddBeamformingTask(const Ptr<NrGnbNetDevice>& gnbDev,
 
     for (std::size_t ccId = 0; ccId < gnbDev->GetCcMapSize(); ccId++)
     {
-        uint8_t gnbAntennaArrays = gnbDev->GetPhy(ccId)->GetNumberOfStreams();
-        uint8_t ueAntennaArrays = ueDev->GetPhy(ccId)->GetNumberOfStreams();
-        uint8_t arrays = std::min(gnbAntennaArrays, ueAntennaArrays);
-        NS_ASSERT(arrays);
-        // TODO add assert to check if they are of the same polarization
-        for (uint8_t arrayIndex = 0; arrayIndex < arrays; arrayIndex++)
-        {
-            Ptr<NrSpectrumPhy> gnbSpectrumPhy = gnbDev->GetPhy(ccId)->GetSpectrumPhy(arrayIndex);
-            Ptr<NrSpectrumPhy> ueSpectrumPhy = ueDev->GetPhy(ccId)->GetSpectrumPhy(arrayIndex);
+        Ptr<NrSpectrumPhy> gnbSpectrumPhy = gnbDev->GetPhy(ccId)->GetSpectrumPhy();
+        Ptr<NrSpectrumPhy> ueSpectrumPhy = ueDev->GetPhy(ccId)->GetSpectrumPhy();
 
-            m_spectrumPhyPairToDevicePair[std::make_pair(gnbSpectrumPhy, ueSpectrumPhy)] =
-                std::make_pair(gnbDev, ueDev);
-
-            RunTask(gnbDev, ueDev, gnbSpectrumPhy, ueSpectrumPhy);
-        }
+        m_spectrumPhyPair.emplace_back(gnbSpectrumPhy, ueSpectrumPhy);
+        RunTask(gnbSpectrumPhy, ueSpectrumPhy);
     }
 }
 
@@ -101,12 +91,12 @@ void
 IdealBeamformingHelper::Run() const
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("Running the beamforming method. There are :"
-                << m_spectrumPhyPairToDevicePair.size() << " tasks.");
+    NS_LOG_INFO("Running the beamforming method. There are :" << m_spectrumPhyPair.size()
+                                                              << " tasks.");
 
-    for (const auto& task : m_spectrumPhyPairToDevicePair)
+    for (const auto& task : m_spectrumPhyPair)
     {
-        RunTask(task.second.first, task.second.second, task.first.first, task.first.second);
+        RunTask(task.first, task.second);
     }
 }
 

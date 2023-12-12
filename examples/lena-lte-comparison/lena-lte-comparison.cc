@@ -769,7 +769,8 @@ LenaLteComparison(const Parameters& params)
                         ->Get(siteId)
                         ->GetObject<NrGnbNetDevice>()
                         ->GetPhy(remPhyIndex)
-                        ->ChangeBeamformingVector(ueNdBySector[sectorIndex]->Get(siteId));
+                        ->ChangeBeamformingVector(
+                            DynamicCast<NrUeNetDevice>(ueNdBySector[sectorIndex]->Get(siteId)));
                 }
             }
         }

@@ -121,6 +121,11 @@ class NrSpectrumPhy : public SpectrumPhy
 
     /**
      * This callback method type is used by the NrSpectrumPhy to notify the PHY about
+     * the status of a DL HARQ feedback
+     */
+    typedef Callback<void, const DlHarqInfo&> NrPhyDlHarqFeedbackCallback;
+    /**
+     * This callback method type is used by the NrSpectrumPhy to notify the PHY about
      * the status of a UL HARQ feedback
      */
     typedef Callback<void, const UlHarqInfo&> NrPhyUlHarqFeedbackCallback;
@@ -144,6 +149,10 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void SetPhyRxPssCallback(const NrPhyRxPssCallback& c);
 
+    /**
+     * \brief Sets the callback to be called when DL HARQ feedback is generated
+     */
+    void SetPhyDlHarqFeedbackCallback(const NrPhyDlHarqFeedbackCallback& c);
     /**
      * \brief Sets the callback to be called when UL HARQ feedback is generated
      */
@@ -306,34 +315,10 @@ class NrSpectrumPhy : public SpectrumPhy
     void UpdateSinrPerceived(const SpectrumValue& sinr);
 
     /**
-     * \brief Generate a DL CQI report
-     *
-     * Connected by the helper to a callback in corresponding ChunkProcessor
-     *
-     * \param sinr the SINR
-     */
-    void GenerateDataCqiReport(const SpectrumValue& sinr);
-
-    /**
-     * \brief Called when rsReceivedPower is fired
-     * \param power the power received
-     */
-    void ReportRsReceivedPower(const SpectrumValue& power);
-
-    /**
      * \brief Called when DlCtrlSinr is fired
      * \param sinr the sinr PSD
      */
     void ReportDlCtrlSinr(const SpectrumValue& sinr);
-
-    /**
-     * \brief Generates a DL CQI report at this NrSpectrumPhy
-     *
-     * Connected by the helper to a callback in corresponding ChunkProcessor
-     *
-     * \param sinr the SINR
-     */
-    void GenerateDlCqiReport(const SpectrumValue& sinr);
 
     /**
      * \brief SpectrumPhy that will be called when the SINR for the received
@@ -358,6 +343,8 @@ class NrSpectrumPhy : public SpectrumPhy
      * to obtain information such as cellId, bwpId, etc.
      */
     void InstallPhy(const Ptr<NrPhy>& phyModel);
+
+    Ptr<NrPhy> GetPhy() const;
     /**
      * \brief Sets the antenna of this NrSpectrumPhy instance,
      * currently in NR module it is expected to be of type UniformPlannarArray
@@ -448,34 +435,11 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void AddSrsSnrReportCallback(SrsSnrReportCallback callback);
     /**
-     * \brief Set stream id of this NrSpectrumPhy
-     *
-     * Stream id is introduced to support MIMO. In MIMO, there will be one
-     * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
-     * to assign the stream id to each new instance. Stream id, starts from
-     * 0 and ends at "total number of streams - 1".
-     *
-     * TODO NrHelper should be declared as friend and this function should be private
-     * \param streamId The stream id
-     */
-    void SetStreamId(uint8_t streamId);
-    /*
      * \brief Set whether this spectrum PHY belongs to eNB or UE
      * TODO NrHelper should be declared as friend and this function should be private
      * \param isEnb whether the spectrum PHY belongs to eNB or UE
      */
     void SetIsEnb(bool isEnb);
-    /**
-     * \brief Get stream id of this NrSpectrumPhy
-     *
-     * Stream id is introduced to support MIMO. In MIMO, there will be one
-     * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
-     * to assign the stream id to each new instance. Stream id, starts from
-     * 0 and ends at "total number of streams - 1".
-     *
-     * \return streamId The stream id
-     */
-    uint8_t GetStreamId() const;
     /**
      * \return the cell id
      */
@@ -485,23 +449,15 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     uint16_t GetBwpId() const;
     /**
-     * \brief Set the inter-stream interference ratio
-     *
-     * \param ratio The inter-stream interference ratio
-     */
-    void SetInterStreamInterferenceRatio(double ratio);
-    /**
      * \param [in] sfnSf SfnSf
      * \param [in] cellId
      * \param [in] bwpId
-     * \param [in] streamId
      * \param [in] imsi
      * \param [in] snr
      */
     typedef void (*DataSnrTracedCallback)(const SfnSf& sfnSf,
                                           const uint16_t cellId,
                                           const uint8_t bwpId,
-                                          const uint8_t streamId,
                                           const uint64_t imsi,
                                           const double snr);
     /**
@@ -723,6 +679,9 @@ class NrSpectrumPhy : public SpectrumPhy
     NrPhyRxDataEndOkCallback
         m_phyRxDataEndOkCallback;          //!< callback that is notified when the DATA is received
     NrPhyRxPssCallback m_phyRxPssCallback; ///< the phy receive PSS callback
+    NrPhyDlHarqFeedbackCallback
+        m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is
+                                     //!< being generated
     NrPhyUlHarqFeedbackCallback
         m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is
                                      //!< being generated
@@ -746,31 +705,27 @@ class NrSpectrumPhy : public SpectrumPhy
     TracedCallback<const SfnSf,
                    const uint16_t,
                    const uint8_t,
-                   const uint8_t,
                    const uint64_t,
                    const double>
         m_dlDataSnrTrace; //!< DL data SNR trace source
 
     /*
-     * \brief Trace source that reports the following: Cell ID, Bwp ID, Stream ID, UE node ID, DL
+     * \brief Trace source that reports the following: Cell ID, Bwp ID, UE node ID, DL
      * CTRL pathloss
      */
-    typedef TracedCallback<uint16_t, uint8_t, uint8_t, uint32_t, double> DlPathlossTrace;
+    typedef TracedCallback<uint16_t, uint8_t, uint32_t, double> DlPathlossTrace;
     DlPathlossTrace m_dlCtrlPathlossTrace; //!< DL CTRL pathloss trace
     bool m_enableDlCtrlPathlossTrace =
         false; //!< By default this trace is disabled to not slow done simulations
     /*
-     * \brief Trace source that reports the following: Cell ID, Bwp ID, Stream ID, UE node ID, DL
+     * \brief Trace source that reports the following: Cell ID, Bwp ID, UE node ID, DL
      * CTRL pathloss, CQI that corresponds to the current SINR
      */
-    typedef TracedCallback<uint16_t, uint8_t, uint8_t, uint32_t, double, uint8_t>
-        DlDataPathlossTrace;
+    typedef TracedCallback<uint16_t, uint8_t, uint32_t, double, uint8_t> DlDataPathlossTrace;
     DlDataPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
     bool m_enableDlDataPathlossTrace =
         false; //!< By default this trace is disabled to not slow done simulations
-    uint8_t m_streamId{UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
     bool m_isEnb = false;
-    double m_interStrInerfRatio{0.0}; //!< The inter-stream interference ratio.
 };
 
 } // namespace ns3

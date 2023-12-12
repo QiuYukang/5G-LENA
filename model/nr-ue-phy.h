@@ -229,9 +229,8 @@ class NrUePhy : public NrPhy
      * Connected by the helper to a callback in corresponding ChunkProcessor
      *
      * \param sinr the SINR
-     * \param streamIndex the index of the stream for which is reported this SINR
      */
-    void GenerateDlCqiReport(const SpectrumValue& sinr, uint8_t streamIndex);
+    void GenerateDlCqiReport(const SpectrumValue& sinr);
 
     /**
      * \brief Get the current RNTI of the user
@@ -251,69 +250,14 @@ class NrUePhy : public NrPhy
     void EnqueueDlHarqFeedback(const DlHarqInfo& m);
 
     /**
-     * \brief Set the rank indicator value.
-     *
-     * The is value will be used when a UE is configured
-     * to use a fixed rank indicator value instead of the
-     * adaptive rank indicator value.
-     *
-     * \param ri The rank indicator value.
-     */
-    void SetFixedRankIndicator(uint8_t ri);
-
-    /**
-     * \brief Get the value of fixed rank indicator.
-     *
-     * \return The rank indicator value.
-     */
-    uint8_t GetFixedRankIndicator() const;
-
-    /**
-     * \brief Use the fixed value of rank indicator
-     *
-     * \param useFixedRi Flag to indicate if a UE should use a fixed or adaptive
-     *        rank indicator value.
-     */
-    void UseFixedRankIndicator(bool useFixedRi);
-
-    /**
-     * \brief Set SINR threshold in dB that is used to adaptively choose the rank indicator value.
-     *
-     * \param sinrThreshold The SINR threshold in dB.
-     */
-    void SetRiSinrThreshold1(double sinrThreshold);
-
-    /**
-     * \brief Get the SINR threshold that is used to adaptively choose the rank indicator value.
-     *
-     * \return The SINR threshold value in dB.
-     */
-    double GetRiSinrThreshold1() const;
-
-    /**
-     * \brief Set SINR threshold in dB that is used to adaptively choose the rank indicator value.
-     *
-     * \param sinrThreshold The SINR threshold in dB.
-     */
-    void SetRiSinrThreshold2(double sinrThreshold);
-
-    /**
-     * \brief Get the SINR threshold that is used to adaptively choose the rank indicator value.
-     *
-     * \return The SINR threshold value in dB.
-     */
-    double GetRiSinrThreshold2() const;
-
-    /**
      *  TracedCallback signature for DL CTRL SINR trace callback
      *
      * \param [in] cellId
      * \param [in] rnti
      * \param [in] sinr
      * \param [in] bwpId
-     * \param [in] streamId
      */
-    typedef void (*DlCtrlSinrTracedCallback)(uint16_t, uint16_t, double, uint16_t, uint8_t);
+    typedef void (*DlCtrlSinrTracedCallback)(uint16_t, uint16_t, double, uint16_t);
 
     /**
      *  TracedCallback signature for DL DATA SINR trace callback
@@ -322,9 +266,8 @@ class NrUePhy : public NrPhy
      * \param [in] rnti
      * \param [in] sinr
      * \param [in] bwpId
-     * \param [in] streamId
      */
-    typedef void (*DlDataSinrTracedCallback)(uint16_t, uint16_t, double, uint16_t, uint8_t);
+    typedef void (*DlDataSinrTracedCallback)(uint16_t, uint16_t, double, uint16_t);
 
     /**
      *  TracedCallback signature for Ue Phy Received Control Messages.
@@ -403,31 +346,6 @@ class NrUePhy : public NrPhy
                                                         uint32_t K1Delay);
 
     /**
-     * This callback method type is used by the NrUePhy to notify
-     * the status of a DL HARQ feedback
-     */
-    typedef Callback<void, const DlHarqInfo&> NrPhyDlHarqFeedbackCallback;
-
-    /**
-     * \brief Sets the callback to be called when DL HARQ feedback is generated
-     */
-    void SetPhyDlHarqFeedbackCallback(const NrPhyDlHarqFeedbackCallback& c);
-
-    /**
-     * \brief Function called by NrSpectrumPhy to report the
-     * DL HARQ feedback from that NrSpectrumPhy instance
-     * \param streamId The streamId of the NrSpectrumPhy to which it belongs this HARQ process
-     * \param harqFeedback the feedback for the corresponding NrSpectrumPhy from which is called
-     * this function \param harqProcessId the HARQ process ID that was saved in the information of
-     * the expected TB \param rv the redundancy version that was provided in the information of the
-     * expected TB
-     */
-    void NotifyDlHarqFeedback(uint8_t streamId,
-                              DlHarqInfo::HarqStatus harqFeedback,
-                              uint8_t harqProcessId,
-                              uint8_t rv);
-
-    /**
      * \brief Set the channel access manager interface for this instance of the PHY
      * \param cam the pointer to the interface
      */
@@ -436,7 +354,7 @@ class NrUePhy : public NrPhy
     const SfnSf& GetCurrentSfnSf() const override;
 
     // From nr phy. Not used in the UE
-    BeamConfId GetBeamConfId(uint16_t rnti) const override;
+    BeamId GetBeamId(uint16_t rnti) const override;
 
     /**
      * \brief Start the ue Event Loop
@@ -456,16 +374,14 @@ class NrUePhy : public NrPhy
     /**
      * \brief Called when rsReceivedPower is fired
      * \param power the power received
-     * \param streamIndex the index of the stream from which is called this function
      */
-    void ReportRsReceivedPower(const SpectrumValue& power, uint8_t streamIndex);
+    void ReportRsReceivedPower(const SpectrumValue& power);
 
     /**
      * \brief Called when DlCtrlSinr is fired
      * \param sinr the sinr PSD
-     * \param streamId the stream ID
      */
-    void ReportDlCtrlSinr(const SpectrumValue& sinr, uint8_t streamId);
+    void ReportDlCtrlSinr(const SpectrumValue& sinr);
 
     /**
      * \brief Compute the CQI based on the SINR
@@ -559,10 +475,10 @@ class NrUePhy : public NrPhy
     void DoReceiveRar(Ptr<NrRarMessage> rarMsg);
     /**
      * \brief Create a DlCqiFeedback message
-     * \param dlCqi the structure that contains DL CQI feedback values per stream
-     * \return a CTRL message with the DL CQI feedback
+     * \param sinr the SINR value
+     * \return a CTRL message with the CQI feedback
      */
-    Ptr<NrDlCqiMessage> CreateDlCqiFeedbackMessage(const DlCqiInfo& dlcqi)
+    Ptr<NrDlCqiMessage> CreateDlCqiFeedbackMessage(const SpectrumValue& sinr)
         __attribute__((warn_unused_result));
     /**
      * \brief Receive DL CTRL and return the duration of the transmission
@@ -647,11 +563,8 @@ class NrUePhy : public NrPhy
      * \param mask vector of the index of the RB (in SpectrumValue array)
      * in which there is a transmission
      * \param numSym number of symbols of the transmission
-     * \param activeStreams the number of active streams for the transmission
      */
-    void SetSubChannelsForTransmission(const std::vector<int>& mask,
-                                       uint32_t numSym,
-                                       uint8_t activeStreams);
+    void SetSubChannelsForTransmission(const std::vector<int>& mask, uint32_t numSym);
     /**
      * \brief Send ctrl msgs considering L1L2CtrlLatency
      * \param msg The ctrl msg to be sent
@@ -800,18 +713,6 @@ class NrUePhy : public NrPhy
      */
     void InsertFutureAllocation(const SfnSf& sfnSf, const std::shared_ptr<DciInfoElementTdma>& dci);
 
-    /**
-     * \brief Select the rank indicator to be reported to gNB
-     *
-     * If the UE is configured to report a fixed RI value, this method
-     * will return the configured fixed RI value. Otherwise, RI is
-     * selected adaptively based on the average SINR of the streams.
-     * <b>Note: This method is designed to handle only 2 streams</b>
-     *
-     * \return The rank indicator
-     */
-    uint8_t SelectRi(const std::vector<double>& avrgSinr);
-
     NrUePhySapUser* m_phySapUser;              //!< SAP pointer
     LteUeCphySapProvider* m_ueCphySapProvider; //!< SAP pointer
     LteUeCphySapUser* m_ueCphySapUser;         //!< SAP pointer
@@ -881,15 +782,15 @@ class NrUePhy : public NrPhy
     Time m_ueMeasurementsFilterPeriod;
 
     /**
-     * The `DlDataSinr` trace source. Trace information regarding
-     * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
+     * The `DlDataSinr` trace source (DlDataSinrTracedCallback). Trace information regarding
+     * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR and BWP id.
      */
-    TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlDataSinrTrace;
+    TracedCallback<uint16_t, uint16_t, double, uint16_t> m_dlDataSinrTrace;
     /**
-     * The `DlCtrlSinrTracedCallback` trace source. Trace information regarding
-     * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR, BWP id, and stream id.
+     * The `DlCtrlSinr` trace source (DlCtrlSinrTracedCallback). Trace information regarding
+     * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR and BWP id.
      */
-    TracedCallback<uint16_t, uint16_t, double, uint16_t, uint8_t> m_dlCtrlSinrTrace;
+    TracedCallback<uint16_t, uint16_t, double, uint16_t> m_dlCtrlSinrTrace;
     TracedCallback<uint64_t, uint64_t> m_reportUlTbSize; //!< Report the UL TBS
     TracedCallback<uint64_t, uint64_t> m_reportDlTbSize; //!< Report the DL TBS
     TracedCallback<const SfnSf&,
@@ -937,44 +838,6 @@ class NrUePhy : public NrPhy
      */
     TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t>
         m_phyUeTxedHarqFeedbackTrace;
-
-    NrPhyDlHarqFeedbackCallback
-        m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is
-                                     //!< being generated
-
-    std::unordered_map<uint8_t, DlHarqInfo>
-        m_dlHarqInfo; //!< The attribute list used to merge HARQ infos from different NrSpectrumPhy
-                      //!< instances belonging to this NrUePhy, i.e., if there are two streams,
-                      //!< should be cleaned after triggering m_phyDlHarqFeedbackCallback
-
-    uint8_t m_activeDlDataStreams; //!< The value is updated each time DlData function is called,
-                                   //!< first it is reset to 0, and then it is incremented each time
-                                   //!< is called AddExpectedTb
-    std::unordered_map<uint8_t, uint8_t>
-        m_activeDlDataStreamsPerHarqId; // active streams per HARQ process ID
-
-    std::vector<uint8_t> m_prevDlWbCqi; //!< Vector to cache the CQI values reported by this UE PHY
-    uint8_t m_dlCqiFeedbackCounter{0};  /**< Counter to count the number of DL CQI
-                                             report(s) this UE PHY prepares upon
-                                             receiving SINR from underlying one or
-                                             multiple SpectrumPhy instances
-                                             */
-    uint8_t m_fixedRi{0};               //!< The rank indicator
-    bool m_useFixedRi{false};           /**< If true, UE will use a fixed RI, otherwise,
-                                             an adaptive one. It is set using the
-                                             attribute UseFixedRi.
-                                             */
-    double m_riSinrThreshold1{UINT32_MAX}; /**< SINR threshold in dB that is used to
-                                        adaptively choose the rank indicator value
-                                        */
-
-    double m_riSinrThreshold2{UINT32_MAX}; /**< SINR threshold in dB that is used to
-                                        adaptively choose the rank indicator value
-                                        */
-
-    bool m_reportedRi2{false}; /**< Flag to keep track of an event when a UE
-                                    first time reports RI equal to 2.
-                                    */
 };
 
 } // namespace ns3

@@ -45,17 +45,6 @@ SfnSf::GetEncodingWithSymStart(uint8_t symStart) const
     return ret;
 }
 
-uint64_t
-SfnSf::GetEncForStreamWithSymStart(uint8_t streamId, uint8_t symStart) const
-{
-    NS_ASSERT(m_numerology >= 0);
-    uint64_t ret = 0ULL;
-    ret = (static_cast<uint64_t>(m_numerology) << 56) | (static_cast<uint64_t>(m_frameNum) << 40) |
-          (static_cast<uint64_t>(m_subframeNum) << 32) | (static_cast<uint64_t>(m_slotNum) << 16) |
-          (static_cast<uint64_t>(symStart) << 8) | (static_cast<uint64_t>(streamId));
-    return ret;
-}
-
 void
 SfnSf::FromEncoding(uint64_t sfn)
 {
