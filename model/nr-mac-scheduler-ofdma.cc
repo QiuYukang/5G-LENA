@@ -206,6 +206,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
             {
                 if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
                 {
+                    uint32_t quantizationStep = rbgAssignable;
                     while (schedInfoIt != ueVector.end())
                     {
                         uint32_t maxAssignable = m_nrFhSchedSapProvider->GetMaxRegAssignable(
@@ -217,7 +218,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
 
                         // the minimum allocation is one resource in freq, containing rbgAssignable
                         // in time (REGs)
-                        if (GetUe(*schedInfoIt)->m_dlRBG > maxAssignable)
+                        if (GetUe(*schedInfoIt)->m_dlRBG + quantizationStep > maxAssignable)
                         {
                             schedInfoIt++;
                         }
@@ -285,7 +286,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                             GetUe(*schedInfoIt)->m_dlRBG,
                             GetUe(*schedInfoIt)->m_rnti); // max MCS index assignable
 
-                        NS_LOG_INFO("UE " << GetUe(*schedInfoIt)->m_rnti << " MCS form sched: "
+                        NS_LOG_DEBUG("UE " << GetUe(*schedInfoIt)->m_rnti << " MCS form sched: "
                                           << +GetUe(*schedInfoIt)->m_dlMcs
                                           << " FH max MCS: " << +maxMcsAssignable);
 
