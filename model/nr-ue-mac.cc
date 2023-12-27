@@ -408,7 +408,7 @@ NrUeMac::SendReportBufferStatus(const SfnSf& dataSfn, uint8_t symStart)
         return;
     }
 
-    if (m_ulBsrReceived.size() == 0)
+    if (m_ulBsrReceived.empty())
     {
         NS_LOG_INFO("No BSR report to transmit");
         return;
@@ -996,7 +996,7 @@ NrUeMac::DoReceiveControlMessage(Ptr<NrControlMessage> msg)
 
         m_macRxedCtrlMsgsTrace(m_currentSlot, GetCellId(), m_rnti, GetBwpId(), msg);
 
-        if (m_waitingForRaResponse == true)
+        if (m_waitingForRaResponse)
         {
             Ptr<NrRarMessage> rarMsg = DynamicCast<NrRarMessage>(msg);
             NS_LOG_LOGIC("got RAR with RA-RNTI " << +rarMsg->GetRaRnti() << ", expecting "
