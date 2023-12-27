@@ -55,3 +55,22 @@ python-format:
     - black --check .
     - isort --check .
   timeout: 1h
+
+# Spell checking
+spell-check:
+  stage: code-linting
+  image: python:latest
+  before_script:
+    # Python <3.11 also requires the 'tomli' package
+    - pip install codespell
+  script:
+    # Get commit messages
+    - if (git remote | grep -qw upstream) ; then
+      git remote remove upstream ;
+      fi
+    - git remote add -t $CI_DEFAULT_BRANCH --no-tags -f upstream https://gitlab.com/cttc-lena/nr.git
+
+    - git log --pretty=%B HEAD...upstream/$CI_DEFAULT_BRANCH ^upstream/$CI_DEFAULT_BRANCH > git_messages.txt
+    # Check source code and commit messages
+    - codespell -f -C0 ./
+  timeout: 1h
