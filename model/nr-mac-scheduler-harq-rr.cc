@@ -94,7 +94,7 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
 
             auto& dciInfoReTx = harqProcess.m_dciElement;
 
-            long rbgAssigned =
+            uint32_t rbgAssigned =
                 std::count(dciInfoReTx->m_rbgBitmask.begin(), dciInfoReTx->m_rbgBitmask.end(), 1) *
                 dciInfoReTx->m_numSym;
             uint32_t rbgAvail = (GetBandwidthInRbg() - startingPoint->m_rbg) * symPerBeam;
