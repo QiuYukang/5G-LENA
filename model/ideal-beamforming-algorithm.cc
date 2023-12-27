@@ -280,10 +280,10 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
     NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements() &&
               ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumberOfElements());
 
-    for (uint i = 0; i < m_azimuth.size(); i++)
+    for (size_t i = 0; i < m_azimuth.size(); i++)
     {
         double azimuthTx = m_azimuth[i];
-        for (uint ii = 0; ii < m_zenith.size(); ii++)
+        for (size_t ii = 0; ii < m_zenith.size(); ii++)
         {
             double zenithTx = m_zenith[ii];
 
@@ -296,10 +296,10 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
                 maxTxW = txW; // initialize maxTxW
             }
 
-            for (uint iii = 0; iii < m_azimuth.size(); iii++)
+            for (size_t iii = 0; iii < m_azimuth.size(); iii++)
             {
                 double azimuthRx = m_azimuth[iii];
-                for (uint iiii = 0; iiii < m_zenith.size(); iiii++)
+                for (size_t iiii = 0; iiii < m_zenith.size(); iiii++)
                 {
                     double zenithRx = m_zenith[iiii];
 

@@ -171,13 +171,13 @@ class TestNotchingGnbMac : public NrGnbMac
 {
   public:
     static TypeId GetTypeId();
-    TestNotchingGnbMac(const std::vector<u_int8_t>& inputMask);
+    TestNotchingGnbMac(const std::vector<uint8_t>& inputMask);
     ~TestNotchingGnbMac() override;
     void DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind) override;
     void SetVerbose(bool verbose);
 
   private:
-    std::vector<u_int8_t> m_inputMask;
+    std::vector<uint8_t> m_inputMask;
     bool m_verboseMac = false;
 };
 
@@ -192,7 +192,7 @@ TestNotchingGnbMac::GetTypeId()
     return tid;
 }
 
-TestNotchingGnbMac::TestNotchingGnbMac(const std::vector<u_int8_t>& inputMask)
+TestNotchingGnbMac::TestNotchingGnbMac(const std::vector<uint8_t>& inputMask)
 {
     m_inputMask = inputMask;
 }

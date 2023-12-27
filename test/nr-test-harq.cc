@@ -71,7 +71,7 @@ TestHarqTestCase::GetTbDecodStats(std::vector<double> sinrRx,
     Ptr<const SpectrumModel> spectModelRx = helper.GetSpectrumModel(nRbsRx, 3.6e9, 15000);
     SpectrumValue sinrRxSpecVal(spectModelRx);
 
-    for (uint i = 0; i < sinrRx.size(); i++)
+    for (size_t i = 0; i < sinrRx.size(); i++)
     {
         sinrRxSpecVal[i] = pow(10.0, sinrRx.at(i) / 10.0);
     }

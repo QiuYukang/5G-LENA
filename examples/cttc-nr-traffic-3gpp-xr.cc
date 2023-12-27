@@ -90,7 +90,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
 
     std::vector<Address> addresses;
     std::vector<InetSocketAddress> localAddresses;
-    for (uint j = 0; j < it->second.size(); j++)
+    for (size_t j = 0; j < it->second.size(); j++)
     {
         addresses.emplace_back(InetSocketAddress(ipAddress, port + j));
         // The sink will always listen to the specified ports
