@@ -39,7 +39,6 @@ foreach(
   )
 endforeach()
 
-
 set(lena-lte-comparison_examples
     lena-lte-comparison-user
     lena-lte-comparison-campaign
@@ -62,9 +61,10 @@ foreach(
     NAME ${example}
     SOURCE_FILES lena-lte-comparison/${example}.cc
                  ${lena-lte-comparison_source_files}
-    LIBRARIES_TO_LINK ${libnr}
-                      ${libflow-monitor}
-                      ${libstats}
+    LIBRARIES_TO_LINK
+      ${libnr}
+      ${libflow-monitor}
+      ${libstats}
   )
 endforeach()
 
@@ -80,17 +80,26 @@ set(3gpp-outdoor-calibration_source_files
 )
 
 build_lib_example(
-    NAME cttc-nr-3gpp-calibration-user
-    SOURCE_FILES 3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-user.cc
-                 ${3gpp-outdoor-calibration_source_files}
-    LIBRARIES_TO_LINK ${libnr}
-                      ${libflow-monitor}
-                      ${libstats}
+  NAME cttc-nr-3gpp-calibration-user
+  SOURCE_FILES 3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-user.cc
+               ${3gpp-outdoor-calibration_source_files}
+  LIBRARIES_TO_LINK
+    ${libnr}
+    ${libflow-monitor}
+    ${libstats}
 )
 
-set(example cttc-realistic-beamforming)
-set(source_files ${example}.cc)
-set(libraries_to_link ${libnr} ${libflow-monitor} ${SQLite3_LIBRARIES})
+set(example
+    cttc-realistic-beamforming
+)
+set(source_files
+    ${example}.cc
+)
+set(libraries_to_link
+    ${libnr}
+    ${libflow-monitor}
+    ${SQLite3_LIBRARIES}
+)
 build_lib_example(
   NAME ${example}
   SOURCE_FILES ${source_files}

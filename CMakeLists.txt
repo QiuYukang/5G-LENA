@@ -234,7 +234,6 @@ set(header_files
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
 )
 
-
 set(test_sources
     test/nr-system-test-configurations.cc
     test/nr-test-numerology-delay.cc
