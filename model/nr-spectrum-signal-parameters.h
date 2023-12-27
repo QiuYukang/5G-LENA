@@ -42,7 +42,7 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
     NrSpectrumSignalParametersDataFrame(const NrSpectrumSignalParametersDataFrame& p);
 
     Ptr<PacketBurst> packetBurst;                 //!< Packet burst
-    std::list<Ptr<NrControlMessage>> ctrlMsgList; //!< List of contrl messages
+    std::list<Ptr<NrControlMessage>> ctrlMsgList; //!< List of control messages
     uint16_t cellId;                              //!< CellId
 };
 

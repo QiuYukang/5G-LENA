@@ -32,7 +32,7 @@ class NrControlMessage;
  * have a pointer of this class, that points to a valid instance of the PHY).
  *
  * As a general rule, no caching is allowed for the values returned by any
- * Get* method, becaue those values can change dynamically.
+ * Get* method, because those values can change dynamically.
  */
 class NrPhySapProvider
 {
@@ -151,7 +151,7 @@ class NrPhySapProvider
  * interface, such as GetNumRbPerRbg.
  *
  * As a general rule, no caching is allowed for the values returned by any
- * Get* method, becaue those values can change dynamically.
+ * Get* method, because those values can change dynamically.
  */
 class NrGnbPhySapUser
 {
@@ -215,7 +215,7 @@ class NrGnbPhySapUser
     virtual void ReceiveRachPreamble(uint32_t raId) = 0;
 
     /**
-     * \brief Notify the HARQ on the UL tranmission status
+     * \brief Notify the HARQ on the UL transmission status
      *
      * \param params Params
      */

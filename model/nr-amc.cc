@@ -25,7 +25,7 @@ NS_OBJECT_ENSURE_REGISTERED(NrAmc);
 
 NrAmc::NrAmc()
 {
-    NS_LOG_INFO("Initialze AMC module");
+    NS_LOG_INFO("Initialize AMC module");
 }
 
 NrAmc::~NrAmc()

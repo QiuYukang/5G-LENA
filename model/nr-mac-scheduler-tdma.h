@@ -49,7 +49,7 @@ namespace ns3
  * For more information, please refer to the methods documentation.
  *
  * Subclasses should also implement what actions should be done before any
- * assigment (NrMacSchedulerTdma::BeforeDlSched and
+ * assignment (NrMacSchedulerTdma::BeforeDlSched and
  * NrMacSchedulerTdma::BeforeUlSched) as well as what to do after
  * a symbol has been assigned (for the UE that got that symbols, and the UE
  * that did not).
@@ -222,15 +222,15 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
     typedef std::function<void(const UePtrAndBufferReq&, const FTResources&)>
         BeforeSchedFn; //!< Before scheduling function
     /**
-     * \brief //!< Function to notify a successfull assignment
+     * \brief //!< Function to notify a successful assignment
      */
     typedef std::function<void(const UePtrAndBufferReq&, const FTResources&, const FTResources&)>
-        AfterSuccessfullAssignmentFn;
+        AfterSuccessfulAssignmentFn;
     /**
      * \brief Function to notify that the UE did not get any resource in one iteration
      */
     typedef std::function<void(const UePtrAndBufferReq&, const FTResources&, const FTResources&)>
-        AfterUnsucessfullAssignmentFn;
+        AfterUnsuccessfulAssignmentFn;
     typedef std::function<uint32_t&(const UePtr& ue)> GetRBGFn; //!< Getter for the RBG of an UE
     typedef std::function<uint32_t(const UePtr& ue)> GetTBSFn;  //!< Getter for the TBS of an UE
     typedef std::function<uint8_t&(const UePtr& ue)>
@@ -249,8 +249,8 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
         const GetTBSFn& GetTBSFn,
         const GetRBGFn& GetRBGFn,
         const GetSymFn& GetSymFn,
-        const AfterSuccessfullAssignmentFn& SuccessfullAssignmentFn,
-        const AfterUnsucessfullAssignmentFn& UnSuccessfullAssignmentFn) const;
+        const AfterSuccessfulAssignmentFn& SuccessfulAssignmentFn,
+        const AfterUnsuccessfulAssignmentFn& UnSuccessfulAssignmentFn) const;
 
     std::shared_ptr<DciInfoElementTdma> CreateDci(
         PointInFTPlane* spoint,

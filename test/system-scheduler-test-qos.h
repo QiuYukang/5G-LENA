@@ -31,7 +31,7 @@ class Packet;
  *
  * Notice that for the UL case, due to a restriction of the scheduler for the
  * case of non-GBR QCIs, we consider the default QCI 9 with priority 90. Therefore,
- * in the check we consider harcoded P_2 = 90.
+ * in the check we consider hardcoded P_2 = 90.
  *
  * To execute this test suite run:
  *

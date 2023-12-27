@@ -39,7 +39,7 @@ using namespace ns3;
  * algorithm. Expected behavior is that as the distance increases that
  * the error in estimating channel increases, thus realistic beamforming
  * algorithm makes more mistakes when selecting the correct beams at the
- * transmiter and the receiver).
+ * transmitter and the receiver).
  * -rngRun - random run number that will allow us to run many simulations
  * and to average the results
  *
@@ -378,7 +378,7 @@ CttcRealisticBeamforming::PrepareDatabase()
         "Could not correctly execute the statement for creating the table. Db error:"
             << sqlite3_errmsg(m_db));
 
-    // finalize the statement until the result is ok or an error occures
+    // finalize the statement until the result is ok or an error occurs
     attemptCount = 0;
     do
     {

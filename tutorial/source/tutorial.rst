@@ -1015,7 +1015,7 @@ From this point onwards, the ``NrGnbPhy`` interacts with ``NrSpectrumPhy::StartT
 interface between the gNB PHY layer and the channel. ``NrSpectrumPhy`` acts as a state machine to know what the
 PHY layer (at the BWP of interest) is currently doing, from transferring/receiving data or control information or it is in idle state. Once a packet
 burst is given with its related set of control messages and duration of transmission, the structure
-``NrSpectrumSignalParameterDataFrame`` is created. This object contains the aformentioned information, plus the cell
+``NrSpectrumSignalParameterDataFrame`` is created. This object contains the aforementioned information, plus the cell
 identifier (``GetCellId()``) and the transmission PSD. Such information is then forwarded to the channel.
 
 The log messages are quite verbose but in a constant pattern until there is data to transmit. Indeed, it is possible to

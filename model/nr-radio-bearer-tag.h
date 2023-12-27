@@ -17,7 +17,7 @@ class Tag;
 /**
  * \ingroup spectrum
  *
- * \brief Tag used to define the RNTI and LC id for each MAC packet trasmitted
+ * \brief Tag used to define the RNTI and LC id for each MAC packet transmitted
  */
 class NrRadioBearerTag : public Tag
 {

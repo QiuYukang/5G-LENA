@@ -222,7 +222,7 @@ modulo(int n, uint32_t m)
  * to avoid having a table from where we take the K1 values. In particular, for
  * configurations 3, 4 and 6 (starting form 0), the specification splits the
  * HARQ feedbacks among all UL subframes in an equal (as much as possible) manner.
- * This tactic is ommitted in this implementation.
+ * This tactic is omitted in this implementation.
  */
 static int32_t
 ReturnHarqSlot(const std::vector<LteNrTddSlotType>& pattern, uint32_t pos, uint32_t n1)
@@ -838,7 +838,7 @@ NrGnbPhy::DoCheckOrReleaseChannel()
     // The channel is granted, we have to check if we maintain it for the next
     // slot or we have to release it.
 
-    // Assuming the scheduler assign contiguos symbol
+    // Assuming the scheduler assign contiguous symbol
     uint8_t lastDlSymbol = 0;
     for (auto& dci : m_currSlotAllocInfo.m_varTtiAllocInfo)
     {

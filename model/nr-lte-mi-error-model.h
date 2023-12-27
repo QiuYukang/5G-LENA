@@ -43,7 +43,7 @@ struct NrLteMiErrorModelOutput : public NrErrorModelOutput
     }
 
     double m_mi{0.0};       //!< Mutual Information
-    double m_miTotal{0.0};  //!< Acumulated Mutual Information
+    double m_miTotal{0.0};  //!< Accumulated Mutual Information
     uint32_t m_infoBits{0}; //!< number of info bits
     uint32_t m_codeBits{0}; //!< number of code bits
 };

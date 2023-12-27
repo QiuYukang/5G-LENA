@@ -28,7 +28,7 @@ NrRadioBearerTag::GetTypeId()
                           MakeUintegerChecker<uint16_t>())
             .AddAttribute(
                 "lcid",
-                "The id whithin the UE identifying the logical channel to which the packet belongs",
+                "The id within the UE identifying the logical channel to which the packet belongs",
                 UintegerValue(0),
                 MakeUintegerAccessor(&NrRadioBearerTag::GetLcid),
                 MakeUintegerChecker<uint8_t>())

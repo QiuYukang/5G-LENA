@@ -77,7 +77,7 @@ SystemSchedulerTestQos::DoRun()
     gridScenario.SetBsNumber(gNbNum);
     gridScenario.SetUtNumber(m_ueNumPergNb * gNbNum);
     gridScenario.SetScenarioHeight(3); // Create a 3x3 scenario where the UE will
-    gridScenario.SetScenarioLength(3); // be distribuited.
+    gridScenario.SetScenarioLength(3); // be distributed.
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
@@ -471,33 +471,33 @@ SystemSchedulerTestQos::DoRun()
     // Test Case 1: Half UEs QCI 1 saturated
     // and Half UEs QCI 80
     // check if ratio of throughputs is equal to ratio of priorities
-    double dlThrouhgputLowLat = 0;
-    double dlThrouhgputVoice = 0;
-    double ulThrouhgputLowLat = 0;
-    double ulThrouhgputVoice = 0;
+    double dlThroughputLowLat = 0;
+    double dlThroughputVoice = 0;
+    double ulThroughputLowLat = 0;
+    double ulThroughputVoice = 0;
 
     if (m_isDownlink)
     {
         for (uint32_t i = 0; i < serverAppsDlLowLat.GetN(); i++)
         {
             Ptr<UdpServer> serverApp = serverAppsDlLowLat.Get(i)->GetObject<UdpServer>();
-            dlThrouhgputLowLat += (serverApp->GetReceived() * udpPacketSizeULL * 8) / appTime;
+            dlThroughputLowLat += (serverApp->GetReceived() * udpPacketSizeULL * 8) / appTime;
         }
         for (uint32_t i = 0; i < serverAppsDlVoice.GetN(); i++)
         {
             Ptr<UdpServer> serverApp = serverAppsDlVoice.Get(i)->GetObject<UdpServer>();
-            dlThrouhgputVoice += (serverApp->GetReceived() * udpPacketSizeBe * 8) / appTime;
+            dlThroughputVoice += (serverApp->GetReceived() * udpPacketSizeBe * 8) / appTime;
         }
 
         // Flow 2 is saturated and it must be prioritized (QCI 1 vs 80)
 
         double qciRatio = (100 - m_p1) / (100 - m_p2);
-        double throughputRatio = dlThrouhgputVoice / dlThrouhgputLowLat;
+        double throughputRatio = dlThroughputVoice / dlThroughputLowLat;
 
         if (verbose)
         {
-            std::cout << "dlThrouhgputLowLat: " << dlThrouhgputVoice
-                      << " dlThrouhgputVoice: " << dlThrouhgputLowLat << std::endl;
+            std::cout << "dlThroughputLowLat: " << dlThroughputVoice
+                      << " dlThroughputVoice: " << dlThroughputLowLat << std::endl;
             std::cout << "ratio: " << qciRatio << " throughput ratio: " << throughputRatio
                       << std::endl;
         }
@@ -513,21 +513,21 @@ SystemSchedulerTestQos::DoRun()
         for (uint32_t i = 0; i < serverAppsUlLowLat.GetN(); i++)
         {
             Ptr<UdpServer> serverApp = serverAppsUlLowLat.Get(i)->GetObject<UdpServer>();
-            ulThrouhgputLowLat += (serverApp->GetReceived() * udpPacketSizeULL * 8) / appTime;
+            ulThroughputLowLat += (serverApp->GetReceived() * udpPacketSizeULL * 8) / appTime;
         }
         for (uint32_t i = 0; i < serverAppsUlVoice.GetN(); i++)
         {
             Ptr<UdpServer> serverApp = serverAppsUlVoice.Get(i)->GetObject<UdpServer>();
-            ulThrouhgputVoice += (serverApp->GetReceived() * udpPacketSizeBe * 8) / appTime;
+            ulThroughputVoice += (serverApp->GetReceived() * udpPacketSizeBe * 8) / appTime;
         }
 
         double qciRatio = (100 - m_p1) / (100 - 90); // Hardcoded P due to scheduler restrictions
-        double throughputRatio = ulThrouhgputVoice / ulThrouhgputLowLat;
+        double throughputRatio = ulThroughputVoice / ulThroughputLowLat;
 
         if (verbose)
         {
-            std::cout << "ulThrouhgputLowLat: " << ulThrouhgputVoice
-                      << " ulThrouhgputVoice: " << ulThrouhgputLowLat << std::endl;
+            std::cout << "ulThroughputLowLat: " << ulThroughputVoice
+                      << " ulThroughputVoice: " << ulThroughputLowLat << std::endl;
             std::cout << "ratio: " << qciRatio << " throughput ratio: " << throughputRatio
                       << std::endl;
         }

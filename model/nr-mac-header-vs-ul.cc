@@ -59,7 +59,7 @@ NrMacHeaderVsUl::IsVariableSizeHeader() const
     {
         return true;
     }
-    if (m_lcid == MULTIPLE_ENTRY_PHR_FOUR_OCTECT)
+    if (m_lcid == MULTIPLE_ENTRY_PHR_FOUR_OCTET)
     {
         return true;
     }

@@ -935,7 +935,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
         for (uint16_t i = 0; i < m_numOfIterationsToAverage; i++)
         {
             std::list<Ptr<SpectrumValue>>
-                receivedPowerList; // RTD node id, rxPsd of the singal coming from that node
+                receivedPowerList; // RTD node id, rxPsd of the signal coming from that node
 
             for (std::list<RemDevice>::iterator itRtd = m_remDev.begin(); itRtd != m_remDev.end();
                  ++itRtd)

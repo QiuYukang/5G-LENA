@@ -62,7 +62,7 @@ class SfnSf : public SimpleRefCount<SfnSf>
      */
     uint64_t GetEncodingWithSymStart(uint8_t symStart) const;
     /**
-     * \brief Get the enconding number, including a symbol start value and stream id
+     * \brief Get the encoding number, including a symbol start value and stream id
      * \param streamId The stream id value to include
      * \param symStart the symbol start value to include
      * \return an uint64_t that can represent this SfnSf plus 2 bytes to represent the

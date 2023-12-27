@@ -625,7 +625,7 @@ TrafficGeneratorThreeGppHttpTestCase::DoRun()
     NS_TEST_ASSERT_MSG_EQ_TOL(avgNumEmbObjects,
                               5.64,
                               5.64 * 0.1,
-                              "The mean number of embbeded objects per page is not according to "
+                              "The mean number of embedded objects per page is not according to "
                               "the 3GPP."); // 10% tolerance used because of the quantization used
                                             // for the number of embedded objects
     NS_TEST_ASSERT_MSG_EQ_TOL(avgObjectSize,

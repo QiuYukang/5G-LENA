@@ -20,7 +20,7 @@ namespace ns3
  *
  * This class provides the NR Tables to be used for MCS/CQI Table1, corresponding
  * to tables 5.1.3.1-1 and 5.2.2.1-2 in TS 38.214. It includes the beta values
- * (obtained from link-to-sytem mapping techniques) for EESM under MCS Table1, the
+ * (obtained from link-to-system mapping techniques) for EESM under MCS Table1, the
  * Effective Code Rate (ECR) corresponding to MCS Table1, the BLER-SINR tables
  * for different MCS, Block Sizes and LDPC base graph types, the M tables
  * (modulation order for each MCS index in MCS Table1), the Spectral Efficiency

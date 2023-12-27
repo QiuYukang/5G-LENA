@@ -22,7 +22,7 @@ namespace ns3
  *
  * \brief HARQ functionalities for the PHY layer
  *
- * (i.e., decodification buffers for incremental redundancy managment)
+ * (i.e., decodification buffers for incremental redundancy management)
  *
  */
 class NrHarqPhy : public SimpleRefCount<NrHarqPhy>
@@ -34,7 +34,7 @@ class NrHarqPhy : public SimpleRefCount<NrHarqPhy>
     ~NrHarqPhy();
 
     /**
-     * \brief Return the info of the HARQ procId in case of retranmissions
+     * \brief Return the info of the HARQ procId in case of retransmissions
      * for DL (asynchronous)
      * \param rnti the RNTI
      * \param harqProcId the HARQ proc id
@@ -44,7 +44,7 @@ class NrHarqPhy : public SimpleRefCount<NrHarqPhy>
                                                                   uint8_t harqProcId);
 
     /**
-     * \brief Return the info of the HARQ procId in case of retranmissions
+     * \brief Return the info of the HARQ procId in case of retransmissions
      * for UL (asynchronous)
      * \param rnti the RNTI
      * \param harqProcId the HARQ process id

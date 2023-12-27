@@ -74,7 +74,7 @@ class NrInterference : public LteInterference
     /**
      * \brief Crates events corresponding to the new energy. One event corresponds
      * to the moment when the energy starts, and another to the moment that energy
-     * ends and in that event the energy is negative, or it is being substracted.
+     * ends and in that event the energy is negative, or it is being subtracted.
      * This function also updates the list of events, i.e. it removed the events
      * belonging to the signals that have finished.
      * \param startTime Energy start time

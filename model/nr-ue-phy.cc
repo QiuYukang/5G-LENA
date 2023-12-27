@@ -94,7 +94,7 @@ NrUePhy::GetTypeId()
                 " are connected to sources at the standard noise temperature T0.\" "
                 "In this model, we consider T0 = 290K.",
                 DoubleValue(5.0), // nr code from NYU and UniPd assumed in the code the value of
-                                  // 5dB, thats why we configure the default value to that
+                                  // 5dB, that is why we configure the default value to that
                 MakeDoubleAccessor(&NrPhy::SetNoiseFigure, &NrPhy::GetNoiseFigure),
                 MakeDoubleChecker<double>())
             .AddAttribute(

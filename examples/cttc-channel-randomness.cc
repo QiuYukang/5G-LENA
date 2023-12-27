@@ -198,7 +198,7 @@ main(int argc, char* argv[])
     m_spectrumLossModel->SetChannelModelAttribute("ChannelConditionModel", PointerValue(condModel));
     m_propagationLossModel->SetChannelConditionModel(condModel);
 
-    // create the chennel model
+    // create the channel model
     Ptr<ThreeGppChannelModel> channelModel = CreateObject<ThreeGppChannelModel>();
     channelModel->SetAttribute("Frequency", DoubleValue(frequency));
     channelModel->SetAttribute("Scenario", StringValue(scenario));

@@ -58,7 +58,7 @@ RealisticBeamformingHelper::AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev
             NS_ABORT_MSG_IF(itAlgorithms != m_antennaPairToAlgorithm.end(),
                             "Realistic beamforming task already created for the provided devices");
 
-            // for each pair of antenna arrays of transmiter and receiver create an instance of
+            // for each pair of antenna arrays of transmitter and receiver create an instance of
             // beamforming algorithm
             Ptr<RealisticBeamformingAlgorithm> beamformingAlgorithm =
                 m_algorithmFactory.Create<RealisticBeamformingAlgorithm>();

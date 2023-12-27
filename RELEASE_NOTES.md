@@ -319,7 +319,7 @@ closest site for the `HexagonalGridScenarioHelper::CreateScenarioWithMobility`
 function. Moreover, the simTag and the results folder can now be set.
 - The antenna orientation in the `NodeDistributionScenarioInterface::GetAntennaOrientationDegrees`
 is changed from 60, 180, 300 degrees to 30, 120, 270.
-- `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+- `GridScenarioHelper` includes now a function to set the starting position of the grid.
 - Included some performance enhancements, such as to remove from `NrEesmErrorModel`
 unnecessary copy, to allow the `NrErrorModel` to be passed and fetched as an object
 and to reduce the execution of tests and examples_to_run.py.
@@ -630,7 +630,7 @@ uses the actual channel at SRS reception moment for real BF update with delay.
 fact that the Allocation Statistics were not in accordance with the real allocation.
 This happened because the `SlotAllocInfo` structure, and in particular the
 `m_numSymAlloc` field, was not updated accurately when a UE didn’t get a
-DCI (i.e., when the TBS is less than 7 bytes). Scheduler, now correcly updates
+DCI (i.e., when the TBS is less than 7 bytes). Scheduler, now correctly updates
 the `m_numSymAlloc` field and the `usedSym` variable in `NrMacSchedulerNs3::DoScheduleDlData`
 and `NrMacSchedulerNs3::DoScheduleUlData` when DCI is not created.
 

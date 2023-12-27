@@ -1673,7 +1673,7 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Flags: <span class="mlabel">read </span></li>
   </ul>
-<li><b>lcid</b>: The id whithin the UE identifying the logical channel to which the packet belongs
+<li><b>lcid</b>: The id within the UE identifying the logical channel to which the packet belongs
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
@@ -2099,7 +2099,7 @@ This is a list of all \ref attribute by class.  For more information see the \re
 <b>ns3::NrRadioBearerTag</b><br>
 <ul>
 <li><b>rnti</b>: The rnti that indicates the UE to which packet belongs</li>
-<li><b>lcid</b>: The id whithin the UE identifying the logical channel to which the packet belongs</li>
+<li><b>lcid</b>: The id within the UE identifying the logical channel to which the packet belongs</li>
 <li><b>size</b>: Size in bytes of the RLC PDU</li>
 </ul>
 <b>ns3::NrSpectrumPhy</b><br>

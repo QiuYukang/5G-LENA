@@ -438,7 +438,7 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent(
     NS_LOG_FUNCTION(this);
 
     // check if the channel matrix was generated considering a as the s-node and
-    // b as the u-node or viceversa
+    // b as the u-node or vice-versa
     UniformPlanarArray::ComplexVector sW;
     UniformPlanarArray::ComplexVector uW;
     if (!channelMatrix->IsReverse(aArray->GetId(), bArray->GetId()))

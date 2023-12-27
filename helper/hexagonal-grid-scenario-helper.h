@@ -109,7 +109,7 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
     int64_t AssignStreams(int64_t stream);
 
     /*
-     * \brief Sets the maxmum distance betweeen UE and the closest site.
+     * \brief Sets the maximum distance between UE and the closest site.
      * Note: used only in the function CreateScenarioWithMobility
      */
     void SetMaxUeDistanceToClosestSite(double maxUeDistanceToClosestSite);

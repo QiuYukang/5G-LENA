@@ -128,7 +128,7 @@ TrafficGeneratorNgmnVoip::UpdateState()
     if (m_state == INACTIVE_STATE)
     {
         double randomValue = m_fromInactiveToActive->GetValue();
-        // throw a coin and check if lower than the probability of transmition from inactive to
+        // throw a coin and check if lower than the probability of transmission from inactive to
         // active
         //, switch to active state
         if (randomValue < m_c)

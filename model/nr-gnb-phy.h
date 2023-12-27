@@ -486,7 +486,7 @@ class NrGnbPhy : public NrPhy
      * \param varTtiPeriod period of transmission
      * \param dci DCI of the transmission
      * \param streamId The id of the stream, which identifies the instance of the
-     *        NrSpecturmPhy to be used to transmit the packet burst
+     *        NrSpectrumPhy to be used to transmit the packet burst
      */
     void SendDataChannels(const Ptr<PacketBurst>& pb,
                           const Time& varTtiPeriod,

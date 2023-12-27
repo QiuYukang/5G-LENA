@@ -136,7 +136,7 @@ class NrUePhy : public NrPhy
      * downlink BWP, but they are used in uplink BWP
      * NOTE: This way of configuring is a temporal solution until
      * BWP manager has this function implemented for UL PC, FFR,
-     * algorithm and simillar algorithms, in which is needed to have
+     * algorithm and similar algorithms, in which is needed to have
      * a pair of DL and UL BWPs. In future this function will be called
      * only by a friend class.
      * \param pc Pointer to NrUePowerControl
@@ -518,7 +518,7 @@ class NrUePhy : public NrPhy
   private:
     /**
      * \brief Layer-1 filtering of RSRP measurements and reporting to the RRC entity.
-     * Fo the moment we don't report to RRC but the function is prepared to be
+     * For the moment we don't report to RRC but the function is prepared to be
      * extended once RRC is ported.
      *
      * Initially executed at +0.200s, and then repeatedly executed with
@@ -761,7 +761,7 @@ class NrUePhy : public NrPhy
     void DoResetRlfParams();
 
     /**
-     * \brief Start in Snyc detection function
+     * \brief Start in Sync detection function
      *
      * When T310 timer is started, it indicates that physical layer
      * problems are detected at the UE and the recovery process is
@@ -826,9 +826,9 @@ class NrUePhy : public NrPhy
     Time m_lastSlotStart; //!< Time of the last slot start
 
     bool m_ulConfigured{false};     //!< Flag to indicate if RRC configured the UL
-    bool m_receptionEnabled{false}; //!< Flag to indicate if we are currently receiveing data
+    bool m_receptionEnabled{false}; //!< Flag to indicate if we are currently receiving data
     uint16_t m_rnti{0};             //!< Current RNTI of the user
-    uint32_t m_currTbs{0}; //!< Current TBS of the receiveing DL data (used to compute the feedback)
+    uint32_t m_currTbs{0}; //!< Current TBS of the receiving DL data (used to compute the feedback)
     uint64_t m_imsi{0};    ///< The IMSI of the UE
     std::unordered_map<uint8_t, uint32_t>
         m_harqIdToK1Map; //!< Map that holds the K1 delay for each Harq process id

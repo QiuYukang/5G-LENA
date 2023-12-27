@@ -906,7 +906,7 @@ NrSpectrumPhy::AddExpectedTb(uint16_t rnti,
     auto it = m_transportBlocks.find(rnti);
     if (it != m_transportBlocks.end())
     {
-        // migth be a TB of an unreceived packet (due to high propagation losses)
+        // might be a TB of an unreceived packet (due to high propagation losses)
         m_transportBlocks.erase(it);
     }
 
@@ -1572,7 +1572,7 @@ NrSpectrumPhy::EndRxSrs()
     NS_ASSERT(m_state == RX_UL_SRS && m_rxControlMessageList.size() == 1);
 
     // notify interference calculator that the reception of SRS is finished,
-    // so that chunk processors can be notified to calcualate SINR, and if other
+    // so that chunk processors can be notified to calculate SINR, and if other
     // processor is registered
     m_interferenceSrs->EndRx();
 

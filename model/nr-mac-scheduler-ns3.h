@@ -53,7 +53,7 @@ class NrMacSchedulerLcAlgorithm;
  * the scheduler can be set only before its creation, through the method
  * NrHelper::SetSchedulerTypeId().
  *
- * \section scheduler_user_managment User management (creation and removal)
+ * \section scheduler_user_management User management (creation and removal)
  *
  * When a user arrives in the cell, it is registered with a call to
  * DoCschedUeConfigReq. When the user leaves, the class is made aware with

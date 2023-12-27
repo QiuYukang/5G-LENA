@@ -350,7 +350,7 @@ class NrPhy : public Object
     bool HasDlSlot() const;
 
     /**
-     * \brief Go trough the current pattern and see if at least one slot is UL, F or S.
+     * \brief Go through the current pattern and see if at least one slot is UL, F or S.
      *
      * \return true if at least one slot is UL, F or S.
      */

@@ -595,7 +595,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      * \brief Set BWP index of the QCI in the function name
      * \param bwpIndex Bwp Index to be assigned to the selected QCI
      */
-    void SetVisualContant89Bwp(uint8_t bwpIndex)
+    void SetVisualContent89Bwp(uint8_t bwpIndex)
     {
         m_qciToBwpMap[EpsBearer::DGBR_VISUAL_CONTENT_89] = bwpIndex;
     }
@@ -604,7 +604,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      * \brief Get the BWP index of the QCI in the function name
      * \return the BWP index of the selected QCI
      */
-    uint8_t GetVisualContant89Bwp() const
+    uint8_t GetVisualContent89Bwp() const
     {
         return m_qciToBwpMap.at(EpsBearer::DGBR_VISUAL_CONTENT_89);
     }
@@ -613,7 +613,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      * \brief Set BWP index of the QCI in the function name
      * \param bwpIndex Bwp Index to be assigned to the selected QCI
      */
-    void SetVisualContant90Bwp(uint8_t bwpIndex)
+    void SetVisualContent90Bwp(uint8_t bwpIndex)
     {
         m_qciToBwpMap[EpsBearer::DGBR_VISUAL_CONTENT_90] = bwpIndex;
     }
@@ -622,7 +622,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      * \brief Get the BWP index of the QCI in the function name
      * \return the BWP index of the selected QCI
      */
-    uint8_t GetVisualContant90Bwp() const
+    uint8_t GetVisualContent90Bwp() const
     {
         return m_qciToBwpMap.at(EpsBearer::DGBR_VISUAL_CONTENT_90);
     }

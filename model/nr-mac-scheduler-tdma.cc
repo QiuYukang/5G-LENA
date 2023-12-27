@@ -67,8 +67,8 @@ NrMacSchedulerTdma::GetUeVectorFromActiveUeMap(const NrMacSchedulerNs3::ActiveUe
  * \param GetTBSFn Function to call to get a reference of the UL or DL TBS
  * \param GetRBGFn Function to call to get a reference of the UL or DL RBG
  * \param GetSymFn Function to call to get a reference of the UL or DL symbols
- * \param SuccessfullAssignmentFn Function to call one time for the UE that got the resources
- * assigned in one iteration \param UnSuccessfullAssignmentFn Function to call for the UEs that did
+ * \param SuccessfulAssignmentFn Function to call one time for the UE that got the resources
+ * assigned in one iteration \param UnSuccessfulAssignmentFn Function to call for the UEs that did
  * not get anything in one iteration
  *
  * \return a map between the beam and the symbols assigned to each one
@@ -83,9 +83,9 @@ NrMacSchedulerTdma::GetUeVectorFromActiveUeMap(const NrMacSchedulerNs3::ActiveUe
  *    sort (ueVector);
  *    GetRBGFn(ueVector.first()) += BandwidthInRBG();
  *    symbols--;
- *    SuccessfullAssignmentFn (ueVector.first());
+ *    SuccessfulAssignmentFn (ueVector.first());
  *    for each ue that did not get anything assigned:
- *        UnSuccessfullAssignmentFn (ue);
+ *        UnSuccessfulAssignmentFn (ue);
  * </pre>
  *
  * To sort the UEs, the method uses the function returned by GetUeCompareDlFn().
@@ -113,8 +113,8 @@ NrMacSchedulerTdma::AssignRBGTDMA(
     const GetTBSFn& GetTBSFn,
     const GetRBGFn& GetRBGFn,
     const GetSymFn& GetSymFn,
-    const AfterSuccessfullAssignmentFn& SuccessfullAssignmentFn,
-    const AfterUnsucessfullAssignmentFn& UnSuccessfullAssignmentFn) const
+    const AfterSuccessfulAssignmentFn& SuccessfulAssignmentFn,
+    const AfterUnsuccessfulAssignmentFn& UnSuccessfulAssignmentFn) const
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("Assigning RBG in " << type << ", # beams active flows: " << activeUe.size()
@@ -220,7 +220,7 @@ NrMacSchedulerTdma::AssignRBGTDMA(
             }
         }
 
-        // In the case that all the UE already have their requirements fullfilled,
+        // In the case that all the UE already have their requirements fulfilled,
         // then stop the assignment
         if (schedInfoIt == ueVector.end())
         {
@@ -236,22 +236,22 @@ NrMacSchedulerTdma::AssignRBGTDMA(
         GetSymFn(GetUe(*schedInfoIt)) += 1;
         assigned.m_sym += 1;
 
-        // substract 1 SYM from the number of sym available for the while loop
+        // subtract 1 SYM from the number of sym available for the while loop
         resources -= 1;
 
-        // Update metrics for the successfull UE
+        // Update metrics for the successful UE
         NS_LOG_DEBUG("Assigned " << numOfAssignableRbgs << " " << type << " RBG (= 1 SYM) to UE "
                                  << GetUe(*schedInfoIt)->m_rnti
                                  << " total assigned up to now: " << GetRBGFn(GetUe(*schedInfoIt))
                                  << " that corresponds to " << assigned.m_rbg);
-        SuccessfullAssignmentFn(*schedInfoIt, FTResources(numOfAssignableRbgs, 1), assigned);
+        SuccessfulAssignmentFn(*schedInfoIt, FTResources(numOfAssignableRbgs, 1), assigned);
 
-        // Update metrics for the unsuccessfull UEs (who did not get any resource in this iteration)
+        // Update metrics for the unsuccessful UEs (who did not get any resource in this iteration)
         for (auto& ue : ueVector)
         {
             if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
             {
-                UnSuccessfullAssignmentFn(ue, FTResources(numOfAssignableRbgs, 1), assigned);
+                UnSuccessfulAssignmentFn(ue, FTResources(numOfAssignableRbgs, 1), assigned);
             }
         }
     }
@@ -288,12 +288,12 @@ NrMacSchedulerTdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) 
                                           this,
                                           std::placeholders::_1,
                                           std::placeholders::_2);
-    AfterSuccessfullAssignmentFn SuccFn = std::bind(&NrMacSchedulerTdma::AssignedDlResources,
-                                                    this,
-                                                    std::placeholders::_1,
-                                                    std::placeholders::_2,
-                                                    std::placeholders::_3);
-    AfterUnsucessfullAssignmentFn UnSuccFn = std::bind(&NrMacSchedulerTdma::NotAssignedDlResources,
+    AfterSuccessfulAssignmentFn SuccFn = std::bind(&NrMacSchedulerTdma::AssignedDlResources,
+                                                   this,
+                                                   std::placeholders::_1,
+                                                   std::placeholders::_2,
+                                                   std::placeholders::_3);
+    AfterUnsuccessfulAssignmentFn UnSuccFn = std::bind(&NrMacSchedulerTdma::NotAssignedDlResources,
                                                        this,
                                                        std::placeholders::_1,
                                                        std::placeholders::_2,
@@ -333,13 +333,13 @@ NrMacSchedulerTdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) 
                                           this,
                                           std::placeholders::_1,
                                           std::placeholders::_2);
-    AfterSuccessfullAssignmentFn SuccFn = std::bind(&NrMacSchedulerTdma::AssignedUlResources,
-                                                    this,
-                                                    std::placeholders::_1,
-                                                    std::placeholders::_2,
-                                                    std::placeholders::_3);
+    AfterSuccessfulAssignmentFn SuccFn = std::bind(&NrMacSchedulerTdma::AssignedUlResources,
+                                                   this,
+                                                   std::placeholders::_1,
+                                                   std::placeholders::_2,
+                                                   std::placeholders::_3);
     GetCompareUeFn compareFn = std::bind(&NrMacSchedulerTdma::GetUeCompareUlFn, this);
-    AfterUnsucessfullAssignmentFn UnSuccFn = std::bind(&NrMacSchedulerTdma::NotAssignedUlResources,
+    AfterUnsuccessfulAssignmentFn UnSuccFn = std::bind(&NrMacSchedulerTdma::NotAssignedUlResources,
                                                        this,
                                                        std::placeholders::_1,
                                                        std::placeholders::_2,
@@ -397,7 +397,7 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
             countLessThanMinBytes++;
             NS_LOG_DEBUG("While creating DL DCI for UE "
                          << ueInfo->m_rnti << " stream " << numTb << " assigned " << ueInfo->m_dlRBG
-                         << " DL RBG, but TBS < 10, reseting its size to zero in UE info");
+                         << " DL RBG, but TBS < 10, resetting its size to zero in UE info");
             ueInfo->m_dlTbSize.at(numTb) = 0;
             ndi.at(numTb) = 0;
             rv.at(numTb) = 0;
@@ -446,7 +446,7 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
  *
  * The method calculates the TBS and the real number of symbols needed, and
  * then call CreateDci().
- * Allocate the DCI going bacward from the starting point (it should be called
+ * Allocate the DCI going backward from the starting point (it should be called
  * ending point maybe).
  */
 std::shared_ptr<DciInfoElementTdma>
@@ -476,7 +476,7 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
 
     NS_ASSERT(spoint->m_sym >= numSym);
 
-    // The starting point must go backward to accomodate the needed sym
+    // The starting point must go backward to accommodate the needed sym
     spoint->m_sym -= numSym;
 
     // Due to MIMO implementation MCS and TB size are vectors

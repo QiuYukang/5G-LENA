@@ -105,13 +105,13 @@ class NrChAccessManager : public Object
     virtual void SetAccessDeniedCallback(const AccessDeniedCallback& cb) = 0;
 
     /**
-     * \brief Cancel a previously invoked request for accesing the channel
+     * \brief Cancel a previously invoked request for accessing the channel
      */
     virtual void Cancel() = 0;
 
     /**
      * \brief Set spectrum phy instance for this channel access manager
-     * \param spectrumPhy specturm phy instance
+     * \param spectrumPhy spectrum phy instance
      */
     virtual void SetNrSpectrumPhy(Ptr<NrSpectrumPhy> spectrumPhy);
 

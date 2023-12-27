@@ -190,7 +190,7 @@ OperationBandInfo
 CcBwpCreator::CreateOperationBandContiguousCc(const SimpleOperationBandConf& conf)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("Creating an op band formed by " << +conf.m_numCc << " contingous CC"
+    NS_LOG_INFO("Creating an op band formed by " << +conf.m_numCc << " contiguous CC"
                                                  << " central freq "
                                                  << conf.m_centralFrequency / 1e6 << " MHz with BW "
                                                  << conf.m_channelBandwidth / 1e6 << " MHz");
@@ -278,7 +278,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
     }
 
     // FIXME: I think I can do this with calling the gnuclass in ns3 by calling
-    //        plot.AppendExtra (whatever gnu line sting) (see gnuplot documantation
+    //        plot.AppendExtra (whatever gnu line string) (see gnuplot documentation
     //        in ns3
 
     // Set the range for the x axis.
@@ -371,7 +371,7 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
     }
 
     // FIXME: I think I can do this with calling the gnuclass in ns3 and use
-    //        plot.AppendExtra (whatever sting);
+    //        plot.AppendExtra (whatever string);
 
     double minFreq = 100e9;
     double maxFreq = 0;

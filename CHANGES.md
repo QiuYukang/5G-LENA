@@ -216,14 +216,14 @@ NrSpectrumPhy.
 * `HexagonalGridScenarioHelper` is extended to allow the configuration of a
 variable that defines the maximum distance between a UE and the closest site, through
 the `HexagonalGridScenarioHelper::SetMaxUeDistanceToClosestSite` function.
-This function can be used only in conjuction with the
+This function can be used only in conjunction with the
 `HexagonalGridScenarioHelper::CreateScenarioWithMobility`.
 
 * `HexagonalGridScenarioHelper` is also extended to set the results folder path
 and a simTag for the generated gnuplot file. This is useful so that different
-simulations will not overide the results.
+simulations will not override the results.
 
-* `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+* `GridScenarioHelper` includes now a function to set the starting position of the grid.
 
 * `Nrhelper` now avoids re-assigning a stream due to incorrect pointer.
 
@@ -248,7 +248,7 @@ because there can be ReTX DCI, and TX DCI for the same UE.
 The code at gNB MAC that keeps track of DL/UL RLC queues has been reworked, due
 to some inconsistencies related to the handling of information about RLC UE queues.
 In some cases, due to these misalignments, the gNB MAC was not assigning sufficient
-resources to a UE. Moreover, the UE MAC did not account correclty related to the
+resources to a UE. Moreover, the UE MAC did not account correctly related to the
 MAC header.
 
 ---
@@ -322,7 +322,7 @@ called `SetInterStreamInterferenceRatio`.
 
 * `BeamConfId` is a new class that is added to uniquely identify the beam
 configuration of a `NrUePhy` or `NrGnbPhy` supporting DP-MIMO, hence up to two streams.
-Previously, OFDMA scheduler was assigning at the same varTti only users beloning
+Previously, OFDMA scheduler was assigning at the same varTti only users belonging
 to the same beam (identified by BeamId), because there was maximum 1 beam per
 `NrUePhy` or `NrGnbPhy` instance. Now, since with DP-MIMO we can have 2 beams per
 PHY instance, it is used `BeamConfId` in OFDMA scheduling to select the users
@@ -370,7 +370,7 @@ Also, `NrHelper`'s private function `CreateUePhy` has now one less parameter,
 i.e., dlHarqCallback parameter is removed. These changes should not affect
 5G-LENA users who do not modify/inherit/extend `NrHelper`'s code.
 
-* `NrGnbPhy` function `GenerateDataCqiReport` has one more paramater `streamId` to
+* `NrGnbPhy` function `GenerateDataCqiReport` has one more parameter `streamId` to
 indicate for which stream is reported CQI. Private function `NrGnbPhy::SendDataChannels`
 has one more parameter that is the index of the `NrSpectrumPhy` of that `NrGnbPhy`
 over which will be sent the data. Private function `SetSubChannels` has one more
@@ -392,7 +392,7 @@ power will be split.
 * Old struct that represents HARQ information, called `NrDlHarqProcessInfo` has
 been replaced with `HarqProcessInfoSingleStream` that is used for the same purpose.
 Now, new `NrDlHarqProcessInfo` contains a vector of `HarqProcessInfoSingleStream`,
-one instance per spectrum phy (per antenna araray or antenna subpartition).
+one instance per spectrum phy (per antenna array or antenna subpartition).
 
 * `DciInfoElementTdma` constructor is changed to support more streams, i.e.,
 instead of scalar parameters for tbs, ndi and rv, now there are `std::vector`

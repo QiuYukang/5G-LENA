@@ -66,7 +66,7 @@ class ThreeGppFtpM1Helper : public Object
      * applications in this container. \param clientApps is a container of client applications. This
      * helper will be adding client applications to this container. \param serverNodes are server
      * nodes that will be considered for this FTP Mpdel 1 traffic \param clientNodes are client
-     * nodes that will be considered fot this FTP Model 1 traffic \param serversIps are the Ipv4
+     * nodes that will be considered for this FTP Model 1 traffic \param serversIps are the Ipv4
      * interfaces of the server nodes
      */
     ThreeGppFtpM1Helper(ApplicationContainer* serverApps,
@@ -95,7 +95,7 @@ class ThreeGppFtpM1Helper : public Object
                    double ftpLambda,
                    uint32_t ftpFileSize);
     /**
-     * \brief Start to generate fille transfers according to FTP Model 1
+     * \brief Start to generate file transfers according to FTP Model 1
      */
     void Start();
 

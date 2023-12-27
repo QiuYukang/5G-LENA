@@ -35,7 +35,7 @@ flows.
  * (gNBs) with an also configurable number of UEs attached to each gNB.
  *
  * In this example, the network operates in TDD in a given band. This band is
- * splited in a number of Component Carriers (CC). There are two methods to do
+ * split in a number of Component Carriers (CC). There are two methods to do
  * this separation: automatic or manual.
  * The automatic way divides the bandwidth in a given number of equally-sized
  * contiguous CCs. In the example, the number of contiguous CCs is 4, but can be

@@ -380,7 +380,7 @@ class NrGnbMac : public Object
     std::vector<DlHarqInfo> m_dlHarqInfoReceived; // DL HARQ feedback received
     std::vector<UlHarqInfo> m_ulHarqInfoReceived; // UL HARQ feedback received
     std::unordered_map<uint16_t, NrDlHarqProcessesBuffer_t>
-        m_miDlHarqProcessesPackets; // Packet under trasmission of the DL HARQ process
+        m_miDlHarqProcessesPackets; // Packet under transmission of the DL HARQ process
 
     TracedCallback<NrSchedulingCallbackInfo> m_dlScheduling;
     TracedCallback<NrSchedulingCallbackInfo> m_ulScheduling;

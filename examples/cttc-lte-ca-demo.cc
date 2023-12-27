@@ -92,7 +92,7 @@ main(int argc, char* argv[])
     bool enableLowLat = true;
     bool enableVideo = true;
     bool enableVoice = true;
-    bool enableGaming = false; // If FDD is selected is set automaticaly to true
+    bool enableGaming = false; // If FDD is selected is set automatically to true
 
     bool logging = false;
 
@@ -310,7 +310,7 @@ main(int argc, char* argv[])
      * Band 40 that has two non-contiguous CCs of 20 MHz each.
      *
      * If TDD mode is defined, 1 BWP per CC is created. All BWPs are TDD.
-     * If FDD mode is defined, Band 40 CC2 containes 2 BWPs (1 DL - 1 UL), while
+     * If FDD mode is defined, Band 40 CC2 contains 2 BWPs (1 DL - 1 UL), while
      * Band 40 CC1 has one TDD BWP and Band 38 CC0 also has one TDD BWP.
      *
      * This example manually creates a non-contiguous CC configuration with 2 CCs.

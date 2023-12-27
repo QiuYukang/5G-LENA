@@ -190,9 +190,9 @@ class RealisticBeamformingAlgorithm : public Object
     /**
      * \brief Private function that is used to notify its the helper that is time
      * to update beamforming vectors.
-     * Basically, with this function realistic algoritm pass control to the
+     * Basically, with this function realistic algorithm pass control to the
      * realistic beamforming helper in the sense of calling necessary BF updates, e.g.
-     * calling BeamManager's function, etc. because we are trying to decouple responsabilities
+     * calling BeamManager's function, etc. because we are trying to decouple responsibilities
      * of the algorithm, which should be only to provide the best beamforming vector pair for
      * two communicating devices, and beamforming helper to take care of managing the necessary
      * updates.
@@ -250,7 +250,7 @@ class RealisticBeamformingAlgorithm : public Object
         const UniformPlanarArray::ComplexVector& longTermComponent) const;
 
     /**
-     * \brief Removes the "oldest" delayed update info - from the beggining of the queue
+     * \brief Removes the "oldest" delayed update info - from the beginning of the queue
      */
     void RemoveUsedDelayedUpdateInfo();
 

@@ -49,7 +49,7 @@ class BwpManagerUe;
  *
  * This class will help you in setting up a single- or multi-cell scenario
  * with NR. Most probably, you will interact with the NR module only through
- * this class, so make sure everthing that is written in the following is
+ * this class, so make sure everything that is written in the following is
  * clear enough to start creating your own scenario.
  *
  * \section helper_pre Pre-requisite: Node creation and placement

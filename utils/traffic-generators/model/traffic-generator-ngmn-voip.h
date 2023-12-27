@@ -100,7 +100,7 @@ class TrafficGeneratorNgmnVoip : public TrafficGenerator
     Ptr<UniformRandomVariable> m_fromActiveToInactive;
     Ptr<UniformRandomVariable> m_fromInactiveToActive;
 
-    uint32_t m_encoderFrameLength{0};    //!< The enconder frame length in ms
+    uint32_t m_encoderFrameLength{0};    //!< The encoder frame length in ms
     uint32_t m_meanTalkSpurtDuration{0}; //!< A mean talk spurt duration in ms
     double m_voiceActivityFactor{0.0};   //!< The voice activity factor [0,1]
     uint32_t m_activePayload{0};         //!< Active payload size in bytes

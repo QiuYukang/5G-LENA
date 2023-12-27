@@ -146,7 +146,7 @@ NrUePowerControl::GetTypeId()
                           "When set to true means that this power control is applied to "
                           "bandwidth reduced, low complexity or coverage enhanced (BL/CE) device."
                           "By default this attribute is set to false. Default BL_CE "
-                          "mode is CEModeB. This option can be used only in conjuction with "
+                          "mode is CEModeB. This option can be used only in conjunction with "
                           "attribute TSpec being set to TS 36.213.",
                           BooleanValue(false),
                           MakeBooleanAccessor(&NrUePowerControl::SetBlCe),

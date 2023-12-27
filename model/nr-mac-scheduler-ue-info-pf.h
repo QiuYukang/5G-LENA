@@ -100,7 +100,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
      *
      * Updates m_currTputDl and m_avgTputDl by keeping in consideration
      * the assigned resources (in form of TBS) and the time window.
-     * It gets the tbSise by calling NrMacSchedulerUeInfo::UpdateDlMetric.
+     * It gets the tbSize by calling NrMacSchedulerUeInfo::UpdateDlMetric.
      */
     void UpdateDlPFMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
                           double timeWindow,
@@ -114,7 +114,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
      *
      * Updates m_currTputUl and m_avgTputUl by keeping in consideration
      * the assigned resources (in form of TBS) and the time window.
-     * It gets the tbSise by calling NrMacSchedulerUeInfo::UpdateUlMetric.
+     * It gets the tbSize by calling NrMacSchedulerUeInfo::UpdateUlMetric.
      */
     void UpdateUlPFMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
                           double timeWindow,

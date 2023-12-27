@@ -434,7 +434,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
     uint32_t txNumRows = static_cast<uint32_t>(uintValue.Get());
 
     ueSpectrumPhy->GetBeamManager()
-        ->ChangeToQuasiOmniBeamformingVector(); // we have to set it inmediatelly to q-omni so that
+        ->ChangeToQuasiOmniBeamformingVector(); // we have to set it immediately to q-omni so that
                                                 // we can perform calculations when calling spectrum
                                                 // model above
 

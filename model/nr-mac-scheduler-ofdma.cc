@@ -254,7 +254,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 }
             }
 
-            // In the case that all the UE already have their requirements fullfilled,
+            // In the case that all the UE already have their requirements fulfilled,
             // then stop the beam processing and pass to the next
             if (schedInfoIt == ueVector.end())
             {
@@ -281,7 +281,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
             // since the number of RBG assigned to both the streams are the same.
             AssignedDlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
 
-            // Update metrics for the unsuccessfull UEs (who did not get any resource in this
+            // Update metrics for the unsuccessful UEs (who did not get any resource in this
             // iteration)
             for (auto& ue : ueVector)
             {
@@ -351,7 +351,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
                 }
             }
 
-            // In the case that all the UE already have their requirements fullfilled,
+            // In the case that all the UE already have their requirements fulfilled,
             // then stop the beam processing and pass to the next
             if (schedInfoIt == ueVector.end())
             {
@@ -373,7 +373,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
                                      << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
             AssignedUlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
 
-            // Update metrics for the unsuccessfull UEs (who did not get any resource in this
+            // Update metrics for the unsuccessful UEs (who did not get any resource in this
             // iteration)
             for (auto& ue : ueVector)
             {
@@ -425,7 +425,7 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
             countLessThanMinBytes++;
             NS_LOG_DEBUG("While creating DCI for UE "
                          << ueInfo->m_rnti << " stream " << numTb << " assigned " << ueInfo->m_dlRBG
-                         << " DL RBG, but TBS < 10, reseting its size to zero in UE info");
+                         << " DL RBG, but TBS < 10, resetting its size to zero in UE info");
             ueInfo->m_dlTbSize.at(numTb) = 0;
             ndi.at(numTb) = 0;
             rv.at(numTb) = 0;

@@ -398,7 +398,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         bwpIdForLowLat = 1;
     }
 
-    // TODO check later when QoS scheduler is in place, that the type of bearer coresponds to the
+    // TODO check later when QoS scheduler is in place, that the type of bearer corresponds to the
     // type of traffic gNb routing between Bearer and bandwidth part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_DEFAULT",
                                                  UintegerValue(bwpIdForLowLat));
@@ -1374,7 +1374,7 @@ main(int argc, char* argv[])
             // configure clients on sector 1
             for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnVideoIds.find(i) == ngmnVideoIds.end()))
@@ -1394,7 +1394,7 @@ main(int argc, char* argv[])
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnVideoIds.find(i) == ngmnVideoIds.end()))
@@ -1414,7 +1414,7 @@ main(int argc, char* argv[])
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnVideoIds.find(i) == ngmnVideoIds.end()))
@@ -1488,7 +1488,7 @@ main(int argc, char* argv[])
             // configure clients on sector 1
             for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnGamingIds.find(i) == ngmnGamingIds.end()))
@@ -1508,7 +1508,7 @@ main(int argc, char* argv[])
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnGamingIds.find(i) == ngmnGamingIds.end()))
@@ -1528,7 +1528,7 @@ main(int argc, char* argv[])
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnGamingIds.find(i) == ngmnGamingIds.end()))
@@ -1603,7 +1603,7 @@ main(int argc, char* argv[])
             // configure clients on sector 1
             for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and (ngmnVoipIds.find(i) == ngmnVoipIds.end()))
                 {
@@ -1622,7 +1622,7 @@ main(int argc, char* argv[])
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and (ngmnVoipIds.find(i) == ngmnVoipIds.end()))
                 {
@@ -1641,7 +1641,7 @@ main(int argc, char* argv[])
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and (ngmnVoipIds.find(i) == ngmnVoipIds.end()))
                 {
@@ -1704,7 +1704,7 @@ main(int argc, char* argv[])
 
         for (uint32_t i = 0; i < ueSector1Container.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1742,7 +1742,7 @@ main(int argc, char* argv[])
 
         for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1756,7 +1756,7 @@ main(int argc, char* argv[])
         // configure clients on sector 2
         for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1770,7 +1770,7 @@ main(int argc, char* argv[])
         // configure clients on sector 3
         for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {

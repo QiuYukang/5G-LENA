@@ -226,7 +226,7 @@ TrafficGeneratorNgmnGaming::GetNextPacketTime() const
         double y = m_packetArrivalVariable->GetValue();
         double a = m_aParamPacketArrivalDl;
         double b = m_bParamPacketArrivalDl;
-        // Because we need here an integer number of millseconds,
+        // Because we need here an integer number of milliseconds,
         /// the largest integer less than
         // or equal to x is used as the actual packet arrival time in ms
         x = MilliSeconds(floor(a - b * log(-log(y))));

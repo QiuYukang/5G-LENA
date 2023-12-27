@@ -300,7 +300,7 @@ NrBearerStatsConnector::ConnectSrb0Traces(std::string context,
         arg->cellId = cellId;
         arg->stats = m_rlcStats;
 
-        // diconnect eventually previously connected SRB0 both at UE and eNB
+        // disconnect eventually previously connected SRB0 both at UE and eNB
         Config::Disconnect(ueRrcPath + "/Srb0/LteRlc/TxPDU",
                            MakeBoundCallback(&UlTxPduCallback, arg));
         Config::Disconnect(ueRrcPath + "/Srb0/LteRlc/RxPDU",

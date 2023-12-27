@@ -162,7 +162,7 @@ class NrMacSchedulerTdmaQos : public NrMacSchedulerTdmaRR
                                 const FTResources& totAssigned) const override;
 
     /**
-     * \brief Calculate the potential throughtput for the DL based on the available resources
+     * \brief Calculate the potential throughput for the DL based on the available resources
      * \param ue UE to which a symbol has been assigned
      * \param assignableInIteration the minimum amount of resources to be assigned
      *

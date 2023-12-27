@@ -81,7 +81,7 @@ class NrUlDciMessage;
  * as possible. At the end of all the subPDUs, it will be sent a SHORT_BSR, to
  * indicate to the GNB the new status of the RLC queues. As the SHORT_BSR is
  * a CE and is treated in the same way as data, it may be lost. Please note that
- * the code substract the amount of bytes devoted to the SHORT_BSR from the
+ * the code subtract the amount of bytes devoted to the SHORT_BSR from the
  * available ones, so there will always be a space to send it. The only
  * exception (theoretically possible) is when the status PDUs use all the
  * available space; in this case, a rework of the code will be needed.
@@ -438,7 +438,7 @@ class NrUeMac : public Object
 
     // uint8_t m_harqProcessId;
     std::vector<UlHarqProcessInfo>
-        m_miUlHarqProcessesPacket; //!< Packets under trasmission of the UL HARQ processes
+        m_miUlHarqProcessesPacket; //!< Packets under transmission of the UL HARQ processes
     std::vector<uint8_t> m_miUlHarqProcessesPacketTimer; //!< timer for packet life in the buffer
 
     struct LcInfo

@@ -29,7 +29,7 @@ class NrPhyRxTrace : public Object
     static TypeId GetTypeId();
 
     /**
-     * \brief Set simTag that will be contatenated to
+     * \brief Set simTag that will be concatenated to
      * output file names
      * \param simTag string to be used as simulation tag
      */

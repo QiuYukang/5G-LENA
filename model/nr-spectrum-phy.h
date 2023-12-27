@@ -96,7 +96,7 @@ class NrSpectrumPhy : public SpectrumPhy
         IDLE = 0,   //!< IDLE state (no action in progress)
         TX,         //!< Transmitting state (data or ctrl)
         RX_DATA,    //!< Receiving data
-        RX_DL_CTRL, //!< Receiveing DL CTRL
+        RX_DL_CTRL, //!< receiving DL CTRL
         RX_UL_CTRL, //!< Receiving UL CTRL
         RX_UL_SRS,  //!< Receiving SRS
         CCA_BUSY    //!< BUSY state (channel occupied by another entity)
@@ -211,7 +211,7 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void SetCcaMode1Threshold(double thresholdDBm);
     /**
-     * Returns clear channel assesment (CCA) threshold
+     * Returns clear channel assessment (CCA) threshold
      * \return CCA threshold in dBms
      */
     double GetCcaMode1Threshold() const;
@@ -535,7 +535,7 @@ class NrSpectrumPhy : public SpectrumPhy
     void StartRxUlCtrl(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
     /**
      * \brief Function that is called when is being received SRS
-     * \param param should hold UL CTRL frame singal parameters containing only
+     * \param param should hold UL CTRL frame signal parameters containing only
      * one CTRL message which should be of type SRS
      */
     void StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
@@ -568,7 +568,7 @@ class NrSpectrumPhy : public SpectrumPhy
     void EndRxCtrl();
     /**
      * \brief Function that is celled when the spectrum phy finishes the reception of SRS.
-     * It stores SRS message, calles the interference calculator to notify the end of the
+     * It stores SRS message, calls the interference calculator to notify the end of the
      * reception which will trigger SRS SINR calculation, and it also updates the spectrum phy
      * state.
      */

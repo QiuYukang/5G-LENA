@@ -1410,7 +1410,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                 // scheduler this resource would be one or more
                 // symbols, and for OFDMA scheduler it would be a
                 // chunk of time + freq, i.e., one or more
-                // symbols in time and one ore more RBG in freq.
+                // symbols in time and one or more RBG in freq.
                 // TODO To avoid this, a more accurate solution
                 // is needed to assign resources. That is, a solution
                 // that would not assign resources to a UE if the assigned resources
@@ -1659,7 +1659,7 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
                 // scheduler this resource would be one or more
                 // symbols, and for OFDMA scheduler it would be a
                 // chunk of time + freq, i.e., one or more
-                // symbols in time and one ore more RBG in freq.
+                // symbols in time and one or more RBG in freq.
                 // TODO To avoid this, a more accurate solution
                 // is needed to assign resources. That is, a solution
                 // that would not assign resources to a UE if the assigned resources

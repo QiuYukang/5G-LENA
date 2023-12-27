@@ -225,7 +225,7 @@ NrMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size, std::string type)
         // least 7 bytes. To be sure that the MAC scheduler will assign at least 7 bytes (so that 5
         // bytes can be transmitted), we tell here to MAC that there are 7 bytes in the queue
         // instead of e.g. 5 bytes. Yeah, this is a workaround, because MAC and RLC have to be "on
-        // the same page". We however should take into acccount the next UL SHORT_BSR (we add 5
+        // the same page". We however should take into account the next UL SHORT_BSR (we add 5
         // bytes, because in the current TX opportunity 5 bytes is being spent on SHORT_BSR).
 
         if (type == "UL" && m_lcMap.at(lcId)->m_rlcTransmissionQueueSize > 0 &&

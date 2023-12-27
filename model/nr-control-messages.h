@@ -177,7 +177,7 @@ class NrDlDciMessage : public NrControlMessage
      * Harq feedback
      *
      * Note that K1 delay is also passed with the UL DCI
-     * however the UE ignors it (applies only for DL DCI)
+     * however the UE ignores it (applies only for DL DCI)
      */
     void SetK1Delay(uint32_t delay);
     /**
@@ -296,7 +296,7 @@ class NrBsrMessage : public NrControlMessage
     void SetBsr(MacCeElement bsr);
 
     /**
-     * \brief Get BSR informations
+     * \brief Get BSR information
      * \return BSR message
      */
     MacCeElement GetBsr();
@@ -498,7 +498,7 @@ class NrDlHarqFeedbackMessage : public NrControlMessage
     void SetDlHarqFeedback(DlHarqInfo m);
 
     /**
-     * \brief Get DL HARQ informations
+     * \brief Get DL HARQ information
      * \return DL HARQ message
      */
     DlHarqInfo GetDlHarqFeedback();

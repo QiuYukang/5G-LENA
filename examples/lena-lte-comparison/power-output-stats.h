@@ -38,7 +38,7 @@ class PowerOutputStats
     PowerOutputStats();
 
     /**
-     * \brief Install the output dabase.
+     * \brief Install the output database.
      * \param db database pointer
      * \param tableName name of the table where the values will be stored
      *

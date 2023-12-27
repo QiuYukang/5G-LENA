@@ -743,7 +743,7 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
     std::unordered_map<uint64_t, uint64_t> sfnMap; // map between new and old sfn, for debugging
 
     // all the slot allocations  (and their packet burst) have to be "adjusted":
-    // directly modify the sfn for the allocation, and temporarly store the
+    // directly modify the sfn for the allocation, and temporarily store the
     // burst (along with the new sfn) into newBursts.
     for (auto it = m_slotAllocInfo.begin(); it != m_slotAllocInfo.end(); ++it)
     {

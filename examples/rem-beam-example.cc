@@ -93,7 +93,7 @@ main(int argc, char* argv[])
     gnbNodes.Create(1);
     ueNodes.Create(1);
 
-    // install mobility and initilize positions
+    // install mobility and initialize positions
     MobilityHelper mobility;
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(gnbNodes);

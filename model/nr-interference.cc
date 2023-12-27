@@ -69,7 +69,7 @@ NrInterference::AddSignal(Ptr<const SpectrumValue> spd, Time duration)
     // since this is already taken into account by the spectrum channel.
     double rxPowerW = Integral(*spd);
     // We are creating two events, one that adds the rxPowerW, and
-    // another that substracts the rxPowerW at the endTime.
+    // another that subtracts the rxPowerW at the endTime.
     // These events will be used to determine if the channel is busy and
     // for how long.
     AppendEvent(Simulator::Now(), Simulator::Now() + duration, rxPowerW);
@@ -138,7 +138,7 @@ NrInterference::ConditionallyEvaluateChunk()
         double rssidBm = 10 * log10(Sum((*m_noise + *m_allSignals) * rbWidth) * 1000);
         m_rssiPerProcessedChunk(rssidBm);
 
-        NS_LOG_DEBUG("All signals: " << (*m_allSignals)[0] << ", rxSingal:" << (*m_rxSignal)[0]
+        NS_LOG_DEBUG("All signals: " << (*m_allSignals)[0] << ", rxSignal:" << (*m_rxSignal)[0]
                                      << " , noise:" << (*m_noise)[0]);
 
         Time duration = Now() - m_lastChangeTime;
@@ -302,7 +302,7 @@ NrInterference::AppendEvent(Time startTime, Time endTime, double rxPowerW)
         AddNiChangeEvent(NiChange(startTime, rxPowerW));
     }
 
-    // for the endTime create event that will substract energy
+    // for the endTime create event that will subtract energy
     AddNiChangeEvent(NiChange(endTime, -rxPowerW));
 }
 

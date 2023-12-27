@@ -660,7 +660,7 @@ NrHelper::InstallSingleUeDevice(
 
     Ptr<LteUeRrc> rrc = CreateObject<LteUeRrc>();
     rrc->m_numberOfComponentCarriers = ueCcMap.size();
-    // run intializeSap to create the proper number of sap provider/users
+    // run InitializeSap to create the proper number of sap provider/users
     rrc->InitializeSap();
     rrc->SetLteMacSapProvider(ccmUe->GetLteMacSapProvider());
     // setting ComponentCarrierManager SAP

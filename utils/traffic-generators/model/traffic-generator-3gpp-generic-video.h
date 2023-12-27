@@ -111,7 +111,7 @@ class TrafficGenerator3gppGenericVideo : public TrafficGenerator
                               //!< of 3GPP TR 38.838 V17.0.0 (2021-12)
     double m_stdJitter{0.0}; //!< the STD value of the packet arrival jitter. See Table 5.1.1.2-1 of
                              //!< 3GPP TR 38.838 V17.0.0 (2021-12)
-    double m_boundJitter{0.0}; //!< the bound vlaue of the packet arrival jitter. See
+    double m_boundJitter{0.0}; //!< the bound value of the packet arrival jitter. See
                                //!< Table 5.1.1.2-1 of 3GPP TR 38.838 V17.0.0 (2021-12)
     // adjust data rate (packet size) parameters:
     double m_lowerThresholdForDecreasingSlowly{

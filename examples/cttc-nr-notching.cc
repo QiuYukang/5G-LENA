@@ -52,7 +52,7 @@
  * example we support only BWs of 5, 10 and 20 MHz. If a user wants to test different
  * BWs or different mask sizes, will have to modify the example accordingly.
  *
- * Also notice that the number of notched RBs must be choosen wisely. If for example
+ * Also notice that the number of notched RBs must be chosen wisely. If for example
  * someone sets the number of notched RBs too high and executes the example for
  * a high number of UEs, then it will result in error since there will not be
  * sufficient resources for the UE transmissions. In such case, either reduce the
@@ -311,7 +311,7 @@ main(int argc, char* argv[])
     gridScenario.SetBsNumber(gNbNum);
     gridScenario.SetUtNumber(ueNumPergNb * gNbNum);
     gridScenario.SetScenarioHeight(3); // Create a 3x3 scenario where the UE will
-    gridScenario.SetScenarioLength(3); // be distribuited.
+    gridScenario.SetScenarioLength(3); // be distributed.
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
