@@ -74,3 +74,36 @@ spell-check:
     # Check source code and commit messages
     - codespell -f -C0 ./
   timeout: 1h
+
+# Clang-tidy
+clang-tidy-17:
+  stage: code-linting
+  image: ubuntu:rolling
+  before_script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive apt install -y
+      clang cmake
+      clang-tidy clang-tidy-17
+      git libsqlite3-dev
+    - git clone -b ns-3.39 https://gitlab.com/nsnam/ns-3-dev.git
+    - mkdir -p ns-3-dev/contrib/nr/
+    - cp -r .clang-tidy CMakeLists.txt  doc  tutorial examples  helper  model  README.md  RELEASE_NOTES.md  test  utils ns-3-dev/contrib/nr/
+    - cd ns-3-dev
+    - ./ns3 configure -d debug
+      --enable-examples --enable-tests --enable-asserts
+      --disable-precompiled-headers
+  script:
+    - echo "Trimming compile_commands.json to filter out non-nr code"
+    - ../trim_compile_commands.py ./cmake-cache/compile_commands.json
+    - echo "Running full clang-tidy for nr"
+    - run-clang-tidy-17 -p cmake-cache/ -quiet 1> ../clang-tidy-output.log 2> /dev/null
+    # Check job results
+    - (! egrep -v "file not found \[clang-diagnostic-error\]" ../clang-tidy-output.log | egrep -A3 "error:|warning:|note:")
+    - echo "No clang-tidy errors found"
+  dependencies: []
+  artifacts:
+    paths:
+      - clang-tidy-output.log
+    when: on_failure
+  interruptible: true
+  timeout: 3h
