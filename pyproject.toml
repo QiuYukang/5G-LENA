@@ -1,0 +1,11 @@
+# Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
+[tool.black]
+line-length = 100
+include = "\\bns3$|\\.py$"
+
+[tool.isort]
+profile = "black"
+line_length = 100
