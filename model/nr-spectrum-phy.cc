@@ -1664,7 +1664,7 @@ NrSpectrumPhy::CheckIfStillBusy()
 bool
 NrSpectrumPhy::IsOnlySrs(const std::list<Ptr<NrControlMessage>>& ctrlMsgList)
 {
-    NS_ASSERT_MSG(ctrlMsgList.size(), "Passed an empty uplink control list");
+    NS_ASSERT_MSG(!ctrlMsgList.empty(), "Passed an empty uplink control list");
 
     return ctrlMsgList.size() == 1 &&
            (*ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS;

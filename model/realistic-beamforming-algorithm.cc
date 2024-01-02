@@ -312,7 +312,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
 
     if (conf.event == RealisticBfManager::DELAYED_UPDATE)
     {
-        NS_ASSERT(m_delayedUpdateInfo.size());
+        NS_ASSERT(!m_delayedUpdateInfo.empty());
         DelayedUpdateInfo dui = m_delayedUpdateInfo.front();
         NS_ABORT_MSG_UNLESS(dui.updateTime == Simulator::Now(),
                             "Current time should be equal to the updateTime from the "

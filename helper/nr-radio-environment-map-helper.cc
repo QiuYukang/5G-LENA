@@ -374,7 +374,7 @@ NrRadioEnvironmentMapHelper::ConfigureRtdList(const NetDeviceContainer& rtdDevs)
 
         m_remDev.push_back(rtd);
     }
-    NS_ASSERT_MSG(m_remDev.size(),
+    NS_ASSERT_MSG(!m_remDev.empty(),
                   "No RTD devices configured. Check if the RTD "
                   "devices are on the operating on the same "
                   "spectrum as RRD device.");

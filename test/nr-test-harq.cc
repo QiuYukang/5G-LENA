@@ -67,7 +67,6 @@ TestHarqTestCase::GetTbDecodStats(std::vector<double> sinrRx,
 {
     uint8_t nRbsRx = sinrRx.size();
 
-    NrSpectrumValueHelper helper;
     Ptr<const SpectrumModel> spectModelRx =
         ns3::NrSpectrumValueHelper::GetSpectrumModel(nRbsRx, 3.6e9, 15000);
     SpectrumValue sinrRxSpecVal(spectModelRx);
