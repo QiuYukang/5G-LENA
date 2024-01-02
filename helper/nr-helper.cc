@@ -455,7 +455,7 @@ NrHelper::SetHarqEnabled(bool harqEnabled)
 }
 
 bool
-NrHelper::GetHarqEnabled()
+NrHelper::GetHarqEnabled() const
 {
     return m_harqEnabled;
 }
@@ -467,7 +467,7 @@ NrHelper::SetSnrTest(bool snrTest)
 }
 
 bool
-NrHelper::GetSnrTest()
+NrHelper::GetSnrTest() const
 {
     return m_snrTest;
 }
@@ -717,7 +717,7 @@ NrHelper::InstallSingleUeDevice(
             ccmUe->SetComponentCarrierMacSapProviders(it->first,
                                                       it->second->GetMac()->GetUeMacSapProvider());
 
-        if (ccmTest == false)
+        if (!ccmTest)
         {
             NS_FATAL_ERROR("Error in SetComponentCarrierMacSapProviders");
         }

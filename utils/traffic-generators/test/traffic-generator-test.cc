@@ -657,9 +657,9 @@ TrafficGeneratorTestSuite::TrafficGeneratorTestSuite()
 
     std::list<std::string> transportProtocols = {"ns3::UdpSocketFactory", "ns3::TcpSocketFactory"};
 
-    for (auto trafficGeneratorType : trafficGeneratorTypes)
+    for (const auto& trafficGeneratorType : trafficGeneratorTypes)
     {
-        for (auto transportProtocol : transportProtocols)
+        for (const auto& transportProtocol : transportProtocols)
         {
             std::string name = trafficGeneratorType.GetName() + " and " + transportProtocol;
             AddTestCase(new TrafficGeneratorTestCase(name, trafficGeneratorType, transportProtocol),

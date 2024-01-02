@@ -233,7 +233,7 @@ NrBearerStatsCalculator::ShowResults()
     std::ofstream ulOutFile;
     std::ofstream dlOutFile;
 
-    if (m_firstWrite == true)
+    if (m_firstWrite)
     {
         ulOutFile.open(GetUlOutputFilename().c_str());
         if (!ulOutFile.is_open())

@@ -245,7 +245,7 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                 dciInfoReTx->m_numSym * rbgAssigned;
         }
 
-        if (allocatedUe.size() > 0)
+        if (!allocatedUe.empty())
         {
             startingPoint->m_sym += symPerBeam;
             startingPoint->m_rbg = 0;

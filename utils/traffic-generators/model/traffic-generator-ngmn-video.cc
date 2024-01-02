@@ -166,8 +166,8 @@ void
 TrafficGeneratorNgmnVideo::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_packetSizeGenerator = 0;
-    m_packetTimeGenerator = 0;
+    m_packetSizeGenerator = nullptr;
+    m_packetTimeGenerator = nullptr;
     // chain up
     TrafficGenerator::DoDispose();
 }

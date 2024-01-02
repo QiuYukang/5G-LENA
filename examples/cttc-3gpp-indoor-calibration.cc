@@ -377,7 +377,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     }
 
     // if simulation tag is not provided create one
-    if (tag == "")
+    if (tag.empty())
     {
         tag = BuildTag(gNbAntennaModel, ueAntennaModel, indoorScenario, speed);
     }

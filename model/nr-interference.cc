@@ -81,7 +81,7 @@ void
 NrInterference::EndRx()
 {
     NS_LOG_FUNCTION(this);
-    if (m_receiving != true)
+    if (!m_receiving)
     {
         NS_LOG_INFO("EndRx was already evaluated or RX was aborted");
     }

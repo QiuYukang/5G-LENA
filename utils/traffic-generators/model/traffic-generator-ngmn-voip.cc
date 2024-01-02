@@ -194,8 +194,8 @@ void
 TrafficGeneratorNgmnVoip::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_fromActiveToInactive = 0;
-    m_fromInactiveToActive = 0;
+    m_fromActiveToInactive = nullptr;
+    m_fromInactiveToActive = nullptr;
     // chain up
     TrafficGenerator::DoDispose();
 }

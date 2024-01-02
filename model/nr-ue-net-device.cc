@@ -168,7 +168,7 @@ void
 NrUeNetDevice::SetCcMap(std::map<uint8_t, Ptr<BandwidthPartUe>> ccm)
 {
     NS_LOG_FUNCTION(this);
-    NS_ABORT_IF(m_ccMap.size() > 0);
+    NS_ABORT_IF(!m_ccMap.empty());
     m_ccMap = ccm;
 }
 

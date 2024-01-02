@@ -238,7 +238,7 @@ class NrUePhy : public NrPhy
      *
      * \return the current RNTI of the user
      */
-    uint16_t GetRnti() __attribute__((warn_unused_result));
+    uint16_t GetRnti() const __attribute__((warn_unused_result));
 
     /**
      * \brief Get the HARQ feedback (on the transmission) from

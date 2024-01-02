@@ -478,7 +478,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
 
         if (!m_isEnb)
         {
-            if (dlCtrlRxParams->pss == true)
+            if (dlCtrlRxParams->pss)
             {
                 if (dlCtrlRxParams->cellId == GetCellId())
                 {
@@ -910,10 +910,10 @@ NrSpectrumPhy::AddExpectedTb(uint16_t rnti,
         m_transportBlocks.erase(it);
     }
 
-    m_transportBlocks.emplace(std::make_pair(
+    m_transportBlocks.emplace(
         rnti,
         TransportBlockInfo(
-            ExpectedTb(ndi, size, mcs, rbMap, harqId, rv, downlink, symStart, numSym, sfn))));
+            ExpectedTb(ndi, size, mcs, rbMap, harqId, rv, downlink, symStart, numSym, sfn)));
     NS_LOG_INFO("Add expected TB for rnti "
                 << rnti << " size=" << size << " mcs=" << static_cast<uint32_t>(mcs) << " symstart="
                 << static_cast<uint32_t>(symStart) << " numSym=" << static_cast<uint32_t>(numSym));
@@ -1334,7 +1334,7 @@ NrSpectrumPhy::EndRxData()
                                                    GetTBInfo(tbIt).m_expected.m_mcs,
                                                    harqInfoList);
         GetTBInfo(tbIt).m_isCorrupted =
-            m_random->GetValue() > GetTBInfo(tbIt).m_outputOfEM->m_tbler ? false : true;
+            m_random->GetValue() <= GetTBInfo(tbIt).m_outputOfEM->m_tbler;
 
         if (GetTBInfo(tbIt).m_isCorrupted)
         {
@@ -1360,7 +1360,7 @@ NrSpectrumPhy::EndRxData()
             }
 
             LteRadioBearerTag bearerTag;
-            if (packet->PeekPacketTag(bearerTag) == false)
+            if (!packet->PeekPacketTag(bearerTag))
             {
                 NS_FATAL_ERROR("No radio bearer tag found");
             }
@@ -1666,15 +1666,8 @@ NrSpectrumPhy::IsOnlySrs(const std::list<Ptr<NrControlMessage>>& ctrlMsgList)
 {
     NS_ASSERT_MSG(ctrlMsgList.size(), "Passed an empty uplink control list");
 
-    if (ctrlMsgList.size() == 1 &&
-        (*ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return ctrlMsgList.size() == 1 &&
+           (*ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS;
 }
 
 void

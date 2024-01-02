@@ -806,7 +806,7 @@ NrGnbPhy::StartSlot(const SfnSf& startSlot)
         // If we have the UL CTRL, then schedule it (we are listening, so
         // we don't need the channel.
 
-        if (m_currSlotAllocInfo.m_varTtiAllocInfo.size() > 0)
+        if (!m_currSlotAllocInfo.m_varTtiAllocInfo.empty())
         {
             for (const auto& alloc : m_currSlotAllocInfo.m_varTtiAllocInfo)
             {
@@ -972,9 +972,8 @@ void
 NrGnbPhy::DoStartSlot()
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(m_ctrlMsgs.size() ==
-              0); // This assert has to be re-evaluated for NR-U.
-                  // We can have messages before we weren't able to tx them before.
+    NS_ASSERT(m_ctrlMsgs.empty()); // This assert has to be re-evaluated for NR-U.
+                                   // We can have messages before we weren't able to tx them before.
 
     uint64_t currentSlotN = m_currentSlot.Normalize() % m_tddPattern.size();
     ;
@@ -983,7 +982,7 @@ NrGnbPhy::DoStartSlot()
 
     GenerateAllocationStatistics(m_currSlotAllocInfo);
 
-    if (m_currSlotAllocInfo.m_varTtiAllocInfo.size() == 0)
+    if (m_currSlotAllocInfo.m_varTtiAllocInfo.empty())
     {
         return;
     }
@@ -1233,7 +1232,7 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
     // The function that is filling m_ctrlMsgs is NrPhy::encodeCtrlMsgs
-    if (m_ctrlMsgs.size() > 0)
+    if (!m_ctrlMsgs.empty())
     {
         NS_LOG_DEBUG("ENB TXing DL CTRL with "
                      << m_ctrlMsgs.size() << " msgs, frame " << m_currentSlot << " symbols "

@@ -611,7 +611,7 @@ NrGnbMac::DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
     dlParams.m_snfSf = sfnSf;
 
     // Forward DL HARQ feedbacks collected during last subframe TTI
-    if (m_dlHarqInfoReceived.size() > 0)
+    if (!m_dlHarqInfoReceived.empty())
     {
         dlParams.m_dlHarqInfoList = m_dlHarqInfoReceived;
         // empty local buffer
@@ -674,7 +674,7 @@ NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
     }
 
     // Send UL BSR reports to the scheduler
-    if (m_ulCeReceived.size() > 0)
+    if (!m_ulCeReceived.empty())
     {
         NrMacSchedSapProvider::SchedUlMacCtrlInfoReqParameters ulMacReq;
         ulMacReq.m_sfnSf = sfnSf;
@@ -698,7 +698,7 @@ NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
     ulParams.m_slotType = type;
 
     // Forward UL HARQ feebacks collected during last TTI
-    if (m_ulHarqInfoReceived.size() > 0)
+    if (!m_ulHarqInfoReceived.empty())
     {
         ulParams.m_ulHarqInfoList = m_ulHarqInfoReceived;
         // empty local buffer
@@ -1074,7 +1074,7 @@ NrGnbMac::SendRar(const std::vector<BuildRarListElement_s>& rarList)
                                rarMsg);
     }
 
-    if (rarList.size() > 0)
+    if (!rarList.empty())
     {
         m_phySapProvider->SendControlMessage(rarMsg);
         m_rapIdRntiMap.clear();

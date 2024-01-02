@@ -94,7 +94,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
     {
         addresses.emplace_back(InetSocketAddress(ipAddress, port + j));
         // The sink will always listen to the specified ports
-        localAddresses.emplace_back(InetSocketAddress(Ipv4Address::GetAny(), port + j));
+        localAddresses.emplace_back(Ipv4Address::GetAny(), port + j);
     }
 
     ApplicationContainer currentUeClientApps;
@@ -363,7 +363,7 @@ main(int argc, char* argv[])
 
     // configure the transport protocol to be used
     std::string transportProtocol;
-    transportProtocol = useUdp == true ? "ns3::UdpSocketFactory" : "ns3::TcpSocketFactory";
+    transportProtocol = useUdp ? "ns3::UdpSocketFactory" : "ns3::TcpSocketFactory";
     uint16_t dlPortArStart = 1121; // AR has 3 flows
     uint16_t dlPortArStop = 1124;
     uint16_t dlPortVrStart = 1131;
@@ -451,7 +451,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        vrBearer,
                        vrTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -470,7 +470,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        cgBearer,
                        cgTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,

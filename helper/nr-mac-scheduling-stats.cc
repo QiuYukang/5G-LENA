@@ -84,7 +84,7 @@ NrMacSchedulingStats::DlScheduling(uint16_t cellId,
     NS_LOG_INFO("Write DL Mac Stats in " << GetDlOutputFilename().c_str());
 
     std::ofstream outFile;
-    if (m_dlFirstWrite == true)
+    if (m_dlFirstWrite)
     {
         outFile.open(GetDlOutputFilename().c_str());
         if (!outFile.is_open())
@@ -138,7 +138,7 @@ NrMacSchedulingStats::UlScheduling(uint16_t cellId,
     NS_LOG_INFO("Write UL Mac Stats in " << GetUlOutputFilename().c_str());
 
     std::ofstream outFile;
-    if (m_ulFirstWrite == true)
+    if (m_ulFirstWrite)
     {
         outFile.open(GetUlOutputFilename().c_str());
         if (!outFile.is_open())
@@ -192,7 +192,7 @@ NrMacSchedulingStats::DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
     std::ostringstream pathAndRnti;
     std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
     pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
-    if (macStats->ExistsImsiPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsImsiPath(pathAndRnti.str()))
     {
         imsi = macStats->GetImsiPath(pathAndRnti.str());
     }
@@ -202,7 +202,7 @@ NrMacSchedulingStats::DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
         macStats->SetImsiPath(pathAndRnti.str(), imsi);
     }
     uint16_t cellId = 0;
-    if (macStats->ExistsCellIdPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsCellIdPath(pathAndRnti.str()))
     {
         cellId = macStats->GetCellIdPath(pathAndRnti.str());
     }
@@ -226,7 +226,7 @@ NrMacSchedulingStats::UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
     std::ostringstream pathAndRnti;
     std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
     pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
-    if (macStats->ExistsImsiPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsImsiPath(pathAndRnti.str()))
     {
         imsi = macStats->GetImsiPath(pathAndRnti.str());
     }
@@ -236,7 +236,7 @@ NrMacSchedulingStats::UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
         macStats->SetImsiPath(pathAndRnti.str(), imsi);
     }
     uint16_t cellId = 0;
-    if (macStats->ExistsCellIdPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsCellIdPath(pathAndRnti.str()))
     {
         cellId = macStats->GetCellIdPath(pathAndRnti.str());
     }

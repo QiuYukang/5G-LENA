@@ -633,7 +633,7 @@ class NrSpectrumPhy : public SpectrumPhy
         std::vector<int> m_rbBitmap; //!< RB Bitmap
         uint8_t m_harqProcessId{0};  //!< HARQ process ID (MAC)
         uint8_t m_rv{0};             //!< RV
-        bool m_isDownlink{0};        //!< is Downlink?
+        bool m_isDownlink{false};    //!< is Downlink?
         uint8_t m_symStart{0};       //!< Sym start
         uint8_t m_numSym{0};         //!< Num sym
         SfnSf m_sfn;                 //!< SFN

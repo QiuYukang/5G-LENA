@@ -81,11 +81,11 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
                      LogicalChannelConfigListElement_s::QBT_GBR) &&
                 GetLCG(lcg)->GetLC(lcId)->m_eRabGuaranteedBitrateDl != UINT64_MAX)
             {
-                gbrActiveLCs.emplace_back(std::make_pair(GetLCGID(lcg), lcId));
+                gbrActiveLCs.emplace_back(GetLCGID(lcg), lcId);
                 sumErabGueanteedBitRate +=
                     (GetLCG(lcg)->GetLC(lcId)->m_eRabGuaranteedBitrateDl / 8);
             }
-            restActiveLCs.emplace_back(std::make_pair(GetLCGID(lcg), lcId));
+            restActiveLCs.emplace_back(GetLCGID(lcg), lcId);
         }
     }
 
@@ -95,7 +95,7 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
 
         if (bytesLeftToBeAssigned > 0)
         {
-            NS_ASSERT(gbrActiveLCs.size() != 0);
+            NS_ASSERT(!gbrActiveLCs.empty());
             bytesPerLcGbr = bytesLeftToBeAssigned / gbrActiveLCs.size();
 
             for (const auto& lcg : ueLCG)
@@ -104,15 +104,15 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
                 {
                     if (itGbrActiveLCs.first == GetLCGID(lcg))
                     {
-                        AssignedBytesToGbrLCsList.emplace_back(
-                            std::make_pair(itGbrActiveLCs.second, bytesPerLcGbr));
+                        AssignedBytesToGbrLCsList.emplace_back(itGbrActiveLCs.second,
+                                                               bytesPerLcGbr);
                     }
                 }
             }
             bytesLeftToBeAssigned = 0;
         }
     }
-    else if (gbrActiveLCs.size() > 0)
+    else if (!gbrActiveLCs.empty())
     {
         for (const auto& lcg : ueLCG)
         {
@@ -134,8 +134,7 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
 
                     bytesAssigned = bytes >= bytesLeftToBeAssigned ? bytesLeftToBeAssigned : bytes;
 
-                    AssignedBytesToGbrLCsList.emplace_back(
-                        std::make_pair(itGbrActiveLCs.second, bytesAssigned));
+                    AssignedBytesToGbrLCsList.emplace_back(itGbrActiveLCs.second, bytesAssigned);
 
                     NS_ASSERT(bytesLeftToBeAssigned >= bytesAssigned); // check
                     bytesLeftToBeAssigned -= bytesAssigned;
@@ -146,9 +145,9 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
 
     uint32_t bytesPerLc;
 
-    if (restActiveLCs.size() != 0 && bytesLeftToBeAssigned > 0)
+    if (!restActiveLCs.empty() && bytesLeftToBeAssigned > 0)
     {
-        NS_ASSERT(restActiveLCs.size() != 0);
+        NS_ASSERT(!restActiveLCs.empty());
         bytesPerLc = bytesLeftToBeAssigned / restActiveLCs.size();
 
         for (const auto& lcg : ueLCG)
@@ -171,12 +170,11 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
                         }
                     }
 
-                    if (erabGbrTrue == false)
+                    if (!erabGbrTrue)
                     {
                         NS_LOG_DEBUG("LC : " << +itRestActiveLCs.second
                                              << " bytes: " << bytesPerLc);
-                        ret.emplace_back(
-                            Assignation(GetLCGID(lcg), itRestActiveLCs.second, bytesPerLc));
+                        ret.emplace_back(GetLCGID(lcg), itRestActiveLCs.second, bytesPerLc);
                     }
                 }
             }
@@ -186,7 +184,7 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
     for (auto& it : AssignedBytesToGbrLCsList)
     {
         NS_LOG_DEBUG("LC : " << +it.first << " bytes: " << it.second);
-        ret.emplace_back(Assignation(1, it.first, it.second));
+        ret.emplace_back(1, it.first, it.second);
     }
 
     return ret;
@@ -233,7 +231,7 @@ NrMacSchedulerLcQos::AssignBytesToUlLC(const std::unordered_map<uint8_t, LCGPtr>
                 NS_LOG_INFO("Assigned to LCID " << static_cast<uint32_t>(lcId) << " inside LCG "
                                                 << static_cast<uint32_t>(GetLCGID(lcg))
                                                 << " an amount of " << amountPerLC << " B");
-                ret.emplace_back(Assignation(GetLCGID(lcg), lcId, amountPerLC));
+                ret.emplace_back(GetLCGID(lcg), lcId, amountPerLC);
             }
         }
     }

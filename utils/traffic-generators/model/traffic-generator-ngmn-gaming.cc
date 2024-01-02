@@ -242,9 +242,9 @@ void
 TrafficGeneratorNgmnGaming::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_initPacketArrivalVariable = 0;
-    m_packetSizeRandomVariable = 0;
-    m_packetArrivalVariable = 0;
+    m_initPacketArrivalVariable = nullptr;
+    m_packetSizeRandomVariable = nullptr;
+    m_packetArrivalVariable = nullptr;
 
     // chain up
     TrafficGenerator::DoDispose();

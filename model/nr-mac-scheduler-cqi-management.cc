@@ -41,7 +41,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     const Ptr<const SpectrumModel>& model) const
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(rbgMask.size() > 0);
+    NS_ASSERT(!rbgMask.empty());
 
     NS_LOG_INFO("Computing SB CQI for UE " << ueInfo->m_rnti);
 

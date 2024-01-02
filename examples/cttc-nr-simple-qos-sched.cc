@@ -205,7 +205,7 @@ main(int argc, char* argv[])
     std::string subType;
     std::string sched;
 
-    subType = enableOfdma == false ? "Tdma" : "Ofdma";
+    subType = !enableOfdma ? "Tdma" : "Ofdma";
     sched = "Qos";
     schedulerType << "ns3::NrMacScheduler" << subType << sched;
     std::cout << "SchedulerType: " << schedulerType.str() << std::endl;

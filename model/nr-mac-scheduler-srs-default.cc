@@ -59,7 +59,7 @@ NrMacSchedulerSrsDefault::AddUe()
     NS_LOG_FUNCTION(this);
     SrsPeriodicityAndOffset ret;
 
-    if (m_availableOffsetValues.size() == 0)
+    if (m_availableOffsetValues.empty())
     {
         return ret; // ret will be invalid
     }
@@ -121,7 +121,7 @@ NrMacSchedulerSrsDefault::DecreasePeriodicity(
 void
 NrMacSchedulerSrsDefault::SetStartingPeriodicity(uint32_t start)
 {
-    NS_ABORT_MSG_IF(m_availableOffsetValues.size() != 0,
+    NS_ABORT_MSG_IF(!m_availableOffsetValues.empty(),
                     "We already started giving offset to UEs, you cannot alter the periodicity");
 
     if (std::find(StandardPeriodicity.begin(), StandardPeriodicity.end(), start) ==

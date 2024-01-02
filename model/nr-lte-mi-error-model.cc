@@ -1008,7 +1008,7 @@ NrLteMiErrorModel::Mib(const SpectrumValue& sinr, const std::vector<int>& map, u
                             << sinrLin << " V, MCS = " << (uint16_t)mcs << ", MI = " << MI);
         MIsum += MI;
     }
-    if (map.size() == 0)
+    if (map.empty())
     {
         MI = 0;
     }
@@ -1092,7 +1092,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
     double MI = tbMi;
     double Reff = 0.0;
 
-    if (history.size() > 0)
+    if (!history.empty())
     {
         uint32_t codeBitsSum = 0;
         double miSum = 0.0;
@@ -1176,7 +1176,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
 
     double errorRate = 1.0;
     uint8_t ecrId = 0;
-    if (history.size() == 0)
+    if (history.empty())
     {
         // first tx -> get ECR from MCS
         ecrId = McsEcrBlerTableMapping[mcs];

@@ -86,7 +86,7 @@ class RbOutputStats
         uint16_t cellId;
         uint16_t bwpId;
 
-        uint32_t GetSize()
+        uint32_t GetSize() const
         {
             return sizeof(RbCache) + (rbUsed.size() * sizeof(int));
         }

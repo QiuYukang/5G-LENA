@@ -244,7 +244,7 @@ TrafficGenerator3gppGenericVideo::GetNextPacketTime() const
 {
     NS_LOG_FUNCTION(this);
     double packetJitter = 0;
-    while (1)
+    while (true)
     {
         packetJitter = m_packetJitter->GetValue();
         if (packetJitter <= m_boundJitter && packetJitter > -m_boundJitter)
@@ -269,7 +269,7 @@ TrafficGenerator3gppGenericVideo::GetNextPacketSize() const
 {
     NS_LOG_FUNCTION(this);
     uint32_t packetSize = 0;
-    while (1)
+    while (true)
     {
         packetSize = m_packetSize->GetValue();
         if (packetSize <= m_maxRatioPacketSize * m_meanPacketSize &&

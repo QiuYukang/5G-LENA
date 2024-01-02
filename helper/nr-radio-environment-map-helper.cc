@@ -761,7 +761,7 @@ Ptr<SpectrumValue>
 NrRadioEnvironmentMapHelper::GetMaxValue(const std::list<Ptr<SpectrumValue>>& values) const
 {
     // TODO add this abort, if necessary add include for abort.h
-    NS_ABORT_MSG_IF(values.size() == 0, "Must provide a list of values.");
+    NS_ABORT_MSG_IF(values.empty(), "Must provide a list of values.");
 
     Ptr<SpectrumValue> maxValue = Create<SpectrumValue>(m_rrd.spectrumModel);
     *maxValue = **(values.begin());
@@ -800,7 +800,7 @@ NrRadioEnvironmentMapHelper::CalculateSinr(
 {
     Ptr<SpectrumValue> interferencePsd = nullptr;
 
-    if (interferenceSignals.size() == 0)
+    if (interferenceSignals.empty())
     {
         return CalculateSnr(usefulSignal);
     }
@@ -829,7 +829,7 @@ NrRadioEnvironmentMapHelper::CalculateSir(
 {
     Ptr<SpectrumValue> interferencePsd = nullptr;
 
-    if (interferenceSignals.size() == 0)
+    if (interferenceSignals.empty())
     {
         // return CalculateSnr (usefulSignal);
         SpectrumValue signal = (*usefulSignal);
@@ -985,7 +985,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
 double
 NrRadioEnvironmentMapHelper::GetMaxValue(const std::list<double>& listOfValues) const
 {
-    NS_ABORT_MSG_IF(listOfValues.size() == 0,
+    NS_ABORT_MSG_IF(listOfValues.empty(),
                     "GetMaxValue should not be called "
                     "with an empty list.");
 
@@ -1022,7 +1022,7 @@ NrRadioEnvironmentMapHelper::CalculateAggregatedIpsd(
 double
 NrRadioEnvironmentMapHelper::SumListElements(const std::list<double>& listOfValues)
 {
-    NS_ABORT_MSG_IF(listOfValues.size() == 0,
+    NS_ABORT_MSG_IF(listOfValues.empty(),
                     "SumListElements should not be called "
                     "with an empty list.");
 

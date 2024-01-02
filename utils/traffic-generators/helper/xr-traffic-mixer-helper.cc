@@ -123,7 +123,7 @@ XrTrafficMixerHelper::ConfigureXr(NrXrConfig xrTrafficType)
     NS_LOG_FUNCTION(this);
     auto it = XrPreconfig.find(xrTrafficType);
     NS_ASSERT_MSG(it != XrPreconfig.end(), "Unknown NrXrConfig configuration.");
-    NS_ASSERT_MSG(m_trafficStreams.size() == 0,
+    NS_ASSERT_MSG(m_trafficStreams.empty(),
                   "Some traffic streams were already set. Default XR configuration failed.");
     for (const auto& streamType : it->second)
     {
@@ -137,8 +137,8 @@ XrTrafficMixerHelper::Install(std::string transportProtocol,
                               Ptr<Node> trafficGeneratorNode)
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(m_trafficStreams.size() > 0 && m_trafficStreams.size() <= 3);
-    NS_ASSERT(remoteAddresses.size() > 0 && remoteAddresses.size() <= 3);
+    NS_ASSERT(!m_trafficStreams.empty() && m_trafficStreams.size() <= 3);
+    NS_ASSERT(!remoteAddresses.empty() && remoteAddresses.size() <= 3);
     NS_ASSERT(remoteAddresses.size() >= m_trafficStreams.size());
     uint16_t index = 0;
 

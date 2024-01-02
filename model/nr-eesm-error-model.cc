@@ -80,7 +80,7 @@ NrEesmErrorModel::SinrExp(const SpectrumValue& sinr, const std::vector<int>& map
 {
     // it returns sum_n (exp (-SINR/beta))
     NS_LOG_FUNCTION(sinr << &map << (uint8_t)mcs);
-    NS_ABORT_MSG_IF(map.size() == 0,
+    NS_ABORT_MSG_IF(map.empty(),
                     " Error: number of allocated RBs cannot be 0 - EESM method - SinrEff function");
 
     double SINRexp = 0.0;
@@ -298,7 +298,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
                          << "MAP: " << PrintMap(map) << std::endl
                          << "SINR: " << sinr);
 
-    if (sinrHistory.size() > 0)
+    if (!sinrHistory.empty())
     {
         SINR = ComputeSINR(sinr, map, mcs, sizeBit, sinrHistory);
     }
@@ -318,7 +318,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
                                           << " bits");
 
     uint8_t mcs_eq = mcs;
-    if ((sinrHistory.size() > 0) && (mcs > 0))
+    if ((!sinrHistory.empty()) && (mcs > 0))
     {
         mcs_eq = GetMcsEq(mcs);
     }
@@ -344,7 +344,7 @@ NrEesmErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
     ret->m_sinrEff = SINR;
     ret->m_sinr = sinr;
     ret->m_map = map;
-    if (sinrHistory.size() == 0)
+    if (sinrHistory.empty())
     {
         ret->m_sinrExp = sinrExpSum; // it is first tx!
     }

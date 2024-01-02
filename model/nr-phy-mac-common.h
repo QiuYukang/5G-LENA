@@ -102,7 +102,7 @@ struct GetSecond
 struct TbInfoElement
 {
     TbInfoElement()
-        : m_isUplink(0),
+        : m_isUplink(false),
           m_varTtiIdx(0),
           m_rbBitmap(0),
           m_rbShift(0),
@@ -639,7 +639,7 @@ struct UlHarqInfo : public HarqInfo
         return m_receptionStatus == Ok;
     }
 
-    std::vector<uint8_t> GetNackStreamIndexes()
+    std::vector<uint8_t> GetNackStreamIndexes() const
     {
         std::vector<uint8_t> indexes;
         if (m_receptionStatus == NotOk)

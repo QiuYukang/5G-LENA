@@ -69,14 +69,7 @@ NrStatsCalculator::GetDlOutputFilename()
 bool
 NrStatsCalculator::ExistsImsiPath(std::string path)
 {
-    if (m_pathImsiMap.find(path) == m_pathImsiMap.end())
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
+    return m_pathImsiMap.find(path) != m_pathImsiMap.end();
 }
 
 void
@@ -95,14 +88,7 @@ NrStatsCalculator::GetImsiPath(std::string path)
 bool
 NrStatsCalculator::ExistsCellIdPath(std::string path)
 {
-    if (m_pathCellIdMap.find(path) == m_pathCellIdMap.end())
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
+    return m_pathCellIdMap.find(path) != m_pathCellIdMap.end();
 }
 
 void

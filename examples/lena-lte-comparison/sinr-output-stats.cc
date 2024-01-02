@@ -43,7 +43,7 @@ SinrOutputStats::SetDb(SQLiteOutput* db, const std::string& tableName)
 void
 SinrOutputStats::SaveSinr(uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId)
 {
-    m_sinrCache.emplace_back(SinrResultCache(cellId, bwpId, rnti, avgSinr));
+    m_sinrCache.emplace_back(cellId, bwpId, rnti, avgSinr);
 
     // Let's wait until ~1MB of entries before storing it in the database
     if (m_sinrCache.size() * sizeof(SinrResultCache) > 1000000)

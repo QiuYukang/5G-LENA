@@ -100,25 +100,25 @@ class RadioNetworkParametersHelper
      * \brief Gets the BS transmit power
      * \return Transmit power in dBW
      */
-    double GetTxPower();
+    double GetTxPower() const;
 
     /**
      * \brief Gets the operation bandwidth
      * \return Bandwidth in Hz
      */
-    double GetBandwidth();
+    double GetBandwidth() const;
 
     /**
      * \brief Gets the central frequency
      * \return Central frequency in Hz
      */
-    double GetCentralFrequency();
+    double GetCentralFrequency() const;
 
     /**
      * \brief Gets the band numerology
      * \return Numerology
      */
-    uint16_t GetNumerology();
+    uint16_t GetNumerology() const;
 
     /**
      * \brief Converts the maxMcsVectorInput (string) into an std::vector of maximum MCS used per
@@ -215,25 +215,25 @@ RadioNetworkParametersHelper::SetNetworkToNr(const std::string scenario,
 }
 
 double
-RadioNetworkParametersHelper::GetTxPower()
+RadioNetworkParametersHelper::GetTxPower() const
 {
     return m_txPower;
 }
 
 double
-RadioNetworkParametersHelper::GetBandwidth()
+RadioNetworkParametersHelper::GetBandwidth() const
 {
     return m_bandwidth;
 }
 
 double
-RadioNetworkParametersHelper::GetCentralFrequency()
+RadioNetworkParametersHelper::GetCentralFrequency() const
 {
     return m_centralFrequency;
 }
 
 uint16_t
-RadioNetworkParametersHelper::GetNumerology()
+RadioNetworkParametersHelper::GetNumerology() const
 {
     return m_numerology;
 }
@@ -276,7 +276,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     if (radioNetwork == "LTE")
     {
         ranHelper.SetNetworkToLte(scenario, operationMode, 1);
-        if (errorModel == "")
+        if (errorModel.empty())
         {
             errorModel = "ns3::LenaErrorModel";
         }
@@ -288,7 +288,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     else if (radioNetwork == "NR")
     {
         ranHelper.SetNetworkToNr(scenario, operationMode, numerology, 1);
-        if (errorModel == "")
+        if (errorModel.empty())
         {
             errorModel = "ns3::NrEesmIrT2";
         }
@@ -1246,7 +1246,7 @@ main(int argc, char* argv[])
             {
                 NS_ABORT_MSG("Programming error");
             }
-            if (logging == true)
+            if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                 Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1270,7 +1270,7 @@ main(int argc, char* argv[])
             {
                 NS_ABORT_MSG("Programming error");
             }
-            if (logging == true)
+            if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                 Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1294,7 +1294,7 @@ main(int argc, char* argv[])
             {
                 NS_ABORT_MSG("Programming error");
             }
-            if (logging == true)
+            if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                 Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1591,7 +1591,7 @@ main(int argc, char* argv[])
     clientApps.Stop(MilliSeconds(simTimeMs));
 
     // enable the traces provided by the nr module
-    if (traces == true)
+    if (traces)
     {
         if (lteHelper != nullptr)
         {

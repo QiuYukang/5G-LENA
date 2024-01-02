@@ -385,7 +385,7 @@ static uint32_t g_handoverPreparationInfoMsgIdCounter = 0;
 class NrIdealHandoverPreparationInfoHeader : public Header
 {
   public:
-    uint32_t GetMsgId();
+    uint32_t GetMsgId() const;
     void SetMsgId(uint32_t id);
     static TypeId GetTypeId();
     TypeId GetInstanceTypeId() const override;
@@ -399,7 +399,7 @@ class NrIdealHandoverPreparationInfoHeader : public Header
 };
 
 uint32_t
-NrIdealHandoverPreparationInfoHeader::GetMsgId()
+NrIdealHandoverPreparationInfoHeader::GetMsgId() const
 {
     return m_msgId;
 }
@@ -494,7 +494,7 @@ static uint32_t g_handoverCommandMsgIdCounter = 0;
 class NrIdealHandoverCommandHeader : public Header
 {
   public:
-    uint32_t GetMsgId();
+    uint32_t GetMsgId() const;
     void SetMsgId(uint32_t id);
     static TypeId GetTypeId();
     TypeId GetInstanceTypeId() const override;
@@ -508,7 +508,7 @@ class NrIdealHandoverCommandHeader : public Header
 };
 
 uint32_t
-NrIdealHandoverCommandHeader::GetMsgId()
+NrIdealHandoverCommandHeader::GetMsgId() const
 {
     return m_msgId;
 }

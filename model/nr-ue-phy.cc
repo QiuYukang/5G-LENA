@@ -709,7 +709,7 @@ NrUePhy::PushCtrlAllocations(const SfnSf currentSfnSf)
     std::vector<uint8_t> rbgBitmask(GetRbNum(), 1);
 
     // The UE still doesn't know the TDD pattern, so just add a DL CTRL
-    if (m_tddPattern.size() == 0)
+    if (m_tddPattern.empty())
     {
         NS_LOG_INFO("TDD Pattern unknown, insert DL CTRL at the beginning of the slot");
         VarTtiAllocInfo dlCtrlSlot(std::make_shared<DciInfoElementTdma>(0,
@@ -909,7 +909,7 @@ NrUePhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiDuration = GetSymbolPeriod() * dci->m_numSym;
 
-    if (m_ctrlMsgs.size() == 0)
+    if (m_ctrlMsgs.empty())
     {
         NS_LOG_DEBUG("UE" << m_rnti << " reserved space for UL CTRL frame for symbols "
                           << +dci->m_symStart << "-" << +(dci->m_symStart + dci->m_numSym - 1)
@@ -982,7 +982,7 @@ NrUePhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     m_activeDlDataStreams = 0;
     m_activeDlDataStreamsPerHarqId.clear();
     NS_ASSERT(dci->m_rnti == m_rnti);
-    NS_ASSERT(m_dlHarqInfo.size() == 0);
+    NS_ASSERT(m_dlHarqInfo.empty());
 
     for (std::size_t streamIndex = 0; streamIndex < dci->m_tbSize.size(); streamIndex++)
     {
@@ -1131,7 +1131,7 @@ NrUePhy::EndVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
         m_tryToPerformLbt = false;
     }
 
-    if (m_currSlotAllocInfo.m_varTtiAllocInfo.size() == 0)
+    if (m_currSlotAllocInfo.m_varTtiAllocInfo.empty())
     {
         // end of slot
         m_currentSlot.Add(1);
@@ -1386,7 +1386,7 @@ NrUePhy::GetCurrentSfnSf() const
 }
 
 uint16_t
-NrUePhy::GetRnti()
+NrUePhy::GetRnti() const
 {
     return m_rnti;
 }
@@ -1842,7 +1842,7 @@ NrUePhy::SelectRi(const std::vector<double>& avrgSinr)
             }
         }
 
-        NS_ABORT_MSG_IF(indexValidSinr.size() == 0, "Unable to find valid average SINR");
+        NS_ABORT_MSG_IF(indexValidSinr.empty(), "Unable to find valid average SINR");
 
         if (indexValidSinr.size() == avrgSinr.size())
         {

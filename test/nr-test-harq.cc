@@ -51,7 +51,7 @@ class TestHarqTestCase : public TestCase
     void ValidateHarqForTwoRx();
     NrErrorModel::NrErrorModelHistory GetTbDecodStats(std::vector<double> sinrRx,
                                                       NrErrorModel::NrErrorModelHistory harqHistory,
-                                                      std::string harqType);
+                                                      std::string harqType) const;
     std::vector<std::vector<double>> m_rxSinrDb; //!< SINR (dB) for each RB of each reception (each
                                                  //!< internal vector is a reception)
     std::vector<double> m_refEffSinrPerRx; //!< Effective SINR values to be used for validation for
@@ -63,12 +63,13 @@ class TestHarqTestCase : public TestCase
 NrErrorModel::NrErrorModelHistory
 TestHarqTestCase::GetTbDecodStats(std::vector<double> sinrRx,
                                   NrErrorModel::NrErrorModelHistory harqHistory,
-                                  std::string harqType)
+                                  std::string harqType) const
 {
     uint8_t nRbsRx = sinrRx.size();
 
     NrSpectrumValueHelper helper;
-    Ptr<const SpectrumModel> spectModelRx = helper.GetSpectrumModel(nRbsRx, 3.6e9, 15000);
+    Ptr<const SpectrumModel> spectModelRx =
+        ns3::NrSpectrumValueHelper::GetSpectrumModel(nRbsRx, 3.6e9, 15000);
     SpectrumValue sinrRxSpecVal(spectModelRx);
 
     for (size_t i = 0; i < sinrRx.size(); i++)

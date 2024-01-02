@@ -565,7 +565,7 @@ NrUePowerControl::UpdateFc()
     }
     else
     {
-        if (m_deltaPusch.size() > 0)
+        if (!m_deltaPusch.empty())
         {
             m_fc = m_deltaPusch.back();
             m_deltaPusch

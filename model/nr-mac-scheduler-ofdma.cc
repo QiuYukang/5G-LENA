@@ -167,7 +167,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assigned(0, 0);
         const std::vector<uint8_t> dlNotchedRBGsMask = GetDlNotchedRbgMask();
-        uint32_t resources = dlNotchedRBGsMask.size() > 0
+        uint32_t resources = !dlNotchedRBGsMask.empty()
                                  ? std::count(dlNotchedRBGsMask.begin(), dlNotchedRBGsMask.end(), 1)
                                  : GetBandwidthInRbg();
         NS_ASSERT(resources > 0);
@@ -316,7 +316,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assigned(0, 0);
         const std::vector<uint8_t> ulNotchedRBGsMask = GetUlNotchedRbgMask();
-        uint32_t resources = ulNotchedRBGsMask.size() > 0
+        uint32_t resources = !ulNotchedRBGsMask.empty()
                                  ? std::count(ulNotchedRBGsMask.begin(), ulNotchedRBGsMask.end(), 1)
                                  : GetBandwidthInRbg();
         NS_ASSERT(resources > 0);
@@ -454,7 +454,7 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     uint32_t RBGNum = ueInfo->m_dlRBG / maxSym;
     std::vector<uint8_t> rbgBitmask = GetDlNotchedRbgMask();
 
-    if (rbgBitmask.size() == 0)
+    if (rbgBitmask.empty())
     {
         rbgBitmask = std::vector<uint8_t>(GetBandwidthInRbg(), 1);
     }
@@ -540,7 +540,7 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
     uint32_t RBGNum = ueInfo->m_ulRBG / maxSym;
     std::vector<uint8_t> rbgBitmask = GetUlNotchedRbgMask();
 
-    if (rbgBitmask.size() == 0)
+    if (rbgBitmask.empty())
     {
         rbgBitmask = std::vector<uint8_t>(GetBandwidthInRbg(), 1);
     }

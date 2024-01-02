@@ -307,7 +307,7 @@ CttcRealisticBeamforming::PrepareOutputFiles()
     NS_LOG_FUNCTION(this);
     // If simulation tag is not provided create one, user can provide his own tag through the
     // command line
-    if (m_tag == "")
+    if (m_tag.empty())
     {
         m_tag = BuildTag();
     }

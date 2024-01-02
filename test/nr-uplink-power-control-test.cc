@@ -198,7 +198,7 @@ NrUplinkPowerControlTestCase::PuschTxPowerTrace(uint16_t cellId, uint16_t rnti, 
     }
     else
     {
-        if (m_puschTxPowerTraceFired == false)
+        if (!m_puschTxPowerTraceFired)
         {
             m_puschTxPowerTraceFired = true;
         }
@@ -224,7 +224,7 @@ NrUplinkPowerControlTestCase::PucchTxPowerTrace(uint16_t cellId, uint16_t rnti, 
     }
     else
     {
-        if (m_pucchTxPowerTraceFired == false)
+        if (!m_pucchTxPowerTraceFired)
         {
             m_pucchTxPowerTraceFired = true;
         }

@@ -239,7 +239,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         n2Delay = 4;
         // dlCtrlSymbols = 3;
 
-        if (errorModel == "")
+        if (errorModel.empty())
         {
             errorModel = "ns3::LenaErrorModel";
         }
@@ -252,7 +252,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     {
         rbOverhead = 0.04;
         harqProcesses = 20;
-        if (errorModel == "")
+        if (errorModel.empty())
         {
             errorModel = "ns3::NrEesmIrT1";
         }
@@ -346,7 +346,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(ueNoiseFigure));
     nrHelper->SetUePhyAttribute("EnableUplinkPowerControl", BooleanValue(enableUlPc));
 
-    if (radioNetwork == "LTE" && confType == "calibrationConf" && enableUlPc == true)
+    if (radioNetwork == "LTE" && confType == "calibrationConf" && enableUlPc)
     {
         Config::SetDefault("ns3::NrUePowerControl::ClosedLoop", BooleanValue(false));
         Config::SetDefault("ns3::NrUePowerControl::PoNominalPucch", IntegerValue(-106));
@@ -756,8 +756,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                          PointerValue(CreateObject<IsotropicAntennaModel>()));
     }
 
-    uint8_t subArraysGnb = crossPolarizedGnb == true ? 2 : 1;
-    uint8_t subArraysUe = crossPolarizedUe == true ? 2 : 1;
+    uint8_t subArraysGnb = crossPolarizedGnb ? 2 : 1;
+    uint8_t subArraysUe = crossPolarizedUe ? 2 : 1;
 
     double gnbFirstSubArray = (polSlantAngleGnb1 * M_PI) / 180.0;  // converting to radians
     double gnbSecondSubArray = (polSlantAngleGnb2 * M_PI) / 180.0; // converting to radians

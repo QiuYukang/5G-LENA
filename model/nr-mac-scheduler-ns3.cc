@@ -664,8 +664,7 @@ NrMacSchedulerNs3::DoCschedLcConfigReq(
                              << " ID=" << static_cast<uint32_t>(lcConfig.m_logicalChannelGroup));
                 std::unique_ptr<NrMacSchedulerLCG> lcg = CreateLCG(lcConfig);
                 itDl = UeInfoOf(*itUe)
-                           ->m_dlLCG
-                           .emplace(std::make_pair(lcConfig.m_logicalChannelGroup, std::move(lcg)))
+                           ->m_dlLCG.emplace(lcConfig.m_logicalChannelGroup, std::move(lcg))
                            .first;
             }
 
@@ -687,8 +686,7 @@ NrMacSchedulerNs3::DoCschedLcConfigReq(
                              << " ID=" << static_cast<uint32_t>(lcConfig.m_logicalChannelGroup));
                 std::unique_ptr<NrMacSchedulerLCG> lcg = CreateLCG(lcConfig);
                 itUl = UeInfoOf(*itUe)
-                           ->m_ulLCG
-                           .emplace(std::make_pair(lcConfig.m_logicalChannelGroup, std::move(lcg)))
+                           ->m_ulLCG.emplace(lcConfig.m_logicalChannelGroup, std::move(lcg))
                            .first;
             }
 
@@ -947,7 +945,7 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq(
         }
         NS_ASSERT(found);
 
-        if (ulAllocations.size() == 0)
+        if (ulAllocations.empty())
         {
             // remove obsolete info on allocation; we already processed all the CQI
             NS_LOG_INFO("Removing allocation for " << ulSfnSf);
@@ -1031,7 +1029,7 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks(
         HarqProcess& ueProcess = ueHarqVector.Get(harqId);
 
         NS_LOG_INFO("Evaluating feedback: " << *harqFeedbackIt);
-        if (ueProcess.m_active == false)
+        if (!ueProcess.m_active)
         {
             NS_LOG_INFO("UE " << rnti << " HARQ vector: " << ueHarqVector);
             NS_FATAL_ERROR("Received feedback for a process which is not active");
@@ -1044,7 +1042,7 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks(
         // RV number should not be greater than 3. An unscheduled stream should
         // be assigned RV = 0 in MIMO.
         NS_ASSERT(*rvIt < 4);
-        uint8_t maxHarqReTx = m_enableHarqReTx == true ? 3 : 0;
+        uint8_t maxHarqReTx = m_enableHarqReTx ? 3 : 0;
 
         if (harqFeedbackIt->IsReceivedOk() || *rvIt == maxHarqReTx)
         {
@@ -1131,18 +1129,17 @@ NrMacSchedulerNs3::PrependCtrlSym(uint8_t symStart,
                   "bitmask size " << rbgBitmask.size() << " conf " << GetBandwidthInRbg());
     if (mode == DciInfoElementTdma::DL)
     {
-        NS_ASSERT(allocations->size() == 0); // no previous allocations
-        NS_ASSERT(symStart == 0);            // start from the symbol 0
+        NS_ASSERT(allocations->empty()); // no previous allocations
+        NS_ASSERT(symStart == 0);        // start from the symbol 0
     }
 
     for (uint8_t sym = symStart; sym < symStart + numSymToAllocate; ++sym)
     {
-        allocations->emplace_front(
-            VarTtiAllocInfo(std::make_shared<DciInfoElementTdma>(sym,
-                                                                 1,
-                                                                 mode,
-                                                                 DciInfoElementTdma::CTRL,
-                                                                 rbgBitmask)));
+        allocations->emplace_front(std::make_shared<DciInfoElementTdma>(sym,
+                                                                        1,
+                                                                        mode,
+                                                                        DciInfoElementTdma::CTRL,
+                                                                        rbgBitmask));
         NS_LOG_INFO("Allocating CTRL symbol, type"
                     << mode << " in TDMA. numSym=1, symStart=" << static_cast<uint32_t>(sym)
                     << " Remaining CTRL sym to allocate: " << sym - symStart);
@@ -1169,18 +1166,17 @@ NrMacSchedulerNs3::AppendCtrlSym(uint8_t symStart,
     NS_ASSERT(rbgBitmask.size() == GetBandwidthInRbg());
     if (mode == DciInfoElementTdma::DL)
     {
-        NS_ASSERT(allocations->size() == 0); // no previous allocations
-        NS_ASSERT(symStart == 0);            // start from the symbol 0
+        NS_ASSERT(allocations->empty()); // no previous allocations
+        NS_ASSERT(symStart == 0);        // start from the symbol 0
     }
 
     for (uint8_t sym = symStart; sym < symStart + numSymToAllocate; ++sym)
     {
-        allocations->emplace_back(
-            VarTtiAllocInfo(std::make_shared<DciInfoElementTdma>(sym,
-                                                                 1,
-                                                                 mode,
-                                                                 DciInfoElementTdma::CTRL,
-                                                                 rbgBitmask)));
+        allocations->emplace_back(std::make_shared<DciInfoElementTdma>(sym,
+                                                                       1,
+                                                                       mode,
+                                                                       DciInfoElementTdma::CTRL,
+                                                                       rbgBitmask));
         NS_LOG_INFO("Allocating CTRL symbol, type"
                     << mode << " in TDMA. numSym=1, symStart=" << static_cast<uint32_t>(sym)
                     << " Remaining CTRL sym to allocate: " << sym - symStart);
@@ -1203,7 +1199,7 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
                                      const std::vector<DlHarqInfo>& dlHarqFeedback) const
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(activeDlHarq->size() == 0);
+    NS_ASSERT(activeDlHarq->empty());
 
     for (const auto& feedback : dlHarqFeedback)
     {
@@ -1459,16 +1455,15 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                     m_schedLc->AssignBytesToDlLC(ue.first->m_dlLCG,
                                                  it,
                                                  m_macSchedSapUser->GetSlotPeriod());
-                if (bytesPerLcPerStream.size() == 0)
+                if (bytesPerLcPerStream.empty())
                 {
                     bytesPerLcPerStream.resize(distributedBytes.size());
                 }
                 for (std::size_t numLc = 0; numLc < distributedBytes.size(); numLc++)
                 {
-                    bytesPerLcPerStream.at(numLc).emplace_back(
-                        NrMacSchedulerLcAlgorithm::Assignation(distributedBytes.at(numLc).m_lcg,
+                    bytesPerLcPerStream.at(numLc).emplace_back(distributedBytes.at(numLc).m_lcg,
                                                                distributedBytes.at(numLc).m_lcId,
-                                                               distributedBytes.at(numLc).m_bytes));
+                                                               distributedBytes.at(numLc).m_bytes);
                 }
             }
 
@@ -1544,7 +1539,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                                         " got bytes " << newRlcPdu.m_size);
                         }*/
 
-            NS_ABORT_IF(slotInfo.m_rlcPduInfo.size() == 0);
+            NS_ABORT_IF(slotInfo.m_rlcPduInfo.empty());
 
             slotAlloc->m_varTtiAllocInfo.emplace_back(slotInfo);
         }
@@ -1611,7 +1606,7 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
                                     SlotAllocInfo* slotAlloc) const
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(symAvail > 0 && activeUl.size() > 0);
+    NS_ASSERT(symAvail > 0 && !activeUl.empty());
     NS_ASSERT(spoint->m_rbg == 0);
 
     BeamSymbolMap symPerBeam = AssignULRBG(symAvail, activeUl);
@@ -2016,8 +2011,8 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
     // Create the UL allocation map entry
     m_ulAllocationMap.emplace(ulSfn.GetEncoding(), SlotElem(0));
 
-    if ((m_enableSrsInFSlots == true && type == LteNrTddSlotType::F) ||
-        (m_enableSrsInUlSlots == true && type == LteNrTddSlotType::UL))
+    if ((m_enableSrsInFSlots && type == LteNrTddSlotType::F) ||
+        (m_enableSrsInUlSlots && type == LteNrTddSlotType::UL))
     { // SRS are included in F slots, and in UL slots if m_enableSrsInUlSlots=true
         m_srsSlotCounter++; // It's an uint, don't worry about wrap around
         NS_ASSERT(m_srsCtrlSymbols <= ulSymAvail);
@@ -2030,7 +2025,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
                                   << " starting from (" << +ulAssignationStartPoint.m_rbg << ", "
                                   << +ulAssignationStartPoint.m_sym << ")");
 
-    if (activeUlHarq.size() > 0)
+    if (!activeUlHarq.empty())
     {
         uint8_t usedHarq = ScheduleUlHarq(&ulAssignationStartPoint,
                                           ulSymAvail,
@@ -2047,7 +2042,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
 
     NS_ASSERT(ulAssignationStartPoint.m_rbg == 0);
 
-    if (ulSymAvail > 0 && m_srList.size() > 0)
+    if (ulSymAvail > 0 && !m_srList.empty())
     {
         DoScheduleUlSr(&ulAssignationStartPoint, m_srList);
         m_srList.clear();
@@ -2081,7 +2076,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
                     ++ueIt;
                 }
             }
-            if (ueInfos.size() > 0)
+            if (!ueInfos.empty())
             {
                 ++it;
             }
@@ -2093,7 +2088,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
         }
     }
 
-    if (ulSymAvail > 0 && activeUlUe.size() > 0)
+    if (ulSymAvail > 0 && !activeUlUe.empty())
     {
         uint8_t usedUl =
             DoScheduleUlData(&ulAssignationStartPoint, ulSymAvail, activeUlUe, allocInfo);
@@ -2122,12 +2117,12 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
             if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
             {
                 NS_LOG_INFO("Placed the above allocation in the CQI map");
-                allocations.emplace_back(AllocElem(alloc.m_dci->m_rnti,
-                                                   alloc.m_dci->m_tbSize.at(0),
-                                                   alloc.m_dci->m_symStart,
-                                                   alloc.m_dci->m_numSym,
-                                                   alloc.m_dci->m_mcs.at(0),
-                                                   alloc.m_dci->m_rbgBitmask));
+                allocations.emplace_back(alloc.m_dci->m_rnti,
+                                         alloc.m_dci->m_tbSize.at(0),
+                                         alloc.m_dci->m_symStart,
+                                         alloc.m_dci->m_numSym,
+                                         alloc.m_dci->m_mcs.at(0),
+                                         alloc.m_dci->m_rbgBitmask);
             }
         }
     }
@@ -2162,7 +2157,7 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
     uint8_t used = 0;
 
     // Without UE, don't schedule any SRS
-    if (m_ueMap.size() == 0)
+    if (m_ueMap.empty())
     {
         return used;
     }
@@ -2219,7 +2214,7 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
         dci->m_rbgBitmask = rbgBitmask;
 
         allocInfo->m_numSymAlloc += 1;
-        allocInfo->m_varTtiAllocInfo.emplace_front(VarTtiAllocInfo(dci));
+        allocInfo->m_varTtiAllocInfo.emplace_front(dci);
 
         used++;
     }
@@ -2300,7 +2295,7 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
                  << " sym available: " << static_cast<uint32_t>(dlSymAvail) << " starting from sym "
                  << static_cast<uint32_t>(m_dlCtrlSymbols));
 
-    if (activeDlHarq.size() > 0)
+    if (!activeDlHarq.empty())
     {
         uint8_t usedHarq = ScheduleDlHarq(&dlAssignationStartPoint,
                                           dlSymAvail,
@@ -2336,7 +2331,7 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
                     ++ueIt;
                 }
             }
-            if (ueInfos.size() > 0)
+            if (!ueInfos.empty())
             {
                 ++it;
             }
@@ -2350,7 +2345,7 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
 
     NS_ASSERT(dlAssignationStartPoint.m_rbg == 0);
 
-    if (dlSymAvail > 0 && activeDlUe->size() > 0)
+    if (dlSymAvail > 0 && !activeDlUe->empty())
     {
         uint8_t usedDl =
             DoScheduleDlData(&dlAssignationStartPoint, dlSymAvail, *activeDlUe, allocInfo);
@@ -2389,7 +2384,7 @@ NrMacSchedulerNs3::DoSchedDlTriggerReq(
     // Merge not-retransmitted and received feedback
     std::vector<DlHarqInfo> dlHarqFeedback;
 
-    if (params.m_dlHarqInfoList.size() > 0 || m_dlHarqToRetransmit.size() > 0)
+    if (!params.m_dlHarqInfoList.empty() || !m_dlHarqToRetransmit.empty())
     {
         // m_dlHarqToRetransmit will be cleared inside MergeHARQ
         uint64_t existingSize = m_dlHarqToRetransmit.size();
@@ -2397,7 +2392,7 @@ NrMacSchedulerNs3::DoSchedDlTriggerReq(
 
         dlHarqFeedback = MergeHARQ(&m_dlHarqToRetransmit, params.m_dlHarqInfoList, "DL");
 
-        NS_ASSERT(m_dlHarqToRetransmit.size() == 0);
+        NS_ASSERT(m_dlHarqToRetransmit.empty());
         NS_ASSERT_MSG(existingSize + inSize == dlHarqFeedback.size(),
                       " existing: " << existingSize << " received: " << inSize
                                     << " calculated: " << dlHarqFeedback.size());
@@ -2484,7 +2479,7 @@ NrMacSchedulerNs3::DoSchedUlTriggerReq(
 
     // Merge not-retransmitted and received feedback
     std::vector<UlHarqInfo> ulHarqFeedback;
-    if (params.m_ulHarqInfoList.size() > 0 || m_ulHarqToRetransmit.size() > 0)
+    if (!params.m_ulHarqInfoList.empty() || !m_ulHarqToRetransmit.empty())
     {
         // m_ulHarqToRetransmit will be cleared inside MergeHARQ
         uint64_t existingSize = m_ulHarqToRetransmit.size();
@@ -2492,7 +2487,7 @@ NrMacSchedulerNs3::DoSchedUlTriggerReq(
 
         ulHarqFeedback = MergeHARQ(&m_ulHarqToRetransmit, params.m_ulHarqInfoList, "UL");
 
-        NS_ASSERT(m_ulHarqToRetransmit.size() == 0);
+        NS_ASSERT(m_ulHarqToRetransmit.empty());
         NS_ASSERT_MSG(existingSize + inSize == ulHarqFeedback.size(),
                       " existing: " << existingSize << " received: " << inSize
                                     << " calculated: " << ulHarqFeedback.size());

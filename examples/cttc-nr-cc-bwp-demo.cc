@@ -290,7 +290,7 @@ main(int argc, char* argv[])
     std::unique_ptr<ComponentCarrierInfo> cc1(new ComponentCarrierInfo());
     std::unique_ptr<BandwidthPartInfo> bwp2(new BandwidthPartInfo());
 
-    if (contiguousCc == true)
+    if (contiguousCc)
     {
         /*
          * CC band configuration n257F (NR Release 15): four contiguous CCs of
@@ -440,7 +440,7 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    if (contiguousCc == true)
+    if (contiguousCc)
     {
         // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0),
         // (1), ...

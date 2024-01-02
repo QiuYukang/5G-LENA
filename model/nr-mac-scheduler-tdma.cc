@@ -549,7 +549,7 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     std::vector<uint8_t> rbgAssigned =
         fmt == DciInfoElementTdma::DL ? GetDlNotchedRbgMask() : GetUlNotchedRbgMask();
 
-    if (rbgAssigned.size() == 0)
+    if (rbgAssigned.empty())
     {
         rbgAssigned = std::vector<uint8_t>(GetBandwidthInRbg(), 1);
     }

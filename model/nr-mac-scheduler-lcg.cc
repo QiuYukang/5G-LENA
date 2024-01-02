@@ -74,7 +74,7 @@ NrMacSchedulerLCG::Insert(LCPtr&& lc)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(!Contains(lc->m_id));
-    return m_lcMap.emplace(std::make_pair(lc->m_id, std::move(lc))).second;
+    return m_lcMap.emplace(lc->m_id, std::move(lc)).second;
 }
 
 void
@@ -115,7 +115,7 @@ uint32_t
 NrMacSchedulerLCG::GetTotalSizeOfLC(uint8_t lcId) const
 {
     NS_LOG_FUNCTION(this);
-    NS_ABORT_IF(m_lcMap.size() == 0);
+    NS_ABORT_IF(m_lcMap.empty());
     return m_lcMap.at(lcId)->GetTotalSize();
 }
 
@@ -123,6 +123,7 @@ std::vector<uint8_t>
 NrMacSchedulerLCG::GetLCId() const
 {
     std::vector<uint8_t> ret;
+    ret.reserve(m_lcMap.size());
     for (const auto& lc : m_lcMap)
     {
         ret.emplace_back(lc.first);
@@ -157,7 +158,7 @@ NrMacSchedulerLCG::GetLC(uint8_t lcId)
 {
     NS_LOG_FUNCTION(this);
 
-    NS_ASSERT(m_lcMap.size() > 0);
+    NS_ASSERT(!m_lcMap.empty());
     NS_ASSERT(GetTotalSizeOfLC(lcId) > 0);
 
     return m_lcMap.at(lcId);
@@ -167,7 +168,7 @@ void
 NrMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size, std::string type)
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(m_lcMap.size() > 0);
+    NS_ASSERT(!m_lcMap.empty());
 
     NS_LOG_INFO("Assigning " << size << " bytes to lcId: " << +lcId);
     // Update queues: RLC tx order Status, ReTx, Tx. To understand this, you have

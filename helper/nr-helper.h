@@ -368,7 +368,7 @@ class NrHelper : public Object
      * \brief GetHarqEnabled
      * \return the value of HarqEnabled variable
      */
-    bool GetHarqEnabled();
+    bool GetHarqEnabled() const;
     /**
      * \brief SetSnrTest
      * \param snrTest
@@ -380,7 +380,7 @@ class NrHelper : public Object
      * \brief GetSnrTest
      * \return the value of SnrTest variable
      */
-    bool GetSnrTest();
+    bool GetSnrTest() const;
 
     /**
      * \brief Flags for OperationBand initialization.

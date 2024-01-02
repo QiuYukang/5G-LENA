@@ -550,7 +550,7 @@ NrPhy::DoUpdateRbNum()
 
     NS_LOG_INFO("Updated RbNum to " << GetRbNum());
 
-    if (m_spectrumPhys.size())
+    if (!m_spectrumPhys.empty())
     {
         // Update the noisePowerSpectralDensity, as it depends on m_rbNum
         for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
@@ -625,7 +625,7 @@ NrPhy::PopCurrentSlotCtrlMsgs()
         return (emptylist);
     }
 
-    if (m_controlMessageQueue.at(0).size() > 0)
+    if (!m_controlMessageQueue.at(0).empty())
     {
         std::list<Ptr<NrControlMessage>> ret = m_controlMessageQueue.front();
         m_controlMessageQueue.erase(m_controlMessageQueue.begin());
@@ -785,8 +785,8 @@ NrPhy::PushFrontSlotAllocInfo(const SfnSf& newSfnSf, const SlotAllocInfo& slotAl
     {
         SfnSf old;
         SfnSf latest;
-        old.Decode(sfnMap.at(burstPair.first));
-        latest.Decode(burstPair.first);
+        ns3::SfnSf::Decode(sfnMap.at(burstPair.first));
+        ns3::SfnSf::Decode(burstPair.first);
         m_packetBurstMap.insert(std::make_pair(burstPair.first, burstPair.second));
         NS_LOG_INFO("PacketBurst with " << burstPair.second->GetNPackets() << "packets for SFN "
                                         << old << " now moved to SFN " << latest);
@@ -890,7 +890,7 @@ NrPhy::SetNoiseFigure(double d)
 {
     m_noiseFigure = d;
 
-    if (m_spectrumPhys.size() > 0 && GetRbNum() != 0)
+    if (!m_spectrumPhys.empty() && GetRbNum() != 0)
     {
         for (std::size_t streamIndex = 0; streamIndex < m_spectrumPhys.size(); streamIndex++)
         {

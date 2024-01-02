@@ -122,7 +122,7 @@ TrafficGeneratorNgmnFtpMulti::GenerateNextPacketBurstSize()
 {
     NS_LOG_FUNCTION(this);
     uint32_t fileSize = 0;
-    while (1)
+    while (true)
     {
         fileSize = m_fileSize->GetValue();
         if (fileSize <= m_maxFileSize)
@@ -152,8 +152,8 @@ void
 TrafficGeneratorNgmnFtpMulti::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_readingTime = 0;
-    m_fileSize = 0;
+    m_readingTime = nullptr;
+    m_fileSize = nullptr;
     // chain up
     TrafficGenerator::DoDispose();
 }

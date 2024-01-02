@@ -50,7 +50,7 @@ NrEesmCc::ComputeSINR(const SpectrumValue& sinr,
     last->m_sinr = sinr;
 
     NrErrorModel::NrErrorModelHistory total = sinrHistory;
-    total.push_back(last);
+    total.emplace_back(last);
 
     // evaluate SINR_eff over "total", as per Chase Combining
 

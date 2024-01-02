@@ -144,7 +144,7 @@ class TrafficGenerator : public Application
     /*
      * \return Traffic generator ID
      */
-    uint16_t GetTgId();
+    uint16_t GetTgId() const;
 
     /*
      * \brief Returns peer address
