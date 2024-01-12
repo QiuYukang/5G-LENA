@@ -107,3 +107,14 @@ clang-tidy-17:
     when: on_failure
   interruptible: true
   timeout: 3h
+
+# Check commit format and style
+check-commit-message:
+  stage: code-linting
+  image: python:latest
+  before_script:
+    - pip install GitPython
+  script:
+    # Check source code and commit messages
+    - ./tools/check-commit-message/check-commit-message.py
+  timeout: 1h
