@@ -78,7 +78,8 @@ struct BandwidthPartInfo
         UMa_Buildings,         //!< UMa with buildings
         UMi_Buildings,         //!< UMi_StreetCanyon with buildings
         V2V_Highway,           //!< V2V_Highway
-        V2V_Urban              //!< V2V_Urban
+        V2V_Urban,             //!< V2V_Urban
+        Custom                 //!< User-defined custom scenario
     } m_scenario{RMa};
 
     /**
@@ -86,6 +87,43 @@ struct BandwidthPartInfo
      * \return the string-fied version of the scenario
      */
     std::string GetScenario() const;
+
+    BandwidthPartInfo() = default;
+    /**
+     * Parameterized constructor, for directly defining BandwidthPartInfo outside of CcBwpCreator
+     *
+     * Use this constructor if you want to customize the propagation models outside of the
+     * ThreeGppPropagationModel framework (e.g., s simple Friis loss model with no shadowing
+     * or other fading models).
+     * After calling this constructor, the user is responsible for setting the m_channel pointer
+     * after adding any desired loss and delay models to it; the m_propagation and m_3GppChannel
+     * pointers may be left null.
+     *
+     * \param bwpId Bandwidth Part ID
+     * \param centralFrequency Central frequency in Hz
+     * \param channelBandwidth Channel bandwidth in Hz
+     * \param scenario The 3GPP scenario (if applicable).  If unset, will default to 'Custom'.
+     *
+     * If a 3GPP scenario is desired, the CcBwpCreator should probably be used to initialize
+     * the 3GPP propagation modesl properly; this constructor is more aimed at providing an
+     * option to configure a non-3GPP model.
+     *
+     * An example usage of this constructor to set up a Friis propagation loss model is:
+     * \code
+     *   std::vector<std::reference_wrapper<std::unique_ptr<BandwidthPartInfo> > > bwps;
+     *   std::unique_ptr<BandwidthPartInfo> bwpi (new BandwidthPartInfo (bwpId, centralFrequency,
+     * bandwidth)); auto spectrumChannel = CreateObject<MultiModelSpectrumChannel> (); auto
+     * propagationLoss = CreateObject<FriisPropagationLossModel> ();
+     *   propagationLoss->SetAttributeFailSafe ("Frequency", DoubleValue (centralFrequencyBand1));
+     *   spectrumChannel->AddPropagationLossModel (propagationLoss);
+     *   bwpi->m_channel = spectrumChannel;
+     *   bwps.push_back(bwpi);
+     * \endcode
+     */
+    BandwidthPartInfo(uint8_t bwpId,
+                      double centralFrequency,
+                      double channelBandwidth,
+                      enum Scenario scenario = BandwidthPartInfo::Custom);
 
     Ptr<SpectrumChannel>
         m_channel; //!< Channel for the Bwp. Leave it nullptr to let the helper fill it

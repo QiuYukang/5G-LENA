@@ -529,10 +529,7 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
 
     NS_ASSERT(bwp->m_channel != nullptr);
 
-    DoubleValue frequency;
-    bool res = bwp->m_propagation->GetAttributeFailSafe("Frequency", frequency);
-    NS_ASSERT_MSG(res, "Propagation model without Frequency attribute");
-    phy->InstallCentralFrequency(frequency.Get());
+    phy->InstallCentralFrequency(bwp->m_centralFrequency);
 
     phy->ScheduleStartEventLoop(n->GetId(), 0, 0, 0);
 
@@ -756,9 +753,7 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
     Ptr<NrGnbPhy> phy = m_gnbPhyFactory.Create<NrGnbPhy>();
 
     DoubleValue frequency;
-    bool res = bwp->m_propagation->GetAttributeFailSafe("Frequency", frequency);
-    NS_ASSERT_MSG(res, "Propagation model without Frequency attribute");
-    phy->InstallCentralFrequency(frequency.Get());
+    phy->InstallCentralFrequency(bwp->m_centralFrequency);
 
     phy->ScheduleStartEventLoop(n->GetId(), 0, 0, 0);
 
@@ -1405,12 +1400,17 @@ NrHelper::AssignStreams(NetDeviceContainer c, int64_t stream)
 int64_t
 NrHelper::DoAssignStreamsToChannelObjects(Ptr<NrSpectrumPhy> phy, int64_t currentStream)
 {
+    int64_t initialStream = currentStream;
+
     Ptr<ThreeGppPropagationLossModel> propagationLossModel =
         DynamicCast<ThreeGppPropagationLossModel>(
             phy->GetSpectrumChannel()->GetPropagationLossModel());
-    NS_ASSERT(propagationLossModel != nullptr);
-
-    int64_t initialStream = currentStream;
+    if (!propagationLossModel)
+    {
+        currentStream +=
+            phy->GetSpectrumChannel()->GetPropagationLossModel()->AssignStreams(currentStream);
+        return currentStream - initialStream;
+    }
 
     if (std::find(m_channelObjectsWithAssignedStreams.begin(),
                   m_channelObjectsWithAssignedStreams.end(),

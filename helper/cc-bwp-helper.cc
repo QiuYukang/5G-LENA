@@ -453,6 +453,21 @@ CcBwpCreator::PlotFrequencyBand(std::ofstream& outFile,
             << index << std::endl;
 }
 
+BandwidthPartInfo::BandwidthPartInfo(uint8_t bwpId,
+                                     double centralFrequency,
+                                     double channelBandwidth,
+                                     enum Scenario scenario)
+    : m_bwpId(bwpId),
+      m_centralFrequency(centralFrequency),
+      m_channelBandwidth(channelBandwidth),
+      m_scenario(scenario)
+{
+    NS_ASSERT_MSG(centralFrequency > channelBandwidth / 2,
+                  "Configuration error with channel bandwidth");
+    m_lowerFrequency = centralFrequency - channelBandwidth / 2;
+    m_higherFrequency = centralFrequency + channelBandwidth / 2;
+}
+
 std::string
 BandwidthPartInfo::GetScenario() const
 {
@@ -477,6 +492,7 @@ BandwidthPartInfo::GetScenario() const
         {UMi_Buildings, "UMi-StreetCanyon"},
         {V2V_Highway, "V2V-Highway"},
         {V2V_Urban, "V2V-Urban"},
+        {Custom, "Custom"},
     };
 
     return lookupTable[m_scenario];
