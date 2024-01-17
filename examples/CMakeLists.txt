@@ -24,6 +24,7 @@ set(base_examples
     traffic-generator-example
     cttc-nr-simple-qos-sched
     cttc-nr-multi-flow-qos-sched
+    cttc-nr-fh-xr
 )
 foreach(
   example
