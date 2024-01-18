@@ -15,6 +15,7 @@
 #include <ns3/log.h>
 
 #include <algorithm>
+#include <random>
 
 namespace ns3
 {
@@ -301,8 +302,12 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
             {
                 GetFirst GetUe;
-                auto schedInfoIt = GetUeVector(el).begin();
-                while (schedInfoIt != GetUeVector(el).end()) // over all UEs with data
+                std::vector<UePtrAndBufferReq> fhUeVector;
+                fhUeVector = ueVector;
+                auto rng = std::default_random_engine {};
+                std::shuffle(std::begin(fhUeVector), std::end(fhUeVector), rng);
+                auto schedInfoIt = fhUeVector.begin();
+                while (schedInfoIt != fhUeVector.end())
                 {
                     if (GetUe(*schedInfoIt)->m_dlRBG > 0) // UEs with an actual allocation
                     {
