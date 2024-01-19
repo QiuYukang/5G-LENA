@@ -31,6 +31,8 @@
 #include <functional>
 #include <string>
 #include <unordered_set>
+#include <vector>
+#include <random>
 
 namespace ns3
 {
@@ -1608,7 +1610,11 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
     if (m_nrFhPhySapProvider &&
         m_nrFhPhySapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Dropping)
     {
-        for (auto ctrlIt = m_ctrlMsgs.begin(); ctrlIt != m_ctrlMsgs.end(); /* no incr */)
+        std::vector<Ptr<NrControlMessage>> fhCtrlMsgs(m_ctrlMsgs.begin(), m_ctrlMsgs.end());
+        auto rng = std::default_random_engine {};
+        std::shuffle(std::begin(fhCtrlMsgs), std::end(fhCtrlMsgs), rng);
+
+        for (auto ctrlIt = fhCtrlMsgs.begin(); ctrlIt != fhCtrlMsgs.end(); /* no incr */)
         {
             Ptr<NrControlMessage> msg = (*ctrlIt);
             if (msg->GetMessageType() == NrControlMessage::DL_DCI)
@@ -1624,7 +1630,8 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
                                         rbgAssigned * dciInfoElem->m_numSym) == 0)
                 {
                     // drop DL DCI because data does not fit in available FH BW
-                    ctrlIt = m_ctrlMsgs.erase(ctrlIt);
+                    ctrlIt = fhCtrlMsgs.erase(ctrlIt);
+                    m_ctrlMsgs.remove(msg);
                 }
                 else
                 {
