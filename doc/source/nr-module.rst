@@ -1,3 +1,7 @@
+.. Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+..
+.. SPDX-License-Identifier: GPL-2.0-only
+
 Module Documentation
 ----------------------------
 
@@ -250,14 +254,34 @@ at NrGnbPhy and NrUePhy.
 
 Interference model
 ==================
-The PHY model is based on the well-known Gaussian interference models, according to which the powers of interfering signals (in linear units) are summed up together to determine the overall interference power. The useful and interfering signals, as well as the noise power spectral density, are processed to calculate the SNR, the SINR, and the RSSI (in dBm).
+The PHY model is based on the well-known Gaussian interference models, according
+to which the powers of interfering signals (in linear units) are summed up together
+to determine the overall interference power. The useful and interfering signals,
+as well as the noise power spectral density, are processed to calculate the SNR,
+the SINR, the RSSI (in dBm) and the RSRP (in dBm).
 
-Also, such powers are used to determine if the channel is busy or empty. For that, we are creating two events, one that adds, for any signal, the received power and another that subtracts the received power at the end time. These events determine if the channel is busy (by comparing it to a threshold) and for how long.
+Also, such powers are used to determine if the channel is busy or empty. For that,
+we are creating two events, one that adds, for any signal, the received power and
+another that subtracts the received power at the end time. These events determine
+if the channel is busy (by comparing it to a threshold) and for how long.
 
 
 Spectrum model
 ==============
-In the simulator, radio spectrum usage follows the usual way to represent radio transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents the channel characteristic, including the propagation, following the 3GPP specifications [gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs, remembering that two (or more) channel models cannot overlap over the spectrum frequencies. In the NR nodes, there will be as many physical layers as the number of channel models; each physical layer communicates to its channel model through a spectrum model instance that owns a model of the physical layer antenna. The combination of the sender's and receiver's antenna gain (given by the configured beam and the antenna element radiation pattern), the propagation loss, and the channel characteristics, provide the value of the received power spectral density for each transmitted signal. The interference among different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_. In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes, considering downlink-to-uplink and uplink-to-downlink interference.
+In the simulator, radio spectrum usage follows the usual way to represent radio
+transmission in the ns-3 simulator [baldo2009]_. The core is an object that represents
+the channel characteristic, including the propagation, following the 3GPP specifications
+[gpp-channel-dev]. In the simulation, there will be as many channel models as the user needs,
+remembering that two (or more) channel models cannot overlap over the spectrum frequencies.
+In the NR nodes, there will be as many physical layers as the number of channel models;
+each physical layer communicates to its channel model through a spectrum model instance
+that owns a model of the physical layer antenna. The combination of the sender's and
+receiver's antenna gain (given by the configured beam and the antenna element radiation pattern),
+the propagation loss, and the channel characteristics, provide the value of the
+received power spectral density for each transmitted signal. The interference among
+different nodes is calculated using the MultiModelSpectrumChannel described in [baldo2009]_.
+In this way, we can simulate dynamic spectrum access policies, as well as dynamic TDD schemes,
+considering downlink-to-uplink and uplink-to-downlink interference.
 
 
 Data PHY error model
@@ -434,20 +458,20 @@ Beamforming model
 =================
 
 Beamforming model supports two types of beamforming algorithms: ideal and realistic.
-Ideal BF methods determine the BF vectors based on either the 
-assumption of the perfect knowledge of the channel (e.g., cell scan method), 
-or the exact positions of the devices (e.g., DoA method), and they do not consume 
-any time/frequency overhead to design the BF vectors. 
-On the other hand, realistic BF methods, are expected to select the best BF 
+Ideal BF methods determine the BF vectors based on either the
+assumption of the perfect knowledge of the channel (e.g., cell scan method),
+or the exact positions of the devices (e.g., DoA method), and they do not consume
+any time/frequency overhead to design the BF vectors.
+On the other hand, realistic BF methods, are expected to select the best BF
 based on some real measurements, e.g., estimate the channel based on SRSs.
 
 For each type of beamforming methods, there is a beamforming helper, that helps the
 user to create BF tasks. For this purpose are created ``IdealBeamformingHelper`` and
 ``RealisticBeamformingHelper``, which implement
-``BeamformingHelperBase`` interface. 
+``BeamformingHelperBase`` interface.
 When a UE is attached to a gNB, the beamforming helper creates a BF task.
-The BF task is composed of a pair of connected gNB and UE devices for which 
-the BF helper will manage the update of the BF vectors by calling 
+The BF task is composed of a pair of connected gNB and UE devices for which
+the BF helper will manage the update of the BF vectors by calling
 ``GetBeamformingVectors`` of the configured BF algorithm.
 
 In Figure :ref:`fig-rbf-impl`, we show the class diagram of the beamforming model.
@@ -457,151 +481,151 @@ In Figure :ref:`fig-rbf-impl`, we show the class diagram of the beamforming mode
 .. figure:: figures/rbf-impl.*
    :align: center
    :scale: 50 %
-   
+
    Diagram of beamforming model, dependencies on 3GPP channel related classes, and ``NrGnbPhy``.
 
 
-The main difference between ``IdealBeamformingHelper`` and 
-``RealisticBeamformingHelper`` is that ideal helper triggers the update of 
-BF vectors of all devices at the same time based on 
-the configured periodicity through the ``BeamformingPeriodicity`` attribute 
-of the ``IdealBeamformingHelper`` class. 
-On the other hand, ``RealisticBeamformingAlgorithm`` triggers the update of 
+The main difference between ``IdealBeamformingHelper`` and
+``RealisticBeamformingHelper`` is that ideal helper triggers the update of
+BF vectors of all devices at the same time based on
+the configured periodicity through the ``BeamformingPeriodicity`` attribute
+of the ``IdealBeamformingHelper`` class.
+On the other hand, ``RealisticBeamformingAlgorithm`` triggers the update of
 the BF vectors when the configured trigger event occurs, and then
 only the BF vectors of the pair of devices for which the SRS measurement has been
-reported (pair of gNB and UE) are being updated. 
+reported (pair of gNB and UE) are being updated.
 
 
 **Ideal beamforming**
 
-All ideal BF algorithms inherit ``IdealBeamformingAlgorithm`` class which 
-implements the ``BeamformingAlgorithm`` interface and thus must override the function 
+All ideal BF algorithms inherit ``IdealBeamformingAlgorithm`` class which
+implements the ``BeamformingAlgorithm`` interface and thus must override the function
 ``GetBeamformingVectors`` which determines the BF vectors to be used on a pair of devices, i.e., gNB and UE.
 
-The 'NR' module supports different ideal methods: 
-beam-search or cell-scan method (``CellScanBeamforming``), 
-LOS path or DoA method (``DirectPathBeamforming``), 
+The 'NR' module supports different ideal methods:
+beam-search or cell-scan method (``CellScanBeamforming``),
+LOS path or DoA method (``DirectPathBeamforming``),
 LOS path at gNB and quasi-omni at UE (``DirectPathQuasiOmniBeamforming``),
 beam-search at gNB and quasi-omni at UE (``CellScanQuasiOmniBeamforming``), and
 quasi-omni at gNB and LOS path at UE (``QuasiOmniDirectPathBeamforming``).
 
-*  ``CellScanBeamforming`` implements a type of ideal BF algorithm that 
-   searches for the best pair of BF vectors (providing a highest average SNR) 
-   from the set of pre-defined BF vectors assuming 
-   the perfect knowledge of the channel. 
-   For the beam-search method, our simulator supports abstraction of the 
-   beam ID through two angles (azimuth and elevation). 
-   A new interface allows you to have the beam ID available at MAC layer for 
-   scheduling purposes. 
+*  ``CellScanBeamforming`` implements a type of ideal BF algorithm that
+   searches for the best pair of BF vectors (providing a highest average SNR)
+   from the set of pre-defined BF vectors assuming
+   the perfect knowledge of the channel.
+   For the beam-search method, our simulator supports abstraction of the
+   beam ID through two angles (azimuth and elevation).
+   A new interface allows you to have the beam ID available at MAC layer for
+   scheduling purposes.
 
-*  ``DirectPathBeamforming`` assumes knowledge of the pointing angle in between devices, 
-   and configures transmit/receive beams pointing into the LOS path direction. 
+*  ``DirectPathBeamforming`` assumes knowledge of the pointing angle in between devices,
+   and configures transmit/receive beams pointing into the LOS path direction.
 
-*  ``DirectPathQuasiOmniBeamforming`` uses the LOS path for configuring gNB beams, 
+*  ``DirectPathQuasiOmniBeamforming`` uses the LOS path for configuring gNB beams,
    while configures quasi-omnidirectional beamforming vectors at UEs (for transmission and reception).
 
-*  ``QuasiOmniDirectPathBeamforming`` configures quasi-omnidirectional BF vectors at gNB, 
+*  ``QuasiOmniDirectPathBeamforming`` configures quasi-omnidirectional BF vectors at gNB,
    while uses the LOS path for configuring UE beams (for transmission and reception).
 
-*  ``CellScanQuasiOmniBeamforming`` configures cell-scan BF vectors at gNB and 
-   quasi-omni BF vectors at UE. 
+*  ``CellScanQuasiOmniBeamforming`` configures cell-scan BF vectors at gNB and
+   quasi-omni BF vectors at UE.
 
 Previous models were supporting also long-term covariance matrix based method
-(``OptimalCovMatrixBeamforming``) which is currently not available due to 
+(``OptimalCovMatrixBeamforming``) which is currently not available due to
 incompatibility with the latest ns-3 3GPP channel model.
-Modifications are needed in order to port this method from the 
-old 5G-LENA code-base and adapt it to the latest ns-3 3gpp channel model 
-(Contributions are welcome!). ``OptimalCovMatrixBeamforming`` determines 
-the optimal transmit and receive beam based on the perfect knowledge 
+Modifications are needed in order to port this method from the
+old 5G-LENA code-base and adapt it to the latest ns-3 3gpp channel model
+(Contributions are welcome!). ``OptimalCovMatrixBeamforming`` determines
+the optimal transmit and receive beam based on the perfect knowledge
 of the channel matrix.
 
 **Realistic beamforming**
 
-To implement a new realistic BF algorithm, we have created a separate class called 
+To implement a new realistic BF algorithm, we have created a separate class called
 ``RealisticBeamformingAlgorithm`` which relies on SRS SINR/SNR measurements to determine BF vectors.
 Similarly to previously mentioned ``CellScanBeamforming``, there is a set of
-pre-defined BF vectors, but the knowledge of the channel is not perfect, 
+pre-defined BF vectors, but the knowledge of the channel is not perfect,
 and depends on the quality of reported SRS measurement. The SRS measurement (SINR or SNR)
 can be configured through the ``UseSnrSrs`` attribute of ``RealisticBeamformingAlgorithm``.
 Basically, if the SNR is used, no interference is assumed in SRS; meanwhile if SINR measurement is used,
 the worst-case inter-cell interference is assumed (i.e., SRS that use the same SRS resource will interfere,
 independently of the orthogonality of the employed Zadoff-Chu sequences).
-The BF vector trigger update event can be either SRS count event 
-(e.g., after every N SRSs are received, the BF vectors are updated), 
-or based on the delay event after SRS reception (e.g., :math:`\delta` 
+The BF vector trigger update event can be either SRS count event
+(e.g., after every N SRSs are received, the BF vectors are updated),
+or based on the delay event after SRS reception (e.g., :math:`\delta`
 time after each SRS reception).
-The type of event and its parameters can be configured through ``RealisticBfManager`` class. 
-Hence, in order to use realistic BF functionality it is necessary to install 
-``RealisticBfManager`` at gNBs PHY instead of the default ``BeamManager`` class. 
-The configuration of trigger event and its parameters can be done per 
+The type of event and its parameters can be configured through ``RealisticBfManager`` class.
+Hence, in order to use realistic BF functionality it is necessary to install
+``RealisticBfManager`` at gNBs PHY instead of the default ``BeamManager`` class.
+The configuration of trigger event and its parameters can be done per
 gNB instance granularity, but can be easily extended to be done per UE.
 
 For each BF task, an instance of realistic BF algorithm is created,
 which is then connected to ``NrSpectrumPhy`` SRS SINR/SNR trace to receive SRS reports.
-Realistic BF algorithm is also connected to its helper through a callback to 
-notify it when BF vectors of a device pair need to be updated 
-(based on configuration and SRS reports). 
-When BF vectors need to be updated, the function ``GetBeamformingVector`` 
-or realistic BF algorithm is called, which calls ``GetEstimatedLongTermComponent`` 
-for each pair of pre-defined beams of the receiver and transmitter in order to 
-estimate the channel quality of each of them based on the SRS reports. 
-The estimation of the channel is done based on the abstraction model explained in the following 
-section. 
-Finally, ``CalculateTheEstimatedLongTermMetric`` calculates the metric that is used to select the 
+Realistic BF algorithm is also connected to its helper through a callback to
+notify it when BF vectors of a device pair need to be updated
+(based on configuration and SRS reports).
+When BF vectors need to be updated, the function ``GetBeamformingVector``
+or realistic BF algorithm is called, which calls ``GetEstimatedLongTermComponent``
+for each pair of pre-defined beams of the receiver and transmitter in order to
+estimate the channel quality of each of them based on the SRS reports.
+The estimation of the channel is done based on the abstraction model explained in the following
+section.
+Finally, ``CalculateTheEstimatedLongTermMetric`` calculates the metric that is used to select the
 best BF pair.
 
-In Figure :ref:`fig-rbf-impl`, we show the diagram of the classes that are used for realistic 
-BF based on SRS measurements, the dependencies among classes, and the most important 
-methods. E.g., we can see that `RealisticBeamformingAlgorithm` 
+In Figure :ref:`fig-rbf-impl`, we show the diagram of the classes that are used for realistic
+BF based on SRS measurements, the dependencies among classes, and the most important
+methods. E.g., we can see that `RealisticBeamformingAlgorithm`
 needs to access to `ThreeGppChannelModel` to obtain the channel matrix in order to perform the estimation of the channel based on SRS report.
 
 
 **Abstraction model for SRS-based channel estimation**
 
-Assume a single-antenna system. Let 
-:math:`h` denote the (complex-valued) small-scale fading channel 
-between a UE and a gNB. Then, the estimation of the small-scale fading channel 
+Assume a single-antenna system. Let
+:math:`h` denote the (complex-valued) small-scale fading channel
+between a UE and a gNB. Then, the estimation of the small-scale fading channel
 at the gNB can be modeled as in [SigProc5G]_ :
 
 :math:`\hat{h} = \alpha (h+e)`,
 
-where :math:`\alpha` is a scaling factor to maintain normalization of 
-the estimated channel, and :math:`e` is the white complex Gaussian 
-channel estimation error. 
-The estimation error is assumed to be characterized by zero-mean and variance 
-:math:`\sigma_e^2`. 
+where :math:`\alpha` is a scaling factor to maintain normalization of
+the estimated channel, and :math:`e` is the white complex Gaussian
+channel estimation error.
+The estimation error is assumed to be characterized by zero-mean and variance
+:math:`\sigma_e^2`.
 
 The variance of the error is given by:
 
 :math:`\sigma_e^2 = \frac{1}{(SINR+\Delta)}`,
 
 where SINR is the received SINR (or SNR) of SRS at the gNB and :math:`\Delta`
-is the gain obtained from time-domain filtering during the channel estimation. 
-According to 3GPP analysis of SRS transmission, :math:`\Delta` 
-is set to 9 dB [SigProc5G]_. The scaling factor is given by: 
+is the gain obtained from time-domain filtering during the channel estimation.
+According to 3GPP analysis of SRS transmission, :math:`\Delta`
+is set to 9 dB [SigProc5G]_. The scaling factor is given by:
 
 :math:`\alpha = \sqrt{\frac{1}{(1+\sigma_e^2)}}`.
 
-Then, the channel matrix estimate can be used to compute transmit/receive BF 
+Then, the channel matrix estimate can be used to compute transmit/receive BF
 vectors, as part of the beam management.
 
 
 SRS transmission and reception
 ==============================
 
-SRS transmission typically spans over 1, 2 or 4 consecutive OFDM symbols at the end 
-of the NR slot. 5G-LENA implements such behaviour in the time domain by allowing 
-different configurations. In the frequency domain, in order to allow frequency multiplexing, 
-SRS is typically transmitted over only a subset of subcarriers, defined by the 
-configuration, e.g., each 2nd or each 4th subcarrier is used for SRS transmission. 
-However, since the minimum transmission granularity in 5G-LENA module is a RB in frequency domain, 
+SRS transmission typically spans over 1, 2 or 4 consecutive OFDM symbols at the end
+of the NR slot. 5G-LENA implements such behaviour in the time domain by allowing
+different configurations. In the frequency domain, in order to allow frequency multiplexing,
+SRS is typically transmitted over only a subset of subcarriers, defined by the
+configuration, e.g., each 2nd or each 4th subcarrier is used for SRS transmission.
+However, since the minimum transmission granularity in 5G-LENA module is a RB in frequency domain,
 all subcarriers are used for SRS transmission.
-Figure :ref:`fig-srs-5glena` shows the slot structure and the symbols over which the 
+Figure :ref:`fig-srs-5glena` shows the slot structure and the symbols over which the
 SRS transmission spans, assuming a repeated TDD pattern structure of
-[DL F UL UL UL] (i.e., one DL slot, followed by one flexible slot and three UL 
+[DL F UL UL UL] (i.e., one DL slot, followed by one flexible slot and three UL
 slots and that SRS transmissions occur in F slots (i.e., slots number 1 and 6 in the figure).
-In 5G-LENA, flexible slots consist of DL/UL control symbols and 
-a variable number of DL and UL symbols for data; DL slots carry only DL control 
+In 5G-LENA, flexible slots consist of DL/UL control symbols and
+a variable number of DL and UL symbols for data; DL slots carry only DL control
 and DL data; and UL slots consist of UL data and UL control parts.
 
 .. _fig-srs-5glena:
@@ -609,44 +633,44 @@ and DL data; and UL slots consist of UL data and UL control parts.
 .. figure:: figures/srs-ext3.*
    :align: center
    :scale: 50 %
-    
-   Example of SRS transmissions of 4 different UEs (maximum 1 UE SRS transmission per slot, as per 5G-LENA design), considering SRS periodicity equal to 20 slots. Numerology considered is :math:`\mu=0`. F stands for frame and SF for subframe.
-    
 
-In 5G NR, SRS parameters, such as periodicity and offset, are typically configured 
-by RRC and notified to UE [TS38331]_. Another option is to have gNB MAC scheduler to 
-determine the SRS periodicity/offset and then to notify UE through DCI format 2\_3 on 
-which resources SRS should be transmitted [TS38212]_. The latter option, scheduling-based SRS, 
-is a more dynamic approach and allows more flexible SRS parameter and periodicity assignment, 
-e.g., when there are less UEs, a lower periodicity value can be used, while when there 
-are more UEs, the gNB MAC scheduler can dynamically increase the periodicity and then 
+   Example of SRS transmissions of 4 different UEs (maximum 1 UE SRS transmission per slot, as per 5G-LENA design), considering SRS periodicity equal to 20 slots. Numerology considered is :math:`\mu=0`. F stands for frame and SF for subframe.
+
+
+In 5G NR, SRS parameters, such as periodicity and offset, are typically configured
+by RRC and notified to UE [TS38331]_. Another option is to have gNB MAC scheduler to
+determine the SRS periodicity/offset and then to notify UE through DCI format 2\_3 on
+which resources SRS should be transmitted [TS38212]_. The latter option, scheduling-based SRS,
+is a more dynamic approach and allows more flexible SRS parameter and periodicity assignment,
+e.g., when there are less UEs, a lower periodicity value can be used, while when there
+are more UEs, the gNB MAC scheduler can dynamically increase the periodicity and then
 update the offsets accordingly. We have implemented scheduling-based SRS.
 
-To allow dynamic SRS scheduling and adjustment of SRS periodicity/offset of all UEs, 
-we introduced ``NrMacSchedulerSrs`` and ``NrMacSchedulerSrsDefault`` into 5G-LENA model. 
+To allow dynamic SRS scheduling and adjustment of SRS periodicity/offset of all UEs,
+we introduced ``NrMacSchedulerSrs`` and ``NrMacSchedulerSrsDefault`` into 5G-LENA model.
 
-``NrMacSchedulerSrs`` is an interface that is used by the NR gNB MAC scheduler to obtain 
-the SRS offset/periodicity for a UE. There can be various implementations 
-of this interface that would simulate different algorithms for SRS 
-offset/periodicity generation. 
-In ``NrMacSchedulerSrsDefault``, we provide one possible implementation. 
-Each time a new UE is attached it is called the function ``AddUe`` 
-that returns the offset/periodicity configuration. When scheduler detects 
-that the SRS periodicity is too small for the number of UEs it calls the 
-``IncreasePeriodicity``, which picks up the next periodicity value from the list 
-of standard  values, i.e., 2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 
-1280, 2560 slots [TS38331]_. 
-Scheduling-based SRS is more flexible approach than SRS configuration through 
-RRC. E.g., in 4G-LENA SRS configuration is through RRC and static, which requires 
-that a user needs to  configure SRS periodicity based on the maximum expected number 
-of UEs in the simulation scenario. To allow dynamic SRS periodicity adaptation in 
-5G-LENA, it was necessary to set a constraint which is that at most 1 UE can send 
+``NrMacSchedulerSrs`` is an interface that is used by the NR gNB MAC scheduler to obtain
+the SRS offset/periodicity for a UE. There can be various implementations
+of this interface that would simulate different algorithms for SRS
+offset/periodicity generation.
+In ``NrMacSchedulerSrsDefault``, we provide one possible implementation.
+Each time a new UE is attached it is called the function ``AddUe``
+that returns the offset/periodicity configuration. When scheduler detects
+that the SRS periodicity is too small for the number of UEs it calls the
+``IncreasePeriodicity``, which picks up the next periodicity value from the list
+of standard  values, i.e., 2, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640,
+1280, 2560 slots [TS38331]_.
+Scheduling-based SRS is more flexible approach than SRS configuration through
+RRC. E.g., in 4G-LENA SRS configuration is through RRC and static, which requires
+that a user needs to  configure SRS periodicity based on the maximum expected number
+of UEs in the simulation scenario. To allow dynamic SRS periodicity adaptation in
+5G-LENA, it was necessary to set a constraint which is that at most 1 UE can send
 the SRS in a single slot.
 
-Configuration parameters related to SRS transmissions are specified in ``NrMacSchedulerNs3`` 
-class. The user can configure the number of SRS symbols that will be allocated 
-for SRS transmission through the attribute ``SrsSymbols``. Additionally, 
-the user can configure whether SRS will be transmitted only in flexible slots, 
+Configuration parameters related to SRS transmissions are specified in ``NrMacSchedulerNs3``
+class. The user can configure the number of SRS symbols that will be allocated
+for SRS transmission through the attribute ``SrsSymbols``. Additionally,
+the user can configure whether SRS will be transmitted only in flexible slots,
 or in both flexible and UL slots by setting the attribute ``EnableSrsInUlSlots``.
 
 
@@ -655,46 +679,46 @@ or in both flexible and UL slots by setting the attribute ``EnableSrsInUlSlots``
 Uplink power control
 ====================
 
-Uplink Power Control (ULPC) allows an eNB to adjust the transmission power 
-of an UE, and as such it plays a critical role in reducing inter-cell Interference. 
-In LTE and NR, the standardized procedure can have two forms: open and closed loop, 
-where closed loop relies on open loop functionality, and extends it with control 
-coming from eNB. Open loop can be entirely implemented at UE side, while the 
-closed loop depends on the algorithm and the logic implemented at eNB. 
-Open loop in general is aimed to compensate the slow variations of the received 
-signal (i.e., path loss and shadowing), while CLPC is used to further adjust 
-the UEs’ transmission power so as to optimize the overall system performance. 
-ULPC determines a power for different types of transmissions, such as, PUSCH, 
+Uplink Power Control (ULPC) allows an eNB to adjust the transmission power
+of an UE, and as such it plays a critical role in reducing inter-cell Interference.
+In LTE and NR, the standardized procedure can have two forms: open and closed loop,
+where closed loop relies on open loop functionality, and extends it with control
+coming from eNB. Open loop can be entirely implemented at UE side, while the
+closed loop depends on the algorithm and the logic implemented at eNB.
+Open loop in general is aimed to compensate the slow variations of the received
+signal (i.e., path loss and shadowing), while CLPC is used to further adjust
+the UEs’ transmission power so as to optimize the overall system performance.
+ULPC determines a power for different types of transmissions, such as, PUSCH,
 PUCCH, and SRS.
 
-As a starting point for the development of ULPC feature for LTE/NR we have used 
-implementation that was already available in ns-3 simulator in LTE module 
-(see the full description here: ns-3 LTE Uplink Power Control Design [lte-ulpc]_. 
-However, this class only supports PUSCH and SRS power control, while there is 
-no support for PUCCH. Since in the goal is to have a high fidelity simulations 
-with realistic uplink transmissions, including PUCCH, CLPC for PUCCH is a 
-mandatory feature. Whatsoever in ns-3 LTE module, this was not considered 
-important since in ns-3 LTE models all uplink control messages are modeled 
-as ideal (do not consume resources, and hence no error model). Moreover, 
-ns-3 LTE ULPC implements only TS 36.213, which is limited only to a specific 
-set of frequencies. A newer TS 38.213 extends TS 36.213 and allows its 
-application in a wider range of frequencies. In our extended model, 
-we have added support for an independent reporting of Transmit Power Command 
+As a starting point for the development of ULPC feature for LTE/NR we have used
+implementation that was already available in ns-3 simulator in LTE module
+(see the full description here: ns-3 LTE Uplink Power Control Design [lte-ulpc]_.
+However, this class only supports PUSCH and SRS power control, while there is
+no support for PUCCH. Since in the goal is to have a high fidelity simulations
+with realistic uplink transmissions, including PUCCH, CLPC for PUCCH is a
+mandatory feature. Whatsoever in ns-3 LTE module, this was not considered
+important since in ns-3 LTE models all uplink control messages are modeled
+as ideal (do not consume resources, and hence no error model). Moreover,
+ns-3 LTE ULPC implements only TS 36.213, which is limited only to a specific
+set of frequencies. A newer TS 38.213 extends TS 36.213 and allows its
+application in a wider range of frequencies. In our extended model,
+we have added support for an independent reporting of Transmit Power Command
 (TPC) for PUSCH/SRS and PUCCH.
 
-ULPC is implemented in ``NrUePowerControl`` class which computes and updates 
+ULPC is implemented in ``NrUePowerControl`` class which computes and updates
 the power levels for PUSCH, SRS transmissions and PUCCH. It supports open and closed loop modes.
-According the open loop the UE transmission power depends on the estimation 
-of the downlink path loss and channel configuration. On the other hand, 
-closed loop, additionally allows the gNB to control the UE transmission 
+According the open loop the UE transmission power depends on the estimation
+of the downlink path loss and channel configuration. On the other hand,
+closed loop, additionally allows the gNB to control the UE transmission
 power by means of explicit TPC included in the DCI. In closed Loop, two modes are available: the absolute mode, according
-to which the txPower is computed with absolute TPC values, and the accumulation 
-mode, which instead computes the txPower using accumulated TPC values. When 
-the MAC scheduler creates DCI messages, it calls the GetTpc function to ask 
-for TPC values that should be sent to each UE. 
+to which the txPower is computed with absolute TPC values, and the accumulation
+mode, which instead computes the txPower using accumulated TPC values. When
+the MAC scheduler creates DCI messages, it calls the GetTpc function to ask
+for TPC values that should be sent to each UE.
 
-NrUePowerControl is inspired by LteUePowerControl, but most of the parts 
-had to be extended or redefined. Comparing to LteUePowerControl, the 
+NrUePowerControl is inspired by LteUePowerControl, but most of the parts
+had to be extended or redefined. Comparing to LteUePowerControl, the
 following features are added:
 
 - PUCCH power control,
@@ -702,12 +726,12 @@ following features are added:
 - independent TPC reporting for PUSCH and PUCCH,
 - TS 38.213 technical specification for NR uplink power control (PUSCH, PUCCH, SRS power control)
 - upgrade the API to reduce time/memory footprint that could affect significantly large scale simulations.
- 
 
-Moreover, NrUePowerControl includes a full implementation of LTE and NR 
-uplink power control functionalities, by allowing a user to specify in 
-which mode the power control will execute: LTE/LAA (TS 36.213) or NR (and TS 38.213) 
-uplink power control (i.e., by using TSpec attribute of NrUePowerControl). 
+
+Moreover, NrUePowerControl includes a full implementation of LTE and NR
+uplink power control functionalities, by allowing a user to specify in
+which mode the power control will execute: LTE/LAA (TS 36.213) or NR (and TS 38.213)
+uplink power control (i.e., by using TSpec attribute of NrUePowerControl).
 As a results, NrUePowerControl supports the following:
 
 - PUSCH power control implementation for LTE and NR
@@ -718,12 +742,12 @@ As a results, NrUePowerControl supports the following:
 
 **LTE PUSCH power control**
 
-The formula for LTE PUSCH is provided in Section 5.1.1.1 of TS 36.213. 
-There are two types of formulas, for simultaneous transmission of PUSCH and PUCCH, 
-and separated. Currently we have implemented the option when the 
-transmissions of PUCCH and PUSCH are not simultaneous, since this is 
-the current model design of both LTE (LENA v1) and NR (LENA v2) modules. 
-The following formula defines the LTE PUSCH power control that we implemented 
+The formula for LTE PUSCH is provided in Section 5.1.1.1 of TS 36.213.
+There are two types of formulas, for simultaneous transmission of PUSCH and PUCCH,
+and separated. Currently we have implemented the option when the
+transmissions of PUCCH and PUSCH are not simultaneous, since this is
+the current model design of both LTE (LENA v1) and NR (LENA v2) modules.
+The following formula defines the LTE PUSCH power control that we implemented
 in NrUePowerControl class:
 
 
@@ -734,37 +758,37 @@ in NrUePowerControl class:
    :scale: 35 %
 
 
-*  :math:`P_{CMAX,c}(i)` is the UE configured maximum output transmit power defined as defined in 3GPP 36.101. (Table 6.2.2-1) 
-   in a subframe :math:`i` for the serving cell :math:`c`, and  default value for :math:`P_{CMAX,c}(i)` is 23 dBm. 
- 
-*  :math:`M_{PUSCH,c}(i)` is the bandwidth of the PUSCH resource assignment expressed in number 
+*  :math:`P_{CMAX,c}(i)` is the UE configured maximum output transmit power defined as defined in 3GPP 36.101. (Table 6.2.2-1)
+   in a subframe :math:`i` for the serving cell :math:`c`, and  default value for :math:`P_{CMAX,c}(i)` is 23 dBm.
+
+*  :math:`M_{PUSCH,c}(i)` is the bandwidth of the PUSCH resource assignment expressed in number
    of resource blocks used in a subframe :math:`i` and serving cell :math:`c`.
 
-*  :math:`P_{O\_PUSCH,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,c}(j)` 
-   provided from higher layers :math:`j={0,1}` and a component :math:`P_{O\_UE\_PUSCH,c}(j)` provided by higher 
-   layers for :math:`j={0,1}` for serving cell :math:`C`. SIB2 message needs to be extended to carry these two 
-   components, but currently they can be set via attribute system using ``NrUePowerControl`` class attributes: ``PoNominalPusch`` 
+*  :math:`P_{O\_PUSCH,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,c}(j)`
+   provided from higher layers :math:`j={0,1}` and a component :math:`P_{O\_UE\_PUSCH,c}(j)` provided by higher
+   layers for :math:`j={0,1}` for serving cell :math:`C`. SIB2 message needs to be extended to carry these two
+   components, but currently they can be set via attribute system using ``NrUePowerControl`` class attributes: ``PoNominalPusch``
    and ``PoUePusch``.
-   
-*  :math:`\alpha_{c} (j)` is a 3-bit parameter provided by higher layers for serving cell :math:`c`. 
-   For :math:`j=0,1`, :math:`\alpha_c \in \left \{ 0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 \right \}` . 
-   For :math:`j=2`, :math:`\alpha_{c} (j) = 1`. This parameter is configurable by attribute system 
+
+*  :math:`\alpha_{c} (j)` is a 3-bit parameter provided by higher layers for serving cell :math:`c`.
+   For :math:`j=0,1`, :math:`\alpha_c \in \left \{ 0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1 \right \}` .
+   For :math:`j=2`, :math:`\alpha_{c} (j) = 1`. This parameter is configurable by attribute system
    by setting ``Alpha`` attribute of ``NrUePowerControl`` class.
 
-*  :math:`PL_{c}` is the downlink pathloss estimate calculated at the UE for the serving cell :math:`c` in dB 
-   and :math:`PL_{c} = P_{RS} – P_{RSRP}`, where :math:`P_{RS}` is provided by higher layers. 
+*  :math:`PL_{c}` is the downlink pathloss estimate calculated at the UE for the serving cell :math:`c` in dB
+   and :math:`PL_{c} = P_{RS} – P_{RSRP}`, where :math:`P_{RS}` is provided by higher layers.
    P_{RSRP} is filtered by higher layers. :math:`P_{RS}` is provided in SIB2 message.
 
-*  :math:`\Delta_{TF,c}(i)` is calculated based on :math:`K_{s}` which is provided by the 
-   higher layers for each serving cell. When :math:`K_{s} = 1.25` then :math:`\Delta_{TF,c}(i)` 
+*  :math:`\Delta_{TF,c}(i)` is calculated based on :math:`K_{s}` which is provided by the
+   higher layers for each serving cell. When :math:`K_{s} = 1.25` then :math:`\Delta_{TF,c}(i)`
    is calculated by using the following formula:
    :math:`\Delta_{TF,c}(i) = 10\log_{10}((2^{BPRE\cdot K_s}-1)\cdot\beta_{offset}^{PUSCH} )`.
    On the other hand, when :math:`K_{s} = 0`, :math:`\Delta_{TF,c}(i) = 0`.
-   Currently, the latter option is set by default, and alternatively, the value could be dynamically 
+   Currently, the latter option is set by default, and alternatively, the value could be dynamically
    set through set function according to the previously mentioned formula and attribute settings.
 
-*  :math:`f_{c}(i)` is component of Closed Loop Power Control. It is the current PUSCH power control 
-   adjustment state for serving cell :math:`c`. 
+*  :math:`f_{c}(i)` is component of Closed Loop Power Control. It is the current PUSCH power control
+   adjustment state for serving cell :math:`c`.
 
    If Accumulation Mode is enabled :math:`f_{c}(i)` is given by:
 
@@ -781,12 +805,12 @@ in NrUePowerControl class:
    Minimum UE power is defined in TS 36.101 section 6.2.3. Default value is -40 dBm.
 
    If Accumulation Mode is not enabled :math:`f_{c}(i)` is given by:
-      
+
       .. math::
 
          f_{c}(i) = \delta_{PUSCH,c}(i - K_{PUSCH})
 
-   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included 
+   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included
    in PDCCH with DCI; :math:`\delta_{PUSCH,c}(i - K_{PUSCH})` was signalled on PDCCH/EPDCCH with DCI for
    serving cell :math:`c` on subframe :math:`(i - K_{PUSCH})`; :math:`K_{PUSCH} = 4` for FDD.
 
@@ -798,9 +822,9 @@ in NrUePowerControl class:
 
 **NR PUSCH power control**
 
-NR PUSCH formula is provided in Section 7.1.1 of TS 38.213. This formula is analog to the LTE PUSCH 
-power control, except that is more generic and that the TPC accumulation state is calculated differently. 
-NR PUSCH formula depends of the numerology (0 - 4, 0 for LTE) and this makes the formula more generic, 
+NR PUSCH formula is provided in Section 7.1.1 of TS 38.213. This formula is analog to the LTE PUSCH
+power control, except that is more generic and that the TPC accumulation state is calculated differently.
+NR PUSCH formula depends of the numerology (0 - 4, 0 for LTE) and this makes the formula more generic,
 and flexible for different subcarrier spacing configurations:
 
 
@@ -811,36 +835,36 @@ and flexible for different subcarrier spacing configurations:
    :scale: 35 %
 
 
-*  :math:`P_{CMAX,f,c}(i)` is the UE configured maximum output transmit power defined in [8-1, TS 38.101-1], [8-2, TS38.101-2] 
-   and [TS38.101-3] for carrier :math:`f` for serving cell :math:`c` in PUSCH transmission occasion :math:`i`. Default 
+*  :math:`P_{CMAX,f,c}(i)` is the UE configured maximum output transmit power defined in [8-1, TS 38.101-1], [8-2, TS38.101-2]
+   and [TS38.101-3] for carrier :math:`f` for serving cell :math:`c` in PUSCH transmission occasion :math:`i`. Default
    value for :math:`P_{CMAX,f,c}(i)` is 23 dBm.
-   
-*  :math:`P_{O\_PUSCH,b,f,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,b,f,c}(j)` 
-   provided from higher layers and a component :math:`P_{O\_UE\_PUSCH,b,f,c}(j)` provided by higher layers for serving 
-   cell :math:`C` where :math:`j \in \left \{0, 1, ..., J-1 \right \}`. These attributes can be set in the same way as 
+
+*  :math:`P_{O\_PUSCH,b,f,c}(j)` is a parameter composed of the sum of a component :math:`P_{O\_NOMINAL\_PUSCH,b,f,c}(j)`
+   provided from higher layers and a component :math:`P_{O\_UE\_PUSCH,b,f,c}(j)` provided by higher layers for serving
+   cell :math:`C` where :math:`j \in \left \{0, 1, ..., J-1 \right \}`. These attributes can be set in the same way as
    for TS 36.213 PUSCH per each bandwidth part independently.
-   
-*  :math:`M_{RB,b,f,c}^{PUSCH}(i)` is the bandwidth of the PUSCH resource assignment expressed in number 
-   of resource blocks for PUSCH transmission occasion :math:`i` on active UL BWP :math:`b` of carrier :math:`f` and 
+
+*  :math:`M_{RB,b,f,c}^{PUSCH}(i)` is the bandwidth of the PUSCH resource assignment expressed in number
+   of resource blocks for PUSCH transmission occasion :math:`i` on active UL BWP :math:`b` of carrier :math:`f` and
    serving cell :math:`c`. :math:`\mu` is numerology used for SCS configuration defined in [TS 38.211].
-   
-*  :math:`\alpha_{b,f,c} (j)` is a 3-bit parameter provided by higher layers. Currently, allowed values 
-   for this parameters are the same as for TS 36.213 :math:`\alpha_{c} (j)`, and can be configured in 
+
+*  :math:`\alpha_{b,f,c} (j)` is a 3-bit parameter provided by higher layers. Currently, allowed values
+   for this parameters are the same as for TS 36.213 :math:`\alpha_{c} (j)`, and can be configured in
    the same way (See previous section).
-   
-*  :math:`PL_{b,f,c}` is the downlink pathloss estimate in dB that is calculated at the UE for the active DL BWP :math:`b` if 
+
+*  :math:`PL_{b,f,c}` is the downlink pathloss estimate in dB that is calculated at the UE for the active DL BWP :math:`b` if
    carrier :math:`f` and serving cell :math:`c`. The calculation of pathloss is the same as explained in the previous section.
-   
-*  :math:`\Delta_{TF,b,f,c}(i)` is calculated in the same way as in previous section, i.e., 
+
+*  :math:`\Delta_{TF,b,f,c}(i)` is calculated in the same way as in previous section, i.e.,
    :math:`K_{s} = 1.25` then :math:`\Delta_{TF,b,f, c}(i)` is calculated in the following way:
    :math:`\Delta_{TF,b,f,c}(i) = 10\log_{10}((2^{BPRE\cdot K_s}-1)\cdot\beta_{offset}^{PUSCH})`.
-   Otherwise, when :math:`\Delta_{TF,b,f,c}(i)`, then :math:`\Delta_{TF,b,f, c}(i) = 0`. :math:`\Delta_{TF,b,f,c}(i)` 
+   Otherwise, when :math:`\Delta_{TF,b,f,c}(i)`, then :math:`\Delta_{TF,b,f, c}(i) = 0`. :math:`\Delta_{TF,b,f,c}(i)`
    can be dynamically set through the set function of ``NrUePowerControl``.
-   
 
-*  :math:`f_{b,f,c}(i,l)` is component of Closed Loop Power Control. It is the PUSCH power control adjustment state 
-   :math:`l` for active UL BWP :math:`b` of carrier :math:`f` of serving cell :math:`c` and PUSCH transmission 
-   occasion :math:`i`. 
+
+*  :math:`f_{b,f,c}(i,l)` is component of Closed Loop Power Control. It is the PUSCH power control adjustment state
+   :math:`l` for active UL BWP :math:`b` of carrier :math:`f` of serving cell :math:`c` and PUSCH transmission
+   occasion :math:`i`.
 
 
    If Accumulation Mode is enabled :math:`f_{b,f,c}(i,l)` is given by:
@@ -849,7 +873,7 @@ and flexible for different subcarrier spacing configurations:
 
          f_{b,f,c}(i,l) = f_{b,f,c}(i-i_0,l) + \delta_{PUSCH,c}(i - K_{PUSCH})
 
-   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included 
+   where: :math:`\delta_{PUSCH,c}` is a correction value, also referred to as a TPC command and is included
    in PDCCH with DCI; :math:`\delta_{PUSCH,c}(i - K_{PUSCH})` was signalled on PDCCH/EPDCCH with DCI for
    serving cell :math:`c` on subframe :math:`(i - K_{PUSCH})`; :math:`K_{PUSCH} = 4` for FDD.
 
@@ -867,31 +891,31 @@ and flexible for different subcarrier spacing configurations:
    :scale: 35 %
 
 
-*  :math:`\sum_{m=0}^{C(D_i)-1} \delta_{PUSCH,b,f,c}` is a sum of TPC command values in a set :math:`D_i` of TPC 
-   command values with cardinality :math:`C(D_i)` that the UE receives between :math:`K_{PUSCH}(i-i_0) -1` 
-   symbols before PUSCH transmission occasion :math:`i-i_0` and :math:`K_{PUSCH}(i)` symbols before PUSCH 
-   transmission occasion :math:`i` on active UL BWP :math:`b` of carrier :math:`f` and serving cell :math:`c` 
-   for PUSCH power control adjustment state :math:`l`, where :math:`i_0` is the smallest integer for which 
-   :math:`K_{PUSCH}(i-i_0)` symbols before PUSCH transmission occasion :math:`i-i_0` is earlier than 
-   :math:`K_{PUSCH}(i)` symbols before PUSCH transmission occasion :math:`i`. 
-   This definition is quite different from the one that we have seen in TS 36.213 PUSCH, 
-   hence this is probably the component in formula that could make an important difference in power adjustment 
-   when choosing among TS 36.213 and TS 38.213 formula in NrUePowerControl class. 
-   The difference with respect to the TS 36.213 formula for accumulation is that this formula is being calculated per 
-   transmission occasion, while accumulation component in TS 38.213 is being constantly updated as 
+*  :math:`\sum_{m=0}^{C(D_i)-1} \delta_{PUSCH,b,f,c}` is a sum of TPC command values in a set :math:`D_i` of TPC
+   command values with cardinality :math:`C(D_i)` that the UE receives between :math:`K_{PUSCH}(i-i_0) -1`
+   symbols before PUSCH transmission occasion :math:`i-i_0` and :math:`K_{PUSCH}(i)` symbols before PUSCH
+   transmission occasion :math:`i` on active UL BWP :math:`b` of carrier :math:`f` and serving cell :math:`c`
+   for PUSCH power control adjustment state :math:`l`, where :math:`i_0` is the smallest integer for which
+   :math:`K_{PUSCH}(i-i_0)` symbols before PUSCH transmission occasion :math:`i-i_0` is earlier than
+   :math:`K_{PUSCH}(i)` symbols before PUSCH transmission occasion :math:`i`.
+   This definition is quite different from the one that we have seen in TS 36.213 PUSCH,
+   hence this is probably the component in formula that could make an important difference in power adjustment
+   when choosing among TS 36.213 and TS 38.213 formula in NrUePowerControl class.
+   The difference with respect to the TS 36.213 formula for accumulation is that this formula is being calculated per
+   transmission occasion, while accumulation component in TS 38.213 is being constantly updated as
    TPC commands arrive regardless when of the transmission occasion event happens.
-   
-   On the other hand, if accumulation mode is not enabled :math:`f_{b,f,c}` is given by the following 
+
+   On the other hand, if accumulation mode is not enabled :math:`f_{b,f,c}` is given by the following
    expression:
-   
+
    .. math::
 
-      f_{b,f,c}(i,l) = \delta_{PUSCH,b,f,c}(i,l), 
-      
-   where :math:`\delta_{PUSCH,b,f,c}(i,l)` is the absolute values that is given in Table 7.1.1-1 of TS 38.213. 
-   The following table illustrates which absolute and accumulated :math:`\delta_{PUSCH,b,f,c}` corresponds to 
+      f_{b,f,c}(i,l) = \delta_{PUSCH,b,f,c}(i,l),
+
+   where :math:`\delta_{PUSCH,b,f,c}(i,l)` is the absolute values that is given in Table 7.1.1-1 of TS 38.213.
+   The following table illustrates which absolute and accumulated :math:`\delta_{PUSCH,b,f,c}` corresponds to
    each TPC command.
-  
+
 .. table:: TPC commands
 
    +---------------+-------------------------------------------+---------------------------------------+
@@ -903,25 +927,25 @@ and flexible for different subcarrier spacing configurations:
    +---------------+-------------------------------------------+---------------------------------------+
    |       2       |                    1                      |                  1                    |
    +---------------+-------------------------------------------+---------------------------------------+
-   |       3       |                    3                      |                  4                    | 
+   |       3       |                    3                      |                  4                    |
    +---------------+-------------------------------------------+---------------------------------------+
 
 
 **PUCCH power control**
 
-Similarly to PUSCH power calculation there is a lot of similarities in the formulas for PUCCH between 
-TS 36.213 and TS 38.213. Hence, we will not enter in the details to explain each of the components since 
-their equivalents were already explained in the previous sections, such as :math:`P_{CMAX,c}(i)` and :math:`P_{CMAX,f,c}(i)`, 
-:math:`P_{O\_PUCCH,c}(j)` or :math:`P_{O\_PUCCH,b,f,c}(j)`, which are, for example, equivalent to 
-:math:`P_{O\_PUSCH,c}(j)` or :math:`P_{O\_PUSCH,b,f,c}(j)`, respectively. 
-Also, an interested reader is referred to technical specifications (TS 36.213 and TS 38.213) 
+Similarly to PUSCH power calculation there is a lot of similarities in the formulas for PUCCH between
+TS 36.213 and TS 38.213. Hence, we will not enter in the details to explain each of the components since
+their equivalents were already explained in the previous sections, such as :math:`P_{CMAX,c}(i)` and :math:`P_{CMAX,f,c}(i)`,
+:math:`P_{O\_PUCCH,c}(j)` or :math:`P_{O\_PUCCH,b,f,c}(j)`, which are, for example, equivalent to
+:math:`P_{O\_PUSCH,c}(j)` or :math:`P_{O\_PUSCH,b,f,c}(j)`, respectively.
+Also, an interested reader is referred to technical specifications (TS 36.213 and TS 38.213)
 for more detailed explanations. Formula for TS 36.213 PUCCH is provided in Section 5.1.2.1 of TS 36.213,
 while formula for NR PUCCH power control is provided in Section 7.1.2. of TS 38.213.
-Both of these are shown in continuation, and as such are implemented in NrUePowerControl class. 
-Note that with respect to PUSCH there is no absolute mode of TPC feedback for PUCCH, hence, accordingly, 
-only accumulation mode is implemented. Similarly to PUSCH implementation, 
-the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or 
-could be dynamically set through set function according to corresponding formula. 
+Both of these are shown in continuation, and as such are implemented in NrUePowerControl class.
+Note that with respect to PUSCH there is no absolute mode of TPC feedback for PUCCH, hence, accordingly,
+only accumulation mode is implemented. Similarly to PUSCH implementation,
+the value :math:`\Delta_{TF,b,f,c}(i) = 0` by default is 0 (assuming :math:`K_s=0`) or
+could be dynamically set through set function according to corresponding formula.
 PUCCH ULPC formula according to 36.213 is calculated by the following formula:
 
 .. _fig-ulpc-pucch-36213:
@@ -929,7 +953,7 @@ PUCCH ULPC formula according to 36.213 is calculated by the following formula:
 .. figure:: figures/ulpc/pucch_36.213.*
    :align: center
    :scale: 35 %
-   
+
 PUCCH ULPC formula according to 38.213 is given in the following:
 
 .. _fig-ulpc-pucch-38213:
@@ -941,13 +965,13 @@ PUCCH ULPC formula according to 38.213 is given in the following:
 
 **SRS power control**
 
-LTE SRS power control formula is provided in Section 5.1.3.1 of TS 36.213, 
-while  NR SRS power control formula is provided in Section 7.1.3 of TS 38.213. 
-We will again skip repeating the explanation of each of the components of the formula 
-as the equivalents were already explained before. Reader should note that these 
-formulas rely on PUSCH power control, e.g., LTE SRS power control relies on 
-:math:`P_{O\_PUSCH,c}(j)` and :math:`fc(i)`. 
-In the following we provide formulas that are implemented in NrUePoweControl 
+LTE SRS power control formula is provided in Section 5.1.3.1 of TS 36.213,
+while  NR SRS power control formula is provided in Section 7.1.3 of TS 38.213.
+We will again skip repeating the explanation of each of the components of the formula
+as the equivalents were already explained before. Reader should note that these
+formulas rely on PUSCH power control, e.g., LTE SRS power control relies on
+:math:`P_{O\_PUSCH,c}(j)` and :math:`fc(i)`.
+In the following we provide formulas that are implemented in NrUePoweControl
 for LTE and NR SRS transmissions. SRS ULPC formula according to 36.213 is given by:
 
 
@@ -975,20 +999,20 @@ SRS ULPC formula according to 38.213 is as follows:
 .. figure:: figures/ulpc/srs_ts38213.*
    :align: center
    :scale: 35 %
-   
+
 
 **Closed loop power control (CLPC)**
 
-As we could see in previous formulas there is a difference in the way the accumulation 
-of TPC commands is performed in LTE and NR. In LTE it happens synchronously, always considering 
-TPC command that was received in (i−KPUSCH) subframe, while for NR it is necessary to take 
-into account different TPC commands depending on the transmission occasion i−i0 and how many 
-symbols have passed since last PDCCH and the first symbol of the current transmission occasion. 
-In :ref:`fig-ulpc-7` we illustrate a sequence diagram of how LTE and NR CLPC are 
-implemented and at which point the accumulation state is being updated for each of them. 
-From the sequence diagram we can see that once the NrUePowerControl receives 
-TPC command LTE CLPC updates the accumulation state, while NR CLPC only saves 
-the value and it updates it only at the next transmission occasion. 
+As we could see in previous formulas there is a difference in the way the accumulation
+of TPC commands is performed in LTE and NR. In LTE it happens synchronously, always considering
+TPC command that was received in (i−KPUSCH) subframe, while for NR it is necessary to take
+into account different TPC commands depending on the transmission occasion i−i0 and how many
+symbols have passed since last PDCCH and the first symbol of the current transmission occasion.
+In :ref:`fig-ulpc-7` we illustrate a sequence diagram of how LTE and NR CLPC are
+implemented and at which point the accumulation state is being updated for each of them.
+From the sequence diagram we can see that once the NrUePowerControl receives
+TPC command LTE CLPC updates the accumulation state, while NR CLPC only saves
+the value and it updates it only at the next transmission occasion.
 
 
 .. _fig-ulpc-7:
@@ -996,9 +1020,11 @@ the value and it updates it only at the next transmission occasion.
 .. figure:: figures/ulpc/nr-clpc.*
    :align: center
    :scale: 35 %
-   
-LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI, 
-and the TPC command reception, reporting to NrUePowerControl and applying for 
+
+   Closed Loop Power Control sequence diagram
+
+LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI,
+and the TPC command reception, reporting to NrUePowerControl and applying for
 the next transmission occasion.
 
 MIMO extension
@@ -1285,6 +1311,91 @@ In an NR system, the UL decisions for a slot are taken in a different moment tha
 At PHY layer, the gNB stores all the relevant information to properly schedule reception/transmission of data in a vector of slot allocations. The vector is guaranteed to be sorted by the starting symbol, to maintain the timing order between allocations. Each allocation contains the DCI created by the MAC, as well as other useful information.
 
 
+.. _QosSchedulers:
+
+QoS Schedulers
+==============
+The 'NR' module includes QoS MAC schedulers that perform the allocation of the available
+resources (i.e., symbols and Physical Resource Blocks (PRBs)) based on the different
+traffic requirements of the active users (users with data in their buffers). For this,
+it considers the QoS profile characteristics of each QoS flow and in particular the
+5QI information, such as the resource type, the priority level and the Packet Delay
+Budget (PDB), along with real-time measurements as provided at the MAC layer, i.e.,
+the head-of-line delay (HOL) and the PF metric.
+The user classification is based on the selection of weights that reflect the users
+(or the traffic flow) to be prioritized. The calculation of the scheduling weight for
+a single flow is:
+
+.. math::
+   :nowrap:
+
+   \[
+   w =
+   \left\{
+   \begin{array}{
+     @{}% no padding
+     l@{\quad}% some padding
+     r@{}% no padding
+     >{{}}r@{}% no padding
+     >{{}}l@{}% no padding
+   }
+     (100 - P) \frac{r^{\gamma}}{R(\tau)},&       &     \text{for non-GBR and GBR} \\
+     (100 - P) \frac{r^{\gamma}}{R(\tau)},&       &     \text{for GBR} \\
+   \end{array}
+   \right.
+   \]
+
+where :math:`P` is the default Priority Level of the QoS flow mapped to
+the DRB (lower :math:`P` indicates higher priority for scheduling),
+:math:`r` is the instantaneous achievable data rate calculated by
+the spectrum efficiency and the channel bandwidth, :math:`R(\tau)` is the
+past average data rate updated within the updated window size :math:`\tau`,
+:math:`F = 100` when the DRB has retransmission data and :math:`F = 10`
+otherwise, and :math:`\gamma` is a configurable parameter. Moreover, we include
+the newly introduced delay budget factor :math:`D`, that is the delay-aware
+weight related to the HOL packet delay and the PDB, and is calculated as:
+
+:math:`D = \frac{\text{PDB}}{\text{PDB}-\text{HOL}}`
+
+Notice that when :math:`\gamma=1`, and assuming the same priority for all users and
+ignoring :math:`D`, the scheduler corresponds to a typical PF scheduler.
+The past average data rate is calculated as:
+
+:math:`R(\tau) = (1-\alpha) R(\tau-1) + \alpha A(\tau)`
+
+In this equation, :math:`A(\tau)` is the current data rate over the updated window size
+:math:`\tau` computed as the ratio of all successfully delivered bits (including those
+bits still in retransmission) in the past updated window size, and :math:`\alpha` balances
+between the current data rate (:math:`A(\tau)`) and the past average data rate in the
+previous window (:math:`R(\tau-1)`).
+
+The active users are then classified in descending order in each TTI based on the sum of
+the calculated scheduling weights for all their active flows:
+
+:math:`W = \sum_{n=1}^{N} w`
+
+where :math:`N` is the number of active logical channels for a given user.
+This classification results in scheduling first the users that have
+higher :math:`W`.
+
+.. _LcAssignment:
+
+QoS LC Assignment
+=================
+The default implementation of the NR module assigns bytes to the LCs of each user
+in a RR fashion. However, we also offer the option of assigning bytes to the LCs
+of a user considering the load of each LC and its QoS requirements.
+Notice that in the past, the implementation was located as a method in the
+``NrMacSchedulerNs3`` class, thus it was not permitting any additional designs to
+be considered. For this reason, the NR module in its current status includes the
+base class ``NrMacSchedulerLcAlgorithm`` and two child classes, the
+``NrMacSchedulerLcRR`` and the ``NrMacSchedulerLcQoS``. The former assigns bytes
+to the active LCs as in the initial implementation in RR fashion, while the latter
+performs the assignment by taking into account the resource type and the
+``e_rabGuaranteedBitRate`` of a flow. More details with respect to the algorithm
+considered for the QoS LC Assignment can found in [WNS3-QosSchedulers]_.
+
+
 Timing relations
 ================
 The 'NR' module supports flexible scheduling and DL HARQ Feedback timings in the
@@ -1447,7 +1558,7 @@ However, there are situations where RI value is not considered. The first one is
 
 HARQ feedback processing
 ########################
-The scheduler in the NR module is responsible for embedding a unique HARQ process id in every DCI it creates, and this functionality remains the same in the MIMO extension. Specifically, the simulator schedules multiple streams using a single DCI; thus, the same HARQ process id is used for all of them. It is worth mentioning that this implementation choice is aligned with the 3GPP standard. In particular, in the DCI format 1-1, which is a commonly used DCI for DL in NR, unlike TB-related information, the HARQ process id field is not repeated for each stream while using MIMO spatial multiplexing~\cite{DAHLMAN20181}. Moreover, similar to a real network, a UE in our simulator reports HARQ feedback (i.e., ACK or NACK) for both the streams since it decodes them independently. To do that, we have modified the C++ struct DlHarqInfo, which is used to report the HARQ feedback in downlink following the Femto forum MAC API. Specifically, this modification replaces the simple C++ enumeration (that represents ACK or NACK) with a vector of such enumeration so that a UE can report the HARQ feedback for the TB of each stream to its serving gNB.
+The scheduler in the NR module is responsible for embedding a unique HARQ process id in every DCI it creates, and this functionality remains the same in the MIMO extension. Specifically, the simulator schedules multiple streams using a single DCI; thus, the same HARQ process id is used for all of them. It is worth mentioning that this implementation choice is aligned with the 3GPP standard. In particular, in the DCI format 1-1, which is a commonly used DCI for DL in NR, unlike TB-related information, the HARQ process id field is not repeated for each stream while using MIMO spatial multiplexing. Moreover, similar to a real network, a UE in our simulator reports HARQ feedback (i.e., ACK or NACK) for both the streams since it decodes them independently. To do that, we have modified the C++ struct DlHarqInfo, which is used to report the HARQ feedback in downlink following the Femto forum MAC API. Specifically, this modification replaces the simple C++ enumeration (that represents ACK or NACK) with a vector of such enumeration so that a UE can report the HARQ feedback for the TB of each stream to its serving gNB.
 
 At the gNB side, a HARQ feedback (i.e., DlHarqInfo struct) from a UE is forwarded to the NrMacSchedulerNs3 class for processing. In particular, we extended the ProcessHarqFeedbacks function of this class to read the HARQ feedback of each stream. Upon processing a HARQ feedback, if a UE has reported ACK for both streams' TB, the HARQ process id is released, i.e., it can be reassigned to a new DCI. However, it may happen that a UE is able to decode the TB of only one stream, i.e., it reports ACK for one stream and NACK for the other. In this case, while processing the feedback, the scheduler will not release the HARQ process id and reschedules the TB of the failed stream using the same HARQ process id. Moreover, the scheduler will prioritize retransmission of the TB of this single stream over scheduling new data during such retransmission. It will keep scheduling only one stream (for which it received NACK) until the TB is successfully decoded or the maximum number of retransmissions is reached.
 
@@ -1610,6 +1721,31 @@ N iterations (specified by the user) in order to consider the randomness of
 the channel.
 
 
+NGMN mixed and 3GPP XR traffic models
+*************************************
+We have implemented in nr/utils/traffic-generators various NGMN traffic applications for mixed traffic scenarios and 3GPP XR traffic applications, to simulate advanced traffic applications. NGMN traffic models are defined in Annex A and Annex B of [NGMN-traffics]_ to simulate mixed traffic scenarios, in which a percentage of users is associated to a different traffic type each. In particular, NGMN provides models for: FTP, web browsing using HTTP, video streaming, VoIP, and gaming. On the other hand, 3GPP traffic models for XR traffic are defined in [TR38838]_, which includes traffic models for Virtual Reality (VR), Augmented Reality (AR), and Cloud Gaming (CG) applications.
+
+The 'NR' module includes the following models:
+
+* NGMN FTP
+* NGMN video streaming
+* NGMN gaming
+* NGMN VoIP
+* 3GPP AR Model 3A 3 streams: pose/control, scene/video and audio/data
+* 3GPP VR downlink 1 stream: scene/video
+* 3GPP VR downlink 2 streams: scene/video and audio/data
+* 3GPP VR uplink: pose/control
+* 3GPP CG downlink 1 stream: scene/video
+* 3GPP CG downlink 2 streams: scene/video and audio/data
+* 3GPP CG uplink: pose/control
+
+Let us note that the NGMN HTTP model is already available in ns-3-dev.
+
+We have created a general C++ base class called TrafficGenerator to support many different traffic types such as video streaming, gaming, VoIP, web browsing, FTP, scene/video, pose/control, audio/data. The implementation details can be found in [WNS32022-ngmn]_.
+
+The 3GPP traffic models have been parameterized and combined to model different single or multi-stream XR applications, as defined in [TR38838]_. A simulation helper allows to combine various data flows (or streams) into a single PDU session for XR inside a network device.
+
+
 NR-U extension
 **************
 TBC
@@ -1720,7 +1856,7 @@ cttc-3gpp-indoor-calibration.cc
 The program ``examples/cttc-3gpp-indoor-calibration`` is the simulation
 script created for the NR-MIMO Phase 1 system-level calibration.
 The scenario implemented in this simulation script is according to
-the topology described in 3GPP TR 38.900 V15.0.0 (2018-06) Figure 7.2-1:
+the topology described in 3GPP TR 38.901 V17.0.0 (2022-03) Figure 7.2-1:
 "Layout of indoor office scenarios".
 The simulation assumptions and the configuration parameters follow
 the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
@@ -1844,27 +1980,27 @@ https://cttc-lena.gitlab.io/nr/html/cttc-nr-demo_8cc.html
 lena-lte-comparison (initially s3-scenario.cc)
 ==============================================
 
-``lena-lte-comparison`` directory contains the program that can be run through 
-``lena-lte-comparison-user.cc`` or ``lena-lte-comparison-campaign.cc``. 
-Users can use any of these two scripts. The two scripts run exactly the same program. 
+``lena-lte-comparison`` directory contains the program that can be run through
+``lena-lte-comparison-user.cc`` or ``lena-lte-comparison-campaign.cc``.
+Users can use any of these two scripts. The two scripts run exactly the same program.
 
-The original idea was to use ``lena-lte-comparison-user.cc`` as any other 
-NR example, i.e., by running it from the command line, and to use 
-``lena-lte-comparison-campaign.cc`` for simulation 
-campaigns, i.e., to run it from the simulation campaign tool (e.g., SEM tool). 
-Because of this, ``lena-lte-comparison-campaign.cc`` script should have a minimal set of 
-parameters that are relevant for the simulation campaign, 
-and its input parameter list should not be changed often to not 
-loose compatibility with the simulation campaign script (e.g., SEM script). 
-Hence, when it is needed to add some new input parameters, these can be added to 
+The original idea was to use ``lena-lte-comparison-user.cc`` as any other
+NR example, i.e., by running it from the command line, and to use
+``lena-lte-comparison-campaign.cc`` for simulation
+campaigns, i.e., to run it from the simulation campaign tool (e.g., SEM tool).
+Because of this, ``lena-lte-comparison-campaign.cc`` script should have a minimal set of
+parameters that are relevant for the simulation campaign,
+and its input parameter list should not be changed often to not
+loose compatibility with the simulation campaign script (e.g., SEM script).
+Hence, when it is needed to add some new input parameters, these can be added to
 ``lena-lte-comparison-user.cc``.
 
-``lena-lte-comparison`` provides a complex multi-cell hexagonal network 
-deployment with site sectorization. The program provides two options for 
-the topology configuration: hexagonal grid topology and user-defined topology. 
-Hexagonal grid deployment is the default deployment, which follows the typical 
-hexagonal grid topology where the structure of the network is 
-organized into rings, and each ring is composed of sectorized sites. 
+``lena-lte-comparison`` provides a complex multi-cell hexagonal network
+deployment with site sectorization. The program provides two options for
+the topology configuration: hexagonal grid topology and user-defined topology.
+Hexagonal grid deployment is the default deployment, which follows the typical
+hexagonal grid topology where the structure of the network is
+organized into rings, and each ring is composed of sectorized sites.
 Each site has 3 sectors. The antenna of each sector has its antenna oriented toward its sector area.
 Sector areas are equally sized, meaning that each sector covers 120º in azimuth.
 
@@ -1874,37 +2010,37 @@ Sector areas are equally sized, meaning that each sector covers 120º in azimuth
    :align: center
    :scale: 80 %
 
-   Hexagonal grid deployment with different rings (when 0 rings 
-   configured, only one site is created and this site is shown in blue color, 
-   the 1st ring is shown in red color, the third ring in orange and 
-   the fourth in green. Each ring is composed of 6 sites.) 
+   Hexagonal grid deployment with different rings (when 0 rings
+   configured, only one site is created and this site is shown in blue color,
+   the 1st ring is shown in red color, the third ring in orange and
+   the fourth in green. Each ring is composed of 6 sites.)
 
-User-defined topology can be provided through the ``.csv`` file which should  
+User-defined topology can be provided through the ``.csv`` file which should
 contain the tower coordinates (instead of hexagonal grid).
-``lena-lte-comparison`` folder already contains 4 examples of ``.csv`` files for different number 
-of sites, e.g., see ``examples-sites.2.csv``. 
+``lena-lte-comparison`` folder already contains 4 examples of ``.csv`` files for different number
+of sites, e.g., see ``examples-sites.2.csv``.
 
-The deployment supports two frequency configurations. It can be set to a full frequency reuse of 1 
-(in example referred to as overlapping frequency scenario), 
-or a frequency reuse of 3 (in example referred to as non overlapping frequency scenario), 
-which is typical in cellular networks. 
-In non-overlapping scenario each sector of a site transmits in a separate frequency band. 
-These separate frequency bands are typically called sub-bands. 
-In this deployment, the sectors of the same site do not interfere. 
-Sub-bands are centered in different frequencies having equal bandwidths. 
-Sub-band utilization is repeated for all sites. 
+The deployment supports two frequency configurations. It can be set to a full frequency reuse of 1
+(in example referred to as overlapping frequency scenario),
+or a frequency reuse of 3 (in example referred to as non overlapping frequency scenario),
+which is typical in cellular networks.
+In non-overlapping scenario each sector of a site transmits in a separate frequency band.
+These separate frequency bands are typically called sub-bands.
+In this deployment, the sectors of the same site do not interfere.
+Sub-bands are centered in different frequencies having equal bandwidths.
+Sub-band utilization is repeated for all sites.
 
-Scenario supports various propagation scenarios: 
-Urban Macro (UMa), Urban Micro (UMi) and Rural Macro (RMa). 
-The choice of the scenario determines the values of scenario-specific parameters, 
-such as the height of the gNB, the transmit power, and the propagation model, 
-the Inter-Site Distance (ISD), etc. These scenario-specific parameters and 
-their values for a specific scenario configurations 
+Scenario supports various propagation scenarios:
+Urban Macro (UMa), Urban Micro (UMi) and Rural Macro (RMa).
+The choice of the scenario determines the values of scenario-specific parameters,
+such as the height of the gNB, the transmit power, and the propagation model,
+the Inter-Site Distance (ISD), etc. These scenario-specific parameters and
+their values for a specific scenario configurations
 are listed in Table :ref:`tab-lena-lte-comparison-scenarios`.
- 
+
 .. _tab-lena-lte-comparison-scenarios:
 
-.. table:: lena-lte-comparison scenarios and configurations 
+.. table:: lena-lte-comparison scenarios and configurations
 
    +--------------+------------+---------------+---------------+--------------------+-----------------+
    |  scenario    |  ISD (km)  | BS height (m) | UE height (m) | UE-BS min distance |  Tx power (dBm) |
@@ -1917,57 +2053,57 @@ are listed in Table :ref:`tab-lena-lte-comparison-scenarios`.
    +--------------+------------+---------------+---------------+--------------------+-----------------+
 
 
-``lena-lte-comparison`` can be used to perform LENA vs 5G-LENA comparison, 
-validation and calibration campaigns. 
-E.g., LTE can be simulated either using the LENA module or the 5G-LENA module. 
-To simulate LTE using LENA module it is needed to set parameter ``technology`` to 
-LTE and ``simulator`` to LENA.  
-To simulate LTE scenario using 5G-LENA, it is needed to set parameter ``technology`` to LTE and 
-``simulator`` to 5GLENA. 
-When configured to simulated LTE using 5G-LENA, 
-then NR devices and protocol stack will be configured to use LTE settings, 
-e.g., the numerology will be set to match the LTE slot duration and subcarrier spacing, 
+``lena-lte-comparison`` can be used to perform LENA vs 5G-LENA comparison,
+validation and calibration campaigns.
+E.g., LTE can be simulated either using the LENA module or the 5G-LENA module.
+To simulate LTE using LENA module it is needed to set parameter ``technology`` to
+LTE and ``simulator`` to LENA.
+To simulate LTE scenario using 5G-LENA, it is needed to set parameter ``technology`` to LTE and
+``simulator`` to 5GLENA.
+When configured to simulated LTE using 5G-LENA,
+then NR devices and protocol stack will be configured to use LTE settings,
+e.g., the numerology will be set to match the LTE slot duration and subcarrier spacing,
 MAC-PHY processing delays will be set to typical LTE values, etc.
-To simulate NR it is needed to set ``technology`` to  
-NR and ``simulator`` to 5GLENA.  
+To simulate NR it is needed to set ``technology`` to
+NR and ``simulator`` to 5GLENA.
 With this configuration, default NR settings will be used to create the scenario.
 
-Several traffic types are supported by the script: saturation, single packet, low-load and medium-load. 
-Saturation traffic mode generates traffic of 80 Mbps for bandwidth of 20 MHz, 
-and it scales depending on the selected bandwidth. Single packet traffic sends only a single packet of 
+Several traffic types are supported by the script: saturation, single packet, low-load and medium-load.
+Saturation traffic mode generates traffic of 80 Mbps for bandwidth of 20 MHz,
+and it scales depending on the selected bandwidth. Single packet traffic sends only a single packet of
 12 bytes, and is normally used just to measure the latencies.
-Low-load traffic mode generates traffic of 1 Mbps for bandwidth of 20 MHz, 
-and medium-load generates traffic of 20 Mbps for bandwidth of 20 MHz. 
+Low-load traffic mode generates traffic of 1 Mbps for bandwidth of 20 MHz,
+and medium-load generates traffic of 20 Mbps for bandwidth of 20 MHz.
 These traffic types also scale with bandwidth.
 
-In addition to the parameters discussed above, this example also allows configuring parameters, such as: 
-the number of UEs per sector, the duration of the applications, 
-the bandwidth (typical values used in this scenario are 20, 10, or 5 MHz per carrier), 
-the numerology, the traffic direction (DL or UL), operation mode (TDD or FDD), 
-the TDD pattern,  the error model type, calibration, traffic scenario, scheduler 
+In addition to the parameters discussed above, this example also allows configuring parameters, such as:
+the number of UEs per sector, the duration of the applications,
+the bandwidth (typical values used in this scenario are 20, 10, or 5 MHz per carrier),
+the numerology, the traffic direction (DL or UL), operation mode (TDD or FDD),
+the TDD pattern,  the error model type, calibration, traffic scenario, scheduler
 (proportional fair, round robin, etc,), enable/disable uplink power control,
-configure power allocation mode for NR LTE ( uniform per RB used or uniform per bandwidth), 
+configure power allocation mode for NR LTE ( uniform per RB used or uniform per bandwidth),
 base station antenna down tilt angle (deg).
-Parameter ``calibration`` can be used to configure the simulation 
-in such a way that it is possible to compare LENA and 5GLENA simulators. 
- 
-The simulation saves the results in the database, which will be generated in root ns-3 
+Parameter ``calibration`` can be used to configure the simulation
+in such a way that it is possible to compare LENA and 5GLENA simulators.
+
+The simulation saves the results in the database, which will be generated in root ns-3
 directory by default (if not configured differently). Database contains several tables:
-``e2e``, ``gnbRxPower``, ``rbStats``, ``sinr``, ``slotStats`` and ``ueTxPower``. 
-e2e table contains end-to-end metrics, such as the number of transmitted and received 
-packets, offered and achieved throughput, delay and jitter. ``gnbRxPower`` contains, 
-among others, traces related to the power corresponding to each reception. 
+``e2e``, ``gnbRxPower``, ``rbStats``, ``sinr``, ``slotStats`` and ``ueTxPower``.
+e2e table contains end-to-end metrics, such as the number of transmitted and received
+packets, offered and achieved throughput, delay and jitter. ``gnbRxPower`` contains,
+among others, traces related to the power corresponding to each reception.
 ``rbStats`` table contains traces related to RB usage. ``sinr`` contains SINR traces.
 ``slotStats`` contains traces per slot, e.g., the number of scheduled UEs, symbols used,
 RBs used, etc. ``ueTxPower`` contains the traces related to UE transmissions,
 i.e., the power and the RB used.
 
-This example script also generates a gnuplot script that can be used to plot the 
-topology. 
-The gnuplot script is generated by default in the root ns-3 folder, 
-if not configured differently, and can be used to plot the topology 
-e.g., by running in the command line ``gnuplot hexagonal-topology.gnuplot``. 
- 
+This example script also generates a gnuplot script that can be used to plot the
+topology.
+The gnuplot script is generated by default in the root ns-3 folder,
+if not configured differently, and can be used to plot the topology
+e.g., by running in the command line ``gnuplot hexagonal-topology.gnuplot``.
+
 The complete details of the simulation script are provided in:
 https://cttc-lena.gitlab.io/nr/html/lena-lte-comparison-campaign_8cc.html,
 https://cttc-lena.gitlab.io/nr/html/lena-lte-comparison-user_8cc.html,
@@ -2002,21 +2138,22 @@ https://cttc-lena.gitlab.io/nr/html/cttc-nr-notching_8cc.html
 
 cttc-realistic-beamforming.cc
 =============================
-The example ``cttc-realistic-beamforming.cc`` included in the ``nr`` 
-module demonstrates the usage of the proposed framework. 
-It is a simulation script for the realistic BF evaluation. 
-The topology is very simple: it consists of a single gNB and single UE, 
+The example ``cttc-realistic-beamforming.cc`` included in the ``nr``
+module demonstrates the usage of the proposed framework.
+It is a simulation script for the realistic BF evaluation.
+The topology is very simple: it consists of a single gNB and single UE,
 placed at a certain distance from each other and communicating over a wireless channel.
 Simulation allows to configure various parameters out of which the most important are:
-the distance (by configuring deltaX and deltaY parameters, which 
-basically determine the position of the UE), the type of the BF method (ideal or real), 
-the random run number (which will allow us to run many simulations and to average the results), 
-the UE power, 3GPP scenario (Urban Macro, Urban Micro, Indoor Hotspot, etc). 
-The output is saved in database (simulation configuration and average SINR). 
+the distance (by configuring deltaX and deltaY parameters, which
+basically determine the position of the UE), the type of the BF method (ideal or real),
+the random run number (which will allow us to run many simulations and to average the results),
+the UE power, 3GPP scenario (Urban Macro, Urban Micro, Indoor Hotspot, etc).
+The output is saved in database (simulation configuration and average SINR).
 The database is created in the root project directory if not configured differently.
 
-The complete details of the simulation script are provided in 
+The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-realistic-beamforming_8cc.html.
+
 
 .. _mimo:
 
@@ -2032,6 +2169,131 @@ NR V2X Examples
 ***************
 
 .. include:: nr-v2x-usage.inc
+
+cttc-nr-3gpp-calibration
+========================
+
+``3gpp-outdoor-calibration`` directory contains the program that can be run through
+``cttc-nr-3gpp-calibration-user.cc``.
+
+This example has been created to calibrate the 5G-LENA simulator under 3GPP
+reference scenarios defined in ITU IMT-2020 report [IMT-2020]_ for NR-based outdoor
+deployments. The example includes 4 test environment scenarios as defined in the
+report. For each scenario, we have added a set of pre-defined parameters, meaning
+parameters that will not be changed during the simulations, such as the frequency
+or the bandwidth, while we have included some other parameters to be defined through
+the command line, in case we want to study variations in the KPIs based on different
+configurations. Examples include the gNB and UE polarization and slant angles,
+the beamforming method used, and the activation/deactivation of fading and shadowing.
+
+The 4 pre-defined scenarios used for the calibration of the 5G-LENA are the Rural-eMBB
+Configuration A and Configuration B, and the Dense-eMBB Configuration A and Configuration B.
+These different evaluation configurations basically vary some parameters (like the
+carrier frequency, the total transmit power, the simulation bandwidth, the number
+of antenna elements per gNB/UE, and the gNB/UE noise figure) for a given test environment.
+Moreover, depending on the scenario under evaluation, UEs might be indoor/outdoor,
+while the antenna configuration and height, among other parameters, of both gNBs
+and UEs, are also varied. Finally, let us notice that all scenarios have been
+evaluated under full buffer traffic, as indicated by 3GPP reference results.
+
+The network layout consists in a hexagonal topology with 37 sites of 3 sectors each,
+thus leading to 111 Base Stations (BS), as shown in Figure :ref:`fig-calibration-hex-grid`.
+However, in the measurements we consider only the 21 inner BSs, while the 111 BSs
+are simulated to account for the wrap-around effect. Notice that each sector has
+its antenna arrays oriented towards its sector area, and each sector area is equally
+sized, meaning that each sector covers 120 degrees in azimuth. Moreover, notice that the
+antennas of each sector are pointing to 30, 150 and 270 degrees w.r.t. the horizontal axis.
+
+.. _fig-calibration-hex-grid:
+
+.. figure:: figures/calibrationHex.*
+   :align: center
+   :scale: 80 %
+
+   Wrap-around hexagonal deployment.
+
+The calculation of the Pathloss follows the TR 38.901 [TR38901]_ model and includes the
+building penetration losses as defined in 7.4.3. It is calculated based on the
+following equation:
+
+:math:`PL = PL_{b} + PL_{tw} + PL_{in} + N(0,\sigma_P^2)`
+
+
+where :math:`PL_{b}` is the basic outdoor Pathloss given in Table 7.4.1-1 of TR 38.901
+according to the LOS and NLOS conditions, :math:`PL_{tw}` is the O2I building penetration
+loss, :math:`PL_{in}` is the inside loss dependent on the depth into the building,
+and :math:`\sigma_P` is the standard deviation for the penetration loss.
+:math:`PL_{tw}`, :math:`PL_{in}` and :math:`\sigma_P` are given in Table 7.4.3-2
+of TR 38.901.
+
+The evaluation KPIs are the Downlink Geometry and the Coupling Gain. More information
+can be found in [SIMPAT-calibration]_. The curves of Downlink Geometry and Coupling
+Gain are compared against to that of various 3GPP industrial simulators provided
+in [RP180524]_. Let us notice that due to the fact that the simulator in the current
+version does not support Handover, and therefore due to the user mobility, there
+is the chance that users can be located in out-of-coverage areas, we omit from the
+SINR results (Downlink Geometry) calculations associated to a CQI (Channel Quality
+Indicator)=0.
+
+For the calibration purpose, the example provides the possibility to extract the
+REM map and the SINR as measured at each REM point (each point of the map), as well
+as the end-to-end results of the above presented KPIs, i.e. the Coupling Gain and the
+Downlink Geometry and compare it against the 3GPP reference simulators as presented
+in [RP180524]_. All the REM and end-to-end results can be found in [SIMPAT-calibration]_.
+
+Finally, let us highlight that with this study we aimed to provide to the research
+community an open source tool that allows the testing, evaluation, validation, and
+experimentation of existing and/or new features, guaranteeing the resemblance of
+the results to that of an industrial private product or of a real network.
+
+traffic-generator-example.cc
+============================
+The program ``traffic-generator-example`` included in the ``nr`` module consists of a simple topology with two nodes, a TX and an RX node. We install on each of these nodes a SimpleNetDevice that assumes an infinite bandwidth and we connect them through s SimpleChannel which does not introduce neither error nor delay to the packet transmission/reception. On the TX node we install the traffic generator by specifying the type of the NGMN traffic generator (FTP, VoIP, video, gaming) and on the RX node we install the PacketSink application. The example supports several command line parameters. The parameter trafficType can be used to configure the traffic type (NGMN FTP, video, gaming and VoIP). The example gathers the measurements (the bytes transmitted) per the measurement window interval, and writes them to the output file in the root ns-3-dev folder, so one can plot this to see the pattern of each traffic type.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/traffic-generator-example_8cc.html.
+
+cttc-nr-traffic-ngmn-mixed.cc
+=============================
+The program ``cttc-nr-traffic-ngmn-mixed`` included in the ``nr`` is an hegagonal topology example used to show how to configure different NGMN types of traffics or NGMN mixed scenario. The example consists of an hexagonal grid deployment consisting on a central site and a number of outer rings of sites around this central site. Each site is sectorized with three cells, pointing to 30º, 150º and 270º w.r.t. the horizontal axis, and we allocate a different band to each sector of the site. We provide a number of simulation parameters that can be configured through the command line. The parameter trafficTypeConf defines the NGMN traffic to be simulated (UDP CBR, FTP Model 1, NGMN FTP, NGMN VIDEO, HTTP, NGMN GAMING, NGMN VOIP, NGMN MIXED). In the case of NGMN MIXED, among the multiple UEs in a cell, we can define (through command line parameters) the percentage of UEs with each traffic type, to simulate mixed traffic scenarios, e.g., 10% FTP, 20% HTTP, 20% VIDEO STREAMING, 30% VoIP, 20% GAMING.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-traffic-ngmn-mixed_8cc.html.
+
+cttc-nr-traffic-generator-3gpp-xr.cc
+====================================
+The program ``cttc-nr-traffic-generator-3gpp-xr`` included in the ``nr`` consists on a simple topology of 1 gNB and various UEs, and is used to show how to configure different 3GPP XR types of traffics or mixed scenario. It can be configured with different 3GPP XR traffic generators (by using XR traffic mixer helper). We provide a number of simulation parameters that can be configured through the command line. For example, we can define the number of VR UEs, the number of AR UEs and the number of CG UEs to be simulated, resulting in a mixed XR traffic scenario.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-traffic-generator-3gpp-xr_8cc.html.
+
+cttc-nr-simple-qos-sched.cc
+===========================
+The program ``examples/cttc-nr-simple-qos-sched`` is a simple example for the
+QoS schedulers (see :ref:`QosSchedulers`) that is composed of 1 gNB and
+various UEs (even UEs get voice 5QI=1 and odd UEs get AR 5QI=80), to test and
+validate the correct functionality of the new QoS MAC schedulers. In this example,
+we can configure the load (full buffer or medium load) of the voice UEs, and see
+the proper behaviour of the scheduler. More precisely, when full buffer of voice
+UEs is configured, we can see that the resulting throughputs follow the proportion
+of scheduling priorities ratio.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-simple-qos-sched_8cc.html.
+
+cttc-nr-multi-flow-qos-sched
+============================
+
+The program ``examples/cttc-nr-multi-flow-qos-sched`` is an example that allows
+testing the performance of the QoS schedulers (see :ref:`QosSchedulers`)
+in conjunction with the LC QoS Assignment (see :ref:`LcAssignment`) versus other
+schedulers, such as the RR and PF in conjunction with the LC RR scheduler.
+The example has been designed to test the E2E delay and throughput in a single-cell
+scenario with 2 UEs, where 1 UE has a NON-GBR flow and the other UE has 2 flows,
+the QCI of which can be set as desired.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-multi-flow-qos-sched_8cc.html.
 
 .. _Validation:
 
@@ -2118,13 +2380,29 @@ The complete details of the validation scripts are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-ofdma-mr_8cc.html,
 https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-ofdma-pf_8cc.html,
 https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-ofdma-rr_8cc.html,
-https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-mr_8cc.html, 
-https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-pf_8cc.html, 
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-mr_8cc.html,
+https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-pf_8cc.html,
 https://cttc-lena.gitlab.io/nr/html/nr-system-test-schedulers-tdma-rr_8cc.html
 
 The base class for all the scheduler tests is
 https://cttc-lena.gitlab.io/nr/html/system-scheduler-test_8h.html
 
+Test for NR QoS Schedulers
+==========================
+To test the correct functionality of the QoS MAC schedulers presented in :ref:`QosSchedulers`
+we have implemented a system test, known as ``system-scheduler-test-qos``. The
+test in its current form verifies the implemented QoS MAC schedulers by checking
+that the obtained throughput is as expected for the QoS scheduling logic. In
+particular, it considers a scenario with 2 users, each one generating one traffic
+flow with different priority, under good propagation conditions and without
+retransmissions. Based on this priority, it checks if the ratio of the throughput
+obtained is equal to the ratio of the priorities for the case that the generated
+load saturates the system, i.e.:
+
+:math:`\frac{100-P_1}{100-P_2} = \frac{Th_1}{Th_2}`
+
+Let us point out that the test for the case of DC-GBR flows is envisioned to be
+included in the short-term future.
 
 Test for NR error model
 =======================
@@ -2194,6 +2472,7 @@ Test case called ``nr-test-timings`` checks the NR timings for different numerol
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-test-timings_8cc.html
 
+.. _notchingTest:
 
 Test for notching
 =================
@@ -2211,14 +2490,14 @@ https://cttc-lena.gitlab.io/nr/html/nr-test-notching_8cc.html
 
 Uplink power control tests
 ==========================
-Test case called ``nr-uplink-power-control-test.cc`` validates that 
-uplink power control functionality works properly. 
-Test checks PUSCH and PUCCH power control adaptation. 
-According to test UE is being moved during the test to different 
-positions and then it is checked whether the UE transmission 
-power is adjusted as expected for different cases open loop, closed loop, 
-and absolute/accumulated mode. Shadowing is disabled to allow 
-deterministic pathloss values. And PoNominalPusch are configured 
+Test case called ``nr-uplink-power-control-test.cc`` validates that
+uplink power control functionality works properly.
+Test checks PUSCH and PUCCH power control adaptation.
+According to test UE is being moved during the test to different
+positions and then it is checked whether the UE transmission
+power is adjusted as expected for different cases open loop, closed loop,
+and absolute/accumulated mode. Shadowing is disabled to allow
+deterministic pathloss values. And PoNominalPusch are configured
 in a different way to test that the maximum power levels are reached
 for the different distances for PUSCH and PUCCH::
 
@@ -2231,21 +2510,32 @@ https://cttc-lena.gitlab.io/nr/html/nr-uplink-power-control-test_8cc.html
 
 Realistic beamforming test
 ==========================
-The test ``nr-realistic-beamforming-test.cc`` included in the 
+The test ``nr-realistic-beamforming-test.cc`` included in the
 `nr` module tests the realistic BF implementation.
-It involves two devices, a transmitter and a receiver, placed at a certain 
-distance from each other and communicating over a wireless channel at 28 GHz carrier frequency. 
-The test compares the performance of two different BF methods: 1) the proposed realistic BF algorithm, 
+It involves two devices, a transmitter and a receiver, placed at a certain
+distance from each other and communicating over a wireless channel at 28 GHz carrier frequency.
+The test compares the performance of two different BF methods: 1) the proposed realistic BF algorithm,
 which uses Sounding Reference Signal (SRS) reception to estimate the channel and computes BF weights based on such channel estimate,
-and 2) an ideal BF algorithm, which selects the BF weights assuming perfect knowledge of the 
-channel matrix coefficients. 
-The test checks that with low SINR from SRS, realistic BF algorithm makes more mistakes in 
-channel estimation than ideal BF algorithm. Also, the test checks that with high SINR from SRS, 
-realistic BF algorithm generates almost always the same decision as that of the ideal BF method, 
-and so, the same pair of beams are selected for the two communicating devices. 
+and 2) an ideal BF algorithm, which selects the BF weights assuming perfect knowledge of the
+channel matrix coefficients.
+The test checks that with low SINR from SRS, realistic BF algorithm makes more mistakes in
+channel estimation than ideal BF algorithm. Also, the test checks that with high SINR from SRS,
+realistic BF algorithm generates almost always the same decision as that of the ideal BF method,
+and so, the same pair of beams are selected for the two communicating devices.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-realistic-beamforming-test_8cc.html
+
+
+Test for NGMN traffic models
+============================
+Test case called ``traffic-generator-test`` validates the NGMN traffic models. It is composed of various tests cases that check that the traffic generator works correctly by validating that the probabilistic distributions of specific variables of each of the implemented traffic generators is according to the NGMN document.
+
+TrafficGeneratorTestCase checks that the traffic generator is correctly being configured, connected to the socket, that different transport protocols can be used (TCP or UDP depending on the configuration), and that all the packets that are transmitted are correctly received. TrafficGeneratorNgmnFtpTestCase checks that the probability distributions of the NGMN FTP traffic generator are generated correctly. The test case calls 1000 times the function to generate the file size and the reading time of the NGMN FTP traffic generator, and it checks whether the mean file size value and the mean reading time correspond to those that are defined in the NGMN document. TrafficGeneratorNgmnGamingTestCase checks whether the mean value of the initial packet arrival time, the mean packet arrival time, and the mean packet size for the downlink and uplink NGMN gaming traffic generator have the expected values. TrafficGeneratorNgmnVideoTestCase checks that the probability distributions of the NGMN video traffic generator are generated correctly. The test case calls 1000 times the function to generate the packet size and the packet arrival time of the NGMN video traffic generator, and it checks whether the mean packet size value, and the mean packet arrival time correspond to those that are defined in the NGMN document. TrafficGeneratorNgmnVoipTestCase checks whether the implemented NGMN VoIP traffic generator provides the average source rate equal to the average VoIP source rate as defined in the NGMN document, i.e., the one of RTP AMR 12.2 traffic. For a given parameter specified in the NGMN document, such as encoder frame length, voice activity factor, etc.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/html/traffic-generator-test_8cc.html
+
 
 
 Open issues and future work
@@ -2285,8 +2575,22 @@ Open issues and future work
 
 .. [lte-ulpc] LTE ns-3 implementation of uplink power control: https://www.nsnam.org/docs/models/html/lte-design.html#power-control
 
-.. [SigProc5G] F.-L. Luo and C. J. Zhang. 2016. "Signal Processing for 5G: Algorithms and Implementations", John Wiley & Sons., Aug. 2016
+.. [SigProc5G] F.-L. Luo and C. J. Zhang, "Signal Processing for 5G: Algorithms and Implementations", John Wiley & Sons., Aug. 2016.
 
-.. [TS38331]  3GPP  TS  38.331, Radio Resource Control (RRC). (Rel. 15). 2018.
+.. [TS38331]  3GPP TS 38.331, Radio Resource Control (RRC), (Rel. 15), 2018.
 
+.. [IMT-2020] ITU-R, Submission, evaluation process and consensus building for IMT-2020, ITU-R IMT-2020/2-E, 2019.
 
+.. [SIMPAT-calibration] K. Koutlia, B. Bojovic, Z. Ali, S. Laǵen, Calibration of the 5G-LENA system level simulator in 3GPP reference scenarios, Simulation Modelling Practice and Theory 119, 2022.
+
+.. [TR38901] 3GPP TR 38.901 "Study on Channel Model for Frequencies from 0.5 to 100 GHz", (Release 15) TR 38.901v16.1.0 (2020), 3rd Generation Partnership Project, 2020.
+
+.. [RP180524] Huawei RP-180524, "Summary of Calibration Results for IMT-2020 Self Evaluation", 3GPP TSG RAN Meeting #79, 2018.
+
+.. [NGMN-traffics] NGMN Alliance, "NGMN Radio Access Performance Evaluation Methodology", 2008.
+
+.. [TR38838] 3GPP TR 38.838, "Study on XR (Extended Reality) Evaluations for NR", V17.0.0, 2022.
+
+.. [WNS32022-ngmn] B. Bojovic, S. Lagen, Enabling NGMN mixed traffic models for ns-3, in Workshop on ns-3, June 2022.
+
+.. [WNS3-QosSchedulers] K. Koutlia, S. Lagen, and B. Bojovic. 2023. Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA. In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.

@@ -18,55 +18,57 @@
  */
 
 #include "nr-sl-ue-mac-scheduler-dst-info.h"
+
 #include <ns3/log.h>
 
+namespace ns3
+{
 
-namespace ns3 {
+NS_LOG_COMPONENT_DEFINE("NrSlUeMacSchedulerDstInfo");
 
-NS_LOG_COMPONENT_DEFINE ("NrSlUeMacSchedulerDstInfo");
-
-NrSlUeMacSchedulerDstInfo::NrSlUeMacSchedulerDstInfo (uint32_t dstL2Id)
-  : m_dstL2Id (dstL2Id)
+NrSlUeMacSchedulerDstInfo::NrSlUeMacSchedulerDstInfo(uint32_t dstL2Id)
+    : m_dstL2Id(dstL2Id)
 {
 }
 
-NrSlUeMacSchedulerDstInfo::~NrSlUeMacSchedulerDstInfo ()
+NrSlUeMacSchedulerDstInfo::~NrSlUeMacSchedulerDstInfo()
 {
 }
 
-std::unordered_map<uint8_t, NrSlLCGPtr> &
-NrSlUeMacSchedulerDstInfo::GetNrSlLCG ()
+std::unordered_map<uint8_t, NrSlLCGPtr>&
+NrSlUeMacSchedulerDstInfo::GetNrSlLCG()
 {
-  return m_nrSlLCG;
+    return m_nrSlLCG;
 }
 
 NrSlLCGIt
-NrSlUeMacSchedulerDstInfo::Insert (NrSlLCGPtr && lcg)
+NrSlUeMacSchedulerDstInfo::Insert(NrSlLCGPtr&& lcg)
 {
-  std::pair<NrSlLCGIt, bool> ret;
-  ret = m_nrSlLCG.emplace (std::make_pair (lcg->m_id, std::move (lcg)));
-  bool insertStatus = ret.second;
-  NS_ASSERT_MSG (insertStatus, "Destination " << m_dstL2Id << " already contains LCG ID " << +ret.first->second->m_id);
-  return ret.first;
+    std::pair<NrSlLCGIt, bool> ret;
+    ret = m_nrSlLCG.emplace(std::make_pair(lcg->m_id, std::move(lcg)));
+    bool insertStatus = ret.second;
+    NS_ASSERT_MSG(insertStatus,
+                  "Destination " << m_dstL2Id << " already contains LCG ID "
+                                 << +ret.first->second->m_id);
+    return ret.first;
 }
 
 uint32_t
-NrSlUeMacSchedulerDstInfo::GetDstL2Id () const
+NrSlUeMacSchedulerDstInfo::GetDstL2Id() const
 {
-  return m_dstL2Id;
+    return m_dstL2Id;
 }
 
 void
-NrSlUeMacSchedulerDstInfo::SetDstMcs (uint8_t mcs)
+NrSlUeMacSchedulerDstInfo::SetDstMcs(uint8_t mcs)
 {
-  m_mcs = mcs;
+    m_mcs = mcs;
 }
 
 uint8_t
-NrSlUeMacSchedulerDstInfo::GetDstMcs () const
+NrSlUeMacSchedulerDstInfo::GetDstMcs() const
 {
-  return m_mcs;
+    return m_mcs;
 }
-
 
 } // namespace ns3

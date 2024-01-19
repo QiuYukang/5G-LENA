@@ -1,28 +1,16 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
+// Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
 
 #ifndef NR_MAC_HEADER_FS_H
 #define NR_MAC_HEADER_FS_H
 
 #include "ns3/packet.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -61,70 +49,70 @@ namespace ns3 {
  */
 class NrMacHeaderFs : public Header
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId();
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    TypeId GetInstanceTypeId() const override;
 
-  /**
-   * \brief Constructor
-   */
-  NrMacHeaderFs ();
+    /**
+     * \brief Constructor
+     */
+    NrMacHeaderFs();
 
-  /**
-   * \brief Serialize on a buffer
-   * \param start start position
-   */
-  void Serialize (Buffer::Iterator start) const;
-  /**
-   * \brief Deserialize from a buffer
-   * \param start start position
-   * \return the number of bytes read from the buffer
-   */
-  uint32_t Deserialize (Buffer::Iterator start);
-  /**
-   * \brief Get the serialized size
-   * \return 1
-   */
-  uint32_t GetSerializedSize () const;
-  /**
-   * \brief Print the struct on a ostream
-   * \param os ostream
-   */
-  void Print (std::ostream &os) const;
+    /**
+     * \brief Serialize on a buffer
+     * \param start start position
+     */
+    void Serialize(Buffer::Iterator start) const override;
+    /**
+     * \brief Deserialize from a buffer
+     * \param start start position
+     * \return the number of bytes read from the buffer
+     */
+    uint32_t Deserialize(Buffer::Iterator start) override;
+    /**
+     * \brief Get the serialized size
+     * \return 1
+     */
+    uint32_t GetSerializedSize() const override;
+    /**
+     * \brief Print the struct on a ostream
+     * \param os ostream
+     */
+    void Print(std::ostream& os) const override;
 
-  static const uint8_t PADDING = 63; //!< Padding
+    static const uint8_t PADDING = 63; //!< Padding
 
-  /**
-   * \brief Set the LC ID
-   * \param lcId LC ID
-   *
-   * It will assert if the value is not inside the vector of allowed ones.
-   */
-  virtual void SetLcId (uint8_t lcId);
+    /**
+     * \brief Set the LC ID
+     * \param lcId LC ID
+     *
+     * It will assert if the value is not inside the vector of allowed ones.
+     */
+    virtual void SetLcId(uint8_t lcId);
 
-  /**
-   * \brief Retrieve the LC ID of this header
-   * \return the LC ID
-   */
-  uint8_t GetLcId () const;
+    /**
+     * \brief Retrieve the LC ID of this header
+     * \return the LC ID
+     */
+    uint8_t GetLcId() const;
 
-  /**
-   * \brief IsEqual
-   * \param o another instance
-   * \return true if this and o are equal, false otherwise
-   */
-  bool operator == (const NrMacHeaderFs &o) const;
+    /**
+     * \brief IsEqual
+     * \param o another instance
+     * \return true if this and o are equal, false otherwise
+     */
+    bool operator==(const NrMacHeaderFs& o) const;
 
-protected:
-  uint8_t   m_lcid {0};    //!< LC ID
+  protected:
+    uint8_t m_lcid{0}; //!< LC ID
 };
 
 } // namespace ns3

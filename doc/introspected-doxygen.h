@@ -1,9 +1,14 @@
+// Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 #include "ns3/log.h"
 
+// clang-format off
 /*!
-\file 
+\file
 \ingroup utils
 \brief  Automatic doxygen for TypeIds
 Doxygen docs generated from the TypeId database.
@@ -29,21 +34,21 @@ ns3::BandwidthPartGnb is accessible through the following paths with Config::Set
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrGnbPhy></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NrGnbMac</b>: The MAC associated to this EnbNetDevice
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrGnbMac></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FfMacScheduler</b>: The scheduler associated to this EnbNetDevice
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::FfMacScheduler></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section attr_parent_485 Attributes defined in parent class ns3::ComponentCarrier
 <ul>
@@ -53,49 +58,49 @@ ns3::BandwidthPartGnb is accessible through the following paths with Config::Set
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 25</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlBandwidth</b>: Downlink Transmission Bandwidth Configuration in number of Resource Blocks
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 25</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlEarfcn</b>: Downlink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3. 
+  </ul>
+<li><b>DlEarfcn</b>: Downlink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:262143</li>
     <li>Initial value: 100</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlEarfcn</b>: Uplink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3. 
+  </ul>
+<li><b>UlEarfcn</b>: Uplink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 18000:262143</li>
     <li>Initial value: 18100</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>CsgId</b>: The Closed Subscriber Group (CSG) identity that this eNodeB belongs to
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:4294967295</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>CsgIndication</b>: If true, only UEs which are members of the CSG (i.e. same CSG ID) can gain access to the eNodeB, therefore enforcing closed access mode. Otherwise, the eNodeB operates as a non-CSG cell and implements open access mode.
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>PrimaryCarrier</b>: If true, this Carrier Component will be the Primary Carrier Component (PCC) Only one PCC per eNodeB is (currently) allowed
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 80 bytes (on a 64-bit architecture).
@@ -120,14 +125,14 @@ ns3::BandwidthPartUe is accessible through the following paths with Config::Set 
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrUePhy></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NrUeMac</b>: The MAC associated to this BandwidthPartUe
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrUeMac></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section attr_parent_486 Attributes defined in parent class ns3::ComponentCarrier
 <ul>
@@ -137,49 +142,49 @@ ns3::BandwidthPartUe is accessible through the following paths with Config::Set 
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 25</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlBandwidth</b>: Downlink Transmission Bandwidth Configuration in number of Resource Blocks
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 25</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>DlEarfcn</b>: Downlink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3. 
+  </ul>
+<li><b>DlEarfcn</b>: Downlink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:262143</li>
     <li>Initial value: 100</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
-<li><b>UlEarfcn</b>: Uplink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3. 
+  </ul>
+<li><b>UlEarfcn</b>: Uplink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) as per 3GPP 36.101 Section 5.7.3.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 18000:262143</li>
     <li>Initial value: 18100</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>CsgId</b>: The Closed Subscriber Group (CSG) identity that this eNodeB belongs to
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:4294967295</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>CsgIndication</b>: If true, only UEs which are members of the CSG (i.e. same CSG ID) can gain access to the eNodeB, therefore enforcing closed access mode. Otherwise, the eNodeB operates as a non-CSG cell and implements open access mode.
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>PrimaryCarrier</b>: If true, this Carrier Component will be the Primary Carrier Component (PCC) Only one PCC per eNodeB is (currently) allowed
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 64 bytes (on a 64-bit architecture).
@@ -258,147 +263,147 @@ ns3::BwpManagerAlgorithmStatic is accessible through the following paths with Co
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_CONV_VIDEO</b>: BWP index to which flows of GBR_CONV_VIDEO Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_GAMING</b>: BWP index to which flows of GBR_GAMING Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_NON_CONV_VIDEO</b>: BWP index to which flows of GBR_NON_CONV_VIDEO Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_MC_PUSH_TO_TALK</b>: BWP index to which flows of GBR_MC_PUSH_TO_TALK Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_NMC_PUSH_TO_TALK</b>: BWP index to which flows of GBR_NMC_PUSH_TO_TALK Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_MC_VIDEO</b>: BWP index to which flows of GBR_MC_VIDEO Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>GBR_V2X</b>: BWP index to which flows of GBR_V2X Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_IMS</b>: BWP index to which flows of NGBR_IMS Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_VIDEO_TCP_OPERATOR</b>: BWP index to which flows of NGBR_VIDEO_TCP_OPERATOR Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_VOICE_VIDEO_GAMING</b>: BWP index to which flows of NGBR_VOICE_VIDEO_GAMING Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_VIDEO_TCP_PREMIUM</b>: BWP index to which flows of NGBR_VIDEO_TCP_PREMIUM Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_VIDEO_TCP_DEFAULT</b>: BWP index to which flows of NGBR_VIDEO_TCP_DEFAULT Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_MC_DELAY_SIGNAL</b>: BWP index to which flows of NGBR_MC_DELAY_SIGNAL Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_MC_DATA</b>: BWP index to which flows of NGBR_MC_DATA Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_V2X</b>: BWP index to which flows of NGBR_V2X Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NGBR_LOW_LAT_EMBB</b>: BWP index to which flows of NGBR_LOW_LAT_EMBB Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DGBR_DISCRETE_AUT_SMALL</b>: BWP index to which flows of DGBR_DISCRETE_AUT_SMALL Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DGBR_DISCRETE_AUT_LARGE</b>: BWP index to which flows of DGBR_DISCRETE_AUT_LARGE Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DGBR_ITS</b>: BWP index to which flows of DGBR_ITS Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DGBR_ELECTRICITY</b>: BWP index to which flows of DGBR_ELECTRICITY Qci type should be forwarded.
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:5</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 88 bytes (on a 64-bit architecture).
@@ -429,7 +434,7 @@ ns3::BwpManagerGnb is accessible through the following paths with Config::Set an
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BwpManagerAlgorithm></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 488 bytes (on a 64-bit architecture).
@@ -460,7 +465,7 @@ ns3::BwpManagerUe is accessible through the following paths with Config::Set and
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BwpManagerAlgorithm></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 336 bytes (on a 64-bit architecture).
@@ -490,7 +495,7 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +60000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 80 bytes (on a 64-bit architecture).
@@ -509,21 +514,21 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type: uint8_t 0:12</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>AmcModel</b>: AMC model used to assign CQI
   <ul>
     <li>Set with class:  \ref ns3::EnumValue</li>
     <li>Underlying type: </li>
     <li>Initial value: ErrorModel</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>ErrorModelType</b>: Type of the Error Model to use when AmcModel is set to ErrorModel. This parameter has to match the ErrorModelType in nr-spectrum-model,because they need to refer to same MCS tables and indexes
   <ul>
     <li>Set with class:  \ref TypeIdValue</li>
     <li>Underlying type:  \ref TypeId</li>
     <li>Initial value: ns3::NrLteMiErrorModel</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 48 bytes (on a 64-bit architecture).
@@ -542,7 +547,7 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +60000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 56 bytes (on a 64-bit architecture).
@@ -637,14 +642,14 @@ ns3::NrGnbMac is accessible through the following paths with Config::Set and Con
     <li>Underlying type: uint32_t 0:4294967295</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NumHarqProcess</b>: Number of concurrent stop-and-wait Hybrid ARQ processes per user
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 20</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section tracesources_479 TraceSources
 <ul>
@@ -681,20 +686,20 @@ ns3::NrGnbNetDevice is accessible through the following paths with Config::Set a
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteEnbComponentCarrierManager></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>BandwidthPartMap</b>: List of Bandwidth Part container.
   <ul>
     <li>Set with class:  \ref ns3::ObjectPtrContainerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BandwidthPartGnb></li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>LteEnbRrc</b>: The RRC layer associated with the ENB
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteEnbRrc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section attr_parent_461 Attributes defined in parent class ns3::NrNetDevice
 <ul>
@@ -704,7 +709,7 @@ ns3::NrGnbNetDevice is accessible through the following paths with Config::Set a
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Initial value: 30000</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 136 bytes (on a 64-bit architecture).
@@ -729,76 +734,76 @@ ns3::NrGnbPhy is accessible through the following paths with Config::Set and Con
     <li>Underlying type: double 0:0.5</li>
     <li>Initial value: 0.04</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>TxPower</b>: Transmission power in dBm
   <ul>
     <li>Set with class:  \ref ns3::DoubleValue</li>
     <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
     <li>Initial value: 4</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.
   <ul>
     <li>Set with class:  \ref ns3::DoubleValue</li>
     <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
     <li>Initial value: 5</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>SpectrumPhy</b>: The downlink NrSpectrumPhy associated to this NrPhy
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrSpectrumPhy></li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>N0Delay</b>: Minimum processing delay needed to decode DL DCI and decode DL data
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:1</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>N1Delay</b>: Minimum processing delay (UE side) from the end of DL Data reception to the earliest possible start of the corresponding ACK/NACK transmission
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:4</li>
     <li>Initial value: 2</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>N2Delay</b>: Minimum processing delay needed to decode UL DCI and prepare UL data
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:4</li>
     <li>Initial value: 2</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>TbDecodeLatency</b>: Transport block decode latency
   <ul>
     <li>Set with class:  \ref ns3::TimeValue</li>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +100000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>Numerology</b>: The 3GPP numerology to be used
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>SymbolsPerSlot</b>: Number of symbols in one slot
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Initial value: 14</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>Pattern</b>: The slot pattern
   <ul>
     <li>Set with class:  \ref StringValue</li>
     <li>Underlying type: </li>
     <li>Initial value: F|F|F|F|F|F|F|F|F|F|</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section tracesources_464 TraceSources
 <ul>
@@ -825,7 +830,7 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type: bool</li>
     <li>Initial value: true</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 992 bytes (on a 64-bit architecture).
@@ -900,63 +905,63 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
@@ -976,63 +981,63 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section tracesources_475 TraceSources
 <ul>
@@ -1056,63 +1061,63 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 \section tracesources_parent_491 TraceSources defined in parent class ns3::NrMacSchedulerOfdma
@@ -1136,14 +1141,14 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type:  \ref float 0:1</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation
   <ul>
     <li>Set with class:  \ref ns3::DoubleValue</li>
     <li>Underlying type:  \ref float 0:3.40282e+38</li>
     <li>Initial value: 99</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section attr_parent_476 Attributes defined in parent class ns3::NrMacSchedulerNs3
 <ul>
@@ -1153,63 +1158,63 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 \section tracesources_parent_476 TraceSources defined in parent class ns3::NrMacSchedulerOfdma
@@ -1234,63 +1239,63 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 \section tracesources_parent_474 TraceSources defined in parent class ns3::NrMacSchedulerOfdma
@@ -1315,63 +1320,63 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
@@ -1391,63 +1396,63 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
@@ -1466,14 +1471,14 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type: double 0:1</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>LastAvgTPutWeight</b>: Weight of the last average throughput in the average throughput calculation
   <ul>
     <li>Set with class:  \ref ns3::DoubleValue</li>
     <li>Underlying type: double 0:1.79769e+308</li>
     <li>Initial value: 99</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section attr_parent_473 Attributes defined in parent class ns3::NrMacSchedulerNs3
 <ul>
@@ -1483,63 +1488,63 @@ Introspection did not find any typical Config paths.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 520 bytes (on a 64-bit architecture).
@@ -1559,63 +1564,63 @@ No Attributes are defined for this type.<br>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +1000000000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsDl</b>: Fix MCS to value set in StartingMcsDl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>FixedMcsUl</b>: Fix MCS to value set in StartingMcsUl
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsDl</b>: Starting MCS for DL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>StartingMcsUl</b>: Starting MCS for UL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlCtrlSymbols</b>: Number of symbols allocated for DL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlCtrlSymbols</b>: Number of symbols allocated for UL CTRL
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 1</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>DlAmc</b>: The DL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>UlAmc</b>: The UL AMC of this scheduler
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrAmc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 504 bytes (on a 64-bit architecture).
@@ -1639,7 +1644,7 @@ ns3::NrNetDevice is accessible through the following paths with Config::Set and 
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Initial value: 30000</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 64 bytes (on a 64-bit architecture).
@@ -1667,19 +1672,19 @@ Introspection did not find any typical Config paths.<br>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>lcid</b>: The id whithin the UE identifying the logical channel to which the packet belongs
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint8_t 0:255</li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>size</b>: Size in bytes of the RLC PDU
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint32_t 0:4294967295</li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 16 bytes (on a 64-bit architecture).
@@ -1706,28 +1711,28 @@ ns3::NrSpectrumPhy is accessible through the following paths with Config::Set an
     <li>Underlying type: bool</li>
     <li>Initial value: true</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
-  </ul> 
+  </ul>
 <li><b>ErrorModelType</b>: Type of the Error Model to apply to TBs of PDSCH and PUSCH
   <ul>
     <li>Set with class:  \ref TypeIdValue</li>
     <li>Underlying type:  \ref TypeId</li>
     <li>Initial value: ns3::NrLteMiErrorModel</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
-  </ul> 
+  </ul>
 <li><b>UnlicensedMode</b>: Activate/Deactivate unlicensed mode in which energy detection is performed and PHY state machine has an additional state CCA_BUSY.
   <ul>
     <li>Set with class:  \ref BooleanValue</li>
     <li>Underlying type: bool</li>
     <li>Initial value: false</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span></li>
-  </ul> 
+  </ul>
 <li><b>CcaMode1Threshold</b>: The energy of a received signal should be higher than this threshold (dbm) to allow the PHY layer to declare CCA BUSY state.
   <ul>
     <li>Set with class:  \ref ns3::DoubleValue</li>
     <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
     <li>Initial value: -62</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section tracesources_466 TraceSources
 <ul>
@@ -1766,7 +1771,7 @@ ns3::NrUeMac is accessible through the following paths with Config::Set and Conf
     <li>Underlying type: uint8_t 0:255</li>
     <li>Initial value: 20</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section tracesources_480 TraceSources
 <ul>
@@ -1797,41 +1802,41 @@ ns3::NrUeNetDevice is accessible through the following paths with Config::Set an
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::EpcUeNas></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>nrUeRrc</b>: The RRC associated to this UeNetDevice
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeRrc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>Imsi</b>: International Mobile Subscriber Identity assigned to this UE
   <ul>
     <li>Set with class:  \ref ns3::UintegerValue</li>
     <li>Underlying type: uint64_t 0:18446744073709551615</li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>LteUeRrc</b>: The RRC layer associated with the ENB
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeRrc></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>LteUeComponentCarrierManager</b>: The ComponentCarrierManager associated to this UeNetDevice
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::LteUeComponentCarrierManager></li>
     <li>Initial value: 0</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>ComponentCarrierMapUe</b>: List of all component Carrier.
   <ul>
     <li>Set with class:  \ref ns3::ObjectPtrContainerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::BandwidthPartUe></li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section attr_parent_462 Attributes defined in parent class ns3::NrNetDevice
 <ul>
@@ -1841,7 +1846,7 @@ ns3::NrUeNetDevice is accessible through the following paths with Config::Set an
     <li>Underlying type: uint16_t 0:65535</li>
     <li>Initial value: 30000</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 No TraceSources are defined for this type.<br>
 <b>Size</b> of this type is 160 bytes (on a 64-bit architecture).
@@ -1866,34 +1871,34 @@ ns3::NrUePhy is accessible through the following paths with Config::Set and Conf
     <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
     <li>Initial value: 2</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>NoiseFigure</b>: Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver. According to Wikipedia (http://en.wikipedia.org/wiki/Noise_figure), this is "the difference in decibels (dB) between the noise output of the actual receiver to the noise output of an  ideal receiver with the same overall gain and bandwidth when the receivers  are connected to sources at the standard noise temperature T0." In this model, we consider T0 = 290K.
   <ul>
     <li>Set with class:  \ref ns3::DoubleValue</li>
     <li>Underlying type: double -1.79769e+308:1.79769e+308</li>
     <li>Initial value: 5</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>SpectrumPhy</b>: The SpectrumPhy associated to this NrPhy
   <ul>
     <li>Set with class:  \ref ns3::PointerValue</li>
     <li>Underlying type:  \ref ns3::Ptr<  \ref ns3::NrSpectrumPhy></li>
     <li>Flags: <span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>LBTThresholdForCtrl</b>: After a DL/UL transmission, if we have less than this value to send the UL CTRL, we consider the channel as granted
   <ul>
     <li>Set with class:  \ref ns3::TimeValue</li>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +25000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 <li><b>TbDecodeLatency</b>: Transport block decode latency
   <ul>
     <li>Set with class:  \ref ns3::TimeValue</li>
     <li>Underlying type:  \ref Time --9223372036854775808.0ns:+9223372036854775807.0ns</li>
     <li>Initial value: +100000.0ns</li>
     <li>Flags: <span class="mlabel">construct </span><span class="mlabel">write </span><span class="mlabel">read </span></li>
-  </ul> 
+  </ul>
 </ul>
 \section tracesources_465 TraceSources
 <ul>
@@ -2146,7 +2151,7 @@ This is a list of all \ref ns3::GlobalValue instances.
 
 This is a list of all \ref ns3::LogComponent instances.
 
-Log Component                               | File                                                                        
+Log Component                               | File
 :------------------------------------------ | :---------------------------------------------------------------------------
 A2A4RsrqHandoverAlgorithm                   | src/lte/model/a2-a4-rsrq-handover-algorithm.cc
 A3RsrpHandoverAlgorithm                     | src/lte/model/a3-rsrp-handover-algorithm.cc
@@ -2711,4 +2716,4 @@ This is a list of all \ref tracing sources.  For more information see the  \ref 
 <li><b>UePhyTxedHarqFeedbackTrace</b>: Ue PHY DL HARQ Feedback Traces.</li>
 </ul>
 */
-
+// clang-format on

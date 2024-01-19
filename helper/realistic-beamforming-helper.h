@@ -1,39 +1,27 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
 
-#include <ns3/object-factory.h>
+// Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 #include "beamforming-helper-base.h"
-#include <ns3/realistic-beamforming-algorithm.h>
-#include <ns3/node.h>
+
 #include <ns3/beamforming-vector.h>
+#include <ns3/node.h>
+#include <ns3/object-factory.h>
+#include <ns3/realistic-beamforming-algorithm.h>
 
 #ifndef SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
 
-namespace ns3 {
+namespace ns3
+{
 
 class NrGnbNetDevice;
 class NrUeNetDevice;
 class NrGnbPhy;
 class NrUePhy;
 class NrSpectrumPhy;
-
 
 /**
  * \ingroup helper
@@ -63,65 +51,60 @@ class NrSpectrumPhy;
  * \param x2 second value max value 65535
  * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
  */
-static constexpr uint32_t Cantor (uint32_t x1, uint32_t x2)
+static constexpr uint32_t
+Cantor(uint32_t x1, uint32_t x2)
 {
-  return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
+    return (((x1 + x2) * (x1 + x2 + 1)) / 2) + x2;
 }
-
-
 
 class RealisticBeamformingHelper : public BeamformingHelperBase
 {
-public:
+  public:
+    /**
+     * \brief Get the Type ID
+     * \return the TypeId of the instance
+     */
+    static TypeId GetTypeId();
+    /**
+     * \brief Adds the beamforming task to the list of tasks
+     * \gnbDev gNbDev pointer to gNB device
+     * \ueDev ueDev pointer to UE device
+     */
+    void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
+                            const Ptr<NrUeNetDevice>& ueDev) override;
 
-  /**
-   * \brief Get the Type ID
-   * \return the TypeId of the instance
-   */
-  static TypeId GetTypeId (void);
-  /**
-   * \brief Adds the beamforming task to the list of tasks
-   * \gnbDev gNbDev pointer to gNB device
-   * \ueDev ueDev pointer to UE device
-   */
-  virtual void AddBeamformingTask (const Ptr<NrGnbNetDevice>& gNbDev,
-                                   const Ptr<NrUeNetDevice>& ueDev) override;
+    /**
+     * \brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
+     * \param srsSinr
+     * \param rnti
+     */
+    void SaveSrsSinrReport(uint16_t cellId, uint16_t rnti, double srsSinr);
+    /**
+     * \brief When the condition for triggering a beamforming update is fullfilled
+     * this function will be triggered
+     * \param cellId id that uniquely identifies the gNB phy
+     * \param rnti id that uniquely identifies the user of gNb
+     * \param srsSinr value of srsSinr to be passed to RealisticBeamformingAlgorithm
+     */
+    void TriggerBeamformingAlgorithm(uint16_t cellId, uint16_t rnti, double srsSinr);
 
-  /**
-   * \brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
-   * \param srsSinr
-   * \param rnti
-   */
-  void SaveSrsSinrReport (uint16_t cellId, uint16_t rnti, double srsSinr);
-  /**
-   * \brief When the condition for triggering a beamforming update is fullfilled
-   * this function will be triggered
-   * \param cellId id that uniquely identifies the gNB phy
-   * \param rnti id that uniquely identifies the user of gNb
-   * \param srsSinr value of srsSinr to be passed to RealisticBeamformingAlgorithm
-   */
-  void TriggerBeamformingAlgorithm (uint16_t cellId, uint16_t rnti, double srsSinr);
+    /**
+     * \brief SetBeamformingMethod
+     * \param beamformingMethod
+     */
+    void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 
-  /**
-   * \brief SetBeamformingMethod
-   * \param beamformingMethod
-   */
-  virtual void SetBeamformingMethod (const TypeId &beamformingMethod) override;
+  private:
+    BeamformingVectorPair GetBeamformingVectors(
+        const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
-private:
+    typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy>> BfAntennaPair;
+    typedef std::map<BfAntennaPair, Ptr<RealisticBeamformingAlgorithm>> AntennaPairToAlgorithm;
 
-
-  virtual BeamformingVectorPair GetBeamformingVectors (const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
-                                                       const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
-
-  typedef std::pair< Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy> > BfAntennaPair;
-  typedef std::map <BfAntennaPair, Ptr<RealisticBeamformingAlgorithm>> AntennaPairToAlgorithm;
-
-  AntennaPairToAlgorithm m_antennaPairToAlgorithm;
-
+    AntennaPairToAlgorithm m_antennaPairToAlgorithm;
 };
 
-}; //ns3 namespace
-
+}; // namespace ns3
 
 #endif /* SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_ */

@@ -1,38 +1,27 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
+// Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
 
 #ifndef NR_RADIO_ENVIRONMENT_MAP_HELPER_H
 #define NR_RADIO_ENVIRONMENT_MAP_HELPER_H
 
-#include <ns3/object-factory.h>
-#include "ns3/simple-net-device.h"
 #include "ns3/net-device-container.h"
 #include "ns3/nr-gnb-phy.h"
 #include "ns3/nr-ue-phy.h"
+#include "ns3/simple-net-device.h"
+#include <ns3/mobility-helper.h>
+#include <ns3/object-factory.h>
+#include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/three-gpp-channel-model.h>
-#include <fstream>
-#include <ns3/mobility-helper.h>
-#include <chrono>
 
-namespace ns3 {
+#include <chrono>
+#include <fstream>
+
+namespace ns3
+{
 
 class Node;
 class NetDevice;
@@ -86,7 +75,8 @@ $   remHelper->CreateRem (gnbNetDev, ueNetDev, indexPhy);
  * \code{.unparsed}
 $  Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper> ();
 $  remHelper->SetRemMode (NrRadioEnvironmentMapHelper::BEAM_SHAPE);
-$  gnbNetDev.Get(0)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(0));
+$
+gnbNetDev.Get(0)->GetObject<NrGnbNetDevice>()->GetPhy(remBwpId)->GetBeamManager()->ChangeBeamformingVector(ueNetDev.Get(0));
 $  remHelper->CreateRem (gnbNetDev, ueRemDevice, indexPhy);
     \endcode
  *
@@ -96,501 +86,499 @@ $  remHelper->CreateRem (gnbNetDev, ueRemDevice, indexPhy);
  * The output of the NrRadioEnvironmentMapHelper are REM csv files from which
  * the REM figures can be generated with the following command:
  * \code{.unparsed}
-$  gnuplot -p nr-rem-SimTag-gnbs.txt nr-rem-SimTag-ues.txt nr-rem-SimTag-buildings.txt nr-rem-SimTag-plot-rem.gnuplot
-    \endcode
+$  gnuplot -p nr-rem-SimTag-gnbs.txt nr-rem-SimTag-ues.txt nr-rem-SimTag-buildings.txt
+nr-rem-SimTag-plot-rem.gnuplot \endcode
  */
-
 
 class NrRadioEnvironmentMapHelper : public Object
 {
-public:
-
-  enum RemMode {
-         BEAM_SHAPE,
-         COVERAGE_AREA,
-         UE_COVERAGE
-  };
-
-  /**
-   * \brief NrRadioEnvironmentMapHelper constructor
-   */
-  NrRadioEnvironmentMapHelper ();
-
-  /**
-   * \brief destructor
-   */
-  virtual ~NrRadioEnvironmentMapHelper ();
-
-
-  // inherited from Object
-  virtual void DoDispose (void);
-
-
-  /**
-   * \brief Get the type id
-   * \return the type id of the class
-   */
-  static TypeId GetTypeId (void);
-
-  /**
-   * \brief Set the type of REM Map to be generated
-   * \param remType the desired type (BeamShape/CoverageArea/UeCoverage)
-   */
-  void SetRemMode (enum RemMode remType);
-
-  /**
-   * \brief Set simTag that will be contatenated to 
-   * output file names
-   * \param simTag string to be used as simulation tag
-   */
-  void SetSimTag (const std::string &simTag);
-
-  /**
-   * \brief Sets the min x coordinate of the map
-   * \param xMin The min x coordinate
-   */
-  void SetMinX (double xMin);
-
-  /**
-   * \brief Sets the min y coordinate of the map
-   * \param yMin The min y coordinate
-   */
-  void SetMinY (double yMin);
-
-  /**
-   * \brief Sets the max x coordinate of the map
-   * \param xMax The max x coordinate
-   */
-  void SetMaxX (double xMax);
-
-  /**
-   * \brief Sets the max y coordinate of the map
-   * \param yMax The max y coordinate
-   */
-  void SetMaxY (double yMax);
-
-  /**
-   * \brief Sets the resolution (number of points) of the map along the x axis
-   * \param xRes The x axis resolution
-   */
-  void SetResX (uint16_t xRes);
-
-  /**
-   * \brief Sets the resolution (number of points) of the map along the y axis
-   * \param yRes The y axis resolution
-   */
-  void SetResY (uint16_t yRes);
-
-  /**
-   * \brief Sets the z coordinate of the map
-   * \param z The z coordinate
-   */
-  void SetZ (double z);
-
-  /**
-   * \brief Sets the number of iterations to calculate the average of rem value
-   * \param numOfIterationsToAverage The number of iterations
-   */
-  void SetNumOfItToAverage (uint16_t numOfIterationsToAverage);
-
-  /**
-   * \brief Sets the installation delay
-   * \param installationDelay delay for the REM installation
-   */
-  void SetInstallationDelay (const Time &installationDelay);
-
-  /**
-   * \brief Get the type of REM Map to be generated
-   * \return The type of the map (BeamShape/CoverageArea/UeCoverage)
-   */
-  RemMode GetRemMode () const;
-
-  /**
-   * \return Gets the value of the min x coordinate of the map
-   */
-  double GetMinX () const;
-
-  /**
-   * \return Gets the value of the min y coordinate of the map
-   */
-  double GetMinY () const;
-
-  /**
-   * \return Gets the value of the max x coordinate of the map
-   */
-  double GetMaxX () const;
-
-  /**
-   * \return Gets the value of the max y coordinate of the map
-   */
-  double GetMaxY () const;
-
-  /**
-   * \return Gets the value of the resolution (number of points)
-   * of the map along the x axis
-   */
-  uint16_t GetResX () const;
-
-  /**
-   * \return Gets the value of the resolution (number of points)
-   * of the map along the y axis
-   */
-  uint16_t GetResY () const;
-
-  /**
-   * \return Gets the value of the z coordinate of the map
-   */
-  double GetZ () const;
-
-  /**
-   * \brief Convert from Watts to dBm.
-   * \param w the power in Watts
-   * \return the equivalent dBm for the given Watts
-   */
-  double WToDbm (double w) const;
-
-  /**
-   * \brief Convert from dBm to Watts.
-   * \param dbm the power in dBm
-   * \return the equivalent Watts for the given dBm
-   */
-  double DbmToW (double dbm) const;
-
-  /**
-   * \brief Convert from dB to ratio.
-   * \param dB the value in dB
-   * \return ratio in linear scale
-   */
-  double DbToRatio (double dB) const;
-
-  /**
-   * \brief Convert from ratio to dB.
-   * \param ratio the ratio in linear scale
-   * \return the value in dB
-   */
-  double RatioToDb (double ratio) const;
-
-  /**
-   * \brief This function is used for the creation of the REM map. When this
-   * function is called from an example, it is responsible for "installing"
-   * the REM through a callback to the DelayedInstall after a delay of
-   * installationDelay. Then the DelayedInstall takes care to perform all
-   * the necessary actions (call the necessary functions).
-   * \param rtdNetDev The transmitting device(s) for which the map will be generated
-   * \param rrdDevice The receiving device for which the map will be generated
-   * \param bwpId The bwpId
-   */
-  void CreateRem (const NetDeviceContainer &rtdNetDev,
-                  const Ptr<NetDevice> &rrdDevice, uint8_t bwpId);
-
-private:
-
-  /**
-   * \brief This struct includes the coordinates of each Rem Point
-   * and the SNR/SINR/IPSD values as resulted from the calculations
-   */
-  struct RemPoint
-  {
-    Vector pos {0,0,0};
-    double avgSnrDb {0};
-    double avgSinrDb {0};
-    double avgSirDb {0};
-    double avRxPowerDbm {0};
-  };
-
-  /**
-   * \brief This struct includes the configuration of all the devices of
-   * the REM: Rem Transmitting Devices (RTDs) and Rem Receiving Device (RRD)
-   */
-  struct RemDevice
-  {
-    Ptr<Node> node;
-    Ptr<SimpleNetDevice> dev;
-    Ptr<MobilityModel> mob;
-    Ptr<UniformPlanarArray> antenna;
-    double txPower {0};
-    double bandwidth {0};
-    double frequency {0};
-    uint16_t numerology {0};
-    Ptr<const SpectrumModel> spectrumModel {};
-
-    RemDevice ()
+  public:
+    enum RemMode
     {
-      node = CreateObject<Node> ();
-      dev = CreateObject<SimpleNetDevice> ();
-      node->AddDevice (dev);
-      MobilityHelper mobility;
-      mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-      mobility.Install (node);
+        BEAM_SHAPE,
+        COVERAGE_AREA,
+        UE_COVERAGE
+    };
 
-      mob = node->GetObject<MobilityModel> ();
-    }
-  };
+    /**
+     * \brief NrRadioEnvironmentMapHelper constructor
+     */
+    NrRadioEnvironmentMapHelper();
 
-  /**
-   * \brief This struct includes the pointers that copy the propagation
-   * Loss Model and Spectrum Propagation Loss model (from the example used
-   * to generate the REM map)
-   */
-  struct PropagationModels
-  {
-    Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
-    Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
-  };
+    /**
+     * \brief destructor
+     */
+    ~NrRadioEnvironmentMapHelper() override;
 
-  /**
-   * \brief This method creates the list of Rem Points (coordinates) based on
-   * the min/max coprdinates and the resolution defined by the user
-   */
-  void CreateListOfRemPoints ();
+    // inherited from Object
+    void DoDispose() override;
 
-  /**
-   * \brief Configures the REM Receiving Device (RRD)
-   */
-  void ConfigureRrd (const Ptr<NetDevice> &rrdDevice);
+    /**
+     * \brief Get the type id
+     * \return the type id of the class
+     */
+    static TypeId GetTypeId();
 
-  /**
-   * \brief Configure REM Transmission Devices (RTDs) List
-   * \param rtdDevs NetDeviceContainer of the transmitting objects for whose
-   * transmissions will be created this REM map
-   */
-  void ConfigureRtdList (const NetDeviceContainer& rtdDevs);
+    /**
+     * \brief Set the type of REM Map to be generated
+     * \param remType the desired type (BeamShape/CoverageArea/UeCoverage)
+     */
+    void SetRemMode(enum RemMode remType);
 
-  /**
-   * \brief This function is used to performed a delayed installation of REM map
-   * so that there is the sufficient time for the UE to be configured from RRC.
-   * Then, this function is responsible to call all the necessary functions.
-   * \param rtdNetDev The container of the Tx devices for which the map will be generated
-   * \param rrdDevice The Rx device for which the map will be generated
-   */
-   void DelayedInstall (const NetDeviceContainer &rtdNetDev,
-                        const Ptr<NetDevice> &rrdDevice);
+    /**
+     * \brief Set simTag that will be contatenated to
+     * output file names
+     * \param simTag string to be used as simulation tag
+     */
+    void SetSimTag(const std::string& simTag);
 
-  /**
-   * Function that saves all antenna configurations in a map. This is
-   * done at the installation time to pick up also
-   * user defined configuration of beams.
-   */
-  void SaveAntennasWithUserDefinedBeams (const NetDeviceContainer &rtdNetDev,
-                                         const Ptr<NetDevice> &rrdDevice);
+    /**
+     * \brief Sets the min x coordinate of the map
+     * \param xMin The min x coordinate
+     */
+    void SetMinX(double xMin);
 
-  /**
-   * \brief This function generates a BeamShape map. Using the configuration
-   * of antennas as have been set in the user scenario script, it calculates
-   * the SNR/SINR/IPSD.
-   */
-  void CalcBeamShapeRemMap ();
+    /**
+     * \brief Sets the min y coordinate of the map
+     * \param yMin The min y coordinate
+     */
+    void SetMinY(double yMin);
 
-  /**
-   * \brief This function generates a CoverageArea map. In this case, all the
-   * antennas of the rtds are set to point towards the rem point and the antenna
-   * of the rem point towards each rtd device.
-   */
-  void CalcCoverageAreaRemMap ();
+    /**
+     * \brief Sets the max x coordinate of the map
+     * \param xMax The max x coordinate
+     */
+    void SetMaxX(double xMax);
 
-  /**
-   * \brief This function generates a Ue Coverage map that depicts the SNR of
-   * this UE with respect to its UL transmission towards the gNB form various
-   * points on the map.
-   * An additional SINR map is also generated that can be used in mixed TDD/FDD
-   * scenarios considering interference from neighbor gNBs that transmit in DL.
-   */
-  void CalcUeCoverageRemMap ();
+    /**
+     * \brief Sets the max y coordinate of the map
+     * \param yMax The max y coordinate
+     */
+    void SetMaxY(double yMax);
 
-  /**
-   * \brief This method calculates the PSD
-   * \return The PSD (spectrumValue)
-   */
-  Ptr<SpectrumValue> CalcRxPsdValue (RemDevice& device, RemDevice& otherDevice) const;
+    /**
+     * \brief Sets the resolution (number of points) of the map along the x axis
+     * \param xRes The x axis resolution
+     */
+    void SetResX(uint16_t xRes);
 
-  /**
-   * \brief This function calculates the SNR.
-   * \param usefulSignal The useful Signal
-   * \return The snr
-   */
-  double CalculateSnr (const Ptr<SpectrumValue>& usefulSignal) const;
+    /**
+     * \brief Sets the resolution (number of points) of the map along the y axis
+     * \param yRes The y axis resolution
+     */
+    void SetResY(uint16_t yRes);
 
-  /**
-   * \brief This function finds the max value in a space of frequency-dependent
-   * values (such as PSD).
-   * \param values The list of spectrumValues for which we want to find the max
-   * \return The max spectrumValue
-   */
-  Ptr<SpectrumValue> GetMaxValue(const std::list <Ptr<SpectrumValue>>& values) const;
+    /**
+     * \brief Sets the z coordinate of the map
+     * \param z The z coordinate
+     */
+    void SetZ(double z);
 
-  /**
-   * \brief This function finds the max value in a space of frequency-dependent
-   * values (such as PSD).
-   * \param values The list of spectrumValues for which we want to find the max
-   * \return The max value (snr)
-   */
-  double CalculateMaxSnr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
+    /**
+     * \brief Sets the number of iterations to calculate the average of rem value
+     * \param numOfIterationsToAverage The number of iterations
+     */
+    void SetNumOfItToAverage(uint16_t numOfIterationsToAverage);
 
-  /**
-   * \brief This function finds the max value in a space of frequency-dependent
-   * values (such as PSD).
-   * \param values The list of spectrumValues for which we want to find the max
-   * \return The max value (sinr)
-   */
-  double CalculateMaxSinr (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
+    /**
+     * \brief Sets the installation delay
+     * \param installationDelay delay for the REM installation
+     */
+    void SetInstallationDelay(const Time& installationDelay);
 
-  /**
-   * \brief This function finds the max value in a space of frequency-dependent
-   * values (such as PSD).
-   * \param values The list of spectrumValues for which we want to find the max
-   * \return The max value (sinr)
-   */
-  double CalculateMaxSir (const std::list <Ptr<SpectrumValue>>& receivedPowerList) const;
+    /**
+     * \brief Get the type of REM Map to be generated
+     * \return The type of the map (BeamShape/CoverageArea/UeCoverage)
+     */
+    RemMode GetRemMode() const;
 
-  /**
-   * \brief This function calculates the SINR for a given space of frequency-dependent
-   * values (such as PSD).
-   * \param usefulSignal The spectrumValue considered as useful signal
-   * \param interferenceSignals The list of spectrumValues considered as interference
-   * \return The max value (sinr)
-   */
-  double CalculateSinr (const Ptr<SpectrumValue>& usefulSignal,
-                        const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
+    /**
+     * \return Gets the value of the min x coordinate of the map
+     */
+    double GetMinX() const;
 
-  /**
-   * \brief This function calculates the SIR for a given space of frequency-dependent
-   * values (such as PSD).
-   * \param usefulSignal The spectrumValue considered as useful signal
-   * \param interferenceSignals The list of spectrumValues considered as interference
-   * \return The max value (sir)
-   */
-  double CalculateSir (const Ptr<SpectrumValue>& usefulSignal,
-                       const std::list <Ptr<SpectrumValue>>& interferenceSignals) const;
+    /**
+     * \return Gets the value of the min y coordinate of the map
+     */
+    double GetMinY() const;
 
-  /**
-   * \brief This function finds the max value in a list of double values.
-   * \param values The list of double values
-   * \return The max value
-   */
-  double GetMaxValue (const std::list<double>& listOfValues) const;
+    /**
+     * \return Gets the value of the max x coordinate of the map
+     */
+    double GetMaxX() const;
 
-  /**
-   * \brief This function returns the integral of the sum of the elements of a
-   * list of SpectrumValues
-   * \return The integral of the sum of the elements of the list
-   */
-  double CalculateAggregatedIpsd (const std::list <Ptr<SpectrumValue>>& interferenceSignals);
+    /**
+     * \return Gets the value of the max y coordinate of the map
+     */
+    double GetMaxY() const;
 
-  /**
-   * \brief This function returns the sum of the elements of a list of double values
-   * \return The sum of the elements of the list
-   */
-  double SumListElements (const std::list<double>& listOfValues);
+    /**
+     * \return Gets the value of the resolution (number of points)
+     * of the map along the x axis
+     */
+    uint16_t GetResX() const;
 
-  /**
-   * \brief Configures propagation loss model factories
-   */
-  void ConfigurePropagationModelsFactories (const Ptr<const NrPhy>& rtdPhy);
+    /**
+     * \return Gets the value of the resolution (number of points)
+     * of the map along the y axis
+     */
+    uint16_t GetResY() const;
 
-  /**
-   * \brief Configures the object factories with the parameters set in the
-   * user scenario script.
-   * \return Configured ObjectFactory instance
-   */
-  ObjectFactory ConfigureObjectFactory (const Ptr<Object>& object) const;
+    /**
+     * \return Gets the value of the z coordinate of the map
+     */
+    double GetZ() const;
 
-  /**
-   * \brief This method creates the temporal Propagation Models
-   * \return The struct with the temporal propagation models (created for each
-   * rem point)
-   */
-  PropagationModels CreateTemporalPropagationModels () const;
+    /**
+     * \brief Convert from Watts to dBm.
+     * \param w the power in Watts
+     * \return the equivalent dBm for the given Watts
+     */
+    double WToDbm(double w) const;
 
-  /**
-   * \brief Prints REM generation progress report
-   */
-  void PrintProgressReport (uint32_t* remSizeNextReport);
+    /**
+     * \brief Convert from dBm to Watts.
+     * \param dbm the power in dBm
+     * \return the equivalent Watts for the given dBm
+     */
+    double DbmToW(double dbm) const;
 
-  /**
-   * \brief Prints the position of the RTDs.
-   */
-  void PrintGnuplottableGnbListToFile (const std::string &filename);
+    /**
+     * \brief Convert from dB to ratio.
+     * \param dB the value in dB
+     * \return ratio in linear scale
+     */
+    double DbToRatio(double dB) const;
 
-  /**
-   * \brief Print the position of the RRD.
-   */
-  void PrintGnuplottableUeListToFile (const std::string &filename);
+    /**
+     * \brief Convert from ratio to dB.
+     * \param ratio the ratio in linear scale
+     * \return the value in dB
+     */
+    double RatioToDb(double ratio) const;
 
-  /**
-   * \brief Print the position of the Buildings.
-   */
-  void PrintGnuplottableBuildingListToFile (const std::string &filename);
+    /**
+     * \brief This function is used for the creation of the REM map. When this
+     * function is called from an example, it is responsible for "installing"
+     * the REM through a callback to the DelayedInstall after a delay of
+     * installationDelay. Then the DelayedInstall takes care to perform all
+     * the necessary actions (call the necessary functions).
+     * \param rtdNetDev The transmitting device(s) for which the map will be generated
+     * \param rrdDevice The receiving device for which the map will be generated
+     * \param bwpId The bwpId
+     */
+    void CreateRem(const NetDeviceContainer& rtdNetDev,
+                   const Ptr<NetDevice>& rrdDevice,
+                   uint8_t bwpId);
 
-  /**
-   * \brief this method goes through every Rem Point and prints the
-   * calculated SNR/SINR/IPSD values.
-   */
-  void PrintRemToFile ();
+  private:
+    /**
+     * \brief This struct includes the coordinates of each Rem Point
+     * and the SNR/SINR/IPSD values as resulted from the calculations
+     */
+    struct RemPoint
+    {
+        Vector pos{0, 0, 0};
+        double avgSnrDb{0};
+        double avgSinrDb{0};
+        double avgSirDb{0};
+        double avRxPowerDbm{0};
+    };
 
-  /*
-   * Creates rem_plot${SimTag}.gnuplot file
-   */
-  void CreateCustomGnuplotFile ();
+    /**
+     * \brief This struct includes the configuration of all the devices of
+     * the REM: Rem Transmitting Devices (RTDs) and Rem Receiving Device (RRD)
+     */
+    struct RemDevice
+    {
+        Ptr<Node> node;
+        Ptr<SimpleNetDevice> dev;
+        Ptr<MobilityModel> mob;
+        Ptr<UniformPlanarArray> antenna;
+        double txPower{0};
+        double bandwidth{0};
+        double frequency{0};
+        uint16_t numerology{0};
+        Ptr<const SpectrumModel> spectrumModel{};
 
-  /**
-   * \brief Called when the map generation procedure has been completed.
-   */
-  void Finalize ();
+        RemDevice()
+        {
+            node = CreateObject<Node>();
+            dev = CreateObject<SimpleNetDevice>();
+            node->AddDevice(dev);
+            MobilityHelper mobility;
+            mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+            mobility.Install(node);
 
-  /**
-   * \brief Configures quasi-omni beamforming vector on antenna of the device
-   * \param device which antenna array will be configured to quasi-omni beamforming vector
-   */
-  void ConfigureQuasiOmniBfv (RemDevice& device);
+            mob = node->GetObject<MobilityModel>();
+        }
+    };
 
-  /**
-   * \brief Configures direct-path beamforming vector of "device" toward "otherDevice"
-   * \param device whose beamforming vector will be configured
-   * \param otherDevice toward this device will be configured the beamforming vector of device
-   * \param antenna of the first device
-   */
-  void ConfigureDirectPathBfv (RemDevice& device, const RemDevice& otherDevice,
-                               const Ptr<const UniformPlanarArray>& antenna);
+    /**
+     * \brief This struct includes the pointers that copy the propagation
+     * Loss Model and Spectrum Propagation Loss model (from the example used
+     * to generate the REM map)
+     */
+    struct PropagationModels
+    {
+        Ptr<ThreeGppPropagationLossModel> remPropagationLossModelCopy;
+        Ptr<ThreeGppSpectrumPropagationLossModel> remSpectrumLossModelCopy;
+    };
 
-  std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
-  std::list<RemPoint> m_rem; ///< List of REM points.
+    /**
+     * \brief This method creates the list of Rem Points (coordinates) based on
+     * the min/max coprdinates and the resolution defined by the user
+     */
+    void CreateListOfRemPoints();
 
-  std::chrono::system_clock::time_point m_remStartTime; //!< Time at which REM generation has started
+    /**
+     * \brief Configures the REM Receiving Device (RRD)
+     */
+    void ConfigureRrd(const Ptr<NetDevice>& rrdDevice);
 
-  enum RemMode m_remMode;
+    /**
+     * \brief Configure REM Transmission Devices (RTDs) List
+     * \param rtdDevs NetDeviceContainer of the transmitting objects for whose
+     * transmissions will be created this REM map
+     */
+    void ConfigureRtdList(const NetDeviceContainer& rtdDevs);
 
-  double m_xMin {0};   ///< The `XMin` attribute.
-  double m_xMax {0};   ///< The `XMax` attribute.
-  uint16_t m_xRes {0}; ///< The `XRes` attribute.
-  double m_xStep {0};  ///< Distance along X axis between adjacent listening points.
+    /**
+     * \brief This function is used to performed a delayed installation of REM map
+     * so that there is the sufficient time for the UE to be configured from RRC.
+     * Then, this function is responsible to call all the necessary functions.
+     * \param rtdNetDev The container of the Tx devices for which the map will be generated
+     * \param rrdDevice The Rx device for which the map will be generated
+     */
+    void DelayedInstall(const NetDeviceContainer& rtdNetDev, const Ptr<NetDevice>& rrdDevice);
 
-  double m_yMin {0};   ///< The `YMin` attribute.
-  double m_yMax {0};   ///< The `YMax` attribute.
-  uint16_t m_yRes {0}; ///< The `YRes` attribute.
-  double m_yStep {0};  ///< Distance along Y axis between adjacent listening points.
-  double m_z {0};  ///< The `Z` attribute.
+    /**
+     * Function that saves all antenna configurations in a map. This is
+     * done at the installation time to pick up also
+     * user defined configuration of beams.
+     */
+    void SaveAntennasWithUserDefinedBeams(const NetDeviceContainer& rtdNetDev,
+                                          const Ptr<NetDevice>& rrdDevice);
 
-  uint16_t m_numOfIterationsToAverage {1};
-  Time m_installationDelay {Seconds(0)};
+    /**
+     * \brief This function generates a BeamShape map. Using the configuration
+     * of antennas as have been set in the user scenario script, it calculates
+     * the SNR/SINR/IPSD.
+     */
+    void CalcBeamShapeRemMap();
 
-  RemDevice m_rrd;
+    /**
+     * \brief This function generates a CoverageArea map. In this case, all the
+     * antennas of the rtds are set to point towards the rem point and the antenna
+     * of the rem point towards each rtd device.
+     */
+    void CalcCoverageAreaRemMap();
 
-  Ptr<NrPhy> m_rrdPhy;  ///< Pointer to the phy of the RRD
-  std::map <const Ptr<NetDevice>, Ptr<NrPhy>> m_rtdDeviceToPhy;     ///< Map for storing the phy of each RTD device
-  std::map <const Ptr<NetDevice>, Ptr<UniformPlanarArray>> m_deviceToAntenna;
+    /**
+     * \brief This function generates a Ue Coverage map that depicts the SNR of
+     * this UE with respect to its UL transmission towards the gNB form various
+     * points on the map.
+     * An additional SINR map is also generated that can be used in mixed TDD/FDD
+     * scenarios considering interference from neighbor gNBs that transmit in DL.
+     */
+    void CalcUeCoverageRemMap();
 
-  Ptr<PropagationLossModel> m_propagationLossModel;
-  Ptr<PhasedArraySpectrumPropagationLossModel> m_phasedArraySpectrumLossModel;
-  ObjectFactory m_channelConditionModelFactory;
-  ObjectFactory m_matrixBasedChannelModelFactory;
+    /**
+     * \brief This method calculates the PSD
+     * \return The PSD (spectrumValue)
+     */
+    Ptr<SpectrumValue> CalcRxPsdValue(RemDevice& device, RemDevice& otherDevice) const;
 
-  Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
+    /**
+     * \brief This function calculates the SNR.
+     * \param usefulSignal The useful Signal
+     * \return The snr
+     */
+    double CalculateSnr(const Ptr<SpectrumValue>& usefulSignal) const;
 
-  std::string m_simTag;   ///< The `SimTag` attribute.
+    /**
+     * \brief This function finds the max value in a space of frequency-dependent
+     * values (such as PSD).
+     * \param values The list of spectrumValues for which we want to find the max
+     * \return The max spectrumValue
+     */
+    Ptr<SpectrumValue> GetMaxValue(const std::list<Ptr<SpectrumValue>>& values) const;
+
+    /**
+     * \brief This function finds the max value in a space of frequency-dependent
+     * values (such as PSD).
+     * \param values The list of spectrumValues for which we want to find the max
+     * \return The max value (snr)
+     */
+    double CalculateMaxSnr(const std::list<Ptr<SpectrumValue>>& receivedPowerList) const;
+
+    /**
+     * \brief This function finds the max value in a space of frequency-dependent
+     * values (such as PSD).
+     * \param values The list of spectrumValues for which we want to find the max
+     * \return The max value (sinr)
+     */
+    double CalculateMaxSinr(const std::list<Ptr<SpectrumValue>>& receivedPowerList) const;
+
+    /**
+     * \brief This function finds the max value in a space of frequency-dependent
+     * values (such as PSD).
+     * \param values The list of spectrumValues for which we want to find the max
+     * \return The max value (sinr)
+     */
+    double CalculateMaxSir(const std::list<Ptr<SpectrumValue>>& receivedPowerList) const;
+
+    /**
+     * \brief This function calculates the SINR for a given space of frequency-dependent
+     * values (such as PSD).
+     * \param usefulSignal The spectrumValue considered as useful signal
+     * \param interferenceSignals The list of spectrumValues considered as interference
+     * \return The max value (sinr)
+     */
+    double CalculateSinr(const Ptr<SpectrumValue>& usefulSignal,
+                         const std::list<Ptr<SpectrumValue>>& interferenceSignals) const;
+
+    /**
+     * \brief This function calculates the SIR for a given space of frequency-dependent
+     * values (such as PSD).
+     * \param usefulSignal The spectrumValue considered as useful signal
+     * \param interferenceSignals The list of spectrumValues considered as interference
+     * \return The max value (sir)
+     */
+    double CalculateSir(const Ptr<SpectrumValue>& usefulSignal,
+                        const std::list<Ptr<SpectrumValue>>& interferenceSignals) const;
+
+    /**
+     * \brief This function finds the max value in a list of double values.
+     * \param values The list of double values
+     * \return The max value
+     */
+    double GetMaxValue(const std::list<double>& listOfValues) const;
+
+    /**
+     * \brief This function returns the integral of the sum of the elements of a
+     * list of SpectrumValues
+     * \return The integral of the sum of the elements of the list
+     */
+    double CalculateAggregatedIpsd(const std::list<Ptr<SpectrumValue>>& interferenceSignals);
+
+    /**
+     * \brief This function returns the sum of the elements of a list of double values
+     * \return The sum of the elements of the list
+     */
+    double SumListElements(const std::list<double>& listOfValues);
+
+    /**
+     * \brief Configures propagation loss model factories
+     */
+    void ConfigurePropagationModelsFactories(const Ptr<const NrPhy>& rtdPhy);
+
+    /**
+     * \brief Configures the object factories with the parameters set in the
+     * user scenario script.
+     * \return Configured ObjectFactory instance
+     */
+    ObjectFactory ConfigureObjectFactory(const Ptr<Object>& object) const;
+
+    /**
+     * \brief This method creates the temporal Propagation Models
+     * \return The struct with the temporal propagation models (created for each
+     * rem point)
+     */
+    PropagationModels CreateTemporalPropagationModels() const;
+
+    /**
+     * \brief Prints REM generation progress report
+     */
+    void PrintProgressReport(uint32_t* remSizeNextReport);
+
+    /**
+     * \brief Prints the position of the RTDs.
+     */
+    void PrintGnuplottableGnbListToFile(const std::string& filename);
+
+    /**
+     * \brief Print the position of the RRD.
+     */
+    void PrintGnuplottableUeListToFile(const std::string& filename);
+
+    /**
+     * \brief Print the position of the Buildings.
+     */
+    void PrintGnuplottableBuildingListToFile(const std::string& filename);
+
+    /**
+     * \brief this method goes through every Rem Point and prints the
+     * calculated SNR/SINR/IPSD values.
+     */
+    void PrintRemToFile();
+
+    /*
+     * Creates rem_plot${SimTag}.gnuplot file
+     */
+    void CreateCustomGnuplotFile();
+
+    /**
+     * \brief Called when the map generation procedure has been completed.
+     */
+    void Finalize();
+
+    /**
+     * \brief Configures quasi-omni beamforming vector on antenna of the device
+     * \param device which antenna array will be configured to quasi-omni beamforming vector
+     */
+    void ConfigureQuasiOmniBfv(RemDevice& device);
+
+    /**
+     * \brief Configures direct-path beamforming vector of "device" toward "otherDevice"
+     * \param device whose beamforming vector will be configured
+     * \param otherDevice toward this device will be configured the beamforming vector of device
+     * \param antenna of the first device
+     */
+    void ConfigureDirectPathBfv(RemDevice& device,
+                                const RemDevice& otherDevice,
+                                const Ptr<const UniformPlanarArray>& antenna);
+
+    std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
+    std::list<RemPoint> m_rem;     ///< List of REM points.
+
+    std::chrono::system_clock::time_point
+        m_remStartTime; //!< Time at which REM generation has started
+
+    enum RemMode m_remMode;
+
+    double m_xMin{0};   ///< The `XMin` attribute.
+    double m_xMax{0};   ///< The `XMax` attribute.
+    uint16_t m_xRes{0}; ///< The `XRes` attribute.
+    double m_xStep{0};  ///< Distance along X axis between adjacent listening points.
+
+    double m_yMin{0};   ///< The `YMin` attribute.
+    double m_yMax{0};   ///< The `YMax` attribute.
+    uint16_t m_yRes{0}; ///< The `YRes` attribute.
+    double m_yStep{0};  ///< Distance along Y axis between adjacent listening points.
+    double m_z{0};      ///< The `Z` attribute.
+
+    uint16_t m_numOfIterationsToAverage{1};
+    Time m_installationDelay{Seconds(0)};
+
+    RemDevice m_rrd;
+
+    Ptr<NrPhy> m_rrdPhy; ///< Pointer to the phy of the RRD
+    std::map<const Ptr<NetDevice>, Ptr<NrPhy>>
+        m_rtdDeviceToPhy; ///< Map for storing the phy of each RTD device
+    std::map<const Ptr<NetDevice>, Ptr<UniformPlanarArray>> m_deviceToAntenna;
+
+    Ptr<PropagationLossModel> m_propagationLossModel;
+    Ptr<PhasedArraySpectrumPropagationLossModel> m_phasedArraySpectrumLossModel;
+    ObjectFactory m_channelConditionModelFactory;
+    ObjectFactory m_matrixBasedChannelModelFactory;
+
+    Ptr<SpectrumValue> m_noisePsd; // noise figure PSD that will be used for calculations
+
+    std::string m_simTag; ///< The `SimTag` attribute.
 
 }; // end of `class NrRadioEnvironmentMapHelper`
 
-} // end of `namespace ns3`
-
+} // namespace ns3
 
 #endif // NR_RADIO_ENVIRONMENT_MAP_HELPER_H

@@ -1,3 +1,7 @@
+# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 set(source_files
     helper/nr-helper.cc
     helper/nr-phy-rx-trace.cc
@@ -34,6 +38,8 @@ set(source_files
     model/nr-mac-scheduler-tdma-pf.cc
     model/nr-mac-scheduler-ofdma-rr.cc
     model/nr-mac-scheduler-ofdma-pf.cc
+    model/nr-mac-scheduler-tdma-qos.cc
+    model/nr-mac-scheduler-ofdma-qos.cc
     model/nr-control-messages.cc
     model/nr-spectrum-signal-parameters.cc
     model/nr-radio-bearer-tag.cc
@@ -67,8 +73,12 @@ set(source_files
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-ofdma-mr.cc
     model/nr-mac-scheduler-tdma-mr.cc
+    model/nr-mac-scheduler-ue-info-qos.cc
     model/nr-mac-scheduler-ue-info.cc
     model/nr-mac-scheduler-ue-info-pf.cc
+    model/nr-mac-scheduler-lc-alg.cc
+    model/nr-mac-scheduler-lc-rr.cc
+    model/nr-mac-scheduler-lc-qos.cc
     model/nr-eesm-error-model.cc
     model/nr-eesm-t1.cc
     model/nr-eesm-t2.cc
@@ -109,10 +119,19 @@ set(source_files
     model/nr-sl-ue-mac-scheduler-ns3.cc
     model/nr-sl-ue-mac-scheduler-simple.cc
     model/nr-sl-ue-phy-sap.cc
-    utils/file-transfer-helper.cc
-    utils/file-transfer-application.cc
     utils/three-gpp-channel-model-param.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
+    utils/traffic-generators/helper/traffic-generator-helper.cc
+    utils/traffic-generators/model/traffic-generator.cc
+    utils/traffic-generators/model/traffic-generator-ftp-single.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-ftp-multi.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-video.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-gaming.cc
+    utils/traffic-generators/model/traffic-generator-ngmn-voip.cc
+    utils/traffic-generators/model/traffic-generator-3gpp-pose-control.cc
+    utils/traffic-generators/model/traffic-generator-3gpp-audio-data.cc
+    utils/traffic-generators/model/traffic-generator-3gpp-generic-video.cc
+    utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
 )
 
 set(header_files
@@ -160,6 +179,8 @@ set(header_files
     model/nr-mac-scheduler-tdma-pf.h
     model/nr-mac-scheduler-ofdma-rr.h
     model/nr-mac-scheduler-ofdma-pf.h
+    model/nr-mac-scheduler-tdma-qos.h
+    model/nr-mac-scheduler-ofdma-qos.h
     model/nr-control-messages.h
     model/nr-spectrum-signal-parameters.h
     model/nr-radio-bearer-tag.h
@@ -191,6 +212,10 @@ set(header_files
     model/nr-mac-scheduler-ue-info-mr.h
     model/nr-mac-scheduler-ue-info-rr.h
     model/nr-mac-scheduler-ue-info-pf.h
+    model/nr-mac-scheduler-ue-info-qos.h
+    model/nr-mac-scheduler-lc-alg.h
+    model/nr-mac-scheduler-lc-rr.h
+    model/nr-mac-scheduler-lc-qos.h
     model/nr-eesm-error-model.h
     model/nr-eesm-t1.h
     model/nr-eesm-t2.h
@@ -233,10 +258,19 @@ set(header_files
     model/nr-sl-ue-mac-scheduler-ns3.h
     model/nr-sl-ue-mac-scheduler-simple.h
     model/nr-sl-ue-phy-sap.h
-    utils/file-transfer-helper.h
-    utils/file-transfer-application.h
     utils/three-gpp-channel-model-param.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
+    utils/traffic-generators/model/traffic-generator.h
+    utils/traffic-generators/model/traffic-generator-ftp-single.h
+    utils/traffic-generators/model/traffic-generator-ngmn-ftp-multi.h
+    utils/traffic-generators/model/traffic-generator-ngmn-video.h
+    utils/traffic-generators/model/traffic-generator-ngmn-gaming.h
+    utils/traffic-generators/model/traffic-generator-ngmn-voip.h
+    utils/traffic-generators/model/traffic-generator-3gpp-pose-control.h
+    utils/traffic-generators/model/traffic-generator-3gpp-audio-data.h
+    utils/traffic-generators/model/traffic-generator-3gpp-generic-video.h
+    utils/traffic-generators/helper/traffic-generator-helper.h
+    utils/traffic-generators/helper/xr-traffic-mixer-helper.h
 )
 
 
@@ -267,6 +301,8 @@ set(test_sources
     test/nr-power-allocation.cc
     test/nr-test-harq.cc
     test/test-nr-sl-sci-headers.cc
+    utils/traffic-generators/test/traffic-generator-test.cc
+    test/system-scheduler-test-qos.cc
 )
 
 build_lib(
@@ -276,5 +312,6 @@ build_lib(
   LIBRARIES_TO_LINK
     ${liblte}
     ${libinternet-apps}
+    ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )

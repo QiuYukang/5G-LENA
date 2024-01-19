@@ -1,17 +1,24 @@
+<<<<<<< HEAD
+<!--
+Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+
+SPDX-License-Identifier: GPL-2.0-only
+-->
 # ns-3 NR module with V2X extensions
 
-This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the simulation of NR V2X. 
+This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the simulation of NR V2X.
 ns-3 is used as a base, on top of which we add NR module with V2X extensions as plug-in.
 
 ## ns-3 + NR prerequisites
 
 ### ns-3 prerequisites:
 
-Make sure to install all [ns-3 preresquisites](https://www.nsnam.org/wiki/Installation#Prerequisites).
+Make sure to install all [ns-3 prerequisites](https://www.nsnam.org/docs/installation/html/index.html)
 
 ### NR prerequisites:
 
-Install libc6-dev (it provides `semaphore.h` header file):
+Install libc6-dev (it provides `semaphore.h` header file).  The Ubuntu
+package name is:
 
 ```
 sudo apt-get install libc6-dev
@@ -32,29 +39,29 @@ The implementation of NR V2X is divided between ns-3 LTE (RLC and above) and
 Therefore, to be able to use this code one has to use CTTC customized LTE module
 of ns-3, and a specific branch in the nr module.
 
-###  1. Download ns-3 with extensions for V2X:
+###  Download ns-3 with extensions for V2X:
 
 ```
 git clone https://gitlab.com/cttc-lena/ns-3-dev.git
 cd ns-3-dev
 ```
 
-### 2. Download the NR module:
+### Download the NR module:
 
 ```
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 ```
 
-Notice that since these are two independent git repositories, when you run 
+Notice that since these are two independent git repositories, when you run
 `git status` inside of the ns-3, you will notice that the contrib/nr
 directory will be listed as "Untracked files". This is normal.
 
 ### 3. Switch to the latest NR release branch with V2X extensions:
 
-Checkout the latest NR release branch (usually the branch with the highest version 
+Checkout the latest NR release branch (usually the branch with the highest version
 number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
-For example, if `5g-lena-v2x-v0.2.y` is the latest release branch you can check it out 
+For example, if `5g-lena-v2x-v0.2.y` is the latest release branch you can check it out
 in the following way:
 
 ```
@@ -64,11 +71,11 @@ git checkout 5g-lena-v2x-v0.2.y
 
 ### 4. Switch to the recommended ns-3 release branch that includes V2X extensions:
 
-Switch to ns-3 branch with V2X extensions: 
+Switch to ns-3 branch with V2X extensions:
 
 ```
 cd ../..
-$ git checkout v2x-lte-dev
+$ git checkout -b v2x-lte-dev origin/v2x-lte-dev
 ```
 
 ### 5. Check out compatible ns-3 V2X tag
@@ -90,7 +97,7 @@ To check out the git tag run:
 git checkout ns-3-dev-v2x-v0.2
 ```
 
-Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK. 
+Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK.
 
 ### 6. Test ns-3 + nr installation:
 
@@ -101,7 +108,59 @@ cd ../..
 ./ns3 configure --disable-python --enable-tests --enable-examples
 ```
 
-In the output you should see: `SQLite stats support: enabled`. If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`. 
+In the output you should see: `SQLite stats support: enabled`. If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
+=======
+Notice that since these are two independent git repositories, when you run
+`git status` inside of the ns-3, you will notice that the contrib/nr
+directory will be listed as "Untracked files". This is normal.
+
+### Switch to the latest NR release branch:
+
+Checkout the latest NR release branch (usually the branch with the highest version
+number, to list git branches run `git branch -r`). For example, for NR Release v2.6 run:
+
+```
+cd nr
+git checkout 5g-lena-v2.6.y
+```
+
+### Switch to the recommended ns-3 release branch:
+
+Check in the [NR RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the recommended ns-3 release, and then check out the corresponding ns-3 release branch.
+For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".40" you can run:
+
+```
+cd ../..
+git checkout -b ns-3.40-branch ns-3.40
+```
+
+For a quicker reference we provide a table with the supported versions of ns-3-dev
+for each NR release.
+
+| NR version     | ns-3 version | Build system  |
+| :------------: | :-----------:| :-----------: |
+| 5g-lena-v2.6.y | ns-3.40      | cmake         |
+| 5g-lena-v2.5.y | ns-3.39      | cmake         |
+| 5g-lena-v2.4.y | ns-3.38      | cmake         |
+| 5g-lena-v2.3.y | ns-3.37      | cmake         |
+| 5g-lena-v2.2.y | ns-3.36.1    | cmake         |
+| 5g-lena-v2.1.y | ns-3.36      | cmake         |
+| 5g-lena-v2.0.y | ns-3.36      | cmake         |
+| 5g-lena-v1.3.y | ns-3.35      | waf           |
+
+
+### Test ns-3 + nr installation:
+
+Let's configure the ns-3 + NR project:
+
+```
+./ns3 configure --enable-examples --enable-tests
+```
+
+In the output you should see: `SQLite support: ON`.
+
+If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
+>>>>>>> v2.6-branch
 
 To compile the ns-3 with NR you can run the following command:
 
@@ -112,15 +171,17 @@ To compile the ns-3 with NR you can run the following command:
 If the NR module is recognized correctly, you should see "nr" in the list of
 built modules. If that is the case, _Welcome to the NR V2X world !_
 
-## Run examples: 
+Further instructions on how to run the examples are given in the [Getting Started instructions](https://cttc-lena.gitlab.io/nr/html/getting-started.html).
 
-To run `cttc-nr-v2x-demo-simple.cc` example from the nr/examples folder run: 
+## Run examples:
+
+To run `cttc-nr-v2x-demo-simple.cc` example from the nr/examples folder run:
 
 ```
 ./ns3 run "cttc-nr-v2x-demo-simple"
 ```
 
-To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run: 
+To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run:
 
 ```
 ./ns3 run "nr-v2x-west-to-east-highway"
@@ -128,9 +189,9 @@ To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run:
 
 ## Upgrading 5G-LENA
 
-We assume that your work lives in a separate branch, and that the 'master' and 
-'nr-v2x-dev' and release branches of the NR repository is left untouched as 
-the first time you downloaded it. 
+We assume that your work lives in a separate branch, and that the 'master' and
+'nr-v2x-dev' and release branches of the NR repository is left untouched as
+the first time you downloaded it.
 If it is not the case, then please move all your work in a separate branch.
 
 A vanilla 'master' and 'nr-v2x-dev' branches can be updated by simply running:
@@ -174,12 +235,44 @@ You will find the doxygen documentation inside `doc/doc/html/`.
 Please note that you may need to initialize the m.css submodule, and
 to install some packages like python3.
 
+## Contributions are welcome!
+
+As you may know, to fund, design, develop and then maintain an
+open source software for a novel communication technology is a
+challenging and time expensive task. For this, we would like to
+foster collaborations with researchers and companies around the globe:
+
+- If you identify a bug, please let us know through the Gitlab issue page;
+- If you have a development plan that you can share, please get in touch with us.
+We may be able to provide useful suggestions with your design and then maybe your
+contribution can be more integrated more efficiently and be useful to let the project grow;
+- If you plan to share your code, as the GPLv2 permits, please help us to
+integrate it so that the work you have done does not become outdated
+and then impossible to merge;
+- The more we are, the better we can do!
+
+## Features
+
+To see the features, please go to the [official webpage](https://cttc-lena.gitlab.io/5g-lena-website/features/).
+
 ## Papers
 
 An updated list of published papers that are based on the outcome of this
 module is available
 [here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
 
+## About
+
+The [OpenSim](https://www.cttc.cat/open-simulations-opensim/) research group in CTTC is a group of highly skilled researchers, with expertise in the area of cellular networks, O-RAN, radio resource management, ML/AI based network management, with a focus on the following research lines:
+
+- Developing models, algorithms, and architectures for next-generation virtualized open radio access networks
+- Designing, implementing, validating, and evaluating 5G and beyond extensions in ns-3, including licensed/unlicensed/shared-based access and vehicular communications
+- Deriving 3GPP/IEEE technologies coexistence and spectrum sharing strategies
+- Designing radio resource, interference, and spectrum management techniques.
+
+## Collaborations
+
+Contact us if you think that we could collaborate! We are interested in research projects with companies or other research institutions. Our [OpenSim](https://www.cttc.cat/open-simulations-opensim/) research group has gained a vast experience in industrial research projects through many successful projects with some of the top companies in the telecom industry. We also organize secondments for excellent and motivated MSc/PhD students. We can organize tutorials for the academy or industry.
 
 ## Authors ##
 
@@ -193,7 +286,7 @@ In alphabetical order:
 - Tom Henderson
 - Natale Patriciello
 
-Inspired by [mmWave module by NYU/UniPD] (https://github.com/nyuwireless-unipd/ns3-mmwave)
+Inspired by [mmWave module by NYU/UniPD](https://github.com/nyuwireless-unipd/ns3-mmwave)
 
 ## License ##
 

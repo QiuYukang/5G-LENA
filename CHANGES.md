@@ -1,3 +1,9 @@
+<!--
+Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+
+SPDX-License-Identifier: GPL-2.0-only
+-->
+
 5G-LENA Changes       {#changes}
 ===============
 
@@ -7,7 +13,7 @@ NR module: API and model change history
 <!-- This ChangeLog is updated in the reverse order with the most recent changes coming first.  Date format:  DD-MM-YYYY -->
 
 ns-3 is an evolving system and there will be API or behavioral changes
-from time to time.   Users who try to use scripts or models across
+from time to time. Users who try to use scripts or models across
 versions of ns-3 may encounter problems at compile time, run time, or
 may see the simulation output change.
 
@@ -44,10 +50,212 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v2.5 to v2.6
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.39 to ns-3.40.
+
+### New API:
+
+- Added `Tx` and `Rx` trace sources in NrNetDevice to allow easier tracing of
+the events when the packet is transmitted or received.
+
+### Changes to existing API:
+
+None.
+
+### Changed behavior:
+
+- With the #157 fix the default number of HARQ processes for the downlink and
+the uplink has changed from 20 to 16.
+
+- In general, the NR module logging is refactored. Many log messages have now
+different logging levels. E.g., instead of NS_LOG_INFO is used NS_LOG_FUNCTION.
+There are new log messages at the different layers at gNB and UE.
+
+---
+
+## Changes from NR-v2.4 to v2.5
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.38 to ns-3.39.
+
+### New API:
+
+* New QoS MAC schedulers are implemented that perform scheduling by taking into
+account the QoS requirements of QoS flows. The implemented scheduler classes are
+the `NrMacSchedulerTdmaQos` and `NrMacSchedulerOfdmaQos`. These classes are
+responsible for setting the scheduler and access mode types when desired by the
+user and updating the DL and UL metrics of each UE. The sorting of the UEs
+(based on these metrics) is done by the newly implemented class `NrMacSchedulerUeInfoQos`.
+
+* New design for the LC bytes assignment. A new base class is added, known as
+`NrMacSchedulerLcAlgorithm` that allows the implementation of various algorithms
+for the LC bytes assignment. We implement two classes, the `NrMacSchedulerLcRR`
+and the `NrMacSchedulerLcQos`. The former is the original implementation of
+assigning bytes to LCs in RR fashion (see method AssignBytesToLC in previous releases).
+The latter includes a new algorithm that shares bytes among the active LCs by taking
+into account the resource type and the e_rabGuaranteedBitRate of a flow.
+
+### Changes to existing API:
+
+* Extend the `BwpManagerAlgorithm` to support Release 18 5QIs.
+
+* Code is updated based on the lte module extension for delay-critical GBR.
+
+* Method `AssignBytesToLC` of `NrMacSchedulerNs3` is moved to a class (`NrMacSchedulerLcRR`).
+
+* Deprecate use of `V4PingHelper` (now `PingHelper`) to be compatible with ns-3.
+
+* NrHelper undefined method `GetBandwidthPartMap` is dropped.
+
+### Changed behavior:
+
+---
+
+## Changes from NR-v2.3 to v2.4
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.37 to ns-3.38, including updating to the new and updated interfaces in
+antenna and spectrum module (ns-3 !1046 abd ns-3 !1269).
+
+### New API:
+
+* The `NR` module now includes a new traffic generators framework that allows to
+simulate NGMN traffic applications for mixed traffic scenarios and advanced
+and multi-flow 3GPP XR traffic applications, such as Virtual Reality (VR),
+Augmented Reality (AR), and Cloud Gaming (CG) applications.
+The traffic models are included in `nr/utils/traffic-generators`,
+with a goal to extend them and in future port them to the ns-3 applications
+module. In particular, this NR release adds the following traffic applications:
+`TrafficGenerator3gppAudioData`, `TrafficGenerator3gppGenericVideo`,
+`TrafficGeneratorPoseControl`, `TrafficGeneratorNgmnFtpMulti`,
+`TrafficGeneratorNgmnGaming`, `TrafficGeneratorNgmnVideo`, and `TrafficGeneratorNgmnVoip`.
+Additionally, the framework offers `TrafficGeneratorHelper` that helps
+installing traffic generator application on a client node. And, the model
+offers also `XrTrafficMixerHelper` that helps mixing 3GPP traffic applications
+to simulate more complex multi-stream 3GPP XR models such as 3GPP AR Model 3A
+that is composed of 3 streams (pose/control, scene/video, audio/data),
+3GPP VR composed of 2 streams (scene/video and audio/data), and 3GPP CG downlink
+composed of 2 streams (scene/video and audio/data). Usage of these new APIs in
+the NR module can be seen in the examples `cttc-nr-traffic-ngmn-mixed.cc`, and
+`cttc-nr-traffic-generator-3gpp-xr.cc`.
+
+* Added RSRP trace source to `NrUePhy`.
+
+* Added function `GetDlCtrlSymbols` to `NrGnbMac` that allows to obtain the number
+of symbols used for `CTRL`.
+
+### Changes to existing API:
+
+* Removed unused folders: `BeamFormingMatrix`and `Raytraycing`. If you were maybe
+using these folders and you would like that we return them back to the `NR`
+module please let us know.
+
+### Changed behavior:
+
+* Detected and fixed a bug when postponing transmission in NR-U simulations,
+i.e., when channel was busy and `PushFrontSlotAllocInfo` was being called to
+postpone currently scheduled transmission, a wrong function for encoding the
+SfnSf was being called. It was called `GetEncodingWithSymStart` instead of
+`GetEncForStreamWithSymStart`. Thanks to George Frangulea for helping to find and
+resolve this bug.
+
+* Fixed an error in PointInFTPlane constructor, i.e., m_rbg was defined
+as `uint32_t`, but the constructor parameter was using `uint8_t`.
+
+* Fixed an issue with `S` slots in `NrGnbPhy` and `NrPhy`, whose previous
+implementation was not considering correctly that `S` slot could contain the
+`UL` control for the HARQ, and also it was not considering `S` slot as an
+option for the `DL` and neither the `UL` in the functions `HasDlSlot` and
+`HasUlSlot`.
+
+* Fixed a bug in the `NrMacSchedulerNs3` in functions `DoScheduleDl` and `DoScheduleUl`
+when updating the active DL and UL users list. Since these two maps were not
+being updated correctly, in some situations the function `GetSymPerBeam` was
+being called with activeDlUe or activeUlUE map containing all empty elements,
+and then the assert was being hit in `GetSymPerBeam` function:
+`NS_ASSERT(symAvail >= symUsed);`.
+
+* Fixed `NrGnbPhy::StartSlot` to allow a flexible and configurable number of
+`CTRL` symbols per slot. Removed an assumption of only a single DL CTRL symbol
+per slot which was valid for the first versions of the NR module.
+
+* Previously offered `FileTransferApplication` is now implemented in
+`TrafficGeneratorFtpSingle`. Also, previously offered `FileTransferHelper` is now
+offered in `TrafficGeneratorHelper`. FTP M1 continues to be supported by the `NR`
+module, just that `ThreeGppFtpM1Helper` is using now `TrafficGeneratorHelper` and
+`TrafficGeneratorFtpSingle`. Hence, the `NR` user still uses `ThreeGppFtpM1Helper`,
+but this class is now using a new traffic generator framework.
+
+---
+
+## Changes from NR-v2.2 to v2.3
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.36.1 to ns-3.37, including updating to clang format and with clang-tidy.
+In addition, whitespaces trailing is also checked.
+
+### New API:
+
+* Added new example called `cttc-nr-3gpp-calibration` used for the calibration
+of the simulator under 3GPP outdoor reference scenarios.
+
+* Added `DlDataSnrTrace`, `DlCtrlPathloss` and `DlDataPathloss` trace sources in
+NrSpectrumPhy.
+
+* `NrUePhy` now includes the RSRP measurements of a UE.
+
+### Changes to existing API:
+
+* Changed parameter type of the function
+`DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity`.
+
+* PHY traces are extended with a function to set the results folder path.
+
+* `HexagonalGridScenarioHelper` is extended to allow the configuration of a
+variable that defines the maximum distance between a UE and the closest site, through
+the `HexagonalGridScenarioHelper::SetMaxUeDistanceToClosestSite` function.
+This function can be used only in conjuction with the
+`HexagonalGridScenarioHelper::CreateScenarioWithMobility`.
+
+* `HexagonalGridScenarioHelper` is also extended to set the results folder path
+and a simTag for the generated gnuplot file. This is useful so that different
+simulations will not overide the results.
+
+* `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+
+* `Nrhelper` now avoids re-assigning a stream due to incorrect pointer.
+
+* Remove from `NrEesmErrorModel` redundant SpectrumValue copy that can cause a
+significant drop in the performance unnecessarily.
+
+* Allow the `NrErrorModel` to be passed and fetched as an object in `NrSpectrumPhy`.
+
+* Sfnsf frame number is expanded to 32-bit to prevent rollover
+
+
+### Changed behavior:
+
+* The antenna orientation in the `NodeDistributionScenarioInterface::GetAntennaOrientationDegrees`
+is changed from 60, 180, 300 degrees to 30, 120, 270.
+
+* Fixed how the HARQ feedback from multiple streams is combined in `NrUePhy`.
+Now it takes into account the use case when there are different HARQ IDs,
+because there can be ReTX DCI, and TX DCI for the same UE.
+
+* Fixed and modified the code for MAC UL/DL RLC TX/RX/PDU queues.
+The code at gNB MAC that keeps track of DL/UL RLC queues has been reworked, due
+to some inconsistencies related to the handling of information about RLC UE queues.
+In some cases, due to these misalignments, the gNB MAC was not assigning sufficient
+resources to a UE. Moreover, the UE MAC did not account correclty related to the
+MAC header.
+
+---
 
 ## Changes from NR-v2.1 to v2.2
 
-This release contains only the upgrade of the supported ns-3 release, 
+This release contains only the upgrade of the supported ns-3 release,
 i.e., upgrade from ns-3.36 to ns-3.36.1.
 
 ### New API:
@@ -70,19 +278,19 @@ None.
 - Added new distance-based 3GPP spectrum propagation loss model
 - Added the Get function to obtain the pointer to PHY traces
 - Added scenario with UE mobility in `HexagonalGridScenarioHelper` class
-- Added option to set random antenna height in centrain percentage of UEs in 
+- Added option to set random antenna height in centrain percentage of UEs in
 `HexagonalGriScenarioHelper`
-- Extended `HexagonalGridScenarioHelper` to allow installing the hexagonal scenario 
+- Extended `HexagonalGridScenarioHelper` to allow installing the hexagonal scenario
 with the 4th and the 5th ring (needed for the wrap around calibration)
 - Added new attribute to `NrMacSchedulerNs` to allow enabling or disabling HARQ ReTx
 - `NrRadioEnvironmentMapHelper` is extended to provide the progress report at std::
 cout, i.e., 1%, 10%, ..., 100%, and provides the estimation of the time left
 - Added CQI column in RxPacketTraceUe
 - Added SIR calculation and plot in `NrRadioEnvironmentMapHelper`
-- Added CellScan algorithm based on azimuth and zenith in class called 
+- Added CellScan algorithm based on azimuth and zenith in class called
 `CellScanBeamformingAzimuthZenith` in `ideal-beamforming-algorithm.h/cc`
-- Added new trace for reporting DL SINR CTRL 
-- Extended and improved RLC and PDCP traces to include simple traces per RX/TX 
+- Added new trace for reporting DL SINR CTRL
+- Extended and improved RLC and PDCP traces to include simple traces per RX/TX
 side, and combined/merged end-to-end traces.
 
 ### Changes to existing API:
@@ -91,122 +299,120 @@ side, and combined/merged end-to-end traces.
 - Calculate CQI based on Average Spectral Efficiency in `nr-amc.cc`
 - Stop assigning resources in UL TDMA if TB size >= buffSize in `nr-mac-scheduler-ue-info.cc`
 - Changed how to consider RLC overhead when updating the TX queues in MAC scheduler
-- Changed the buffer size calculation in `NrMacSchedulerLcg` to consider correctly the 
+- Changed the buffer size calculation in `NrMacSchedulerLcg` to consider correctly the
 RLC overhead
 
 ---
-
 
 ## Changes from NR-v1.3 to v2.0
 
 ### New API:
 
-* `NrUePhy` has a new function `GetSpectrumPhy` that returns the `NrSpectrumPhy` 
-instance corresponding to the provided index. By default it returns 0th 
-`NrSpectrumPhy` instance, since `NrUePhy` must have at least 1 `NrSpectrumPhy` 
-installed. But, can have more instances, depending on the supported number 
-of streams for DP-MIMO. Additionally, 
-`NrUePhy` has new public functions related to rank adaptation: `SetFixedRankIndicator`, 
-`GetFixedRankIndicator`, `UseFixedRankIndicator`, `SetRiSinrThreshold1`, `GetRiSinrThreshold1`, 
-`SetRiSinrThreshold2`, and `GetRiSinrThreshold2`. Additionally, it has one new 
-private function called `SelectRi` for selecting the RI that will be reported to 
-gNB. `NrSpectrumPhy` has new function for configuring the inter-stream interference, 
+* `NrUePhy` has a new function `GetSpectrumPhy` that returns the `NrSpectrumPhy`
+instance corresponding to the provided index. By default it returns 0th
+`NrSpectrumPhy` instance, since `NrUePhy` must have at least 1 `NrSpectrumPhy`
+installed. But, can have more instances, depending on the supported number
+of streams for DP-MIMO. Additionally,
+`NrUePhy` has new public functions related to rank adaptation: `SetFixedRankIndicator`,
+`GetFixedRankIndicator`, `UseFixedRankIndicator`, `SetRiSinrThreshold1`, `GetRiSinrThreshold1`,
+`SetRiSinrThreshold2`, and `GetRiSinrThreshold2`. Additionally, it has one new
+private function called `SelectRi` for selecting the RI that will be reported to
+gNB. `NrSpectrumPhy` has new function for configuring the inter-stream interference,
 called `SetInterStreamInterferenceRatio`.
 
-* `BeamConfId` is a new class that is added to uniquely identify the beam 
+* `BeamConfId` is a new class that is added to uniquely identify the beam
 configuration of a `NrUePhy` or `NrGnbPhy` supporting DP-MIMO, hence up to two streams.
-Previously, OFDMA scheduler was assigning at the same varTti only users beloning 
-to the same beam (identified by BeamId), because there was maximum 1 beam per 
-`NrUePhy` or `NrGnbPhy` instance. Now, since with DP-MIMO we can have 2 beams per 
-PHY instance, it is used `BeamConfId` in OFDMA scheduling to select the users 
-that can be scheduled at the same varTti. 
+Previously, OFDMA scheduler was assigning at the same varTti only users beloning
+to the same beam (identified by BeamId), because there was maximum 1 beam per
+`NrUePhy` or `NrGnbPhy` instance. Now, since with DP-MIMO we can have 2 beams per
+PHY instance, it is used `BeamConfId` in OFDMA scheduling to select the users
+that can be scheduled at the same varTti.
 
-* Added new `NrStatsCalculator` statistic base class, and its specialization class called 
- `NrMacSchedulingStats` class that provides statistics for DL and UL MAC scheduling, 
- and it also includes the stream ID. Added new `NrSchedulingCallbackInfo` structure 
- for holding the scheduling information. 
- 
- * `NrGnbMac` has a new trace source called `UlScheduling`, while `DlScheduling` 
+* Added new `NrStatsCalculator` statistic base class, and its specialization class called
+ `NrMacSchedulingStats` class that provides statistics for DL and UL MAC scheduling,
+ and it also includes the stream ID. Added new `NrSchedulingCallbackInfo` structure
+ for holding the scheduling information.
+
+ * `NrGnbMac` has a new trace source called `UlScheduling`, while `DlScheduling`
  trace source is extended to provide more detailed scheduling information.
- 
- * Added new `ThreeGppChannelModelParam` class that inherits `ThreeGppChannelModel` 
- class and allows the parametrization of the correlation coefficient. This 
- class is added for research purposes to allow parametrizing the cross correlation 
- correlation parameter and thus study the impact of this parameter on 
- inter-stream interference among the signals of different polarizations, and 
- to compare it with the original 3GPP cross polarization correlation parameter 
+
+ * Added new `ThreeGppChannelModelParam` class that inherits `ThreeGppChannelModel`
+ class and allows the parametrization of the correlation coefficient. This
+ class is added for research purposes to allow parametrizing the cross correlation
+ correlation parameter and thus study the impact of this parameter on
+ inter-stream interference among the signals of different polarizations, and
+ to compare it with the original 3GPP cross polarization correlation parameter
  value and resulting interference.
- 
- * Added new example called `cttc-nr-mimo-demo` that allows the configuration, 
+
+ * Added new example called `cttc-nr-mimo-demo` that allows the configuration,
  usage and testing of DP-MIMO feature in nr module.
- 
- * Added API for new pathloss traces. Extended CTRL traces to include SRS Tx and 
+
+ * Added API for new pathloss traces. Extended CTRL traces to include SRS Tx and
  RX information. Added stream ID in DL/UL RX traces (`NrPhyRxTrace`).
- 
- * `NrHelper` functions for enabling NR traces are now part of NrHelper public API. 
- These new public functions are: `EnableDlPhyTraces`, `EnableUlPhyTraces`, 
- `EnableGnbPacketCountTrace`, `EnableUePacketCountTrace`, `EnableTransportBlockTrace`, 
- `EnableGnbPhyCtrlMsgsTraces`, `EnableUePhyCtrlMsgsTraces`, `EnableGnbMacCtrlMsgsTraces`, 
- `EnableUeMacCtrlMsgsTraces`, `EnableRlcTraces`, `EnablePdcpTraces`, `GetPdcpStats`, 
+
+ * `NrHelper` functions for enabling NR traces are now part of NrHelper public API.
+ These new public functions are: `EnableDlPhyTraces`, `EnableUlPhyTraces`,
+ `EnableGnbPacketCountTrace`, `EnableUePacketCountTrace`, `EnableTransportBlockTrace`,
+ `EnableGnbPhyCtrlMsgsTraces`, `EnableUePhyCtrlMsgsTraces`, `EnableGnbMacCtrlMsgsTraces`,
+ `EnableUeMacCtrlMsgsTraces`, `EnableRlcTraces`, `EnablePdcpTraces`, `GetPdcpStats`,
  `EnableDlMacSchedTraces`, `EnableUlMacSchedTraces` and `EnablePathlossTraces`.
- 
 
 ### Changes to existing API:
 
-* `NrHelper`'s public API functions `InstallUeDevice`, `InstallGnbDevice` have one 
-additional parameter that defines how many streams will support the device. 
-The value of this new parameter is by default 1 so it does not impact the usual 
-usage of these functions. `NrHelper`'s private API functions `CreateGnbPhy`, 
-`CreateUePhy`, `InstallSingleUeDevice` and `InstallSingleGnbDevice` have now one 
-additional parameter that allows to configure the number of streams (antenna 
-arrays or subpartitions) supported by the corresponding PHY or device. 
-Also, `NrHelper`'s private function `CreateUePhy` has now one less parameter, 
-i.e., dlHarqCallback parameter is removed. These changes should not affect 
+* `NrHelper`'s public API functions `InstallUeDevice`, `InstallGnbDevice` have one
+additional parameter that defines how many streams will support the device.
+The value of this new parameter is by default 1 so it does not impact the usual
+usage of these functions. `NrHelper`'s private API functions `CreateGnbPhy`,
+`CreateUePhy`, `InstallSingleUeDevice` and `InstallSingleGnbDevice` have now one
+additional parameter that allows to configure the number of streams (antenna
+arrays or subpartitions) supported by the corresponding PHY or device.
+Also, `NrHelper`'s private function `CreateUePhy` has now one less parameter,
+i.e., dlHarqCallback parameter is removed. These changes should not affect
 5G-LENA users who do not modify/inherit/extend `NrHelper`'s code.
 
-* `NrGnbPhy` function `GenerateDataCqiReport` has one more paramater `streamId` to 
-indicate for which stream is reported CQI. Private function `NrGnbPhy::SendDataChannels` 
+* `NrGnbPhy` function `GenerateDataCqiReport` has one more paramater `streamId` to
+indicate for which stream is reported CQI. Private function `NrGnbPhy::SendDataChannels`
 has one more parameter that is the index of the `NrSpectrumPhy` of that `NrGnbPhy`
-over which will be sent the data. Private function `SetSubChannels` has one more 
+over which will be sent the data. Private function `SetSubChannels` has one more
 parameter that says the number of active streams.
 
 * Changed parameter type of the `NrUePhy::CreateDlCqiFeedbackMessage` function.
-Private `NrUePhy::SetSubChannelsForTransmission` function has one more parameter that 
-indicates the number of active streams, i.e, the number of antenna arrays 
+Private `NrUePhy::SetSubChannelsForTransmission` function has one more parameter that
+indicates the number of active streams, i.e, the number of antenna arrays
 (subpartitions) over which will be split the total configured TX power.
 `ReportCurrentCellRsrpSinr` extended to include the stream ID.
-`NrUePhy::GetTxPowerSpectralDensity` has one more parameter that indicates the number 
-of active streams (antenna subpartitions or subarrays) over which the total TX 
-power will be split. 
+`NrUePhy::GetTxPowerSpectralDensity` has one more parameter that indicates the number
+of active streams (antenna subpartitions or subarrays) over which the total TX
+power will be split.
 
 * Callback functions for the HARQ feedback are moved from `NrSpectrumPhy` to `NrUePhy`.
-`NrUePhy` now has the the following functions: `SetPhyDlHarqFeedbackCallback` and 
+`NrUePhy` now has the the following functions: `SetPhyDlHarqFeedbackCallback` and
  `NotifyDlHarqFeedback`.
 
-* Old struct that represents HARQ information, called `NrDlHarqProcessInfo` has 
-been replaced with `HarqProcessInfoSingleStream` that is used for the same purpose. 
-Now, new `NrDlHarqProcessInfo` contains a vector of `HarqProcessInfoSingleStream`, 
+* Old struct that represents HARQ information, called `NrDlHarqProcessInfo` has
+been replaced with `HarqProcessInfoSingleStream` that is used for the same purpose.
+Now, new `NrDlHarqProcessInfo` contains a vector of `HarqProcessInfoSingleStream`,
 one instance per spectrum phy (per antenna araray or antenna subpartition).
 
-* `DciInfoElementTdma` constructor is changed to support more streams, i.e., 
-instead of scalar parameters for tbs, ndi and rv, now there are `std::vector` 
-parameters for the same purpose. `HarqStatus` enumeration extended to support 
+* `DciInfoElementTdma` constructor is changed to support more streams, i.e.,
+instead of scalar parameters for tbs, ndi and rv, now there are `std::vector`
+parameters for the same purpose. `HarqStatus` enumeration extended to support
 new `NONE` state, apart from previous `NACK` and `ACK`.
 
-* `NrPhySap` function `SendMacPdu` now has one more parameter that indicates the 
-index of the NrSpectrumPhy (stream) which will be used for the transmission. 
-The default value of this parameter is 0, so this change should not affect 
-regular usage of this function call. 
+* `NrPhySap` function `SendMacPdu` now has one more parameter that indicates the
+index of the NrSpectrumPhy (stream) which will be used for the transmission.
+The default value of this parameter is 0, so this change should not affect
+regular usage of this function call.
 
-* APIs of `BeamformingHelperBase`, `RealisticBeamformingHelper` and 
-`IdealBeamformingHelper` are changed to allow beamforming per stream (antenna array of 
+* APIs of `BeamformingHelperBase`, `RealisticBeamformingHelper` and
+`IdealBeamformingHelper` are changed to allow beamforming per stream (antenna array of
 `NrPhy`), and are also refactored to simplify function calls.
 
-*`BeamManager` is installed per `NrSpectrumPhy` instance and not per `NrPhy` instance 
-as before. Each `BeamManager` takes care of a single antenna array or antenna 
-subpartition. 
+*`BeamManager` is installed per `NrSpectrumPhy` instance and not per `NrPhy` instance
+as before. Each `BeamManager` takes care of a single antenna array or antenna
+subpartition.
 
-* APIs of `RealisticBeamformingAlgorithm` and all `IdeaBeamformingAlgorithm` child 
+* APIs of `RealisticBeamformingAlgorithm` and all `IdeaBeamformingAlgorithm` child
 classes have been updated accordingly.
 
 ### Changed behavior:
@@ -217,17 +423,17 @@ classes have been updated accordingly.
 
 ### New API:
 
-* `NrGnbNetDevice` now has function `GetCellIds` that returns the list of 
-cell IDs belonging to that gNB. This function is added for the 
+* `NrGnbNetDevice` now has function `GetCellIds` that returns the list of
+cell IDs belonging to that gNB. This function is added for the
 compatibility with the ns-3 LTE 810 MR.
-* `NrUePhy` implements `DoGetCellId` and `DoGetDlEarfcn` for the API 
+* `NrUePhy` implements `DoGetCellId` and `DoGetDlEarfcn` for the API
 compatibility with the ns-3 LTE 810 MR.
 
 ### Changes to existing API:
 
-* `NrSpectrumPhy` and `BeamManager` have a function called `GetAntenna` 
+* `NrSpectrumPhy` and `BeamManager` have a function called `GetAntenna`
 instead of `GetAntennaArray` that they had previously.
-* `NrPhy`, `NrUePhy`, `NrGnbPhy`, do not have any more function called 
+* `NrPhy`, `NrUePhy`, `NrGnbPhy`, do not have any more function called
 `GetAntennaArray`.
 
 ### Changed behavior:
@@ -245,7 +451,6 @@ implement File Transfer Protocol (FTP) applications. In addition, 3GPP FTP model
 some development, so for the moment they will be included in the nr module.
 * New `NrHarqTest` is included to test HARQ-IR and HARQ-CC combining methods (thanks
 to Andrey Belogaev).
-
 
 ### Changes to existing API:
 
@@ -364,7 +569,7 @@ value was 4 symbols.
   assignment that was being assigned previously in NR examples. All examples
   are updated to use `NrHelper::AssignStreams` to fix random streams in NR module.
 * By default is configured power allocation over active RBs. Before this release, by
-  default was uniform power allocation over all RBs. Power allocation type can be 
+  default was uniform power allocation over all RBs. Power allocation type can be
   configured by using `PowerAllocationType` attribute of `NrGnbPhy` and `NrUePhy`.
 * Newly added SRS allocation, transmission and reception will occupy periodically
   4 symbols in a slot over a certain periodicity, in UL or F slots.
@@ -397,7 +602,7 @@ value was 4 symbols.
   periodicity.
 * Added IdealBeamformingAlgorithm class and its subclasses that are used to
   configure beamforming vectors for the pairs of devices, normally between gNB
-  and UE, but is possible to use it in future for UE to UE.  
+  and UE, but is possible to use it in future for UE to UE.
 * Added BeamManager class at gNB and UE phy that is responsible for caching
   beamforming vectors to use when communicating with connected devices. It is
   also responsible for configuring quasi-omni beamforming vector for omni

@@ -17,155 +17,154 @@
  *
  */
 
-
 #include "nr-sl-mac-pdu-tag.h"
+
 #include "ns3/tag.h"
 #include "ns3/uinteger.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-NS_OBJECT_ENSURE_REGISTERED (NrSlMacPduTag);
+NS_OBJECT_ENSURE_REGISTERED(NrSlMacPduTag);
 
-
-NrSlMacPduTag::NrSlMacPduTag (uint16_t rnti, SfnSf sfn, uint8_t symStart, uint8_t numSym, uint32_t tbSize, uint32_t dstL2Id)
-  :  m_rnti (rnti), m_sfnSf (sfn), m_symStart (symStart), m_numSym (numSym), m_tbSize (tbSize), m_dstL2Id (dstL2Id)
+NrSlMacPduTag::NrSlMacPduTag(uint16_t rnti,
+                             SfnSf sfn,
+                             uint8_t symStart,
+                             uint8_t numSym,
+                             uint32_t tbSize,
+                             uint32_t dstL2Id)
+    : m_rnti(rnti),
+      m_sfnSf(sfn),
+      m_symStart(symStart),
+      m_numSym(numSym),
+      m_tbSize(tbSize),
+      m_dstL2Id(dstL2Id)
 {
 }
 
 TypeId
-NrSlMacPduTag::GetTypeId (void)
+NrSlMacPduTag::GetTypeId(void)
 {
-  static TypeId tid = TypeId ("ns3::NrSlMacPduTag")
-    .SetParent<Tag> ()
-    .AddConstructor<NrSlMacPduTag> ();
-  return tid;
+    static TypeId tid =
+        TypeId("ns3::NrSlMacPduTag").SetParent<Tag>().AddConstructor<NrSlMacPduTag>();
+    return tid;
 }
 
 TypeId
-NrSlMacPduTag::GetInstanceTypeId (void) const
+NrSlMacPduTag::GetInstanceTypeId(void) const
 {
-  return GetTypeId ();
+    return GetTypeId();
 }
 
 uint32_t
-NrSlMacPduTag::GetSerializedSize (void) const
+NrSlMacPduTag::GetSerializedSize(void) const
 {
-  return 2 + 8 + 1 + 1 + 4 + 4;
+    return 2 + 8 + 1 + 1 + 4 + 4;
 }
 
 void
-NrSlMacPduTag::Serialize (TagBuffer i) const
+NrSlMacPduTag::Serialize(TagBuffer i) const
 {
-  i.WriteU16 (m_rnti);
-  i.WriteU64 (m_sfnSf.GetEncoding ());
-  i.WriteU8 (m_symStart);
-  i.WriteU8 (m_numSym);
-  i.WriteU32 (m_tbSize);
-  i.WriteU32 (m_dstL2Id);
+    i.WriteU16(m_rnti);
+    i.WriteU64(m_sfnSf.GetEncoding());
+    i.WriteU8(m_symStart);
+    i.WriteU8(m_numSym);
+    i.WriteU32(m_tbSize);
+    i.WriteU32(m_dstL2Id);
 }
 
 void
-NrSlMacPduTag::Deserialize (TagBuffer i)
+NrSlMacPduTag::Deserialize(TagBuffer i)
 {
-  m_rnti = i.ReadU16 ();
-  uint64_t v = i.ReadU64 ();
-  m_sfnSf.FromEncoding (v);
+    m_rnti = i.ReadU16();
+    uint64_t v = i.ReadU64();
+    m_sfnSf.FromEncoding(v);
 
-  m_symStart = (uint8_t)i.ReadU8 ();
-  m_numSym = (uint8_t)i.ReadU8 ();
-  m_tbSize = i.ReadU32 ();
-  m_dstL2Id = i.ReadU32 ();
+    m_symStart = (uint8_t)i.ReadU8();
+    m_numSym = (uint8_t)i.ReadU8();
+    m_tbSize = i.ReadU32();
+    m_dstL2Id = i.ReadU32();
 }
 
 void
-NrSlMacPduTag::Print (std::ostream &os) const
+NrSlMacPduTag::Print(std::ostream& os) const
 {
-  os << "RNTI " << m_rnti
-     << ", Destination id " << m_dstL2Id
-     << ", Frame " << m_sfnSf.GetFrame ()
-     << ", Subframe " << +m_sfnSf.GetSubframe ()
-     << ", Slot " << m_sfnSf.GetSlot ()
-     << ", PSCCH symbol start " << +m_symStart
-     << ", Total number of symbols " << +m_numSym
-     << ", TB size " << m_tbSize << " bytes";
+    os << "RNTI " << m_rnti << ", Destination id " << m_dstL2Id << ", Frame " << m_sfnSf.GetFrame()
+       << ", Subframe " << +m_sfnSf.GetSubframe() << ", Slot " << m_sfnSf.GetSlot()
+       << ", PSCCH symbol start " << +m_symStart << ", Total number of symbols " << +m_numSym
+       << ", TB size " << m_tbSize << " bytes";
 }
 
 uint16_t
-NrSlMacPduTag::GetRnti () const
+NrSlMacPduTag::GetRnti() const
 {
-  return m_rnti;
+    return m_rnti;
 }
 
 void
-NrSlMacPduTag::SetRnti (uint16_t rnti)
+NrSlMacPduTag::SetRnti(uint16_t rnti)
 {
-  m_rnti = rnti;
+    m_rnti = rnti;
 }
 
 SfnSf
-NrSlMacPduTag::GetSfn () const
+NrSlMacPduTag::GetSfn() const
 {
-  return m_sfnSf;
+    return m_sfnSf;
 }
 
 void
-NrSlMacPduTag::SetSfn (SfnSf sfn)
+NrSlMacPduTag::SetSfn(SfnSf sfn)
 {
-  m_sfnSf = sfn;
+    m_sfnSf = sfn;
 }
-
 
 uint8_t
-NrSlMacPduTag::GetSymStart () const
+NrSlMacPduTag::GetSymStart() const
 {
-  return m_symStart;
+    return m_symStart;
 }
-
 
 uint8_t
-NrSlMacPduTag::GetNumSym () const
+NrSlMacPduTag::GetNumSym() const
 {
-  return m_numSym;
-}
-
-
-void
-NrSlMacPduTag::SetSymStart (uint8_t symStart)
-{
-  m_symStart = symStart;
-}
-
-
-void
-NrSlMacPduTag::SetNumSym (uint8_t numSym)
-{
-  m_numSym = numSym;
-}
-
-
-uint32_t
-NrSlMacPduTag::GetTbSize () const
-{
-  return m_tbSize;
+    return m_numSym;
 }
 
 void
-NrSlMacPduTag::SetTbSize (uint32_t tbSize)
+NrSlMacPduTag::SetSymStart(uint8_t symStart)
 {
-  m_tbSize = tbSize;
+    m_symStart = symStart;
+}
+
+void
+NrSlMacPduTag::SetNumSym(uint8_t numSym)
+{
+    m_numSym = numSym;
 }
 
 uint32_t
-NrSlMacPduTag::GetDstL2Id () const
+NrSlMacPduTag::GetTbSize() const
 {
-  return m_dstL2Id;
+    return m_tbSize;
 }
 
 void
-NrSlMacPduTag::SetDstL2Id (uint32_t dstL2Id)
+NrSlMacPduTag::SetTbSize(uint32_t tbSize)
 {
-  m_dstL2Id = dstL2Id;
+    m_tbSize = tbSize;
+}
+
+uint32_t
+NrSlMacPduTag::GetDstL2Id() const
+{
+    return m_dstL2Id;
+}
+
+void
+NrSlMacPduTag::SetDstL2Id(uint32_t dstL2Id)
+{
+    m_dstL2Id = dstL2Id;
 }
 
 } // namespace ns3
-

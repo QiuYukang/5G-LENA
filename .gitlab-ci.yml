@@ -1,6 +1,12 @@
-stages:
-  - build
+# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
 
+stages:
+  - code-linting
+  - build
+  - reuse
+  - documentation
 
 ###################### BUILD STAGE #############################################
 
@@ -11,24 +17,24 @@ stages:
 .base-build:
   stage: build
   script:
-    - git clone https://gitlab.com/cttc-lena/ns-3-dev.git
+    - git clone --branch=v2x-lte-dev --depth=1 https://gitlab.com/nsnam/ns-3-dev.git
     - mkdir -p $CCACHE_BASEDIR_VALUE
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
-    - mkdir -p ns-3-dev/contrib/nr
-    - cp -r doc examples helper model test utils ns-3-dev/contrib/nr/
-    - cp -r CMakeLists.txt ns-3-dev/contrib/nr/
-    - cd ns-3-dev
-    - git checkout v2x-lte-dev
+    - ln -s ${PWD} ns-3-dev/contrib/nr
+    - pushd ns-3-dev
     - git log -1
-    - export MPI_CI=1
-    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=flow-monitor,stats,nr --enable-tests --enable-asserts
+    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=nr --enable-tests --enable-asserts
     - cmake --version
+    - ccache -z
     - ./ns3 build
-    - ./test.py -n
+    - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
+        ./test.py --no-build --constrain example;
+        ./test.py --no-build --suite 'nr*';
+      fi
+    - ccache -s
     - ./ns3 clean
-    - rm -rf contrib/nr
-    - cd ../
+    - popd
     - rm -rf ns-3-dev
   cache:
     # Use separate key for each (debug/optimized/release) jobs because
@@ -45,40 +51,59 @@ stages:
   timeout: 9h
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
+    NS3_RELEASE_VERSION: "3.40"
 
 # Defines the per-commit jobs. They are executed for any branch
-#gcc-debug:
-#  extends: .base-build
-#  image: archlinux
-#  variables:
-#    COMPILER: g++
-#    MODE: debug
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+.base-per-commit-compile:
+  extends: .base-build
+  except:
+    variables:
+      - $RELEASE == "weekly"
+      - $RELEASE == "daily"
+  image: archlinux
+  before_script:
+    - pacman-key --init
+    - pacman -Syu --noconfirm
+      base-devel gcc clang cmake ninja ccache
+      git
+      python
+      boost gsl gtk3
+      openssh
 
-#gcc-release:
-#  extends: .base-build
-#  image: archlinux
-#  variables:
-#    COMPILER: g++
-#    MODE: release
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+per-commit-clang-debug:
+  extends: .base-per-commit-compile
+  variables:
+    MODE: debug
+    COMPILER: clang++
 
-#gcc-optimized:
-#  extends: .base-build
-#  image: archlinux
-#  variables:
-#    COMPILER: g++
-#    MODE: optimized
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel git python ccache gsl gtk3 boost ninja cmake --noconfirm
+per-commit-gcc-debug:
+  extends: .base-per-commit-compile
+  variables:
+    MODE: debug
+    COMPILER: g++
+
+per-commit-gcc-default:
+  extends: .base-per-commit-compile
+  variables:
+    MODE: default
+    COMPILER: g++
+
+per-commit-gcc-optimized:
+  extends: .base-per-commit-compile
+  variables:
+    MODE: optimized
+    COMPILER: g++
+
+reuse:
+  stage: reuse
+  image:
+    name: fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
 
 pages:
-  stage: build
+  stage: documentation
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
@@ -95,32 +120,20 @@ pages:
     - git submodule update --init --recursive
     - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
     - mv doc/doc/html/ public/
+     # this should be optimized in future to not download the whole ns-3
+     # only because we need one script from utils (rescale-pdf.sh)!
+    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - mkdir -p ns-3-dev/contrib/nr/
+    - cp -r tutorial ns-3-dev/contrib/nr/
+    - cd ns-3-dev/contrib/nr/tutorial && make latexpdf
+    - cd ../../../..
+    - mv ns-3-dev/contrib/nr/tutorial/build/latex/*.pdf public/
+
   artifacts:
     paths:
       - public
-    
-#doxygen-linux:
-#  stage: build
-#  tags:
-#    - cttc
-#  image: archlinux
-#  before_script:
-#    - pacman -Syu --noconfirm
-#    - pacman -Sy base-devel ninja cmake python ccache gsl gtk3 boost --noconfirm
-#    - pacman -Sy git doxygen graphviz imagemagick dia texlive-core texlive-bin texlive-latexextra python-sphinx --noconfirm
-#    - mv /etc/ImageMagick-7/policy.xml /etc/ImageMagick-7/policy.xml.bak
-#  script:
-#    - mkdir -p public/
-#    - git submodule sync --recursive
-#    - git submodule update --init --recursive
-#    - doxygen --version
-#    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
-#    - mv doc/doc/html/ public/
-#  artifacts:
-#    paths:
-#      - public
 
- 
 include:
   - '.gitlab-ci-clang.yml'
   - '.gitlab-ci-gcc.yml'
+  - '.gitlab-ci-code-linting.yml'

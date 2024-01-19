@@ -1,27 +1,17 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
+// Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 #pragma once
 
 #include "nr-mac-scheduler-tdma.h"
+
 #include <ns3/traced-value.h>
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup scheduler
@@ -61,57 +51,54 @@ namespace ns3 {
  */
 class NrMacSchedulerOfdma : public NrMacSchedulerTdma
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return The TypeId of the class
-   */
-  static TypeId GetTypeId (void);
+  public:
+    /**
+     * \brief GetTypeId
+     * \return The TypeId of the class
+     */
+    static TypeId GetTypeId();
 
-  /**
-   * \brief NrMacSchedulerOfdma constructor
-   */
-  NrMacSchedulerOfdma ();
+    /**
+     * \brief NrMacSchedulerOfdma constructor
+     */
+    NrMacSchedulerOfdma();
 
-  /**
-   * \brief Deconstructor
-   */
-  ~NrMacSchedulerOfdma ()
-  {
-  }
+    /**
+     * \brief Deconstructor
+     */
+    ~NrMacSchedulerOfdma() override
+    {
+    }
 
-protected:
-  virtual BeamSymbolMap
-  AssignDLRBG (uint32_t symAvail, const ActiveUeMap &activeDl) const override;
-  virtual BeamSymbolMap
-  AssignULRBG (uint32_t symAvail, const ActiveUeMap &activeUl) const override;
+  protected:
+    BeamSymbolMap AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) const override;
+    BeamSymbolMap AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) const override;
 
-  virtual std::shared_ptr<DciInfoElementTdma>
-  CreateDlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-               uint32_t maxSym) const override;
-  virtual std::shared_ptr<DciInfoElementTdma>
-  CreateUlDci (PointInFTPlane *spoint, const std::shared_ptr<NrMacSchedulerUeInfo> &ueInfo,
-               uint32_t maxSym) const override;
+    std::shared_ptr<DciInfoElementTdma> CreateDlDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        uint32_t maxSym) const override;
+    std::shared_ptr<DciInfoElementTdma> CreateUlDci(
+        PointInFTPlane* spoint,
+        const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+        uint32_t maxSym) const override;
 
-  /**
-   * \brief Advance the starting point by the number of symbols specified,
-   * resetting the RB count to 0
-   * \param spoint Starting point
-   * \param symOfBeam Number of symbols for the beam
-   */
-  virtual void
-  ChangeDlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override;
+    /**
+     * \brief Advance the starting point by the number of symbols specified,
+     * resetting the RB count to 0
+     * \param spoint Starting point
+     * \param symOfBeam Number of symbols for the beam
+     */
+    void ChangeDlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
-  virtual void
-  ChangeUlBeam (PointInFTPlane *spoint, uint32_t symOfBeam) const override;
+    void ChangeUlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
-  NrMacSchedulerOfdma::BeamSymbolMap
-  GetSymPerBeam (uint32_t symAvail, const ActiveUeMap &activeDl) const;
+    NrMacSchedulerOfdma::BeamSymbolMap GetSymPerBeam(uint32_t symAvail,
+                                                     const ActiveUeMap& activeDl) const;
 
-  virtual uint8_t GetTpc () const override;
+    uint8_t GetTpc() const override;
 
-private:
-
-  TracedValue<uint32_t> m_tracedValueSymPerBeam;
+  private:
+    TracedValue<uint32_t> m_tracedValueSymPerBeam;
 };
 } // namespace ns3

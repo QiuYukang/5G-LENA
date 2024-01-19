@@ -1,21 +1,10 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2018 Natale Patriciello <natale.patriciello\gmail.com>
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
+// Copyright (c) 2018 Natale Patriciello <natale.patriciello\gmail.com>
+// Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 /** \page getting-started Getting started
 \brief Get started with 5G-LENA in matter of minutes.
 
@@ -34,7 +23,7 @@ the ns-3 and the NR world.
 To download a working copy of the ns-3-dev repository, you can do the following:
 
 \code{.sh}
-$ git clone git@gitlab.com:nsnam/ns-3-dev.git
+$ git clone https://gitlab.com/nsnam/ns-3-dev.git
 $ cd ns-3-dev
 \endcode
 
@@ -49,15 +38,16 @@ and then you can switch to the corresponding ns-3 release branch, e.g., in the
 following way:
 
 ```
-$ git checkout ns-3.36
+$ git checkout ns-3.x
 
 ```
 
-You can replace "36" with the specific release that you want to use. If the
-recommended ns-3 release is not available yet (such in the case that NR is
-released before the recommended ns-3 release), then you can use ns-3 master
-until ns-3 recommended release is ready.
-
+where x corresponds to the specific ns-3 release branch that you want to use, which has to be
+supported as indicated in the table in the README file. For example, you can use "git checkout
+ns-3.38" to switch to the ns-3.38 release branch, which is supported together with NR v2.4 release
+branch. If the recommended ns-3 release is not available yet (such in the case that NR is released
+before the recommended ns-3 release), then you can use ns-3 master until ns-3 recommended release is
+ready.
 
 \subsection test-ns3 Test the installation
 
@@ -80,19 +70,23 @@ repository as explained in the previous steps.
 Clone the NR module:
 
 \code{.sh}
-cd src
+cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 \endcode
 
-At this step, you should switch to the latest NR release branch.
-For example, to switch to the NR version 2.2 you should do the following:
+At this step, you should switch to the NR release branch you want:
 
 \code{.sh}
 cd nr
-git checkout 5g-lena-v2.2.y
+git checkout 5g-lena-v2.x.y
 \endcode
 
-Please note that the src/nr directory will be listed as "Untracked files" every
+where x corresponds to the specific NR release branch that you want to use, which has to be
+supported together with the configured ns-3-dev release branch as indicated in the table in the
+README file. For example, to switch to the NR version 2.4 (compatible with ns-3.38 release) you
+should do the following: "git checkout 5g-lena-v2.4.y".
+
+Please note that the contrib/nr directory will be listed as "Untracked files" every
 time you do a git status command. Ignore it, as the directory lives as an
 independent module. This is normal, since you have two parallel git repositories,
 that of ns-3 and of nr. Notice that you can install the nr module also inside
@@ -126,7 +120,7 @@ If you do some of the following with 5G-LENA:
   - find and solve some bug,
   - add some new parameter,
   - create a completely and different example or test,
-  - parametrize existing piece of code,
+  - parameterize existing piece of code,
   - develop a completely new feature,
   - extend the tracing system through files or the databases,
   - improve visualization of the scenario through the python scripts
@@ -156,8 +150,10 @@ three categories tutorial, manual and documentation (describing models):
 
 The NR documentation is divided into two categories:
 
-- The NR module general documentation describing models: <https://cttc-lena.gitlab.io/nr/nrmodule.pdf>
-- The NR doxygen documentation (very detailed code documentation): <https://cttc-lena.gitlab.io/nr/html/>
+- The NR module general documentation describing models:
+<https://cttc-lena.gitlab.io/nr/nrmodule.pdf>
+- The NR doxygen documentation (very detailed code documentation):
+<https://cttc-lena.gitlab.io/nr/html/>
 
 
 The publications related to the NR module and its extensions are also very
@@ -174,7 +170,7 @@ it. If it is not the case, then please move all your work in a separate branch.
 A clean 'master' branch can be updated by simply running:
 
 \code{.sh}
-$ cd ns-3-dev/src/nr
+$ cd ns-3-dev/contrib/nr
 $ git pull
 \endcode
 

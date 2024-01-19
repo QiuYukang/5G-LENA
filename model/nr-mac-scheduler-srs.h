@@ -1,28 +1,18 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
+// Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 #ifndef NR_MAC_SCHEDULER_SRS_H
 #define NR_MAC_SCHEDULER_SRS_H
 
-#include <stdint.h>
 #include "nr-mac-scheduler-ue-info.h"
 
-namespace ns3 {
+#include <stdint.h>
+
+namespace ns3
+{
 
 /**
  * \ingroup scheduler
@@ -67,65 +57,66 @@ namespace ns3 {
  */
 class NrMacSchedulerSrs
 {
-public:
-  /**
-    * \brief Default
-    */
-  virtual ~NrMacSchedulerSrs () = default;
+  public:
+    /**
+     * \brief Default
+     */
+    virtual ~NrMacSchedulerSrs() = default;
 
-  /**
-   * \brief Struct to indicate to the scheduler the periodicity and the offset, in slots.
-   *
-   * The struct must be considerated invalid if the field `m_isValid` is set
-   * to false.
-   */
-  struct SrsPeriodicityAndOffset
-  {
-    bool m_isValid { false };     //!< Indicates if the values are valid.
-    uint32_t m_periodicity { 0 }; //!< The periodicity requested (in slot).
-    uint32_t m_offset { 0 };      //!< The offset requested (in slot).
-  };
+    /**
+     * \brief Struct to indicate to the scheduler the periodicity and the offset, in slots.
+     *
+     * The struct must be considerated invalid if the field `m_isValid` is set
+     * to false.
+     */
+    struct SrsPeriodicityAndOffset
+    {
+        bool m_isValid{false};     //!< Indicates if the values are valid.
+        uint32_t m_periodicity{0}; //!< The periodicity requested (in slot).
+        uint32_t m_offset{0};      //!< The offset requested (in slot).
+    };
 
-  /**
-   * \brief Function called when the scheduler needs to know what is the offset and periodicy
-   * of a newly added ue
-   * \return a struct that contains the periodicity and the offset. If the struct
-   * is not valid, an increase in periodicity is probably needed.
-   *
-   * \see IncreatePeriodicity
-   */
-  virtual SrsPeriodicityAndOffset AddUe (void) = 0;
+    /**
+     * \brief Function called when the scheduler needs to know what is the offset and periodicy
+     * of a newly added ue
+     * \return a struct that contains the periodicity and the offset. If the struct
+     * is not valid, an increase in periodicity is probably needed.
+     *
+     * \see IncreatePeriodicity
+     */
+    virtual SrsPeriodicityAndOffset AddUe() = 0;
 
-  /**
-   * \brief Function called when the scheduler has to release a previousy owned periodicity
-   * and offset.
-   * \param offset The offset used by the UE
-   *
-   * Note: This interface assumes that all the UEs will share the same periodicity.
-   * If that's not the case, the API would have to be updated.
-   */
-  virtual void RemoveUe (uint32_t offset) = 0;
+    /**
+     * \brief Function called when the scheduler has to release a previousy owned periodicity
+     * and offset.
+     * \param offset The offset used by the UE
+     *
+     * Note: This interface assumes that all the UEs will share the same periodicity.
+     * If that's not the case, the API would have to be updated.
+     */
+    virtual void RemoveUe(uint32_t offset) = 0;
 
-  /**
-   * \brief Increase the periodicity and assign to all UEs a different offset
-   * \param ueMap the UE map
-   * \return true if the operation was done
-   *
-   * The method increases the periodicity, and  then re-assign offsets and periodicity
-   * to all the UEs to avoid conflicts.
-   */
-  virtual bool IncreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap) = 0;
+    /**
+     * \brief Increase the periodicity and assign to all UEs a different offset
+     * \param ueMap the UE map
+     * \return true if the operation was done
+     *
+     * The method increases the periodicity, and  then re-assign offsets and periodicity
+     * to all the UEs to avoid conflicts.
+     */
+    virtual bool IncreasePeriodicity(
+        std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) = 0;
 
-  /**
-   * \brief Decrease the periodicity and assign to all UEs a different offset
-   * \param ueMap the UE map
-   * \return true if the operation was done
-   *
-   * The method decreases the periodicity, and  then re-assign offsets and periodicity
-   * to all the UEs to avoid conflicts.
-   */
-  virtual bool DecreasePeriodicity (std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo> > *ueMap) = 0;
-
+    /**
+     * \brief Decrease the periodicity and assign to all UEs a different offset
+     * \param ueMap the UE map
+     * \return true if the operation was done
+     *
+     * The method decreases the periodicity, and  then re-assign offsets and periodicity
+     * to all the UEs to avoid conflicts.
+     */
+    virtual bool DecreasePeriodicity(
+        std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) = 0;
 };
 } // namespace ns3
 

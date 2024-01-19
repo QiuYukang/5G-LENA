@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: GPL-2.0-only
+-->
+
 Development guidelines       {#devguidelines}
 ======================
 
@@ -28,30 +32,11 @@ GPL header
 At the beginning of every file, please put:
 
 ```
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+// Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 ```
-
-Please note that (1) in the future we may remove the (stupid) line that is
-indicating to Emacs what is the style of the file, and (2) we may replace the
-entire GPL header with the following SPDX identifier: `// GPL-2.0-only`.
-
 Please note that we do not use the convention of putting authors, as we don't
 have a clear definition of an author. Moreover, even if we had it, it would be
 useless as our users write to the generic 5G-LENA email address, or open a bug
@@ -92,9 +77,9 @@ compiler errors: but we are sure you can fix them.
 1. Reduce compile times;
 2. Break cyclic references when two definitions both uses each other.
 
-Note that the files from the local folder are included by using "", 
-while the files from the other folders are included with <>, 
-i.e., files that are included with "ns3/" prefix. E.g.,: 
+Note that the files from the local folder are included by using "",
+while the files from the other folders are included with <>,
+i.e., files that are included with "ns3/" prefix. E.g.,:
 
 ```
 #include <ns3/log.h> // inclusion of a header from another folder
@@ -266,12 +251,12 @@ caused other part of the code to fail. This script can be run from the
 ./test.py
 ```
 
-Please note that if your branch contains some newly added examples, 
-these examples should be added to the list of examples in 
-"nr/test/examples-to-run.py" script. 
-If an example has very different modes of executions, 
-it is recommended to provide different configurations that would configure 
-the example for these different cases. See, for example, configurations for 
+Please note that if your branch contains some newly added examples,
+these examples should be added to the list of examples in
+"nr/test/examples-to-run.py" script.
+If an example has very different modes of executions,
+it is recommended to provide different configurations that would configure
+the example for these different cases. See, for example, configurations for
 "cttc-nr-cc-bwp-demo":
 
 ```
@@ -279,31 +264,43 @@ the example for these different cases. See, for example, configurations for
 ("cttc-nr-cc-bwp-demo --tddPattern=\"F|F|F|F|F|F|F|F|F|F|\"", "True", "True"),
 ```
 
-It is important to add all examples to "examples-to-run.py" script because this 
-script is used by "test.py" to fetch the list of examples for each module that will 
-be run along with the tests (when running test.py) in order to check the correct 
+It is important to add all examples to "examples-to-run.py" script because this
+script is used by "test.py" to fetch the list of examples for each module that will
+be run along with the tests (when running test.py) in order to check the correct
 functioning of each module.
 
-### 2. Fix code style
-
-**Note: check-style.py script should be run to fix the code style format of new files
-only (i.e., .cc or .h).**
+### 2. Fix code style (clang-format, clang-tidy and doxygen)
 
 At all time, if possible, one should follow the ns-3 coding style guidelines
-listed [here](https://www.nsnam.org/develop/contributing-code/coding-style/).
+listed [here](https://gitlab.com/nsnam/ns-3-dev/-/blob/master/doc/contributing/source/coding-style.rst).
 
-To expedite this process, ***ns-3*** provides a script **check-style.py**, found
-in **utils** directory. More details about this script and its usage can be
-found [here](https://www.nsnam.org/doxygen/group___check_style.html).
+Mainly, please configure your IDE to automatically format your code according
+to clang-format and to notify you about any clang-tidy issue.
 
-To fix the style of a new file, issue the following command from the root folder of
-**ns-3-dev**:
+To help users check and fix the code according to clang-format,
+***ns-3*** provides a script **check-style-clang-format.py**,
+found in ns-3 **utils** directory. To check the style,
+run the following command from the root folder of **ns-3-dev**:
 
 ```
-utils/check-style.py --level=3 --in-place -f src/nr/model/your-new-file.cc
+utils/check-style-clang-format.py contrib/nr
 ```
 
-After the above two steps, we can commit our changes.
+And to fix the formatting run the following command:
+
+```
+utils/check-style-clang-format.py contrib/nr --fix
+```
+
+Also, the code should be checked against clang-tidy. To to that, when
+configuring the ns-3 with the command "./ns3 configure", the parameter to be
+provided in order to check clang-tidy is "--enable-clang-tidy". There is no
+automatic way of fixing the detected issues, the user should fix them manually.
+
+Male sure that all the newly added APIs (classes, structures, functions,
+class members, etc.) have the Doxygen documentation.
+
+After the above steps, you can commit your changes.
 
 ### 3. Commit message format
 
@@ -405,7 +402,7 @@ Finally, we are now ready to create a merge request.
 
 Every merge request starts by creating a branch. So, if you are reading this
 section we believe that you have commit your changes in your new shiny branch,
-and have rebased it over master (If master branch has progressed). 
+and have rebased it over master (If master branch has progressed).
 
 Once you have pushed a new branch to GitLab, visit your repository in GitLab
 and to see a call-to-action at the top of your screen from which you can click
@@ -479,7 +476,7 @@ update our remote feature branch by doing a force push.
 git push -f
 ```
 
-##### What if the master branch has progressed after creating the merge request? 
+##### What if the master branch has progressed after creating the merge request?
 
 This is a very usual case during an active development project. If this happens,
 we need to rebase our feature branch following the [Step 4](#4-rebase-your-branch),

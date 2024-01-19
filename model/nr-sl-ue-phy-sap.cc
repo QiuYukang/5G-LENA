@@ -17,15 +17,16 @@
  *
  */
 
-#include "ns3/nr-sl-ue-phy-sap.h"
+#include "nr-sl-ue-phy-sap.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-NrSlUePhySapProvider::~NrSlUePhySapProvider ()
+NrSlUePhySapProvider::~NrSlUePhySapProvider()
 {
 }
 
-NrSlUePhySapUser::~NrSlUePhySapUser ()
+NrSlUePhySapUser::~NrSlUePhySapUser()
 {
 }
 

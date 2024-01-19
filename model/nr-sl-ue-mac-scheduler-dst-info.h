@@ -19,14 +19,14 @@
 #ifndef NR_SL_UE_MAC_SCHEDULER_DST_INFO_H
 #define NR_SL_UE_MAC_SCHEDULER_DST_INFO_H
 
-
-#include "nr-sl-ue-mac-scheduler-lcg.h"
 #include "nr-amc.h"
+#include "nr-sl-ue-mac-scheduler-lcg.h"
 
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
-namespace ns3 {
+namespace ns3
+{
 
 class NrSlUeMacSchedulerDstInfo;
 /**
@@ -45,61 +45,61 @@ typedef std::shared_ptr<NrSlUeMacSchedulerDstInfo> DstPtr;
  */
 class NrSlUeMacSchedulerDstInfo
 {
-public:
-  /**
-   * \brief Create a new destination info
-   *
-   * \param dstL2Id the destination layer 2 id
-   */
-  NrSlUeMacSchedulerDstInfo (uint32_t dstL2Id);
+  public:
+    /**
+     * \brief Create a new destination info
+     *
+     * \param dstL2Id the destination layer 2 id
+     */
+    NrSlUeMacSchedulerDstInfo(uint32_t dstL2Id);
 
-  /**
-   * \brief ~NrSlUeMacSchedulerDstInfo destructor
-   */
-  virtual ~NrSlUeMacSchedulerDstInfo ();
+    /**
+     * \brief ~NrSlUeMacSchedulerDstInfo destructor
+     */
+    virtual ~NrSlUeMacSchedulerDstInfo();
 
-  /**
-   * \brief Get the NR Sidelink Logical Channel Group map
-   *
-   * \return The map storing the pointer to the NrSlUeMacSchedulerLCG
-   * per logical channel group id
-   */
-  std::unordered_map<uint8_t, NrSlLCGPtr> & GetNrSlLCG ();
+    /**
+     * \brief Get the NR Sidelink Logical Channel Group map
+     *
+     * \return The map storing the pointer to the NrSlUeMacSchedulerLCG
+     * per logical channel group id
+     */
+    std::unordered_map<uint8_t, NrSlLCGPtr>& GetNrSlLCG();
 
-  /**
-   * \brief Insert the pointer to the NrSlUeMacSchedulerLCG object
-   *
-   *\param lcg the pointer to the NrSlUeMacSchedulerLCG object
-   * \return The pointer to the map location where this method has inserted the
-   * pointer to the NrSlUeMacSchedulerLCG object
-   */
-  NrSlLCGIt Insert (NrSlLCGPtr && lcg);
+    /**
+     * \brief Insert the pointer to the NrSlUeMacSchedulerLCG object
+     *
+     *\param lcg the pointer to the NrSlUeMacSchedulerLCG object
+     * \return The pointer to the map location where this method has inserted the
+     * pointer to the NrSlUeMacSchedulerLCG object
+     */
+    NrSlLCGIt Insert(NrSlLCGPtr&& lcg);
 
-  /**
-   * \brief Get destiantion layer 2 id of this destination
-   *
-   * \return The destination layer 2 id
-   */
-  uint32_t GetDstL2Id () const;
+    /**
+     * \brief Get destiantion layer 2 id of this destination
+     *
+     * \return The destination layer 2 id
+     */
+    uint32_t GetDstL2Id() const;
 
-  /**
-   * \brief Set destination MCS
-   *
-   * \param mcs The MCS used for the destination
-   */
-  void SetDstMcs (uint8_t mcs);
+    /**
+     * \brief Set destination MCS
+     *
+     * \param mcs The MCS used for the destination
+     */
+    void SetDstMcs(uint8_t mcs);
 
-  /**
-   * \brief Get destination MCS
-   *
-   * \return The MCS used for the destination
-   */
-  uint8_t GetDstMcs () const;
+    /**
+     * \brief Get destination MCS
+     *
+     * \return The MCS used for the destination
+     */
+    uint8_t GetDstMcs() const;
 
-private:
-  std::unordered_map<uint8_t, NrSlLCGPtr> m_nrSlLCG;//!< NR Sidelink LCG
-  uint32_t m_dstL2Id {0}; //!< The destination layer 2 id
-  uint8_t m_mcs {0}; //!< The MCS
+  private:
+    std::unordered_map<uint8_t, NrSlLCGPtr> m_nrSlLCG; //!< NR Sidelink LCG
+    uint32_t m_dstL2Id{0};                             //!< The destination layer 2 id
+    uint8_t m_mcs{0};                                  //!< The MCS
 };
 
 } // namespace ns3

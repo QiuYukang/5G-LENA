@@ -26,88 +26,88 @@
  * is derived from LteChunkProcessor originally authored by Nicola Baldo <nbaldo@cttc.es>.
  */
 
+#include "nr-sl-chunk-processor.h"
 
 #include <ns3/log.h>
 #include <ns3/spectrum-value.h>
-#include "nr-sl-chunk-processor.h"
 
-namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("NrSlChunkProcessor");
-
-NrSlChunkProcessor::NrSlChunkProcessor ()
+namespace ns3
 {
-  NS_LOG_FUNCTION (this);
+
+NS_LOG_COMPONENT_DEFINE("NrSlChunkProcessor");
+
+NrSlChunkProcessor::NrSlChunkProcessor()
+{
+    NS_LOG_FUNCTION(this);
 }
 
-NrSlChunkProcessor::~NrSlChunkProcessor ()
+NrSlChunkProcessor::~NrSlChunkProcessor()
 {
-  NS_LOG_FUNCTION (this);
-}
-
-void
-NrSlChunkProcessor::AddCallback (NrSlChunkProcessorCallback c)
-{
-  NS_LOG_FUNCTION (this);
-  m_nrSlChunkProcessorCallbacks.push_back (c);
+    NS_LOG_FUNCTION(this);
 }
 
 void
-NrSlChunkProcessor::Start (bool init)
+NrSlChunkProcessor::AddCallback(NrSlChunkProcessorCallback c)
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
+    m_nrSlChunkProcessorCallbacks.push_back(c);
+}
 
-  if (init)
+void
+NrSlChunkProcessor::Start(bool init)
+{
+    NS_LOG_FUNCTION(this);
+
+    if (init)
     {
-      m_chunkValues.clear ();
+        m_chunkValues.clear();
     }
 
-  // Creates a new storage 
-  NrSlChunkValue newValue;
-  newValue.m_sumValues = 0;
-  newValue.m_totDuration = MicroSeconds (0);
+    // Creates a new storage
+    NrSlChunkValue newValue;
+    newValue.m_sumValues = 0;
+    newValue.m_totDuration = MicroSeconds(0);
 
-  m_chunkValues.push_back (newValue);
+    m_chunkValues.push_back(newValue);
 }
 
-
 void
-NrSlChunkProcessor::EvaluateChunk (uint32_t index, const SpectrumValue& sinr, Time duration)
+NrSlChunkProcessor::EvaluateChunk(uint32_t index, const SpectrumValue& sinr, Time duration)
 {
-  NS_LOG_FUNCTION (this << index << sinr << duration);
-  if (m_chunkValues[index].m_sumValues == 0)
+    NS_LOG_FUNCTION(this << index << sinr << duration);
+    if (!m_chunkValues[index].m_sumValues)
     {
-      m_chunkValues[index].m_sumValues = Create<SpectrumValue> (sinr.GetSpectrumModel ());
+        m_chunkValues[index].m_sumValues = Create<SpectrumValue>(sinr.GetSpectrumModel());
     }
-  *(m_chunkValues[index].m_sumValues) += sinr * duration.GetSeconds ();
-  m_chunkValues[index].m_totDuration += duration;
+    *(m_chunkValues[index].m_sumValues) += sinr * duration.GetSeconds();
+    m_chunkValues[index].m_totDuration += duration;
 }
 
 void
-NrSlChunkProcessor::End ()
+NrSlChunkProcessor::End()
 {
-  NS_LOG_FUNCTION (this);
+    NS_LOG_FUNCTION(this);
 
-  if (m_chunkValues[0].m_totDuration.GetSeconds () > 0)
+    if (m_chunkValues[0].m_totDuration.GetSeconds() > 0)
     {
-      std::vector<SpectrumValue> values;
-      std::vector<NrSlChunkValue>::iterator itValues;
-      for (itValues = m_chunkValues.begin() ; itValues != m_chunkValues.end () ; itValues++)
+        std::vector<SpectrumValue> values;
+        std::vector<NrSlChunkValue>::iterator itValues;
+        for (itValues = m_chunkValues.begin(); itValues != m_chunkValues.end(); itValues++)
         {
-          values.push_back (*((*itValues).m_sumValues) / (*itValues).m_totDuration.GetSeconds ());
+            values.push_back(*((*itValues).m_sumValues) / (*itValues).m_totDuration.GetSeconds());
         }
 
-      std::vector<NrSlChunkProcessorCallback>::iterator it;
-      for (it = m_nrSlChunkProcessorCallbacks.begin (); it != m_nrSlChunkProcessorCallbacks.end (); ++it)
+        std::vector<NrSlChunkProcessorCallback>::iterator it;
+        for (it = m_nrSlChunkProcessorCallbacks.begin(); it != m_nrSlChunkProcessorCallbacks.end();
+             ++it)
         {
-          (*it)(values);
+            (*it)(values);
         }
     }
-  else
+    else
     {
-      NS_LOG_WARN ("m_numSinr == 0");
+        NS_LOG_WARN("m_numSinr == 0");
     }
 }
-
 
 } // namespace ns3

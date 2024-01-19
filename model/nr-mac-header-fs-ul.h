@@ -1,28 +1,16 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+
+// Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
 
 #ifndef NR_MAC_HEADER_FS_UL_H
 #define NR_MAC_HEADER_FS_UL_H
 
 #include "nr-mac-header-fs.h"
 
-namespace ns3 {
+namespace ns3
+{
 
 /**
  * \ingroup ue-mac
@@ -44,55 +32,54 @@ namespace ns3 {
  */
 class NrMacHeaderFsUl : public NrMacHeaderFs
 {
-public:
-  /**
-   * \brief GetTypeId
-   * \return the type id of the object
-   */
-  static TypeId  GetTypeId (void);
-  /**
-   * \brief GetInstanceTypeId
-   * \return the instance type id
-   */
-  virtual TypeId  GetInstanceTypeId (void) const override;
+  public:
+    /**
+     * \brief GetTypeId
+     * \return the type id of the object
+     */
+    static TypeId GetTypeId();
+    /**
+     * \brief GetInstanceTypeId
+     * \return the instance type id
+     */
+    TypeId GetInstanceTypeId() const override;
 
-  /**
-   * \brief NrMacHeaderFsUl constructor
-   */
-  NrMacHeaderFsUl ();
+    /**
+     * \brief NrMacHeaderFsUl constructor
+     */
+    NrMacHeaderFsUl();
 
-  /**
-   * \brief ~NrMacHeaderFsUl
-   */
-  virtual ~NrMacHeaderFsUl ();
+    /**
+     * \brief ~NrMacHeaderFsUl
+     */
+    ~NrMacHeaderFsUl() override;
 
+    // CCCH_LARGE  = 0, //!< CCCH of size 64 bit   (is it fixed or variable?)
+    // CCCH_SMALL = 52, //!< CCCH of size 48  (is it fixed or variable?)
+    static const uint8_t BIT_RATE_QUERY = 53;                //!< Recommended bit rate query
+    static const uint8_t CONFIGURED_GRANT_CONFIRMATION = 55; //!< Configured Grant Confirmation
+    static const uint8_t SINGLE_ENTRY_PHR = 57;              //!< Single entry PHR
+    static const uint8_t C_RNTI = 58;                        //!< C-RNTI
+    static const uint8_t SHORT_TRUNCATED_BSR = 59;           //!< Short Truncated BSR
+    static const uint8_t SHORT_BSR = 61;                     //!< Short BSR
 
-  // CCCH_LARGE  = 0, //!< CCCH of size 64 bit   (is it fixed or variable?)
-  // CCCH_SMALL = 52, //!< CCCH of size 48  (is it fixed or variable?)
-  static const uint8_t BIT_RATE_QUERY = 53;                  //!< Recommended bit rate query
-  static const uint8_t CONFIGURED_GRANT_CONFIRMATION = 55;   //!< Configured Grant Confirmation
-  static const uint8_t SINGLE_ENTRY_PHR = 57;                //!< Single entry PHR
-  static const uint8_t C_RNTI = 58;                          //!< C-RNTI
-  static const uint8_t SHORT_TRUNCATED_BSR = 59;             //!< Short Truncated BSR
-  static const uint8_t SHORT_BSR = 61;                       //!< Short BSR
+    /**
+     * \brief Set the LC ID
+     * \param lcId LC ID
+     *
+     * It will assert if the value is not inside the vector of allowed one.
+     * To not make any error, please use one of the pre-defined const values in
+     * this class.
+     */
+    void SetLcId(uint8_t lcId) override;
 
-  /**
-   * \brief Set the LC ID
-   * \param lcId LC ID
-   *
-   * It will assert if the value is not inside the vector of allowed one.
-   * To not make any error, please use one of the pre-defined const values in
-   * this class.
-   */
-  virtual void SetLcId (uint8_t lcId) override;
-
-  /**
-   * \brief Check if it really a fixed-size header
-   * \return true if the lcId value stored internally matches with a fixed-size header
-   */
-  bool IsFixedSizeHeader () const;
+    /**
+     * \brief Check if it really a fixed-size header
+     * \return true if the lcId value stored internally matches with a fixed-size header
+     */
+    bool IsFixedSizeHeader() const;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* NR_MAC_HEADER_FS_UL_H */

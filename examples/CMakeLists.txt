@@ -1,3 +1,7 @@
+# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 set(base_examples
     cttc-3gpp-channel-example
     cttc-3gpp-channel-simple-ran
@@ -17,6 +21,11 @@ set(base_examples
     cttc-fh-compression
     cttc-nr-notching
     cttc-nr-mimo-demo
+    cttc-nr-traffic-ngmn-mixed
+    cttc-nr-traffic-3gpp-xr
+    traffic-generator-example
+    cttc-nr-simple-qos-sched
+    cttc-nr-multi-flow-qos-sched
 )
 
 foreach(
@@ -62,7 +71,7 @@ set(lena-lte-comparison_examples
     lena-lte-comparison-user
     lena-lte-comparison-campaign
 )
-set(lena-lte-comparison_source_files 
+set(lena-lte-comparison_source_files
     lena-lte-comparison/lena-lte-comparison.cc
     lena-lte-comparison/sinr-output-stats.cc
     lena-lte-comparison/flow-monitor-output-stats.cc
@@ -86,11 +95,31 @@ foreach(
   )
 endforeach()
 
+set(3gpp-outdoor-calibration_source_files
+    3gpp-outdoor-calibration/cttc-nr-3gpp-calibration.cc
+    3gpp-outdoor-calibration/sinr-output-stats.cc
+    3gpp-outdoor-calibration/flow-monitor-output-stats.cc
+    3gpp-outdoor-calibration/power-output-stats.cc
+    3gpp-outdoor-calibration/slot-output-stats.cc
+    3gpp-outdoor-calibration/rb-output-stats.cc
+    3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-utils-v1.cc
+    3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-utils-v2.cc
+)
+
+build_lib_example(
+    NAME cttc-nr-3gpp-calibration-user
+    SOURCE_FILES 3gpp-outdoor-calibration/cttc-nr-3gpp-calibration-user.cc
+                 ${3gpp-outdoor-calibration_source_files}
+    LIBRARIES_TO_LINK ${libnr}
+                      ${libflow-monitor}
+                      ${libstats}
+)
+
 set(example cttc-realistic-beamforming)
 set(source_files ${example}.cc)
 set(libraries_to_link ${libnr} ${libflow-monitor} ${SQLite3_LIBRARIES})
 build_lib_example(
-  NAME ${example} 
+  NAME ${example}
   SOURCE_FILES ${source_files}
   LIBRARIES_TO_LINK ${libraries_to_link}
 )

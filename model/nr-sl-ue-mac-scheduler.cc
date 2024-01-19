@@ -21,96 +21,93 @@
 
 #include <ns3/log.h>
 
-namespace ns3 {
+namespace ns3
+{
 
-NS_LOG_COMPONENT_DEFINE ("NrSlUeMacScheduler");
-NS_OBJECT_ENSURE_REGISTERED (NrSlUeMacScheduler);
+NS_LOG_COMPONENT_DEFINE("NrSlUeMacScheduler");
+NS_OBJECT_ENSURE_REGISTERED(NrSlUeMacScheduler);
 
 TypeId
-NrSlUeMacScheduler::GetTypeId (void)
+NrSlUeMacScheduler::GetTypeId(void)
 {
-  static TypeId tid = TypeId ("ns3::NrSlUeMacScheduler")
-    .SetParent<Object> ()
-    .SetGroupName ("nr")
-  ;
+    static TypeId tid = TypeId("ns3::NrSlUeMacScheduler").SetParent<Object>().SetGroupName("nr");
 
-  return tid;
+    return tid;
 }
 
-NrSlUeMacScheduler::NrSlUeMacScheduler ()
+NrSlUeMacScheduler::NrSlUeMacScheduler()
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  m_nrSlUeMacSchedSapProvider = new NrSlUeMacGeneralSchedSapProvider (this);
-  m_nrSlUeMacCschedSapProvider = new NrSlUeMacGeneralCschedSapProvider (this);
+    NS_LOG_FUNCTION_NOARGS();
+    m_nrSlUeMacSchedSapProvider = new NrSlUeMacGeneralSchedSapProvider(this);
+    m_nrSlUeMacCschedSapProvider = new NrSlUeMacGeneralCschedSapProvider(this);
 }
 
-NrSlUeMacScheduler::~NrSlUeMacScheduler ()
+NrSlUeMacScheduler::~NrSlUeMacScheduler()
 {
-  NS_LOG_FUNCTION_NOARGS ();
-  delete m_nrSlUeMacSchedSapProvider;
-  m_nrSlUeMacSchedSapProvider = nullptr;
+    NS_LOG_FUNCTION_NOARGS();
+    delete m_nrSlUeMacSchedSapProvider;
+    m_nrSlUeMacSchedSapProvider = nullptr;
 
-  delete m_nrSlUeMacCschedSapProvider;
-  m_nrSlUeMacCschedSapProvider = nullptr;
+    delete m_nrSlUeMacCschedSapProvider;
+    m_nrSlUeMacCschedSapProvider = nullptr;
 }
-
 
 void
-NrSlUeMacScheduler::SetNrSlUeMacSchedSapUser (NrSlUeMacSchedSapUser* sap)
+NrSlUeMacScheduler::SetNrSlUeMacSchedSapUser(NrSlUeMacSchedSapUser* sap)
 {
-  m_nrSlUeMacSchedSapUser = sap;
+    m_nrSlUeMacSchedSapUser = sap;
 }
-
 
 NrSlUeMacSchedSapProvider*
-NrSlUeMacScheduler::GetNrSlUeMacSchedSapProvider ()
+NrSlUeMacScheduler::GetNrSlUeMacSchedSapProvider()
 {
-  return m_nrSlUeMacSchedSapProvider;
+    return m_nrSlUeMacSchedSapProvider;
 }
 
 void
-NrSlUeMacScheduler::SetNrSlUeMacCschedSapUser (NrSlUeMacCschedSapUser* sap)
+NrSlUeMacScheduler::SetNrSlUeMacCschedSapUser(NrSlUeMacCschedSapUser* sap)
 {
-  m_nrSlUeMacCschedSapUser = sap;
+    m_nrSlUeMacCschedSapUser = sap;
 }
 
 NrSlUeMacCschedSapProvider*
-NrSlUeMacScheduler::GetNrSlUeMacCschedSapProvider ()
+NrSlUeMacScheduler::GetNrSlUeMacCschedSapProvider()
 {
-  return m_nrSlUeMacCschedSapProvider;
+    return m_nrSlUeMacCschedSapProvider;
 }
 
-
-
-//CSCHED API primitives for NR Sidelink
-NrSlUeMacGeneralCschedSapProvider::NrSlUeMacGeneralCschedSapProvider (NrSlUeMacScheduler* scheduler)
-  : m_scheduler (scheduler)
-{
-}
-
-void
-NrSlUeMacGeneralCschedSapProvider::CschedUeNrSlLcConfigReq (const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params)
-{
-  m_scheduler->DoCschedUeNrSlLcConfigReq (params);
-}
-
-//SCHED API primitives for NR Sidelink
-NrSlUeMacGeneralSchedSapProvider::NrSlUeMacGeneralSchedSapProvider (NrSlUeMacScheduler* sched)
-  : m_scheduler (sched)
+// CSCHED API primitives for NR Sidelink
+NrSlUeMacGeneralCschedSapProvider::NrSlUeMacGeneralCschedSapProvider(NrSlUeMacScheduler* scheduler)
+    : m_scheduler(scheduler)
 {
 }
 
 void
-NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlRlcBufferReq (const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
+NrSlUeMacGeneralCschedSapProvider::CschedUeNrSlLcConfigReq(
+    const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params)
 {
-  m_scheduler->DoSchedUeNrSlRlcBufferReq (params);
+    m_scheduler->DoCschedUeNrSlLcConfigReq(params);
 }
-void
-NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlTriggerReq (uint32_t dstL2Id, const std::list <NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params)
+
+// SCHED API primitives for NR Sidelink
+NrSlUeMacGeneralSchedSapProvider::NrSlUeMacGeneralSchedSapProvider(NrSlUeMacScheduler* sched)
+    : m_scheduler(sched)
 {
-  m_scheduler->DoSchedUeNrSlTriggerReq (dstL2Id, params);
+}
+
+void
+NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlRlcBufferReq(
+    const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
+{
+    m_scheduler->DoSchedUeNrSlRlcBufferReq(params);
+}
+
+void
+NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlTriggerReq(
+    uint32_t dstL2Id,
+    const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params)
+{
+    m_scheduler->DoSchedUeNrSlTriggerReq(dstL2Id, params);
 }
 
 } // namespace ns3
-
-
