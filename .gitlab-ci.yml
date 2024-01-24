@@ -17,7 +17,7 @@ stages:
 .base-build:
   stage: build
   script:
-    - git clone --branch=v2x-lte-dev --depth=1 https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone --branch=v2x-lte-dev --depth=1 https://gitlab.com/cttc-lena/ns-3-dev.git
     - mkdir -p $CCACHE_BASEDIR_VALUE
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
@@ -122,7 +122,7 @@ pages:
     - mv doc/doc/html/ public/
      # this should be optimized in future to not download the whole ns-3
      # only because we need one script from utils (rescale-pdf.sh)!
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone --branch=v2x-lte-dev --depth=1 https://gitlab.com/cttc-lena/ns-3-dev.git
     - mkdir -p ns-3-dev/contrib/nr/
     - cp -r tutorial ns-3-dev/contrib/nr/
     - cd ns-3-dev/contrib/nr/tutorial && make latexpdf
