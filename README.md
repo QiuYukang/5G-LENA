@@ -162,14 +162,11 @@ can find the list of packages for any Ubuntu-based distribution in the file
 - To build the doxygen documentation, please do from the nr folder:
 
 ```
-git submodule sync --recursive
-git submodule update --init --recursive
-python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+cd doc
+doxygen doxygen.conf
 ```
 
 You will find the doxygen documentation inside `doc/doc/html/`.
-Please note that you may need to initialize the m.css submodule, and
-to install some packages like python3.
 
 ## Contributions are welcome!
 

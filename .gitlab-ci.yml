@@ -113,13 +113,11 @@ pages:
   image: ubuntu
   script:
     - mkdir -p public/
-    - cd doc && make latexpdf
+    - cd doc
+    - make latexpdf && mv ./build/latex/*.pdf ../public/
+    - export NRVERSION="nr-`git describe`"
+    - doxygen doxygen.conf && mv ./doc/html/ ../public/
     - cd ..
-    - mv doc/build/latex/*.pdf public/
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
-    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
-    - mv doc/doc/html/ public/
      # this should be optimized in future to not download the whole ns-3
      # only because we need one script from utils (rescale-pdf.sh)!
     - git clone https://gitlab.com/nsnam/ns-3-dev.git
