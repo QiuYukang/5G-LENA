@@ -186,13 +186,13 @@ and then impossible to merge;
 
 ## Features
 
-To see the features, please go to the [official webpage](https://cttc-lena.gitlab.io/5g-lena-website/features/).
+To see the features, please go to the [official webpage](https://5g-lena.cttc.es/features/).
 
 ## Papers
 
 An updated list of published papers that are based on the outcome of this
 module is available
-[here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
+[here](https://5g-lena.cttc.es/papers/).
 
 ## About
 
