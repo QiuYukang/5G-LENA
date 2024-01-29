@@ -40,32 +40,6 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("CttcNrTraffic3gppXr");
 
 void
-WriteBytesSent(Ptr<TrafficGenerator> trafficGenerator,
-               uint64_t* previousBytesSent,
-               uint64_t* previousWindowBytesSent,
-               enum NrXrConfig NrXrConfig,
-               std::ofstream* outFileTx)
-{
-    uint64_t totalBytesSent = trafficGenerator->GetTotalBytes();
-    (*outFileTx) << "\n"
-                 << Simulator::Now().GetMilliSeconds() << "\t" << *previousWindowBytesSent
-                 << std::endl;
-    (*outFileTx) << "\n"
-                 << Simulator::Now().GetMilliSeconds() << "\t"
-                 << totalBytesSent - *previousBytesSent << std::endl;
-
-    *previousWindowBytesSent = totalBytesSent - *previousBytesSent;
-    *previousBytesSent = totalBytesSent;
-};
-
-void
-WriteBytesReceived(Ptr<PacketSink> packetSink, uint64_t* previousBytesReceived)
-{
-    uint64_t totalBytesReceived = packetSink->GetTotalRx();
-    *previousBytesReceived = totalBytesReceived;
-};
-
-void
 ConfigureXrApp(NodeContainer& ueContainer,
                uint32_t i,
                Ipv4InterfaceContainer& ueIpIface,
@@ -147,7 +121,6 @@ main(int argc, char* argv[])
     double txPower = 41;
     bool isMx1 = true;
     bool useUdp = true;
-    double distance = 450;
     uint32_t rngRun = 1;
 
     CommandLine cmd(__FILE__);
@@ -162,10 +135,6 @@ main(int argc, char* argv[])
                  "if true, the NGMN applications will run over UDP connection, otherwise a TCP "
                  "connection will be used.",
                  useUdp);
-    cmd.AddValue("distance",
-                 "The radius of the disc (in meters) that the UEs will be distributed."
-                 "Default value is 450m",
-                 distance);
     cmd.AddValue("isMx1",
                  "if true M SDFs will be mapped to 1 DRB, otherwise the mapping will "
                  "be 1x1, i.e., 1 SDF to 1 DRB.",
