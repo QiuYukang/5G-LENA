@@ -39,6 +39,9 @@ class NoLossSpectrumPropagationLossModel : public SpectrumPropagationLossModel
      */
     static TypeId GetTypeId();
 
+  protected:
+    int64_t DoAssignStreams(int64_t stream) override;
+
   private:
     Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(Ptr<const SpectrumSignalParameters> params,
                                                     Ptr<const MobilityModel> a,

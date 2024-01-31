@@ -43,6 +43,12 @@ NoLossSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
     return Copy(params->psd);
 }
 
+int64_t
+NoLossSpectrumPropagationLossModel::DoAssignStreams(int64_t stream)
+{
+    return 0;
+}
+
 SetNoisePsdTestCase::SetNoisePsdTestCase(double txPower,
                                          double bandwidth,
                                          double noiseFigureFirst,
