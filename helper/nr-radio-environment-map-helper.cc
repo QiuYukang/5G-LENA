@@ -141,8 +141,8 @@ NrRadioEnvironmentMapHelper::GetTypeId()
                 "pointing their beams towards the Rx gNB. In case of TDD, the SINR map"
                 "will show the interference caused by the DL of these gNBs.",
                 EnumValue(NrRadioEnvironmentMapHelper::COVERAGE_AREA),
-                MakeEnumAccessor(&NrRadioEnvironmentMapHelper::SetRemMode,
-                                 &NrRadioEnvironmentMapHelper::GetRemMode),
+                MakeEnumAccessor<RemMode>(&NrRadioEnvironmentMapHelper::SetRemMode,
+                                          &NrRadioEnvironmentMapHelper::GetRemMode),
                 MakeEnumChecker(NrRadioEnvironmentMapHelper::BEAM_SHAPE,
                                 "BeamShape",
                                 NrRadioEnvironmentMapHelper::COVERAGE_AREA,

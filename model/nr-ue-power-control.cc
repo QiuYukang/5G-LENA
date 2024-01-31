@@ -116,7 +116,7 @@ NrUePowerControl::GetTypeId()
                           "set the value TS36.213, while for TS 38.213 should be "
                           "configured TS38.213.",
                           EnumValue(NrUePowerControl::TS_36_213),
-                          MakeEnumAccessor(&NrUePowerControl::SetTechnicalSpec),
+                          MakeEnumAccessor<TechnicalSpec>(&NrUePowerControl::SetTechnicalSpec),
                           MakeEnumChecker(NrUePowerControl::TS_36_213,
                                           "TS36.213",
                                           NrUePowerControl::TS_38_213,

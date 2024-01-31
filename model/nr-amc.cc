@@ -60,7 +60,7 @@ NrAmc::GetTypeId()
             .AddAttribute("AmcModel",
                           "AMC model used to assign CQI",
                           EnumValue(NrAmc::ErrorModel),
-                          MakeEnumAccessor(&NrAmc::SetAmcModel, &NrAmc::GetAmcModel),
+                          MakeEnumAccessor<AmcModel>(&NrAmc::SetAmcModel, &NrAmc::GetAmcModel),
                           MakeEnumChecker(NrAmc::ErrorModel,
                                           "ErrorModel",
                                           NrAmc::ShannonModel,

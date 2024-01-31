@@ -155,8 +155,9 @@ TrafficGenerator3gppGenericVideo::GetTypeId()
                 "AlgType",
                 "Type of the algorithm for the codec adaptation",
                 EnumValue(LoopbackAlgType::ADJUST_IPA_TIME),
-                MakeEnumAccessor(&TrafficGenerator3gppGenericVideo::SetLoopbackAlgType,
-                                 &TrafficGenerator3gppGenericVideo::GetLoopbackAlgType),
+                MakeEnumAccessor<LoopbackAlgType>(
+                    &TrafficGenerator3gppGenericVideo::SetLoopbackAlgType,
+                    &TrafficGenerator3gppGenericVideo::GetLoopbackAlgType),
                 MakeEnumChecker(TrafficGenerator3gppGenericVideo::ADJUST_IPA_TIME,
                                 "AIPAT",
                                 TrafficGenerator3gppGenericVideo::ADJUST_PACKET_SIZE,

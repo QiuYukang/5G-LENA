@@ -99,7 +99,9 @@ NrGnbPhy::GetTypeId()
                 "power allocation over used (active) RBs. By default is set a uniform power "
                 "allocation over used RBs .",
                 EnumValue(NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED),
-                MakeEnumAccessor(&NrPhy::SetPowerAllocationType, &NrPhy::GetPowerAllocationType),
+                MakeEnumAccessor<NrSpectrumValueHelper::PowerAllocationType>(
+                    &NrPhy::SetPowerAllocationType,
+                    &NrPhy::GetPowerAllocationType),
                 MakeEnumChecker(NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW,
                                 "UniformPowerAllocBw",
                                 NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED,

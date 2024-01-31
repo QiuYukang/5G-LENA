@@ -929,7 +929,7 @@ NrHelper::InstallSingleGnbDevice(
 
     if (m_epcHelper != nullptr)
     {
-        EnumValue epsBearerToRlcMapping;
+        EnumValue<LteEnbRrc::LteEpsBearerToRlcMapping_t> epsBearerToRlcMapping;
         rrc->GetAttribute("EpsBearerToRlcMapping", epsBearerToRlcMapping);
         // it does not make sense to use RLC/SM when also using the EPC
         if (epsBearerToRlcMapping.Get() == LteEnbRrc::RLC_SM_ALWAYS)
