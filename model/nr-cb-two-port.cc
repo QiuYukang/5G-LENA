@@ -1,3 +1,9 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+
+// Copyright (c) 2024 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 #include "nr-cb-two-port.h"
 
 namespace ns3

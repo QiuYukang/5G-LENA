@@ -1,3 +1,9 @@
+/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
+
+// Copyright (c) 2024 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 #ifndef NR_MIMO_MATRICES_H
 #define NR_MIMO_MATRICES_H
 
