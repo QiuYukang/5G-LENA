@@ -22,6 +22,32 @@ class NrFhSchedSapProvider;
  * \ingroup
  * \brief Fronthaul Capacity Control
  *
+ * This class is used to simulate a limited-capacity fronthaul (FH) link based
+ * on the FhCapacity (m_fhCapacity) set by the user, and to apply FH control
+ * methods (m_fhControlMethod) in order to restrict user allocations, if they do
+ * not fit in the available FH capacity. Functional split 7.2x is assumed.
+ *
+ * Notice that for each gNB a NrFhControl instance is created, therefore, in
+ * case that there are more than 1 BWPs defined, the FH link, and consequently
+ * the configured FhCapacity will be shared among the active BWPs. For more
+ * details have a look at the method SetCellFhCapacity().
+ *
+ * The NrFhControl can exchange information with the scheduler and the PHY layer
+ * through the SAP interfaces NrFhSchedSapProvider/NrFhSchedSapUser and
+ * NrFhPhySapProvider/NrFhPhySapUser, respectively.
+ *
+ * To enable the Fronthaul Capacity Control, the user must call in the example
+ * the method NrHelper::EnableFhControl() and configure it, as desired, through
+ * the NrHelper::SetFhControlAttribute(). Important note is that the method
+ * NrHelper::ConfigureFhControl() must be called after the device install, so
+ * that the NrFhControl can be configured correclty. In particular, with this
+ * method the numerology and the error model of each BWP will be stored in the
+ * NrFhControl maps.
+ *
+ * Let us point out, that the current implementation of the NrFhControl is
+ * focused on DL traffic. In order to apply it for UL, there is the need for
+ * further extensions. Moreover, current implementation supports only OFDMA.
+ *
  */
 
 class NrFhControl : public Object
@@ -177,6 +203,7 @@ class NrFhControl : public Object
      *
      * \param bwpId the BWP ID
      * \param allocation the allocation structure of a slot
+     * \param ueMap UE representation (in the scheduler)
      */
     void DoUpdateActiveUesMap(
         uint16_t bwpId,
@@ -195,6 +222,12 @@ class NrFhControl : public Object
     /**
      * \brief Returns a boolean indicating whether the current allocation can
      *        fit in the available FH bandwidth.
+     *
+     * \param bwpId the BWP ID
+     * \param rnti the allocated MCS
+     * \param nRegs the number of allocated REGs (1 REGs = 1 RB (12 subcarriers) x 1 symbol)
+     *
+     * \return true if the current allocation can fit, false if not
      */
     bool DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
 
@@ -217,6 +250,8 @@ class NrFhControl : public Object
      * \param bwpId the BWP ID
      * \param mcs the MCS
      * \param rnti the RNTI
+     *
+     * \return the maximum number of REGs
      */
     uint32_t DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
 
@@ -236,20 +271,28 @@ class NrFhControl : public Object
 
     /**
      * \brief End slot notification from gnb-phy, to track the required fronthaul
-     *        throughput for that slot
+     *        throughput for that slot.
      *
      * \param currentSlot The current slot
      */
     void DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot);
 
     /**
-     * \brief Returns the FH throughput associated to a specific allocation
+     * \brief Returns the FH throughput associated to a specific allocation.
+     *
+     * \param bwpId the BWP ID
+     * \param mcs the allocated MCS
+     * \param nRegs the number of allocated REGs (1 REGs = 1 RB (12 subcarriers) x 1 symbol)
+     *
+     * \return the calculated FH throughput
      */
-    uint64_t GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t Nres) const;
+    uint64_t GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const;
 
     /**
      * \brief Returns the number of all active BWPs, i.e., BWPs with new data
      *        in their RLC queues and BWPs with active HARQ.
+     *
+     * \return the number of active BWPs
      */
     uint16_t GetNumberActiveBwps() const;
 
@@ -264,6 +307,11 @@ class NrFhControl : public Object
     /**
      * \brief Returns the max MCS based on the MCS Table (1 or 2)
      *        and the max modulation order.
+     *
+     * \param mcsTable The MCS table to use
+     * \param modOrder The modulation order
+     *
+     * \return the max MCS
      */
     uint8_t GetMaxMcs(uint8_t mcsTable, uint16_t modOrder);
 

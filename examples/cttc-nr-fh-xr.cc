@@ -945,7 +945,6 @@ main(int argc, char* argv[])
     nrHelper->SetFhControlAttribute("FhControlMethod", StringValue(fhControlMethod));
     nrHelper->SetFhControlAttribute("FhCapacity", UintegerValue(fhCapacity));
     nrHelper->SetFhControlAttribute("OverheadDyn", UintegerValue(ohDyn));
-    nrHelper->SetFhControlAttribute("ErrorModelType", StringValue(errorModel));
     /********************************************************************/
 
     std::stringstream scheduler;
@@ -961,18 +960,18 @@ main(int argc, char* argv[])
         nrHelper->SetGnbPhyAttribute("Pattern", StringValue(pattern));
     }
 
+    // Error Model: UE and GNB with same spectrum error model.
+    nrHelper->SetUlErrorModel(errorModel);
+    nrHelper->SetDlErrorModel(errorModel);
+
+    // Both DL and UL AMC will have the same model behind.
+    nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
+    nrHelper->SetGnbUlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
+
     if (deployment == "HEX")
     {
         Config::SetDefault("ns3::NrMacSchedulerSrsDefault::StartingPeriodicity", UintegerValue(16));
         nrHelper->SetSchedulerAttribute("SrsSymbols", UintegerValue(1));
-
-        // Error Model: UE and GNB with same spectrum error model.
-        nrHelper->SetUlErrorModel(errorModel);
-        nrHelper->SetDlErrorModel(errorModel);
-
-        // Both DL and UL AMC will have the same model behind.
-        nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ShannonModel));
-        nrHelper->SetGnbUlAmcAttribute("AmcModel", EnumValue(NrAmc::ShannonModel));
     }
 
     nrHelper->SetSchedulerAttribute("EnableHarqReTx", BooleanValue(enableHarqRetx));

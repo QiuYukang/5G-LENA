@@ -1548,6 +1548,12 @@ NrHelper::ConfigureFhControl(NetDeviceContainer gnbNetDevices)
         for (uint32_t j = 0; j < gnbNetDev->GetCcMapSize(); j++)
         {
             gnbNetDev->GetNrFhControl()->SetFhNumerology(j, gnbNetDev->GetPhy(j)->GetNumerology());
+
+            gnbNetDev->GetNrFhControl()->SetErrorModelType(
+                DynamicCast<NrMacSchedulerNs3>(gnbNetDev->GetScheduler(j))
+                    ->GetDlAmc()
+                    ->GetErrorModelType()
+                    .GetName());
         }
     }
 }

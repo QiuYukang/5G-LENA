@@ -65,13 +65,6 @@ NrFhControl::GetTypeId()
                           UintegerValue(32),
                           MakeUintegerAccessor(&NrFhControl::SetOverheadDyn),
                           MakeUintegerChecker<uint8_t>(0, 100))
-            .AddAttribute("ErrorModelType",
-                          "The ErrorModelType based on which the MCS Table (1 or 2) will be set."
-                          "Select among: ns3::NrEesmIrT1 and ns3::NrEesmCcT1 for MCS Table 1"
-                          "and among ns3::NrEesmIrT2 and ns3::NrEesmCcT2 for MCS Table 2.",
-                          StringValue("ns3::NrEesmIrT1"),
-                          MakeStringAccessor(&NrFhControl::SetErrorModelType),
-                          MakeStringChecker())
             .AddTraceSource(
                 "RequiredFhDlThroughput",
                 "Report required fronthaul throughput in DL per BWP (Sfnfn, bwpId, reqFhThr)",
@@ -197,9 +190,10 @@ NrFhControl::SetErrorModelType(std::string errorModelType)
     }
     else
     {
-        NS_ABORT_MSG("Wrong error model type. Please select among: ns3::NrEesmIrT1,"
-                     "ns3::NrEesmCcT1 for MCS Table 1 and ns3::NrEesmIrT2 and ns3::NrEesmCcT2"
-                     "for MCS Table 2");
+        NS_ABORT_MSG(
+            "Wrong error model type. To use NrFhControl, one of the Nr error models should be set."
+            "Please select among: ns3::NrEesmIrT1, ns3::NrEesmCcT1 for MCS Table 1 and"
+            "ns3::NrEesmIrT2 and ns3::NrEesmCcT2 for MCS Table 2");
     }
 }
 
@@ -703,7 +697,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
 }
 
 uint64_t
-NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t Nres) const
+NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
 {
     uint64_t thr;
     uint32_t modulationOrder =
@@ -717,7 +711,7 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t Nres) const
     uint32_t overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
 
-    thr = (12 * modulationOrder * Nres + m_overheadDyn + overheadMac + 12 * 2 * 10) /
+    thr = (12 * modulationOrder * nRegs + m_overheadDyn + overheadMac + 12 * 2 * 10) /
           slotLength.GetSeconds(); // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
 
     return thr;
