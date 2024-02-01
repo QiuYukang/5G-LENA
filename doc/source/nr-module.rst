@@ -1103,6 +1103,46 @@ of the redundancy versions.
 The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedback, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
 
 
+MIMO
+====
+In real systems, devices capable of performing MIMO spatial multiplexing can use more than one stream to transmit,
+e.g., a gNB in the downlink can send multiple streams to those UEs that support MIMO spatial multiplexing and are able to decode
+multiple streams simultaneously. MIMO technology is known in textbooks for several decades, and it is used in 4G-LTE and 5G-NR,
+and has been in Wi-Fi products for more than 20 years. For optimal MIMO performance, the gNB should apply a precoding matrix
+(at the transmitter) that determines how the signal is aligned relative to the channel, and the UE (at the receiver) should
+apply a receive filter to suppress inter-stream interference and recover each stream. Usually, the precoding matrix that provides
+the maximum SINR for the given channel matrix is selected [Palomar2006]_ and the receive filter is usually designed to reduce the
+mean-square error between the transmitted and decoded data symbols, for which the MMSE-IRC Interference Rejection Combining
+receiver is usually adopted in 3GPP, as it provides a good balance between performance (mean-square error reduction) and
+implementation complexity (linear receiver). In 3GPP, MIMO spatial multiplexing is permitted and enabled thanks to the CSI
+feedback, which includes the Precoding Matrix Indicator (PMI), the Rank Indicator (RI), and the Channel Quality Indicator (CQI).
+The selection of the precoding matrix that gives the best performance (maximum SINR) is done by the UE, and reported through the
+PMI through an index of a set of predefined precoding matrix from a codebook, as part of the CSI feedback message to the gNB.
+In addition, the UE also reports the RI as part of the CSI feedback, which indicates to the gNB how many streams to use for that UE.
+Even if RI=1, we can still use precoding to combine the signals to/from multiple antenna ports in an optimal way. Each antenna
+port is then indeed aligned to the channel through beamforming. 3GPP 5G NR, differently from LTE, allows sending up to 4 streams
+in the same TB. Indeed, in 3GPP, the MIMO operations are enabled by the adoption of antenna arrays (usually modeled as dual-polarized
+linear antenna arrays [TR38901]) and the introduction of antenna ports concept, in which basically, for an antenna array of
+multiple antenna elements, multiple antenna elements are combined into one antenna port for digital processing (precoding),
+while analog processing (beamforming) is applied for the antenna elements within one antenna port.
+
+The full MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to four streams per user, and 32 antenna ports)
+and beamforming (which applies for each of the streams). Multiple (up to four) streams are encoded in the same TB. PMI, RI and CQI
+are implemented and included as part of the CSI feedback. It follows the 3GPP codebook-based Type I model for precoding [TS38214]
+and assumes MMSE-IRC receiver. For precoding and rank selection, an exhaustive search is implemented. The number of streams is
+called the rank in the code, which affects the TBS and other performance characteristics. The inter-stream interference is correctly
+computed through matrix processing, and this is why the use of more of 2 streams requires the Eigen library to compute operations
+like matrix inverse, SVD, etc. As the SINR and interference computations are correctly modeled, following [Palomar2006]_, and multiple
+streams are fit in one TB, this allows using the SISO error model for MIMO error modeling, by vectorizing the 2D SINR (RBs, rank)
+into 1D SINR (RBs x rank).
+
+In the following, we explain the design choices and implementation details to enable full MIMO. This includes, 1) adding the "rank"
+parameter to many interfaces throughout the code, 2) the MIMO interference and SINR calculations, as well as the interfaces to pass
+the results to other classes, 3) the computation of transport block error rates (TBLER) based on the MIMO SINR, 4) the search for
+the optimal precoding matrix, which the UE needs to send as a feedback to the gNB in the PMI, as well as the 3GPP-compliant precoding
+matrix codebook, and 5) the enabling of the new methods and using the feedback at the gNB.
+
+
 MAC layer
 *********
 This section describes the different models supported and developed at MAC layer.
@@ -2506,3 +2546,5 @@ Open issues and future work
 .. [WNS32022-ngmn] B. Bojovic, S. Lagen, Enabling NGMN mixed traffic models for ns-3, in Workshop on ns-3, June 2022.
 
 .. [WNS3-QosSchedulers] K. Koutlia, S. Lagen, and B. Bojovic. 2023. Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA. In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.
+
+.. [Palomar2006] Daniel P. Palomar and Yi Jiang: MIMO Transceiver Design via Majorization Theory
