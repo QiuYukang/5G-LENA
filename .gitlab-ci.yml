@@ -7,6 +7,7 @@ stages:
   - build
   - reuse
   - documentation
+  - deploy
 
 ###################### BUILD STAGE #############################################
 
@@ -102,7 +103,7 @@ reuse:
   script:
     - reuse lint
 
-pages:
+documentation:
   stage: documentation
   before_script:
     - apt-get update
@@ -126,7 +127,18 @@ pages:
     - cd ns-3-dev/contrib/nr/tutorial && make latexpdf
     - cd ../../../..
     - mv ns-3-dev/contrib/nr/tutorial/build/latex/*.pdf public/
+  artifacts:
+    paths:
+      - public
 
+pages:
+  stage: deploy
+  dependencies:
+    - documentation
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - echo "Deploying the documentation"
   artifacts:
     paths:
       - public
