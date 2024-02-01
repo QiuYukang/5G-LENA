@@ -438,6 +438,7 @@ main(int argc, char* argv[])
 
     bool enablePdcpDiscarding = false;
     uint32_t discardTimerMs = 0;
+    uint32_t reorderingTimerMs = 100;
 
     bool enableNrHelperTraces = false;
     bool enableQosTrafficTraces = true;
@@ -561,6 +562,10 @@ main(int argc, char* argv[])
     cmd.AddValue("discardTimerMs",
                  "Discard timer value in milliseconds to use for all the flows",
                  discardTimerMs);
+    cmd.AddValue("reorderingTimerMs",
+                 "RLC t-Reordering timer value (See section 7.3 of 3GPP TS 36.322) in milliseconds "
+                 "to use for all the flows",
+                 reorderingTimerMs);
     cmd.AddValue("enableUl",
                  "If true, it enables UL direction traffic for AR and VoIP."
                  "Default is false",
@@ -678,6 +683,8 @@ main(int argc, char* argv[])
     }
     Config::SetDefault("ns3::NrRlcUm::EnablePdcpDiscarding", BooleanValue(enablePdcpDiscarding));
     Config::SetDefault("ns3::NrRlcUm::DiscardTimerMs", UintegerValue(discardTimerMs));
+    Config::SetDefault("ns3::NrRlcUm::ReorderingTimer",
+                           TimeValue(MilliSeconds(reorderingTimerMs)));
 
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
                        TimeValue(MilliSeconds(channelUpdatePeriod)));
