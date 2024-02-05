@@ -44,7 +44,7 @@ NrFhControl::GetTypeId()
                 "it calls the fhControl to provide the max RBs that can be assigned.",
                 EnumValue(NrFhControl::Dropping),
                 MakeEnumAccessor<FhControlMethod>(&NrFhControl::SetFhControlMethod,
-                                             &NrFhControl::GetFhControlMethod),
+                                                  &NrFhControl::GetFhControlMethod),
                 MakeEnumChecker(NrFhControl::Dropping,
                                 "Dropping",
                                 NrFhControl::Postponing,
@@ -341,7 +341,7 @@ NrFhControl::DoUpdateActiveUesMap(
             NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << ")"
                                                           << m_rbsAirTracedValue[bwpId] << " RBs");
         }
-        if (alloc.m_dci->m_ndi == 0)  // retx
+        if (alloc.m_dci->m_ndi == 0) // retx
         {
             NS_LOG_DEBUG("Retransmission, update only m_activeHarqUesPerBwp");
             if (m_activeHarqUesPerBwp.find(rnti) != m_activeHarqUesPerBwp.end())
@@ -363,10 +363,10 @@ NrFhControl::DoUpdateActiveUesMap(
         }
 
         // update stored maps
-        if (m_rntiQueueSize.size() == 0)
+        if (m_rntiQueueSize.empty())
         {
             NS_LOG_DEBUG("empty MAP");
-            NS_ABORT_MSG_IF(m_activeUesPerBwp.size() > 0,
+            NS_ABORT_MSG_IF(!m_activeUesPerBwp.empty(),
                             "No UE in map, but something in activeUes map");
             continue;
         }
@@ -472,12 +472,12 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
             m_allocThrPerBwp.insert(std::make_pair(bwpId, thr));
             NS_LOG_DEBUG("BWP not in the map, Allocation can be included. BWP Thr: "
                          << m_allocThrPerBwp.at(bwpId));
-            return 1;
+            return true;
         }
         else
         {
             NS_LOG_DEBUG("BWP not in the map, Allocation cannot be included");
-            return 0;
+            return false;
         }
     } // bwp in the map & we can store the allocation
     else if ((m_allocThrPerBwp[bwpId] + thr) < ((m_fhCapacity / numOfActiveBwps) * 1e6))
@@ -486,12 +486,12 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
         NS_LOG_DEBUG(
             "BWP in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
 
-        return 1;
+        return true;
     }
     else // we cannot include the allocation
     {
         NS_LOG_INFO("BWP in the map, Allocation cannot be included");
-        return 0;
+        return false;
     }
 }
 
@@ -664,7 +664,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
         }
 
         uint32_t rbSum = 0;
-        if (m_rbsAirTracedValue.size() == 0)
+        if (m_rbsAirTracedValue.empty())
         {
             m_rbsAirTrace(currentSlot,
                           m_physicalCellId,

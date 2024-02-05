@@ -159,7 +159,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
     {
         addresses.push_back(InetSocketAddress(address, port + j));
         // The sink will always listen to the specified ports
-        localAddresses.push_back(InetSocketAddress(Ipv4Address::GetAny(), port + j));
+        localAddresses.emplace_back(Ipv4Address::GetAny(), port + j);
     }
 
     ApplicationContainer currentUeClientApps;
@@ -626,7 +626,7 @@ main(int argc, char* argv[])
             bsHeight = 35;
             maxUeClosestSiteDistance = 500;
 
-            useFixedMcs = 0;
+            useFixedMcs = false;
 
             gnbNumRows = 8;
             gnbNumColumns = 1;
@@ -683,8 +683,7 @@ main(int argc, char* argv[])
     }
     Config::SetDefault("ns3::NrRlcUm::EnablePdcpDiscarding", BooleanValue(enablePdcpDiscarding));
     Config::SetDefault("ns3::NrRlcUm::DiscardTimerMs", UintegerValue(discardTimerMs));
-    Config::SetDefault("ns3::NrRlcUm::ReorderingTimer",
-                           TimeValue(MilliSeconds(reorderingTimerMs)));
+    Config::SetDefault("ns3::NrRlcUm::ReorderingTimer", TimeValue(MilliSeconds(reorderingTimerMs)));
 
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
                        TimeValue(MilliSeconds(channelUpdatePeriod)));
@@ -702,7 +701,7 @@ main(int argc, char* argv[])
     MobilityHelper mobility;
     double sector0AngleRad = 30;
     uint32_t sectors = 3;
-    NodeDistributionScenarioInterface* scenario{NULL};
+    NodeDistributionScenarioInterface* scenario{nullptr};
     HexagonalGridScenarioHelper gridScenario;
 
     if (deployment == "HEX")
@@ -788,7 +787,9 @@ main(int argc, char* argv[])
      * Iterate/index gnbSector<N>Container, gnbNodesBySector[sector],
      *   gnbSector<N>NetDev, gnbNdBySector[sector] by `siteId`
      */
-    NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
+    NodeContainer gnbSector1Container;
+    NodeContainer gnbSector2Container;
+    NodeContainer gnbSector3Container;
     std::vector<NodeContainer*> gnbNodesBySector{&gnbSector1Container,
                                                  &gnbSector2Container,
                                                  &gnbSector3Container};
@@ -811,15 +812,25 @@ main(int argc, char* argv[])
      * Iterate/Index ueSector<N>Container, ueNodesBySector[sector],
      *   ueSector<N>NetDev, ueNdBySector[sector] with i % gnbSites
      */
-    NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
+    NodeContainer ueSector1Container;
+    NodeContainer ueSector2Container;
+    NodeContainer ueSector3Container;
     std::vector<NodeContainer*> ueNodesBySector{&ueSector1Container,
                                                 &ueSector2Container,
                                                 &ueSector3Container};
 
-    NodeContainer ueArSector1Container, ueVrSector1Container, ueCgSector1Container,
-        ueVoiceSector1Container, ueArSector2Container, ueVrSector2Container, ueCgSector2Container,
-        ueVoiceSector2Container, ueArSector3Container, ueVrSector3Container, ueCgSector3Container,
-        ueVoiceSector3Container;
+    NodeContainer ueArSector1Container;
+    NodeContainer ueVrSector1Container;
+    NodeContainer ueCgSector1Container;
+    NodeContainer ueVoiceSector1Container;
+    NodeContainer ueArSector2Container;
+    NodeContainer ueVrSector2Container;
+    NodeContainer ueCgSector2Container;
+    NodeContainer ueVoiceSector2Container;
+    NodeContainer ueArSector3Container;
+    NodeContainer ueVrSector3Container;
+    NodeContainer ueCgSector3Container;
+    NodeContainer ueVoiceSector3Container;
 
     std::vector<NodeContainer*> ueVoiceBySector{&ueVoiceSector1Container,
                                                 &ueVoiceSector2Container,
@@ -950,7 +961,7 @@ main(int argc, char* argv[])
     std::stringstream scheduler;
     std::string subType;
 
-    subType = enableOfdma == false ? "Tdma" : "Ofdma";
+    subType = !enableOfdma ? "Tdma" : "Ofdma";
     scheduler << "ns3::NrMacScheduler" << subType << schedulerType;
     std::cout << "Scheduler: " << scheduler.str() << std::endl;
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName(scheduler.str()));
@@ -983,7 +994,7 @@ main(int argc, char* argv[])
 
     nrHelper->SetSchedulerAttribute("FixedMcsDl", BooleanValue(useFixedMcs));
     nrHelper->SetSchedulerAttribute("FixedMcsUl", BooleanValue(useFixedMcs));
-    if (useFixedMcs == true)
+    if (useFixedMcs)
     {
         nrHelper->SetSchedulerAttribute("StartingMcsDl", UintegerValue(fixedMcs));
         nrHelper->SetSchedulerAttribute("StartingMcsUl", UintegerValue(fixedMcs));
@@ -1019,7 +1030,9 @@ main(int argc, char* argv[])
     double bandwidthBand = numCcPerBand * bandwidthCc;
     double bandCenter = band0Start + bandwidthBand / 2.0;
 
-    OperationBandInfo band0, band1, band2;
+    OperationBandInfo band0;
+    OperationBandInfo band1;
+    OperationBandInfo band2;
     band0.m_bandId = 0;
     band1.m_bandId = 1;
     band2.m_bandId = 2;
@@ -1127,7 +1140,9 @@ main(int argc, char* argv[])
         nrHelper->InitializeOperationBand(&band0);
     }
 
-    BandwidthPartInfoPtrVector sector1Bwps, sector2Bwps, sector3Bwps;
+    BandwidthPartInfoPtrVector sector1Bwps;
+    BandwidthPartInfoPtrVector sector2Bwps;
+    BandwidthPartInfoPtrVector sector3Bwps;
 
     if (deployment == "SIMPLE")
     {
@@ -1223,12 +1238,22 @@ main(int argc, char* argv[])
     // Initialize nrHelper
     nrHelper->Initialize();
 
-    NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
+    NetDeviceContainer gnbSector1NetDev;
+    NetDeviceContainer gnbSector2NetDev;
+    NetDeviceContainer gnbSector3NetDev;
 
-    NetDeviceContainer ueVoiceSector1NetDev, ueArSector1NetDev, ueVrSector1NetDev,
-        ueCgSector1NetDev, ueVoiceSector2NetDev, ueArSector2NetDev, ueVrSector2NetDev,
-        ueCgSector2NetDev, ueVoiceSector3NetDev, ueArSector3NetDev, ueVrSector3NetDev,
-        ueCgSector3NetDev;
+    NetDeviceContainer ueVoiceSector1NetDev;
+    NetDeviceContainer ueArSector1NetDev;
+    NetDeviceContainer ueVrSector1NetDev;
+    NetDeviceContainer ueCgSector1NetDev;
+    NetDeviceContainer ueVoiceSector2NetDev;
+    NetDeviceContainer ueArSector2NetDev;
+    NetDeviceContainer ueVrSector2NetDev;
+    NetDeviceContainer ueCgSector2NetDev;
+    NetDeviceContainer ueVoiceSector3NetDev;
+    NetDeviceContainer ueArSector3NetDev;
+    NetDeviceContainer ueVrSector3NetDev;
+    NetDeviceContainer ueCgSector3NetDev;
 
     // Defined for REM purposes
     std::vector<NetDeviceContainer*> gnbNdBySector{&gnbSector1NetDev,
@@ -1449,7 +1474,7 @@ main(int argc, char* argv[])
 
     // configure the transport protocol to be used
     std::string transportProtocol;
-    transportProtocol = useUdp == true ? "ns3::UdpSocketFactory" : "ns3::TcpSocketFactory";
+    transportProtocol = useUdp ? "ns3::UdpSocketFactory" : "ns3::TcpSocketFactory";
 
     // DL
     uint16_t dlPortArStart = 1121; // AR has 3 flows
@@ -1861,7 +1886,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        vrBearer,
                        vrTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -1887,7 +1912,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        vrBearer,
                        vrTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -1913,7 +1938,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        vrBearer,
                        vrTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -1940,7 +1965,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        cgBearer,
                        cgTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -1966,7 +1991,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        cgBearer,
                        cgTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -1992,7 +2017,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        cgBearer,
                        cgTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -2141,7 +2166,7 @@ main(int argc, char* argv[])
 
     std::ostringstream delayFileName;
     std::ostringstream throughputFileName;
-    if (simTag == "")
+    if (simTag.empty())
     {
         delayFileName << "XR_Delay"
                       << "_ar_" << std::to_string(arUeNum).c_str() << "_vr_"

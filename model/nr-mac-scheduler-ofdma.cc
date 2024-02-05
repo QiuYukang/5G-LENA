@@ -205,7 +205,8 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
 
             if (m_nrFhSchedSapProvider)
             {
-                if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
+                if (m_nrFhSchedSapProvider->GetFhControlMethod() ==
+                    NrFhControl::FhControlMethod::OptimizeRBs)
                 {
                     uint32_t quantizationStep = rbgAssignable;
                     while (schedInfoIt != ueVector.end())
@@ -274,7 +275,8 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
 
         if (m_nrFhSchedSapProvider)
         {
-            if (m_nrFhSchedSapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs)
+            if (m_nrFhSchedSapProvider->GetFhControlMethod() ==
+                NrFhControl::FhControlMethod::OptimizeMcs)
             {
                 GetFirst GetUe;
                 auto schedInfoIt = GetUeVector(el).begin();
@@ -287,9 +289,9 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                             GetUe(*schedInfoIt)->m_dlRBG,
                             GetUe(*schedInfoIt)->m_rnti); // max MCS index assignable
 
-                        NS_LOG_DEBUG("UE " << GetUe(*schedInfoIt)->m_rnti << " MCS form sched: "
-                                          << +GetUe(*schedInfoIt)->m_dlMcs
-                                          << " FH max MCS: " << +maxMcsAssignable);
+                        NS_LOG_DEBUG("UE " << GetUe(*schedInfoIt)->m_rnti
+                                           << " MCS form sched: " << +GetUe(*schedInfoIt)->m_dlMcs
+                                           << " FH max MCS: " << +maxMcsAssignable);
 
                         GetUe(*schedInfoIt)->m_dlMcs =
                             std::min(GetUe(*schedInfoIt)->m_dlMcs, maxMcsAssignable);

@@ -42,7 +42,8 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
     m_schedHarq->InstallGetBwInRBG(std::bind(&NrMacSchedulerNs3::GetBandwidthInRbg, this));
     m_schedHarq->InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_schedHarq->InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
-    m_schedHarq->InstallGetFhControlMethodFn(std::bind(&NrMacSchedulerNs3::GetFhControlMethod, this));
+    m_schedHarq->InstallGetFhControlMethodFn(
+        std::bind(&NrMacSchedulerNs3::GetFhControlMethod, this));
     m_schedHarq->InstallDoesFhAllocationFitFn(std::bind(&NrMacSchedulerNs3::DoesFhAllocationFit,
                                                         this,
                                                         std::placeholders::_1,
@@ -1855,7 +1856,8 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
 
     if (m_nrFhSchedSapProvider)
     {
-        if (m_nrFhSchedSapProvider->GetFhControlMethod() != NrFhControl::FhControlMethod::Dropping &&
+        if (m_nrFhSchedSapProvider->GetFhControlMethod() !=
+                NrFhControl::FhControlMethod::Dropping &&
             m_nrFhSchedSapProvider->GetFhControlMethod() != UINT8_MAX)
         {
             Simulator::Schedule(NanoSeconds(1),

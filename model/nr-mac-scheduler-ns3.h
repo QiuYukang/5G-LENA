@@ -252,8 +252,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     ~NrMacSchedulerNs3() override;
 
     // FH Control SAPs
-    virtual void SetNrFhSchedSapProvider(NrFhSchedSapProvider* s) override;
-    virtual NrFhSchedSapUser* GetNrFhSchedSapUser() override;
+    void SetNrFhSchedSapProvider(NrFhSchedSapProvider* s) override;
+    NrFhSchedSapUser* GetNrFhSchedSapUser() override;
 
     /**
      * \brief Install the AMC for the DL part

@@ -1647,7 +1647,7 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
                 ++ctrlIt;
             }
         }
-        if (m_ctrlMsgs.size() > 0)
+        if (!m_ctrlMsgs.empty())
         {
             m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
         }

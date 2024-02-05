@@ -8,6 +8,7 @@
         std::clog << " [ CellId " << GetCellId() << ", bwpId " << GetBwpId() << "] ";              \
     } while (false);
 #include "nr-mac-scheduler-harq-rr.h"
+
 #include "nr-fh-control.h"
 
 #include <ns3/log.h>

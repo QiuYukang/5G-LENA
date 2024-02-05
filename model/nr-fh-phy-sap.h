@@ -67,16 +67,17 @@ class MemberNrFhPhySapProvider : public NrFhPhySapProvider
      */
     MemberNrFhPhySapProvider(C* owner);
 
-    virtual uint8_t GetFhControlMethod();
-    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
-    virtual void UpdateTracesBasedOnDroppedData(uint16_t bwpId,
-                                                uint32_t mcs,
-                                                uint32_t nRbgs,
-                                                uint32_t nSymb);
-    virtual void NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot);
+    MemberNrFhPhySapProvider() = delete;
+
+    uint8_t GetFhControlMethod() override;
+    bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) override;
+    void UpdateTracesBasedOnDroppedData(uint16_t bwpId,
+                                        uint32_t mcs,
+                                        uint32_t nRbgs,
+                                        uint32_t nSymb) override;
+    void NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot) override;
 
   private:
-    MemberNrFhPhySapProvider();
     C* m_owner; ///< the owner class
 
 }; // end of class MemberNrFhPhySapProvider
@@ -134,10 +135,11 @@ class MemberNrFhPhySapUser : public NrFhPhySapUser
      */
     MemberNrFhPhySapUser(C* owner);
 
-    virtual uint16_t GetNumerology() const;
+    MemberNrFhPhySapUser() = delete;
+
+    uint16_t GetNumerology() const override;
 
   private:
-    MemberNrFhPhySapUser();
     C* m_owner; ///< the owner class
 
 }; // end of class NrFhPhySapUser

@@ -71,20 +71,21 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
      */
     MemberNrFhSchedSapProvider(C* owner);
 
-    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
-    virtual uint8_t GetFhControlMethod();
-    virtual uint16_t GetNrFhPhysicalCellId();
-    virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes);
-    virtual void SetActiveHarqUes(uint16_t bwpId, uint16_t rnti);
-    virtual void UpdateActiveUesMap(
+    MemberNrFhSchedSapProvider() = delete;
+
+    bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) override;
+    uint8_t GetFhControlMethod() override;
+    uint16_t GetNrFhPhysicalCellId() override;
+    void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) override;
+    void SetActiveHarqUes(uint16_t bwpId, uint16_t rnti) override;
+    void UpdateActiveUesMap(
         uint16_t bwpId,
         const std::deque<VarTtiAllocInfo>& allocation,
-        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap);
-    virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti);
-    virtual uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap) override;
+    uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti) override;
+    uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti) override;
 
   private:
-    MemberNrFhSchedSapProvider();
     C* m_owner; ///< the owner class
 
 }; // end of class MemberNrFhSchedSapProvider
@@ -170,10 +171,11 @@ class MemberNrFhSchedSapUser : public NrFhSchedSapUser
      */
     MemberNrFhSchedSapUser(C* owner);
 
-    virtual uint64_t GetNumRbPerRbgFromSched();
+    MemberNrFhSchedSapUser() = delete;
+
+    uint64_t GetNumRbPerRbgFromSched() override;
 
   private:
-    MemberNrFhSchedSapUser();
     C* m_owner; ///< the owner class
 
 }; // end of class MemberNrFhSchedSapUser

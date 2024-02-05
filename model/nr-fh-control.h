@@ -40,7 +40,7 @@ class NrFhSchedSapProvider;
  * the method NrHelper::EnableFhControl() and configure it, as desired, through
  * the NrHelper::SetFhControlAttribute(). Important note is that the method
  * NrHelper::ConfigureFhControl() must be called after the device install, so
- * that the NrFhControl can be configured correclty. In particular, with this
+ * that the NrFhControl can be configured correctly. In particular, with this
  * method the numerology and the error model of each BWP will be stored in the
  * NrFhControl maps.
  *
@@ -148,9 +148,9 @@ class NrFhControl : public Object
      *        (1 or 2) will be set."
               "ns3::NrEesmIrT1 and ns3::NrEesmCcT1 for MCS Table 1"
               "ns3::NrEesmIrT2 and ns3::NrEesmCcT2 for MCS Table 2.
-     * \param erroModelType The error model type
+     * \param errorModelType The error model type
      */
-    void SetErrorModelType(std::string erroModelType);
+    void SetErrorModelType(std::string errorModelType);
 
     /**
      * \brief Set the physical cell Id of the cell to which this NrFhControl
