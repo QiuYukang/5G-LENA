@@ -441,6 +441,13 @@ class NrHelper : public Object
                                       uint8_t bearerId);
 
     /**
+     * \brief Set the TypeId of the NrUeMac to create
+     *
+     * \param tid The TypeId of the NrUeMac or a subclass
+     */
+    void SetUeMacTypeId(TypeId tid);
+
+    /**
      * \brief Set an attribute for the UE MAC, before it is created.
      *
      * \param n the name of the attribute

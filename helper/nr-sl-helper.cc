@@ -20,6 +20,7 @@
 #include <ns3/nr-sl-chunk-processor.h>
 #include <ns3/nr-sl-ue-mac-scheduler-simple.h>
 #include <ns3/nr-sl-ue-mac-scheduler.h>
+#include <ns3/nr-sl-ue-mac.h>
 #include <ns3/nr-sl-ue-rrc.h>
 #include <ns3/nr-spectrum-phy.h>
 #include <ns3/nr-ue-mac.h>
@@ -164,10 +165,10 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
     {
         // Store BWP id in NrSlUeRrc
         nrUeDev->GetRrc()->GetObject<NrSlUeRrc>()->StoreSlBwpId(itBwps);
+        auto nrSlUeMac = nrUeDev->GetMac(itBwps)->GetObject<NrSlUeMac>();
         // SAPs between the RRC and the NR UE MAC
-        lteUeRrc->SetNrSlUeCmacSapProvider(itBwps,
-                                           nrUeDev->GetMac(itBwps)->GetNrSlUeCmacSapProvider());
-        nrUeDev->GetMac(itBwps)->SetNrSlUeCmacSapUser(lteUeRrc->GetNrSlUeCmacSapUser());
+        lteUeRrc->SetNrSlUeCmacSapProvider(itBwps, nrSlUeMac->GetNrSlUeCmacSapProvider());
+        nrSlUeMac->SetNrSlUeCmacSapUser(lteUeRrc->GetNrSlUeCmacSapUser());
         // SAPs between the RRC and the NR UE PHY
         nrUeDev->GetPhy(itBwps)->SetNrSlUeCphySapUser(lteUeRrc->GetNrSlUeCphySapUser());
         lteUeRrc->SetNrSlUeCphySapProvider(itBwps,
@@ -177,20 +178,16 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
         NS_ABORT_MSG_IF(sched == nullptr, "sched is null");
         ccMap.at(itBwps)->SetNrSlUeMacScheduler(sched);
         // SAPs between the NR SL UE MAC scheduler and NrUeMac
-        sched->SetNrSlUeMacCschedSapUser(nrUeDev->GetMac(itBwps)->GetNrSlUeMacCschedSapUser());
-        sched->SetNrSlUeMacSchedSapUser(nrUeDev->GetMac(itBwps)->GetNrSlUeMacSchedSapUser());
-        nrUeDev->GetMac(itBwps)->SetNrSlUeMacCschedSapProvider(
-            sched->GetNrSlUeMacCschedSapProvider());
-        nrUeDev->GetMac(itBwps)->SetNrSlUeMacSchedSapProvider(
-            sched->GetNrSlUeMacSchedSapProvider());
+        sched->SetNrSlUeMacCschedSapUser(nrSlUeMac->GetNrSlUeMacCschedSapUser());
+        sched->SetNrSlUeMacSchedSapUser(nrSlUeMac->GetNrSlUeMacSchedSapUser());
+        nrSlUeMac->SetNrSlUeMacCschedSapProvider(sched->GetNrSlUeMacCschedSapProvider());
+        nrSlUeMac->SetNrSlUeMacSchedSapProvider(sched->GetNrSlUeMacSchedSapProvider());
         // Set AMC in the NR SL UE MAC scheduler
         Ptr<NrSlUeMacSchedulerNs3> schedNs3 = sched->GetObject<NrSlUeMacSchedulerNs3>();
         schedNs3->InstallNrSlAmc(slAmc);
         // SAPs between MAC and PHY
-        nrUeDev->GetPhy(itBwps)->SetNrSlUePhySapUser(
-            nrUeDev->GetMac(itBwps)->GetNrSlUePhySapUser());
-        nrUeDev->GetMac(itBwps)->SetNrSlUePhySapProvider(
-            nrUeDev->GetPhy(itBwps)->GetNrSlUePhySapProvider());
+        nrUeDev->GetPhy(itBwps)->SetNrSlUePhySapUser(nrSlUeMac->GetNrSlUePhySapUser());
+        nrSlUeMac->SetNrSlUePhySapProvider(nrUeDev->GetPhy(itBwps)->GetNrSlUePhySapProvider());
         // Error model type in NRSpectrumPhy for NR SL
         Ptr<NrSpectrumPhy> spectrumPhy = nrUeDev->GetPhy(itBwps)->GetSpectrumPhy();
         spectrumPhy->SetAttribute("SlErrorModelType", typeIdValue);
@@ -219,8 +216,7 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
 
         // Set the SAP of NR UE MAC in SL BWP manager
         bool bwpmTest =
-            slBwpManager->SetNrSlMacSapProviders(itBwps,
-                                                 nrUeDev->GetMac(itBwps)->GetNrSlMacSapProvider());
+            slBwpManager->SetNrSlMacSapProviders(itBwps, nrSlUeMac->GetNrSlMacSapProvider());
 
         if (bwpmTest == false)
         {

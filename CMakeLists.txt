@@ -50,6 +50,7 @@ set(source_files
     model/nr-lte-mi-error-model.cc
     model/nr-gnb-mac.cc
     model/nr-ue-mac.cc
+    model/nr-sl-ue-mac.cc
     model/nr-rrc-protocol-ideal.cc
     model/nr-mac-header-vs.cc
     model/nr-mac-header-vs-ul.cc
@@ -191,6 +192,7 @@ set(header_files
     model/nr-lte-mi-error-model.h
     model/nr-gnb-mac.h
     model/nr-ue-mac.h
+    model/nr-sl-ue-mac.h
     model/nr-rrc-protocol-ideal.h
     model/nr-harq-phy.h
     model/bandwidth-part-gnb.h

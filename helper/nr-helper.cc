@@ -1166,6 +1166,13 @@ NrHelper::DeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
 }
 
 void
+NrHelper::SetUeMacTypeId(TypeId tid)
+{
+    NS_LOG_FUNCTION(this << GetTypeId().GetName());
+    m_ueMacFactory.SetTypeId(tid);
+}
+
+void
 NrHelper::SetUeMacAttribute(const std::string& n, const AttributeValue& v)
 {
     NS_LOG_FUNCTION(this);

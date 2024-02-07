@@ -736,6 +736,7 @@ main(int argc, char* argv[])
 
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPower));
 
+    nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(enableSensing));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(static_cast<uint8_t>(t1)));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));

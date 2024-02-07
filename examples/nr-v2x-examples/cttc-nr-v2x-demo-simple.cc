@@ -465,6 +465,7 @@ main(int argc, char* argv[])
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPower));
 
     // NR Sidelink attribute of UE MAC, which are would be common for all the UEs
+    nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
