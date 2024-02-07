@@ -105,6 +105,8 @@ main(int argc, char* argv[])
      *   UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in
      *
      */
+    uint8_t maxPortsSupported = UINT8_MAX;
+
     uint16_t losCondition = 0;
     NrHelper::MimoPmiParams mimoPmiParams;
 
@@ -225,6 +227,36 @@ main(int argc, char* argv[])
     apUe.polSlantAngle = polSlantAngleUe * (M_PI / 180);
     apGnb.bearingAngle = bearingAngleGnb * (M_PI / 180);
     apGnb.polSlantAngle = polSlantAngleGnb * (M_PI / 180);
+
+    if (TypeId::LookupByName(mimoPmiParams.fullSearchCb) == NrCbTwoPort::GetTypeId())
+    {
+        maxPortsSupported = 2;
+    }
+    NS_ASSERT_MSG(
+        (!apUe.isDualPolarized && apUe.nVertPorts * apUe.nHorizPorts <= maxPortsSupported) ||
+            (apUe.isDualPolarized && apUe.nVertPorts * apUe.nHorizPorts <= maxPortsSupported / 2),
+        "total 2 ports for UE is supported");
+
+    NS_ASSERT_MSG(
+        (!apGnb.isDualPolarized && apGnb.nVertPorts * apGnb.nHorizPorts <= maxPortsSupported) ||
+            (apGnb.isDualPolarized &&
+             apGnb.nVertPorts * apGnb.nHorizPorts <= maxPortsSupported / 2),
+        "total 2 ports for gNB is supported");
+
+    NS_ASSERT_MSG(((apGnb.nAntCols % apGnb.nHorizPorts) == 0),
+                  "The number of horizontal ports of gNB must divide number of columns");
+
+    NS_ASSERT_MSG(((apGnb.nAntRows % apGnb.nVertPorts) == 0),
+                  "The number of vertical ports of gNB must divide number of rows");
+
+    NS_ASSERT_MSG(((apUe.nAntCols % apUe.nHorizPorts) == 0),
+                  "The number of horizontal ports of UE must divide number of columns");
+
+    NS_ASSERT_MSG(((apUe.nAntRows % apUe.nVertPorts) == 0),
+                  "The number of vertical ports of UE must divide number of rows");
+    NS_ABORT_MSG_UNLESS(mimoPmiParams.rankLimit, "The rank limit cannot be 0.");
+    NS_ABORT_IF(centralFrequency < 0.5e9 && centralFrequency > 100e9);
+    NS_ABORT_UNLESS(losCondition < 3);
 
     if (logging)
     {
