@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!--
 Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 
@@ -61,12 +60,12 @@ directory will be listed as "Untracked files". This is normal.
 
 Checkout the latest NR release branch (usually the branch with the highest version
 number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
-For example, if `5g-lena-v2x-v0.2.y` is the latest release branch you can check it out
+For example, if `5g-lena-v2x-v0.3.y` is the latest release branch you can check it out
 in the following way:
 
 ```
 cd nr
-git checkout 5g-lena-v2x-v0.2.y
+git checkout 5g-lena-v2x-v0.3.y
 ```
 
 ### 4. Switch to the recommended ns-3 release branch that includes V2X extensions:
@@ -86,81 +85,29 @@ To check out the correct tag, consult the following table:
 | ------ | ------ | ------ | ------ |
 | 5g-lena-v2x-v0.1.y | ns-3-dev-v2x-v0.1 | waf | ns-3.35 |
 | 5g-lena-v2x-v0.2.y | ns-3-dev-v2x-v0.2 | cmake | ns-3.36 |
-| to be released | to be released | cmake | ns-3.37 |
+| 5g-lena-v2x-v0.3.y | ns-3-dev-v2x-v0.3 | cmake | ns-3.40 |
 
-For example, for NR relase branch called 5g-lena-v2x-v0.2.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.2.
+For example, for NR relase branch called 5g-lena-v2x-v0.3.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.3.
 (To see the list of available ns-3 v2x release tags you can run: `git tag -l "*v2x*"`)
 
 To check out the git tag run:
 
 ```
-git checkout ns-3-dev-v2x-v0.2
+git checkout ns-3-dev-v2x-v0.3
 ```
 
 Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK.
 
 ### 6. Test ns-3 + nr installation:
 
-Let's configure the ns-3 + NR project with V2X estensions:
+Let's configure the ns-3 + NR project with V2X extensions:
 
 ```
 cd ../..
-./ns3 configure --disable-python --enable-tests --enable-examples
+./ns3 configure --enable-tests --enable-examples
 ```
 
 In the output you should see: `SQLite stats support: enabled`. If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
-=======
-Notice that since these are two independent git repositories, when you run
-`git status` inside of the ns-3, you will notice that the contrib/nr
-directory will be listed as "Untracked files". This is normal.
-
-### Switch to the latest NR release branch:
-
-Checkout the latest NR release branch (usually the branch with the highest version
-number, to list git branches run `git branch -r`). For example, for NR Release v2.6 run:
-
-```
-cd nr
-git checkout 5g-lena-v2.6.y
-```
-
-### Switch to the recommended ns-3 release branch:
-
-Check in the [NR RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the recommended ns-3 release, and then check out the corresponding ns-3 release branch.
-For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".40" you can run:
-
-```
-cd ../..
-git checkout -b ns-3.40-branch ns-3.40
-```
-
-For a quicker reference we provide a table with the supported versions of ns-3-dev
-for each NR release.
-
-| NR version     | ns-3 version | Build system  |
-| :------------: | :-----------:| :-----------: |
-| 5g-lena-v2.6.y | ns-3.40      | cmake         |
-| 5g-lena-v2.5.y | ns-3.39      | cmake         |
-| 5g-lena-v2.4.y | ns-3.38      | cmake         |
-| 5g-lena-v2.3.y | ns-3.37      | cmake         |
-| 5g-lena-v2.2.y | ns-3.36.1    | cmake         |
-| 5g-lena-v2.1.y | ns-3.36      | cmake         |
-| 5g-lena-v2.0.y | ns-3.36      | cmake         |
-| 5g-lena-v1.3.y | ns-3.35      | waf           |
-
-
-### Test ns-3 + nr installation:
-
-Let's configure the ns-3 + NR project:
-
-```
-./ns3 configure --enable-examples --enable-tests
-```
-
-In the output you should see: `SQLite support: ON`.
-
-If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
->>>>>>> v2.6-branch
 
 To compile the ns-3 with NR you can run the following command:
 
@@ -190,7 +137,7 @@ To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run:
 ## Upgrading 5G-LENA
 
 We assume that your work lives in a separate branch, and that the 'master' and
-'nr-v2x-dev' and release branches of the NR repository is left untouched as
+'nr-v2x-dev' and release branches of the NR repository are left untouched as
 the first time you downloaded it.
 If it is not the case, then please move all your work in a separate branch.
 
