@@ -207,20 +207,28 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 break;
             }
 
-            // Assign 1 RBG for each available symbols for the beam,
-            // and then update the count of available resources
-            GetUe(*schedInfoIt)->m_dlRBG += rbgAssignable;
-            assigned.m_rbg += rbgAssignable;
+            do
+            {
+                // Assign 1 RBG for each available symbols for the beam,
+                // and then update the count of available resources
+                GetUe(*schedInfoIt)->m_dlRBG += rbgAssignable;
+                assigned.m_rbg += rbgAssignable;
 
-            GetUe(*schedInfoIt)->m_dlSym = beamSym;
-            assigned.m_sym = beamSym;
+                GetUe(*schedInfoIt)->m_dlSym = beamSym;
+                assigned.m_sym = beamSym;
 
-            resources -= 1; // Resources are RBG, so they do not consider the beamSym
+                resources -= 1; // Resources are RBG, so they do not consider the beamSym
 
-            // Update metrics
-            NS_LOG_DEBUG("Assigned " << rbgAssignable << " DL RBG, spanned over " << beamSym
-                                     << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
-            AssignedDlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
+                // Update metrics
+                NS_LOG_DEBUG("Assigned " << rbgAssignable << " DL RBG, spanned over " << beamSym
+                                         << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
+                // Following call to AssignedDlResources would update the
+                // TB size in the NrMacSchedulerUeInfo of this particular UE
+                // according the Rank Indicator reported by it. Only one call
+                // to this method is enough even if the UE reported rank indicator 2,
+                // since the number of RBG assigned to both the streams are the same.
+                AssignedDlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
+            } while (GetUe(*schedInfoIt)->m_dlTbSize < 10 && resources > 0);
 
             // Update metrics for the unsuccessful UEs (who did not get any resource in this
             // iteration)
