@@ -123,20 +123,17 @@ class NrMacSchedulingStats : public NrStatsCalculator
 
   private:
     /**
-     * When writing DL MAC statistics first time to file,
-     * columns description is added. Then next lines are
-     * appended to file. This value is true if output
-     * files have not been opened yet
+     * DL MAC statistics file stream. When the filename
+     * is changed, columns description are added. Then
+     * next lines are appended to file.
      */
-    bool m_dlFirstWrite;
-
+    std::ofstream outDlFile;
     /**
-     * When writing UL MAC statistics first time to file,
-     * columns description is added. Then next lines are
-     * appended to file. This value is true if output
-     * files have not been opened yet
+     * UL MAC statistics file stream. When the filename
+     * is changed, columns description are added. Then
+     * next lines are appended to file.
      */
-    bool m_ulFirstWrite;
+    std::ofstream outUlFile;
 };
 
 } // namespace ns3
