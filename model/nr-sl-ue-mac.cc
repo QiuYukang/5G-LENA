@@ -242,13 +242,13 @@ NrSlUeMac::DoSlotIndication(const SfnSf& sfn)
     }
 }
 
-std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+std::list<NrSlSlotInfo>
 NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
 {
     NS_LOG_FUNCTION(this << sfn.GetFrame() << +sfn.GetSubframe() << sfn.GetSlot());
 
     // NR module supported candSsResoA list
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> nrCandSsResoA;
+    std::list<NrSlSlotInfo> nrCandSsResoA;
 
     std::list<NrSlCommResourcePool::SlotInfo> candSsResoA; // S_A as per TS 38.214
     uint64_t absSlotIndex = sfn.Normalize();
@@ -349,7 +349,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
             {
                 bool erased = false;
                 // calculate all proposed transmissions of current candidate resource
-                std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> listFutureCands;
+                std::list<NrSlSlotInfo> listFutureCands;
                 uint16_t pPrimeRsvpTx =
                     m_slTxPool->GetResvPeriodInSlots(GetBwpId(),
                                                      m_poolId,
@@ -506,23 +506,23 @@ NrSlUeMac::GetFutSlotsBasedOnSens(SensingData sensedData)
     return listFutureSensTx;
 }
 
-std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+std::list<NrSlSlotInfo>
 NrSlUeMac::GetNrSupportedList(const SfnSf& sfn, std::list<NrSlCommResourcePool::SlotInfo> slotInfo)
 {
     NS_LOG_FUNCTION(this);
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> nrSupportedList;
+    std::list<NrSlSlotInfo> nrSupportedList;
     for (const auto& it : slotInfo)
     {
         std::set<uint8_t> emptySet;
-        NrSlUeMacSchedSapProvider::NrSlSlotInfo info(it.numSlPscchRbs,
-                                                     it.slPscchSymStart,
-                                                     it.slPscchSymLength,
-                                                     it.slPsschSymStart,
-                                                     it.slPsschSymLength,
-                                                     it.slSubchannelSize,
-                                                     it.slMaxNumPerReserve,
-                                                     sfn.GetFutureSfnSf(it.slotOffset),
-                                                     emptySet);
+        NrSlSlotInfo info(it.numSlPscchRbs,
+                          it.slPscchSymStart,
+                          it.slPscchSymLength,
+                          it.slPsschSymStart,
+                          it.slPsschSymLength,
+                          it.slSubchannelSize,
+                          it.slMaxNumPerReserve,
+                          sfn.GetFutureSfnSf(it.slotOffset),
+                          emptySet);
         nrSupportedList.emplace_back(info);
     }
 
@@ -723,8 +723,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 m_reselCounter = GetRndmReselectionCounter();
                 m_cResel = m_reselCounter * 10;
                 NS_LOG_DEBUG("Resel Counter " << +m_reselCounter << " cResel " << m_cResel);
-                std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> availbleReso =
-                    GetNrSlTxOpportunities(sfn);
+                std::list<NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities(sfn);
                 // sensing or not, due to the semi-persistent scheduling, after
                 // calling the GetNrSlTxOpportunities method, and before asking the
                 // scheduler for resources, we need to remove those available slots,
@@ -1083,8 +1082,8 @@ NrSlUeMac::GetStartSbChOfReTx(std::set<NrSlSlotAlloc>::const_iterator it, uint8_
     return startSbChIndex;
 }
 
-std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>
-NrSlUeMac::FilterTxOpportunities(std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr)
+std::list<NrSlSlotInfo>
+NrSlUeMac::FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr)
 {
     NS_LOG_FUNCTION(this);
 
@@ -1294,16 +1293,15 @@ NrSlUeMac::DoReportNrSlBufferStatus(
         m_nrSlBsrReceived.insert(std::make_pair(slLcId, params));
     }
 
-    auto report =
-        NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams(params.rnti,
-                                                                       params.lcid,
-                                                                       params.txQueueSize,
-                                                                       params.txQueueHolDelay,
-                                                                       params.retxQueueSize,
-                                                                       params.retxQueueHolDelay,
-                                                                       params.statusPduSize,
-                                                                       params.srcL2Id,
-                                                                       params.dstL2Id);
+    auto report = NrSlReportBufferStatusParams(params.rnti,
+                                               params.lcid,
+                                               params.txQueueSize,
+                                               params.txQueueHolDelay,
+                                               params.retxQueueSize,
+                                               params.retxQueueHolDelay,
+                                               params.statusPduSize,
+                                               params.srcL2Id,
+                                               params.dstL2Id);
 
     m_nrSlUeMacSchedSapProvider->SchedUeNrSlRlcBufferReq(report);
 }

@@ -81,19 +81,17 @@ class NrSlUeMacScheduler : public Object
     /**
      * \brief Send NR Sidelink RLC buffer status report from UE MAC to the UE scheduler
      *
-     * \param params NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams
+     * \param params NrSlReportBufferStatusParams
      */
-    virtual void DoSchedUeNrSlRlcBufferReq(
-        const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params) = 0;
+    virtual void DoSchedUeNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) = 0;
     /**
      * \brief Send NR Sidleink trigger request from UE MAC to the UE scheduler
      *
      * \param dstL2Id The destination layer 2 id
-     * \param params NrSlUeMacSchedSapProvider::NrSlSlotInfo
+     * \param params NrSlSlotInfo
      */
-    virtual void DoSchedUeNrSlTriggerReq(
-        uint32_t dstL2Id,
-        const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params) = 0;
+    virtual void DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
+                                         const std::list<NrSlSlotInfo>& params) = 0;
 
     /**
      * Assign a fixed random variable stream number to the random variables
@@ -150,11 +148,9 @@ class NrSlUeMacGeneralSchedSapProvider : public NrSlUeMacSchedSapProvider
     NrSlUeMacGeneralSchedSapProvider(NrSlUeMacScheduler* sched);
 
     virtual void SchedUeNrSlRlcBufferReq(
-        const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
-        override;
-    virtual void SchedUeNrSlTriggerReq(
-        uint32_t dstL2Id,
-        const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params) override;
+        const struct NrSlReportBufferStatusParams& params) override;
+    virtual void SchedUeNrSlTriggerReq(uint32_t dstL2Id,
+                                       const std::list<NrSlSlotInfo>& params) override;
 
   private:
     NrSlUeMacScheduler* m_scheduler{nullptr}; //!< pointer to the scheduler API using this SAP

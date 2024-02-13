@@ -84,15 +84,14 @@ NrSlUeMacGeneralSchedSapProvider::NrSlUeMacGeneralSchedSapProvider(NrSlUeMacSche
 
 void
 NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlRlcBufferReq(
-    const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
+    const struct NrSlReportBufferStatusParams& params)
 {
     m_scheduler->DoSchedUeNrSlRlcBufferReq(params);
 }
 
 void
-NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlTriggerReq(
-    uint32_t dstL2Id,
-    const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params)
+NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlTriggerReq(uint32_t dstL2Id,
+                                                        const std::list<NrSlSlotInfo>& params)
 {
     m_scheduler->DoSchedUeNrSlTriggerReq(dstL2Id, params);
 }

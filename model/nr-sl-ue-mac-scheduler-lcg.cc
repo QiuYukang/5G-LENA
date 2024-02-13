@@ -25,8 +25,7 @@ NrSlUeMacSchedulerLC::NrSlUeMacSchedulerLC(
 }
 
 int
-NrSlUeMacSchedulerLC::UpdateLC(
-    const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
+NrSlUeMacSchedulerLC::UpdateLC(const struct NrSlReportBufferStatusParams& params)
 {
     NS_ASSERT(params.lcid == m_id);
 
@@ -81,8 +80,7 @@ NrSlUeMacSchedulerLCG::Insert(NrSlLCPtr&& lc)
 }
 
 void
-NrSlUeMacSchedulerLCG::UpdateInfo(
-    const NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
+NrSlUeMacSchedulerLCG::UpdateInfo(const NrSlReportBufferStatusParams& params)
 {
     NS_ASSERT(Contains(params.lcid));
     int ret = m_lcMap.at(params.lcid)->UpdateLC(params);

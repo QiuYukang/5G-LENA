@@ -32,7 +32,7 @@ NrSlUeMacSchedulerSimple::GetTypeId(void)
 
 bool
 NrSlUeMacSchedulerSimple::DoNrSlAllocation(
-    const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
+    const std::list<NrSlSlotInfo>& txOpps,
     const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
     std::set<NrSlSlotAlloc>& slotAllocList)
 {
@@ -56,7 +56,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation(
     NS_ASSERT_MSG(IsNrSlMcsFixed(),
                   "Attribute FixNrSlMcs must be true for NrSlUeMacSchedulerSimple scheduler");
 
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> selectedTxOpps;
+    std::list<NrSlSlotInfo> selectedTxOpps;
     selectedTxOpps = RandomlySelectSlots(txOpps);
     NS_ASSERT_MSG(selectedTxOpps.size() > 0, "Scheduler should select at least 1 slot from txOpps");
     uint32_t tbs = 0;
@@ -138,14 +138,13 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation(
     return allocated;
 }
 
-std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>
-NrSlUeMacSchedulerSimple::RandomlySelectSlots(
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps)
+std::list<NrSlSlotInfo>
+NrSlUeMacSchedulerSimple::RandomlySelectSlots(std::list<NrSlSlotInfo> txOpps)
 {
     NS_LOG_FUNCTION(this);
 
     uint8_t totalTx = GetSlMaxTxTransNumPssch();
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> newTxOpps;
+    std::list<NrSlSlotInfo> newTxOpps;
 
     if (txOpps.size() > totalTx)
     {
@@ -172,8 +171,7 @@ NrSlUeMacSchedulerSimple::RandomlySelectSlots(
 }
 
 NrSlUeMacSchedulerSimple::SbChInfo
-NrSlUeMacSchedulerSimple::GetAvailSbChInfo(
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps)
+NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
 {
     NS_LOG_FUNCTION(this << txOpps.size());
     // txOpps are the randomly selected slots for 1st Tx and possible ReTx

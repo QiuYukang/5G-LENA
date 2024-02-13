@@ -545,7 +545,7 @@ class NrSlUeMac : public NrUeMac
      * \return The list of the transmit opportunities (slots) asper the TDD pattern
      *         and the NR SL bitmap
      */
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSlTxOpportunities(const SfnSf& sfn);
+    std::list<NrSlSlotInfo> GetNrSlTxOpportunities(const SfnSf& sfn);
     /**
      * \brief Get the list of the future transmission slots based on sensed data.
      * \param sensedData The data extracted from the sensed SCI 1-A.
@@ -554,7 +554,7 @@ class NrSlUeMac : public NrUeMac
     std::list<SlotSensingData> GetFutSlotsBasedOnSens(SensingData sensedData);
     /**
      * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
-     *        NrSlUeMacSchedSapProvider::NrSlSlotInfo
+     *        NrSlSlotInfo
      *
      * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
      * have an object of NR SfnSf class there due to dependency issue. The use of
@@ -569,9 +569,8 @@ class NrSlUeMac : public NrUeMac
      * \param slotInfo the list of LTE module compatible slot info
      * \return The list of NR compatible slot info
      */
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> GetNrSupportedList(
-        const SfnSf& sfn,
-        std::list<NrSlCommResourcePool::SlotInfo> slotInfo);
+    std::list<NrSlSlotInfo> GetNrSupportedList(const SfnSf& sfn,
+                                               std::list<NrSlCommResourcePool::SlotInfo> slotInfo);
     /**
      * \brief Get the total number of subchannels based on the system UL bandwidth
      * \param poolId The pool id of the active pool to retrieve the sub-channel size in RBs
@@ -628,8 +627,7 @@ class NrSlUeMac : public NrUeMac
      * \param txOppr The list of available slots
      * \return The list of slots which are not used by any existing semi-persistent grant.
      */
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> FilterTxOpportunities(
-        std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOppr);
+    std::list<NrSlSlotInfo> FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr);
     /**
      * \brief Update the sensing window
      * \param sfn The current system frame, subframe, and slot number. This SfnSf

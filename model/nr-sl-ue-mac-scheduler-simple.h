@@ -48,7 +48,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      * \return The status of the allocation, true if the destination has been
      *         allocated some resources; false otherwise.
      */
-    virtual bool DoNrSlAllocation(const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& txOpps,
+    virtual bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& txOpps,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<NrSlSlotAlloc>& slotAllocList) override;
 
@@ -73,7 +73,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      * \return the set containing the indices of the randomly chosen slots in the
      *         txOpps list
      */
-    std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>
+    std::list<NrSlSlotInfo>
     /**
      * \brief Randomly select the number of slots from the slots given by UE MAC
      *
@@ -87,7 +87,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      * \param txOpps The list of the available slots
      * \return The list of randomly selected slots
      */
-    RandomlySelectSlots(std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps);
+    RandomlySelectSlots(std::list<NrSlSlotInfo> txOpps);
     /**
      * \brief Get available subchannel information
      *
@@ -99,7 +99,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      * \param txOpps The list of randomly selected slots
      * \return A struct object of type SbChInfo
      */
-    SbChInfo GetAvailSbChInfo(std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo> txOpps);
+    SbChInfo GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps);
     /**
      * \brief Randomly select the starting subchannel index
      *

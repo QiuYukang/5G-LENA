@@ -10,8 +10,7 @@ namespace ns3
 {
 
 std::ostream&
-operator<<(std::ostream& os,
-           const NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& p)
+operator<<(std::ostream& os, const NrSlReportBufferStatusParams& p)
 {
     os << "RNTI: " << p.rnti << " LCId: " << static_cast<uint32_t>(p.lcid)
        << " RLCTxQueueSize: " << p.txQueueSize << " B, RLCTXHolDel: " << p.txQueueHolDelay
@@ -23,7 +22,7 @@ operator<<(std::ostream& os,
 }
 
 bool
-NrSlUeMacSchedSapProvider::NrSlSlotInfo::operator<(const NrSlSlotInfo& rhs) const
+NrSlSlotInfo::operator<(const NrSlSlotInfo& rhs) const
 {
     return sfn < rhs.sfn;
 }

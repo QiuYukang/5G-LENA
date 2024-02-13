@@ -71,17 +71,15 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
 
      */
     virtual void DoSchedUeNrSlRlcBufferReq(
-        const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
-        override;
+        const struct NrSlReportBufferStatusParams& params) override;
     /**
      * \brief Send NR Sidleink trigger request from UE MAC to the UE scheduler
      *
      * \param dstL2Id The destination layer 2 id
-     * \param params The list of NrSlUeMacSchedSapProvider::NrSlSlotInfo
+     * \param params The list of NrSlSlotInfo
      */
-    virtual void DoSchedUeNrSlTriggerReq(
-        uint32_t dstL2Id,
-        const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params) override;
+    virtual void DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
+                                         const std::list<NrSlSlotInfo>& params) override;
 
     /**
      * \brief Install the AMC for the NR Sidelink
@@ -178,7 +176,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
      * \return The status of the allocation, true if the destination has been
      *         allocated some resources; false otherwise.
      */
-    virtual bool DoNrSlAllocation(const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params,
+    virtual bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& params,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<NrSlSlotAlloc>& slotAllocList) = 0;
     /**

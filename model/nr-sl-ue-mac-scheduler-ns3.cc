@@ -120,8 +120,7 @@ NrSlUeMacSchedulerNs3::CreateLC(
 }
 
 void
-NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq(
-    const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params)
+NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << static_cast<uint32_t>(params.lcid));
 
@@ -144,9 +143,8 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq(
 }
 
 void
-NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq(
-    uint32_t dstL2Id,
-    const std::list<NrSlUeMacSchedSapProvider::NrSlSlotInfo>& params)
+NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
+                                               const std::list<NrSlSlotInfo>& params)
 {
     NS_LOG_FUNCTION(this << dstL2Id);
 

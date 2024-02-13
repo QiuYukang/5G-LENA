@@ -58,8 +58,7 @@ class NrSlUeMacSchedulerLC
      * \param params the message received from the RLC layer, containing the information about the
      * queues \return Number of bytes added or removed from the LC
      */
-    int UpdateLC(
-        const struct NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params);
+    int UpdateLC(const struct NrSlReportBufferStatusParams& params);
 
     /**
      * \brief Get the total queue size of the LC
@@ -163,7 +162,7 @@ class NrSlUeMacSchedulerLCG
      *
      * A call to NrSlUeMacSchedulerLC::UpdateLc is performed.
      */
-    void UpdateInfo(const NrSlUeMacSchedSapProvider::SchedUeNrSlReportBufferStatusParams& params);
+    void UpdateInfo(const NrSlReportBufferStatusParams& params);
 
     /**
      * \brief Get the total size of the queue of all the LCs of the LCG
