@@ -1206,38 +1206,36 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap()
             std::list<double> snrsPerBeam;  // vector in which we will save snr per each RRD beam
 
             //"Associate" UE (RemPoint) with this RTD
-            for (std::list<RemDevice>::iterator itRtdAssociated = m_remDev.begin();
-                 itRtdAssociated != m_remDev.end();
-                 ++itRtdAssociated)
+            for (auto & itRtdAssociated : m_remDev)
             {
                 // configure RRD (RemPoint) beam toward RTD (itRtdAssociated)
-                ConfigureDirectPathBfv(m_rrd, *itRtdAssociated, m_rrd.antenna);
+                ConfigureDirectPathBfv(m_rrd, itRtdAssociated, m_rrd.antenna);
                 // configure RTD (itRtdAssociated) beam toward RRD (RemPoint)
-                ConfigureDirectPathBfv(*itRtdAssociated, m_rrd, itRtdAssociated->antenna);
+                ConfigureDirectPathBfv(itRtdAssociated, m_rrd, itRtdAssociated.antenna);
 
                 std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
                 Ptr<SpectrumValue> usefulSignalRxPsd;
 
                 for (auto & itRtdInterferer : m_remDev)
                 {
-                    if (itRtdAssociated->dev->GetNode()->GetId() !=
+                    if (itRtdAssociated.dev->GetNode()->GetId() !=
                         itRtdInterferer.dev->GetNode()->GetId())
                     {
                         // configure RTD (itRtdInterferer) beam toward RTD (itRtdAssociated)
                         ConfigureDirectPathBfv(itRtdInterferer,
-                                               *itRtdAssociated,
+                                               itRtdAssociated,
                                                itRtdInterferer.antenna);
 
                         // calculate received power (interference) from the current RTD device
                         Ptr<SpectrumValue> receivedPower =
-                            CalcRxPsdValue(itRtdInterferer, *itRtdAssociated);
+                            CalcRxPsdValue(itRtdInterferer, itRtdAssociated);
 
                         interferenceSignalsRxPsds.push_back(receivedPower); // interference
                     }
                     else
                     {
                         // calculate received power (useful Signal) from the current RRD device
-                        Ptr<SpectrumValue> receivedPower = CalcRxPsdValue(m_rrd, *itRtdAssociated);
+                        Ptr<SpectrumValue> receivedPower = CalcRxPsdValue(m_rrd, itRtdAssociated);
                         if (usefulSignalRxPsd != nullptr)
                         {
                             NS_FATAL_ERROR("Already assigned usefulSignal!");

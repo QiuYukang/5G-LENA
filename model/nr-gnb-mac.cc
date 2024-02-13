@@ -1082,9 +1082,8 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
 
     SendRar(ind.m_buildRarList);
 
-    for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size(); islot++)
+    for (auto & varTtiAllocInfo : ind.m_slotAllocInfo.m_varTtiAllocInfo)
     {
-        VarTtiAllocInfo& varTtiAllocInfo = ind.m_slotAllocInfo.m_varTtiAllocInfo[islot];
         if (varTtiAllocInfo.m_dci->m_type != DciInfoElementTdma::CTRL &&
             varTtiAllocInfo.m_dci->m_format == DciInfoElementTdma::DL)
         {

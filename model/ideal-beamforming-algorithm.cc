@@ -280,13 +280,10 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
     NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems() &&
               ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems());
 
-    for (size_t i = 0; i < m_azimuth.size(); i++)
+    for (double azimuthTx : m_azimuth)
     {
-        double azimuthTx = m_azimuth[i];
-        for (size_t ii = 0; ii < m_zenith.size(); ii++)
+        for (double zenithTx : m_zenith)
         {
-            double zenithTx = m_zenith[ii];
-
             gnbSpectrumPhy->GetBeamManager()->SetSectorAz(azimuthTx, zenithTx);
             PhasedArrayModel::ComplexVector txW =
                 gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
