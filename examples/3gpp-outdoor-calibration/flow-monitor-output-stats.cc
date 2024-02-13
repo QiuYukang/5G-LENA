@@ -74,7 +74,7 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
 
     outFile.setf(std::ios_base::fixed);
 
-    for (const auto & flowStat : flowStats)
+    for (const auto& flowStat : flowStats)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(flowStat.first);
         std::stringstream protoStream;
@@ -93,12 +93,12 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
         m_db->SpinPrepare(&stmt, "INSERT INTO " + m_tableName + " VALUES (?,?,?,?,?,?,?,?,?,?,?);");
 
         // Measure the duration of the flow from sender's perspective
-        double rxDuration =
-            flowStat.second.timeLastTxPacket.GetSeconds() - flowStat.second.timeFirstTxPacket.GetSeconds();
+        double rxDuration = flowStat.second.timeLastTxPacket.GetSeconds() -
+                            flowStat.second.timeFirstTxPacket.GetSeconds();
         double txOffered = flowStat.second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0;
 
-        outFile << "Flow " << flowStat.first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> "
-                << t.destinationAddress << ":" << t.destinationPort << ") proto "
+        outFile << "Flow " << flowStat.first << " (" << t.sourceAddress << ":" << t.sourcePort
+                << " -> " << t.destinationAddress << ":" << t.destinationPort << ") proto "
                 << protoStream.str() << "\n";
         outFile << "  Tx Packets: " << flowStat.second.txPackets << "\n";
         outFile << "  Tx Bytes:   " << flowStat.second.txBytes << "\n";
@@ -120,7 +120,8 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
         {
             double th = flowStat.second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
             double delay = 1000 * flowStat.second.delaySum.GetSeconds() / flowStat.second.rxPackets;
-            double jitter = 1000 * flowStat.second.jitterSum.GetSeconds() / flowStat.second.rxPackets;
+            double jitter =
+                1000 * flowStat.second.jitterSum.GetSeconds() / flowStat.second.rxPackets;
 
             averageFlowThroughput += th;
             averageFlowDelay += delay;

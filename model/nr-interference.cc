@@ -101,26 +101,17 @@ NrInterference::EndRx()
         NrInterference::ConditionallyEvaluateChunk();
 
         m_receiving = false;
-        for (std::list<Ptr<LteChunkProcessor>>::const_iterator it =
-                 m_rsPowerChunkProcessorList.begin();
-             it != m_rsPowerChunkProcessorList.end();
-             ++it)
+        for (auto& it : m_rsPowerChunkProcessorList)
         {
-            (*it)->End();
+            it->End();
         }
-        for (std::list<Ptr<LteChunkProcessor>>::const_iterator it =
-                 m_interfChunkProcessorList.begin();
-             it != m_interfChunkProcessorList.end();
-             ++it)
+        for (auto& it : m_interfChunkProcessorList)
         {
-            (*it)->End();
+            it->End();
         }
-        for (std::list<Ptr<LteChunkProcessor>>::const_iterator it =
-                 m_sinrChunkProcessorList.begin();
-             it != m_sinrChunkProcessorList.end();
-             ++it)
+        for (auto& it : m_sinrChunkProcessorList)
         {
-            (*it)->End();
+            it->End();
         }
 
         for (auto& cp : m_mimoChunkProcessors)
@@ -154,19 +145,13 @@ NrInterference::ConditionallyEvaluateChunk()
                                      << " , noise:" << (*m_noise)[0]);
 
         Time duration = Now() - m_lastChangeTime;
-        for (std::list<Ptr<LteChunkProcessor>>::const_iterator it =
-                 m_rsPowerChunkProcessorList.begin();
-             it != m_rsPowerChunkProcessorList.end();
-             ++it)
+        for (auto& it : m_rsPowerChunkProcessorList)
         {
-            (*it)->EvaluateChunk(*m_rxSignal, duration);
+            it->EvaluateChunk(*m_rxSignal, duration);
         }
-        for (std::list<Ptr<LteChunkProcessor>>::const_iterator it =
-                 m_sinrChunkProcessorList.begin();
-             it != m_sinrChunkProcessorList.end();
-             ++it)
+        for (auto& it : m_sinrChunkProcessorList)
         {
-            (*it)->EvaluateChunk(sinr, duration);
+            it->EvaluateChunk(sinr, duration);
         }
 
         for (auto& cp : m_mimoChunkProcessors)
@@ -262,11 +247,11 @@ NrInterference::GetEnergyDuration(double energyW)
 
     NS_LOG_INFO("First power: " << m_firstPower);
 
-    for (NiChanges::const_iterator i = m_niChanges.begin(); i != m_niChanges.end(); i++)
+    for (const auto& i : m_niChanges)
     {
-        noiseInterferenceW += i->GetDelta();
-        end = i->GetTime();
-        NS_LOG_INFO("Delta: " << i->GetDelta() << "time: " << i->GetTime());
+        noiseInterferenceW += i.GetDelta();
+        end = i.GetTime();
+        NS_LOG_INFO("Delta: " << i.GetDelta() << "time: " << i.GetDelta());
         if (end < now)
         {
             continue;
@@ -323,9 +308,9 @@ NrInterference::AppendEvent(Time startTime, Time endTime, double rxPowerW)
         // We empty the list until the current moment. To do so we
         // first we sum all the energies until the current moment
         // and save it in m_firstPower.
-        for (NiChanges::iterator i = m_niChanges.begin(); i != nowIterator; i++)
+        for (auto& i : m_niChanges)
         {
-            m_firstPower += i->GetDelta();
+            m_firstPower += i.GetDelta();
         }
         // then we remove all the events up to the current moment
         m_niChanges.erase(m_niChanges.begin(), nowIterator);

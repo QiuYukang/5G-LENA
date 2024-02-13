@@ -290,7 +290,7 @@ NrBearerStatsCalculator::WriteUlResults(std::ofstream& outFile)
     // Get the unique IMSI / LCID list
 
     std::vector<ImsiLcidPair_t> pairVector;
-    for (auto & m_ulTxPacket : m_ulTxPackets)
+    for (auto& m_ulTxPacket : m_ulTxPackets)
     {
         if (find(pairVector.begin(), pairVector.end(), m_ulTxPacket.first) == pairVector.end())
         {
@@ -312,12 +312,12 @@ NrBearerStatsCalculator::WriteUlResults(std::ofstream& outFile)
         outFile << GetUlRxPackets(p.m_imsi, p.m_lcId) << "\t";
         outFile << GetUlRxData(p.m_imsi, p.m_lcId) << "\t";
         std::vector<double> stats = GetUlDelayStats(p.m_imsi, p.m_lcId);
-        for (double & stat : stats)
+        for (double& stat : stats)
         {
             outFile << stat * 1e-9 << "\t";
         }
         stats = GetUlPduSizeStats(p.m_imsi, p.m_lcId);
-        for (double & stat : stats)
+        for (double& stat : stats)
         {
             outFile << stat << "\t";
         }
@@ -334,7 +334,7 @@ NrBearerStatsCalculator::WriteDlResults(std::ofstream& outFile)
 
     // Get the unique IMSI list
     std::vector<ImsiLcidPair_t> pairVector;
-    for (auto & m_dlTxPacket : m_dlTxPackets)
+    for (auto& m_dlTxPacket : m_dlTxPackets)
     {
         if (find(pairVector.begin(), pairVector.end(), m_dlTxPacket.first) == pairVector.end())
         {
@@ -356,12 +356,12 @@ NrBearerStatsCalculator::WriteDlResults(std::ofstream& outFile)
         outFile << GetDlRxPackets(p.m_imsi, p.m_lcId) << "\t";
         outFile << GetDlRxData(p.m_imsi, p.m_lcId) << "\t";
         std::vector<double> stats = GetDlDelayStats(p.m_imsi, p.m_lcId);
-        for (double & stat : stats)
+        for (double& stat : stats)
         {
             outFile << stat * 1e-9 << "\t";
         }
         stats = GetDlPduSizeStats(p.m_imsi, p.m_lcId);
-        for (double & stat : stats)
+        for (double& stat : stats)
         {
             outFile << stat << "\t";
         }

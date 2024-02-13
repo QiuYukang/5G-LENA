@@ -648,7 +648,7 @@ NrRadioEnvironmentMapHelper::CreateListOfRemPoints()
         {
             // In case a REM Point is in the same position as a rtd, ignore this point
             bool isPositionRtd = false;
-            for (auto & itRtd : m_remDev)
+            for (auto& itRtd : m_remDev)
             {
                 if (itRtd.mob->GetPosition() == Vector(x, y, m_z))
                 {
@@ -936,7 +936,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
             std::list<Ptr<SpectrumValue>>
                 receivedPowerList; // RTD node id, rxPsd of the signal coming from that node
 
-            for (auto & itRtd : m_remDev)
+            for (auto& itRtd : m_remDev)
             {
                 // calculate received power from the current RTD device
                 receivedPowerList.push_back(CalcRxPsdValue(itRtd, m_rrd));
@@ -1051,7 +1051,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap()
 
         // all RTDs should point toward that RemPoint with DirectPah beam, this is definition of
         // worst-case scenario
-        for (auto & itRtd : m_remDev)
+        for (auto& itRtd : m_remDev)
         {
             ConfigureDirectPathBfv(itRtd, m_rrd, itRtd.antenna);
         }
@@ -1093,7 +1093,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap()
                 // For this configuration of beam at RRD, we need to calculate RX PSD,
                 // and in order to be able to calculate SINR for that beam,
                 // we need to calculate received PSD for each RTD using this beam at RRD
-                for (auto & itRtdCalc : m_remDev)
+                for (auto& itRtdCalc : m_remDev)
                 {
                     // increase counter de calcRXPsd calls
                     calcRxPsdCounter++;
@@ -1193,7 +1193,7 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap()
     uint32_t remSizeNextReport = m_rem.size() / 100;
     uint32_t remPointCounter = 0;
 
-    for (auto & itRemPoint : m_rem)
+    for (auto& itRemPoint : m_rem)
     {
         // perform calculation m_numOfIterationsToAverage times and get the average value
         double sumSnr = 0.0;
@@ -1206,7 +1206,7 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap()
             std::list<double> snrsPerBeam;  // vector in which we will save snr per each RRD beam
 
             //"Associate" UE (RemPoint) with this RTD
-            for (auto & itRtdAssociated : m_remDev)
+            for (auto& itRtdAssociated : m_remDev)
             {
                 // configure RRD (RemPoint) beam toward RTD (itRtdAssociated)
                 ConfigureDirectPathBfv(m_rrd, itRtdAssociated, m_rrd.antenna);
@@ -1216,7 +1216,7 @@ NrRadioEnvironmentMapHelper::CalcUeCoverageRemMap()
                 std::list<Ptr<SpectrumValue>> interferenceSignalsRxPsds;
                 Ptr<SpectrumValue> usefulSignalRxPsd;
 
-                for (auto & itRtdInterferer : m_remDev)
+                for (auto& itRtdInterferer : m_remDev)
                 {
                     if (itRtdAssociated.dev->GetNode()->GetId() !=
                         itRtdInterferer.dev->GetNode()->GetId())
@@ -1313,7 +1313,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableGnbListToFile(const std::string& f
         return;
     }
 
-    for (auto & itRtd : m_remDev)
+    for (auto& itRtd : m_remDev)
     {
         Vector pos = itRtd.dev->GetNode()->GetObject<MobilityModel>()->GetPosition();
 
@@ -1394,10 +1394,10 @@ NrRadioEnvironmentMapHelper::PrintRemToFile()
         return;
     }
 
-    for (auto & it : m_rem)
+    for (auto& it : m_rem)
     {
-        outFile << it.pos.x << "\t" << it.pos.y << "\t" << it.pos.z << "\t" << it.avgSnrDb
-                << "\t" << it.avgSinrDb << "\t" << it.avRxPowerDbm << "\t" << it.avgSirDb << "\t"
+        outFile << it.pos.x << "\t" << it.pos.y << "\t" << it.pos.z << "\t" << it.avgSnrDb << "\t"
+                << it.avgSinrDb << "\t" << it.avRxPowerDbm << "\t" << it.avgSirDb << "\t"
                 << std::endl;
     }
 

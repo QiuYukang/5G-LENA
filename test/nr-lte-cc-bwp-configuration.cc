@@ -230,7 +230,7 @@ CcBwpTestCase::TestCcBwpNumbers(
 
     CcBwpCreator creator;
 
-    for (auto & operationBandConfig : operationBandConfigs)
+    for (auto& operationBandConfig : operationBandConfigs)
     {
         CcBwpCreator::SimpleOperationBandConf bandConfig = operationBandConfig;
         OperationBandInfo band = creator.CreateOperationBandContiguousCc(bandConfig);

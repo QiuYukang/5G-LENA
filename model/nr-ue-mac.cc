@@ -305,7 +305,7 @@ uint32_t
 NrUeMac::GetTotalBufSize() const
 {
     uint32_t ret = 0;
-    for (const auto & it : m_ulBsrReceived)
+    for (const auto& it : m_ulBsrReceived)
     {
         ret += (it.second.txQueueSize + it.second.retxQueueSize + it.second.statusPduSize);
     }
@@ -322,7 +322,7 @@ NrUeMac::SetNumHarqProcess(uint8_t numHarqProcess)
     m_numHarqProcess = numHarqProcess;
 
     m_miUlHarqProcessesPacket.resize(GetNumHarqProcess());
-    for (auto & i : m_miUlHarqProcessesPacket)
+    for (auto& i : m_miUlHarqProcessesPacket)
     {
         if (i.m_pktBurst == nullptr)
         {

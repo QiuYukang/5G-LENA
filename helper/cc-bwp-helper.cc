@@ -324,7 +324,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
                           90,
                           label);
         index++;
-        for (auto & cc : band->m_cc)
+        for (auto& cc : band->m_cc)
         {
             uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
@@ -336,7 +336,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
                               60,
                               label);
             index++;
-            for (auto & bwp : cc->m_bwp)
+            for (auto& bwp : cc->m_bwp)
             {
                 uint16_t bwpId = static_cast<uint16_t>(bwp->m_bwpId);
                 label = "BWP" + std::to_string(bwpId);
@@ -413,7 +413,7 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
                           90,
                           label);
         index++;
-        for (auto & cc : band->m_cc)
+        for (auto& cc : band->m_cc)
         {
             uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);

@@ -562,7 +562,7 @@ NrGnbPhy::GetBeamId(uint16_t rnti) const
 {
     NS_LOG_FUNCTION(this);
 
-    for (const auto & i : m_deviceMap)
+    for (const auto& i : m_deviceMap)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
@@ -1230,7 +1230,7 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
                      << Simulator::Now() << " end "
                      << Simulator::Now() + varTtiPeriod - NanoSeconds(1.0));
 
-        for (auto & m_ctrlMsg : m_ctrlMsgs)
+        for (auto& m_ctrlMsg : m_ctrlMsgs)
         {
             Ptr<NrControlMessage> msg = m_ctrlMsg;
             m_phyTxedCtrlMsgsTrace(m_currentSlot, GetCellId(), dci->m_rnti, GetBwpId(), msg);
@@ -1323,7 +1323,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
                                  m_currentSlot);
 
     bool found = false;
-    for (auto & i : m_deviceMap)
+    for (auto& i : m_deviceMap)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
@@ -1375,7 +1375,7 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
         0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
     // if yes, and the rnti for the current SRS is not found in the list,
     // the code will not abort
-    for (auto & i : m_deviceMap)
+    for (auto& i : m_deviceMap)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(0)))->GetRnti();
@@ -1496,7 +1496,7 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
                       "Cannot change analog BF after TX has started");
         m_lastBfChange = Simulator::Now();
         bool found = false;
-        for (auto & i : m_deviceMap)
+        for (auto& i : m_deviceMap)
         {
             Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
             uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();

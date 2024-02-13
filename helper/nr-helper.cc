@@ -713,7 +713,7 @@ NrHelper::InstallSingleUeDevice(
 
     rrc->SetAsSapUser(nas->GetAsSapUser());
 
-    for (auto & it : ueCcMap)
+    for (auto& it : ueCcMap)
     {
         rrc->SetLteUeCmacSapProvider(it.second->GetMac()->GetUeCmacSapProvider(), it.first);
         it.second->GetMac()->SetUeCmacSapUser(rrc->GetLteUeCmacSapUser(it.first));
@@ -986,7 +986,7 @@ NrHelper::InstallSingleGnbDevice(
     rrc->SetLteMacSapProvider(ccmEnbManager->GetLteMacSapProvider());
     rrc->SetForwardUpCallback(MakeCallback(&NrGnbNetDevice::Receive, dev));
 
-    for (auto & it : ccMap)
+    for (auto& it : ccMap)
     {
         it.second->GetPhy()->SetEnbCphySapUser(rrc->GetLteEnbCphySapUser(it.first));
         rrc->SetLteEnbCphySapProvider(it.second->GetPhy()->GetEnbCphySapProvider(), it.first);
@@ -1005,8 +1005,7 @@ NrHelper::InstallSingleGnbDevice(
         it.second->GetMac()->SetNrMacCschedSapProvider(
             it.second->GetScheduler()->GetMacCschedSapProvider());
 
-        it.second->GetScheduler()->SetMacSchedSapUser(
-            it.second->GetMac()->GetNrMacSchedSapUser());
+        it.second->GetScheduler()->SetMacSchedSapUser(it.second->GetMac()->GetNrMacSchedSapUser());
         it.second->GetScheduler()->SetMacCschedSapUser(
             it.second->GetMac()->GetNrMacCschedSapUser());
         // Scheduler SAP END

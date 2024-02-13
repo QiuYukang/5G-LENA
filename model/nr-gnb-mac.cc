@@ -648,7 +648,7 @@ NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 
     // --- UPLINK ---
     // Send UL-CQI info to the scheduler
-    for (auto & i : m_ulCqiReceived)
+    for (auto& i : m_ulCqiReceived)
     {
         // m_ulCqiReceived.at (i).m_sfnSf = ((0x3FF & frameNum) << 16) | ((0xFF & subframeNum) << 8)
         // | (0xFF & varTtiNum);
@@ -1082,7 +1082,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
 
     SendRar(ind.m_buildRarList);
 
-    for (auto & varTtiAllocInfo : ind.m_slotAllocInfo.m_varTtiAllocInfo)
+    for (auto& varTtiAllocInfo : ind.m_slotAllocInfo.m_varTtiAllocInfo)
     {
         if (varTtiAllocInfo.m_dci->m_type != DciInfoElementTdma::CTRL &&
             varTtiAllocInfo.m_dci->m_format == DciInfoElementTdma::DL)
@@ -1135,7 +1135,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
 
                 std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
                 // for each LC j
-                for (auto & j : rlcPduInfo)
+                for (auto& j : rlcPduInfo)
                 {
                     NS_ASSERT_MSG(rntiIt != m_rlcAttached.end(), "could not find RNTI" << rnti);
                     std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt =
