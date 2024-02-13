@@ -324,9 +324,8 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
                           90,
                           label);
         index++;
-        for (uint32_t i = 0; i < band->m_cc.size(); ++i)
+        for (auto & cc : band->m_cc)
         {
-            const auto& cc = band->m_cc.at(i);
             uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
             PlotFrequencyBand(outFile,
@@ -337,9 +336,8 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
                               60,
                               label);
             index++;
-            for (uint32_t j = 0; j < cc->m_bwp.size(); ++j)
+            for (auto & bwp : cc->m_bwp)
             {
-                const auto& bwp = cc->m_bwp.at(j);
                 uint16_t bwpId = static_cast<uint16_t>(bwp->m_bwpId);
                 label = "BWP" + std::to_string(bwpId);
                 PlotFrequencyBand(outFile,
@@ -415,9 +413,8 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
                           90,
                           label);
         index++;
-        for (uint32_t i = 0; i < band->m_cc.size(); ++i)
+        for (auto & cc : band->m_cc)
         {
-            const auto& cc = band->m_cc.at(i);
             uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
             PlotFrequencyBand(outFile,

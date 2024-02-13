@@ -296,13 +296,10 @@ CellScanBeamformingAzimuthZenith::GetBeamformingVectors(
                 maxTxW = txW; // initialize maxTxW
             }
 
-            for (size_t iii = 0; iii < m_azimuth.size(); iii++)
+            for (double azimuthRx : m_azimuth)
             {
-                double azimuthRx = m_azimuth[iii];
-                for (size_t iiii = 0; iiii < m_zenith.size(); iiii++)
+                for (double zenithRx : m_zenith)
                 {
-                    double zenithRx = m_zenith[iiii];
-
                     ueSpectrumPhy->GetBeamManager()->SetSectorAz(azimuthRx, zenithRx);
                     PhasedArrayModel::ComplexVector rxW =
                         ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();

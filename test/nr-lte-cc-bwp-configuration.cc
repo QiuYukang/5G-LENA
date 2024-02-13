@@ -230,9 +230,9 @@ CcBwpTestCase::TestCcBwpNumbers(
 
     CcBwpCreator creator;
 
-    for (std::size_t i = 0; i < operationBandConfigs.size(); ++i)
+    for (auto & operationBandConfig : operationBandConfigs)
     {
-        CcBwpCreator::SimpleOperationBandConf bandConfig = operationBandConfigs.at(i);
+        CcBwpCreator::SimpleOperationBandConf bandConfig = operationBandConfig;
         OperationBandInfo band = creator.CreateOperationBandContiguousCc(bandConfig);
 
         NS_TEST_ASSERT_MSG_EQ(band.m_cc.size(), bandConfig.m_numCc, "Unexpected number of CCs");

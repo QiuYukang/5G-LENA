@@ -648,11 +648,11 @@ NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 
     // --- UPLINK ---
     // Send UL-CQI info to the scheduler
-    for (std::size_t i = 0; i < m_ulCqiReceived.size(); i++)
+    for (auto & i : m_ulCqiReceived)
     {
         // m_ulCqiReceived.at (i).m_sfnSf = ((0x3FF & frameNum) << 16) | ((0xFF & subframeNum) << 8)
         // | (0xFF & varTtiNum);
-        m_macSchedSapProvider->SchedUlCqiInfoReq(m_ulCqiReceived.at(i));
+        m_macSchedSapProvider->SchedUlCqiInfoReq(i);
     }
     m_ulCqiReceived.clear();
 
@@ -1136,25 +1136,25 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
 
                 std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
                 // for each LC j
-                for (std::size_t j = 0; j < rlcPduInfo.size(); j++)
+                for (auto & j : rlcPduInfo)
                 {
                     NS_ASSERT_MSG(rntiIt != m_rlcAttached.end(), "could not find RNTI" << rnti);
                     std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt =
-                        rntiIt->second.find(rlcPduInfo[j].m_lcid);
+                        rntiIt->second.find(j.m_lcid);
                     NS_ASSERT_MSG(lcidIt != rntiIt->second.end(),
-                                  "could not find LCID" << rlcPduInfo[j].m_lcid);
+                                  "could not find LCID" << j.m_lcid);
                     NS_LOG_INFO("Notifying RLC of TX opportunity for HARQ Process ID "
-                                << (unsigned int)harqId << " LC ID " << +rlcPduInfo[j].m_lcid
-                                << (unsigned int)rlcPduInfo[j].m_size);
+                                << (unsigned int)harqId << " LC ID " << +j.m_lcid
+                                << (unsigned int)j.m_size);
 
                     (*lcidIt).second->NotifyTxOpportunity(
-                        LteMacSapUser::TxOpportunityParameters((rlcPduInfo[j].m_size),
+                        LteMacSapUser::TxOpportunityParameters((j.m_size),
                                                                0,
                                                                harqId,
                                                                GetBwpId(),
                                                                rnti,
-                                                               rlcPduInfo[j].m_lcid));
-                    harqIt->second.at(harqId).m_lcidList.push_back(rlcPduInfo[j].m_lcid);
+                                                               j.m_lcid));
+                    harqIt->second.at(harqId).m_lcidList.push_back(j.m_lcid);
                 }
 
                 m_macPduMap.erase(pduMapIt); // delete map entry

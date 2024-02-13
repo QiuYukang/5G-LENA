@@ -117,9 +117,8 @@ NrSpectrumValueHelper::CreateTxPsdOverActiveRbs(double powerTx,
     NS_ABORT_MSG_IF(subbandWidth < 180000,
                     "Erroneous spectrum model. RB width should be equal or greater than 180KHz");
     txPowerDensity = powerTxW / (subbandWidth * activeRbs.size());
-    for (std::vector<int>::const_iterator it = activeRbs.begin(); it != activeRbs.end(); it++)
+    for (int rbId : activeRbs)
     {
-        int rbId = (*it);
         (*txPsd)[rbId] = txPowerDensity;
     }
     NS_LOG_LOGIC(*txPsd);
@@ -139,9 +138,8 @@ NrSpectrumValueHelper::CreateTxPsdOverAllRbs(double powerTx,
     NS_ABORT_MSG_IF(subbandWidth < 180000,
                     "Erroneous spectrum model. RB width should be equal or greater than 180KHz");
     txPowerDensity = powerTxW / (subbandWidth * spectrumModel->GetNumBands());
-    for (std::vector<int>::const_iterator it = activeRbs.begin(); it != activeRbs.end(); it++)
+    for (int rbId : activeRbs)
     {
-        int rbId = (*it);
         (*txPsd)[rbId] = txPowerDensity;
     }
     NS_LOG_LOGIC(*txPsd);

@@ -74,9 +74,9 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
 
     outFile.setf(std::ios_base::fixed);
 
-    for (auto i = flowStats.cbegin(); i != flowStats.cend(); ++i)
+    for (const auto & flowStat : flowStats)
     {
-        Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
+        Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(flowStat.first);
         std::stringstream protoStream;
         protoStream << (uint16_t)t.protocol;
         if (t.protocol == 6)
@@ -94,33 +94,33 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
 
         // Measure the duration of the flow from sender's perspective
         double rxDuration =
-            i->second.timeLastTxPacket.GetSeconds() - i->second.timeFirstTxPacket.GetSeconds();
-        double txOffered = i->second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0;
+            flowStat.second.timeLastTxPacket.GetSeconds() - flowStat.second.timeFirstTxPacket.GetSeconds();
+        double txOffered = flowStat.second.txBytes * 8.0 / rxDuration / 1000.0 / 1000.0;
 
-        outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> "
+        outFile << "Flow " << flowStat.first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> "
                 << t.destinationAddress << ":" << t.destinationPort << ") proto "
                 << protoStream.str() << "\n";
-        outFile << "  Tx Packets: " << i->second.txPackets << "\n";
-        outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
+        outFile << "  Tx Packets: " << flowStat.second.txPackets << "\n";
+        outFile << "  Tx Bytes:   " << flowStat.second.txBytes << "\n";
         outFile << "  TxOffered:  " << txOffered << " Mbps\n";
-        outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+        outFile << "  Rx Bytes:   " << flowStat.second.rxBytes << "\n";
 
-        ret = m_db->Bind(stmt, 1, i->first);
+        ret = m_db->Bind(stmt, 1, flowStat.first);
         NS_ABORT_UNLESS(ret);
-        ret = m_db->Bind(stmt, 2, i->second.txPackets);
+        ret = m_db->Bind(stmt, 2, flowStat.second.txPackets);
         NS_ABORT_UNLESS(ret);
-        ret = m_db->Bind(stmt, 3, static_cast<uint32_t>(i->second.txBytes));
+        ret = m_db->Bind(stmt, 3, static_cast<uint32_t>(flowStat.second.txBytes));
         NS_ABORT_UNLESS(ret);
         ret = m_db->Bind(stmt, 4, txOffered);
         NS_ABORT_UNLESS(ret);
-        ret = m_db->Bind(stmt, 5, static_cast<uint32_t>(i->second.rxBytes));
+        ret = m_db->Bind(stmt, 5, static_cast<uint32_t>(flowStat.second.rxBytes));
         NS_ABORT_UNLESS(ret);
 
-        if (i->second.rxPackets > 0)
+        if (flowStat.second.rxPackets > 0)
         {
-            double th = i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
-            double delay = 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
-            double jitter = 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets;
+            double th = flowStat.second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
+            double delay = 1000 * flowStat.second.delaySum.GetSeconds() / flowStat.second.rxPackets;
+            double jitter = 1000 * flowStat.second.jitterSum.GetSeconds() / flowStat.second.rxPackets;
 
             averageFlowThroughput += th;
             averageFlowDelay += delay;
@@ -148,15 +148,15 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
             ret = m_db->Bind(stmt, 8, 0.0);
             NS_ABORT_UNLESS(ret);
         }
-        outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
-        ret = m_db->Bind(stmt, 9, i->second.rxPackets);
+        outFile << "  Rx Packets: " << flowStat.second.rxPackets << "\n";
+        ret = m_db->Bind(stmt, 9, flowStat.second.rxPackets);
         NS_ABORT_UNLESS(ret);
         ret = m_db->Bind(stmt, 10, RngSeedManager::GetSeed());
         NS_ABORT_UNLESS(ret);
         ret = m_db->Bind(stmt, 11, static_cast<uint32_t>(RngSeedManager::GetRun()));
         NS_ABORT_UNLESS(ret);
 
-        if (i->second.rxPackets > 0)
+        if (flowStat.second.rxPackets > 0)
         {
             ret = m_db->SpinExec(stmt);
             NS_ABORT_UNLESS(ret);

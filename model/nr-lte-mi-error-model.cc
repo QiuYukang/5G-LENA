@@ -933,9 +933,9 @@ NrLteMiErrorModel::Mib(const SpectrumValue& sinr, const std::vector<int>& map, u
     double MI;
     double MIsum = 0.0;
 
-    for (uint32_t i = 0; i < map.size(); i++)
+    for (int i : map)
     {
-        double sinrLin = sinr[map.at(i)];
+        double sinrLin = sinr[i];
         if (mcs <= MI_QPSK_MAX_ID) // QPSK
         {
             if (sinrLin > MI_map_qpsk_axis[MI_MAP_QPSK_SIZE - 1])
@@ -1004,7 +1004,7 @@ NrLteMiErrorModel::Mib(const SpectrumValue& sinr, const std::vector<int>& map, u
                 }
             }
         }
-        NS_LOG_LOGIC(" RB " << map.at(i) << "Minimum SNR = " << 10 * std::log10(sinrLin) << " dB, "
+        NS_LOG_LOGIC(" RB " << i << "Minimum SNR = " << 10 * std::log10(sinrLin) << " dB, "
                             << sinrLin << " V, MCS = " << (uint16_t)mcs << ", MI = " << MI);
         MIsum += MI;
     }

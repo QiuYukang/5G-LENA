@@ -305,9 +305,9 @@ uint32_t
 NrUeMac::GetTotalBufSize() const
 {
     uint32_t ret = 0;
-    for (auto it = m_ulBsrReceived.cbegin(); it != m_ulBsrReceived.cend(); ++it)
+    for (const auto & it : m_ulBsrReceived)
     {
-        ret += ((*it).second.txQueueSize + (*it).second.retxQueueSize + (*it).second.statusPduSize);
+        ret += (it.second.txQueueSize + it.second.retxQueueSize + it.second.statusPduSize);
     }
     return ret;
 }
@@ -322,12 +322,12 @@ NrUeMac::SetNumHarqProcess(uint8_t numHarqProcess)
     m_numHarqProcess = numHarqProcess;
 
     m_miUlHarqProcessesPacket.resize(GetNumHarqProcess());
-    for (std::size_t i = 0; i < m_miUlHarqProcessesPacket.size(); i++)
+    for (auto & i : m_miUlHarqProcessesPacket)
     {
-        if (m_miUlHarqProcessesPacket.at(i).m_pktBurst == nullptr)
+        if (i.m_pktBurst == nullptr)
         {
             Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
-            m_miUlHarqProcessesPacket.at(i).m_pktBurst = pb;
+            i.m_pktBurst = pb;
         }
     }
     m_miUlHarqProcessesPacketTimer.resize(GetNumHarqProcess(), 0);

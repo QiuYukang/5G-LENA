@@ -84,11 +84,11 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                     << " Beam theta:  " << static_cast<uint32_t>(beam.first.GetElevation())
                     << " # HARQ to Retx=" << beam.second.size());
 
-        for (auto it = beam.second.cbegin(); it != beam.second.cend(); ++it)
+        for (auto it : beam.second)
         {
-            HarqProcess& harqProcess = (*it)->second;
+            HarqProcess& harqProcess = it->second;
             NS_ASSERT_MSG(harqProcess.m_status == HarqProcess::RECEIVED_FEEDBACK,
-                          "Process " << static_cast<uint32_t>((*it)->first)
+                          "Process " << static_cast<uint32_t>(it->first)
                                      << " is not in RECEIVED_FEEDBACK status");
 
             harqProcess.m_status = HarqProcess::WAITING_FEEDBACK;

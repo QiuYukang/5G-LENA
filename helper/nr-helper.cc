@@ -713,20 +713,20 @@ NrHelper::InstallSingleUeDevice(
 
     rrc->SetAsSapUser(nas->GetAsSapUser());
 
-    for (auto it = ueCcMap.begin(); it != ueCcMap.end(); ++it)
+    for (auto & it : ueCcMap)
     {
-        rrc->SetLteUeCmacSapProvider(it->second->GetMac()->GetUeCmacSapProvider(), it->first);
-        it->second->GetMac()->SetUeCmacSapUser(rrc->GetLteUeCmacSapUser(it->first));
+        rrc->SetLteUeCmacSapProvider(it.second->GetMac()->GetUeCmacSapProvider(), it.first);
+        it.second->GetMac()->SetUeCmacSapUser(rrc->GetLteUeCmacSapUser(it.first));
 
-        it->second->GetPhy()->SetUeCphySapUser(rrc->GetLteUeCphySapUser());
-        rrc->SetLteUeCphySapProvider(it->second->GetPhy()->GetUeCphySapProvider(), it->first);
+        it.second->GetPhy()->SetUeCphySapUser(rrc->GetLteUeCphySapUser());
+        rrc->SetLteUeCphySapProvider(it.second->GetPhy()->GetUeCphySapProvider(), it.first);
 
-        it->second->GetPhy()->SetPhySapUser(it->second->GetMac()->GetPhySapUser());
-        it->second->GetMac()->SetPhySapProvider(it->second->GetPhy()->GetPhySapProvider());
+        it.second->GetPhy()->SetPhySapUser(it.second->GetMac()->GetPhySapUser());
+        it.second->GetMac()->SetPhySapProvider(it.second->GetPhy()->GetPhySapProvider());
 
         bool ccmTest =
-            ccmUe->SetComponentCarrierMacSapProviders(it->first,
-                                                      it->second->GetMac()->GetUeMacSapProvider());
+            ccmUe->SetComponentCarrierMacSapProviders(it.first,
+                                                      it.second->GetMac()->GetUeMacSapProvider());
 
         if (!ccmTest)
         {
@@ -986,38 +986,38 @@ NrHelper::InstallSingleGnbDevice(
     rrc->SetLteMacSapProvider(ccmEnbManager->GetLteMacSapProvider());
     rrc->SetForwardUpCallback(MakeCallback(&NrGnbNetDevice::Receive, dev));
 
-    for (auto it = ccMap.begin(); it != ccMap.end(); ++it)
+    for (auto & it : ccMap)
     {
-        it->second->GetPhy()->SetEnbCphySapUser(rrc->GetLteEnbCphySapUser(it->first));
-        rrc->SetLteEnbCphySapProvider(it->second->GetPhy()->GetEnbCphySapProvider(), it->first);
+        it.second->GetPhy()->SetEnbCphySapUser(rrc->GetLteEnbCphySapUser(it.first));
+        rrc->SetLteEnbCphySapProvider(it.second->GetPhy()->GetEnbCphySapProvider(), it.first);
 
-        rrc->SetLteEnbCmacSapProvider(it->second->GetMac()->GetEnbCmacSapProvider(), it->first);
-        it->second->GetMac()->SetEnbCmacSapUser(rrc->GetLteEnbCmacSapUser(it->first));
+        rrc->SetLteEnbCmacSapProvider(it.second->GetMac()->GetEnbCmacSapProvider(), it.first);
+        it.second->GetMac()->SetEnbCmacSapUser(rrc->GetLteEnbCmacSapUser(it.first));
 
         // PHY <--> MAC SAP
-        it->second->GetPhy()->SetPhySapUser(it->second->GetMac()->GetPhySapUser());
-        it->second->GetMac()->SetPhySapProvider(it->second->GetPhy()->GetPhySapProvider());
+        it.second->GetPhy()->SetPhySapUser(it.second->GetMac()->GetPhySapUser());
+        it.second->GetMac()->SetPhySapProvider(it.second->GetPhy()->GetPhySapProvider());
         // PHY <--> MAC SAP END
 
         // Scheduler SAP
-        it->second->GetMac()->SetNrMacSchedSapProvider(
-            it->second->GetScheduler()->GetMacSchedSapProvider());
-        it->second->GetMac()->SetNrMacCschedSapProvider(
-            it->second->GetScheduler()->GetMacCschedSapProvider());
+        it.second->GetMac()->SetNrMacSchedSapProvider(
+            it.second->GetScheduler()->GetMacSchedSapProvider());
+        it.second->GetMac()->SetNrMacCschedSapProvider(
+            it.second->GetScheduler()->GetMacCschedSapProvider());
 
-        it->second->GetScheduler()->SetMacSchedSapUser(
-            it->second->GetMac()->GetNrMacSchedSapUser());
-        it->second->GetScheduler()->SetMacCschedSapUser(
-            it->second->GetMac()->GetNrMacCschedSapUser());
+        it.second->GetScheduler()->SetMacSchedSapUser(
+            it.second->GetMac()->GetNrMacSchedSapUser());
+        it.second->GetScheduler()->SetMacCschedSapUser(
+            it.second->GetMac()->GetNrMacCschedSapUser());
         // Scheduler SAP END
 
-        it->second->GetMac()->SetLteCcmMacSapUser(ccmEnbManager->GetLteCcmMacSapUser());
-        ccmEnbManager->SetCcmMacSapProviders(it->first,
-                                             it->second->GetMac()->GetLteCcmMacSapProvider());
+        it.second->GetMac()->SetLteCcmMacSapUser(ccmEnbManager->GetLteCcmMacSapUser());
+        ccmEnbManager->SetCcmMacSapProviders(it.first,
+                                             it.second->GetMac()->GetLteCcmMacSapProvider());
 
         // insert the pointer to the LteMacSapProvider interface of the MAC layer of the specific
         // component carrier
-        ccmEnbManager->SetMacSapProvider(it->first, it->second->GetMac()->GetMacSapProvider());
+        ccmEnbManager->SetMacSapProvider(it.first, it.second->GetMac()->GetMacSapProvider());
     }
 
     dev->SetAttribute("LteEnbComponentCarrierManager", PointerValue(ccmEnbManager));

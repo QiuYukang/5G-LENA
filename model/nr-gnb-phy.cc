@@ -562,15 +562,15 @@ NrGnbPhy::GetBeamId(uint16_t rnti) const
 {
     NS_LOG_FUNCTION(this);
 
-    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
+    for (const auto & i : m_deviceMap)
     {
-        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
+        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
 
         if (ueRnti == rnti)
         {
             NS_ASSERT(m_spectrumPhy->GetBeamManager());
-            return m_spectrumPhy->GetBeamManager()->GetBeamId(m_deviceMap.at(i));
+            return m_spectrumPhy->GetBeamManager()->GetBeamId(i);
         }
     }
     return BeamId(0, 0);
@@ -1230,9 +1230,9 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
                      << Simulator::Now() << " end "
                      << Simulator::Now() + varTtiPeriod - NanoSeconds(1.0));
 
-        for (auto ctrlIt = m_ctrlMsgs.begin(); ctrlIt != m_ctrlMsgs.end(); ++ctrlIt)
+        for (auto & m_ctrlMsg : m_ctrlMsgs)
         {
-            Ptr<NrControlMessage> msg = (*ctrlIt);
+            Ptr<NrControlMessage> msg = m_ctrlMsg;
             m_phyTxedCtrlMsgsTrace(m_currentSlot, GetCellId(), dci->m_rnti, GetBwpId(), msg);
         }
 
@@ -1323,16 +1323,16 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
                                  m_currentSlot);
 
     bool found = false;
-    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
+    for (auto & i : m_deviceMap)
     {
-        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
+        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
         if (dci->m_rnti == ueRnti)
         {
             // Even if we change the beamforming vector, we hope that the scheduler
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
-            ChangeBeamformingVector(m_deviceMap.at(i)); // assume the control signal is omni
+            ChangeBeamformingVector(i); // assume the control signal is omni
             found = true;
             break;
         }
@@ -1375,9 +1375,9 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
         0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
     // if yes, and the rnti for the current SRS is not found in the list,
     // the code will not abort
-    for (std::size_t i = 0; i < m_deviceMap.size(); i++)
+    for (auto & i : m_deviceMap)
     {
-        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
+        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(0)))->GetRnti();
         if (ueRnti == 0)
         {
@@ -1388,7 +1388,7 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
             // Even if we change the beamforming vector, we hope that the scheduler
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
-            ChangeBeamformingVector(m_deviceMap.at(i)); // assume the control signal is omni
+            ChangeBeamformingVector(i); // assume the control signal is omni
             found = true;
             break;
         }
@@ -1496,13 +1496,13 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
                       "Cannot change analog BF after TX has started");
         m_lastBfChange = Simulator::Now();
         bool found = false;
-        for (std::size_t i = 0; i < m_deviceMap.size(); i++)
+        for (auto & i : m_deviceMap)
         {
-            Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(m_deviceMap.at(i));
+            Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
             uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
             if (dci->m_rnti == ueRnti)
             {
-                ChangeBeamformingVector(m_deviceMap.at(i));
+                ChangeBeamformingVector(i);
                 found = true;
                 break;
             }

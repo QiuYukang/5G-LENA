@@ -214,10 +214,8 @@ TestNotchingGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndPar
     // Will be called after SchedDlTriggerReq is called
     // test that ind.m_slotAllocInfo is ok: the sfnf, and the varAlloc deque
 
-    for (unsigned islot = 0; islot < ind.m_slotAllocInfo.m_varTtiAllocInfo.size(); islot++)
+    for (auto & varTtiAllocInfo : ind.m_slotAllocInfo.m_varTtiAllocInfo)
     {
-        VarTtiAllocInfo& varTtiAllocInfo = ind.m_slotAllocInfo.m_varTtiAllocInfo[islot];
-
         if (varTtiAllocInfo.m_dci->m_rnti == 0)
         {
             continue;

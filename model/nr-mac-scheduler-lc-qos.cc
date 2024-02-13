@@ -158,13 +158,11 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
                 {
                     bool erabGbrTrue = false;
 
-                    for (auto it = AssignedBytesToGbrLCsList.begin();
-                         it != AssignedBytesToGbrLCsList.end();
-                         it++)
+                    for (auto & it : AssignedBytesToGbrLCsList)
                     {
-                        if (it->first == itRestActiveLCs.second && GetLCGID(lcg) == 1)
+                        if (it.first == itRestActiveLCs.second && GetLCGID(lcg) == 1)
                         {
-                            it->second += bytesPerLc;
+                            it.second += bytesPerLc;
                             erabGbrTrue = true;
                             break;
                         }

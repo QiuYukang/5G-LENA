@@ -105,11 +105,11 @@ std::vector<int>
 NrErrorModel::CreateVectorizedRbMap(std::vector<int> map, uint8_t rank)
 {
     auto vectorizedMap = std::vector<int>{};
-    for (size_t iRb = 0; iRb < map.size(); iRb++)
+    for (int iRb : map)
     {
         for (size_t layer = 0; layer < rank; layer++)
         {
-            vectorizedMap.emplace_back(map[iRb] * rank + layer);
+            vectorizedMap.emplace_back(iRb * rank + layer);
         }
     }
     return vectorizedMap;
