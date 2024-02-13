@@ -174,9 +174,12 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
         lteUeRrc->SetNrSlUeCphySapProvider(itBwps,
                                            nrUeDev->GetPhy(itBwps)->GetNrSlUeCphySapProvider());
         // NR SL UE MAC scheduler
-        Ptr<NrSlUeMacScheduler> sched = CreateNrSlUeSched();
+        Ptr<NrSlUeMacScheduler> sched = m_ueSlSchedulerFactory.Create<NrSlUeMacScheduler>();
         NS_ABORT_MSG_IF(sched == nullptr, "sched is null");
         ccMap.at(itBwps)->SetNrSlUeMacScheduler(sched);
+        // Connect NrSlUeMac and NrSlUeMacScheduler
+        sched->SetNrSlUeMac(nrSlUeMac);
+        nrSlUeMac->SetAttribute("NrSlUeMacScheduler", PointerValue(sched));
         // SAPs between the NR SL UE MAC scheduler and NrUeMac
         sched->SetNrSlUeMacCschedSapUser(nrSlUeMac->GetNrSlUeMacCschedSapUser());
         sched->SetNrSlUeMacSchedSapUser(nrSlUeMac->GetNrSlUeMacSchedSapUser());
@@ -314,15 +317,6 @@ NrSlHelper::SetUeSlSchedulerAttribute(const std::string& n, const AttributeValue
 {
     NS_LOG_FUNCTION(this);
     m_ueSlSchedulerFactory.Set(n, v);
-}
-
-Ptr<NrSlUeMacScheduler>
-NrSlHelper::CreateNrSlUeSched()
-{
-    NS_LOG_FUNCTION(this);
-
-    auto sched = (m_ueSlSchedulerFactory.Create())->GetObject<NrSlUeMacScheduler>();
-    return sched;
 }
 
 uint16_t

@@ -52,6 +52,9 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<NrSlSlotAlloc>& slotAllocList) override;
 
+  protected:
+    void DoDispose() override;
+
   private:
     /**
      * \ingroup scheduler

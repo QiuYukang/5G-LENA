@@ -8,6 +8,7 @@
 #define NR_SL_UE_MAC_H
 
 #include "nr-sl-ue-mac-sched-sap.h"
+#include "nr-sl-ue-mac-scheduler.h"
 #include "nr-sl-ue-phy-sap.h"
 #include "nr-ue-mac.h"
 
@@ -25,6 +26,7 @@ namespace ns3
 class NrSlUeMacCschedSapProvider;
 class NrSlUeMacCschedSapUser;
 class NrSlUeMacHarq;
+class NrSlUeMacScheduler;
 
 /**
  * \ingroup ue-mac
@@ -710,12 +712,13 @@ class NrSlUeMac : public NrUeMac
     GrantInfo_t m_grantInfo;          //!< The map of grant info per destination layer 2 id
     double m_slProbResourceKeep{0.0}; //!< Sidelink probability of keeping a resource after resource
                                       //!< re-selection counter reaches zero
-    uint8_t m_slMaxTxTransNumPssch{0}; /**< Indicates the maximum transmission number
-                                      (including new transmission and
-                                      retransmission) for PSSCH.
-                                      */
-    uint8_t m_numSidelinkProcess{0};   //!< Maximum number of Sidelink processes
-    Ptr<NrSlUeMacHarq> m_nrSlHarq;     //!< Pointer to the NR SL UE MAC HARQ object
+    uint8_t m_slMaxTxTransNumPssch{0};            /**< Indicates the maximum transmission number
+                                                 (including new transmission and
+                                                 retransmission) for PSSCH.
+                                                 */
+    uint8_t m_numSidelinkProcess{0};              //!< Maximum number of Sidelink processes
+    Ptr<NrSlUeMacHarq> m_nrSlHarq;                //!< Pointer to the NR SL UE MAC HARQ object
+    Ptr<NrSlUeMacScheduler> m_nrSlUeMacScheduler; //!< Pointer to the NR SL UE MAC scheduler
     uint32_t m_srcL2Id{std::numeric_limits<uint32_t>::max()}; //!< The NR Sidelink Source L2 id;
     bool m_nrSlMacPduTxed{false};         //!< Flag to indicate the TX of SL MAC PDU to PHY
     std::list<SensingData> m_sensingData; //!< List to store sensing data

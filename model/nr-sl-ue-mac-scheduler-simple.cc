@@ -290,4 +290,11 @@ NrSlUeMacSchedulerSimple::RandSelSbChStart(SbChInfo sbChInfo, uint8_t assignedSb
     return subChInStartPerSlot;
 }
 
+void
+NrSlUeMacSchedulerSimple::DoDispose()
+{
+    NS_LOG_FUNCTION(this);
+    NrSlUeMacScheduler::DoDispose();
+}
+
 } // namespace ns3

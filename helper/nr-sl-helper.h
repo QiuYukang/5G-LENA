@@ -114,12 +114,6 @@ class NrSlHelper : public Object
      */
     void SetUeSlSchedulerAttribute(const std::string& n, const AttributeValue& v);
     /**
-     * \brief Create NR Sidelink UE scheduler from the object factory of the scheduler
-     *
-     * \return The pointer to a newly created object of the scheduler
-     */
-    Ptr<NrSlUeMacScheduler> CreateNrSlUeSched();
-    /**
      * \brief Get the length of the physical Sidelink pool based on
      *        SL bitmap length, TDD pattern length, and the number of UL slots
      *        in the TDD pattern.

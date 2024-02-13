@@ -15,6 +15,8 @@
 namespace ns3
 {
 
+class NrSlUeMac;
+
 /**
  * \ingroup scheduler
  * \brief Interface for all the NR Sidelink schedulers
@@ -103,11 +105,27 @@ class NrSlUeMacScheduler : public Object
      */
     virtual int64_t AssignStreams(int64_t stream) = 0;
 
+    /**
+     * Setter for pointer to NrSlUeMac
+     * \param nrSlUeMac Pointer to NrSlUeMac
+     */
+    void SetNrSlUeMac(Ptr<NrSlUeMac> nrSlUeMac);
+
+    /**
+     * Getter for pointer to NrSlUeMac
+     * \return Pointer to NrSlUeMac
+     */
+    Ptr<NrSlUeMac> GetNrSlUeMac(void) const;
+
   protected:
+    void DoDispose() override;
+
     NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser{nullptr};           //!< SAP user
     NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser{nullptr};         //!< SAP User
     NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider{nullptr}; //!< SAP Provider
     NrSlUeMacSchedSapProvider* m_nrSlUeMacSchedSapProvider{nullptr};   //!< SAP Provider
+  private:
+    Ptr<NrSlUeMac> m_nrSlUeMac; //!< Pointer to NrSlUeMac instance
 };
 
 /**

@@ -6,6 +6,8 @@
 
 #include "nr-sl-ue-mac-scheduler.h"
 
+#include "nr-sl-ue-mac.h"
+
 #include <ns3/log.h>
 
 namespace ns3
@@ -37,6 +39,25 @@ NrSlUeMacScheduler::~NrSlUeMacScheduler()
 
     delete m_nrSlUeMacCschedSapProvider;
     m_nrSlUeMacCschedSapProvider = nullptr;
+}
+
+void
+NrSlUeMacScheduler::DoDispose()
+{
+    m_nrSlUeMac = nullptr;
+    Object::DoDispose();
+}
+
+void
+NrSlUeMacScheduler::SetNrSlUeMac(Ptr<NrSlUeMac> nrSlUeMac)
+{
+    m_nrSlUeMac = nrSlUeMac;
+}
+
+Ptr<NrSlUeMac>
+NrSlUeMacScheduler::GetNrSlUeMac() const
+{
+    return m_nrSlUeMac;
 }
 
 void

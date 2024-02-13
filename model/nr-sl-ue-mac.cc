@@ -22,6 +22,7 @@
 #include "nr-sl-sci-f2a-header.h"
 #include "nr-sl-ue-mac-csched-sap.h"
 #include "nr-sl-ue-mac-harq.h"
+#include "nr-sl-ue-mac-scheduler.h"
 
 #include "ns3/lte-rlc-tag.h"
 #include <ns3/boolean.h>
@@ -29,6 +30,7 @@
 #include <ns3/integer.h>
 #include <ns3/log.h>
 #include <ns3/lte-radio-bearer-tag.h>
+#include <ns3/pointer.h>
 #include <ns3/random-variable-stream.h>
 #include <ns3/uinteger.h>
 
@@ -168,6 +170,11 @@ NrSlUeMac::GetTypeId()
                 MakeIntegerAccessor(&NrSlUeMac::SetSlThresPsschRsrp,
                                     &NrSlUeMac::GetSlThresPsschRsrp),
                 MakeIntegerChecker<int>())
+            .AddAttribute("NrSlUeMacScheduler",
+                          "The scheduler for this MAC instance",
+                          PointerValue(),
+                          MakePointerAccessor(&NrSlUeMac::m_nrSlUeMacScheduler),
+                          MakePointerChecker<NrSlUeMacScheduler>())
             .AddAttribute("ResourcePercentage",
                           "The percentage threshold to indicate the minimum number of"
                           "candidate single-slot resources to be selected using sensing"
@@ -207,13 +214,22 @@ NrSlUeMac::NrSlUeMac()
 void
 NrSlUeMac::DoDispose()
 {
+    NS_LOG_FUNCTION(this);
     delete m_nrSlMacSapProvider;
     delete m_nrSlUeCmacSapProvider;
     delete m_nrSlUePhySapUser;
     delete m_nrSlUeMacCschedSapUser;
     delete m_nrSlUeMacSchedSapUser;
-    m_nrSlHarq->Dispose();
+    if (m_nrSlHarq)
+    {
+        m_nrSlHarq->Dispose();
+    }
     m_nrSlHarq = nullptr;
+    if (m_nrSlUeMacScheduler)
+    {
+        m_nrSlUeMacScheduler->Dispose();
+    }
+    m_nrSlUeMacScheduler = nullptr;
     m_slTxPool = nullptr;
     m_slRxPool = nullptr;
 }
