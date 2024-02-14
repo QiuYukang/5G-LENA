@@ -1028,7 +1028,7 @@ and the TPC command reception, reporting to NrUePowerControl and applying for
 the next transmission occasion.
 
 HARQ
-****
+====
 The NR scheduler works on a slot basis and has a dynamic nature [TS38300]_.
 For example, it may assign different sets of OFDM symbols in time and RBs
 in frequency for transmissions and the corresponding redundancy versions.
@@ -1100,7 +1100,7 @@ the specification of the rate matcher in the 3GPP standard [TS38212]_, where
 the algorithm fixes the modulation order for generating the different blocks
 of the redundancy versions.
 
-The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedback, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
+The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedback, and retransmissions basically depend on the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
 
 
 MIMO
@@ -1126,8 +1126,8 @@ linear antenna arrays [TR38901]) and the introduction of antenna ports concept, 
 multiple antenna elements, multiple antenna elements are combined into one antenna port for digital processing (precoding),
 while analog processing (beamforming) is applied for the antenna elements within one antenna port.
 
-The full MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to four streams per user, and 32 antenna ports)
-and beamforming (which applies for each of the streams). Multiple (up to four) streams are encoded in the same TB. PMI, RI and CQI
+The MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to two streams per user, and 2 antenna ports)
+and beamforming (which applies for each of the streams). Multiple (up to two) streams are encoded in the same TB. PMI, RI and CQI
 are implemented and included as part of the CSI feedback. It follows the 3GPP codebook-based Type I model for precoding [TS38214]
 and assumes MMSE-IRC receiver. For precoding and rank selection, an exhaustive search is implemented. The number of streams is
 called the rank in the code, which affects the TBS and other performance characteristics. The inter-stream interference is correctly
@@ -1136,11 +1136,122 @@ like matrix inverse, SVD, etc. As the SINR and interference computations are cor
 streams are fit in one TB, this allows using the SISO error model for MIMO error modeling, by vectorizing the 2D SINR (RBs, rank)
 into 1D SINR (RBs x rank).
 
-In the following, we explain the design choices and implementation details to enable full MIMO. This includes, 1) adding the "rank"
+In the following, we explain the design choices and implementation details to enable MIMO. This includes, 1) adding the "rank"
 parameter to many interfaces throughout the code, 2) the MIMO interference and SINR calculations, as well as the interfaces to pass
 the results to other classes, 3) the computation of transport block error rates (TBLER) based on the MIMO SINR, 4) the search for
 the optimal precoding matrix, which the UE needs to send as a feedback to the gNB in the PMI, as well as the 3GPP-compliant precoding
-matrix codebook, and 5) the enabling of the new methods and using the feedback at the gNB.
+matrix codebook, and 5) the enabling of the new MIMO methods and using the feedback at the gNB.
+
+Rank
+#############
+Firstly, the interfaces are extended to allow passing the rank number ( the number of MIMO layers).
+In this way, for example, already existing functions for the calculation of the transport block size for SISO could be
+easily updated to be used for both, SISO and MIMO (in this section we refer to SISO as the single stream transmission,
+although multiple antennas are supported, and MIMO for the multiple-stream transmission). Also, packet traces are
+extended to include the rank number.
+
+The MIMO interference and SINR calculations
+###########################################
+The NR model for the interference calculation is extended to support the calculation of the MIMO interference and
+MIMO SINR calculations. The main class for the calculation of the interference in the NR module is ``NrInterference`` class.
+This class is extended with new functions for the computation of the interference-and-noise covariance matrix and SINR.
+These functions are ``CalcOutOfCellInterfCov``, ``CalcCurrInterfCov``, ``AddInterference``, and ``ComputeSinr``.
+``CalcOutOfCellInterfCov`` computes the interference signals from all out-of-cell interferers.
+``CalcCurrInterfCov`` prepares ``NrInterference`` class for MU-MIMO by supporting the calculation of the interference signals
+by also considering the interferers from the same cell. For example, in the MU-MIMO UL, UEs from the same cell could act as interferers.
+``AddInterference`` adds the covariance of the signal to an existing covariance matrix.
+Finally, ``ComputeSinr`` computes the SINR as follows:
+
+  1) the actual interference-and-noise covariance for the signal is computed,
+  2) the signal is transformed into a different representation where the interference-and-noise covariance is an identity matrix
+     (aka whitening transformation),
+  3) a dummy precoding matrix is created when none exists, and
+  4) the SINR based on the MSE matrix is computed as explained in [Palomar2006]_.
+
+To support all these MIMO operations, it was not enough to use a single dimensional ``SpectrumValue`` type that has been traditionally
+used in ``NrInterference`` for SISO. To support an efficient storage and computations of MIMO operations new classes were defined,
+such as ``NrCovMat``, ``NrIntfNormChanMat`` and ``NrSinrMatrix``.
+``NrCovMat`` stores the interference-plus-noise covariance matrices of a MIMO signal, with one matrix page for each frequency bin.
+This class also provides some functions for efficient computations on covariance matrices.
+Its functions ``CalcIntfNormChannel`` performs interference whitening [interf-whitening]_.
+``NrIntfNormChanMat`` stores the interference-whitened channel matrix, the channel matrix after normalizing/whitening the
+interference. Its function ``ComputeSinrForPrecoding`` computes the SINR based on MSE.
+Finally, ``NrSinrMatrix`` stores the MIMO SINR matrix whose dimensions are the rank and the number of RBs.
+MIMO implementation requires Eigen3 [eigen3]_, a C++ template library for linear algebra: matrices,
+vectors, numerical solvers, and related algorithms.
+However, Eigen library is not always available. To allow the compilation even when Eigen is not available a CMake switch is added:
+
+  a) when Eigen is enabled, the file nr-mimo-matrices-eigen.cc is compiled
+  b) when Eigen is disabled, the file nr-mimo-matrices-no-eigen.cc is compiled (the implementations just contain a single NS_FATAL_ERROR).
+     In this case, users can still compile but can only use SISO, they will get this error only when trying to use MIMO.
+     The functions used from Eigen library could be in the future implemented in ns-3 to reduce dependency of ns-3 and
+     the nr module on Eigen library. Then nr-mimo-matrices-no-eigen.cc could be implemented to call these ns-3 alternatives of Eigen
+     functions.
+
+To support the multi-dimensional MIMO signals a new interference chunk processor called ``NrMimoChunkProcessor`` is introduced.
+This class mirrors the original ``LteChunkProcessor`` that is originally used in ``NrInterference`` for SISO.
+``LteChunkProcessor`` is not sufficient for MIMO because it can only store a frequency-domain vector of SINR values whereas
+MIMO requires a 2D matrix with the dimensions: number of RBs  and number of MIMO layers.
+``LteChunkProcessor`` stores the sum of the different signals' power spectral density values and
+performs the averaging once the function ``End`` is called. Such SINR averaging in the time-domain limits the fidelity.
+In general, each received signal may have different number of MIMO layers, hence combining the SINR of different signals is not
+trivial. To avoid all this, ``NrMimoChunkProcessor`` keeps a list with full information of all different signals and
+no averaging is performed. The averaging now must be implemented in the error model which opens the door also for different possible
+implementations, e.g., error model may apply exponential effective SINR both over time and frequency.
+Hence the ``NrMimoChunkProcessor`` only looks like ``LteChunkProcessor``, but is actually mainly used as a storage to pass
+the information to other entities that can perform a different computations by exploiting the full information of all different signals.
+``NrMimoChunkProcessor`` provides two kind of callbacks:
+
+    * MIMO SINR: one 2D matrix for each different time-domain chunk, which is used by the error model to compute TBLER, and
+    * Interference covariance matrices for each different time-domain chunk are passed to CQI generating functions and used
+      are used with channel matrix to compute the precoding matrix PMI feedback.
+
+
+Computation of TBLER based on the MIMO SINR
+###########################################
+
+A new function called ``GetTbDecodificationStatsMimo`` is added to ``NrErrorModel`` to determine if a transport block was received
+successfully. ``GetTbDecodificationStatsMimo`` performs a simple weighted average over potentially multiple different signal values
+received over time to get a single SINR matrix. The SINR matrix is then linearized to a vector and passed to the existing error
+model for SISO by calling a function ``GetTbDecodificationStats``. Effectively, ``GetTbDecodificationStatsMimo`` is a
+translation layer between the new MIMO code and the existing SISO error model.
+
+When using MIMO one should configure the ``AmcModel`` as ``ErrorModel``. The ``ShannonModel`` is not yet supported with MIMO,
+some additions are needed to ``NrAmc`` to allow its usage.
+
+Search for the optimal precoding matrix
+###########################################
+
+``NrPmSearchFull`` class is implemented to find the optimal precoding matrix, rank indicator, and corresponding CQI,
+and creates a CQI/PMI/RI feedback message. ``NrPmSearchFull`` uses exhaustive search for 3GPP Type-I codebooks.
+Optimal rank is considered as the rank that maximizes the achievable TB size when using the optimal PMI. To determine the
+rank indicator the algorithm loops through all ranks (the number of MIMO layers), and for each rank it computes PMI,
+and it computes the maximum supported MCS and associates TB size, and finally it selects the rank that results in the highest TB size.
+The optimal WB/SB PMI values are periodically updated based on the configured update intervals, that can be configured using
+two attributes in NrUePhy class: ``WbPmiUpdateInterval`` and ``SbPmiUpdateInterval``.
+When a PMI update is requested, the optimal precoding matrices are updated using exhaustive search over all possible
+precoding matrices specified in a codebook that is compatible with 3GPP TS 38.214 Type-I. The procedure based on exhaustive search
+loops over all possible subband precoding matrices and computes the SINR that would be achieved by each precoding matrix,
+and selects the precoder resulting in the highest average SINR.
+Finally, the feedback message is created that includes the optimal rank, the corresponding optimal PMI and CQI.
+
+``NrPmSearch`` is the base class and ``NrPmSearchFull`` is one possible specialization that finds PMI, RI and CQI. One could create
+another specialization of ``NrPmSearch`` that would implement a different algorithm to find PMI and RI values.
+
+MIMO activation
+###############
+``NrHelper`` is the class
+that is responsible of setting the ``NrPmSearch`` algorithm to ``NrUePhy`` instance, and the configuration of the corresponding parameters,
+such as the type of the search algorithm, the type of the codebook, and the rank limit. ``NrHelper`` also creates ``NrMimoChunkProcessor``
+and adds the necessary callbacks. These callbacks are:
+
+ * ``NrSpectrumPhy::UpdateMimoSinrPerceived`` which is called to provide MIMO SINR feedback
+ *  ``NrUePhy::GenerateDlCqiReportMimo`` which is called to provide MIMO signal to functions that perform PMI search and create CQI/PMI/RI feedback
+
+To enable MIMO in the simulation, the ``EnableMimoFeedback`` attribute of the ``NrHelper`` should be set to true.
+To configure PMI search parameters (such as rank limit, PMI search method, the codebook,) ``NrHelper`` provides a function ``SetupMimoPmi``.
+The ``EnableMimoFeedback`` enables MIMO feedback including PMI/RI/CQI, while ``RankLimit`` limits the possible RI value
+(e.g., to 1 stream). So, even if RI is limited to 1, the usage of MIMO feedback can provide benefits because of the PMI feedback.
 
 
 MAC layer
@@ -2548,3 +2659,7 @@ Open issues and future work
 .. [WNS3-QosSchedulers] K. Koutlia, S. Lagen, and B. Bojovic. 2023. Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA. In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.
 
 .. [Palomar2006] Daniel P. Palomar and Yi Jiang: MIMO Transceiver Design via Majorization Theory
+
+.. [interf-whitening] "Whitening transformation": https://en.wikipedia.org/wiki/Whitening_transformation
+
+.. [eigen3] Eigen library: https://eigen.tuxfamily.org/
