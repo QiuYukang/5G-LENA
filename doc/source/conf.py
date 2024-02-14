@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+# Copyright (c) 2024 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 # %SPDX-License-Identifier: GPL-2.0-only
 
 import os
@@ -27,8 +27,8 @@ add_function_parentheses = True
 # modindex_common_prefix = []
 
 project = "NR Module"
-copyright = "2023"
+copyright = "2024"
 author = "OpenSim CTTC/CERCA"
 
-version = "2.5"
-release = "2.5"
+version = "3.0"
+release = "3.0"

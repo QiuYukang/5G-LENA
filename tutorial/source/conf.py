@@ -32,11 +32,11 @@ add_function_parentheses = True
 # modindex_common_prefix = []
 
 # project = u'cttc-nr-demo tutorial'
-copyright = "2023"
+copyright = "2024"
 author = ""
 
-version = "2.6"
-release = "2.6"
+version = "3.0"
+release = "3.0"
 
 # -- Options for LaTeX output ---------------------------------------------
 
