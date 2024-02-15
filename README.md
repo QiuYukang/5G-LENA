@@ -59,36 +59,43 @@ directory will be listed as "Untracked files". This is normal.
 ### Switch to the latest NR release branch:
 
 Checkout the latest NR release branch (usually the branch with the highest version
-number, to list git branches run `git branch -r`). For example, for NR Release v2.6 run:
+number, to list git branches run `git branch -r`). For example, for NR Release v3.0 run:
 
 ```
 cd nr
-git checkout 5g-lena-v2.6.y
+git checkout 5g-lena-v3.0.y
 ```
 
 ### Switch to the recommended ns-3 release branch:
 
 Check in the [NR RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the recommended ns-3 release, and then check out the corresponding ns-3 release branch.
-For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".40" you can run:
+For example, if the NR RELEASE_NOTES.md indicates that the recommended ns-3 release is ".41" you can run:
 
 ```
 cd ../..
-git checkout -b ns-3.40-branch ns-3.40
+git checkout -b ns-3.41-branch ns-3.41
 ```
 
 For a quicker reference we provide a table with the supported versions of ns-3-dev
 for each NR release.
 
-| NR version     | ns-3 version | Build system  |
-| :------------: | :-----------:| :-----------: |
-| 5g-lena-v2.6.y | ns-3.40      | cmake         |
-| 5g-lena-v2.5.y | ns-3.39      | cmake         |
-| 5g-lena-v2.4.y | ns-3.38      | cmake         |
-| 5g-lena-v2.3.y | ns-3.37      | cmake         |
-| 5g-lena-v2.2.y | ns-3.36.1    | cmake         |
-| 5g-lena-v2.1.y | ns-3.36      | cmake         |
-| 5g-lena-v2.0.y | ns-3.36      | cmake         |
-| 5g-lena-v1.3.y | ns-3.35      | waf           |
+| NR version     | ns-3 version | Build system  | Release date       |
+| :------------: | :-----------:| :-----------: |--------------------|
+| 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |
+| 5g-lena-v2.6.y | ns-3.40      | cmake         | November 30, 2023  |
+| 5g-lena-v2.5.y | ns-3.39      | cmake         | July 26, 2023      |
+| 5g-lena-v2.4.y | ns-3.38      | cmake         | April 5, 2023      |
+| 5g-lena-v2.3.y | ns-3.37      | cmake         | November 23, 2022  |
+| 5g-lena-v2.2.y | ns-3.36.1    | cmake         | June 03, 2022      |
+| 5g-lena-v2.1.y | ns-3.36      | cmake         | May 06, 2022       |
+| 5g-lena-v2.0.y | ns-3.36      | cmake         | April 21, 2022     |
+| 5g-lena-v1.3.y | ns-3.35      | waf           | April 7, 2022      |
+| 5g-lena-v1.2.y | ns-3-dev     | waf           | June 4, 2021       |
+| 5g-lena-v1.1.y | ns-3-dev     | waf           | March 2, 2021      |
+| 5g-lena-v1.0.y | ns-3-dev     | waf           | September 16, 2020 |
+| 5g-lena-v0.4.y | ns-3-dev     | waf           | February 13 2020   |
+| 5g-lena-v0.3.y | ns-3-dev     | waf           | August 27 2019     |
+| 5g-lena-v0.2.y | ns-3-dev     | waf           | February 1 2019    |
 
 
 ### Test ns-3 + nr installation:
