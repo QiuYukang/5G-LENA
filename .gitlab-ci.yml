@@ -59,7 +59,7 @@ workflow:
   timeout: 9h
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
-    NS3_RELEASE_VERSION: "3.40"
+    NS3_RELEASE_VERSION: "3.41"
 
 # Defines the per-commit jobs. They are executed for any branch
 .base-per-commit-compile:

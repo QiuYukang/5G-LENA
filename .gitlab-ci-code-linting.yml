@@ -85,7 +85,7 @@ clang-tidy-17:
       clang cmake
       clang-tidy clang-tidy-17
       git libsqlite3-dev
-    - git clone -b ns-3.39 https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone https://gitlab.com/nsnam/ns-3-dev.git
     - mkdir -p ns-3-dev/contrib/nr/
     - cp -r .clang-tidy CMakeLists.txt  doc  tutorial examples  helper  model  README.md  RELEASE_NOTES.md  test  utils ns-3-dev/contrib/nr/
     - cd ns-3-dev
