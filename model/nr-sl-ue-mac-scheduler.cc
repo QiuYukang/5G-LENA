@@ -27,16 +27,12 @@ NrSlUeMacScheduler::GetTypeId(void)
 NrSlUeMacScheduler::NrSlUeMacScheduler()
 {
     NS_LOG_FUNCTION_NOARGS();
-    m_nrSlUeMacSchedSapProvider = new NrSlUeMacGeneralSchedSapProvider(this);
     m_nrSlUeMacCschedSapProvider = new NrSlUeMacGeneralCschedSapProvider(this);
 }
 
 NrSlUeMacScheduler::~NrSlUeMacScheduler()
 {
     NS_LOG_FUNCTION_NOARGS();
-    delete m_nrSlUeMacSchedSapProvider;
-    m_nrSlUeMacSchedSapProvider = nullptr;
-
     delete m_nrSlUeMacCschedSapProvider;
     m_nrSlUeMacCschedSapProvider = nullptr;
 }
@@ -49,6 +45,18 @@ NrSlUeMacScheduler::DoDispose()
 }
 
 void
+NrSlUeMacScheduler::SchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params)
+{
+    DoSchedNrSlTriggerReq(dstL2Id, params);
+}
+
+void
+NrSlUeMacScheduler::SchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
+{
+    DoSchedNrSlRlcBufferReq(params);
+}
+
+void
 NrSlUeMacScheduler::SetNrSlUeMac(Ptr<NrSlUeMac> nrSlUeMac)
 {
     m_nrSlUeMac = nrSlUeMac;
@@ -58,18 +66,6 @@ Ptr<NrSlUeMac>
 NrSlUeMacScheduler::GetNrSlUeMac() const
 {
     return m_nrSlUeMac;
-}
-
-void
-NrSlUeMacScheduler::SetNrSlUeMacSchedSapUser(NrSlUeMacSchedSapUser* sap)
-{
-    m_nrSlUeMacSchedSapUser = sap;
-}
-
-NrSlUeMacSchedSapProvider*
-NrSlUeMacScheduler::GetNrSlUeMacSchedSapProvider()
-{
-    return m_nrSlUeMacSchedSapProvider;
 }
 
 void
@@ -95,26 +91,6 @@ NrSlUeMacGeneralCschedSapProvider::CschedUeNrSlLcConfigReq(
     const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params)
 {
     m_scheduler->DoCschedUeNrSlLcConfigReq(params);
-}
-
-// SCHED API primitives for NR Sidelink
-NrSlUeMacGeneralSchedSapProvider::NrSlUeMacGeneralSchedSapProvider(NrSlUeMacScheduler* sched)
-    : m_scheduler(sched)
-{
-}
-
-void
-NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlRlcBufferReq(
-    const struct NrSlReportBufferStatusParams& params)
-{
-    m_scheduler->DoSchedUeNrSlRlcBufferReq(params);
-}
-
-void
-NrSlUeMacGeneralSchedSapProvider::SchedUeNrSlTriggerReq(uint32_t dstL2Id,
-                                                        const std::list<NrSlSlotInfo>& params)
-{
-    m_scheduler->DoSchedUeNrSlTriggerReq(dstL2Id, params);
 }
 
 } // namespace ns3

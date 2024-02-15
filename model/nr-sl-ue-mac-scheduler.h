@@ -32,27 +32,8 @@ class NrSlUeMacScheduler : public Object
      */
     static TypeId GetTypeId(void);
 
-    /**
-     * \brief NrSlUeMacScheduler constructor
-     */
     NrSlUeMacScheduler();
-
-    /**
-     * \brief NrSlUeMacScheduler deconstructor
-     */
-    virtual ~NrSlUeMacScheduler();
-
-    /**
-     * \brief Set the NrSlUeMacSchedSapUser pointer
-     * \param sap pointer to the NR Sidelink MAC sched sap user class
-     */
-    void SetNrSlUeMacSchedSapUser(NrSlUeMacSchedSapUser* sap);
-
-    /**
-     * \brief Get the NrSlUeMacSchedSapProvider pointer
-     * \return the pointer to the NR Sidelink MAC sched sap provider class
-     */
-    NrSlUeMacSchedSapProvider* GetNrSlUeMacSchedSapProvider();
+    ~NrSlUeMacScheduler() override;
 
     /**
      * \brief SetNrSlUeMacCschedSapUser
@@ -78,8 +59,26 @@ class NrSlUeMacScheduler : public Object
         const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) = 0;
 
     //
-    // Implementation of the SCHED API primitives for NR Sidelink
+    // SCHED API primitives for NR Sidelink
+    // From FAPI 2.0.0 Small Cell Forum originated LTE MAC scheduler API
     //
+    /**
+     * \brief Starts the UL MAC scheduler for this subframe.
+     *
+     * Requests scheduling to a destination based on provided sensing information
+     *
+     * \param dstL2Id The destination layer 2 id
+     * \param params List of NrSlSlotInfo (sensing information)
+     */
+    void SchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params);
+
+    /**
+     * \brief Update buffer status of logical channel data in RLC.
+     *
+     * \param params Buffer status information
+     */
+    void SchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params);
+
     /**
      * \brief Send NR Sidelink RLC buffer status report from UE MAC to the UE scheduler
      *
@@ -120,11 +119,26 @@ class NrSlUeMacScheduler : public Object
   protected:
     void DoDispose() override;
 
-    NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser{nullptr};           //!< SAP user
     NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser{nullptr};         //!< SAP User
     NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider{nullptr}; //!< SAP Provider
-    NrSlUeMacSchedSapProvider* m_nrSlUeMacSchedSapProvider{nullptr};   //!< SAP Provider
   private:
+    // Implementation of SCHED API primitives for NR Sidelink
+    /**
+     * \brief Starts the UL MAC scheduler for this subframe.
+     *
+     * Requests scheduling to a destination based on provided sensing information
+     *
+     * \param dstL2Id The destination layer 2 id
+     * \param params List of NrSlSlotInfo (sensing information)
+     */
+    virtual void DoSchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params) = 0;
+    /**
+     * \brief Update buffer status of logical channel data in RLC.
+     *
+     * \param params Buffer status information
+     */
+    virtual void DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) = 0;
+
     Ptr<NrSlUeMac> m_nrSlUeMac; //!< Pointer to NrSlUeMac instance
 };
 
@@ -147,28 +161,6 @@ class NrSlUeMacGeneralCschedSapProvider : public NrSlUeMacCschedSapProvider
 
     virtual void CschedUeNrSlLcConfigReq(
         const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) override;
-
-  private:
-    NrSlUeMacScheduler* m_scheduler{nullptr}; //!< pointer to the scheduler API using this SAP
-};
-
-/**
- * \ingroup scheduler
- * \brief Class implementing the NrSlUeMacSchedSapProvider methods
- */
-class NrSlUeMacGeneralSchedSapProvider : public NrSlUeMacSchedSapProvider
-{
-  public:
-    /**
-     * \brief constructor
-     * \param sched The pointer the NrSlUeMacScheduler API using this SAP
-     */
-    NrSlUeMacGeneralSchedSapProvider(NrSlUeMacScheduler* sched);
-
-    virtual void SchedUeNrSlRlcBufferReq(
-        const struct NrSlReportBufferStatusParams& params) override;
-    virtual void SchedUeNrSlTriggerReq(uint32_t dstL2Id,
-                                       const std::list<NrSlSlotInfo>& params) override;
 
   private:
     NrSlUeMacScheduler* m_scheduler{nullptr}; //!< pointer to the scheduler API using this SAP

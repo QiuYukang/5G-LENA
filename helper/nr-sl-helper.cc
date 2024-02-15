@@ -182,9 +182,7 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
         nrSlUeMac->SetAttribute("NrSlUeMacScheduler", PointerValue(sched));
         // SAPs between the NR SL UE MAC scheduler and NrUeMac
         sched->SetNrSlUeMacCschedSapUser(nrSlUeMac->GetNrSlUeMacCschedSapUser());
-        sched->SetNrSlUeMacSchedSapUser(nrSlUeMac->GetNrSlUeMacSchedSapUser());
         nrSlUeMac->SetNrSlUeMacCschedSapProvider(sched->GetNrSlUeMacCschedSapProvider());
-        nrSlUeMac->SetNrSlUeMacSchedSapProvider(sched->GetNrSlUeMacSchedSapProvider());
         // Set AMC in the NR SL UE MAC scheduler
         Ptr<NrSlUeMacSchedulerNs3> schedNs3 = sched->GetObject<NrSlUeMacSchedulerNs3>();
         schedNs3->InstallNrSlAmc(slAmc);

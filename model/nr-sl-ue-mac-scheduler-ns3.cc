@@ -6,6 +6,8 @@
 
 #include "nr-sl-ue-mac-scheduler-ns3.h"
 
+#include "nr-sl-ue-mac.h"
+
 #include <ns3/boolean.h>
 #include <ns3/log.h>
 #include <ns3/pointer.h>
@@ -120,6 +122,48 @@ NrSlUeMacSchedulerNs3::CreateLC(
 }
 
 void
+NrSlUeMacSchedulerNs3::DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
+{
+    NS_LOG_FUNCTION(this << params.dstL2Id << static_cast<uint32_t>(params.lcid));
+
+    GetSecond DstInfoOf;
+    auto itDst = m_dstMap.find(params.dstL2Id);
+    NS_ABORT_MSG_IF(itDst == m_dstMap.end(), "Destination " << params.dstL2Id << " info not found");
+
+    for (const auto& lcg : DstInfoOf(*itDst)->GetNrSlLCG())
+    {
+        if (lcg.second->Contains(params.lcid))
+        {
+            NS_LOG_INFO("Updating NR SL LC Info: " << params << " in LCG: "
+                                                   << static_cast<uint32_t>(lcg.first));
+            lcg.second->UpdateInfo(params);
+            return;
+        }
+    }
+    NS_FATAL_ERROR("The LC does not exist. Can't update");
+}
+
+void
+NrSlUeMacSchedulerNs3::DoSchedNrSlTriggerReq(uint32_t dstL2Id,
+                                             const std::list<NrSlSlotInfo>& params)
+{
+    NS_LOG_FUNCTION(this << dstL2Id);
+
+    const auto itDst = m_dstMap.find(dstL2Id);
+    NS_ABORT_MSG_IF(itDst == m_dstMap.end(), "Destination " << dstL2Id << "info not found");
+
+    std::set<NrSlSlotAlloc> allocList;
+
+    bool allocated = DoNrSlAllocation(params, itDst->second, allocList);
+
+    if (!allocated)
+    {
+        return;
+    }
+    GetNrSlUeMac()->SchedNrSlConfigInd(allocList);
+}
+
+void
 NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << static_cast<uint32_t>(params.lcid));
@@ -159,19 +203,7 @@ NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
     {
         return;
     }
-    m_nrSlUeMacSchedSapUser->SchedUeNrSlConfigInd(allocList);
-}
-
-uint8_t
-NrSlUeMacSchedulerNs3::GetTotalSubCh() const
-{
-    return m_nrSlUeMacSchedSapUser->GetTotalSubCh();
-}
-
-uint8_t
-NrSlUeMacSchedulerNs3::GetSlMaxTxTransNumPssch() const
-{
-    return m_nrSlUeMacSchedSapUser->GetSlMaxTxTransNumPssch();
+    GetNrSlUeMac()->SchedNrSlConfigInd(allocList);
 }
 
 void

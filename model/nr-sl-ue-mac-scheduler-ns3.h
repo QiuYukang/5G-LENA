@@ -179,24 +179,13 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
     virtual bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& params,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<NrSlSlotAlloc>& slotAllocList) = 0;
-    /**
-     * \brief Method to get total number of sub-channels.
-     *
-     * \return the total number of sub-channels.
-     */
-    uint8_t GetTotalSubCh() const;
-
-    /**
-     * \brief Method to get the maximum transmission number
-     *        (including new transmission and retransmission) for PSSCH.
-     *
-     * \return The max number of PSSCH transmissions
-     */
-    uint8_t GetSlMaxTxTransNumPssch() const;
-
     Ptr<UniformRandomVariable> m_uniformVariable; //!< Uniform random variable
 
   private:
+    // Implementation of SCHED API primitives for NR Sidelink
+    void DoSchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params) override;
+    void DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) override;
+
     /**
      * \brief Create destination info
      *

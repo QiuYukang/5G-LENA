@@ -47,46 +47,6 @@ NS_OBJECT_ENSURE_REGISTERED(NrSlUeMac);
 // SAP forwarders
 ///////////////////////////////////////////////////////////
 
-class MemberNrSlUeMacSchedSapUser : public NrSlUeMacSchedSapUser
-{
-  public:
-    /**
-     * \brief constructor
-     * \param mac The pointer to the NrSlUeMac using this SAP
-     */
-    MemberNrSlUeMacSchedSapUser(NrSlUeMac* mac);
-
-    virtual void SchedUeNrSlConfigInd(const std::set<NrSlSlotAlloc>& params);
-    virtual uint8_t GetTotalSubCh() const;
-    virtual uint8_t GetSlMaxTxTransNumPssch() const;
-
-  private:
-    NrSlUeMac* m_mac; //!< The pointer to the NrSlUeMac using this SAP
-};
-
-MemberNrSlUeMacSchedSapUser::MemberNrSlUeMacSchedSapUser(NrSlUeMac* mac)
-    : m_mac(mac)
-{
-}
-
-void
-MemberNrSlUeMacSchedSapUser::SchedUeNrSlConfigInd(const std::set<NrSlSlotAlloc>& params)
-{
-    m_mac->DoSchedUeNrSlConfigInd(params);
-}
-
-uint8_t
-MemberNrSlUeMacSchedSapUser::GetTotalSubCh() const
-{
-    return m_mac->DoGetTotalSubCh();
-}
-
-uint8_t
-MemberNrSlUeMacSchedSapUser::GetSlMaxTxTransNumPssch() const
-{
-    return m_mac->DoGetSlMaxTxTransNumPssch();
-}
-
 class MemberNrSlUeMacCschedSapUser : public NrSlUeMacCschedSapUser
 {
   public:
@@ -206,9 +166,33 @@ NrSlUeMac::NrSlUeMac()
     m_nrSlUeCmacSapProvider = new MemberNrSlUeCmacSapProvider<NrSlUeMac>(this);
     m_nrSlUePhySapUser = new MemberNrSlUePhySapUser<NrSlUeMac>(this);
     m_nrSlUeMacCschedSapUser = new MemberNrSlUeMacCschedSapUser(this);
-    m_nrSlUeMacSchedSapUser = new MemberNrSlUeMacSchedSapUser(this);
     m_ueSelectedUniformVariable = CreateObject<UniformRandomVariable>();
     m_nrSlHarq = CreateObject<NrSlUeMacHarq>();
+}
+
+void
+NrSlUeMac::SchedNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList)
+{
+    NS_LOG_FUNCTION(this);
+    auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
+
+    if (itGrantInfo == m_grantInfo.end())
+    {
+        NrSlGrantInfo grant = CreateGrantInfo(slotAllocList);
+        itGrantInfo =
+            m_grantInfo.emplace(std::make_pair(slotAllocList.begin()->dstL2Id, grant)).first;
+    }
+    else
+    {
+        NS_ASSERT_MSG(itGrantInfo->second.slResoReselCounter == 0,
+                      "Sidelink resource counter must be zero before assigning new grant for dst "
+                          << slotAllocList.begin()->dstL2Id);
+        NrSlGrantInfo grant = CreateGrantInfo(slotAllocList);
+        itGrantInfo->second = grant;
+    }
+
+    NS_ASSERT_MSG(itGrantInfo->second.slotAllocations.size() > 0,
+                  "CreateGrantInfo failed to create grants");
 }
 
 void
@@ -219,7 +203,6 @@ NrSlUeMac::DoDispose()
     delete m_nrSlUeCmacSapProvider;
     delete m_nrSlUePhySapUser;
     delete m_nrSlUeMacCschedSapUser;
-    delete m_nrSlUeMacSchedSapUser;
     if (m_nrSlHarq)
     {
         m_nrSlHarq->Dispose();
@@ -399,7 +382,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
                                                       << +itFutureSensTx.sbChStart);
                                     itCandSsResoA->occupiedSbCh.insert(i);
                                 }
-                                if (itCandSsResoA->occupiedSbCh.size() == GetTotalSubCh(m_poolId))
+                                if (itCandSsResoA->occupiedSbCh.size() == GetTotalSubCh())
                                 {
                                     if (itFutureSensTx.slRsrp > rsrpThrehold)
                                     {
@@ -754,7 +737,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     // we ask the scheduler for resources only if the filtered list is not empty.
                     NS_LOG_INFO("IMSI " << GetImsi() << " scheduling the destination "
                                         << itDst.first);
-                    m_nrSlUeMacSchedSapProvider->SchedUeNrSlTriggerReq(itDst.first, filteredReso);
+                    m_nrSlUeMacScheduler->SchedNrSlTriggerReq(itDst.first, filteredReso);
                     m_reselCounter = 0;
                     m_cResel = 0;
                 }
@@ -978,7 +961,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 sciF1a.SetSciStage2Format(NrSlSciF1aHeader::SciFormat2A);
                 sciF1a.SetSlResourceReservePeriod(
                     static_cast<uint16_t>(m_pRsvpTx.GetMilliSeconds()));
-                sciF1a.SetTotalSubChannels(GetTotalSubCh(m_poolId));
+                sciF1a.SetTotalSubChannels(GetTotalSubCh());
                 sciF1a.SetIndexStartSubChannel(currentGrant.slPsschSubChStart);
                 sciF1a.SetLengthSubChannel(currentGrant.slPsschSubChLength);
                 sciF1a.SetSlMaxNumPerReserve(currentGrant.maxNumPerReserve);
@@ -1044,7 +1027,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 pscchStatsParams.tbSize = tbSize;
                 pscchStatsParams.slResourceReservePeriod =
                     static_cast<uint16_t>(m_pRsvpTx.GetMilliSeconds());
-                pscchStatsParams.totalSubChannels = GetTotalSubCh(m_poolId);
+                pscchStatsParams.totalSubChannels = GetTotalSubCh();
                 pscchStatsParams.slPsschSubChStart = currentGrant.slPsschSubChStart;
                 pscchStatsParams.slPsschSubChLength = currentGrant.slPsschSubChLength;
                 pscchStatsParams.slMaxNumPerReserve = currentGrant.maxNumPerReserve;
@@ -1129,31 +1112,6 @@ NrSlUeMac::FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr)
     }
 
     return txOppr;
-}
-
-void
-NrSlUeMac::DoSchedUeNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList)
-{
-    NS_LOG_FUNCTION(this);
-    auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
-
-    if (itGrantInfo == m_grantInfo.end())
-    {
-        NrSlGrantInfo grant = CreateGrantInfo(slotAllocList);
-        itGrantInfo =
-            m_grantInfo.emplace(std::make_pair(slotAllocList.begin()->dstL2Id, grant)).first;
-    }
-    else
-    {
-        NS_ASSERT_MSG(itGrantInfo->second.slResoReselCounter == 0,
-                      "Sidelink resource counter must be zero before assigning new grant for dst "
-                          << slotAllocList.begin()->dstL2Id);
-        NrSlGrantInfo grant = CreateGrantInfo(slotAllocList);
-        itGrantInfo->second = grant;
-    }
-
-    NS_ASSERT_MSG(itGrantInfo->second.slotAllocations.size() > 0,
-                  "CreateGrantInfo failed to create grants");
 }
 
 NrSlUeMac::NrSlGrantInfo
@@ -1242,20 +1200,6 @@ NrSlUeMac::SetNrSlUePhySapProvider(NrSlUePhySapProvider* s)
 }
 
 void
-NrSlUeMac::SetNrSlUeMacSchedSapProvider(NrSlUeMacSchedSapProvider* s)
-{
-    NS_LOG_FUNCTION(this);
-    m_nrSlUeMacSchedSapProvider = s;
-}
-
-NrSlUeMacSchedSapUser*
-NrSlUeMac::GetNrSlUeMacSchedSapUser()
-{
-    NS_LOG_FUNCTION(this);
-    return m_nrSlUeMacSchedSapUser;
-}
-
-void
 NrSlUeMac::SetNrSlUeMacCschedSapProvider(NrSlUeMacCschedSapProvider* s)
 {
     NS_LOG_FUNCTION(this);
@@ -1319,7 +1263,7 @@ NrSlUeMac::DoReportNrSlBufferStatus(
                                                params.srcL2Id,
                                                params.dstL2Id);
 
-    m_nrSlUeMacSchedSapProvider->SchedUeNrSlRlcBufferReq(report);
+    m_nrSlUeMacScheduler->SchedNrSlRlcBufferReq(report);
 }
 
 void
@@ -1494,16 +1438,8 @@ NrSlUeMac::DoGetSlRxDestinations()
 }
 
 uint8_t
-NrSlUeMac::DoGetTotalSubCh() const
+NrSlUeMac::GetSlMaxTxTransNumPssch() const
 {
-    NS_LOG_FUNCTION(this);
-    return GetTotalSubCh(m_poolId);
-}
-
-uint8_t
-NrSlUeMac::DoGetSlMaxTxTransNumPssch() const
-{
-    NS_LOG_FUNCTION(this);
     return m_slMaxTxTransNumPssch;
 }
 
@@ -1585,11 +1521,9 @@ NrSlUeMac::SetSlActivePoolId(uint16_t poolId)
 }
 
 uint8_t
-NrSlUeMac::GetTotalSubCh(uint16_t poolId) const
+NrSlUeMac::GetTotalSubCh() const
 {
-    NS_LOG_FUNCTION(this << poolId);
-
-    uint16_t subChSize = m_slTxPool->GetNrSlSubChSize(static_cast<uint8_t>(GetBwpId()), poolId);
+    uint16_t subChSize = m_slTxPool->GetNrSlSubChSize(static_cast<uint8_t>(GetBwpId()), m_poolId);
 
     uint8_t totalSubChanels =
         static_cast<uint8_t>(std::floor(m_nrSlUePhySapProvider->GetBwInRbs() / subChSize));

@@ -6,6 +6,8 @@
 
 #include "nr-sl-ue-mac-scheduler-simple.h"
 
+#include "nr-sl-ue-mac.h"
+
 #include <ns3/log.h>
 
 #include <algorithm>
@@ -143,7 +145,7 @@ NrSlUeMacSchedulerSimple::RandomlySelectSlots(std::list<NrSlSlotInfo> txOpps)
 {
     NS_LOG_FUNCTION(this);
 
-    uint8_t totalTx = GetSlMaxTxTransNumPssch();
+    uint8_t totalTx = GetNrSlUeMac()->GetSlMaxTxTransNumPssch();
     std::list<NrSlSlotInfo> newTxOpps;
 
     if (txOpps.size() > totalTx)
@@ -176,12 +178,12 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
     NS_LOG_FUNCTION(this << txOpps.size());
     // txOpps are the randomly selected slots for 1st Tx and possible ReTx
     SbChInfo info;
-    info.numSubCh = GetTotalSubCh();
+    info.numSubCh = GetNrSlUeMac()->GetTotalSubCh();
     std::vector<std::vector<uint8_t>> availSbChIndPerSlot;
     for (const auto& it : txOpps)
     {
         std::vector<uint8_t> indexes;
-        for (uint8_t i = 0; i < GetTotalSubCh(); i++)
+        for (uint8_t i = 0; i < GetNrSlUeMac()->GetTotalSubCh(); i++)
         {
             auto it2 = it.occupiedSbCh.find(i);
             if (it2 == it.occupiedSbCh.end())
@@ -196,7 +198,7 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
         // at UE MAC
         if (indexes.size() == 0)
         {
-            for (uint8_t i = 0; i < GetTotalSubCh(); i++)
+            for (uint8_t i = 0; i < GetNrSlUeMac()->GetTotalSubCh(); i++)
             {
                 indexes.push_back(i);
             }
@@ -249,11 +251,11 @@ NrSlUeMacSchedulerSimple::RandSelSbChStart(SbChInfo sbChInfo, uint8_t assignedSb
 
     for (const auto& it : sbChInfo.availSbChIndPerSlot)
     {
-        if (minContgSbCh == GetTotalSubCh() && assignedSbCh == 1)
+        if (minContgSbCh == GetNrSlUeMac()->GetTotalSubCh() && assignedSbCh == 1)
         {
             // quick exit
-            uint8_t randIndex =
-                static_cast<uint8_t>(m_uniformVariable->GetInteger(0, GetTotalSubCh() - 1));
+            uint8_t randIndex = static_cast<uint8_t>(
+                m_uniformVariable->GetInteger(0, GetNrSlUeMac()->GetTotalSubCh() - 1));
             subChInStartPerSlot.push_back(randIndex);
         }
         else

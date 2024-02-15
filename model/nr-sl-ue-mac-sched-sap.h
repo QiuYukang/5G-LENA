@@ -4,8 +4,8 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#ifndef NR_SL_UE_MAC_SCHED_SAP_PROVIDER_H
-#define NR_SL_UE_MAC_SCHED_SAP_PROVIDER_H
+#ifndef NR_SL_UE_MAC_SCHED_SAP_H
+#define NR_SL_UE_MAC_SCHED_SAP_H
 
 #include "nr-sl-phy-mac-common.h"
 #include "sfnsf.h"
@@ -150,73 +150,6 @@ struct NrSlReportBufferStatusParams
 };
 
 /**
- * \ingroup scheduler
- *
- * \brief The SAP interface between NR UE MAC and NR SL UE scheduler
- */
-class NrSlUeMacSchedSapProvider
-{
-  public:
-    /**
-     * ~NrSlUeMacSchedSapProvider
-     */
-    virtual ~NrSlUeMacSchedSapProvider() = default;
-
-    /**
-     * \brief Send NR Sidelink RLC buffer status report from UE MAC to the UE scheduler
-     *
-     * \param params NrSlReportBufferStatusParams
-     */
-    virtual void SchedUeNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) = 0;
-    /**
-     * \brief Send NR Sidleink trigger request from UE MAC to the UE scheduler
-     *
-     * \param dstL2Id The destination layer 2 id
-     * \param params NrSlSlotInfo trigger parameters
-     */
-    virtual void SchedUeNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params) = 0;
-};
-
-/**
- * \ingroup scheduler
- *
- * \brief The Interface between NR SL UE Scheduler and NR UE MAC
- */
-class NrSlUeMacSchedSapUser
-{
-  public:
-    /**
-     * \brief ~NrSlUeMacSchedSapUser
-     */
-    virtual ~NrSlUeMacSchedSapUser() = default;
-
-    /**
-     * \brief Send the NR Sidelink allocation from the UE scheduler to NrUeMac
-     *
-     * \param slotAllocList The slot allocation list passed by a specific
-     *        scheduler to NrUeMac
-     *
-     * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
-     */
-    virtual void SchedUeNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList) = 0;
-
-    /**
-     * \brief Method to get total number of sub-channels.
-     *
-     * \return the total number of sub-channels.
-     */
-    virtual uint8_t GetTotalSubCh() const = 0;
-
-    /**
-     * \brief Method to get the maximum transmission number
-     *        (including new transmission and retransmission) for PSSCH.
-     *
-     * \return The max number of PSSCH transmissions
-     */
-    virtual uint8_t GetSlMaxTxTransNumPssch() const = 0;
-};
-
-/**
  * \brief Stream output operator
  * \param os output stream
  * \param p struct whose parameter to output
@@ -226,4 +159,4 @@ std::ostream& operator<<(std::ostream& os, const NrSlReportBufferStatusParams& p
 
 } // namespace ns3
 
-#endif /* NR_SL_UE_MAC_SCHED_SAP_PROVIDER_H */
+#endif /* NR_SL_UE_MAC_SCHED_SAP_H */

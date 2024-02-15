@@ -50,8 +50,6 @@ class NrSlUeMac : public NrUeMac
     friend class MemberNrSlUePhySapUser<NrSlUeMac>;
     /// allow MemberNrSlUeMacCschedSapUser class friend access
     friend class MemberNrSlUeMacCschedSapUser;
-    /// allow MemberNrSlUeMacSchedSapUser class friend access
-    friend class MemberNrSlUeMacSchedSapUser;
 
   public:
     /**
@@ -64,6 +62,15 @@ class NrSlUeMac : public NrUeMac
      * \brief NrSlUeMac constructor
      */
     NrSlUeMac();
+
+    // SCHED API primitive for NR Sidelink
+    // From FAPI 2.0.0 Small Cell Forum originated LTE MAC scheduler API
+    /**
+     * \brief Passes the SL scheduling decision to the NrSlUeMac
+     *
+     * \param slotAllocList The slot allocation list from the scheduler
+     */
+    void SchedNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList);
 
   public:
     /**
@@ -143,25 +150,11 @@ class NrSlUeMac : public NrUeMac
     void SetNrSlUePhySapProvider(NrSlUePhySapProvider* s);
 
     /**
-     * \brief Set the NR Sidelik SAP for Sched primitives offered by the scheduler
-     *        to UE MAC.
-     * \param s pointer of type NrSlUeMacSchedSapProvider
-     */
-    void SetNrSlUeMacSchedSapProvider(NrSlUeMacSchedSapProvider* s);
-
-    /**
      * \brief Set the NR Sidelik SAP for Csched primitives offered by the scheduler
      *        to UE MAC.
      * \param s pointer of type NrSlUeMacCschedSapProvider
      */
     void SetNrSlUeMacCschedSapProvider(NrSlUeMacCschedSapProvider* s);
-
-    /**
-     * \brief Get the NR Sidelik SAP for Sched primitives offered by the UE MAC
-     *        to the UE NR Sidelink scheduler
-     * \return the pointer of type NrSlUeMacSchedSapUser
-     */
-    NrSlUeMacSchedSapUser* GetNrSlUeMacSchedSapUser();
 
     /**
      * \brief Get the NR Sidelik SAP for Csched primitives offered by the UE MAC
@@ -306,6 +299,20 @@ class NrSlUeMac : public NrUeMac
      */
     uint8_t GetResourcePercentage() const;
 
+    /**
+     * \brief Return the number of NR SL sub-channels for the active BW pool
+     * \return the total number of NR SL sub-channels
+     */
+    uint8_t GetTotalSubCh() const;
+
+    /**
+     * \brief Return the maximum transmission number (including new transmission and
+     *        retransmission) for PSSCH.
+     *
+     * \return The max number of PSSCH transmissions
+     */
+    uint8_t GetSlMaxTxTransNumPssch() const;
+
   protected:
     // Inherited
     void DoDispose() override;
@@ -431,31 +438,6 @@ class NrSlUeMac : public NrUeMac
      */
     void DoReceiveSensingData(SensingData sensingData);
 
-    // forwarded from MemberNrSlUeMacSchedSapUser
-    /**
-     * \brief Method to communicate NR SL allocations from NR SL UE scheduler
-     * \param slotAllocList The slot allocation list passed by a specific
-     *        scheduler to NrSlUeMac
-     *
-     * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
-     */
-    void DoSchedUeNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList);
-
-    /**
-     * \brief Method through which the NR SL scheduler gets the total number of NR
-     * SL sub-channels
-     * \return the total number of NR SL sub-channels
-     */
-    uint8_t DoGetTotalSubCh() const;
-    /**
-     * \brief Method through which the NR SL scheduler gets the maximum
-     *        transmission number (including new transmission and retransmission)
-     *        for PSSCH.
-     *
-     * \return The max number of PSSCH transmissions
-     */
-    uint8_t DoGetSlMaxTxTransNumPssch() const;
-
     // forwarded from MemberNrSlUeMacCschedSapUser
     /**
      * \brief Send the confirmation about the successful configuration of LC
@@ -574,12 +556,6 @@ class NrSlUeMac : public NrUeMac
     std::list<NrSlSlotInfo> GetNrSupportedList(const SfnSf& sfn,
                                                std::list<NrSlCommResourcePool::SlotInfo> slotInfo);
     /**
-     * \brief Get the total number of subchannels based on the system UL bandwidth
-     * \param poolId The pool id of the active pool to retrieve the sub-channel size in RBs
-     * \return The total number of subchannels
-     */
-    uint8_t GetTotalSubCh(uint16_t poolId) const;
-    /**
      * \brief Get the random selection counter
      * \return The randomly selected reselection counter
      *
@@ -615,7 +591,6 @@ class NrSlUeMac : public NrUeMac
      *        scheduler to NrSlUeMac
      * \return The grant info for a destination based on the scheduler allocation
      *
-     * \see NrSlUeMacSchedSapUser::NrSlSlotAlloc
      * \see NrSlGrantInfo
      */
     NrSlGrantInfo CreateGrantInfo(const std::set<NrSlSlotAlloc>& params);
@@ -696,10 +671,8 @@ class NrSlUeMac : public NrUeMac
     std::map<SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters>
         m_nrSlBsrReceived;                                   ///< NR Sidelink BSR received from RLC
     uint16_t m_poolId{std::numeric_limits<uint16_t>::max()}; //!< Sidelink active pool id
-    NrSlUeMacSchedSapUser* m_nrSlUeMacSchedSapUser{nullptr}; //!< SAP user
     NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser{nullptr};         //!< SAP User
     NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider{nullptr}; //!< SAP Provider
-    NrSlUeMacSchedSapProvider* m_nrSlUeMacSchedSapProvider{nullptr};   //!< SAP Provider
     Time m_pRsvpTx{
         MilliSeconds(std::numeric_limits<uint8_t>::max())}; //!< Resource Reservation Interval for
                                                             //!< NR Sidelink in ms
