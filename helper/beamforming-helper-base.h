@@ -75,7 +75,7 @@ class BeamformingHelperBase : public Object
      * \brief This function runs the beamforming algorithm among the provided gNB and UE
      * device, and for a specified bwp index
      * \param gNbSpectrumPhy a pointer to SpectrumPhy of gNb device
-     * \param ueDev a pointer to SpectrumPhy of UE device
+     * \param ueSpectrumPhy a pointer to SpectrumPhy of UE device
      */
     virtual void RunTask(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                          const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const;
@@ -83,8 +83,8 @@ class BeamformingHelperBase : public Object
     /**
      * \brief Function that will call the configured algorithm for the specified devices and obtain
      * the beamforming vectors for each of them.
-     * \param gnbDev gNB device
-     * \param ueDev UE device
+     * \param gnbSpectrumPhy a pointer to SpectrumPhy of gNb device
+     * \param ueSpectrumPhy a pointer to SpectrumPhy of UE device
      * \return the pair of beamforming vectors, one corresponding to the gNB device, and one
      * corresponding to the UE device
      */
