@@ -7,7 +7,7 @@
 #ifndef NR_SL_UE_MAC_H
 #define NR_SL_UE_MAC_H
 
-#include "nr-sl-ue-mac-sched-sap.h"
+#include "nr-sl-phy-mac-common.h"
 #include "nr-sl-ue-mac-scheduler.h"
 #include "nr-sl-ue-phy-sap.h"
 #include "nr-ue-mac.h"
@@ -23,8 +23,6 @@
 namespace ns3
 {
 
-class NrSlUeMacCschedSapProvider;
-class NrSlUeMacCschedSapUser;
 class NrSlUeMacHarq;
 class NrSlUeMacScheduler;
 
@@ -48,8 +46,6 @@ class NrSlUeMac : public NrUeMac
     friend class MemberNrSlUeCmacSapProvider<NrSlUeMac>;
     /// allow MemberNrSlUePhySapUser<NrSlUeMac> class friend access
     friend class MemberNrSlUePhySapUser<NrSlUeMac>;
-    /// allow MemberNrSlUeMacCschedSapUser class friend access
-    friend class MemberNrSlUeMacCschedSapUser;
 
   public:
     /**
@@ -71,6 +67,15 @@ class NrSlUeMac : public NrUeMac
      * \param slotAllocList The slot allocation list from the scheduler
      */
     void SchedNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList);
+
+    // CSCHED API primitive for NR Sidelink
+    /**
+     * \brief Send the confirmation about the successful configuration of LC
+     *        to the UE MAC.
+     * \param lcg The logical group
+     * \param lcId The Logical Channel id
+     */
+    void CschedNrSlLcConfigCnf(uint8_t lcg, uint8_t lcId);
 
   public:
     /**
@@ -148,20 +153,6 @@ class NrSlUeMac : public NrUeMac
      *          UE MAC by UE PHY
      */
     void SetNrSlUePhySapProvider(NrSlUePhySapProvider* s);
-
-    /**
-     * \brief Set the NR Sidelik SAP for Csched primitives offered by the scheduler
-     *        to UE MAC.
-     * \param s pointer of type NrSlUeMacCschedSapProvider
-     */
-    void SetNrSlUeMacCschedSapProvider(NrSlUeMacCschedSapProvider* s);
-
-    /**
-     * \brief Get the NR Sidelik SAP for Csched primitives offered by the UE MAC
-     *        to the UE NR Sidelink scheduler
-     * \return the pointer of type NrSlUeMacCschedSapUser
-     */
-    NrSlUeMacCschedSapUser* GetNrSlUeMacCschedSapUser();
 
     /**
      * \brief Enable sensing for NR Sidelink resource selection
@@ -438,15 +429,6 @@ class NrSlUeMac : public NrUeMac
      */
     void DoReceiveSensingData(SensingData sensingData);
 
-    // forwarded from MemberNrSlUeMacCschedSapUser
-    /**
-     * \brief Send the confirmation about the successful configuration of LC
-     *        to the UE MAC.
-     * \param lcg The logical group
-     * \param lcId The Logical Channel id
-     */
-    void DoCschedUeNrSlLcConfigCnf(uint8_t lcg, uint8_t lcId);
-
   private:
     void DoSlotIndication(const SfnSf& sfn) override;
 
@@ -671,8 +653,6 @@ class NrSlUeMac : public NrUeMac
     std::map<SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters>
         m_nrSlBsrReceived;                                   ///< NR Sidelink BSR received from RLC
     uint16_t m_poolId{std::numeric_limits<uint16_t>::max()}; //!< Sidelink active pool id
-    NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser{nullptr};         //!< SAP User
-    NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider{nullptr}; //!< SAP Provider
     Time m_pRsvpTx{
         MilliSeconds(std::numeric_limits<uint8_t>::max())}; //!< Resource Reservation Interval for
                                                             //!< NR Sidelink in ms

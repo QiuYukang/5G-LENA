@@ -14,7 +14,7 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("NrSlUeMacSchedulerLCG");
 
 NrSlUeMacSchedulerLC::NrSlUeMacSchedulerLC(
-    const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& conf)
+    const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& conf)
 {
     m_id = conf.lcId;
     m_pqi = conf.pqi;
@@ -25,7 +25,8 @@ NrSlUeMacSchedulerLC::NrSlUeMacSchedulerLC(
 }
 
 int
-NrSlUeMacSchedulerLC::UpdateLC(const struct NrSlReportBufferStatusParams& params)
+NrSlUeMacSchedulerLC::UpdateLC(
+    const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
     NS_ASSERT(params.lcid == m_id);
 
@@ -80,7 +81,8 @@ NrSlUeMacSchedulerLCG::Insert(NrSlLCPtr&& lc)
 }
 
 void
-NrSlUeMacSchedulerLCG::UpdateInfo(const NrSlReportBufferStatusParams& params)
+NrSlUeMacSchedulerLCG::UpdateInfo(
+    const NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
     NS_ASSERT(Contains(params.lcid));
     int ret = m_lcMap.at(params.lcid)->UpdateLC(params);

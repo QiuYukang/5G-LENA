@@ -20,7 +20,6 @@
 #include "nr-sl-mac-pdu-tag.h"
 #include "nr-sl-sci-f1a-header.h"
 #include "nr-sl-sci-f2a-header.h"
-#include "nr-sl-ue-mac-csched-sap.h"
 #include "nr-sl-ue-mac-harq.h"
 #include "nr-sl-ue-mac-scheduler.h"
 
@@ -41,34 +40,8 @@ namespace ns3
 {
 
 NS_LOG_COMPONENT_DEFINE("NrSlUeMac");
+
 NS_OBJECT_ENSURE_REGISTERED(NrSlUeMac);
-
-///////////////////////////////////////////////////////////
-// SAP forwarders
-///////////////////////////////////////////////////////////
-
-class MemberNrSlUeMacCschedSapUser : public NrSlUeMacCschedSapUser
-{
-  public:
-    MemberNrSlUeMacCschedSapUser(NrSlUeMac* mac);
-    virtual void CschedUeNrSlLcConfigCnf(uint8_t lcg, uint8_t lcId);
-
-  private:
-    NrSlUeMac* m_mac;
-};
-
-MemberNrSlUeMacCschedSapUser::MemberNrSlUeMacCschedSapUser(NrSlUeMac* mac)
-    : m_mac(mac)
-{
-}
-
-void
-MemberNrSlUeMacCschedSapUser::CschedUeNrSlLcConfigCnf(uint8_t lcg, uint8_t lcId)
-{
-    m_mac->DoCschedUeNrSlLcConfigCnf(lcg, lcId);
-}
-
-//-----------------------------------------------------------------------
 
 TypeId
 NrSlUeMac::GetTypeId()
@@ -165,7 +138,6 @@ NrSlUeMac::NrSlUeMac()
     m_nrSlMacSapProvider = new MemberNrSlMacSapProvider<NrSlUeMac>(this);
     m_nrSlUeCmacSapProvider = new MemberNrSlUeCmacSapProvider<NrSlUeMac>(this);
     m_nrSlUePhySapUser = new MemberNrSlUePhySapUser<NrSlUeMac>(this);
-    m_nrSlUeMacCschedSapUser = new MemberNrSlUeMacCschedSapUser(this);
     m_ueSelectedUniformVariable = CreateObject<UniformRandomVariable>();
     m_nrSlHarq = CreateObject<NrSlUeMacHarq>();
 }
@@ -202,7 +174,6 @@ NrSlUeMac::DoDispose()
     delete m_nrSlMacSapProvider;
     delete m_nrSlUeCmacSapProvider;
     delete m_nrSlUePhySapUser;
-    delete m_nrSlUeMacCschedSapUser;
     if (m_nrSlHarq)
     {
         m_nrSlHarq->Dispose();
@@ -1200,20 +1171,6 @@ NrSlUeMac::SetNrSlUePhySapProvider(NrSlUePhySapProvider* s)
 }
 
 void
-NrSlUeMac::SetNrSlUeMacCschedSapProvider(NrSlUeMacCschedSapProvider* s)
-{
-    NS_LOG_FUNCTION(this);
-    m_nrSlUeMacCschedSapProvider = s;
-}
-
-NrSlUeMacCschedSapUser*
-NrSlUeMac::GetNrSlUeMacCschedSapUser()
-{
-    NS_LOG_FUNCTION(this);
-    return m_nrSlUeMacCschedSapUser;
-}
-
-void
 NrSlUeMac::DoTransmitNrSlRlcPdu(const NrSlMacSapProvider::NrSlRlcPduParameters& params)
 {
     NS_LOG_FUNCTION(this << +params.lcid << +params.harqProcessId);
@@ -1253,17 +1210,7 @@ NrSlUeMac::DoReportNrSlBufferStatus(
         m_nrSlBsrReceived.insert(std::make_pair(slLcId, params));
     }
 
-    auto report = NrSlReportBufferStatusParams(params.rnti,
-                                               params.lcid,
-                                               params.txQueueSize,
-                                               params.txQueueHolDelay,
-                                               params.retxQueueSize,
-                                               params.retxQueueHolDelay,
-                                               params.statusPduSize,
-                                               params.srcL2Id,
-                                               params.dstL2Id);
-
-    m_nrSlUeMacScheduler->SchedNrSlRlcBufferReq(report);
+    m_nrSlUeMacScheduler->SchedNrSlRlcBufferReq(params);
 }
 
 void
@@ -1285,22 +1232,13 @@ NrSlUeMac::DoAddNrSlLc(const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& 
     slLcInfoUeMac.macSapUser = msu;
     m_nrSlLcInfoMap.insert(std::make_pair(slLcIdentifier, slLcInfoUeMac));
 
-    auto lcInfo = NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo(slLcInfo.dstL2Id,
-                                                                         slLcInfo.lcId,
-                                                                         slLcInfo.lcGroup,
-                                                                         slLcInfo.pqi,
-                                                                         slLcInfo.priority,
-                                                                         slLcInfo.isGbr,
-                                                                         slLcInfo.mbr,
-                                                                         slLcInfo.gbr);
-
     // Following if is needed because this method is called for both
     // TX and RX LCs addition into m_nrSlLcInfoMap. In case of RX LC, the
     // destination is this UE MAC.
     if (slLcInfo.srcL2Id == m_srcL2Id)
     {
         NS_LOG_DEBUG("UE MAC with src id " << m_srcL2Id << " giving info of LC to the scheduler");
-        m_nrSlUeMacCschedSapProvider->CschedUeNrSlLcConfigReq(lcInfo);
+        m_nrSlUeMacScheduler->CschedNrSlLcConfigReq(slLcInfo);
         AddNrSlDstL2Id(slLcInfo.dstL2Id, slLcInfo.priority);
     }
 }
@@ -1444,7 +1382,7 @@ NrSlUeMac::GetSlMaxTxTransNumPssch() const
 }
 
 void
-NrSlUeMac::DoCschedUeNrSlLcConfigCnf(uint8_t lcg, uint8_t lcId)
+NrSlUeMac::CschedNrSlLcConfigCnf(uint8_t lcg, uint8_t lcId)
 {
     NS_LOG_FUNCTION(this << +lcg << +lcId);
     NS_LOG_INFO("SL UE scheduler successfully added LCG " << +lcg << " LC id " << +lcId);

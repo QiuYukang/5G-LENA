@@ -47,41 +47,6 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
     virtual ~NrSlUeMacSchedulerNs3();
 
     /**
-     * \brief Send the NR Sidelink logical channel configuration from UE MAC to the UE scheduler
-     *
-     * This method is also responsible to create the destination info.
-     *
-     * \see CreateDstInfo
-     * \see CreateLCG
-     * \see CreateLc
-     *
-     * \param params The NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo struct
-     */
-    virtual void DoCschedUeNrSlLcConfigReq(
-        const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) override;
-
-    /**
-     * \brief UE RLC informs the scheduler of NR SL data
-     *
-     * The message contains the LC and the amount of data buffered. Therefore,
-     * in this method we cycle through all the destinations LCG to find the LC, and once
-     * it is found, it is updated with the new amount of data.
-     *
-     * \param params The buffer status report from UE RLC
-
-     */
-    virtual void DoSchedUeNrSlRlcBufferReq(
-        const struct NrSlReportBufferStatusParams& params) override;
-    /**
-     * \brief Send NR Sidleink trigger request from UE MAC to the UE scheduler
-     *
-     * \param dstL2Id The destination layer 2 id
-     * \param params The list of NrSlSlotInfo
-     */
-    virtual void DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
-                                         const std::list<NrSlSlotInfo>& params) override;
-
-    /**
      * \brief Install the AMC for the NR Sidelink
      *
      * Usually called by the helper
@@ -184,7 +149,11 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
   private:
     // Implementation of SCHED API primitives for NR Sidelink
     void DoSchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params) override;
-    void DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) override;
+    void DoSchedNrSlRlcBufferReq(
+        const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params) override;
+    // Implementation of CSCHED API primitives for NR Sidelink
+    void DoCschedNrSlLcConfigReq(
+        const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) override;
 
     /**
      * \brief Create destination info
@@ -200,7 +169,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
      * \return A std::shared_ptr to newly created NrSlUeMacSchedulerDstInfo
      */
     std::shared_ptr<NrSlUeMacSchedulerDstInfo> CreateDstInfo(
-        const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params);
+        const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params);
 
     /**
      * \brief Create a NR Sidelink logical channel group
@@ -225,7 +194,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
      * \return a pointer to the representation of a logical channel
      */
 
-    NrSlLCPtr CreateLC(const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) const;
+    NrSlLCPtr CreateLC(const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) const;
 
     std::unordered_map<uint32_t, std::shared_ptr<NrSlUeMacSchedulerDstInfo>>
         m_dstMap; //!< The map of between destination layer 2 id and the destination info

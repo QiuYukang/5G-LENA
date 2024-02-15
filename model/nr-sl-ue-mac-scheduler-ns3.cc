@@ -58,8 +58,8 @@ NrSlUeMacSchedulerNs3::~NrSlUeMacSchedulerNs3()
 }
 
 void
-NrSlUeMacSchedulerNs3::DoCschedUeNrSlLcConfigReq(
-    const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params)
+NrSlUeMacSchedulerNs3::DoCschedNrSlLcConfigReq(
+    const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params)
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << +params.lcId);
 
@@ -78,12 +78,12 @@ NrSlUeMacSchedulerNs3::DoCschedUeNrSlLcConfigReq(
     itLcg->second->Insert(CreateLC(params));
     NS_LOG_INFO("Added LC id " << +params.lcId << " in LCG " << +params.lcGroup);
     // send confirmation to UE MAC
-    m_nrSlUeMacCschedSapUser->CschedUeNrSlLcConfigCnf(params.lcGroup, params.lcId);
+    GetNrSlUeMac()->CschedNrSlLcConfigCnf(params.lcGroup, params.lcId);
 }
 
 std::shared_ptr<NrSlUeMacSchedulerDstInfo>
 NrSlUeMacSchedulerNs3::CreateDstInfo(
-    const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params)
+    const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params)
 {
     std::shared_ptr<NrSlUeMacSchedulerDstInfo> dstInfo = nullptr;
     auto itDst = m_dstMap.find(params.dstL2Id);
@@ -115,14 +115,15 @@ NrSlUeMacSchedulerNs3::CreateLCG(uint8_t lcGroup) const
 
 NrSlLCPtr
 NrSlUeMacSchedulerNs3::CreateLC(
-    const NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) const
+    const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) const
 {
     NS_LOG_FUNCTION(this);
     return std::unique_ptr<NrSlUeMacSchedulerLC>(new NrSlUeMacSchedulerLC(params));
 }
 
 void
-NrSlUeMacSchedulerNs3::DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
+NrSlUeMacSchedulerNs3::DoSchedNrSlRlcBufferReq(
+    const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << static_cast<uint32_t>(params.lcid));
 
@@ -134,8 +135,14 @@ NrSlUeMacSchedulerNs3::DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStat
     {
         if (lcg.second->Contains(params.lcid))
         {
-            NS_LOG_INFO("Updating NR SL LC Info: " << params << " in LCG: "
-                                                   << static_cast<uint32_t>(lcg.first));
+            NS_LOG_INFO(
+                "Updating NR SL LC Info: "
+                << "RNTI: " << params.rnti << " LCId: " << +params.lcid << " RLCTxQueueSize: "
+                << params.txQueueSize << " B, RLCTXHolDel: " << params.txQueueHolDelay
+                << " ms, RLCReTXQueueSize: " << params.retxQueueSize << " B, RLCReTXHolDel: "
+                << params.retxQueueHolDelay << " ms, RLCStatusPduSize: " << params.statusPduSize
+                << " B, source layer 2 id: " << params.srcL2Id << ", destination layer 2 id "
+                << params.dstL2Id << " in LCG: " << +lcg.first);
             lcg.second->UpdateInfo(params);
             return;
         }
@@ -146,49 +153,6 @@ NrSlUeMacSchedulerNs3::DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStat
 void
 NrSlUeMacSchedulerNs3::DoSchedNrSlTriggerReq(uint32_t dstL2Id,
                                              const std::list<NrSlSlotInfo>& params)
-{
-    NS_LOG_FUNCTION(this << dstL2Id);
-
-    const auto itDst = m_dstMap.find(dstL2Id);
-    NS_ABORT_MSG_IF(itDst == m_dstMap.end(), "Destination " << dstL2Id << "info not found");
-
-    std::set<NrSlSlotAlloc> allocList;
-
-    bool allocated = DoNrSlAllocation(params, itDst->second, allocList);
-
-    if (!allocated)
-    {
-        return;
-    }
-    GetNrSlUeMac()->SchedNrSlConfigInd(allocList);
-}
-
-void
-NrSlUeMacSchedulerNs3::DoSchedUeNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
-{
-    NS_LOG_FUNCTION(this << params.dstL2Id << static_cast<uint32_t>(params.lcid));
-
-    GetSecond DstInfoOf;
-    auto itDst = m_dstMap.find(params.dstL2Id);
-    NS_ABORT_MSG_IF(itDst == m_dstMap.end(), "Destination " << params.dstL2Id << " info not found");
-
-    for (const auto& lcg : DstInfoOf(*itDst)->GetNrSlLCG())
-    {
-        if (lcg.second->Contains(params.lcid))
-        {
-            NS_LOG_INFO("Updating NR SL LC Info: " << params << " in LCG: "
-                                                   << static_cast<uint32_t>(lcg.first));
-            lcg.second->UpdateInfo(params);
-            return;
-        }
-    }
-    // Fail miserably because we didn't find any LC
-    NS_FATAL_ERROR("The LC does not exist. Can't update");
-}
-
-void
-NrSlUeMacSchedulerNs3::DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
-                                               const std::list<NrSlSlotInfo>& params)
 {
     NS_LOG_FUNCTION(this << dstL2Id);
 

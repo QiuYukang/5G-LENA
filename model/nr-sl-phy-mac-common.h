@@ -167,6 +167,84 @@ struct SlRlcPduInfo
 };
 
 /**
+ * \brief NR Sidelink slot info.
+ */
+struct NrSlSlotInfo
+{
+    /**
+     * \brief NrSlSlotInfo constructor
+     *
+     * \param numSlPscchRbs Indicates the number of PRBs for PSCCH in a resource pool where it
+     * is not greater than the number PRBs of the subchannel. \param slPscchSymStart Indicates
+     * the starting symbol used for sidelink PSCCH in a slot \param slPscchSymLength Indicates
+     * the total number of symbols available for sidelink PSCCH \param slPsschSymStart Indicates
+     * the starting symbol used for sidelink PSSCH in a slot \param slPsschSymLength Indicates
+     * the total number of symbols available for sidelink PSSCH \param slSubchannelSize
+     * Indicates the subchannel size in number of RBs \param slMaxNumPerReserve Indicates the
+     * maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI. \param
+     * sfn The SfnSf \param occupiedSbCh The set of occupied subchannel indexes (variable only
+     * used by UE MAC sensing code)
+     */
+    NrSlSlotInfo(uint16_t numSlPscchRbs,
+                 uint16_t slPscchSymStart,
+                 uint16_t slPscchSymLength,
+                 uint16_t slPsschSymStart,
+                 uint16_t slPsschSymLength,
+                 uint16_t slSubchannelSize,
+                 uint16_t slMaxNumPerReserve,
+                 SfnSf sfn,
+                 std::set<uint8_t> occupiedSbCh)
+    {
+        this->numSlPscchRbs = numSlPscchRbs;
+        this->slPscchSymStart = slPscchSymStart;
+        this->slPscchSymLength = slPscchSymLength;
+        this->slPsschSymStart = slPsschSymStart;
+        this->slPsschSymLength = slPsschSymLength;
+        this->slSubchannelSize = slSubchannelSize;
+        this->slMaxNumPerReserve = slMaxNumPerReserve;
+        this->sfn = sfn;
+        this->occupiedSbCh = occupiedSbCh;
+    }
+
+    // PSCCH
+    uint16_t numSlPscchRbs{0}; //!< Indicates the number of PRBs for PSCCH in a resource pool where
+                               //!< it is not greater than the number PRBs of the subchannel.
+    uint16_t slPscchSymStart{
+        std::numeric_limits<uint16_t>::max()}; //!< Indicates the starting symbol used for
+                                               //!< sidelink PSCCH in a slot
+    uint16_t slPscchSymLength{
+        std::numeric_limits<uint16_t>::max()}; //!< Indicates the total number of symbols
+                                               //!< available for sidelink PSCCH
+    // PSSCH
+    uint16_t slPsschSymStart{
+        std::numeric_limits<uint16_t>::max()}; //!< Indicates the starting symbol used for
+                                               //!< sidelink PSSCH in a slot
+    uint16_t slPsschSymLength{
+        std::numeric_limits<uint16_t>::max()}; //!< Indicates the total number of symbols
+                                               //!< available for sidelink PSSCH
+    // subchannel size in RBs
+    uint16_t slSubchannelSize{std::numeric_limits<uint16_t>::max()}; //!< Indicates the subchannel
+                                                                     //!< size in number of RBs
+    uint16_t slMaxNumPerReserve{
+        std::numeric_limits<uint16_t>::max()}; //!< The maximum number of reserved PSCCH/PSSCH
+                                               //!< resources that can be indicated by an SCI.
+    SfnSf sfn{};                               //!< The SfnSf
+    // occupiedSbCh set is filled by the UE MAC before
+    // giving the available candidate slots to the scheduler
+    std::set<uint8_t> occupiedSbCh; //!< The set of occupied subchannel indexes (variable only
+                                    //!< used by UE MAC sensing code)
+
+    /**
+     * \brief operator < (less than)
+     * \param rhs other NrSlSlotInfo to compare
+     * \return true if this NrSlSlotInfo is less than rhs
+     *
+     * The comparison is done on sfnSf
+     */
+    bool operator<(const NrSlSlotInfo& rhs) const;
+};
+
+/**
  * \ingroup utils
  * \brief A struct used by the NR SL UE MAC scheduler to communicate slot
  *        allocation to UE MAC.

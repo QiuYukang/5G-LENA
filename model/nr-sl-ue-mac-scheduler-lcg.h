@@ -7,9 +7,10 @@
 #ifndef NR_SL_UE_MAC_SCHEDULER_LCG_H
 #define NR_SL_UE_MAC_SCHEDULER_LCG_H
 
-#include "nr-sl-ue-mac-csched-sap.h"
-#include "nr-sl-ue-mac-sched-sap.h"
+#include "nr-sl-phy-mac-common.h"
 
+#include <ns3/nr-sl-mac-sap.h>
+#include <ns3/nr-sl-ue-cmac-sap.h>
 #include <ns3/nstime.h>
 
 #include <memory>
@@ -38,7 +39,7 @@ class NrSlUeMacSchedulerLC
      *
      * \param conf Configuration of the LC
      */
-    NrSlUeMacSchedulerLC(const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& conf);
+    NrSlUeMacSchedulerLC(const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& conf);
 
     /**
      * \brief NrSlUeMacSchedulerLC copy constructor (deleted)
@@ -58,7 +59,7 @@ class NrSlUeMacSchedulerLC
      * \param params the message received from the RLC layer, containing the information about the
      * queues \return Number of bytes added or removed from the LC
      */
-    int UpdateLC(const struct NrSlReportBufferStatusParams& params);
+    int UpdateLC(const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params);
 
     /**
      * \brief Get the total queue size of the LC
@@ -162,7 +163,7 @@ class NrSlUeMacSchedulerLCG
      *
      * A call to NrSlUeMacSchedulerLC::UpdateLc is performed.
      */
-    void UpdateInfo(const NrSlReportBufferStatusParams& params);
+    void UpdateInfo(const NrSlMacSapProvider::NrSlReportBufferStatusParameters& params);
 
     /**
      * \brief Get the total size of the queue of all the LCs of the LCG

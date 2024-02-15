@@ -26,15 +26,12 @@ NrSlUeMacScheduler::GetTypeId(void)
 
 NrSlUeMacScheduler::NrSlUeMacScheduler()
 {
-    NS_LOG_FUNCTION_NOARGS();
-    m_nrSlUeMacCschedSapProvider = new NrSlUeMacGeneralCschedSapProvider(this);
+    NS_LOG_FUNCTION(this);
 }
 
 NrSlUeMacScheduler::~NrSlUeMacScheduler()
 {
-    NS_LOG_FUNCTION_NOARGS();
-    delete m_nrSlUeMacCschedSapProvider;
-    m_nrSlUeMacCschedSapProvider = nullptr;
+    NS_LOG_FUNCTION(this);
 }
 
 void
@@ -51,9 +48,17 @@ NrSlUeMacScheduler::SchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSl
 }
 
 void
-NrSlUeMacScheduler::SchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params)
+NrSlUeMacScheduler::SchedNrSlRlcBufferReq(
+    const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
     DoSchedNrSlRlcBufferReq(params);
+}
+
+void
+NrSlUeMacScheduler::CschedNrSlLcConfigReq(
+    const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params)
+{
+    DoCschedNrSlLcConfigReq(params);
 }
 
 void
@@ -66,31 +71,6 @@ Ptr<NrSlUeMac>
 NrSlUeMacScheduler::GetNrSlUeMac() const
 {
     return m_nrSlUeMac;
-}
-
-void
-NrSlUeMacScheduler::SetNrSlUeMacCschedSapUser(NrSlUeMacCschedSapUser* sap)
-{
-    m_nrSlUeMacCschedSapUser = sap;
-}
-
-NrSlUeMacCschedSapProvider*
-NrSlUeMacScheduler::GetNrSlUeMacCschedSapProvider()
-{
-    return m_nrSlUeMacCschedSapProvider;
-}
-
-// CSCHED API primitives for NR Sidelink
-NrSlUeMacGeneralCschedSapProvider::NrSlUeMacGeneralCschedSapProvider(NrSlUeMacScheduler* scheduler)
-    : m_scheduler(scheduler)
-{
-}
-
-void
-NrSlUeMacGeneralCschedSapProvider::CschedUeNrSlLcConfigReq(
-    const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params)
-{
-    m_scheduler->DoCschedUeNrSlLcConfigReq(params);
 }
 
 } // namespace ns3

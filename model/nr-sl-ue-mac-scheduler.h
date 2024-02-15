@@ -7,9 +7,10 @@
 #ifndef NR_SL_UE_MAC_SCHEDULER_H
 #define NR_SL_UE_MAC_SCHEDULER_H
 
-#include "nr-sl-ue-mac-csched-sap.h"
-#include "nr-sl-ue-mac-sched-sap.h"
+#include "nr-sl-phy-mac-common.h"
 
+#include <ns3/nr-sl-mac-sap.h>
+#include <ns3/nr-sl-ue-cmac-sap.h>
 #include <ns3/object.h>
 
 namespace ns3
@@ -35,29 +36,6 @@ class NrSlUeMacScheduler : public Object
     NrSlUeMacScheduler();
     ~NrSlUeMacScheduler() override;
 
-    /**
-     * \brief SetNrSlUeMacCschedSapUser
-     * \param sap the pointer to the NR Sidelink UE MAC sap user
-     */
-    void SetNrSlUeMacCschedSapUser(NrSlUeMacCschedSapUser* sap);
-
-    /**
-     * \brief Get the MacCschedSapProvider pointer
-     * \return the pointer to the sap provider
-     */
-    NrSlUeMacCschedSapProvider* GetNrSlUeMacCschedSapProvider();
-
-    //
-    // Implementation of the CSCHED API primitives for NR Sidelink
-    //
-    /**
-     * \brief Send the NR Sidelink logical channel configuration from UE MAC to the UE scheduler
-     *
-     * \param params NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo
-     */
-    virtual void DoCschedUeNrSlLcConfigReq(
-        const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) = 0;
-
     //
     // SCHED API primitives for NR Sidelink
     // From FAPI 2.0.0 Small Cell Forum originated LTE MAC scheduler API
@@ -77,22 +55,17 @@ class NrSlUeMacScheduler : public Object
      *
      * \param params Buffer status information
      */
-    void SchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params);
+    void SchedNrSlRlcBufferReq(
+        const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params);
 
+    // CSCHED API primitives for NR Sidelink
     /**
-     * \brief Send NR Sidelink RLC buffer status report from UE MAC to the UE scheduler
+     * \brief Send the NR Sidelink logical channel configuration from UE MAC to the UE scheduler
      *
-     * \param params NrSlReportBufferStatusParams
+     * \param params SL logical channel parameters
      */
-    virtual void DoSchedUeNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) = 0;
-    /**
-     * \brief Send NR Sidleink trigger request from UE MAC to the UE scheduler
-     *
-     * \param dstL2Id The destination layer 2 id
-     * \param params NrSlSlotInfo
-     */
-    virtual void DoSchedUeNrSlTriggerReq(uint32_t dstL2Id,
-                                         const std::list<NrSlSlotInfo>& params) = 0;
+    void CschedNrSlLcConfigReq(
+        const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params);
 
     /**
      * Assign a fixed random variable stream number to the random variables
@@ -119,8 +92,6 @@ class NrSlUeMacScheduler : public Object
   protected:
     void DoDispose() override;
 
-    NrSlUeMacCschedSapUser* m_nrSlUeMacCschedSapUser{nullptr};         //!< SAP User
-    NrSlUeMacCschedSapProvider* m_nrSlUeMacCschedSapProvider{nullptr}; //!< SAP Provider
   private:
     // Implementation of SCHED API primitives for NR Sidelink
     /**
@@ -137,33 +108,18 @@ class NrSlUeMacScheduler : public Object
      *
      * \param params Buffer status information
      */
-    virtual void DoSchedNrSlRlcBufferReq(const struct NrSlReportBufferStatusParams& params) = 0;
+    virtual void DoSchedNrSlRlcBufferReq(
+        const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params) = 0;
+    // Implementation of CSCHED API primitives for NR Sidelink
+    /**
+     * \brief Send the NR Sidelink logical channel configuration from UE MAC to the UE scheduler
+     *
+     * \param params SL logical channel parameters
+     */
+    virtual void DoCschedNrSlLcConfigReq(
+        const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) = 0;
 
     Ptr<NrSlUeMac> m_nrSlUeMac; //!< Pointer to NrSlUeMac instance
-};
-
-/**
- * \ingroup scheduler
- * \brief Class implementing the NrSlUeMacCschedSapProvider methods
- */
-class NrSlUeMacGeneralCschedSapProvider : public NrSlUeMacCschedSapProvider
-{
-  public:
-    /**
-     * \brief constructor
-     * \param scheduler The pointer the NrSlUeMacScheduler API using this SAP
-     */
-    NrSlUeMacGeneralCschedSapProvider(NrSlUeMacScheduler* scheduler);
-
-    ~NrSlUeMacGeneralCschedSapProvider() = default;
-
-    // inherited from NrSlUeMacCschedSapProvider
-
-    virtual void CschedUeNrSlLcConfigReq(
-        const struct NrSlUeMacCschedSapProvider::SidelinkLogicalChannelInfo& params) override;
-
-  private:
-    NrSlUeMacScheduler* m_scheduler{nullptr}; //!< pointer to the scheduler API using this SAP
 };
 
 } // namespace ns3
