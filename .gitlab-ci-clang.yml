@@ -63,24 +63,27 @@
     COMPILER: clang++-$CLANG
     LIBGSL: libgsl27
 
-# CLANG 10
+# CLANG 10 (eigen 3.3.7 ships with a now deprecated enum conversion)
 weekly-build-clang-10-debug:
   extends: .weekly-build-clang-ubuntu20.04
   variables:
     CLANG: 10
     MODE: debug
+    FLAGS: -Wno-deprecated-anon-enum-enum-conversion
 
 weekly-build-clang-10-default:
   extends: .weekly-build-clang-ubuntu20.04
   variables:
     CLANG: 10
     MODE: default
+    FLAGS: -Wno-deprecated-anon-enum-enum-conversion
 
 weekly-build-clang-10-optimized:
   extends: .weekly-build-clang-ubuntu20.04
   variables:
     CLANG: 10
     MODE: optimized
+    FLAGS: -Wno-deprecated-anon-enum-enum-conversion
 
 # CLANG 11
 weekly-build-clang-11-debug:
