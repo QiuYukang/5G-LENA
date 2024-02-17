@@ -2,7 +2,7 @@
 
 // Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-2.0-only AND NIST-Software
 
 /*
  * Author: Nicola Baldo <nbaldo@cttc.es>
