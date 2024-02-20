@@ -17,7 +17,7 @@ simulator, on top of which can be added our NR module as plug-in.
 
 ### ns-3 prerequisites:
 
-Make sure to install all [ns-3 prerequisites](https://www.nsnam.org/docs/installation/html/index.html)
+Make sure to install all [ns-3 prerequisites](https://www.nsnam.org/docs/installation/html/quick-start.html#prerequisites)
 
 ### NR prerequisites:
 
@@ -28,13 +28,22 @@ package name is:
 sudo apt-get install libc6-dev
 ```
 
-Install sqlite:
+Install sqlite (enables optional examples `lena-lte-comparison`,
+`cttc-nr-3gpp-calibration` and `cttc-realistic-beamforming`):
 
 ```
 apt-get install sqlite sqlite3 libsqlite3-dev
 ```
 
-Notice that ns-3 and nr prerequisites are required (otherwise you will get an error, e.g: `fatal error: ns3/sqlite-output.h`).
+Install eigen3 (enables optional MIMO features):
+
+```
+apt-get install libeigen3-dev
+```
+
+Notice that ns-3 and nr prerequisites are required to use all nr features.
+Otherwise, you will get a warning at configuration time
+and/or an error message during compilation or execution.
 
 ## ns-3 + nr installation
 
