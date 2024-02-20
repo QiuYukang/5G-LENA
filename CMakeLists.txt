@@ -292,6 +292,9 @@ if(${ENABLE_EIGEN})
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
   )
 else()
+  message(
+    WARNING "nr MIMO features require the eigen3 library, but it was not found"
+  )
   target_sources(
     libnr
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
