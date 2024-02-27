@@ -60,12 +60,12 @@ directory will be listed as "Untracked files". This is normal.
 
 Checkout the latest NR release branch (usually the branch with the highest version
 number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
-For example, if `5g-lena-v2x-v0.3.y` is the latest release branch you can check it out
+For example, if `5g-lena-v2x-v0.4.y` is the latest release branch you can check it out
 in the following way:
 
 ```
 cd nr
-git checkout 5g-lena-v2x-v0.3.y
+git checkout 5g-lena-v2x-v0.4.y
 ```
 
 ### 4. Switch to the recommended ns-3 release branch that includes V2X extensions:
@@ -86,14 +86,15 @@ To check out the correct tag, consult the following table:
 | 5g-lena-v2x-v0.1.y | ns-3-dev-v2x-v0.1 | waf | ns-3.35 |
 | 5g-lena-v2x-v0.2.y | ns-3-dev-v2x-v0.2 | cmake | ns-3.36 |
 | 5g-lena-v2x-v0.3.y | ns-3-dev-v2x-v0.3 | cmake | ns-3.40 |
+| 5g-lena-v2x-v0.4.y | ns-3-dev-v2x-v0.4 | cmake | ns-3.41 |
 
-For example, for NR relase branch called 5g-lena-v2x-v0.3.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.3.
+For example, for NR release branch called 5g-lena-v2x-v0.4.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.4.
 (To see the list of available ns-3 v2x release tags you can run: `git tag -l "*v2x*"`)
 
 To check out the git tag run:
 
 ```
-git checkout ns-3-dev-v2x-v0.3
+git checkout ns-3-dev-v2x-v0.4
 ```
 
 Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK.
