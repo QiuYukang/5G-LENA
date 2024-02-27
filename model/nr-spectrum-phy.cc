@@ -1228,7 +1228,9 @@ NrSpectrumPhy::EndTx()
 
     // In case of OFDMA DL, this function will be called multiple times, after each transmission to
     // a different UE. In the first call to this function, m_state is changed to IDLE.
-    NS_ASSERT(m_state == TX);
+    NS_ASSERT_MSG(m_state == TX, "In EndTx() but state is not TX; state: " << m_state);
+    NS_LOG_DEBUG("Number of active transmissions (before decrement): " << m_activeTransmissions);
+    NS_ASSERT_MSG(m_activeTransmissions, "Ending Tx but no active transmissions");
     m_activeTransmissions--;
 
     // change to BUSY or IDLE mode when this is the end of the last transmission
