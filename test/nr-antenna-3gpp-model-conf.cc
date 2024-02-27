@@ -495,7 +495,7 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite()
 
                         ss << " , UE number of antennas:" << (unsigned)n;
 
-                        if (oaaGnb == true)
+                        if (oaaGnb)
                         {
                             ss << " , gNB antenna element type: omni";
                         }
@@ -504,7 +504,7 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite()
                             ss << " , gNB antenna element type: 3gpp";
                         }
 
-                        if (oaaUe == true)
+                        if (oaaUe)
                         {
                             ss << " , UE antenna element type: omni";
                         }

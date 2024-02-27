@@ -59,7 +59,7 @@ main(int argc, char* argv[])
     cmd.AddValue("nrConfigurationScenario",
                  "The NR calibration scenario string. Choose among:"
                  "DenseA, DenseB, RuralA, RuralB"
-                 "This variable must be set when calibrationConf is choosen",
+                 "This variable must be set when calibrationConf is chosen",
                  params.nrConfigurationScenario);
     cmd.AddValue("scenario",
                  "The urban scenario string (UMa, RMa, UMi_StreeCanyon)",
@@ -260,7 +260,7 @@ main(int argc, char* argv[])
     cmd.Parse(argc, argv);
     params.Validate();
 
-    // in case calibrationConf is choosen, it sets the parameters of one
+    // in case calibrationConf is chosen, it sets the parameters of one
     // of the NR pre-defined scenarios
 
     if (params.confType == "calibrationConf")

@@ -625,7 +625,7 @@ TrafficGeneratorThreeGppHttpTestCase::DoRun()
     NS_TEST_ASSERT_MSG_EQ_TOL(avgNumEmbObjects,
                               5.64,
                               5.64 * 0.1,
-                              "The mean number of embbeded objects per page is not according to "
+                              "The mean number of embedded objects per page is not according to "
                               "the 3GPP."); // 10% tolerance used because of the quantization used
                                             // for the number of embedded objects
     NS_TEST_ASSERT_MSG_EQ_TOL(avgObjectSize,
@@ -657,9 +657,9 @@ TrafficGeneratorTestSuite::TrafficGeneratorTestSuite()
 
     std::list<std::string> transportProtocols = {"ns3::UdpSocketFactory", "ns3::TcpSocketFactory"};
 
-    for (auto trafficGeneratorType : trafficGeneratorTypes)
+    for (const auto& trafficGeneratorType : trafficGeneratorTypes)
     {
-        for (auto transportProtocol : transportProtocols)
+        for (const auto& transportProtocol : transportProtocols)
         {
             std::string name = trafficGeneratorType.GetName() + " and " + transportProtocol;
             AddTestCase(new TrafficGeneratorTestCase(name, trafficGeneratorType, transportProtocol),

@@ -186,7 +186,7 @@ class V2xKpi
          * \param r another instance
          * \return true if this and r are equal, false otherwise
          */
-        bool operator==(const PsschTxData& r)
+        bool operator==(const PsschTxData& r) const
         {
             return (this->frame == r.frame && this->subFrame == r.subFrame &&
                     this->slot == r.slot &&
@@ -260,7 +260,7 @@ class V2xKpi
      *
      * \see SetTxAppDuration
      */
-    double ComputeThput(std::vector<PktTxRxData> data);
+    double ComputeThput(std::vector<PktTxRxData> data) const;
     /**
      * \brief Get the total transmitted packets by a transmitter
      * \param srcIpAddrs The IP of the transmitter

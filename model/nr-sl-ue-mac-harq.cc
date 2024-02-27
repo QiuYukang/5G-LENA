@@ -17,7 +17,7 @@ NS_LOG_COMPONENT_DEFINE("NrSlUeMacHarq");
 NS_OBJECT_ENSURE_REGISTERED(NrSlUeMacHarq);
 
 TypeId
-NrSlUeMacHarq::GetTypeId(void)
+NrSlUeMacHarq::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrSlUeMacHarq")
                             .SetParent<Object>()
@@ -52,7 +52,7 @@ NrSlUeMacHarq::InitHarqBuffer(uint8_t maxSlProcesses)
 {
     NS_LOG_FUNCTION(this << +maxSlProcesses);
 
-    NS_ASSERT_MSG(m_nrSlHarqIdBuffer.size() == 0 && m_nrSlHarqPktBuffer.size() == 0,
+    NS_ASSERT_MSG(m_nrSlHarqIdBuffer.empty() && m_nrSlHarqPktBuffer.empty(),
                   "HARQ buffers not empty. Can not initialize.");
 
     m_nrSlHarqIdBuffer.resize(maxSlProcesses);

@@ -66,7 +66,7 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::GetMaxDistance() const
     return m_maxDistance;
 }
 
-Ptr<SpectrumValue>
+Ptr<SpectrumSignalParameters>
 DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
     Ptr<const SpectrumSignalParameters> params,
     Ptr<const MobilityModel> a,
@@ -78,14 +78,14 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
     uint32_t aId = a->GetObject<Node>()->GetId(); // id of the node a
     uint32_t bId = b->GetObject<Node>()->GetId(); // id of the node b
 
-    Ptr<SpectrumValue> rxPsd = Copy<SpectrumValue>(params->psd);
+    Ptr<SpectrumSignalParameters> rxParams = Copy<SpectrumSignalParameters>(params);
     if (a->GetDistanceFrom(b) > m_maxDistance)
     {
         NS_LOG_LOGIC("Distance between a: "
                      << aId << "and  node b: " << bId
                      << " is higher than max allowed distance. Return 0 PSD.");
-        *rxPsd = 0.0;
-        return rxPsd;
+        *(rxParams->psd) = 0.0;
+        return rxParams;
     }
     else
     {
@@ -97,7 +97,7 @@ DistanceBasedThreeGppSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
             bPhasedArrayModel);
     }
 
-    return rxPsd;
+    return rxParams;
 }
 
 } // namespace ns3

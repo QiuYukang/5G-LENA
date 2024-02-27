@@ -192,7 +192,7 @@ V2xKpi::SaveAvrgPir()
                        "SEED INTEGER NOT NULL,"
                        "RUN INTEGER NOT NULL"
                        ");");
-    int rc = sqlite3_exec(m_db, cmd.c_str(), NULL, NULL, NULL);
+    int rc = sqlite3_exec(m_db, cmd.c_str(), nullptr, nullptr, nullptr);
 
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK,
                         "Error creating table. Db error: " << sqlite3_errmsg(m_db));
@@ -203,7 +203,7 @@ V2xKpi::SaveAvrgPir()
     {
         for (const auto& it2 : it.second)
         {
-            double avrgPir = ComputeAvrgPir(it2.first.c_str(), it2.second);
+            double avrgPir = ComputeAvrgPir(it2.first, it2.second);
             if (avrgPir == -1.0)
             {
                 // It may happen that a node would rxed only one pkt from a
@@ -318,7 +318,7 @@ V2xKpi::SaveAvrgPrr()
                        "SEED INTEGER NOT NULL,"
                        "RUN INTEGER NOT NULL"
                        ");");
-    int rc = sqlite3_exec(m_db, cmd.c_str(), NULL, NULL, NULL);
+    int rc = sqlite3_exec(m_db, cmd.c_str(), nullptr, nullptr, nullptr);
 
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK,
                         "Error creating table. Db error: " << sqlite3_errmsg(m_db));
@@ -404,7 +404,7 @@ V2xKpi::ComputeAvrgPrr(std::map<uint32_t, std::vector<PktTxRxData>>::const_itera
                 // I am inserting it in the neighbor vector which received
                 // a bit unrealistic packet seq of 2^32
                 seqVec.push_back(std::numeric_limits<uint32_t>::max());
-                bool insertStatus = pktSeqPerRx.emplace(std::make_pair(rxIp, seqVec)).second;
+                bool insertStatus = pktSeqPerRx.emplace(rxIp, seqVec).second;
                 NS_ASSERT_MSG(insertStatus == true,
                               "Rx IP " << rxIp << " already present in pktSeqPerRx map");
                 // now continue to next RX IP
@@ -415,7 +415,7 @@ V2xKpi::ComputeAvrgPrr(std::map<uint32_t, std::vector<PktTxRxData>>::const_itera
                 // push all the pkt seq number this receiver received from the TX IP
                 seqVec.push_back(pktVectIt.pktSeq);
             }
-            bool insertStatus = pktSeqPerRx.emplace(std::make_pair(rxIp, seqVec)).second;
+            bool insertStatus = pktSeqPerRx.emplace(rxIp, seqVec).second;
             NS_ASSERT_MSG(insertStatus == true,
                           "Rx IP " << rxIp << " already present in pktSeqPerRx map");
         }
@@ -427,7 +427,7 @@ V2xKpi::ComputeAvrgPrr(std::map<uint32_t, std::vector<PktTxRxData>>::const_itera
     // std::cout << "IP " << txIp << " has txed " << txIt->second.size ()<< " packets" << std::endl;
 
     // if none of the rx nodes is in range do not log such PRR
-    if (pktSeqPerRx.size() == 0)
+    if (pktSeqPerRx.empty())
     {
         return -1.0;
     }
@@ -477,7 +477,7 @@ V2xKpi::SaveThput()
                        "SEED INTEGER NOT NULL,"
                        "RUN INTEGER NOT NULL"
                        ");");
-    int rc = sqlite3_exec(m_db, cmd.c_str(), NULL, NULL, NULL);
+    int rc = sqlite3_exec(m_db, cmd.c_str(), nullptr, nullptr, nullptr);
 
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK,
                         "Error creating table. Db error: " << sqlite3_errmsg(m_db));
@@ -609,7 +609,7 @@ V2xKpi::SaveThput()
 }
 
 double
-V2xKpi::ComputeThput(std::vector<PktTxRxData> data)
+V2xKpi::ComputeThput(std::vector<PktTxRxData> data) const
 {
     NS_ABORT_MSG_IF(m_txAppDuration == 0.0,
                     "Can not compute throughput with " << m_txAppDuration << " duration");
@@ -725,7 +725,7 @@ V2xKpi::ComputePsschTxStats()
                            sqlite3_column_int(stmt, 11),
                            sqlite3_column_int(stmt, 12));
 
-        if (nonOverLapPsschTx.size() == 0 && nonOverLapPsschTx.size() == 0)
+        if (nonOverLapPsschTx.empty() && nonOverLapPsschTx.empty())
         {
             nonOverLapPsschTx.push_back(result);
         }
@@ -780,7 +780,7 @@ V2xKpi::SaveSimultPsschTxStats(uint32_t totalPsschTx,
                        "SEED INTEGER NOT NULL,"
                        "RUN INTEGER NOT NULL"
                        ");");
-    int rc = sqlite3_exec(m_db, cmd.c_str(), NULL, NULL, NULL);
+    int rc = sqlite3_exec(m_db, cmd.c_str(), nullptr, nullptr, nullptr);
 
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK,
                         "Error creating table. Db error: " << sqlite3_errmsg(m_db));
@@ -876,7 +876,7 @@ V2xKpi::SavePsschTbCorruptionStats(uint32_t totalTbRx,
                        "SEED INTEGER NOT NULL,"
                        "RUN INTEGER NOT NULL"
                        ");");
-    int rc = sqlite3_exec(m_db, cmd.c_str(), NULL, NULL, NULL);
+    int rc = sqlite3_exec(m_db, cmd.c_str(), nullptr, nullptr, nullptr);
 
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK,
                         "Error creating table. Db error: " << sqlite3_errmsg(m_db));

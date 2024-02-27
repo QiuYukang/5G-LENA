@@ -26,8 +26,7 @@ LenaV2Utils::ReportSinrNr(SinrOutputStats* stats,
                           uint16_t cellId,
                           uint16_t rnti,
                           double avgSinr,
-                          uint16_t bwpId,
-                          [[maybe_unused]] uint8_t streamId)
+                          uint16_t bwpId)
 {
     stats->SaveSinr(cellId, rnti, avgSinr, bwpId);
 }
@@ -118,7 +117,7 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
 
     // configure the beam that points toward the center of hexagonal
     // In case of beamforming, it will be overwritten.
-    phy0->GetSpectrumPhy(0)->GetBeamManager()->SetPredefinedBeam(3, 30);
+    phy0->GetSpectrumPhy()->GetBeamManager()->SetPredefinedBeam(3, 30);
 
     // Set numerology
     nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Numerology", UintegerValue(numerology)); // BWP
@@ -182,7 +181,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         harqProcesses = 8;
         n1Delay = 4;
         n2Delay = 4;
-        if (errorModel == "")
+        if (errorModel.empty())
         {
             errorModel = "ns3::LenaErrorModel";
         }
@@ -195,7 +194,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     {
         rbOverhead = 0.04;
         harqProcesses = 20;
-        if (errorModel == "")
+        if (errorModel.empty())
         {
             errorModel = "ns3::NrEesmCcT2";
         }
@@ -580,7 +579,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
      */
     // Beamforming method
 
-    if (radioNetwork == "LTE" && calibration == true)
+    if (radioNetwork == "LTE" && calibration)
     {
         idealBeamformingHelper->SetAttribute(
             "BeamformingMethod",

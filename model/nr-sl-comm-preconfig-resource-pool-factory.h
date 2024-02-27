@@ -20,7 +20,7 @@ class NrSlCommPreconfigResourcePoolFactory : public NrSlCommResourcePoolFactory
 {
   public:
     NrSlCommPreconfigResourcePoolFactory();
-    virtual ~NrSlCommPreconfigResourcePoolFactory();
+    ~NrSlCommPreconfigResourcePoolFactory() override;
 
     /**
      * \brief Create pool
@@ -29,7 +29,7 @@ class NrSlCommPreconfigResourcePoolFactory : public NrSlCommResourcePoolFactory
      *
      * \return The struct of type LteRrcSap::SlResourcePoolNr defining the SL pool
      */
-    const LteRrcSap::SlResourcePoolNr CreatePool(void) override;
+    const LteRrcSap::SlResourcePoolNr CreatePool() override;
 
   private:
     LteRrcSap::SlResourcePoolNr m_pool; //!< Sidelink communication pool

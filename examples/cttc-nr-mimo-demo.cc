@@ -1,34 +1,34 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 
-// Copyright (c) 2021 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+// Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
  * \ingroup examples
  * \file cttc-nr-mimo-demo.cc
- * \brief A cozy, simple, NR MIMO demo (in a tutorial style)
+ * \brief An example that shows how to setup and use MIMO
  *
- * This example describes how to setup a MIMO simulation using the 3GPP channel model
- * from TR 38.901. This example consists of a simple topology, in which there
- * is only one gNB and one UE. Have a look at the possible parameters
- * to know what you can configure through the command line.
+ * This example describes how to setup a simulation using MIMO. The scenario
+ * consists of a simple topology, in which there
+ * is only one gNB and one UE. An additional pair of gNB and UE can be enabled
+ * to simulate the interference (see enableInterfNode).
+ * Example creates one DL flow that goes through only BWP.
  *
- * With the default configuration, the example will create one DL flow that will
- * go through only one BWP.
- *
- * The example will print on-screen the end-to-end result of the flow,
- * as well as writing them in a file.
+ * The example prints on-screen and into the file the end-to-end result of the flow.
+ * To see all the input parameters run:
  *
  * \code{.unparsed}
-$ ./ns3 run "cttc-nr-mimo-demo --PrintHelp"
+$ ./ns3 run cttc-nr-mimo-demo -- --PrintHelp
     \endcode
  *
- */
-
-/*
- * Include part. Often, you will have to include the headers for an entire module;
- * do that by including the name of the module you need with the suffix "-module.h".
+ *
+ * MIMO is enabled by default. To disable it run:
+ *  * \code{.unparsed}
+$  ./ns3 run cttc-nr-mimo-demo -- --enableMimoFeedback=0
+    \endcode
+ *
+ *
  */
 
 #include "ns3/antenna-module.h"
@@ -43,156 +43,221 @@ $ ./ns3 run "cttc-nr-mimo-demo --PrintHelp"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 
-/*
- * Use, always, the namespace ns3. All the NR classes are inside such namespace.
- */
 using namespace ns3;
-
-/*
- * With this line, we will be able to see the logs of the file by enabling the
- * component "CttcNrMimoDemo"
- */
 NS_LOG_COMPONENT_DEFINE("CttcNrMimoDemo");
 
 int
 main(int argc, char* argv[])
 {
-    /*
-     * Variables that represent the parameters we will accept as input by the
-     * command line. Each of them is initialized with a default value, and
-     * possibly overridden below when command-line arguments are parsed.
-     */
-    // Scenario parameters (that we will use inside this script):
-    bool logging = false;
+    bool enableMimoFeedback = true;
+    NrHelper::AntennaParams apUe;
+    NrHelper::AntennaParams apGnb;
+    apUe.antennaElem = "ns3::ThreeGppAntennaModel";
+    apUe.nAntCols = 2;
+    apUe.nAntRows = 2;
+    apUe.nHorizPorts = 2;
+    apUe.nVertPorts = 1;
+    apUe.isDualPolarized = false;
+    apGnb.antennaElem = "ns3::ThreeGppAntennaModel";
+    apGnb.nAntCols = 4;
+    apGnb.nAntRows = 2;
+    apGnb.nHorizPorts = 2;
+    apGnb.nVertPorts = 1;
+    apGnb.isDualPolarized = false;
 
-    // Whether gNB and UE antenna arrays support
-    bool crossPolarizedGnb = true;
-    bool crossPolarizedUe = true;
+    // The polarization slant angle in degrees in case of x-polarized
+    double polSlantAngleGnb = 0.0;
+    double polSlantAngleUe = 90.0;
+    // The bearing angles in degrees
+    double bearingAngleGnb = 0.0;
+    double bearingAngleUe = 180.0;
 
-    // Number of rows and columns of antennas of Gnb and Ue
-    uint16_t numRowsGnb = 2;
-    uint16_t numColumnsGnb = 2;
-    uint16_t numRowsUe = 1;
-    uint16_t numColumnsUe = 1;
-
-    // Traffic parameters (that we will use inside this script):
+    // Traffic parameters
     uint32_t udpPacketSize = 1000;
     // For 2x2 MIMO and NR MCS table 2, packet interval is 40000 ns to
     // reach 200 mb/s
     Time packetInterval = NanoSeconds(40000);
-
-    // distance between the gNB and the UE
-    uint16_t gnbUeDistance = 20; // meters
-
-    // Simulation parameters. Please don't use double to indicate seconds; use
-    // ns-3 Time values which use integers to avoid portability issues.
-    Time simTime = MilliSeconds(1000);
     Time udpAppStartTime = MilliSeconds(400);
 
-    // NR parameters. We will take the input from the command line, and then we
-    // will pass them inside the NR module.
+    // Interference
+    bool enableInterfNode = false; // if true an additional pair of gNB and UE will be created
+                                   // to create an interference towards the original pair
+    double interfDistance = 100.0; // the distance in meters between the original node pair, and the
+                                   // interfering node pair
+    double interfPolSlantDelta = 0; // the difference between the pol. slant angle between the
+                                    // original node and the interfering one
+
+    // Other simulation scenario parameters
+    Time simTime = MilliSeconds(1000);
+    uint16_t gnbUeDistance = 20; // meters
     uint16_t numerology = 0;
     double centralFrequency = 3.5e9;
     double bandwidth = 20e6;
-    double gnbTxPower = 30; // dBm
-    double ueTxPower = 23;  // dBm
-    uint16_t fixedRankIndicator = 2;
-    bool useFixedRi = true;
-    double ro = 0;
+    double txPowerGnb = 30; // dBm
+    double txPowerUe = 23;  // dBm
     uint16_t updatePeriodMs = 100;
-    uint16_t mcsTable = 2;
+    std::string errorModel = "ns3::NrEesmIrT2";
+    std::string scheduler = "ns3::NrMacSchedulerTdmaRR";
+    std::string beamformingMethod = "ns3::DirectPathBeamforming";
+    /**
+     *   UMi_StreetCanyon,      //!< UMi_StreetCanyon
+     *   UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sight
+     *   UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in
+     *
+     */
+    uint8_t maxPortsSupported = UINT8_MAX;
 
-    // The polarization slant angle of first and second subarray in degrees
-    double polSlantAngle1 = 0.0;
-    double polSlantAngle2 = 90.0;
+    uint16_t losCondition = 0;
+    NrHelper::MimoPmiParams mimoPmiParams;
 
-    // whether the cross polarization correlation is parameterized, when set to false correlation is
-    // calculated as per 3gpp channel model
-    bool parametrizedCorrelation = true;
-
-    // Where we will store the output files.
+    // Where the example stores the output files.
     std::string simTag = "default";
     std::string outputDir = "./";
+    bool logging = false;
 
-    /*
-     * From here, we instruct the ns3::CommandLine class of all the input parameters
-     * that we may accept as input, as well as their description, and the storage
-     * variable.
-     */
     CommandLine cmd(__FILE__);
-
-    cmd.AddValue("logging", "Enable logging", logging);
-    cmd.AddValue("crossPolarizedGnb",
+    /**
+     * The main parameters for testing MIMO
+     */
+    cmd.AddValue("enableMimoFeedback", "Enables MIMO feedback", enableMimoFeedback);
+    cmd.AddValue(
+        "pmSearchMethod",
+        "Precoding matrix search method, currently implemented only exhaustive search method"
+        "(ns3::NrPmSearchFull)",
+        mimoPmiParams.pmSearchMethod);
+    cmd.AddValue("fullSearchCb",
+                 "The codebook to be used for the full search. Currently only available code book "
+                 "is the two-port codebook in 3GPP TS 38.214 (ns3::NrCbTwoPort)",
+                 mimoPmiParams.fullSearchCb);
+    cmd.AddValue("rankLimit", "The maximum rank number to be used.", mimoPmiParams.rankLimit);
+    cmd.AddValue("numRowsGnb", "Number of antenna rows at the gNB", apGnb.nAntRows);
+    cmd.AddValue("numRowsUe", "Number of antenna rows at the UE", apUe.nAntRows);
+    cmd.AddValue("numColumnsGnb", "Number of antenna columns at the gNB", apGnb.nAntCols);
+    cmd.AddValue("numColumnsUe", "Number of antenna columns at the UE", apUe.nAntCols);
+    cmd.AddValue("numVPortsGnb",
+                 "Number of vertical ports of the antenna at the gNB",
+                 apGnb.nVertPorts);
+    cmd.AddValue("numVPortsUe",
+                 "Number of vertical ports of the antenna at the UE",
+                 apUe.nVertPorts);
+    cmd.AddValue("numHPortsGnb",
+                 "Number of horizontal ports of the antenna the gNB",
+                 apGnb.nHorizPorts);
+    cmd.AddValue("numHPortsUe",
+                 "Number of horizontal ports of the antenna at the UE",
+                 apUe.nHorizPorts);
+    cmd.AddValue("xPolGnb",
                  "Whether the gNB antenna array has the cross polarized antenna "
-                 "elements. If yes, gNB supports 2 streams, otherwise only 1 stream",
-                 crossPolarizedGnb);
-    cmd.AddValue("crossPolarizedUe",
+                 "elements.",
+                 apGnb.isDualPolarized);
+    cmd.AddValue("xPolUe",
                  "Whether the UE antenna array has the cross polarized antenna "
-                 "elements. If yes, UE supports 2 streams, otherwise only 1 stream",
-                 crossPolarizedUe);
-    cmd.AddValue("numRowsGnb", "Number of antenna rows at the gNB", numRowsGnb);
-    cmd.AddValue("numRowsUe", "Number of antenna rows at the UE", numRowsUe);
-    cmd.AddValue("numColumnsGnb", "Number of antenna columns at the gNB", numColumnsGnb);
-    cmd.AddValue("numColumnsUe", "Number of antenna columns at the UE", numColumnsUe);
-    cmd.AddValue("ro", "The channel correlation parameter", ro);
+                 "elements.",
+                 apUe.isDualPolarized);
+    cmd.AddValue("polSlantAngleGnb",
+                 "Polarization slant angle of gNB in degrees",
+                 polSlantAngleGnb);
+    cmd.AddValue("polSlantAngleUe", "Polarization slant angle of UE in degrees", polSlantAngleUe);
+    cmd.AddValue("bearingAngleGnb", "Bearing angle of gNB in degrees", bearingAngleGnb);
+    cmd.AddValue("bearingAngleUe", "Bearing angle of UE in degrees", bearingAngleUe);
+    cmd.AddValue("enableInterfNode", "Whether to enable an interfering node", enableInterfNode);
+    cmd.AddValue(
+        "interfDistance",
+        "The distance between the pairs of gNB and UE (the original and the interfering one)",
+        interfDistance);
+    cmd.AddValue("interfPolSlantDelta",
+                 "The difference between the pol. slant angles of the original pairs of gNB and UE "
+                 "and the interfering one",
+                 interfPolSlantDelta);
+
+    /**
+     * Other simulation parameters
+     */
     cmd.AddValue("packetSize",
                  "packet size in bytes to be used by best effort traffic",
                  udpPacketSize);
-    cmd.AddValue("packetInterval", "Inter packet interval for CBR traffic", packetInterval);
+    cmd.AddValue("packetInterval", "Inter-packet interval for CBR traffic", packetInterval);
     cmd.AddValue("simTime", "Simulation time", simTime);
     cmd.AddValue("numerology", "The numerology to be used", numerology);
     cmd.AddValue("centralFrequency", "The system frequency to be used in band 1", centralFrequency);
     cmd.AddValue("bandwidth", "The system bandwidth to be used", bandwidth);
-    cmd.AddValue("gnbTxPower", "gNB TX power", gnbTxPower);
-    cmd.AddValue("ueTxPower", "UE TX power", ueTxPower);
+    cmd.AddValue("txPowerGnb", "gNB TX power", txPowerGnb);
+    cmd.AddValue("txPowerUe", "UE TX power", txPowerUe);
     cmd.AddValue("gnbUeDistance",
                  "The distance between the gNB and the UE in the scenario",
                  gnbUeDistance);
-    cmd.AddValue("fixedRankIndicator", "The rank indicator used by the UE", fixedRankIndicator);
-    cmd.AddValue("useFixedRi",
-                 "If true, UE will use a fixed configured RI value; otherwise, "
-                 "it will use an adaptive RI value based on the SINR of the streams",
-                 useFixedRi);
     cmd.AddValue(
         "updatePeriodMs",
         "Channel update period in ms. If set to 0 then the channel update will be disabled",
         updatePeriodMs);
-    cmd.AddValue("polSlantAngle1",
-                 "Polarization slant angle of the first antenna sub-array/partition in degrees",
-                 polSlantAngle1);
-    cmd.AddValue("polSlantAngle2",
-                 "Polarization slant angle of the second antenna sub-array/partition in degrees",
-                 polSlantAngle2);
-    cmd.AddValue("parametrizedCorrelation",
-                 "Whether the cross polarization correlation is parameterized or "
-                 "calculated according to 3gpp channel model. When set to true "
-                 "it is parameterized, otherwise it is per 3gpp channel model",
-                 parametrizedCorrelation);
-    cmd.AddValue("mcsTable", "The NR MCS table to be used", mcsTable);
+    cmd.AddValue("errorModel",
+                 "Error model: ns3::NrEesmCcT1, ns3::NrEesmCcT2, "
+                 "ns3::NrEesmIrT1, ns3::NrEesmIrT2, ns3::NrLteMiErrorModel",
+                 errorModel);
+    cmd.AddValue("scheduler",
+                 "The scheduler: ns3::NrMacSchedulerTdmaRR, "
+                 "ns3::NrMacSchedulerTdmaPF, ns3::NrMacSchedulerTdmaMR,"
+                 "ns3::NrMacSchedulerTdmaQos, ns3::NrMacSchedulerOfdmaRR, "
+                 "ns3::NrMacSchedulerOfdmaPF, ns3::NrMacSchedulerOfdmaMR,"
+                 "ns3::NrMacSchedulerOfdmaQos",
+                 scheduler);
+    cmd.AddValue("beamformingMethod",
+                 "The beamforming method: ns3::CellScanBeamforming,"
+                 "ns3::CellScanBeamformingAzimuthZenith,"
+                 "ns3::CellScanQuasiOmniBeamforming,"
+                 "ns3::DirectPathBeamforming,"
+                 "ns3::QuasiOmniDirectPathBeamforming,"
+                 "ns3::DirectPathQuasiOmniBeamforming",
+                 beamformingMethod);
+    cmd.AddValue("losCondition",
+                 "0 - for 3GPP channel condition model,"
+                 "1 - for always LOS channel condition model,"
+                 "2 - for always NLOS channel condition model",
+                 losCondition);
     cmd.AddValue("simTag",
                  "tag to be appended to output filenames to distinguish simulation campaigns",
                  simTag);
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
-
+    cmd.AddValue("logging", "Enable logging", logging);
     // Parse the command line
     cmd.Parse(argc, argv);
 
-    /*
-     * Check if the frequency is in the allowed range.
-     * If you need to add other checks, here is the best position to put them.
-     */
-    NS_ABORT_IF(centralFrequency > 100e9);
+    // convert angle values into radians
+    apUe.bearingAngle = bearingAngleUe * (M_PI / 180);
+    apUe.polSlantAngle = polSlantAngleUe * (M_PI / 180);
+    apGnb.bearingAngle = bearingAngleGnb * (M_PI / 180);
+    apGnb.polSlantAngle = polSlantAngleGnb * (M_PI / 180);
 
-    /*
-     * If the logging variable is set to true, enable the log of some components
-     * through the code. The same effect can be obtained through the use
-     * of the NS_LOG environment variable:
-     *
-     * export NS_LOG="UdpClient=level_info|prefix_time|prefix_func|prefix_node:UdpServer=..."
-     *
-     * Usually, the environment variable way is preferred, as it is more customizable,
-     * and more expressive.
-     */
+    if (TypeId::LookupByName(mimoPmiParams.fullSearchCb) == NrCbTwoPort::GetTypeId())
+    {
+        maxPortsSupported = 2;
+    }
+    NS_ASSERT_MSG(
+        (!apUe.isDualPolarized && apUe.nVertPorts * apUe.nHorizPorts <= maxPortsSupported) ||
+            (apUe.isDualPolarized && apUe.nVertPorts * apUe.nHorizPorts <= maxPortsSupported / 2),
+        "total 2 ports for UE is supported");
+
+    NS_ASSERT_MSG(
+        (!apGnb.isDualPolarized && apGnb.nVertPorts * apGnb.nHorizPorts <= maxPortsSupported) ||
+            (apGnb.isDualPolarized &&
+             apGnb.nVertPorts * apGnb.nHorizPorts <= maxPortsSupported / 2),
+        "total 2 ports for gNB is supported");
+
+    NS_ASSERT_MSG(((apGnb.nAntCols % apGnb.nHorizPorts) == 0),
+                  "The number of horizontal ports of gNB must divide number of columns");
+
+    NS_ASSERT_MSG(((apGnb.nAntRows % apGnb.nVertPorts) == 0),
+                  "The number of vertical ports of gNB must divide number of rows");
+
+    NS_ASSERT_MSG(((apUe.nAntCols % apUe.nHorizPorts) == 0),
+                  "The number of horizontal ports of UE must divide number of columns");
+
+    NS_ASSERT_MSG(((apUe.nAntRows % apUe.nVertPorts) == 0),
+                  "The number of vertical ports of UE must divide number of rows");
+    NS_ABORT_MSG_UNLESS(mimoPmiParams.rankLimit, "The rank limit cannot be 0.");
+    NS_ABORT_IF(centralFrequency < 0.5e9 && centralFrequency > 100e9);
+    NS_ABORT_UNLESS(losCondition < 3);
+
     if (logging)
     {
         LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
@@ -200,267 +265,165 @@ main(int argc, char* argv[])
         LogComponentEnable("LtePdcp", LOG_LEVEL_INFO);
     }
 
-    /*
-     * Default values for the simulation. We are progressively removing all
-     * the instances of SetDefault, but we need it for legacy code (LTE)
-     */
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-
-    /*
-     * Attributes of ThreeGppChannelModel still cannot be set in our way.
-     */
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
                        TimeValue(MilliSeconds(updatePeriodMs)));
-    Config::SetDefault("ns3::ThreeGppChannelModelParam::Ro", DoubleValue(ro));
-    Config::SetDefault("ns3::ThreeGppChannelModelParam::ParametrizedCorrelation",
-                       BooleanValue(parametrizedCorrelation));
-    Config::SetDefault("ns3::ThreeGppSpectrumPropagationLossModel::ChannelModel",
-                       StringValue("ns3::ThreeGppChannelModelParam"));
 
-    /*
-     * Create the scenario. In our examples, we heavily use helpers that setup
-     * the gnbs and ue following a pre-defined pattern. Please have a look at the
-     * GridScenarioHelper documentation to see how the nodes will be distributed.
-     */
-    int64_t randomStream = 1;
+    uint16_t pairsToCreate = 1;
+    if (enableInterfNode)
+    {
+        pairsToCreate = 2;
+    }
 
-    /*
-     * Assign mobility to the gNB and UEs.
-     *  1. Set mobility model type.
-     *  2. Store the positions in ListPositionAllocator for the gNB and UE
-     *  3. Install mobility model
-     */
-
-    /*
-     * Create NodeContainer for gNB and UE
-     */
     NodeContainer gnbContainer;
-    gnbContainer.Create(1);
+    gnbContainer.Create(pairsToCreate);
     NodeContainer ueContainer;
-    ueContainer.Create(1);
+    ueContainer.Create(pairsToCreate);
 
-    MobilityHelper mobility;
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
-    positionAllocUe->Add(Vector(0.0, 0.0, 10.0));
-    positionAllocUe->Add(Vector(gnbUeDistance, 0.0, 1.5));
-    mobility.SetPositionAllocator(positionAllocUe);
-    mobility.Install(gnbContainer);
-    mobility.Install(ueContainer);
-
-    /* The default topology is the following:
+    /**
+     * We configure the mobility model to ConstantPositionMobilityModel.
+     * The default topology is the following:
+     *
+     *         gNB .........(20 m) .........UE
+     *    (0.0, h, 10.0)              (d, h, 1.5)
+     *
      *
      *         gNB..........(20 m)..........UE
-     *   (0.0, 0.0, 10.0)               (20, 0.0, 1.5)
+     *   (0.0, 0.0, 10.0)               (d, 0.0, 1.5)
      */
+    MobilityHelper mobility;
+    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+    positionAlloc->Add(Vector(0.0, 0.0, 10.0));
+    positionAlloc->Add(Vector(gnbUeDistance, 0.0, 1.5));
+    // the positions for the second interfering pair of gNB and UE
+    if (enableInterfNode)
+    {
+        positionAlloc->Add(Vector(0.0, interfDistance, 10.0));
+        positionAlloc->Add(Vector(gnbUeDistance, interfDistance, 1.5));
+    }
+    mobility.SetPositionAllocator(positionAlloc);
+    mobility.Install(gnbContainer.Get(0));
+    mobility.Install(ueContainer.Get(0));
+    // install mobility of the second pair of gNB and UE
+    if (enableInterfNode)
+    {
+        mobility.Install(gnbContainer.Get(1));
+        mobility.Install(ueContainer.Get(1));
+    }
 
-    /*
-     * Setup the NR module. We create the various helpers needed for the
-     * NR simulation:
-     * - EpcHelper, which will setup the core network
-     * - IdealBeamformingHelper, which takes care of the beamforming part
-     * - NrHelper, which takes care of creating and connecting the various
-     * part of the NR stack
+    /**
+     * Create the NR helpers that will be used to create and setup NR devices, spectrum, ...
      */
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
-
-    // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(epcHelper);
-
-    /*
-     * Spectrum division. We create one operational band, containing
+    /**
+     * Prepare spectrum. Prepare one operational band, containing
      * one component carrier, and a single bandwidth part
      * centered at the frequency specified by the input parameters.
-     * We will use the StreetCanyon channel modeling.
-     */
-    CcBwpCreator ccBwpCreator;
-    const uint8_t numCcPerBand = 1; // single CC
-
-    // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
-    // a single BWP per CC
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   BandwidthPartInfo::UMi_StreetCanyon);
-
-    // By using the configuration created, it is time to make the operation bands
-    OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    /*
+     *
+     *
      * The configured spectrum division is:
      * ------------Band--------------
      * ------------CC1----------------
      * ------------BWP1---------------
      */
 
+    BandwidthPartInfo::Scenario scenario =
+        BandwidthPartInfo::Scenario(BandwidthPartInfo::UMi_StreetCanyon + losCondition);
+
+    CcBwpCreator ccBwpCreator;
+    const uint8_t numCcPerBand = 1;
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
+                                                   bandwidth,
+                                                   numCcPerBand,
+                                                   scenario);
+    OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
+
+    /**
+     * Configure NrHelper, prepare most of the parameters that will be used in the simulation.
+     */
     nrHelper->SetChannelConditionModelAttribute("UpdatePeriod",
                                                 TimeValue(MilliSeconds(updatePeriodMs)));
     nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    /*
-     * Initialize channel and pathloss, plus other things inside band. If needed,
-     * the band configuration can be done manually, but we leave it for more
-     * sophisticated examples. For the moment, this method will take care
-     * of all the spectrum initialization needs.
-     */
-    nrHelper->InitializeOperationBand(&band);
-
-    /*
-     * allBwps contains all the spectrum configuration needed by the nrHelper
-     * to install a device.
-     */
-    BandwidthPartInfoPtrVector allBwps;
-    allBwps = CcBwpCreator::GetAllBwps({band});
-
-    /*
-     * allBwps contains all the spectrum configuration needed for the nrHelper.
-     */
-
-    Packet::EnableChecking();
-    Packet::EnablePrinting();
-
-    /*
-     *  Attributes valid for all the nodes
-     */
-    // Error Model: gNB and UE with same spectrum error model.
-    std::string errorModel = "ns3::NrEesmIrT" + std::to_string(mcsTable);
     nrHelper->SetDlErrorModel(errorModel);
     nrHelper->SetUlErrorModel(errorModel);
-
-    // Both DL and UL AMC will have the same model behind.
     nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
     nrHelper->SetGnbUlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
-
-    // Beamforming method
+    nrHelper->SetSchedulerTypeId(TypeId::LookupByName(scheduler));
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
-                                         TypeIdValue(DirectPathBeamforming::GetTypeId()));
-
+                                         TypeIdValue(TypeId::LookupByName(beamformingMethod)));
     // Core latency
     epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
-    // Antennas for all the UEs
-    nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(numRowsUe));
-    nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(numColumnsUe));
-    nrHelper->SetUeAntennaAttribute("AntennaElement",
-                                    PointerValue(CreateObject<IsotropicAntennaModel>()));
-
-    // UE rank indicator
-    if (useFixedRi)
+    /**
+     * Enable MIMO feedback to allow the activation of multiple layers.
+     */
+    if (enableMimoFeedback)
     {
-        // it makes more sense to configure the rank indicator value
-        // if useFixedRi is true.
-        nrHelper->SetUePhyAttribute("UseFixedRi", BooleanValue(useFixedRi));
-        nrHelper->SetUePhyAttribute("FixedRankIndicator", UintegerValue(fixedRankIndicator));
+        nrHelper->SetupMimoPmi(mimoPmiParams);
     }
-    else
-    {
-        nrHelper->SetUePhyAttribute("UseFixedRi", BooleanValue(useFixedRi));
-    }
+    /**
+     * Configure gNb antenna
+     */
+    nrHelper->SetupGnbAntennas(apGnb);
+    /**
+     * Configure UE antenna
+     */
+    nrHelper->SetupUeAntennas(apUe);
 
-    // Antennas for all the gNbs
-    nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(numRowsGnb));
-    nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(numColumnsGnb));
-    nrHelper->SetGnbAntennaAttribute("AntennaElement",
-                                     PointerValue(CreateObject<ThreeGppAntennaModel>()));
+    nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(numerology));
+    nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPowerGnb));
+    nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPowerUe));
 
     uint32_t bwpId = 0;
-
-    // gNb routing between Bearer and bandwidth part
+    // gNb routing between bearer type and bandwidth part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
-
-    // UE routing between Bearer and bandwidth part
+    // UE routing between bearer type and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
-
-    /*
-     * We miss many other parameters. By default, not configuring them is equivalent
-     * to use the default values. Please, have a look at the documentation to see
-     * what are the default values for all the attributes you are not seeing here.
+    /**
+     * Initialize channel and pathloss, plus other things inside band.
      */
+    nrHelper->InitializeOperationBand(&band);
+    BandwidthPartInfoPtrVector allBwps;
+    allBwps = CcBwpCreator::GetAllBwps({band});
 
-    /*
-     * We have configured the attributes we needed. Now, install and get the pointers
-     * to the NetDevices, which contains all the NR stack:
+    /**
+     * Finally, create the gNB and the UE device.
      */
+    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gnbContainer, allBwps);
+    NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueContainer, allBwps);
 
-    uint8_t subArraysGnb = 0;
-    uint8_t subArraysUe = 0;
-
-    if (crossPolarizedGnb)
+    if (enableInterfNode && interfPolSlantDelta != 0)
     {
-        subArraysGnb = 2;
-    }
-    else
-    {
-        subArraysGnb = 1;
-    }
-
-    if (crossPolarizedUe)
-    {
-        subArraysUe = 2;
-    }
-    else
-    {
-        subArraysUe = 1;
+        // reconfigure the polarization slant angle of the interferer
+        nrHelper->GetGnbPhy(enbNetDev.Get(1), 0)
+            ->GetSpectrumPhy()
+            ->GetAntenna()
+            ->SetAttribute("PolSlantAngle",
+                           DoubleValue((polSlantAngleGnb + interfPolSlantDelta) * (M_PI / 180)));
+        nrHelper->GetUePhy(ueNetDev.Get(1), 0)
+            ->GetSpectrumPhy()
+            ->GetAntenna()
+            ->SetAttribute("PolSlantAngle",
+                           DoubleValue((polSlantAngleUe + interfPolSlantDelta) * (M_PI / 180)));
     }
 
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gnbContainer, allBwps, subArraysGnb);
-    NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueContainer, allBwps, subArraysUe);
-
-    /*
+    /**
      * Fix the random stream throughout the nr, propagation, and spectrum
      * modules classes. This configuration is extremely important for the
      * reproducibility of the results.
      */
+    int64_t randomStream = 1;
     randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    /*
-     * Per Node attribute configuration. Get the node and change the attributes we
-     * have to setup.
-     */
-
-    // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
-    // and set the attribute.
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("Numerology", UintegerValue(numerology));
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(gnbTxPower));
-    double polarizationFirstSubArray = (polSlantAngle1 * M_PI) / 180.0;  // converting to radians
-    double polarizationSecondSubArray = (polSlantAngle2 * M_PI) / 180.0; // converting to radians
-    ObjectVectorValue gnbSpectrumPhys;
-    Ptr<NrSpectrumPhy> nrSpectrumPhy;
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->GetAttribute("NrSpectrumPhyList", gnbSpectrumPhys);
-    nrSpectrumPhy = gnbSpectrumPhys.Get(0)->GetObject<NrSpectrumPhy>();
-    nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-        "PolSlantAngle",
-        DoubleValue(polarizationFirstSubArray));
-    if (gnbSpectrumPhys.GetN() == 2)
-    {
-        nrSpectrumPhy = gnbSpectrumPhys.Get(1)->GetObject<NrSpectrumPhy>();
-        nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-            "PolSlantAngle",
-            DoubleValue(polarizationSecondSubArray));
-    }
-
-    // for UE
-    nrHelper->GetUePhy(ueNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(ueTxPower));
-    ObjectVectorValue ueSpectrumPhys;
-    nrHelper->GetUePhy(ueNetDev.Get(0), 0)->GetAttribute("NrSpectrumPhyList", ueSpectrumPhys);
-    nrSpectrumPhy = ueSpectrumPhys.Get(0)->GetObject<NrSpectrumPhy>();
-    nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-        "PolSlantAngle",
-        DoubleValue(polarizationFirstSubArray));
-    if (ueSpectrumPhys.GetN() == 2)
-    {
-        nrSpectrumPhy = ueSpectrumPhys.Get(1)->GetObject<NrSpectrumPhy>();
-        nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-            "PolSlantAngle",
-            DoubleValue(polarizationSecondSubArray));
-    }
-
     // When all the configuration is done, explicitly call UpdateConfig ()
-
+    // TODO: Check if this is necessary to call when we do not reconfigure anything after devices
+    // have been created
     for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
@@ -470,9 +433,6 @@ main(int argc, char* argv[])
     {
         DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
     }
-
-    // From here, it is standard NS3. In the future, we will create helpers
-    // for this part as well.
 
     // create the Internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
@@ -497,31 +457,29 @@ main(int argc, char* argv[])
         ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
     remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
     internet.Install(ueContainer);
-
     Ipv4InterfaceContainer ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
     // Set the default gateway for the UE
     Ptr<Ipv4StaticRouting> ueStaticRouting =
         ipv4RoutingHelper.GetStaticRouting(ueContainer.Get(0)->GetObject<Ipv4>());
     ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
 
-    // attach UE to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach each UE to its gNB according to desired scenario
+    nrHelper->AttachToEnb(ueNetDev.Get(0), enbNetDev.Get(0));
+    if (enableInterfNode)
+    {
+        nrHelper->AttachToEnb(ueNetDev.Get(1), enbNetDev.Get(1));
+    }
 
-    /*
+    /**
      * Install DL traffic part.
      */
-
     uint16_t dlPort = 1234;
-
     ApplicationContainer serverApps;
-
     // The sink will always listen to the specified ports
     UdpServerHelper dlPacketSink(dlPort);
-
     // The server, that is the application which is listening, is installed in the UE
     serverApps.Add(dlPacketSink.Install(ueContainer));
-
-    /*
+    /**
      * Configure attributes for the CBR traffic generator, using user-provided
      * parameters
      */
@@ -541,7 +499,7 @@ main(int argc, char* argv[])
     dlPktFilter.localPortEnd = dlPort;
     dlTft->Add(dlPktFilter);
 
-    /*
+    /**
      * Let's install the applications!
      */
     ApplicationContainer clientApps;
@@ -582,13 +540,6 @@ main(int argc, char* argv[])
 
     Simulator::Stop(simTime);
     Simulator::Run();
-
-    /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
-     * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
-    GtkConfigStore config;
-    config.ConfigureAttributes ();
-    */
 
     // Print per-flow statistics
     monitor->CheckForLostPackets();
@@ -660,11 +611,8 @@ main(int argc, char* argv[])
 
     outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
     outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
-
     outFile.close();
-
     std::ifstream f(filename.c_str());
-
     if (f.is_open())
     {
         std::cout << f.rdbuf();

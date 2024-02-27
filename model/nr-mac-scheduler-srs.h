@@ -87,7 +87,7 @@ class NrMacSchedulerSrs
     virtual SrsPeriodicityAndOffset AddUe() = 0;
 
     /**
-     * \brief Function called when the scheduler has to release a previousy owned periodicity
+     * \brief Function called when the scheduler has to release a previously owned periodicity
      * and offset.
      * \param offset The offset used by the UE
      *

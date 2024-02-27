@@ -23,7 +23,7 @@ namespace ns3
 /*
  * \ingroup helpers
  *
- * Defines the minimum set of functions that RLC or PDC stats classs should implement.
+ * Defines the minimum set of functions that RLC or PDC stats class should implement.
  * See also NrBearerStatsSimple and NrBearerStatsSimple.
  */
 class NrBearerStatsBase : public Object
@@ -228,10 +228,10 @@ class NrBearerStatsSimple : public NrBearerStatsBase
     std::string m_dlPdcpRxOutputFilename; //!< Output file name for UL PDCP RX traces
     std::string m_ulPdcpTxOutputFilename; //!< Output file name for UL PDCP RX traces
     std::string m_ulPdcpRxOutputFilename; //!< Output file name for UL PDCP RX traces
-    std::ofstream m_dlTxOutFile; //!< Output file strem to which DL RLC TX stats will be written
-    std::ofstream m_dlRxOutFile; //!< Output file strem to which DL RLC RX stats will be written
-    std::ofstream m_ulTxOutFile; //!< Output file strem to which UL RLC TX stats will be written
-    std::ofstream m_ulRxOutFile; //!< Output file strem to which UL RLC RX stats will be written
+    std::ofstream m_dlTxOutFile; //!< Output file stream to which DL RLC TX stats will be written
+    std::ofstream m_dlRxOutFile; //!< Output file stream to which DL RLC RX stats will be written
+    std::ofstream m_ulTxOutFile; //!< Output file stream to which UL RLC TX stats will be written
+    std::ofstream m_ulRxOutFile; //!< Output file stream to which UL RLC RX stats will be written
 };
 
 } // namespace ns3

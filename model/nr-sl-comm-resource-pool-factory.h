@@ -31,17 +31,17 @@ class NrSlCommResourcePoolFactory : public SimpleRefCount<NrSlCommResourcePoolFa
      *
      * \return The struct of type LteRrcSap::SlResourcePoolNr defining the SL pool
      */
-    virtual const LteRrcSap::SlResourcePoolNr CreatePool(void);
+    virtual const LteRrcSap::SlResourcePoolNr CreatePool();
 
     /**
      * \brief Setup PSCCH resources
      */
-    void SetupPscchResources(void);
+    void SetupPscchResources();
     /**
      * \brief Is setup PscchResources
      * \return flag indicating if it is setting up or releasing PSCCH resources
      */
-    bool IsSetupPscchResources(void) const;
+    bool IsSetupPscchResources() const;
     /**
      * \brief Get sidelink time resource PSCCH
      * \return The number of symbols for PSCCH transmission

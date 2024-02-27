@@ -61,8 +61,7 @@ class LenaV2Utils
                              uint16_t cellId,
                              uint16_t rnti,
                              double avgSinr,
-                             uint16_t bwpId,
-                             uint8_t streamId = -1);
+                             uint16_t bwpId);
     static void ReportPowerNr(PowerOutputStats* stats,
                               const SfnSf& sfnSf,
                               Ptr<const SpectrumValue> txPsd,

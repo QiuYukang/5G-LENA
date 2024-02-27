@@ -43,13 +43,13 @@ NrSlInterference::DoDispose()
     m_sinrChunkProcessorList.clear();
     m_interfChunkProcessorList.clear();
     m_rxSignal.clear();
-    m_allSignals = 0;
-    m_noise = 0;
+    m_allSignals = nullptr;
+    m_noise = nullptr;
     Object::DoDispose();
 }
 
 TypeId
-NrSlInterference::GetTypeId(void)
+NrSlInterference::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrSlInterference").SetParent<Object>().SetGroupName("Nr");
     return tid;
@@ -61,7 +61,7 @@ NrSlInterference::StartRx(Ptr<const SpectrumValue> rxPsd)
     NS_LOG_FUNCTION(this << *rxPsd);
     bool init = !m_receiving;
 
-    if (m_receiving == false)
+    if (!m_receiving)
     {
         NS_LOG_LOGIC("first signal"); // Still check that receiving multiple simultaneous signals,
                                       // make sure they are synchronized
@@ -104,7 +104,7 @@ void
 NrSlInterference::EndRx()
 {
     NS_LOG_FUNCTION(this);
-    if (m_receiving != true)
+    if (!m_receiving)
     {
         NS_LOG_INFO("EndRx was already evaluated or RX was aborted");
     }
@@ -234,7 +234,7 @@ NrSlInterference::SetNoisePowerSpectralDensity(Ptr<const SpectrumValue> noisePsd
     // reset m_allSignals (will reset if already set previously)
     // this is needed since this method can potentially change the SpectrumModel
     m_allSignals = Create<SpectrumValue>(noisePsd->GetSpectrumModel());
-    if (m_receiving == true)
+    if (m_receiving)
     {
         // abort rx
         m_receiving = false;

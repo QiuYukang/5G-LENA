@@ -57,9 +57,9 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
     // const uint8_t CCCH_LARGE  = 0, //!< CCCH of size 64 bit (is it fixed or variable?)
     // const uint8_t CCCH_SMALL = 52, //!< CCCH of size 48 (is it fixed or variable?)
 
-    static const uint8_t MULTIPLE_ENTRY_PHR_FOUR_OCTECT =
-        54; //!< Multiple entry PHR (four octect C_i)
-    static const uint8_t MULTIPLE_ENTRY_PHR_ONE_OCTET = 56; //!< Multiple entry PHR (one octect C_i)
+    static const uint8_t MULTIPLE_ENTRY_PHR_FOUR_OCTET =
+        54;                                                 //!< Multiple entry PHR (four octet C_i)
+    static const uint8_t MULTIPLE_ENTRY_PHR_ONE_OCTET = 56; //!< Multiple entry PHR (one octet C_i)
     static const uint8_t LONG_TRUNCATED_BSR = 60;           //!< Long Truncated BSR
     static const uint8_t LONG_BSR = 62;                     //!< Long BSR
 

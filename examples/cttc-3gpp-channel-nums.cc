@@ -169,7 +169,7 @@ main(int argc, char* argv[])
     nrHelper->SetSchedulerAttribute("FixedMcsDl", BooleanValue(useFixedMcs));
     nrHelper->SetSchedulerAttribute("FixedMcsUl", BooleanValue(useFixedMcs));
 
-    if (useFixedMcs == true)
+    if (useFixedMcs)
     {
         nrHelper->SetSchedulerAttribute("StartingMcsDl", UintegerValue(fixedMcs));
         nrHelper->SetSchedulerAttribute("StartingMcsUl", UintegerValue(fixedMcs));

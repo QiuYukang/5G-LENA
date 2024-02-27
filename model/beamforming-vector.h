@@ -33,11 +33,10 @@ typedef std::pair<BeamformingVector, BeamformingVector> BeamformingVectorPair;
 /**
  * \brief Create a quasi omni beamforming vector
  * \ingroup utils
- * \param antennaRows Number of rows in antenna array
- * \param antennaColumns Number of columns in the antenna array
+ * \param antenna Antenna array for which the beamforming vector will be created
  * \return the beamforming vector
  */
-PhasedArrayModel::ComplexVector CreateQuasiOmniBfv(uint32_t antennaRows, uint32_t antennaColumns);
+PhasedArrayModel::ComplexVector CreateQuasiOmniBfv(const Ptr<const UniformPlanarArray>& antenna);
 
 /**
  * \brief Creates a beamforming vector for a given sector and elevation

@@ -31,7 +31,7 @@ class NrSlUeMacScheduler : public Object
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     NrSlUeMacScheduler();
     ~NrSlUeMacScheduler() override;
@@ -87,7 +87,7 @@ class NrSlUeMacScheduler : public Object
      * Getter for pointer to NrSlUeMac
      * \return Pointer to NrSlUeMac
      */
-    Ptr<NrSlUeMac> GetNrSlUeMac(void) const;
+    Ptr<NrSlUeMac> GetNrSlUeMac() const;
 
   protected:
     void DoDispose() override;

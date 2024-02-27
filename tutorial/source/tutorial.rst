@@ -147,20 +147,20 @@ and that it outputs the following output
         Rx Bytes:   767744
         Throughput: 10.236587 Mbps
         Mean delay:  0.271518 ms
-        Mean jitter:  0.030006 ms
+        Mean jitter:  0.030032 ms
         Rx Packets: 5998
     Flow 2 (1.0.0.2:49154 -> 7.0.0.3:1235) proto UDP
         Tx Packets: 6000
         Tx Bytes:   7680000
         TxOffered:  102.400000 Mbps
-        Rx Bytes:   7671040
-        Throughput: 102.280533 Mbps
-        Mean delay:  0.835065 ms
-        Mean jitter:  0.119991 ms
-        Rx Packets: 5993
+        Rx Bytes:   7667200
+        Throughput: 102.229333 Mbps
+        Mean delay:  0.900970  ms
+        Mean jitter: 0.119907 ms
+        Rx Packets: 5990
 
-    Mean flow throughput: 56.258560
-    Mean flow delay: 0.553292
+    Mean flow throughput: 56.232960
+    Mean flow delay: 0.588507
 
 The tutorial also makes extensive use of the |ns3| logging framework.  To check if logs are enabled
 in your |ns3| libraries, try the following command and check if it outputs some additional verbose
@@ -216,7 +216,7 @@ While both UEs are characterized by a Uniform Planar Array of 2x4 isotropic ante
 array with a configuration of 4x8.
 
 In terms of spectrum, 2 bands are created to support such communications. The first one operates at 28.0 GHz, while the
-second one at 28.2 GHz, both with a bandwidth of 100 MHz. In terms of numerology, i.e., the sub-carrier spacing, the
+second one at 28.2 GHz, both with a bandwidth of 50 MHz. In terms of numerology, i.e., the sub-carrier spacing, the
 former is 4, while the latter is 2.
 This simplifies spectrum allocation, given that each communication will operate on a dedicated BWP,
 on a single CC that occupies the entire band, resulting in the spectrum organized as below:
@@ -230,7 +230,7 @@ on a single CC that occupies the entire band, resulting in the spectrum organize
     * ------------CC1----------------|--------------CC2-------------------
     * ------------BWP1---------------|--------------BWP2------------------
 
-Given that there is only one gNB, a total transmission power of 4 dBm, which is around 2.51 mW, is spread among the two
+Given that there is only one gNB, a total transmission power of 35 dBm, which is around 3.16 W, is spread among the two
 BWPs.
 
 In terms of the BWP type and bearer, the former communication is configured to use a QCI with NGBR Low Latency, also
@@ -286,12 +286,12 @@ simulates the remote host.  Next, observe the first packet arrivals on the UEs v
 
 .. sourcecode:: text
 
-    +0.400408031s 1 UdpServer:HandleRead(): TraceDelay: RX 100 bytes from 1.0.0.2 Sequence Number: 0 Uid: 8 TXtime: +4e+08ns RXtime: +4.00408e+08ns Delay: +408031ns
+    +0.400533031s 1 UdpServer:HandleRead(): TraceDelay: RX 100 bytes from 1.0.0.2 Sequence Number: 0 Uid: 8 TXtime: +4e+08ns RXtime: +4.00533e+08ns Delay: +533031ns
     ...
-    +0.401832140s 2 UdpServer:HandleRead(): TraceDelay: RX 1252 bytes from 1.0.0.2 Sequence Number: 0 Uid: 9 TXtime: +4e+08ns RXtime: +4.01832e+08ns Delay: +1.83214e+06ns
+    +0.402582140s 2 UdpServer:HandleRead(): TraceDelay: RX 1252 bytes from 1.0.0.2 Sequence Number: 0 Uid: 9 TXtime: +4e+08ns RXtime: +4.02582e+08ns Delay: +2.58214e+06ns
 
-The reception times (and packet delays) are quite different.  One takes only 408 us to be delivered, while the other
-takes 1832 us to be delivered.  In this tutorial, we will explain why this is so.
+The reception times (and packet delays) are quite different.  One takes only 533 us to be delivered, while the other
+takes 2582 us to be delivered.  In this tutorial, we will explain why this is so.
 
 RAN lifecycle
 *************
@@ -341,10 +341,8 @@ one can observe this relay function on the first packet, as follows:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 EpcEnbApplication:RecvFromS1uSocket(): [INFO ] Received packet from S1-U interface.
   +0.400000282s 0 EpcEnbApplication:RecvFromS1uSocket(): [INFO ] Received packet from S1-U interface with GTP TEID: 2
   +0.400000282s 0 EpcEnbApplication:SendToLteSocket(): [INFO ] Add EpsBearerTag with RNTI 2 and bearer ID 2
-  +0.400000282s 0 EpcEnbApplication:SendToLteSocket(): [INFO ] Forward packet from eNB's S1-U to LTE stack.
   +0.400000282s 0 EpcEnbApplication:SendToLteSocket(): [INFO ] Forward packet from eNB's S1-U to LTE stack via IPv4 socket.
 
 The file ``src/lte/model/epc-enb-application.cc`` contains the source code.
@@ -466,7 +464,8 @@ it produces the following log messages:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 LteEnbRrc:SendData(): [INFO ] Received packet
+  +0.400000282s 0 LteEnbRrc:SendData(): [INFO ] Sending a packet of 128 bytes to IMSI 1, RNTI 2, BID 2
+  +0.400000282s 0 LteEnbRrc:SendData(): [INFO ] queueing data on PDCP for transmission over the air
   +0.400000282s 0 LteEnbRrc:SendPacket(): [INFO ] Send packet to PDCP layer
 
 By taking a look at the source code, the RRC layer starts by extracting the RNTI, which is handled by the
@@ -737,7 +736,7 @@ place:
   +0.400000282s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
   +0.400002262s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
   +0.400002262s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
-  +0.400062500s 0 LteRlcUm:DoNotifyTxOpportunity(): [INFO ] RLC layer is preparing data for the following Tx opportunity of 81 bytes for RNTI=2, LCID=4, CCID=0, HARQ ID=19, MIMO Layer=0
+  +0.400062500s 0 LteRlcUm:DoNotifyTxOpportunity(): [INFO ] RLC layer is preparing data for the following Tx opportunity of 36 bytes for RNTI=2, LCID=4, CCID=0, HARQ ID=15, MIMO Layer=0
 
 The ``LteRlcUm::DoNotifyTxOpportunity()`` prepares the data to transmit in the following way:
 
@@ -760,8 +759,8 @@ The ``LteRlcUm::DoNotifyTxOpportunity()`` prepares the data to transmit in the f
 First of all, the opportunity window size is checked to ensure that we have more than two bytes, given that the MAC
 header requires that size. Next, an empty packet is created, called ``packet``. Such packet must be equivalent to the
 size of the transmission opportunity, for which the variable ``nextSegmentSize`` is used to understand how much data
-contained in ``m_txBuffer`` can be transferred. In this case, we can transfer up to 79 bytes, which is the result of the
-``txOpParams.bytes``, set at 81 bytes, minus 2 bytes due to the MAC header size.
+contained in ``m_txBuffer`` can be transferred. In this case, we can transfer up to 34 bytes, which is the result of the
+``txOpParams.bytes``, set at 36 bytes, minus 2 bytes due to the MAC header size.
 
 .. sourcecode:: cpp
 
@@ -917,13 +916,13 @@ with the ``HARQ Process ID``:
 
 .. sourcecode:: text
 
-  +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] New scheduled data TX in DL for HARQ Process ID: 19, Var. TTI from symbol 1 to 13. 1 TBs of sizes [ 84 ] with MCS [ 0 ]
-  +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 19 LC ID 4 stream 0 size 81 bytes
+  +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] New scheduled data TX in DL for HARQ Process ID: 15, Var. TTI from symbol 1 to 13. 1 TBs of sizes [ 39 ] with MCS [ 0 ]
+  +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 15 LC ID 4 stream 0 size 36 bytes
   +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoTransmitPdu(): [INFO ] Sending MAC PDU to PHY Layer
   ...
-  +0.400374995s 0  [ CellId 2, bwpId 0] NrGnbMac:DoDlHarqFeedback(): [INFO ] HARQ-ACK UE RNTI 2 HARQ Process ID 19 Stream ID 0
+  +0.400374995s 0  [ CellId 2, bwpId 0] NrGnbMac:DoDlHarqFeedback(): [INFO ] HARQ-ACK UE RNTI 2 HARQ Process ID 15 Stream ID 0
 
-From the first message we can observe that a new transmission of just one stream of 84 bytes is scheduled for
+From the first message we can observe that a new transmission of just one stream of 39 bytes is scheduled for
 transmission. Consequently, from the second log message the MAC notifies this opportunity to the RLC layer. After that,
 the MAC PDU is prepared. After a while, the ACK from the UE arrives. This means that the frame took 312 us to be sent
 and acknowledged.
@@ -938,9 +937,9 @@ Furthermore, observe how the TB size is larger for BWP with ID 1:
 
 .. sourcecode:: text
 
-  +0.400250000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] New scheduled data TX in DL for HARQ Process ID: 19, Var. TTI from symbol 1 to 13. 1 TBs of sizes [ 348 ] with MCS [ 0 ]
+  +0.400250000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] New scheduled data TX in DL for HARQ Process ID: 15, Var. TTI from symbol 1 to 13. 1 TBs of sizes [ 171 ] with MCS [ 0 ]
   ...
-  +0.401499997s 0  [ CellId 3, bwpId 1] NrGnbMac:DoDlHarqFeedback(): [INFO ] HARQ-ACK UE RNTI 1 HARQ Process ID 19 Stream ID 0
+  +0.401499997s 0  [ CellId 3, bwpId 1] NrGnbMac:DoDlHarqFeedback(): [INFO ] HARQ-ACK UE RNTI 1 HARQ Process ID 15 Stream ID 0
 
 but the latency has increased to 1,249 us.
 
@@ -980,8 +979,8 @@ All this information can be obtained in the following log messages:
 .. sourcecode:: text
 
   +0.000000000s -1  [ CellId 0, bwpId 65535] NrGnbPhy:SetTddPattern(): [INFO ] Set pattern : F|F|F|F|F|F|F|F|F|F|
-  +0.000000000s -1  [ CellId 0, bwpId 0] NrPhy:DoUpdateRbNum(): [INFO ] Updated RbNum to 33
-  +0.000000000s -1  [ CellId 0, bwpId 1] NrPhy:DoUpdateRbNum(): [INFO ] Updated RbNum to 133
+  +0.000000000s -1  [ CellId 0, bwpId 0] NrPhy:DoUpdateRbNum(): [INFO ] Updated RbNum to 16
+  +0.000000000s -1  [ CellId 0, bwpId 1] NrPhy:DoUpdateRbNum(): [INFO ] Updated RbNum to 66
   +0.000000000s -1  [ CellId 2, bwpId 0] NrPhy:DoUpdateRbNum(): [INFO ] Updated RbNum to 6
   +0.000000000s -1  [ CellId 2, bwpId 0] NrPhy:DoUpdateRbNum(): [INFO ] Updated RbNum to 6
   +0.000000000s 0  [ CellId 2, bwpId 0] NrGnbPhy:StartSlot(): [INFO ] Channel not granted, request the channel
@@ -1015,7 +1014,7 @@ From this point onwards, the ``NrGnbPhy`` interacts with ``NrSpectrumPhy::StartT
 interface between the gNB PHY layer and the channel. ``NrSpectrumPhy`` acts as a state machine to know what the
 PHY layer (at the BWP of interest) is currently doing, from transferring/receiving data or control information or it is in idle state. Once a packet
 burst is given with its related set of control messages and duration of transmission, the structure
-``NrSpectrumSignalParameterDataFrame`` is created. This object contains the aformentioned information, plus the cell
+``NrSpectrumSignalParameterDataFrame`` is created. This object contains the aforementioned information, plus the cell
 identifier (``GetCellId()``) and the transmission PSD. Such information is then forwarded to the channel.
 
 The log messages are quite verbose but in a constant pattern until there is data to transmit. Indeed, it is possible to
@@ -1024,10 +1023,10 @@ notice these log messages once data arrive at the PHY layer:
 .. sourcecode:: text
 
   +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:RetrieveDciFromAllocation(): [INFO ] Send DCI to RNTI 2 from sym 1 to 13
-  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=0|DL|SYM=0|NSYM=1|TYPE=2|BWP=0|HARQP=0|RBG=[0;32] at +0ns
-  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=2|DL|SYM=1|NSYM=12|McsStream0=0|TBsStream0=84|NdiStream0=1|RvS
-  tream0=0|TYPE=1|BWP=0|HARQP=19|RBG=[0;32] at +4464ns
-  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=0|UL|SYM=13|NSYM=1|TYPE=2|BWP=0|HARQP=0|RBG=[0;32] at +58032ns
+  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=0|DL|SYM=0|NSYM=1|TYPE=2|BWP=0|HARQP=0|RBG=[0;15] at +0ns
+  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=2|DL|SYM=1|NSYM=12|McsStream0=0|TBsStream0=39|NdiStream0=1|RvS
+  tream0=0|TYPE=1|BWP=0|HARQP=15|RBG=[0;15] at +4464ns
+  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=0|UL|SYM=13|NSYM=1|TYPE=2|BWP=0|HARQP=0|RBG=[0;15] at +58032ns
   +0.400191964s 0  [ CellId 2, bwpId 0] NrGnbPhy:DlData(): [INFO ] ENB TXing DL DATA frame FrameNum: 40 SubFrameNum: 0 SlotNum: 3 symbols 1-12 start +4.00192e+08ns end +4.00246e+08ns
   +0.400250000s 0  [ CellId 3, bwpId 1] NrGnbPhy:EndSlot(): [INFO ] Release the channel because we did not have any data to maintain the grant
 
@@ -1087,14 +1086,14 @@ The following log excerpt can be analyzed:
          Channel central freq: 2.8e+10 Hz
          Num. RB: 6
   ...
-  +0.400191964s 1  [ CellId 2, bwpId 0] NrUePhy:DlData(): [INFO ] UE2 HARQ ID 19 stream 0 RXing DL DATA frame for symbols 1-12 num of rbg assigned: 33. RX will take place for +53568ns
-  +0.400245531s 1  [ CellId 2, bwpId 0] NrUePhy:GenerateDlCqiReport(): [INFO ] Stream 0 WB CQI 15 avrg MCS 28 avrg SINR (dB) 42.9278
-  +0.400245531s 1  [ CellId 2, bwpId 0] NrUePhy:NotifyDlHarqFeedback(): [INFO ] HARQ Feedback for ID 19 Stream 0
+  +0.400191964s 1  [ CellId 2, bwpId 0] NrUePhy:DlData(): [INFO ] UE2 HARQ ID 15 stream 0 RXing DL DATA frame for symbols 1-12 num of rbg assigned: 16. RX will take place for +53568ns
+  +0.400245531s 1  [ CellId 2, bwpId 0] NrUePhy:GenerateDlCqiReport(): [INFO ] Stream 0 WB CQI 15 avrg MCS 28 avrg SINR (dB) 66.8459
+  +0.400245531s 1  [ CellId 2, bwpId 0] NrUePhy:NotifyDlHarqFeedback(): [INFO ] HARQ Feedback for ID 15 Stream 0
   ...
-  +0.400767857s 2  [ CellId 3, bwpId 1] NrUePhy:DlData(): [INFO ] UE1 HARQ ID 19 stream 0 RXing DL DATA frame for symbols 1-12 num of rbg assigned: 133. RX will take place for +214284ns
+  +0.400767857s 2  [ CellId 3, bwpId 1] NrUePhy:DlData(): [INFO ] UE1 HARQ ID 19 stream 0 RXing DL DATA frame for symbols 1-12 num of rbg assigned: 66. RX will take place for +214284ns
   ...
-  +0.400982140s 2  [ CellId 3, bwpId 1] NrUePhy:GenerateDlCqiReport(): [INFO ] Stream 0 WB CQI 15 avrg MCS 28 avrg SINR (dB) 41.8067
-  +0.400982140s 2  [ CellId 3, bwpId 1] NrUePhy:NotifyDlHarqFeedback(): [INFO ] HARQ Feedback for ID 19 Stream 0
+  +0.400982140s 2  [ CellId 3, bwpId 1] NrUePhy:GenerateDlCqiReport(): [INFO ] Stream 0 WB CQI 15 avrg MCS 28 avrg SINR (dB) 65.9225
+  +0.400982140s 2  [ CellId 3, bwpId 1] NrUePhy:NotifyDlHarqFeedback(): [INFO ] HARQ Feedback for ID 15 Stream 0
 
 At the start of the simulation, an instance of ``NrUePhy`` is initialized for each UE and BWP ID. So in total we get 4
 messages like this. It is clear how PHY is configured with the listed parameters, which can be useful to track and
@@ -1122,13 +1121,13 @@ TB reception can be observed by enabling the corresponding log component and fil
 
 .. sourcecode:: bash
 
-   $ NS_LOG="NrSpectrumPhy:info|prefix_all" ./ns3 run cttc-nr-demo | grep EndRxData > output.log
+   $ NS_LOG="NrSpectrumPhy=info|prefix_all" ./ns3 run cttc-nr-demo | grep EndRxData > output.log
 
 obtaining log messages such as this:
 
 .. sourcecode:: text
 
-  +0.400245531s 1 NrSpectrumPhy:EndRxData(): [INFO ] Finishing RX, sinrAvg=19623.8 sinrMin=12975.2 SinrAvg (dB) 42.9278
+  +0.400245531s 1 NrSpectrumPhy:EndRxData(): [INFO ] Finishing RX, sinrAvg=4.83716e+06 sinrMin=3.60456e+06 SinrAvg (dB) 66.8459
 
 .. TODO: case when TB is being marked as corrupted
 
@@ -1186,21 +1185,21 @@ If we filter the output only to track the first 3 TBs sent by each BWP, we obtai
 
 .. sourcecode:: text
 
-  +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 19 LC ID 4 stream 0 size 81 bytes
-  +0.400125000s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 18 LC ID 4 stream 0 size 81 bytes
-  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 17 LC ID 4 stream 0 size 81 bytes
-  +0.400250000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 19 LC ID 4 stream 0 size 345 bytes
-  +0.400345531s 1  [ CellId 2, bwpId 0, rnti 2] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 81 bytes.
-  +0.400408031s 1  [ CellId 2, bwpId 0, rnti 2] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 81 bytes.
-  +0.400470531s 1  [ CellId 2, bwpId 0, rnti 2] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 81 bytes.
-  +0.400500000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 18 LC ID 4 stream 0 size 345 bytes
-  +0.400750000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 17 LC ID 4 stream 0 size 345 bytes
-  +0.401082140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 345 bytes.
-  +0.401332140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 345 bytes.
-  +0.401582140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 345 bytes.
+  +0.400062500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 15 LC ID 4 stream 0 size 39 bytes
+  +0.400125000s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 14 LC ID 4 stream 0 size 39 bytes
+  +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 13 LC ID 4 stream 0 size 39 bytes
+  +0.400250000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 15 LC ID 4 stream 0 size 171 bytes
+  +0.400345531s 1  [ CellId 2, bwpId 0, rnti 2] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 39 bytes.
+  +0.400408031s 1  [ CellId 2, bwpId 0, rnti 2] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 39 bytes.
+  +0.400470531s 1  [ CellId 2, bwpId 0, rnti 2] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 39 bytes.
+  +0.400500000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 14 LC ID 4 stream 0 size 171 bytes
+  +0.400750000s 0  [ CellId 3, bwpId 1] NrGnbMac:DoSchedConfigIndication(): [INFO ] Notifying RLC of TX opportunity for HARQ Process ID 13 LC ID 4 stream 0 size 171 bytes
+  +0.401082140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 171 bytes.
+  +0.401332140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 171 bytes.
+  +0.401582140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 171 bytes.
 
 It is possible to observe that in ~1,519.64 us, on the one hand, 243 bytes were correctly sent to the UE for the first
-BWP, whereas 1035 bytes were sent for the second BWP. On the other hand, the first BWP took only ~283 us on average to
+BWP, whereas 513 bytes were sent for the second BWP. On the other hand, the first BWP took only ~283 us on average to
 transmit these TBs, while the second BWP took ~832 us. This aspect greatly highlights the trade-off that is taking place
 upon choosing the different BWPs.
 

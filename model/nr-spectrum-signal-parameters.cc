@@ -28,6 +28,7 @@ NrSpectrumSignalParametersDataFrame::NrSpectrumSignalParametersDataFrame(
 {
     NS_LOG_FUNCTION(this << &p);
     cellId = p.cellId;
+    rnti = p.rnti;
     if (p.packetBurst)
     {
         packetBurst = p.packetBurst->Copy();

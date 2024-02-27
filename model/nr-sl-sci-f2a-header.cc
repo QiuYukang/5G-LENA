@@ -32,7 +32,7 @@ std::vector<NrSlSciF2aHeader::CastTypeIndicator_t> NrSlSciF2aHeader::m_allowedCa
     Broadcast};
 
 TypeId
-NrSlSciF2aHeader::GetTypeId(void)
+NrSlSciF2aHeader::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrSlSciF2aHeader")
                             .SetParent<NrSlSciF2Header>()
@@ -41,7 +41,7 @@ NrSlSciF2aHeader::GetTypeId(void)
 }
 
 TypeId
-NrSlSciF2aHeader::GetInstanceTypeId(void) const
+NrSlSciF2aHeader::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -82,7 +82,7 @@ NrSlSciF2aHeader::Print(std::ostream& os) const
 }
 
 uint32_t
-NrSlSciF2aHeader::GetSerializedSize(void) const
+NrSlSciF2aHeader::GetSerializedSize() const
 {
     return NrSlSciF2Header::GetSerializedSize() + 1;
 }
@@ -123,13 +123,8 @@ NrSlSciF2aHeader::Deserialize(Buffer::Iterator start)
 bool
 NrSlSciF2aHeader::operator==(const NrSlSciF2aHeader& b) const
 {
-    if (m_harqId == b.m_harqId && m_ndi == b.m_ndi && m_rv == b.m_rv && m_srcId == b.m_srcId &&
-        m_dstId == b.m_dstId && m_csiReq == b.m_csiReq && m_castType == b.m_castType)
-    {
-        return true;
-    }
-
-    return false;
+    return m_harqId == b.m_harqId && m_ndi == b.m_ndi && m_rv == b.m_rv && m_srcId == b.m_srcId &&
+        m_dstId == b.m_dstId && m_csiReq == b.m_csiReq && m_castType == b.m_castType;
 }
 
 } // namespace ns3

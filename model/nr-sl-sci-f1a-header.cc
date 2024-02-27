@@ -32,7 +32,7 @@ std::vector<NrSlSciF1aHeader::SciStage2Format_t> NrSlSciF1aHeader::m_allowedSciS
     SciFormat2A};
 
 TypeId
-NrSlSciF1aHeader::GetTypeId(void)
+NrSlSciF1aHeader::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrSlSciF1aHeader").SetParent<Header>().AddConstructor<NrSlSciF1aHeader>();
@@ -40,7 +40,7 @@ NrSlSciF1aHeader::GetTypeId(void)
 }
 
 TypeId
-NrSlSciF1aHeader::GetInstanceTypeId(void) const
+NrSlSciF1aHeader::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -245,7 +245,7 @@ NrSlSciF1aHeader::Print(std::ostream& os) const
 }
 
 uint32_t
-NrSlSciF1aHeader::GetSerializedSize(void) const
+NrSlSciF1aHeader::GetSerializedSize() const
 {
     uint32_t totalSize = 0; // bytes
     // Always present
@@ -334,7 +334,7 @@ NrSlSciF1aHeader::Deserialize(Buffer::Iterator start)
 bool
 NrSlSciF1aHeader::operator==(const NrSlSciF1aHeader& b) const
 {
-    if (m_priority == b.m_priority && m_mcs == b.m_mcs &&
+    return m_priority == b.m_priority && m_mcs == b.m_mcs &&
         m_slSciStage2Format == b.m_slSciStage2Format &&
         m_slResourceReservePeriod == b.m_slResourceReservePeriod &&
         m_totalSubChannels == b.m_totalSubChannels &&
@@ -342,12 +342,7 @@ NrSlSciF1aHeader::operator==(const NrSlSciF1aHeader& b) const
         m_lengthSubChannel == b.m_lengthSubChannel &&
         m_slMaxNumPerReserve == b.m_slMaxNumPerReserve && m_gapReTx1 == b.m_gapReTx1 &&
         m_gapReTx2 == b.m_gapReTx2 && m_indexStartSbChReTx1 == b.m_indexStartSbChReTx1 &&
-        m_indexStartSbChReTx2 == b.m_indexStartSbChReTx2)
-    {
-        return true;
-    }
-
-    return false;
+        m_indexStartSbChReTx2 == b.m_indexStartSbChReTx2;
 }
 
 } // namespace ns3

@@ -87,19 +87,19 @@ class RadioNetworkParametersHelper
      * \brief Gets the BS transmit power
      * \return Transmit power in dBW
      */
-    double GetTxPower();
+    double GetTxPower() const;
 
     /**
      * \brief Gets the operation bandwidth
      * \return Bandwidth in Hz
      */
-    double GetBandwidth();
+    double GetBandwidth() const;
 
     /**
      * \brief Gets the central frequency
      * \return Central frequency in Hz
      */
-    double GetCentralFrequency();
+    double GetCentralFrequency() const;
 
   private:
     double m_txPower{-1.0};          //!< Transmit power in dBm
@@ -131,19 +131,19 @@ RadioNetworkParametersHelper::SetNetworkParams(const std::string scenario,
 }
 
 double
-RadioNetworkParametersHelper::GetTxPower()
+RadioNetworkParametersHelper::GetTxPower() const
 {
     return m_txPower;
 }
 
 double
-RadioNetworkParametersHelper::GetBandwidth()
+RadioNetworkParametersHelper::GetBandwidth() const
 {
     return m_bandwidth;
 }
 
 double
-RadioNetworkParametersHelper::GetCentralFrequency()
+RadioNetworkParametersHelper::GetCentralFrequency() const
 {
     return m_centralFrequency;
 }
@@ -200,7 +200,10 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
      * Each spectrum part length is, as well, specified by the input parameters.
      * The operational band will use StreetCanyon channel or UrbanMacro modeling.
      */
-    BandwidthPartInfoPtrVector allBwps, bwps1, bwps2, bwps3;
+    BandwidthPartInfoPtrVector allBwps;
+    BandwidthPartInfoPtrVector bwps1;
+    BandwidthPartInfoPtrVector bwps2;
+    BandwidthPartInfoPtrVector bwps3;
     CcBwpCreator ccBwpCreator;
     // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
     // a single BWP per CC. Get the spectrum values from the RadioNetworkParametersHelper
@@ -398,7 +401,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         bwpIdForLowLat = 1;
     }
 
-    // TODO check later when QoS scheduler is in place, that the type of bearer coresponds to the
+    // TODO check later when QoS scheduler is in place, that the type of bearer corresponds to the
     // type of traffic gNb routing between Bearer and bandwidth part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_DEFAULT",
                                                  UintegerValue(bwpIdForLowLat));
@@ -445,7 +448,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
-                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
@@ -457,11 +460,11 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
-                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
-                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
@@ -491,7 +494,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
-                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
@@ -503,11 +506,11 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
-                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
-                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
@@ -536,7 +539,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
-                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
@@ -548,11 +551,11 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             // Change the antenna orientation
             Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
-                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
-                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy(0)->GetAntenna());
+                DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
             nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
@@ -878,7 +881,9 @@ main(int argc, char* argv[])
     /*
      * Create different gNB NodeContainer for the different sectors.
      */
-    NodeContainer gnbSector1Container, gnbSector2Container, gnbSector3Container;
+    NodeContainer gnbSector1Container;
+    NodeContainer gnbSector2Container;
+    NodeContainer gnbSector3Container;
     for (uint32_t j = 0; j < gridScenario.GetBaseStations().GetN(); ++j)
     {
         Ptr<Node> gnb = gridScenario.GetBaseStations().Get(j);
@@ -902,7 +907,9 @@ main(int argc, char* argv[])
     /*
      * Create different UE NodeContainer for the different sectors.
      */
-    NodeContainer ueSector1Container, ueSector2Container, ueSector3Container;
+    NodeContainer ueSector1Container;
+    NodeContainer ueSector2Container;
+    NodeContainer ueSector3Container;
 
     for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
     {
@@ -929,8 +936,12 @@ main(int argc, char* argv[])
      */
     Ptr<PointToPointEpcHelper> epcHelper;
 
-    NetDeviceContainer gnbSector1NetDev, gnbSector2NetDev, gnbSector3NetDev;
-    NetDeviceContainer ueSector1NetDev, ueSector2NetDev, ueSector3NetDev;
+    NetDeviceContainer gnbSector1NetDev;
+    NetDeviceContainer gnbSector2NetDev;
+    NetDeviceContainer gnbSector3NetDev;
+    NetDeviceContainer ueSector1NetDev;
+    NetDeviceContainer ueSector2NetDev;
+    NetDeviceContainer ueSector3NetDev;
 
     Ptr<NrHelper> nrHelper = nullptr;
 
@@ -1075,7 +1086,7 @@ main(int argc, char* argv[])
 
             nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
 
-            if (logging == true)
+            if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                 Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1088,7 +1099,7 @@ main(int argc, char* argv[])
             Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get(i % gridScenario.GetNumSites());
             Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get(i);
             nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
-            if (logging == true)
+            if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                 Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1101,7 +1112,7 @@ main(int argc, char* argv[])
             Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get(i % gridScenario.GetNumSites());
             Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get(i);
             nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
-            if (logging == true)
+            if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                 Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1197,13 +1208,18 @@ main(int argc, char* argv[])
      * Let's install the applications!
      */
     ApplicationContainer clientApps;
-    ApplicationContainer ftpClientAppsSector1, ftpServerAppsSector1;
-    ApplicationContainer ftpClientAppsSector2, ftpServerAppsSector2;
-    ApplicationContainer ftpClientAppsSector3, ftpServerAppsSector3;
+    ApplicationContainer ftpClientAppsSector1;
+    ApplicationContainer ftpServerAppsSector1;
+    ApplicationContainer ftpClientAppsSector2;
+    ApplicationContainer ftpServerAppsSector2;
+    ApplicationContainer ftpClientAppsSector3;
+    ApplicationContainer ftpServerAppsSector3;
     Ptr<ThreeGppFtpM1Helper> ftpHelperSector1;
     Ptr<ThreeGppFtpM1Helper> ftpHelperSector2;
     Ptr<ThreeGppFtpM1Helper> ftpHelperSector3;
-    uint32_t port1 = 2001, port2 = 2002, port3 = 2003;
+    uint32_t port1 = 2001;
+    uint32_t port2 = 2002;
+    uint32_t port3 = 2003;
     // Seed the ARP cache by pinging early in the simulation
     // This is a workaround until a static ARP capability is provided
     ApplicationContainer pingApps;
@@ -1261,7 +1277,7 @@ main(int argc, char* argv[])
         serverApps.Add(ftpServerAppsSector3);
     }
 
-    if (trafficTypeConf == NGMN_FTP || (trafficTypeConf == NGMN_MIXED && ngmnFtpIds.size() > 0))
+    if (trafficTypeConf == NGMN_FTP || (trafficTypeConf == NGMN_MIXED && !ngmnFtpIds.empty()))
     {
         uint32_t portFtpNgmn = 2000;
 
@@ -1356,7 +1372,7 @@ main(int argc, char* argv[])
         }
     }
 
-    if (trafficTypeConf == NGMN_VIDEO || (trafficTypeConf == NGMN_MIXED && ngmnVideoIds.size() > 0))
+    if (trafficTypeConf == NGMN_VIDEO || (trafficTypeConf == NGMN_MIXED && !ngmnVideoIds.empty()))
     {
         uint32_t portNgmnVideo = 4000;
 
@@ -1374,7 +1390,7 @@ main(int argc, char* argv[])
             // configure clients on sector 1
             for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnVideoIds.find(i) == ngmnVideoIds.end()))
@@ -1394,7 +1410,7 @@ main(int argc, char* argv[])
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnVideoIds.find(i) == ngmnVideoIds.end()))
@@ -1414,7 +1430,7 @@ main(int argc, char* argv[])
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnVideoIds.find(i) == ngmnVideoIds.end()))
@@ -1466,8 +1482,7 @@ main(int argc, char* argv[])
         }
     }
 
-    if (trafficTypeConf == NGMN_GAMING ||
-        (trafficTypeConf == NGMN_MIXED && ngmnGamingIds.size() > 0))
+    if (trafficTypeConf == NGMN_GAMING || (trafficTypeConf == NGMN_MIXED && !ngmnGamingIds.empty()))
     {
         uint32_t portNgmnGaming = 5000;
         if (direction == "DL")
@@ -1488,7 +1503,7 @@ main(int argc, char* argv[])
             // configure clients on sector 1
             for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnGamingIds.find(i) == ngmnGamingIds.end()))
@@ -1508,7 +1523,7 @@ main(int argc, char* argv[])
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnGamingIds.find(i) == ngmnGamingIds.end()))
@@ -1528,7 +1543,7 @@ main(int argc, char* argv[])
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and
                     (ngmnGamingIds.find(i) == ngmnGamingIds.end()))
@@ -1582,7 +1597,7 @@ main(int argc, char* argv[])
         }
     }
 
-    if (trafficTypeConf == NGMN_VOIP || (trafficTypeConf == NGMN_MIXED && ngmnVoipIds.size() > 0))
+    if (trafficTypeConf == NGMN_VOIP || (trafficTypeConf == NGMN_MIXED && !ngmnVoipIds.empty()))
     {
         uint32_t portNgmnVoip = 5000;
         if (direction == "DL")
@@ -1603,7 +1618,7 @@ main(int argc, char* argv[])
             // configure clients on sector 1
             for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and (ngmnVoipIds.find(i) == ngmnVoipIds.end()))
                 {
@@ -1622,7 +1637,7 @@ main(int argc, char* argv[])
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and (ngmnVoipIds.find(i) == ngmnVoipIds.end()))
                 {
@@ -1641,7 +1656,7 @@ main(int argc, char* argv[])
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
             {
-                // in case of NGMN trafic allow installation of the specific traffic type only on
+                // in case of NGMN traffic allow installation of the specific traffic type only on
                 // the specific nodes
                 if ((trafficTypeConf == NGMN_MIXED) and (ngmnVoipIds.find(i) == ngmnVoipIds.end()))
                 {
@@ -1694,7 +1709,7 @@ main(int argc, char* argv[])
         }
     }
 
-    if (trafficTypeConf == NGMN_HTTP || (trafficTypeConf == NGMN_MIXED && ngmnHttpIds.size() > 0))
+    if (trafficTypeConf == NGMN_HTTP || (trafficTypeConf == NGMN_MIXED && !ngmnHttpIds.empty()))
     {
         // uint32_t portNgmnHttp = 7000;
         //  the way how ThreeGppHttpClient and ThreeGppHttpServer are implemented in ns-3
@@ -1704,7 +1719,7 @@ main(int argc, char* argv[])
 
         for (uint32_t i = 0; i < ueSector1Container.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1742,7 +1757,7 @@ main(int argc, char* argv[])
 
         for (uint32_t i = 0; i < ueSector1IpIface.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1756,7 +1771,7 @@ main(int argc, char* argv[])
         // configure clients on sector 2
         for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1770,7 +1785,7 @@ main(int argc, char* argv[])
         // configure clients on sector 3
         for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
         {
-            // in case of NGMN trafic allow installation of the specific traffic type only on the
+            // in case of NGMN traffic allow installation of the specific traffic type only on the
             // specific nodes
             if ((trafficTypeConf == NGMN_MIXED) and (ngmnHttpIds.find(i) == ngmnHttpIds.end()))
             {
@@ -1895,7 +1910,7 @@ main(int argc, char* argv[])
     clientApps.Stop(simTime - MilliSeconds(400));
 
     // enable the traces provided by the nr module
-    if (traces == true)
+    if (traces)
     {
         nrHelper->EnableTraces();
     }

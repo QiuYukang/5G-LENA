@@ -32,7 +32,7 @@ class RbOutputStats
     RbOutputStats();
 
     /**
-     * \brief Install the output dabase.
+     * \brief Install the output database.
      * \param db database pointer
      * \param tableName name of the table where the values will be stored
      *
@@ -86,7 +86,7 @@ class RbOutputStats
         uint16_t cellId;
         uint16_t bwpId;
 
-        uint32_t GetSize()
+        uint32_t GetSize() const
         {
             return sizeof(RbCache) + (rbUsed.size() * sizeof(int));
         }

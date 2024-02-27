@@ -9,6 +9,13 @@ stages:
   - documentation
   - deploy
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
 ###################### BUILD STAGE #############################################
 
 # Defines the steps to run the tests
@@ -25,7 +32,7 @@ stages:
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - git log -1
-    - CXX=$COMPILER ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=nr --enable-tests --enable-asserts
+    - CXX=$COMPILER CXXFLAGS="$FLAGS" ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=nr --enable-tests --enable-asserts
     - cmake --version
     - ccache -z
     - ./ns3 build
@@ -52,7 +59,7 @@ stages:
   timeout: 9h
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
-    NS3_RELEASE_VERSION: "3.40"
+    NS3_RELEASE_VERSION: "3.41"
 
 # Defines the per-commit jobs. They are executed for any branch
 .base-per-commit-compile:
@@ -114,13 +121,11 @@ documentation:
   image: ubuntu
   script:
     - mkdir -p public/
-    - cd doc && make latexpdf
+    - cd doc
+    - make latexpdf && mv ./build/latex/*.pdf ../public/
+    - export NRVERSION="nr-`git describe`"
+    - doxygen doxygen.conf && mv ./doc/html/ ../public/
     - cd ..
-    - mv doc/build/latex/*.pdf public/
-    - git submodule sync --recursive
-    - git submodule update --init --recursive
-    - python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
-    - mv doc/doc/html/ public/
      # this should be optimized in future to not download the whole ns-3
      # only because we need one script from utils (rescale-pdf.sh)!
     - git clone --branch=v2x-lte-dev --depth=1 https://gitlab.com/cttc-lena/ns-3-dev.git

@@ -261,7 +261,7 @@ WriteInitPosGnuScript(std::string posFilename)
     }
 
     std::string pngFileName;
-    pngFileName = posFilename.substr(0, posFilename.rfind("."));
+    pngFileName = posFilename.substr(0, posFilename.rfind('.'));
     outFile << "set terminal png" << std::endl;
     outFile << "set output \"" << pngFileName << ".png\"" << std::endl;
     outFile << "set style line 1 lc rgb 'black' ps 2 pt 7" << std::endl;
@@ -313,7 +313,7 @@ void
 RecordMobility(bool FirstWrite, std::string fileName)
 {
     std::ofstream outFile;
-    if (FirstWrite == true)
+    if (FirstWrite)
     {
         outFile.open(fileName.c_str(), std::ios_base::out);
         FirstWrite = false;
@@ -369,7 +369,7 @@ WriteGifGnuScript(std::string MobilityFileName,
     }
     outFile << "set term gif animate delay 100" << std::endl;
     std::string gifFileName;
-    gifFileName = MobilityFileName.substr(0, MobilityFileName.rfind("."));
+    gifFileName = MobilityFileName.substr(0, MobilityFileName.rfind('.'));
     outFile << "set output \"" << gifFileName << ".gif"
             << "\"" << std::endl;
     outFile << "unset key" << std::endl;
@@ -415,7 +415,7 @@ GetSlBitmapFromString(std::string slBitMapString, std::vector<std::bitset<1>>& s
         {
             NS_FATAL_ERROR("Bit type " << v << " not valid. Valid values are: 0 and 1");
         }
-        slBitMapVector.push_back(lookupTable[v] & 0x01);
+        slBitMapVector.emplace_back(lookupTable[v] & 0x01);
     }
 }
 
@@ -1150,14 +1150,14 @@ main(int argc, char* argv[])
     pscchPhyStats.SetDb(&db, "pscchRxUePhy");
     Config::ConnectWithoutContext(
         "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/"
-        "NrSpectrumPhyList/*/RxPscchTraceUe",
+        "SpectrumPhy/RxPscchTraceUe",
         MakeBoundCallback(&NotifySlPscchRx, &pscchPhyStats));
 
     UePhyPsschRxOutputStats psschPhyStats;
     psschPhyStats.SetDb(&db, "psschRxUePhy");
     Config::ConnectWithoutContext(
         "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/"
-        "NrSpectrumPhyList/*/RxPsschTraceUe",
+        "SpectrumPhy/RxPsschTraceUe",
         MakeBoundCallback(&NotifySlPsschRx, &psschPhyStats));
 
     UeRlcRxOutputStats ueRlcRxStats;

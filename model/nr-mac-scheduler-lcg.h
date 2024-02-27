@@ -100,7 +100,7 @@ typedef std::unique_ptr<NrMacSchedulerLC> LCPtr;
  * For what regards UL, we currently support only one LC per LCG. This comes
  * from the fact that the BSR is reported for all the LCG, and the scheduler
  * has no way to identify which LCID contains bytes. So, even at the cost to
- * have a mis-representation between the ID inside the UEs and the ID inside
+ * have a misrepresentation between the ID inside the UEs and the ID inside
  * the scheduler, we should make sure that each LCG in UL has only one LC.
  *
  * \see UpdateInfo

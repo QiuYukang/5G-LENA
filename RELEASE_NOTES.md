@@ -17,6 +17,94 @@ API and behavior across releases.
 
 
 
+Release NR-v3.0
+----------------
+
+Availability
+------------
+Available since February 16, 2024
+
+Cite this version
+-----------------
+DOI: 10.5281/zenodo.10670856
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-16.
+- Ubuntu 20.04 with g++-9 and 10, and clang-10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+- Ubuntu 23.04 with g++13.
+- Ubuntu 23.10 (Mantic Minotaur) with clang-16.
+
+This release is compatible with ns-3.41.
+
+Important news
+--------------
+- This release comes with a completely new MIMO model implementation.
+Comparing to the previous dual-polarized implementation, this new model offers a
+much more general approach and can be easily extended to support different types of MIMO,
+which was not the case with the previous implementation which was limited to a
+particular case of MIMO, i.e., DualPolarized-MIMO (DP-MIMO), supporting
+only 2 streams with no possibility for extension. Old DP-MIMO implementation
+used some assumptions related to the mapping of the streams to ports that were
+limiting its application, i.e., each stream was mapped to the antenna elements
+with a specific polarization. This means that there was a hard limitation on the
+assignment of streams to a specific port and to the specific antenna elements of
+one polarization. Also, it used a not realistic inter-stream interference rejection
+model. Instead, the new MIMO implementation will support general MIMO, through
+the inclusion of 3GPP-compliant PMI (precoding matrix indicator) and RI (rank indicator),
+assuming MMSE-IRC (interference rejection combining) receiver for inter-stream
+interference suppression, as adopted in 3GPP. Such general MIMO includes as particular
+case the old DP-MIMO, but with a more generic and realistic model for DP-MIMO in
+which the streams/port/antennas mapping is not predefined but defined through
+digital precoding and in which a more accurate model for the inter-stream
+interference calculation is considered. The new MIMO is flexible and can be easily
+extended for more streams/ranks/ports.
+
+- The current MIMO implementation requires Eigen3 library (https://eigen.tuxfamily.org/).
+
+- When creating an MR, 5G-LENA users will be able to use CI/CD minutes belonging
+to the NR module project.
+
+- The code base is updated and a bit modernized, e.g. to use standard integer types,
+simpler bool checks, spelling errors are fixed, automatic clang-tidy fixes are
+applied, for loops are modernized, python formatter settings were added, etc.
+
+- Remember to follow the instructions from the README.md file, i.e., to checkout
+the correct release branch of both ns-3 and the NR module. The information about
+compatibility with the corresponding ns-3 release branch is stated in the
+`README.md` file.
+
+
+New user-visible features
+-------------------------
+- A new MIMO model is available in the NR module. The ``cttc-nr-mimo-demo`` example
+shows how to use and configure the new MIMO model. See the NR manual and Doxygen
+for the full description of the new MIMO model and APIs. The new APIs are
+also listed CHANGES.md.
+
+- The NR module pipelines have been improved in multiple aspects:
+  - GCC 13 CI jobs are added.
+  - Ubuntu rolling CI jobs are added to weekly tests.
+  - Cmake format CI job is added.
+  - Black and isort formatter settings for python were added and applied.
+  - Added python format CI job.
+  - Added spell-checking CI job.
+  - Clang-tidy CI job is added.
+  - The documentation build and deployment are split now, and the deployment is limited to master.
+  - Merge request pipelines are enabled.
+
+Bugs fixed
+----------
+None.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
+
 Release NR-v2.6
 ----------------
 
@@ -319,7 +407,7 @@ closest site for the `HexagonalGridScenarioHelper::CreateScenarioWithMobility`
 function. Moreover, the simTag and the results folder can now be set.
 - The antenna orientation in the `NodeDistributionScenarioInterface::GetAntennaOrientationDegrees`
 is changed from 60, 180, 300 degrees to 30, 120, 270.
-- `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+- `GridScenarioHelper` includes now a function to set the starting position of the grid.
 - Included some performance enhancements, such as to remove from `NrEesmErrorModel`
 unnecessary copy, to allow the `NrErrorModel` to be passed and fetched as an object
 and to reduce the execution of tests and examples_to_run.py.
@@ -630,7 +718,7 @@ uses the actual channel at SRS reception moment for real BF update with delay.
 fact that the Allocation Statistics were not in accordance with the real allocation.
 This happened because the `SlotAllocInfo` structure, and in particular the
 `m_numSymAlloc` field, was not updated accurately when a UE didn’t get a
-DCI (i.e., when the TBS is less than 7 bytes). Scheduler, now correcly updates
+DCI (i.e., when the TBS is less than 7 bytes). Scheduler, now correctly updates
 the `m_numSymAlloc` field and the `usedSym` variable in `NrMacSchedulerNs3::DoScheduleDlData`
 and `NrMacSchedulerNs3::DoScheduleUlData` when DCI is not created.
 

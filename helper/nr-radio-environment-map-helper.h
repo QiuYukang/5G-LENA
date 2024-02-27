@@ -126,7 +126,7 @@ class NrRadioEnvironmentMapHelper : public Object
     void SetRemMode(enum RemMode remType);
 
     /**
-     * \brief Set simTag that will be contatenated to
+     * \brief Set simTag that will be concatenated to
      * output file names
      * \param simTag string to be used as simulation tag
      */
@@ -539,7 +539,7 @@ class NrRadioEnvironmentMapHelper : public Object
                                 const RemDevice& otherDevice,
                                 const Ptr<const UniformPlanarArray>& antenna);
 
-    std::list<RemDevice> m_remDev; ///< List of REM Transmiting Devices (RTDs).
+    std::list<RemDevice> m_remDev; ///< List of REM Transmitting Devices (RTDs).
     std::list<RemPoint> m_rem;     ///< List of REM points.
 
     std::chrono::system_clock::time_point

@@ -116,7 +116,7 @@ NrUePowerControl::GetTypeId()
                           "set the value TS36.213, while for TS 38.213 should be "
                           "configured TS38.213.",
                           EnumValue(NrUePowerControl::TS_36_213),
-                          MakeEnumAccessor(&NrUePowerControl::SetTechnicalSpec),
+                          MakeEnumAccessor<TechnicalSpec>(&NrUePowerControl::SetTechnicalSpec),
                           MakeEnumChecker(NrUePowerControl::TS_36_213,
                                           "TS36.213",
                                           NrUePowerControl::TS_38_213,
@@ -146,7 +146,7 @@ NrUePowerControl::GetTypeId()
                           "When set to true means that this power control is applied to "
                           "bandwidth reduced, low complexity or coverage enhanced (BL/CE) device."
                           "By default this attribute is set to false. Default BL_CE "
-                          "mode is CEModeB. This option can be used only in conjuction with "
+                          "mode is CEModeB. This option can be used only in conjunction with "
                           "attribute TSpec being set to TS 36.213.",
                           BooleanValue(false),
                           MakeBooleanAccessor(&NrUePowerControl::SetBlCe),
@@ -565,7 +565,7 @@ NrUePowerControl::UpdateFc()
     }
     else
     {
-        if (m_deltaPusch.size() > 0)
+        if (!m_deltaPusch.empty())
         {
             m_fc = m_deltaPusch.back();
             m_deltaPusch

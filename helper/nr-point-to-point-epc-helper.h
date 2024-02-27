@@ -102,7 +102,7 @@ class LteSlTft;
     }
 \endverbatim
  *
- * For everthing else, please see also the NrHelper documentation.
+ * For everything else, please see also the NrHelper documentation.
  *
  * \see PointToPointEpcHelper
  */

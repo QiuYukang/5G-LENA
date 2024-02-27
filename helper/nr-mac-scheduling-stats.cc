@@ -84,7 +84,7 @@ NrMacSchedulingStats::DlScheduling(uint16_t cellId,
     NS_LOG_INFO("Write DL Mac Stats in " << GetDlOutputFilename().c_str());
 
     std::ofstream outFile;
-    if (m_dlFirstWrite == true)
+    if (m_dlFirstWrite)
     {
         outFile.open(GetDlOutputFilename().c_str());
         if (!outFile.is_open())
@@ -95,7 +95,7 @@ NrMacSchedulingStats::DlScheduling(uint16_t cellId,
         m_dlFirstWrite = false;
         outFile << "% "
                    "time(s)"
-                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\thar"
+                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\thar"
                    "qId\tndi\trv\tmcs\ttbSize";
         outFile << std::endl;
     }
@@ -119,7 +119,6 @@ NrMacSchedulingStats::DlScheduling(uint16_t cellId,
     outFile << traceInfo.m_slotNum << "\t";
     outFile << (uint32_t)traceInfo.m_symStart << "\t";
     outFile << (uint32_t)traceInfo.m_numSym << "\t";
-    outFile << (uint32_t)traceInfo.m_streamId << "\t";
     outFile << (uint32_t)traceInfo.m_harqId << "\t";
     outFile << (uint32_t)traceInfo.m_ndi << "\t";
     outFile << (uint32_t)traceInfo.m_rv << "\t";
@@ -138,7 +137,7 @@ NrMacSchedulingStats::UlScheduling(uint16_t cellId,
     NS_LOG_INFO("Write UL Mac Stats in " << GetUlOutputFilename().c_str());
 
     std::ofstream outFile;
-    if (m_ulFirstWrite == true)
+    if (m_ulFirstWrite)
     {
         outFile.open(GetUlOutputFilename().c_str());
         if (!outFile.is_open())
@@ -149,7 +148,7 @@ NrMacSchedulingStats::UlScheduling(uint16_t cellId,
         m_ulFirstWrite = false;
         outFile << "% "
                    "time(s)"
-                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\tstream\thar"
+                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\thar"
                    "qId\tndi\trv\tmcs\ttbSize";
         outFile << std::endl;
     }
@@ -173,7 +172,6 @@ NrMacSchedulingStats::UlScheduling(uint16_t cellId,
     outFile << traceInfo.m_slotNum << "\t";
     outFile << (uint32_t)traceInfo.m_symStart << "\t";
     outFile << (uint32_t)traceInfo.m_numSym << "\t";
-    outFile << (uint32_t)traceInfo.m_streamId << "\t";
     outFile << (uint32_t)traceInfo.m_harqId << "\t";
     outFile << (uint32_t)traceInfo.m_ndi << "\t";
     outFile << (uint32_t)traceInfo.m_rv << "\t";
@@ -192,7 +190,7 @@ NrMacSchedulingStats::DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
     std::ostringstream pathAndRnti;
     std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
     pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
-    if (macStats->ExistsImsiPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsImsiPath(pathAndRnti.str()))
     {
         imsi = macStats->GetImsiPath(pathAndRnti.str());
     }
@@ -202,7 +200,7 @@ NrMacSchedulingStats::DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
         macStats->SetImsiPath(pathAndRnti.str(), imsi);
     }
     uint16_t cellId = 0;
-    if (macStats->ExistsCellIdPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsCellIdPath(pathAndRnti.str()))
     {
         cellId = macStats->GetCellIdPath(pathAndRnti.str());
     }
@@ -226,7 +224,7 @@ NrMacSchedulingStats::UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
     std::ostringstream pathAndRnti;
     std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
     pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
-    if (macStats->ExistsImsiPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsImsiPath(pathAndRnti.str()))
     {
         imsi = macStats->GetImsiPath(pathAndRnti.str());
     }
@@ -236,7 +234,7 @@ NrMacSchedulingStats::UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
         macStats->SetImsiPath(pathAndRnti.str(), imsi);
     }
     uint16_t cellId = 0;
-    if (macStats->ExistsCellIdPath(pathAndRnti.str()) == true)
+    if (macStats->ExistsCellIdPath(pathAndRnti.str()))
     {
         cellId = macStats->GetCellIdPath(pathAndRnti.str());
     }

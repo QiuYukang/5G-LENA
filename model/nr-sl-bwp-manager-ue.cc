@@ -196,7 +196,7 @@ NrSlBwpManagerUe::DoAddNrSlDrbLc(const NrSlUeCmacSapProvider::SidelinkLogicalCha
 
     NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm elem;
     std::map<uint8_t, std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*>>::iterator slCcLcMapIt;
-    NS_ASSERT_MSG(m_slBwpIds.size() != 0, "Did you forget to set BWP container from RRC");
+    NS_ASSERT_MSG(!m_slBwpIds.empty(), "Did you forget to set BWP container from RRC");
     for (const auto& itBwpIt : m_slBwpIds)
     {
         elem.bwpId = itBwpIt;

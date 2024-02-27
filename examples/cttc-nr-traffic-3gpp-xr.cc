@@ -40,32 +40,6 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("CttcNrTraffic3gppXr");
 
 void
-WriteBytesSent(Ptr<TrafficGenerator> trafficGenerator,
-               uint64_t* previousBytesSent,
-               uint64_t* previousWindowBytesSent,
-               enum NrXrConfig NrXrConfig,
-               std::ofstream* outFileTx)
-{
-    uint64_t totalBytesSent = trafficGenerator->GetTotalBytes();
-    (*outFileTx) << "\n"
-                 << Simulator::Now().GetMilliSeconds() << "\t" << *previousWindowBytesSent
-                 << std::endl;
-    (*outFileTx) << "\n"
-                 << Simulator::Now().GetMilliSeconds() << "\t"
-                 << totalBytesSent - *previousBytesSent << std::endl;
-
-    *previousWindowBytesSent = totalBytesSent - *previousBytesSent;
-    *previousBytesSent = totalBytesSent;
-};
-
-void
-WriteBytesReceived(Ptr<PacketSink> packetSink, uint64_t* previousBytesReceived)
-{
-    uint64_t totalBytesReceived = packetSink->GetTotalRx();
-    *previousBytesReceived = totalBytesReceived;
-};
-
-void
 ConfigureXrApp(NodeContainer& ueContainer,
                uint32_t i,
                Ipv4InterfaceContainer& ueIpIface,
@@ -90,11 +64,11 @@ ConfigureXrApp(NodeContainer& ueContainer,
 
     std::vector<Address> addresses;
     std::vector<InetSocketAddress> localAddresses;
-    for (uint j = 0; j < it->second.size(); j++)
+    for (size_t j = 0; j < it->second.size(); j++)
     {
         addresses.emplace_back(InetSocketAddress(ipAddress, port + j));
         // The sink will always listen to the specified ports
-        localAddresses.emplace_back(InetSocketAddress(Ipv4Address::GetAny(), port + j));
+        localAddresses.emplace_back(Ipv4Address::GetAny(), port + j);
     }
 
     ApplicationContainer currentUeClientApps;
@@ -147,7 +121,6 @@ main(int argc, char* argv[])
     double txPower = 41;
     bool isMx1 = true;
     bool useUdp = true;
-    double distance = 450;
     uint32_t rngRun = 1;
 
     CommandLine cmd(__FILE__);
@@ -162,10 +135,6 @@ main(int argc, char* argv[])
                  "if true, the NGMN applications will run over UDP connection, otherwise a TCP "
                  "connection will be used.",
                  useUdp);
-    cmd.AddValue("distance",
-                 "The radius of the disc (in meters) that the UEs will be distributed."
-                 "Default value is 450m",
-                 distance);
     cmd.AddValue("isMx1",
                  "if true M SDFs will be mapped to 1 DRB, otherwise the mapping will "
                  "be 1x1, i.e., 1 SDF to 1 DRB.",
@@ -363,7 +332,7 @@ main(int argc, char* argv[])
 
     // configure the transport protocol to be used
     std::string transportProtocol;
-    transportProtocol = useUdp == true ? "ns3::UdpSocketFactory" : "ns3::TcpSocketFactory";
+    transportProtocol = useUdp ? "ns3::UdpSocketFactory" : "ns3::TcpSocketFactory";
     uint16_t dlPortArStart = 1121; // AR has 3 flows
     uint16_t dlPortArStop = 1124;
     uint16_t dlPortVrStart = 1131;
@@ -451,7 +420,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        vrBearer,
                        vrTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,
@@ -470,7 +439,7 @@ main(int argc, char* argv[])
                        nrHelper,
                        cgBearer,
                        cgTft,
-                       1,
+                       true,
                        arTfts,
                        serverApps,
                        clientApps,

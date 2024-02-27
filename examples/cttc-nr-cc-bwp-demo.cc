@@ -35,7 +35,7 @@ flows.
  * (gNBs) with an also configurable number of UEs attached to each gNB.
  *
  * In this example, the network operates in TDD in a given band. This band is
- * splited in a number of Component Carriers (CC). There are two methods to do
+ * split in a number of Component Carriers (CC). There are two methods to do
  * this separation: automatic or manual.
  * The automatic way divides the bandwidth in a given number of equally-sized
  * contiguous CCs. In the example, the number of contiguous CCs is 4, but can be
@@ -290,7 +290,7 @@ main(int argc, char* argv[])
     std::unique_ptr<ComponentCarrierInfo> cc1(new ComponentCarrierInfo());
     std::unique_ptr<BandwidthPartInfo> bwp2(new BandwidthPartInfo());
 
-    if (contiguousCc == true)
+    if (contiguousCc)
     {
         /*
          * CC band configuration n257F (NR Release 15): four contiguous CCs of
@@ -440,7 +440,7 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    if (contiguousCc == true)
+    if (contiguousCc)
     {
         // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0),
         // (1), ...

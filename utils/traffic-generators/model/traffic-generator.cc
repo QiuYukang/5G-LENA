@@ -37,7 +37,7 @@ TrafficGenerator::GetTypeId()
 
 TrafficGenerator::TrafficGenerator()
     : Application(),
-      m_socket(0),
+      m_socket(nullptr),
       m_connected(false),
       m_currentBurstTotBytes(0),
       m_currentBurstTotPackets(0),
@@ -87,7 +87,7 @@ void
 TrafficGenerator::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_socket = 0;
+    m_socket = nullptr;
     // chain up
     Application::DoDispose();
 }
@@ -208,13 +208,13 @@ TrafficGenerator::StopApplication() // Called at time specified by Stop
 
     if (m_tid == UdpSocketFactory::GetTypeId())
     {
-        m_socket = 0;
+        m_socket = nullptr;
     }
     else
     {
         m_socket->Close();
         m_connected = false;
-        m_socket = 0;
+        m_socket = nullptr;
     }
 
     NS_LOG_INFO("Sent packets: " << m_totPackets << " and the total bytes: " << m_totBytes);
@@ -378,7 +378,7 @@ TrafficGenerator::CloseSucceeded(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_LOG_LOGIC("TrafficGenerator Close succeeded");
-    m_socket = 0;
+    m_socket = nullptr;
 }
 
 void
@@ -386,7 +386,7 @@ TrafficGenerator::CloseFailed(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_LOG_LOGIC("TrafficGenerator Close failed");
-    m_socket = 0;
+    m_socket = nullptr;
 }
 
 void
@@ -423,7 +423,7 @@ TrafficGenerator::SetProtocol(TypeId protocol)
 }
 
 uint16_t
-TrafficGenerator::GetTgId()
+TrafficGenerator::GetTgId() const
 {
     return m_tgId;
 }

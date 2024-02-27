@@ -135,14 +135,16 @@ class NrEesmErrorModel : public NrErrorModel
      * \brief Get the payload size in Bytes, following the MCSs in NR. It follows
      * TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including
      * quantizations and and limits (i.e., only up to Step 2)
-     * \param usefulSc the number of useful subcarrier per RB, substracting DMRS overhead
+     * \param usefulSc the number of useful subcarrier per RB, subtracting DMRS overhead
      * \param mcs MCS
+     * \param rank the MIMO rank
      * \param rbNum the number of RBs (time x frequency)
      * \param mode Mode
      *
      */
     uint32_t GetPayloadSize(uint32_t usefulSc,
                             uint8_t mcs,
+                            uint8_t rank,
                             uint32_t rbNum,
                             Mode mode) const override;
     /**

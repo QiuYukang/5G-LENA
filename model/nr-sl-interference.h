@@ -33,14 +33,14 @@ class NrSlInterference : public Object
 {
   public:
     NrSlInterference();
-    virtual ~NrSlInterference();
+    ~NrSlInterference() override;
 
     /**
      * \brief Get the type ID.
      * \return The object TypeId
      */
-    static TypeId GetTypeId(void);
-    virtual void DoDispose();
+    static TypeId GetTypeId();
+    void DoDispose() override;
 
     /**
      * Add a NrSlChunkProcessor that will use the time-vs-frequency SINR

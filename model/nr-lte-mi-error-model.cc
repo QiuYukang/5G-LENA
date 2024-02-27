@@ -933,9 +933,9 @@ NrLteMiErrorModel::Mib(const SpectrumValue& sinr, const std::vector<int>& map, u
     double MI;
     double MIsum = 0.0;
 
-    for (uint32_t i = 0; i < map.size(); i++)
+    for (int i : map)
     {
-        double sinrLin = sinr[map.at(i)];
+        double sinrLin = sinr[i];
         if (mcs <= MI_QPSK_MAX_ID) // QPSK
         {
             if (sinrLin > MI_map_qpsk_axis[MI_MAP_QPSK_SIZE - 1])
@@ -1004,11 +1004,11 @@ NrLteMiErrorModel::Mib(const SpectrumValue& sinr, const std::vector<int>& map, u
                 }
             }
         }
-        NS_LOG_LOGIC(" RB " << map.at(i) << "Minimum SNR = " << 10 * std::log10(sinrLin) << " dB, "
+        NS_LOG_LOGIC(" RB " << i << "Minimum SNR = " << 10 * std::log10(sinrLin) << " dB, "
                             << sinrLin << " V, MCS = " << (uint16_t)mcs << ", MI = " << MI);
         MIsum += MI;
     }
-    if (map.size() == 0)
+    if (map.empty())
     {
         MI = 0;
     }
@@ -1092,7 +1092,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
     double MI = tbMi;
     double Reff = 0.0;
 
-    if (history.size() > 0)
+    if (!history.empty())
     {
         uint32_t codeBitsSum = 0;
         double miSum = 0.0;
@@ -1176,7 +1176,7 @@ NrLteMiErrorModel::GetTbBitDecodificationStats(const SpectrumValue& sinr,
 
     double errorRate = 1.0;
     uint8_t ecrId = 0;
-    if (history.size() == 0)
+    if (history.empty())
     {
         // first tx -> get ECR from MCS
         ecrId = McsEcrBlerTableMapping[mcs];
@@ -1264,6 +1264,7 @@ NrLteMiErrorModel::GetSpectralEfficiencyForMcs(uint8_t mcs) const
 uint32_t
 NrLteMiErrorModel::GetPayloadSize(uint32_t usefulSC,
                                   uint8_t mcs,
+                                  uint8_t rank,
                                   uint32_t rbNum,
                                   [[maybe_unused]] Mode mode) const
 {
@@ -1271,7 +1272,7 @@ NrLteMiErrorModel::GetPayloadSize(uint32_t usefulSC,
     const uint32_t rscElement = usefulSC * rbNum;
     const double Rcode = McsEcrTable[mcs];
     const uint8_t Qm = ModulationSchemeForMcs[mcs];
-    const double spectralEfficiency = rscElement * Qm * Rcode;
+    const double spectralEfficiency = rscElement * Qm * Rcode * rank;
 
     NS_LOG_INFO(" mcs:" << mcs << " subcarriers" << usefulSC << " rsc element:" << rscElement);
 

@@ -34,8 +34,9 @@ RealisticBfManager::GetTypeId()
             .AddAttribute("TriggerEvent",
                           "Defines a beamforming trigger event",
                           EnumValue(RealisticBfManager::SRS_COUNT),
-                          MakeEnumAccessor(&RealisticBfManager::SetTriggerEvent,
-                                           &RealisticBfManager::GetTriggerEvent),
+                          MakeEnumAccessor<RealisticBfManager::TriggerEvent>(
+                              &RealisticBfManager::SetTriggerEvent,
+                              &RealisticBfManager::GetTriggerEvent),
                           MakeEnumChecker(RealisticBfManager::SRS_COUNT,
                                           "SrsCount",
                                           RealisticBfManager::DELAYED_UPDATE,

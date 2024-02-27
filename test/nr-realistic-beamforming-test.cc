@@ -213,7 +213,7 @@ NrRealisticBeamformingTestCase::DoRun()
                     Ptr<NrUePhy> uePhy = nrHelper->GetUePhy(ueDevs.Get(0), 0);
 
                     Ptr<NrSpectrumPhy> txSpectrumPhy =
-                        nrHelper->GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy(0);
+                        nrHelper->GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy();
                     Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
                     Ptr<ThreeGppPropagationLossModel> propagationLossModel =
                         DynamicCast<ThreeGppPropagationLossModel>(
@@ -239,15 +239,13 @@ NrRealisticBeamformingTestCase::DoRun()
 
                     BeamformingVectorPair bfPairIdeal =
                         cellScanBeamforming->GetBeamformingVectors(txSpectrumPhy,
-                                                                   uePhy->GetSpectrumPhy(0));
+                                                                   uePhy->GetSpectrumPhy());
 
                     Ptr<RealisticBeamformingAlgorithm> realisticBeamforming =
                         CreateObject<RealisticBeamformingAlgorithm>();
                     realisticBeamforming->Install(
-                        DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0)),
-                        DynamicCast<NrUeNetDevice>(ueDevs.Get(0)),
                         txSpectrumPhy,
-                        uePhy->GetSpectrumPhy(0),
+                        uePhy->GetSpectrumPhy(),
                         DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0))->GetScheduler(0));
 
                     // directly update max SINR SRS to a high value, skipping other set functions of

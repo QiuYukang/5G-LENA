@@ -10,7 +10,7 @@
 
  * This is a documentation for 5G-LENA. To see high-level feature
  * overview, project goals or read the developer blog, head over to the
- * [project homepage](https://cttc-lena.gitlab.io/5g-lena-website/).
+ * [project homepage](https://5g-lena.cttc.es/).
  *
  * \section mainpage-whats-new What's new?
  *
@@ -41,7 +41,7 @@
  *
  * \section mainpage-contact Contact & Support page
  *
- * See the [Contact & Support page](https://cttc-lena.gitlab.io/5g-lena-website/contact/)
+ * See the [Contact & Support page](https://5g-lena.cttc.es/support/)
  * on the project website for further information.
  *
  * \section mainpage-license License

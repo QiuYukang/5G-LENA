@@ -42,7 +42,7 @@ class NrSlSciF1aTestCase : public TestCase
      */
     NrSlSciF1aTestCase(NrSlSciF1aHeader sciF1a, uint16_t expectedHeaderSize);
 
-    virtual ~NrSlSciF1aTestCase();
+    ~NrSlSciF1aTestCase() override;
 
   private:
     /**
@@ -56,7 +56,7 @@ class NrSlSciF1aTestCase : public TestCase
      * \brief Setup the simulation according to the configuration set by the
      *        class constructor, run it, and verify the result.
      */
-    virtual void DoRun();
+    void DoRun() override;
 
     NrSlSciF1aHeader m_sciF1a;     //!< SCI format 1A header
     uint16_t m_expectedHeaderSize; //!< The expected header size
@@ -80,7 +80,7 @@ class NrSlSciF2aTestCase : public TestCase
      */
     NrSlSciF2aTestCase(NrSlSciF2aHeader sciF2a, uint16_t expectedHeaderSize);
 
-    virtual ~NrSlSciF2aTestCase();
+    ~NrSlSciF2aTestCase() override;
 
   private:
     /**
@@ -94,7 +94,7 @@ class NrSlSciF2aTestCase : public TestCase
      * \brief Setup the simulation according to the configuration set by the
      *        class constructor, run it, and verify the result.
      */
-    virtual void DoRun();
+    void DoRun() override;
 
     NrSlSciF2aHeader m_sciF2a;     //!< SCI format 02 header
     uint16_t m_expectedHeaderSize; //!< The expected header size

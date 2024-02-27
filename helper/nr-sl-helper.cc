@@ -38,7 +38,7 @@ NS_LOG_COMPONENT_DEFINE("NrSlHelper");
 
 NS_OBJECT_ENSURE_REGISTERED(NrSlHelper);
 
-NrSlHelper::NrSlHelper(void)
+NrSlHelper::NrSlHelper()
 
 {
     NS_LOG_FUNCTION(this);
@@ -46,13 +46,13 @@ NrSlHelper::NrSlHelper(void)
     m_ueSlSchedulerFactory.SetTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
 }
 
-NrSlHelper::~NrSlHelper(void)
+NrSlHelper::~NrSlHelper()
 {
     NS_LOG_FUNCTION(this);
 }
 
 TypeId
-NrSlHelper::GetTypeId(void)
+NrSlHelper::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrSlHelper")
                             .SetParent<Object>()
@@ -62,7 +62,7 @@ NrSlHelper::GetTypeId(void)
 }
 
 void
-NrSlHelper::DoDispose(void)
+NrSlHelper::DoDispose()
 {
     NS_LOG_FUNCTION(this);
     Object::DoDispose();
@@ -216,7 +216,7 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
         bool bwpmTest =
             slBwpManager->SetNrSlMacSapProviders(itBwps, nrSlUeMac->GetNrSlMacSapProvider());
 
-        if (bwpmTest == false)
+        if (!bwpmTest)
         {
             NS_FATAL_ERROR("Error in SetNrSlMacSapProviders");
         }

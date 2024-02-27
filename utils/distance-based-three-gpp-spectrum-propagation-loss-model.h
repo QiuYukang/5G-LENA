@@ -60,7 +60,7 @@ class DistanceBasedThreeGppSpectrumPropagationLossModel
      *
      * This function computes the received PSD by applying the 3GPP fast fading
      * model and the beamforming gain. However, if the distance between a and b
-     * is higher than allowe this class will return 0 PSD.
+     * is higher than allowed this class will return 0 PSD.
      *
      * \param params tx parameters
      * \param a first node mobility model
@@ -69,7 +69,7 @@ class DistanceBasedThreeGppSpectrumPropagationLossModel
      * \param bPhasedArrayModel the antenna array of the second node
      * \return the received PSD
      */
-    Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(
+    Ptr<SpectrumSignalParameters> DoCalcRxPowerSpectralDensity(
         Ptr<const SpectrumSignalParameters> params,
         Ptr<const MobilityModel> a,
         Ptr<const MobilityModel> b,
@@ -77,7 +77,7 @@ class DistanceBasedThreeGppSpectrumPropagationLossModel
         Ptr<const PhasedArrayModel> bPhasedArrayModel) const override;
 
   private:
-    double m_maxDistance{1000}; //!< the maximum distance of the nodes a and b in order to calcluate
+    double m_maxDistance{1000}; //!< the maximum distance of the nodes a and b in order to calculate
                                 //!< fast fading and the beamforming gain
 };
 } // namespace ns3

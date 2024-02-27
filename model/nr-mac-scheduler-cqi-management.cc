@@ -28,6 +28,7 @@ NrMacSchedulerCQIManagement::DlSBCQIReported(
 {
     NS_LOG_FUNCTION(this);
     // TODO
+    NS_ABORT_MSG("SB CQI Type is not supported");
 }
 
 void
@@ -41,7 +42,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     const Ptr<const SpectrumModel>& model) const
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(rbgMask.size() > 0);
+    NS_ASSERT(!rbgMask.empty());
 
     NS_LOG_INFO("Computing SB CQI for UE " << ueInfo->m_rnti);
 
@@ -87,7 +88,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     NS_LOG_INFO("Values of SINR to pass to the AMC: " << out.str());
 
     // MCS updated inside the function; crappy API... but we can't fix everything
-    ueInfo->m_ulCqi.m_cqi = GetAmcUl()->CreateCqiFeedbackWbTdma(specVals, ueInfo->m_ulMcs);
+    ueInfo->m_ulCqi.m_wbCqi = GetAmcUl()->CreateCqiFeedbackWbTdma(specVals, ueInfo->m_ulMcs);
     NS_LOG_DEBUG("Calculated MCS for RNTI " << ueInfo->m_rnti << " is " << ueInfo->m_ulMcs);
 }
 
@@ -141,56 +142,28 @@ NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
 {
     NS_LOG_FUNCTION(this);
 
-    ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::DlCqiInfo::WB;
+    ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
+    ueInfo->m_dlCqi.m_wbCqi = info.m_wbCqi;
     ueInfo->m_dlCqi.m_timer = expirationTime;
-    ueInfo->m_dlCqi.m_ri = info.m_ri;
-    ueInfo->m_dlCqi.m_wbCqi.resize(info.m_wbCqi.size());
-    ueInfo->m_dlMcs.resize(info.m_wbCqi.size());
-    // TODO following code limits the number of streams
-    // 2. In future, we should try to lift this
-    // limit.
-    if (info.m_ri == 2 || info.m_wbCqi.size() == 2)
-    {
-        if (ueInfo->m_dlTbSize.size() == 1)
-        {
-            // scheduling first time the TB of the second stream
-            ueInfo->m_dlTbSize.push_back(0);
-        }
-    }
-    for (std::size_t stream = 0; stream < info.m_wbCqi.size(); stream++)
-    {
-        if (info.m_wbCqi.at(stream) > 0)
-        {
-            ueInfo->m_dlCqi.m_wbCqi.at(stream) = (info.m_wbCqi.at(stream));
-            uint8_t mcs =
-                std::min(static_cast<uint8_t>(GetAmcDl()->GetMcsFromCqi(info.m_wbCqi.at(stream))),
-                         static_cast<uint8_t>(maxDlMcs));
-            ueInfo->m_dlMcs.at(stream) = mcs;
-            NS_LOG_INFO("Calculated MCS for UE "
-                        << ueInfo->m_rnti << " stream index " << stream << " MCS "
-                        << static_cast<uint32_t>(ueInfo->m_dlMcs.at(stream)));
+    ueInfo->m_dlCqi.m_wbCqi = info.m_wbCqi;
+    ueInfo->m_dlMcs =
+        std::min(static_cast<uint8_t>(GetAmcDl()->GetMcsFromCqi(ueInfo->m_dlCqi.m_wbCqi)),
+                 static_cast<uint8_t>(maxDlMcs));
+    NS_LOG_INFO("Calculated MCS for UE " << ueInfo->m_rnti << " is "
+                                         << static_cast<uint32_t>(ueInfo->m_dlMcs));
 
-            NS_LOG_INFO("Updated WB CQI of UE "
-                        << ueInfo->m_rnti << " stream index " << stream << " CQI "
-                        << static_cast<uint16_t>(ueInfo->m_dlCqi.m_wbCqi.at(stream))
-                        << ". It will expire in " << ueInfo->m_dlCqi.m_timer << " slots.");
-        }
-        else
-        {
-            ueInfo->m_dlCqi.m_wbCqi.at(stream) = 0;
-            // TODO
-            // ueInfo->m_dlMcs.at (stream) = UINT8_MAX;
-            // I am not happy to assign MCS 0 for CQI 0, however, this was the
-            // original behavior of the NR code before MIMO implementation.
-            // It was computing the MCS the way this code is doing for cqi > 0.
-            // I need to adapt at the old way so all the old test written
-            // based on this assumption could pass. I would like to update those
-            // tests one day but today is not that day.
-            ueInfo->m_dlMcs.at(stream) = 0;
-            NS_LOG_INFO("Not updated WB CQI of UE "
-                        << ueInfo->m_rnti << " stream index " << stream << " CQI "
-                        << static_cast<uint16_t>(ueInfo->m_dlCqi.m_wbCqi.at(stream)));
-        }
+    NS_LOG_INFO("Updated WB CQI of UE "
+                << ueInfo->m_rnti << " to " << static_cast<uint32_t>(ueInfo->m_dlCqi.m_wbCqi)
+                << ". It will expire in " << ueInfo->m_dlCqi.m_timer << " slots.");
+
+    if (info.m_optPrecMat)
+    {
+        // Set the number of layers (rank) directly to m_ri (do not decode m_ri)
+        NS_ASSERT(info.m_ri > 0);
+        ueInfo->m_dlRank = info.m_ri;
+
+        // Set the precoding matrix
+        ueInfo->m_dlPrecMats = info.m_optPrecMat;
     }
 }
 
@@ -206,12 +179,9 @@ NrMacSchedulerCQIManagement::RefreshDlCqiMaps(
 
         if (ue->m_dlCqi.m_timer == 0)
         {
-            ue->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::DlCqiInfo::WB;
-            for (std::size_t stream = 0; stream < ue->m_dlCqi.m_wbCqi.size(); stream++)
-            {
-                ue->m_dlCqi.m_wbCqi.at(stream) = 1; // lowest value for trying a transmission
-                ue->m_dlMcs.at(stream) = GetStartMcsDl();
-            }
+            ue->m_dlCqi.m_wbCqi = 1; // lowest value for trying a transmission
+            ue->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
+            ue->m_dlMcs = GetStartMcsDl();
         }
         else
         {
@@ -232,7 +202,7 @@ NrMacSchedulerCQIManagement::RefreshUlCqiMaps(
 
         if (ue->m_ulCqi.m_timer == 0)
         {
-            ue->m_ulCqi.m_cqi = 1; // lowest value for trying a transmission
+            ue->m_ulCqi.m_wbCqi = 1; // lowest value for trying a transmission
             ue->m_ulCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
             ue->m_ulMcs = GetStartMcsUl();
         }

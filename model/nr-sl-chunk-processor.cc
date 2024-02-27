@@ -55,7 +55,7 @@ NrSlChunkProcessor::Start(bool init)
 
     // Creates a new storage
     NrSlChunkValue newValue;
-    newValue.m_sumValues = 0;
+    newValue.m_sumValues = nullptr;
     newValue.m_totDuration = MicroSeconds(0);
 
     m_chunkValues.push_back(newValue);

@@ -14,6 +14,7 @@
 #include <ns3/component-carrier.h>
 #include <ns3/enum.h>
 #include <ns3/log.h>
+#include <ns3/matrix-array.h>
 #include <ns3/object.h>
 #include <ns3/packet.h>
 #include <ns3/simulator.h>
@@ -97,46 +98,6 @@ struct GetSecond
 
 /**
  * \ingroup utils
- * \brief The TbInfoElement struct
- */
-struct TbInfoElement
-{
-    TbInfoElement()
-        : m_isUplink(0),
-          m_varTtiIdx(0),
-          m_rbBitmap(0),
-          m_rbShift(0),
-          m_rbStart(0),
-          m_rbLen(0),
-          m_symStart(0),
-          m_numSym(0),
-          m_resAlloc(0),
-          m_mcs(0),
-          m_tbSize(0),
-          m_ndi(0),
-          m_rv(0),
-          m_harqProcess(0)
-    {
-    }
-
-    bool m_isUplink;     // is uplink grant?
-    uint8_t m_varTtiIdx; // var tti index
-    uint32_t m_rbBitmap; // Resource Block Group bitmap
-    uint8_t m_rbShift;   // shift for res alloc type 1
-    uint8_t m_rbStart;   // starting RB index for uplink res alloc type 0
-    uint16_t m_rbLen;
-    uint8_t m_symStart; // starting symbol index for flexible TTI scheme
-    uint8_t m_numSym;   // number of symbols for flexible TTI scheme
-    uint8_t m_resAlloc; // resource allocation type
-    uint8_t m_mcs;
-    uint32_t m_tbSize;
-    uint8_t m_ndi;
-    uint8_t m_rv;
-    uint8_t m_harqProcess;
-};
-
-/**
- * \ingroup utils
  * \brief Scheduling information. Despite the name, it is not TDMA.
  */
 struct DciInfoElementTdma
@@ -187,19 +148,23 @@ struct DciInfoElementTdma
      * \param format DCI format
      * \param symStart starting symbol index for flexible TTI scheme
      * \param numSym number of symbols for flexible TTI scheme
-     * \param mcs MCS per stream
-     * \param tbs TB size per stream
-     * \param ndi New Data Indicator per stream
-     * \param rv Redundancy Version per stream
+     * \param mcs MCS
+     * \param rank the Rank number
+     * \param precMats the precoding matrix
+     * \param tbs TB size
+     * \param ndi New Data Indicator
+     * \param rv Redundancy Version
      */
     DciInfoElementTdma(uint16_t rnti,
                        DciFormat format,
                        uint8_t symStart,
                        uint8_t numSym,
-                       std::vector<uint8_t> mcs,
-                       std::vector<uint32_t> tbs,
-                       std::vector<uint8_t> ndi,
-                       std::vector<uint8_t> rv,
+                       uint8_t mcs,
+                       uint8_t rank,
+                       Ptr<const ComplexMatrixArray> precMats,
+                       uint32_t tbs,
+                       uint8_t ndi,
+                       uint8_t rv,
                        VarTtiType type,
                        uint8_t bwpIndex,
                        uint8_t tpc)
@@ -208,6 +173,8 @@ struct DciInfoElementTdma
           m_symStart(symStart),
           m_numSym(numSym),
           m_mcs(mcs),
+          m_rank(rank),
+          m_precMats(precMats),
           m_tbSize(tbs),
           m_ndi(ndi),
           m_rv(rv),
@@ -227,14 +194,16 @@ struct DciInfoElementTdma
      */
     DciInfoElementTdma(uint8_t symStart,
                        uint8_t numSym,
-                       std::vector<uint8_t> ndi,
-                       std::vector<uint8_t> rv,
+                       uint8_t ndi,
+                       uint8_t rv,
                        const DciInfoElementTdma& o)
         : m_rnti(o.m_rnti),
           m_format(o.m_format),
           m_symStart(symStart),
           m_numSym(numSym),
           m_mcs(o.m_mcs),
+          m_rank(o.m_rank),
+          m_precMats(o.m_precMats),
           m_tbSize(o.m_tbSize),
           m_ndi(ndi),
           m_rv(rv),
@@ -246,39 +215,21 @@ struct DciInfoElementTdma
     {
     }
 
-    const uint16_t m_rnti{0};             //!< RNTI of the UE
-    const DciFormat m_format{DL};         //!< DCI format
-    const uint8_t m_symStart{0};          //!< starting symbol index for flexible TTI scheme
-    const uint8_t m_numSym{0};            //!< number of symbols for flexible TTI scheme
-    const std::vector<uint8_t> m_mcs;     //!< MCS per stream
-    const std::vector<uint32_t> m_tbSize; //!< TB size per stream
-    const std::vector<uint8_t> m_ndi; //!< New Data Indicator per stream (Old comment: By default is
-                                      //!< retransmission. Zoraze to check if it has any effect)
-    const std::vector<uint8_t> m_rv;  //!< Redundancy Version per stream (Old comment: // not used
-                                      //!< for UL DCI. Zoraze to check why?)
-    const VarTtiType m_type{SRS};     //!< Var TTI type
-    const uint8_t m_bwpIndex{0};      //!< BWP Index to identify to which BWP this DCI applies to.
-    uint8_t m_harqProcess{0};         //!< HARQ process id
+    const uint16_t m_rnti{0};     //!< RNTI of the UE
+    const DciFormat m_format{DL}; //!< DCI format
+    const uint8_t m_symStart{0};  //!< starting symbol index for flexible TTI scheme
+    const uint8_t m_numSym{0};    //!< number of symbols for flexible TTI scheme
+    const uint8_t m_mcs{0};       //!< MCS
+    const uint8_t m_rank{1};      //!< the rank number (the number of MIMO layers)
+    Ptr<const ComplexMatrixArray> m_precMats{nullptr};
+    const uint32_t m_tbSize{0};   //!< TB size
+    const uint8_t m_ndi{0};       //!< New Data Indicator
+    const uint8_t m_rv{0};        //!< Redundancy Version
+    const VarTtiType m_type{SRS}; //!< Var TTI type
+    const uint8_t m_bwpIndex{0};  //!< BWP Index to identify to which BWP this DCI applies to.
+    uint8_t m_harqProcess{0};     //!< HARQ process id
     std::vector<uint8_t> m_rbgBitmask{}; //!< RBG mask: 0 if the RBG is not used, 1 otherwise
     const uint8_t m_tpc{0};              //!< Tx power control command
-};
-
-/**
- * \ingroup utils
- * \brief The TbAllocInfo struct
- */
-struct TbAllocInfo
-{
-    TbAllocInfo()
-        : m_rnti(0)
-    {
-    }
-
-    // struct
-    SfnSf m_sfnSf;
-    uint16_t m_rnti;
-    std::vector<unsigned> m_rbMap;
-    TbInfoElement m_tbInfo;
 };
 
 /**
@@ -312,7 +263,7 @@ struct VarTtiAllocInfo
 
     bool m_isOmni{false};
     std::shared_ptr<DciInfoElementTdma> m_dci;
-    std::vector<std::vector<RlcPduInfo>> m_rlcPduInfo;
+    std::vector<RlcPduInfo> m_rlcPduInfo;
 
     bool operator<(const VarTtiAllocInfo& o) const
     {
@@ -389,16 +340,43 @@ struct SlotAllocInfo
 struct DlCqiInfo
 {
     uint16_t m_rnti{0}; //!< The RNTI
-    uint8_t m_ri{0};    //!< The rank indicator
+    // TODO: Rename to m_rank (m_ri is set directly to the rank).
+    uint8_t m_ri{0}; //!< the rank indicator, or simply the rank number
 
+    // TODO: use NrMacSchedulerUeInfo::CqiInfo
     enum DlCqiType
     {
         WB,
         SB
     } m_cqiType{WB}; //!< The type of the CQI
 
-    std::vector<uint8_t> m_wbCqi; //!< WB CQI for each MIMO stream
-    uint8_t m_wbPmi{0};           //!< The reported wideband pre-coding matrix index
+    uint8_t m_wbCqi{0}; //!< Wideband CQI
+    size_t m_wbPmi{0};  //!< Wideband precoding matrix index
+
+    std::vector<uint8_t> m_sbCqis; //!< Subband CQI values
+    std::vector<size_t> m_sbPmis;  //!< Subband PMI values (i2, indices of W2 matrices)
+    uint8_t m_mcs{0};              //!< MCS (can be derived from CQI feedback)
+    Ptr<const ComplexMatrixArray> m_optPrecMat{}; ///< Precoding matrix for each RB
+};
+
+/**
+ * \brief The structure used for the CQI feedback message that contains the optimum CQI, RI, PMI,
+ and full precoding matrix (dimensions: nGnbPorts * rank * nRbs).
+ */
+struct PmCqiInfo
+{
+    uint8_t m_mcs{0};              //!< Modulation and coding scheme supported by current channel
+    uint8_t m_rank{0};             //!< Rank of the channel matrix (supported number of MIMO layers)
+    size_t m_wbPmi{0};             //!< Wideband precoding matrix index
+    uint8_t m_wbCqi{0};            //!< Wideband CQI
+    std::vector<uint8_t> m_sbCqis; //!< Subband CQI values
+    std::vector<size_t> m_sbPmis;  //!< Subband PMI values (i2, indices of W2 matrices)
+    Ptr<const ComplexMatrixArray> m_optPrecMat{}; ///< Precoding matrix for each RB
+
+    // TODO: Fix/remove empty DlSBCQIReported, then change default type to SB.
+
+    DlCqiInfo::DlCqiType m_cqiType{DlCqiInfo::WB}; ///< CQI type (WB or SB)
+    size_t m_tbSize{}; //!< Expected TB size when allocating all resources
 };
 
 /**
@@ -507,13 +485,13 @@ struct RxPacketTraceParams
     uint8_t m_numSym{std::numeric_limits<uint8_t>::max()};
     uint32_t m_tbSize{0};
     uint8_t m_mcs{std::numeric_limits<uint8_t>::max()};
+    uint8_t m_rank{std::numeric_limits<uint8_t>::max()};
     uint8_t m_rv{std::numeric_limits<uint8_t>::max()};
     double m_sinr{-1.0};
     double m_sinrMin{-1.0};
     double m_tbler{-1.0};
     bool m_corrupt{false};
     uint16_t m_bwpId{std::numeric_limits<uint16_t>::max()};
-    uint8_t m_streamId{std::numeric_limits<uint8_t>::max()};
     uint32_t m_rbAssignedNum{std::numeric_limits<uint32_t>::max()};
     uint8_t m_cqi{std::numeric_limits<uint8_t>::max()};
 };
@@ -557,62 +535,14 @@ struct DlHarqInfo : public HarqInfo
     enum HarqStatus
     {
         ACK,
-        NACK,
-        NONE
-    };
+        NACK
+    } m_harqStatus{NACK}; //!< HARQ status
 
-    std::vector<enum HarqStatus> m_harqStatus; //!< HARQ status
-    std::vector<uint8_t> m_numRetx;            //!< Num of Retx
+    uint8_t m_numRetx; //!< Num of Retx
 
     bool IsReceivedOk() const override
     {
-        bool ok = false;
-        auto allStatus = NONE;
-        for (const auto& it : m_harqStatus)
-        {
-            if (it == ACK || it == NONE)
-            {
-                // example case: In MIMO, if there is a feedback for only
-                // second stream, UE has to put NONE HARQ feedback status
-                // for the first stream to indicate that there is no feedback
-                // for the first stream. So, consider it as an ok status and
-                // move to the status of second stream.
-                ok = true;
-                if (it != NONE)
-                {
-                    allStatus = it;
-                }
-            }
-            else
-            {
-                allStatus = it;
-                ok = false;
-                // found NACK, feedback is not OK.
-                break;
-            }
-        }
-
-        NS_ASSERT_MSG(allStatus != NONE, "All HARQ feedbacks are NONE");
-
-        return ok;
-    }
-
-    bool IsReceivedOk(uint8_t stream)
-    {
-        return m_harqStatus.at(stream) == ACK;
-    }
-
-    std::vector<uint8_t> GetNackStreamIndexes()
-    {
-        std::vector<uint8_t> indexes;
-        for (std::size_t i = 0; i < m_harqStatus.size(); i++)
-        {
-            if (m_harqStatus.at(i) == NACK)
-            {
-                indexes.push_back(i);
-            }
-        }
-        return indexes;
+        return m_harqStatus == ACK;
     }
 };
 
@@ -638,16 +568,6 @@ struct UlHarqInfo : public HarqInfo
     {
         return m_receptionStatus == Ok;
     }
-
-    std::vector<uint8_t> GetNackStreamIndexes()
-    {
-        std::vector<uint8_t> indexes;
-        if (m_receptionStatus == NotOk)
-        {
-            indexes.push_back(0);
-        }
-        return indexes;
-    }
 };
 
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma& item);
@@ -667,7 +587,6 @@ struct NrSchedulingCallbackInfo
     uint16_t m_slotNum{UINT16_MAX};   //!< slot number
     uint8_t m_symStart{UINT8_MAX};    //!< starting symbol index
     uint8_t m_numSym{UINT8_MAX};      //!< number of symbols
-    uint8_t m_streamId{UINT8_MAX};    //!< stream number
     uint16_t m_rnti{UINT16_MAX};      //!< RNTI
     uint8_t m_mcs{UINT8_MAX};         //!< MCS
     uint32_t m_tbSize{UINT32_MAX};    //!< TB size

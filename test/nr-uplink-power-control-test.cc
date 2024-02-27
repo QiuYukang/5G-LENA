@@ -198,13 +198,13 @@ NrUplinkPowerControlTestCase::PuschTxPowerTrace(uint16_t cellId, uint16_t rnti, 
     }
     else
     {
-        if (m_puschTxPowerTraceFired == false)
+        if (!m_puschTxPowerTraceFired)
         {
             m_puschTxPowerTraceFired = true;
         }
     }
 
-    // we allow some tollerance because of layer 3 filtering
+    // we allow some tolerance because of layer 3 filtering
     NS_TEST_ASSERT_MSG_EQ_TOL(txPower,
                               m_expectedPuschTxPower,
                               1 + std::fabs(m_expectedPuschTxPower * 0.1),
@@ -224,13 +224,13 @@ NrUplinkPowerControlTestCase::PucchTxPowerTrace(uint16_t cellId, uint16_t rnti, 
     }
     else
     {
-        if (m_pucchTxPowerTraceFired == false)
+        if (!m_pucchTxPowerTraceFired)
         {
             m_pucchTxPowerTraceFired = true;
         }
     }
 
-    // we allow some tollerance because of layer 3 filtering
+    // we allow some tolerance because of layer 3 filtering
     NS_TEST_ASSERT_MSG_EQ_TOL(txPower,
                               m_expectedPucchTxPower,
                               1 + std::fabs(m_expectedPucchTxPower * 0.1),

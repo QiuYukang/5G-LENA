@@ -174,20 +174,66 @@ class NrAmc : public Object
      * Please note that this function expects in input the RB, not the RBG of the transmission.
      *
      * \param mcs the MCS of the transmission
+     * \param rank the MIMO rank
      * \param nprb The number of physical resource blocks used in the transmission
      * \return the TBS in bytes
      */
-    uint32_t CalculateTbSize(uint8_t mcs, uint32_t nprb) const;
+    uint32_t CalculateTbSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const;
 
     /**
      * \brief Calculate the Payload Size (in bytes) from MCS and the number of RB
      * \param mcs MCS of the transmission
+     * \param rank the MIMO rank
      * \param nprb Number of Physical Resource Blocks (not RBG)
      * \return the payload size in bytes
      */
-    uint32_t GetPayloadSize(uint8_t mcs, uint32_t nprb) const;
+    uint32_t GetPayloadSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const;
+
+    static constexpr size_t NR_AMC_NUM_SYMBOLS_DEFAULT = 12; ///< Num OFDM syms for TB size
+
+    /// \brief Parameters related to MCS selection
+    struct McsParams
+    {
+        uint8_t mcs{};                 ///< MCS value
+        uint8_t wbCqi{};               ///< Wideband CQI
+        std::vector<uint8_t> sbCqis{}; ///< Subband CQI values
+        uint32_t tbSize{};             ///< Expected transport block size
+    };
+
+    /// \brief Find maximum MCS supported for this channel and obtain related parameters
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \param subbandSize the size of each subband, used to create subband CQI values
+    /// \return a struct with the optimal MCS and corresponding CQI and TB size
+    McsParams GetMaxMcsParams(const NrSinrMatrix& sinrMat, size_t subbandSize) const;
 
   private:
+    /// \brief Find maximum MCS supported for this channel, using the Shannon model
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \return the maximum MCS
+    uint8_t GetMaxMcsForShannonModel(const NrSinrMatrix& sinrMat) const;
+
+    /// \brief Find maximum MCS supported for this channel, using the NR error model
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \return the maximum MCS
+    uint8_t GetMaxMcsForErrorModel(const NrSinrMatrix& sinrMat) const;
+
+    /// \brief Compute the CQI value that corresponds to this MCS
+    /// \param mcs the MCS
+    /// \return the wideband CQI
+    uint8_t GetWbCqiFromMcs(uint8_t mcs) const;
+
+    /// \brief Compute the TB size for this channel and MCS
+    /// \param mcs the MCS
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \return the TB size
+    uint32_t CalcTbSizeForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const;
+
+    /// \brief Compute the TBLER for this channel and MCS, using the NR error model
+    /// \param mcs the MCS
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \return the TBLER
+    double CalcTblerForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const;
+
     /**
      * \brief Get the requested BER in assigning MCS (Shannon-bound model)
      * \return BER

@@ -402,23 +402,23 @@ NrTestFdmOfNumerologiesCase1::DoRun()
     {
         Ptr<UdpServer> serverApp1 = serverAppsDl.Get(0)->GetObject<UdpServer>();
         Ptr<UdpServer> serverApp2 = serverAppsDl.Get(1)->GetObject<UdpServer>();
-        double throuhgput1 =
+        double throughput1 =
             (serverApp1->GetReceived() * (packetSize + 28) * 8) / (simTime - udpAppStartTime);
-        double throuhgput2 =
+        double throughput2 =
             (serverApp2->GetReceived() * (packetSize + 28) * 8) / (simTime - udpAppStartTime);
 
-        NS_TEST_ASSERT_MSG_EQ_TOL(throuhgput2,
-                                  throuhgput1 * m_bw2 / m_bw1,
-                                  std::max(throuhgput1, throuhgput2) * 0.2,
+        NS_TEST_ASSERT_MSG_EQ_TOL(throughput2,
+                                  throughput1 * m_bw2 / m_bw1,
+                                  std::max(throughput1, throughput2) * 0.2,
                                   "Throughputs are not equal within tolerance");
-        NS_TEST_ASSERT_MSG_NE(throuhgput1, 0, "Throughput should be a non-zero value");
-        std::cout << "Total DL UDP throughput 1 (bps):" << throuhgput1 / 10e6 << "Mbps"
+        NS_TEST_ASSERT_MSG_NE(throughput1, 0, "Throughput should be a non-zero value");
+        std::cout << "Total DL UDP throughput 1 (bps):" << throughput1 / 10e6 << "Mbps"
                   << std::endl;
-        std::cout << "Total DL UDP throughput 2 (bps):" << throuhgput2 / 10e6 << "Mbps"
+        std::cout << "Total DL UDP throughput 2 (bps):" << throughput2 / 10e6 << "Mbps"
                   << std::endl;
-        std::cout << "\n Test value throughput 1: " << (throuhgput2 * m_bw1 / m_bw2) / 10e6
+        std::cout << "\n Test value throughput 1: " << (throughput2 * m_bw1 / m_bw2) / 10e6
                   << "Mbps" << std::endl;
-        std::cout << "\n Test value throughput 2: " << (throuhgput1 * m_bw2 / m_bw1) / 10e6
+        std::cout << "\n Test value throughput 2: " << (throughput1 * m_bw2 / m_bw1) / 10e6
                   << "Mbps" << std::endl;
     }
     if (m_isUplink)

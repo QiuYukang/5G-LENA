@@ -124,6 +124,11 @@ class NrSpectrumPhy : public SpectrumPhy
 
     /**
      * This callback method type is used by the NrSpectrumPhy to notify the PHY about
+     * the status of a DL HARQ feedback
+     */
+    typedef Callback<void, const DlHarqInfo&> NrPhyDlHarqFeedbackCallback;
+    /**
+     * This callback method type is used by the NrSpectrumPhy to notify the PHY about
      * the status of a UL HARQ feedback
      */
     typedef Callback<void, const UlHarqInfo&> NrPhyUlHarqFeedbackCallback;
@@ -147,6 +152,10 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void SetPhyRxPssCallback(const NrPhyRxPssCallback& c);
 
+    /**
+     * \brief Sets the callback to be called when DL HARQ feedback is generated
+     */
+    void SetPhyDlHarqFeedbackCallback(const NrPhyDlHarqFeedbackCallback& c);
     /**
      * \brief Sets the callback to be called when UL HARQ feedback is generated
      */
@@ -210,6 +219,8 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartRx(Ptr<SpectrumSignalParameters> params) override;
 
+    void SetRnti(uint16_t rnti);
+
     // Attributes setters
     /**
      * \brief Set clear channel assessment (CCA) threshold
@@ -217,7 +228,7 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void SetCcaMode1Threshold(double thresholdDBm);
     /**
-     * Returns clear channel assesment (CCA) threshold
+     * Returns clear channel assessment (CCA) threshold
      * \return CCA threshold in dBms
      */
     double GetCcaMode1Threshold() const;
@@ -257,11 +268,19 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Starts transmission of data frames on connected spectrum channel object
      * \param pb packet burst to be transmitted
      * \param ctrlMsgList control message list
+     * \param dci downlink control information
      * \param duration the duration of transmission
      */
     void StartTxDataFrames(const Ptr<PacketBurst>& pb,
                            const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
-                           Time duration);
+                           const std::shared_ptr<DciInfoElementTdma> dci,
+                           const Time& duration);
+
+    /**
+     * \brief Return true if the current Phy State is TX
+     */
+    bool IsTransmitting();
+
     /**
      * \brief Starts transmission of DL CTRL
      * \param duration the duration of this transmission
@@ -312,34 +331,10 @@ class NrSpectrumPhy : public SpectrumPhy
     void UpdateSinrPerceived(const SpectrumValue& sinr);
 
     /**
-     * \brief Generate a DL CQI report
-     *
-     * Connected by the helper to a callback in corresponding ChunkProcessor
-     *
-     * \param sinr the SINR
-     */
-    void GenerateDataCqiReport(const SpectrumValue& sinr);
-
-    /**
-     * \brief Called when rsReceivedPower is fired
-     * \param power the power received
-     */
-    void ReportRsReceivedPower(const SpectrumValue& power);
-
-    /**
      * \brief Called when DlCtrlSinr is fired
      * \param sinr the sinr PSD
      */
     void ReportDlCtrlSinr(const SpectrumValue& sinr);
-
-    /**
-     * \brief Generates a DL CQI report at this NrSpectrumPhy
-     *
-     * Connected by the helper to a callback in corresponding ChunkProcessor
-     *
-     * \param sinr the SINR
-     */
-    void GenerateDlCqiReport(const SpectrumValue& sinr);
 
     /**
      * \brief SpectrumPhy that will be called when the SINR for the received
@@ -364,6 +359,8 @@ class NrSpectrumPhy : public SpectrumPhy
      * to obtain information such as cellId, bwpId, etc.
      */
     void InstallPhy(const Ptr<NrPhy>& phyModel);
+
+    Ptr<NrPhy> GetPhy() const;
     /**
      * \brief Sets the antenna of this NrSpectrumPhy instance,
      * currently in NR module it is expected to be of type UniformPlannarArray
@@ -388,6 +385,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \param ndi New data indicator (0 for retx)
      * \param size TB Size
      * \param mcs MCS of the transmission
+     * \param rank MIMO rank
      * \param rbMap Resource Block map (PHY-ready vector of SINR indices)
      * \param harqId ID of the HARQ process in the MAC
      * \param rv Redundancy Version: number of times the HARQ has been retransmitted
@@ -400,6 +398,7 @@ class NrSpectrumPhy : public SpectrumPhy
                        uint8_t ndi,
                        uint32_t size,
                        uint8_t mcs,
+                       uint8_t rank,
                        const std::vector<int>& rbMap,
                        uint8_t harqId,
                        uint8_t rv,
@@ -454,34 +453,11 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void AddSrsSnrReportCallback(SrsSnrReportCallback callback);
     /**
-     * \brief Set stream id of this NrSpectrumPhy
-     *
-     * Stream id is introduced to support MIMO. In MIMO, there will be one
-     * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
-     * to assign the stream id to each new instance. Stream id, starts from
-     * 0 and ends at "total number of streams - 1".
-     *
-     * TODO NrHelper should be declared as friend and this function should be private
-     * \param streamId The stream id
-     */
-    void SetStreamId(uint8_t streamId);
-    /*
      * \brief Set whether this spectrum PHY belongs to eNB or UE
      * TODO NrHelper should be declared as friend and this function should be private
      * \param isEnb whether the spectrum PHY belongs to eNB or UE
      */
     void SetIsEnb(bool isEnb);
-    /**
-     * \brief Get stream id of this NrSpectrumPhy
-     *
-     * Stream id is introduced to support MIMO. In MIMO, there will be one
-     * NrSpectrumPhy instance per stream, hence, the NrHelper is responsible
-     * to assign the stream id to each new instance. Stream id, starts from
-     * 0 and ends at "total number of streams - 1".
-     *
-     * \return streamId The stream id
-     */
-    uint8_t GetStreamId() const;
     /**
      * \return the cell id
      */
@@ -491,23 +467,15 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     uint16_t GetBwpId() const;
     /**
-     * \brief Set the inter-stream interference ratio
-     *
-     * \param ratio The inter-stream interference ratio
-     */
-    void SetInterStreamInterferenceRatio(double ratio);
-    /**
      * \param [in] sfnSf SfnSf
      * \param [in] cellId
      * \param [in] bwpId
-     * \param [in] streamId
      * \param [in] imsi
      * \param [in] snr
      */
     typedef void (*DataSnrTracedCallback)(const SfnSf& sfnSf,
                                           const uint16_t cellId,
                                           const uint8_t bwpId,
-                                          const uint8_t streamId,
                                           const uint64_t imsi,
                                           const double snr);
     /**
@@ -517,6 +485,14 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void ReportWbDlDataSnrPerceived(const double dlDataSnr);
 
+    void AddDataMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p);
+
+    /// \brief Store the SINR chunks for all received signals at end of interference calculations
+    /// \param sinr The vector of all SINR values of receive signals. A new chunk is generated for
+    /// each different receive signal (for example for each UL reception of a signal from a
+    /// different UE) and at each time instant where the interference changes.
+    void UpdateMimoSinrPerceived(const std::vector<MimoSinrChunk>& sinr);
+
   protected:
     /**
      * \brief DoDispose method inherited from Object
@@ -524,6 +500,10 @@ class NrSpectrumPhy : public SpectrumPhy
     void DoDispose() override;
 
   private:
+    std::vector<MimoSinrChunk>
+        m_mimoSinrPerceived; //!< received SINR values during data reception for TB decoding, to
+                             //!< replace m_sinrPerceived for all (MIMO and SISO) receivers
+
     /**
      * \brief Function is called when what is being received is holding data
      * \para params spectrum parameters that are holding information regarding data frame
@@ -541,7 +521,7 @@ class NrSpectrumPhy : public SpectrumPhy
     void StartRxUlCtrl(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
     /**
      * \brief Function that is called when is being received SRS
-     * \param param should hold UL CTRL frame singal parameters containing only
+     * \param param should hold UL CTRL frame signal parameters containing only
      * one CTRL message which should be of type SRS
      */
     void StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
@@ -561,6 +541,14 @@ class NrSpectrumPhy : public SpectrumPhy
      * used to update spectrum phy state.
      */
     void EndTx();
+
+    /// \brief Filter the received SINR chunks for a particular DL or UL signal
+    /// \param rnti The RNTI for the expected receive signal (transmitting or receiving UE)
+    /// \param rank The number of MIMO layers of the expected signal
+    /// \return the SINR chunks in m_mimoSinrPerceived which match the rnti, or a chunk with an
+    /// all-zero SINR matrix when no matching signal is found
+    std::vector<MimoSinrChunk> GetMimoSinrForRnti(uint16_t rnti, uint8_t rank);
+
     /**
      * \brief Function that is called when the spectrum phy finishes the reception of DATA. This
      * function processed the data being received and generated HARQ feedback.
@@ -610,6 +598,8 @@ class NrSpectrumPhy : public SpectrumPhy
         ExpectedTb(uint8_t ndi,
                    uint32_t tbSize,
                    uint8_t mcs,
+                   uint8_t rank,
+                   uint16_t rnti,
                    const std::vector<int>& rbBitmap,
                    uint8_t harqProcessId,
                    uint8_t rv,
@@ -620,6 +610,8 @@ class NrSpectrumPhy : public SpectrumPhy
             : m_ndi(ndi),
               m_tbSize(tbSize),
               m_mcs(mcs),
+              m_rank(rank),
+              m_rnti(rnti),
               m_rbBitmap(rbBitmap),
               m_harqProcessId(harqProcessId),
               m_rv(rv),
@@ -636,10 +628,12 @@ class NrSpectrumPhy : public SpectrumPhy
         uint8_t m_ndi{0};            //!< New data indicator
         uint32_t m_tbSize{0};        //!< TBSize
         uint8_t m_mcs{0};            //!< MCS
+        uint8_t m_rank{1};           //!< MIMO rank
+        uint16_t m_rnti{0};          //!< RNTI
         std::vector<int> m_rbBitmap; //!< RB Bitmap
         uint8_t m_harqProcessId{0};  //!< HARQ process ID (MAC)
         uint8_t m_rv{0};             //!< RV
-        bool m_isDownlink{0};        //!< is Downlink?
+        bool m_isDownlink{false};    //!< is Downlink?
         uint8_t m_symStart{0};       //!< Sym start
         uint8_t m_numSym{0};         //!< Num sym
         SfnSf m_sfn;                 //!< SFN
@@ -715,6 +709,12 @@ class NrSpectrumPhy : public SpectrumPhy
     State m_state{IDLE};                //!< spectrum phy state
     SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception
                                    //!< and is used for TB decoding
+
+    uint16_t m_rnti{0};    //!< RNTI; only set if this instance belongs to a UE
+    bool m_hasRnti{false}; //!< set to true if m_rnti was set and this instance belongs to a UE
+    uint16_t m_activeTransmissions{0}; //!< the counter that is used in EndRx function to know when
+                                       //!< to change the state from TX to IDLE mode
+
     std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
     std::list<SrsSnrReportCallback> m_srsSnrReportCallback;   //!< list of SRS SNR callbacks
     uint16_t m_currentSrsRnti{0};
@@ -729,6 +729,9 @@ class NrSpectrumPhy : public SpectrumPhy
     NrPhyRxDataEndOkCallback
         m_phyRxDataEndOkCallback;          //!< callback that is notified when the DATA is received
     NrPhyRxPssCallback m_phyRxPssCallback; ///< the phy receive PSS callback
+    NrPhyDlHarqFeedbackCallback
+        m_phyDlHarqFeedbackCallback; //!< callback that is notified when the DL HARQ feedback is
+                                     //!< being generated
     NrPhyUlHarqFeedbackCallback
         m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is
                                      //!< being generated
@@ -752,31 +755,27 @@ class NrSpectrumPhy : public SpectrumPhy
     TracedCallback<const SfnSf,
                    const uint16_t,
                    const uint8_t,
-                   const uint8_t,
                    const uint64_t,
                    const double>
         m_dlDataSnrTrace; //!< DL data SNR trace source
 
     /*
-     * \brief Trace source that reports the following: Cell ID, Bwp ID, Stream ID, UE node ID, DL
+     * \brief Trace source that reports the following: Cell ID, Bwp ID, UE node ID, DL
      * CTRL pathloss
      */
-    typedef TracedCallback<uint16_t, uint8_t, uint8_t, uint32_t, double> DlPathlossTrace;
+    typedef TracedCallback<uint16_t, uint8_t, uint32_t, double> DlPathlossTrace;
     DlPathlossTrace m_dlCtrlPathlossTrace; //!< DL CTRL pathloss trace
     bool m_enableDlCtrlPathlossTrace =
         false; //!< By default this trace is disabled to not slow done simulations
     /*
-     * \brief Trace source that reports the following: Cell ID, Bwp ID, Stream ID, UE node ID, DL
+     * \brief Trace source that reports the following: Cell ID, Bwp ID, UE node ID, DL
      * CTRL pathloss, CQI that corresponds to the current SINR
      */
-    typedef TracedCallback<uint16_t, uint8_t, uint8_t, uint32_t, double, uint8_t>
-        DlDataPathlossTrace;
+    typedef TracedCallback<uint16_t, uint8_t, uint32_t, double, uint8_t> DlDataPathlossTrace;
     DlDataPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
     bool m_enableDlDataPathlossTrace =
         false; //!< By default this trace is disabled to not slow done simulations
-    uint8_t m_streamId{UINT8_MAX}; //!< StreamId of this NrSpectrumPhy instance
     bool m_isEnb = false;
-    double m_interStrInerfRatio{0.0}; //!< The inter-stream interference ratio.
 
     // NR SL
   public:

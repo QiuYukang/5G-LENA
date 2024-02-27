@@ -1027,58 +1027,8 @@ LTE/NR CLPC collaboration diagram: TPC command being sent by NrGnbPhy with DCI,
 and the TPC command reception, reporting to NrUePowerControl and applying for
 the next transmission occasion.
 
-MIMO extension
-==============
-3GPP considers gNB/UE nodes equipped with dual-polarized uniform planar antenna arrays [TR38900]_. In such systems, each array
-of antennas is divided evenly into two subarray groups with different polarizations (e.g., one subarray of vertically
-polarized antennas and the other subarray of horizontally polarized antennas). The gNB/UE have two
-RF chains, one for each polarization. In addition, assume that each antenna subarray (or polarization) is precoded with its own beamforming vector, to overcome mmWave propagation limits. This way, the MIMO model adopted in 5G-LENA, can combine spatial multiplexing (with up to two spatial streams per user) and beamforming (which applies for each of the spatial streams separately).
-
-In real systems, a gNB capable of performing MIMO spatial multiplexing, e.g., in the downlink, can use more than one stream to transmit to those UEs that support MIMO spatial multiplexing. However, gNB’s decision to use multiple streams is dependent on the channel Rank Indicator (RI) reported by a UE. In the following, we explain the procedures a UE follows in our simulator to compute the RI value and to report it to its serving gNB, along with the Channel Quality Indicator (CQI) of each stream. Also, we explain the extensions at the PHY layer to support transmission and reception of multiple streams.
-
-RI computation and rank adaptation algorithm
-############################################
-We extended the simulator to support a maximum of two streams to perform MIMO spatial multiplexing in the downlink. Therefore, the class NrUePhy is responsible for computing the RI for downlink MIMO transmissions. Specifically, we have implemented two schemes for RI computation. The first one uses a fixed RI configured by the user of the simulator. To enable this fixed scheme, we added two new attributes, UseFixedRi and FixedRankIndicator, in NrUePhy class. For example, to use a fixed RI of 1 for a particular UE or all the UEs throughout the simulation, one can configure UseFixedRi=true and FixedRankIndicator=1. This configuration entails that irrespective of the UE’s support for MIMO (i.e., it has two subarrays), the gNB throughout the simulation will use only one stream (i.e., the first subarray) to transmit to the UE (s) reporting fixed RI of 1.
-
-The second scheme uses an adaptive algorithm based on two SINR thresholds to compute an RI value. It is worth mentioning, other simulators that involve a detailed implementation of physical layer procedures, e.g., link-layer level simulators, perform complex operations, e.g., Singular Value Decomposition (SVD) on a channel matrix to compute the Rank of the channel. However, these matrix operations cannot be performed in ns-3 without the support of external libraries (if any). In addition, it could increase the simulation time that grows exponentially with the number of channel objects/instances in a simulation. Therefore, we decided to use SINR to have a simple and less computationally complex RI adaptation algorithm(s).
-
-This algorithm compares the SINR of the data channel (i.e., PDSCH) of each active stream for which UE has received the data with two preconfigured thresholds to report an RI value of 1 or 2.  To enable this adaptive RI algorithm, one must set the NrUePhy attribute, UseFixedRi, to false. Moreover, these two SINR thresholds, namely, RiSinrThreshold1 and RiSinrThreshold2, are also part of the NrUePhy class attributes and can be configured as required. In detail, a UE that has the SINR of one active stream compares it with RiSinrThreshold1. If it is above this threshold, the UE has excellent propagation conditions, and it can report an RI value of 2 (i.e., switching from one to two streams). On the other hand, if a UE is already receiving data using two streams, it compares the SINR of each stream with RiSinrThreshold2. If the SINR of both the streams is above this threshold, it keeps reporting an RI value of 2; otherwise, it uses an RI value of 1 (i.e., switching from two streams to one). We note that when a UE switches from two streams to one, besides reporting an RI value of 1, it also reports the CQI of both the streams to the gNB. It enables us to extend the scheduler to choose the stream with better CQI for future allocations.
-
-CQI and RI reporting
-####################
-NrUePhy already supports the reporting of a single Wide Band (WB) CQI value to a gNB under SISO communication. It uses a C++ structure DlCqiInfo that mimics the information element cqiListElement of FemtoForum MAC scheduler interface specifications. However, with the introduction of MIMO, NrUePhy should communicate the CQI of each MIMO stream for which it has received the data. Therefore, we have replaced the member variable of this structure used to store one CQI value with a C$++$ vector capable of holding the CQI of multiple streams. In particular, there is a direct mapping between a stream index and the indexes of this vector. For example, the CQI of the first stream is stored at the index 0 of this vector because the streams are indexed from zero in our simulator. Finally, the DlCqiInfo structure includes a variable specifically to report the RI value to the gNB.
-
-PHY to support transmission/reception of multiple streams
-#########################################################
-To support multiple streams, NrPhy class is extended to support multiple
-instances of PhasedAntennaArray. In particular, each instance of phased antenna array models a subpartition of the antenna array, and each subpartition is used for a specific stream. To achieve this, NrPhy class is extended to support multiple NrSpectrumPhy instances, and there is one PhasedAntennaArray per NrSpectrumPhy instance.
-Each SpectrumPhy instance has its own BeamManager which is used to configure the BF vector of the corresponding PhasedAntennaArray instance.
-
-To achieve the MIMO configuration, we install two NrSpectrumPhy instances per NrGnbPhy and NrUePhy, and then we configure the two UnfiormPlannarArray instances, two antenna array subpartitions,
-belonging to the same NrGnbPhy or NrUePhy to be cross polarized,
-i.e., one polarization slant angle is configured to 0 degree and other 90 degree.
-For this is used the extension of the ns-3 UniformPlannarAray. Even if we have 2 subpartitions of cross polarized antenna arrays at both gNB and UE that are used to create two streams, with the current implementation, both streams will be used for the DATA/CTRL transmission only in the donwlink. The uplink is configured to use a single stream for CTRL and DATA, while SRS is transmitted in both streams in UL to allow realistic beamforming functionality when MIMO is being used.
-
-To be able to perform the beamforming per subpartition of antenna array, we have changed the NR PHY model to have a BeamManager per NrSpectrumPhy, instead of having a single BeamManager per NrUePhy or NrGnbPhy. This was necessary because one BeamManager instance is implemented in a way that it can handle only single BF vector configuration per transmit/receive device. Additionally, the whole NR module's beamforming framework, including ideal and realistic algorithms, and corresponding helpers for ideal and realistic beamforming, have been extended to support multiple antenna arrays or subpartitions per NrUePhy or NrGnbPhy instance, so that the beamforming is performed independently per each subpartitions. Beamforming however has an assumption, and that the beamforning should be performed among subpartitions with the same index.
-The beamforming is performed among the 1st subarray of the gNB and the 1st subarray of the UE, and among the 2nd subarray of the gNB and 2nd subarray of the UE. If a gNB supports 2 streams, and UE only 1 stream, the beamforming is done among the 1st subarray of the gNB and the UE's subarray. So, this assumption, is very important to have in mind when configuring the PolSlantAngle of the UniformPlannarArray, i.e., first subpartitions of the gNB and UE antenna should have the same polarization slant angle, and also is the case for the second subparttions. For example, first subaprtitions of UE and GNB have the polarization slant angle set to 0\degree, and the second subpartions of UE and gNB have the polarization slant angle set to 90 degree. Also, since SRS is reported per each stream, NR module's realistic beamforming is updated to be performed per each stream.
-
-NrSpectrumPhy and NrUePhy functions are changes to take into account that it is possible to have multiple NrSpectrumPhy instances per NrUePhy instance. This was especially necessary in order to merge HARQ feedback that are generated the NrSpectrumPhy instances of the NrUePhy. So, these functions are extended to indicate to which stream corresponds each HARQ report, so that NrUePhy is able to correctly merge these feedback into the new HARQ structure. Similarly, SINR reporting and CQI feedback generation is updated to support multiple streams, i.e., when NrSpectrumPhy notifies NrUePhy about SINR, it also indicates to which streams this SINR corresponds. Previously, some of the interference traces have been hooked to NrUePhy, because there was only 1 NrSpectrumPhy per NrUePhy. But, since now we can have multiple NrSpectrumPhy instances per NrUePhy, we needed to hook SINR traces coming from NrInterference and ChunkProcessors directly to NrSpectrumPhy, and then NrSpectrumPhy passes these traces to NrUePhy by indicating also the stream to which corresponds the trace.
-
-Additionally, when the transmit power is configured to NrGnbPhy, it is taken into account that the configured transmit power is the total power of all active streams of that NrGnbPhy, so, before each transmission it is first checked what is the number of the active streams and then the total transmit power is divided among them.
-
-Another important aspect that we have studied during this implementation is how to handle the inter-stream interference. Imagine that we have in simulation only 1 gNB and 1 UE. If only 1 stream is configured, that means that we will have 1 NrSpectrumPhy instance per NrGnbPhy and NrUePhy. This means that when gNB is transmitting there will be just 1 signal sent to the SpectrumChannel and there will be only one receiver, i.e. one NrSpectrumPhy, the one belonging to UE. So, we will have just 1 useful signal and no interference. However, if in the same example we configure 2x2 MIMO, and gNB is transmitting, there will be 2 signals sent to SpectrumChannel, sent by each of the NrSpectrumPhy instance, and there will be two UE  instances of NrSpectrumPhy attached to "listen" on that SpectrumChannel. So, for each of these UE NrSpectrumPhy instances, there will be 1 useful signal and 1 interference signal.
-Here, similarly to what is explained for beamforming, there is an assumption that the 0th NrSpectrumPhy of gNB/UE belongs to 0th stream, so the signal coming from the same stream index will be considered useful signal, and vice versa, signal coming from the different stream is considered interference. 3GPP channel model TS38.901 already takes into account this interference, and is able to correctly calculate the inter-stream correlation, by taking into account the polarization of each subpartition.
-We have also implemented a new channel model called ThreeGppChannelModelParam, based on ThreeGppChannelModel, with which we can parametrize the inter-stream interference correlation, and then investigate how tuning of this parameter impacts the achieved throughput.
-Finally, we have considered that it would be good for the research purposes, to be able to tune the inter-stream interference level when calculating the interference. To do so, we have implemented in NrSpectrumPhy an attribute called InterStreamInterferenceRatio whose value ranges from 0 to 1, where the 0 value means that there will be no interference, and 1 that the full interference is taken into account, i.e., the RX PSD of the interfering signal that is calculated by the 3GPP channel model.
-
-In order to support the OFDMA scheduling with the MIMO, we had to extend previous BeamId structure on which is currently based the OFDMA scheduling in the NR module. Namely, the OFDMA scheduling has the constraint that at the same variable TTI can be served simultaneously on different RBs only UEs for which gNB uses the same beam. So, to be able to distinguish among available beams, NR scheduling code has been relying on the concept of BeamId, which uniquely identifies the beam used by gNB to transmit to some UE. BeamId is composed of two values, beam sector and beam elevation, the parameters that are typically used in cell scan beamforming method. So, now, if in order to extend the OFDMA scheduler to work with multiple streams we must make sure that at the same variable TTI are scheduled UEs for which gNB uses exactly the same beam in the first stream and in the second stream, which in general, does not have to be the case.
-To avoid invasive changes of the OFDMA scheduler code, in which we would have to add many checks and new MIMO OFDMA specific code to determine for example which UEs can be scheduled together, and also taking into account that some UEs can, in general, support 1 stream, while others 2 streams, we have created a BeamConfId structure based on BeamId, and which basically identifies uniquely the pair of beams (one for each stream). In this way, only the UEs for which gNB uses exactly the same "beam configuration" (BeamConfId), can be scheduled at the same time in OFDMA manner. Notice that in the case of UEs that support only 1 stream, they would be scheduled separately from the UEs that support two streams, even if the beam of that UE, is exactly the same of some another UE that supports two streams, because BeamConfId would be different. So, this implementation, is not the optimal one, but was good design choice because the schedulers code remained intact, and there are no MIMO specific code additions to OFDMA scheduler (other than the basic ones related to multiple DCIs, CQIs, etc. that have been discussed before).
-
-Most of the NR code explained in this paper could support any number of streams, except the code for the OFDMA scheduling which depends currently on the BeamConfId, which supports max up to two streams. Also, for the cross-polarized implementation we did not need for the moment to focus on more streams. However, we have tried to make the code general as possible, so that when in future we remove this limitation with OFDMA and BeamConfId, that we can configure and use any number of antenna array subpartitions. Improving OFDMA scheduling to remove current constraints, such as the beam dimension during the scheduling, and to allow gNB to use various beams at the same time for different RBs, in NR is in our near future roadmap.
-
-
 HARQ
-****
+====
 The NR scheduler works on a slot basis and has a dynamic nature [TS38300]_.
 For example, it may assign different sets of OFDM symbols in time and RBs
 in frequency for transmissions and the corresponding redundancy versions.
@@ -1150,7 +1100,158 @@ the specification of the rate matcher in the 3GPP standard [TS38212]_, where
 the algorithm fixes the modulation order for generating the different blocks
 of the redundancy versions.
 
-The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedback, and retransmissions basically depend on the the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
+The 'NR' module supports multiple (20) stop and wait processes to allow continuous data flow. The model is asynchronous for both DL and UL transmissions. The transmissions, feedback, and retransmissions basically depend on the processing timings, the TDD pattern, and the scheduler. We support up to 4 redundancy versions per HARQ process; after which, if combined decoding is not successful, the transport block is dropped.
+
+
+MIMO
+====
+In real systems, devices capable of performing MIMO spatial multiplexing can use more than one stream to transmit,
+e.g., a gNB in the downlink can send multiple streams to those UEs that support MIMO spatial multiplexing and are able to decode
+multiple streams simultaneously. MIMO technology is known in textbooks for several decades, and it is used in 4G-LTE and 5G-NR,
+and has been in Wi-Fi products for more than 20 years. For optimal MIMO performance, the gNB should apply a precoding matrix
+(at the transmitter) that determines how the signal is aligned relative to the channel, and the UE (at the receiver) should
+apply a receive filter to suppress inter-stream interference and recover each stream. Usually, the precoding matrix that provides
+the maximum SINR for the given channel matrix is selected [Palomar2006]_ and the receive filter is usually designed to reduce the
+mean-square error between the transmitted and decoded data symbols, for which the MMSE-IRC Interference Rejection Combining
+receiver is usually adopted in 3GPP, as it provides a good balance between performance (mean-square error reduction) and
+implementation complexity (linear receiver). In 3GPP, MIMO spatial multiplexing is permitted and enabled thanks to the CSI
+feedback, which includes the Precoding Matrix Indicator (PMI), the Rank Indicator (RI), and the Channel Quality Indicator (CQI).
+The selection of the precoding matrix that gives the best performance (maximum SINR) is done by the UE, and reported through the
+PMI through an index of a set of predefined precoding matrix from a codebook, as part of the CSI feedback message to the gNB.
+In addition, the UE also reports the RI as part of the CSI feedback, which indicates to the gNB how many streams to use for that UE.
+Even if RI=1, we can still use precoding to combine the signals to/from multiple antenna ports in an optimal way. Each antenna
+port is then indeed aligned to the channel through beamforming. 3GPP 5G NR, differently from LTE, allows sending up to 4 streams
+in the same TB. Indeed, in 3GPP, the MIMO operations are enabled by the adoption of antenna arrays (usually modeled as dual-polarized
+linear antenna arrays [TR38901]) and the introduction of antenna ports concept, in which basically, for an antenna array of
+multiple antenna elements, multiple antenna elements are combined into one antenna port for digital processing (precoding),
+while analog processing (beamforming) is applied for the antenna elements within one antenna port.
+
+The MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to two streams per user, and 2 antenna ports)
+and beamforming (which applies for each of the streams). Multiple (up to two) streams are encoded in the same TB. PMI, RI and CQI
+are implemented and included as part of the CSI feedback. It follows the 3GPP codebook-based Type I model for precoding [TS38214]
+and assumes MMSE-IRC receiver. For precoding and rank selection, an exhaustive search is implemented. The number of streams is
+called the rank in the code, which affects the TBS and other performance characteristics. The inter-stream interference is correctly
+computed through matrix processing, and this is why the use of more of 2 streams requires the Eigen library to compute operations
+like matrix inverse, SVD, etc. As the SINR and interference computations are correctly modeled, following [Palomar2006]_, and multiple
+streams are fit in one TB, this allows using the SISO error model for MIMO error modeling, by vectorizing the 2D SINR (RBs, rank)
+into 1D SINR (RBs x rank).
+
+In the following, we explain the design choices and implementation details to enable MIMO. This includes, 1) adding the "rank"
+parameter to many interfaces throughout the code, 2) the MIMO interference and SINR calculations, as well as the interfaces to pass
+the results to other classes, 3) the computation of transport block error rates (TBLER) based on the MIMO SINR, 4) the search for
+the optimal precoding matrix, which the UE needs to send as a feedback to the gNB in the PMI, as well as the 3GPP-compliant precoding
+matrix codebook, and 5) the enabling of the new MIMO methods and using the feedback at the gNB.
+
+Rank
+#############
+Firstly, the interfaces are extended to allow passing the rank number ( the number of MIMO layers).
+In this way, for example, already existing functions for the calculation of the transport block size for SISO could be
+easily updated to be used for both, SISO and MIMO (in this section we refer to SISO as the single stream transmission,
+although multiple antennas are supported, and MIMO for the multiple-stream transmission). Also, packet traces are
+extended to include the rank number.
+
+The MIMO interference and SINR calculations
+###########################################
+The NR model for the interference calculation is extended to support the calculation of the MIMO interference and
+MIMO SINR calculations. The main class for the calculation of the interference in the NR module is ``NrInterference`` class.
+This class is extended with new functions for the computation of the interference-and-noise covariance matrix and SINR.
+These functions are ``CalcOutOfCellInterfCov``, ``CalcCurrInterfCov``, ``AddInterference``, and ``ComputeSinr``.
+``CalcOutOfCellInterfCov`` computes the interference signals from all out-of-cell interferers.
+``CalcCurrInterfCov`` prepares ``NrInterference`` class for MU-MIMO by supporting the calculation of the interference signals
+by also considering the interferers from the same cell. For example, in the MU-MIMO UL, UEs from the same cell could act as interferers.
+``AddInterference`` adds the covariance of the signal to an existing covariance matrix.
+Finally, ``ComputeSinr`` computes the SINR as follows:
+
+  1) the actual interference-and-noise covariance for the signal is computed,
+  2) the signal is transformed into a different representation where the interference-and-noise covariance is an identity matrix
+     (aka whitening transformation),
+  3) a dummy precoding matrix is created when none exists, and
+  4) the SINR based on the MSE matrix is computed as explained in [Palomar2006]_.
+
+To support all these MIMO operations, it was not enough to use a single dimensional ``SpectrumValue`` type that has been traditionally
+used in ``NrInterference`` for SISO. To support an efficient storage and computations of MIMO operations new classes were defined,
+such as ``NrCovMat``, ``NrIntfNormChanMat`` and ``NrSinrMatrix``.
+``NrCovMat`` stores the interference-plus-noise covariance matrices of a MIMO signal, with one matrix page for each frequency bin.
+This class also provides some functions for efficient computations on covariance matrices.
+Its functions ``CalcIntfNormChannel`` performs interference whitening [interf-whitening]_.
+``NrIntfNormChanMat`` stores the interference-whitened channel matrix, the channel matrix after normalizing/whitening the
+interference. Its function ``ComputeSinrForPrecoding`` computes the SINR based on MSE.
+Finally, ``NrSinrMatrix`` stores the MIMO SINR matrix whose dimensions are the rank and the number of RBs.
+MIMO implementation requires Eigen3 [eigen3]_, a C++ template library for linear algebra: matrices,
+vectors, numerical solvers, and related algorithms.
+However, Eigen library is not always available. To allow the compilation even when Eigen is not available a CMake switch is added:
+
+  a) when Eigen is enabled, the file nr-mimo-matrices-eigen.cc is compiled
+  b) when Eigen is disabled, the file nr-mimo-matrices-no-eigen.cc is compiled (the implementations just contain a single NS_FATAL_ERROR).
+     In this case, users can still compile but can only use SISO, they will get this error only when trying to use MIMO.
+     The functions used from Eigen library could be in the future implemented in ns-3 to reduce dependency of ns-3 and
+     the nr module on Eigen library. Then nr-mimo-matrices-no-eigen.cc could be implemented to call these ns-3 alternatives of Eigen
+     functions.
+
+To support the multi-dimensional MIMO signals a new interference chunk processor called ``NrMimoChunkProcessor`` is introduced.
+This class mirrors the original ``LteChunkProcessor`` that is originally used in ``NrInterference`` for SISO.
+``LteChunkProcessor`` is not sufficient for MIMO because it can only store a frequency-domain vector of SINR values whereas
+MIMO requires a 2D matrix with the dimensions: number of RBs  and number of MIMO layers.
+``LteChunkProcessor`` stores the sum of the different signals' power spectral density values and
+performs the averaging once the function ``End`` is called. Such SINR averaging in the time-domain limits the fidelity.
+In general, each received signal may have different number of MIMO layers, hence combining the SINR of different signals is not
+trivial. To avoid all this, ``NrMimoChunkProcessor`` keeps a list with full information of all different signals and
+no averaging is performed. The averaging now must be implemented in the error model which opens the door also for different possible
+implementations, e.g., error model may apply exponential effective SINR both over time and frequency.
+Hence the ``NrMimoChunkProcessor`` only looks like ``LteChunkProcessor``, but is actually mainly used as a storage to pass
+the information to other entities that can perform a different computations by exploiting the full information of all different signals.
+``NrMimoChunkProcessor`` provides two kind of callbacks:
+
+    * MIMO SINR: one 2D matrix for each different time-domain chunk, which is used by the error model to compute TBLER, and
+    * Interference covariance matrices for each different time-domain chunk are passed to CQI generating functions and used
+      are used with channel matrix to compute the precoding matrix PMI feedback.
+
+
+Computation of TBLER based on the MIMO SINR
+###########################################
+
+A new function called ``GetTbDecodificationStatsMimo`` is added to ``NrErrorModel`` to determine if a transport block was received
+successfully. ``GetTbDecodificationStatsMimo`` performs a simple weighted average over potentially multiple different signal values
+received over time to get a single SINR matrix. The SINR matrix is then linearized to a vector and passed to the existing error
+model for SISO by calling a function ``GetTbDecodificationStats``. Effectively, ``GetTbDecodificationStatsMimo`` is a
+translation layer between the new MIMO code and the existing SISO error model.
+
+When using MIMO one should configure the ``AmcModel`` as ``ErrorModel``. The ``ShannonModel`` is not yet supported with MIMO,
+some additions are needed to ``NrAmc`` to allow its usage.
+
+Search for the optimal precoding matrix
+###########################################
+
+``NrPmSearchFull`` class is implemented to find the optimal precoding matrix, rank indicator, and corresponding CQI,
+and creates a CQI/PMI/RI feedback message. ``NrPmSearchFull`` uses exhaustive search for 3GPP Type-I codebooks.
+Optimal rank is considered as the rank that maximizes the achievable TB size when using the optimal PMI. To determine the
+rank indicator the algorithm loops through all ranks (the number of MIMO layers), and for each rank it computes PMI,
+and it computes the maximum supported MCS and associates TB size, and finally it selects the rank that results in the highest TB size.
+The optimal WB/SB PMI values are periodically updated based on the configured update intervals, that can be configured using
+two attributes in NrUePhy class: ``WbPmiUpdateInterval`` and ``SbPmiUpdateInterval``.
+When a PMI update is requested, the optimal precoding matrices are updated using exhaustive search over all possible
+precoding matrices specified in a codebook that is compatible with 3GPP TS 38.214 Type-I. The procedure based on exhaustive search
+loops over all possible subband precoding matrices and computes the SINR that would be achieved by each precoding matrix,
+and selects the precoder resulting in the highest average SINR.
+Finally, the feedback message is created that includes the optimal rank, the corresponding optimal PMI and CQI.
+
+``NrPmSearch`` is the base class and ``NrPmSearchFull`` is one possible specialization that finds PMI, RI and CQI. One could create
+another specialization of ``NrPmSearch`` that would implement a different algorithm to find PMI and RI values.
+
+MIMO activation
+###############
+``NrHelper`` is the class
+that is responsible of setting the ``NrPmSearch`` algorithm to ``NrUePhy`` instance, and the configuration of the corresponding parameters,
+such as the type of the search algorithm, the type of the codebook, and the rank limit. ``NrHelper`` also creates ``NrMimoChunkProcessor``
+and adds the necessary callbacks. These callbacks are:
+
+ * ``NrSpectrumPhy::UpdateMimoSinrPerceived`` which is called to provide MIMO SINR feedback
+ *  ``NrUePhy::GenerateDlCqiReportMimo`` which is called to provide MIMO signal to functions that perform PMI search and create CQI/PMI/RI feedback
+
+To enable MIMO in the simulation, the ``EnableMimoFeedback`` attribute of the ``NrHelper`` should be set to true.
+To configure PMI search parameters (such as rank limit, PMI search method, the codebook,) ``NrHelper`` provides a function ``SetupMimoPmi``.
+The ``EnableMimoFeedback`` enables MIMO feedback including PMI/RI/CQI, while ``RankLimit`` limits the possible RI value
+(e.g., to 1 stream). So, even if RI is limited to 1, the usage of MIMO feedback can provide benefits because of the PMI feedback.
 
 
 MAC layer
@@ -1540,28 +1641,6 @@ the scheduler will take under consideration all the RBGs in the scheduling proce
 UFA in 5G-LENA can be simulated with the :ref:`notchingExample` example described
 in detail in :ref:`Examples` section, while the notching functionality is tested
 with the UNIT Test :ref:`notchingTest` described in :ref:`Validation` section.
-
-MIMO extension
-==============
-One of our main objectives behind this effort to support MIMO spatial multiplexing was to keep intact the current SISO functionality. Therefore, this extension does not affect the core functionality of the MAC layer, especially the working of the existing schedulers (e.g., RR, PF, and MR). However, for seamless scheduling of two transport blocks (one for each stream), we have extended important classes responsible for crucial functionalities, e.g., CQI management, DCI creation, HARQ feedback processing, etc. In the following, we explain the extensions involving these functionalities.
-
-CQI management
-##############
-In the NR module, the class NrMacSchedulerCQIManagement is the final destination for DL and UL CQI reports. One of the main responsibilities of this class is to compute the DL and UL MCS based on their respective CQIs. Since the MIMO support is introduced only for DL, the function DlWBCQIReported has been updated to read the new DlCqiInfo structure. Based on the CQI of each stream, it appropriately computes their MCS that is later used for deducing a TB size in NrMacSchedulerUeInfo::UpdateDlMetric.
-
-DCI creation
-############
-The NR module supports dynamic scheduled-based access both for DL and UL. Therefore, a gNB is responsible for conveying scheduling information (i.e., DL or UL) using a DCI to its UEs. A C++ struct, VarTtiAllocInfo, is currently used to communicate all the scheduling-related information needed by a gNB and a UE to orchestrate their transmissions and receptions. Specifically, this struct holds two more structs 1) DciInfoElementTdma, which represents the DCI, and 2) RlcPduInfo, which carries the number of bytes assigned to each active logical channel. These structs can not hold the scheduling information for more than one stream or TB; therefore, we extended both,. Specifically, in DciInfoElementTdma, we have modified the TB-related information, i.e., MCS, NDI, RV, and the TB size. Thanks to the physical layer modifications explained above, we can measure the CQI of the channel of each stream. Thus, the MCS and eventually the TB size computed using this MCS could differ between the streams if their CQI is distinct. Furthermore, it might happen that a UE would be able to decode only one TB; in that case, the NDI and RV information would not be the same for the two TBs in the subsequent retransmission(s). Therefore, in the new implementation, we use a C++ vector for holding TB-related information for each stream. It enables a scheduler to store the necessary information to simultaneously schedule the TB of multiple MIMO streams considering all the above aspects. Similarly, to maintain the RlcPduInfo per MIMO stream, we wrapped the existing vector of RlcPduInfo in another vector. Finally, as mentioned in the previous subsection, the indexes of these vectors are analogous to the stream indexes.
-
-Now, whether the scheduler at the gNB should schedule two streams or one depends on the RI value reported by a UE in a DL CQI report. For example, it may happen that a UE that is already receiving two streams suddenly reports an RI = 1, due to bad channel conditions. In such a case, the new implementation is robust enough to choose a stream with better CQI between the two streams to schedule the upcoming transmission(s).
-However, there are situations where RI value is not considered. The first one is at the start of a simulation where the scheduler uses only one stream that belongs to the first subarray, even though UE(s) can support MIMO. This design choice is motivated by two facts. First, the current RRC model does not support UeCapabilityReport through which UE communicates its capability to support MIMO to a gNB, as in the standard. Second, in the NR module, CQI is computed using the data channel, i.e., a gNB must schedule the data for a UE to know the DL channel quality, hence, the channel's rank. Therefore, in a MIMO simulation to switch to two streams initially, the gNB should schedule one TB to receive a CQI report for this transmission. Then, based on the RI value reported in this report, the scheduler decides to use one or two streams for the subsequent transmission(s). The second situation in which the \texttt{RI} value is not considered is during the retransmission phase. Specifically, the scheduler keeps rescheduling the TB of each stream independent of each other until a UE can decode them or the maximum number of retransmissions (i.e., RV = 3) has been reached. In the following subsection we explain how the scheduler manages HARQ feedback for a MIMO transmission and reschedules the TBs, if needed.
-
-HARQ feedback processing
-########################
-The scheduler in the NR module is responsible for embedding a unique HARQ process id in every DCI it creates, and this functionality remains the same in the MIMO extension. Specifically, the simulator schedules multiple streams using a single DCI; thus, the same HARQ process id is used for all of them. It is worth mentioning that this implementation choice is aligned with the 3GPP standard. In particular, in the DCI format 1-1, which is a commonly used DCI for DL in NR, unlike TB-related information, the HARQ process id field is not repeated for each stream while using MIMO spatial multiplexing. Moreover, similar to a real network, a UE in our simulator reports HARQ feedback (i.e., ACK or NACK) for both the streams since it decodes them independently. To do that, we have modified the C++ struct DlHarqInfo, which is used to report the HARQ feedback in downlink following the Femto forum MAC API. Specifically, this modification replaces the simple C++ enumeration (that represents ACK or NACK) with a vector of such enumeration so that a UE can report the HARQ feedback for the TB of each stream to its serving gNB.
-
-At the gNB side, a HARQ feedback (i.e., DlHarqInfo struct) from a UE is forwarded to the NrMacSchedulerNs3 class for processing. In particular, we extended the ProcessHarqFeedbacks function of this class to read the HARQ feedback of each stream. Upon processing a HARQ feedback, if a UE has reported ACK for both streams' TB, the HARQ process id is released, i.e., it can be reassigned to a new DCI. However, it may happen that a UE is able to decode the TB of only one stream, i.e., it reports ACK for one stream and NACK for the other. In this case, while processing the feedback, the scheduler will not release the HARQ process id and reschedules the TB of the failed stream using the same HARQ process id. Moreover, the scheduler will prioritize retransmission of the TB of this single stream over scheduling new data during such retransmission. It will keep scheduling only one stream (for which it received NACK) until the TB is successfully decoded or the maximum number of retransmissions is reached.
-
 
 RLC layer
 *********
@@ -2154,7 +2233,6 @@ The database is created in the root project directory if not configured differen
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-realistic-beamforming_8cc.html.
 
-
 .. _mimo:
 
 cttc-nr-mimo-demo.cc
@@ -2594,3 +2672,9 @@ Open issues and future work
 .. [WNS32022-ngmn] B. Bojovic, S. Lagen, Enabling NGMN mixed traffic models for ns-3, in Workshop on ns-3, June 2022.
 
 .. [WNS3-QosSchedulers] K. Koutlia, S. Lagen, and B. Bojovic. 2023. Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA. In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.
+
+.. [Palomar2006] Daniel P. Palomar and Yi Jiang: MIMO Transceiver Design via Majorization Theory
+
+.. [interf-whitening] "Whitening transformation": https://en.wikipedia.org/wiki/Whitening_transformation
+
+.. [eigen3] Eigen library: https://eigen.tuxfamily.org/

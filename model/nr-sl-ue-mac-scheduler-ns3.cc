@@ -13,6 +13,8 @@
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 
+#include <memory>
+
 namespace ns3
 {
 
@@ -20,7 +22,7 @@ NS_LOG_COMPONENT_DEFINE("NrSlUeMacSchedulerNs3");
 NS_OBJECT_ENSURE_REGISTERED(NrSlUeMacSchedulerNs3);
 
 TypeId
-NrSlUeMacSchedulerNs3::GetTypeId(void)
+NrSlUeMacSchedulerNs3::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrSlUeMacSchedulerNs3")
@@ -110,7 +112,7 @@ NrSlLCGPtr
 NrSlUeMacSchedulerNs3::CreateLCG(uint8_t lcGroup) const
 {
     NS_LOG_FUNCTION(this);
-    return std::unique_ptr<NrSlUeMacSchedulerLCG>(new NrSlUeMacSchedulerLCG(lcGroup));
+    return std::make_unique<NrSlUeMacSchedulerLCG>(lcGroup);
 }
 
 NrSlLCPtr
@@ -118,7 +120,7 @@ NrSlUeMacSchedulerNs3::CreateLC(
     const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) const
 {
     NS_LOG_FUNCTION(this);
-    return std::unique_ptr<NrSlUeMacSchedulerLC>(new NrSlUeMacSchedulerLC(params));
+    return std::make_unique<NrSlUeMacSchedulerLC>(params);
 }
 
 void

@@ -233,7 +233,7 @@ NrBearerStatsCalculator::ShowResults()
     std::ofstream ulOutFile;
     std::ofstream dlOutFile;
 
-    if (m_firstWrite == true)
+    if (m_firstWrite)
     {
         ulOutFile.open(GetUlOutputFilename().c_str());
         if (!ulOutFile.is_open())
@@ -290,19 +290,17 @@ NrBearerStatsCalculator::WriteUlResults(std::ofstream& outFile)
     // Get the unique IMSI / LCID list
 
     std::vector<ImsiLcidPair_t> pairVector;
-    for (Uint32Map::iterator it = m_ulTxPackets.begin(); it != m_ulTxPackets.end(); ++it)
+    for (auto& m_ulTxPacket : m_ulTxPackets)
     {
-        if (find(pairVector.begin(), pairVector.end(), (*it).first) == pairVector.end())
+        if (find(pairVector.begin(), pairVector.end(), m_ulTxPacket.first) == pairVector.end())
         {
-            pairVector.push_back((*it).first);
+            pairVector.push_back(m_ulTxPacket.first);
         }
     }
 
     Time endTime = m_startTime + m_epochDuration;
-    for (std::vector<ImsiLcidPair_t>::iterator it = pairVector.begin(); it != pairVector.end();
-         ++it)
+    for (auto p : pairVector)
     {
-        ImsiLcidPair_t p = *it;
         outFile << m_startTime.GetSeconds() << "\t";
         outFile << endTime.GetSeconds() << "\t";
         outFile << GetUlCellId(p.m_imsi, p.m_lcId) << "\t";
@@ -314,14 +312,14 @@ NrBearerStatsCalculator::WriteUlResults(std::ofstream& outFile)
         outFile << GetUlRxPackets(p.m_imsi, p.m_lcId) << "\t";
         outFile << GetUlRxData(p.m_imsi, p.m_lcId) << "\t";
         std::vector<double> stats = GetUlDelayStats(p.m_imsi, p.m_lcId);
-        for (std::vector<double>::iterator it = stats.begin(); it != stats.end(); ++it)
+        for (double& stat : stats)
         {
-            outFile << (*it) * 1e-9 << "\t";
+            outFile << stat * 1e-9 << "\t";
         }
         stats = GetUlPduSizeStats(p.m_imsi, p.m_lcId);
-        for (std::vector<double>::iterator it = stats.begin(); it != stats.end(); ++it)
+        for (double& stat : stats)
         {
-            outFile << (*it) << "\t";
+            outFile << stat << "\t";
         }
         outFile << std::endl;
     }
@@ -336,19 +334,17 @@ NrBearerStatsCalculator::WriteDlResults(std::ofstream& outFile)
 
     // Get the unique IMSI list
     std::vector<ImsiLcidPair_t> pairVector;
-    for (Uint32Map::iterator it = m_dlTxPackets.begin(); it != m_dlTxPackets.end(); ++it)
+    for (auto& m_dlTxPacket : m_dlTxPackets)
     {
-        if (find(pairVector.begin(), pairVector.end(), (*it).first) == pairVector.end())
+        if (find(pairVector.begin(), pairVector.end(), m_dlTxPacket.first) == pairVector.end())
         {
-            pairVector.push_back((*it).first);
+            pairVector.push_back(m_dlTxPacket.first);
         }
     }
 
     Time endTime = m_startTime + m_epochDuration;
-    for (std::vector<ImsiLcidPair_t>::iterator pair = pairVector.begin(); pair != pairVector.end();
-         ++pair)
+    for (auto p : pairVector)
     {
-        ImsiLcidPair_t p = *pair;
         outFile << m_startTime.GetSeconds() << "\t";
         outFile << endTime.GetSeconds() << "\t";
         outFile << GetDlCellId(p.m_imsi, p.m_lcId) << "\t";
@@ -360,14 +356,14 @@ NrBearerStatsCalculator::WriteDlResults(std::ofstream& outFile)
         outFile << GetDlRxPackets(p.m_imsi, p.m_lcId) << "\t";
         outFile << GetDlRxData(p.m_imsi, p.m_lcId) << "\t";
         std::vector<double> stats = GetDlDelayStats(p.m_imsi, p.m_lcId);
-        for (std::vector<double>::iterator it = stats.begin(); it != stats.end(); ++it)
+        for (double& stat : stats)
         {
-            outFile << (*it) * 1e-9 << "\t";
+            outFile << stat * 1e-9 << "\t";
         }
         stats = GetDlPduSizeStats(p.m_imsi, p.m_lcId);
-        for (std::vector<double>::iterator it = stats.begin(); it != stats.end(); ++it)
+        for (double& stat : stats)
         {
-            outFile << (*it) << "\t";
+            outFile << stat << "\t";
         }
         outFile << std::endl;
     }

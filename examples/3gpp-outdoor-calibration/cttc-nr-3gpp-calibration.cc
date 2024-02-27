@@ -769,7 +769,7 @@ Nr3gppCalibration(Parameters& params)
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    if (nrHelper != nullptr && params.attachToClosest == true)
+    if (nrHelper != nullptr && params.attachToClosest)
     {
         nrHelper->AttachToClosestEnb(ueNetDevs, gnbNetDevs);
     }
@@ -895,17 +895,17 @@ Nr3gppCalibration(Parameters& params)
     // enable the traces provided by the nr module
     std::cout << "  tracing\n";
 
-    if (lteHelper != nullptr && (params.basicTraces == true || params.extendedTraces == true))
+    if (lteHelper != nullptr && (params.basicTraces || params.extendedTraces))
     {
         lteHelper->EnableTraces();
     }
-    else if (nrHelper != nullptr && params.extendedTraces == true)
+    else if (nrHelper != nullptr && params.extendedTraces)
     {
         nrHelper->EnableTraces();
         nrHelper->GetPhyRxTrace()->SetSimTag(params.simTag);
         nrHelper->GetPhyRxTrace()->SetResultsFolder(params.outputDir);
     }
-    else if (nrHelper != nullptr && params.basicTraces == true)
+    else if (nrHelper != nullptr && params.basicTraces)
     {
         nrHelper->EnableDlDataPhyTraces();
         nrHelper->EnableDlCtrlPhyTraces();
@@ -986,7 +986,7 @@ Nr3gppCalibration(Parameters& params)
         {
             auto antArray = DynamicCast<NrGnbNetDevice>(remDevice)
                                 ->GetPhy(0)
-                                ->GetSpectrumPhy(0)
+                                ->GetSpectrumPhy()
                                 ->GetAntenna()
                                 ->GetObject<UniformPlanarArray>();
             auto antenna = ConstCast<UniformPlanarArray>(antArray);
@@ -1016,7 +1016,8 @@ Nr3gppCalibration(Parameters& params)
                         ->Get(siteId)
                         ->GetObject<NrGnbNetDevice>()
                         ->GetPhy(remPhyIndex)
-                        ->ChangeBeamformingVector(ueNdBySector[sectorIndex]->Get(siteId));
+                        ->ChangeBeamformingVector(
+                            DynamicCast<NrUeNetDevice>(ueNdBySector[sectorIndex]->Get(siteId)));
                 }
             }
         }
@@ -1123,12 +1124,12 @@ operator<<(std::ostream& os, const Parameters& parameters)
 
         MSG("BF method") << p.bfMethod;
 
-        if (p.crossPolarizedGnb == true)
+        if (p.crossPolarizedGnb)
         {
             MSG("Cross Polarization at gNB with angles")
                 << p.polSlantAngleGnb1 << (", ") << p.polSlantAngleGnb2;
 
-            if (p.crossPolarizedUe == true)
+            if (p.crossPolarizedUe)
             {
                 MSG("Cross Polarization at UE with angles")
                     << p.polSlantAngleUe1 << (", ") << p.polSlantAngleUe2;
@@ -1157,7 +1158,7 @@ operator<<(std::ostream& os, const Parameters& parameters)
     MSG("Base station positions") << "regular hexagonal lay down";
     MSG("Number of rings") << p.numOuterRings;
 
-    if (p.baseStationFile == "" and p.useSiteFile)
+    if (p.baseStationFile.empty() and p.useSiteFile)
     {
         MSG("Number of outer rings") << p.numOuterRings;
     }

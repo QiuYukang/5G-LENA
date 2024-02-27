@@ -53,7 +53,7 @@ class NrMacSchedulerLcAlgorithm;
  * the scheduler can be set only before its creation, through the method
  * NrHelper::SetSchedulerTypeId().
  *
- * \section scheduler_user_managment User management (creation and removal)
+ * \section scheduler_user_management User management (creation and removal)
  *
  * When a user arrives in the cell, it is registered with a call to
  * DoCschedUeConfigReq. When the user leaves, the class is made aware with
@@ -177,7 +177,7 @@ class NrMacSchedulerLcAlgorithm;
  * the scheduler should compute beforehand the number of active UEs, as well as
  * the number of retransmission to be done. These operations are done, respectively,
  * by the methods ComputeActiveUe() and ComputeActiveHarq(). These methods work on
- * data structures that group UE and retransmission by BeamConfId
+ * data structures that group UE and retransmission by BeamID
  * (ActiveUeMap and ActiveHarqMap).
  *
  * \section scheduler_sched_ul Scheduling UL
@@ -353,18 +353,17 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     typedef std::pair<UePtr, uint32_t> UePtrAndBufferReq;
     /**
-     * \brief Map between a BeamConfId and a vector of UE (the UE are in that beam)
+     * \brief Map between a BeamId and a vector of UE (the UE are in that beam)
      */
-    typedef std::unordered_map<BeamConfId, std::vector<UePtrAndBufferReq>, BeamConfIdHash>
-        ActiveUeMap;
+    typedef std::unordered_map<BeamId, std::vector<UePtrAndBufferReq>, BeamIdHash> ActiveUeMap;
     /**
-     * \brief Map between a BeamConfId and the symbol assigned to that beam
+     * \brief Map between a BeamId and the symbol assigned to that beam
      */
-    typedef std::unordered_map<BeamConfId, uint32_t, BeamConfIdHash> BeamSymbolMap;
+    typedef std::unordered_map<BeamId, uint32_t, BeamIdHash> BeamSymbolMap;
     /**
-     * \brief Map between a BeamConfId and the HARQ of that beam
+     * \brief Map between a beamID and the HARQ of that beam
      */
-    typedef std::unordered_map<BeamConfId, HarqVectorIteratorList, BeamConfIdHash> ActiveHarqMap;
+    typedef std::unordered_map<BeamId, HarqVectorIteratorList, BeamIdHash> ActiveHarqMap;
 
     /**
      * \brief Set the CqiTimerThreshold
@@ -723,18 +722,21 @@ class NrMacSchedulerNs3 : public NrMacScheduler
          * \param tbs Transport Block Size
          * \param numSym Number of symbols
          * \param mcs MCS
+         * \param rank rank
          */
         AllocElem(uint16_t rnti,
                   uint32_t tbs,
                   uint8_t symStart,
                   uint8_t numSym,
                   uint8_t mcs,
+                  uint8_t rank,
                   const std::vector<uint8_t>& rbgMask)
             : m_rnti(rnti),
               m_tbs(tbs),
               m_symStart(symStart),
               m_numSym(numSym),
               m_mcs(mcs),
+              m_rank(rank),
               m_rbgMask(rbgMask)
         {
         }
@@ -744,6 +746,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         uint8_t m_symStart{0};          //!< Sym start
         uint8_t m_numSym{0};            //!< Allocated symbols
         uint8_t m_mcs{0};               //!< MCS of the transmission
+        uint8_t m_rank{1};              //!< rank of the transmission
         std::vector<uint8_t> m_rbgMask; //!< RBG Mask
     };
 

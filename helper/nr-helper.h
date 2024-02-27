@@ -49,7 +49,7 @@ class BwpManagerUe;
  *
  * This class will help you in setting up a single- or multi-cell scenario
  * with NR. Most probably, you will interact with the NR module only through
- * this class, so make sure everthing that is written in the following is
+ * this class, so make sure everything that is written in the following is
  * clear enough to start creating your own scenario.
  *
  * \section helper_pre Pre-requisite: Node creation and placement
@@ -228,8 +228,7 @@ class NrHelper : public Object
      */
     NetDeviceContainer InstallUeDevice(
         const NodeContainer& c,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps,
-        uint8_t numberOfPanels = 1);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps);
     /**
      * \brief Install one (or more) GNBs
      * \param c Node container with the GNB
@@ -238,8 +237,7 @@ class NrHelper : public Object
      */
     NetDeviceContainer InstallGnbDevice(
         const NodeContainer& c,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-        uint8_t numberOfPanels = 1);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
 
     /**
      * \brief Get the number of configured BWP for a specific GNB NetDevice
@@ -368,7 +366,7 @@ class NrHelper : public Object
      * \brief GetHarqEnabled
      * \return the value of HarqEnabled variable
      */
-    bool GetHarqEnabled();
+    bool GetHarqEnabled() const;
     /**
      * \brief SetSnrTest
      * \param snrTest
@@ -380,7 +378,7 @@ class NrHelper : public Object
      * \brief GetSnrTest
      * \return the value of SnrTest variable
      */
-    bool GetSnrTest();
+    bool GetSnrTest() const;
 
     /**
      * \brief Flags for OperationBand initialization.
@@ -862,7 +860,52 @@ class NrHelper : public Object
      */
     int64_t AssignStreams(NetDeviceContainer c, int64_t stream);
 
+    /// \brief parameters of the gNB or UE antenna arrays
+    struct AntennaParams
+    {
+        std::string antennaElem{"ns3::IsotropicAntennaModel"}; ///< Antenna type
+        size_t nAntCols{1};          ///< Number of antenna element columns (horizontal width)
+        size_t nAntRows{1};          ///< Number of antenna element rows (vertical height)
+        bool isDualPolarized{false}; ///< true if antennas are cross-polarized (dual-polarized)
+        size_t nHorizPorts{1};       ///< Number of antenna ports in horizontal direction
+        size_t nVertPorts{1};        ///< Number of antenna ports in vertical direction
+        double bearingAngle{0.0};    ///< Bearing angle in radians
+        double polSlantAngle{0.0};   ///< Polarization slant angle in radians
+    };
+
+    /// \brief parameters for the search of optimal rank and precoding matrix indicator (RI, PMI)
+    struct MimoPmiParams
+    {
+        std::string pmSearchMethod{"ns3::NrPmSearchFull"}; ///< Precoding matrix search algorithm
+        std::string fullSearchCb{"ns3::NrCbTwoPort"}; ///< Codebook when using full-search algorithm
+        uint8_t rankLimit{UINT8_MAX}; ///< Limit maximum MIMO rank to model limited UE capabilities.
+    };
+
+    /// \brief Set TypeId of the precoding matrix search algorithm
+    /// \param typeId Class TypeId
+    void SetPmSearchTypeId(const TypeId& typeId);
+
+    /// \brief Set attribute of the precoding matrix search algorithm
+    /// \param name attribute to set
+    /// \param value value of the attribute
+    void SetPmSearchAttribute(const std::string& name, const AttributeValue& value);
+
+    /// \brief Set parameters for gNB and UE antenna arrays
+    /// \param ap the struct with antenna parameters
+    void SetupGnbAntennas(const AntennaParams& ap);
+
+    /// \brief Set parameters for gNB and UE antenna arrays
+    /// \param ap the struct with antenna parameters
+    void SetupUeAntennas(const AntennaParams& ap);
+
+    /// \brief Set parameters for PMI search in MIMO operation
+    /// \param mp the struct with MIMO PMI parameters
+    void SetupMimoPmi(const MimoPmiParams& mp);
+
   private:
+    bool m_enableMimoFeedback{false}; ///< Let UE compute MIMO feedback with PMI and RI
+    ObjectFactory m_pmSearchFactory;  ///< Factory for precoding matrix search algorithm
+
     /**
      * Assign a fixed random variable stream number to the channel and propagation
      * objects. This function will save the objects to which it has assigned stream
@@ -896,8 +939,7 @@ class NrHelper : public Object
     Ptr<NrGnbPhy> CreateGnbPhy(const Ptr<Node>& n,
                                const std::unique_ptr<BandwidthPartInfo>& bwp,
                                const Ptr<NrGnbNetDevice>& dev,
-                               const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback,
-                               uint8_t numberOfPanels);
+                               const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback);
     Ptr<NrMacScheduler> CreateGnbSched();
     Ptr<NrGnbMac> CreateGnbMac();
 
@@ -905,17 +947,15 @@ class NrHelper : public Object
     Ptr<NrUePhy> CreateUePhy(const Ptr<Node>& n,
                              const std::unique_ptr<BandwidthPartInfo>& bwp,
                              const Ptr<NrUeNetDevice>& dev,
-                             const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback,
-                             uint8_t numberOfPanels);
+                             const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback& dlHarqCallback,
+                             const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback);
 
     Ptr<NetDevice> InstallSingleUeDevice(
         const Ptr<Node>& n,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-        uint8_t numberOfPanels);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
     Ptr<NetDevice> InstallSingleGnbDevice(
         const Ptr<Node>& n,
-        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
-        uint8_t numberOfPanels);
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
     void AttachToClosestEnb(Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
 
     ObjectFactory m_gnbNetDeviceFactory;            //!< NetDevice factory for gnb
@@ -964,8 +1004,8 @@ class NrHelper : public Object
     std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
     std::vector<Ptr<Object>>
         m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper
-                                             //!< has assigned streams in order to avoid double
-                                             //!< assignments
+    //!< has assigned streams in order to avoid double
+    //!< assignments
     Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
 
     // NR Sidelink code and additions

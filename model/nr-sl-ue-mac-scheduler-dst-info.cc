@@ -32,7 +32,7 @@ NrSlLCGIt
 NrSlUeMacSchedulerDstInfo::Insert(NrSlLCGPtr&& lcg)
 {
     std::pair<NrSlLCGIt, bool> ret;
-    ret = m_nrSlLCG.emplace(std::make_pair(lcg->m_id, std::move(lcg)));
+    ret = m_nrSlLCG.emplace(lcg->m_id, std::move(lcg));
     bool insertStatus = ret.second;
     NS_ASSERT_MSG(insertStatus,
                   "Destination " << m_dstL2Id << " already contains LCG ID "

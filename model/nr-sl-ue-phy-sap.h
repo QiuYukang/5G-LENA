@@ -136,18 +136,18 @@ class MemberNrSlUePhySapProvider : public NrSlUePhySapProvider
      */
     MemberNrSlUePhySapProvider(C* owner);
 
-    virtual uint32_t GetBwInRbs() const override;
-    virtual Time GetSlotPeriod() const override;
-    virtual void SendPscchMacPdu(Ptr<Packet> p) override;
-    virtual void SendPsschMacPdu(Ptr<Packet> p) override;
-    virtual void SetNrSlVarTtiAllocInfo(const SfnSf& sfn,
+    uint32_t GetBwInRbs() const override;
+    Time GetSlotPeriod() const override;
+    void SendPscchMacPdu(Ptr<Packet> p) override;
+    void SendPsschMacPdu(Ptr<Packet> p) override;
+    void SetNrSlVarTtiAllocInfo(const SfnSf& sfn,
                                         const NrSlVarTtiAllocInfo& varTtiInfo) override;
 
     // methods inherited from NrSlUePhySapProvider go here
     // NR Sidelink communication
 
   private:
-    MemberNrSlUePhySapProvider();
+    MemberNrSlUePhySapProvider() = delete;
     C* m_owner; ///< the owner class
 };
 
@@ -215,11 +215,11 @@ class MemberNrSlUePhySapUser : public NrSlUePhySapUser
     MemberNrSlUePhySapUser(C* owner);
 
     // methods inherited from NrSlUePhySapUser go here
-    virtual uint8_t GetSlActiveTxPoolId() override;
-    virtual std::vector<std::pair<uint32_t, uint8_t>> GetSlTxDestinations() override;
-    virtual std::unordered_set<uint32_t> GetSlRxDestinations() override;
-    virtual void ReceivePsschPhyPdu(Ptr<PacketBurst> pdu) override;
-    virtual void ReceiveSensingData(SensingData sensingData) override;
+    uint8_t GetSlActiveTxPoolId() override;
+    std::vector<std::pair<uint32_t, uint8_t>> GetSlTxDestinations() override;
+    std::unordered_set<uint32_t> GetSlRxDestinations() override;
+    void ReceivePsschPhyPdu(Ptr<PacketBurst> pdu) override;
+    void ReceiveSensingData(SensingData sensingData) override;
 
   private:
     C* m_owner; ///< the owner class

@@ -80,7 +80,7 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
      */
     void SaveSrsSinrReport(uint16_t cellId, uint16_t rnti, double srsSinr);
     /**
-     * \brief When the condition for triggering a beamforming update is fullfilled
+     * \brief When the condition for triggering a beamforming update is fulfilled
      * this function will be triggered
      * \param cellId id that uniquely identifies the gNB phy
      * \param rnti id that uniquely identifies the user of gNb
@@ -99,10 +99,10 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
-    typedef std::pair<Ptr<NrSpectrumPhy>, Ptr<NrSpectrumPhy>> BfAntennaPair;
-    typedef std::map<BfAntennaPair, Ptr<RealisticBeamformingAlgorithm>> AntennaPairToAlgorithm;
+    typedef std::map<SpectrumPhyPair, Ptr<RealisticBeamformingAlgorithm>>
+        SpectrumPhyPairToAlgorithm;
 
-    AntennaPairToAlgorithm m_antennaPairToAlgorithm;
+    SpectrumPhyPairToAlgorithm m_spectrumPhyPairToAlgorithm;
 };
 
 }; // namespace ns3

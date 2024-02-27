@@ -173,14 +173,11 @@ can find the list of packages for any Ubuntu-based distribution in the file
 - To build the doxygen documentation, please do from the nr folder:
 
 ```
-git submodule sync --recursive
-git submodule update --init --recursive
-python3 doc/m.css/documentation/doxygen.py doc/doxygen-mcss.conf --debug
+cd doc
+doxygen doxygen.conf
 ```
 
 You will find the doxygen documentation inside `doc/doc/html/`.
-Please note that you may need to initialize the m.css submodule, and
-to install some packages like python3.
 
 ## Contributions are welcome!
 
@@ -200,13 +197,13 @@ and then impossible to merge;
 
 ## Features
 
-To see the features, please go to the [official webpage](https://cttc-lena.gitlab.io/5g-lena-website/features/).
+To see the features, please go to the [official webpage](https://5g-lena.cttc.es/features/).
 
 ## Papers
 
 An updated list of published papers that are based on the outcome of this
 module is available
-[here](https://cttc-lena.gitlab.io/5g-lena-website/papers/).
+[here](https://5g-lena.cttc.es/papers/).
 
 ## About
 

@@ -71,6 +71,39 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("Nr3gppIndoorCalibration");
 
+struct DroppingParameters
+{
+    bool ueAntennaPolarization;
+    bool gnbAntennaPolarization;
+    uint8_t numVPortsGnb = 1;
+    uint8_t numHPortsGnb = 1;
+    uint8_t numVPortsUe = 1;
+    uint8_t numHPortsUe = 1;
+    DroppingParameters()
+        : ueAntennaPolarization(false),
+          gnbAntennaPolarization(false){};
+    DroppingParameters(bool isUePolarized, bool isGnbPolarized)
+        : ueAntennaPolarization(isUePolarized),
+          gnbAntennaPolarization(isGnbPolarized){};
+    DroppingParameters(bool isUePolarized, bool isGnbPolarized, uint8_t nVGnb, uint8_t nHGnb)
+        : ueAntennaPolarization(isUePolarized),
+          gnbAntennaPolarization(isGnbPolarized),
+          numVPortsGnb(nVGnb),
+          numHPortsGnb(nHGnb){};
+    DroppingParameters(bool isUePolarized,
+                       bool isGnbPolarized,
+                       uint8_t nVGnb,
+                       uint8_t nHGnb,
+                       uint8_t nVUe,
+                       uint8_t nHUe)
+        : ueAntennaPolarization(isUePolarized),
+          gnbAntennaPolarization(isGnbPolarized),
+          numVPortsGnb(nVGnb),
+          numHPortsGnb(nHGnb),
+          numVPortsUe(nVUe),
+          numHPortsUe(nHUe){};
+};
+
 /**
  * \brief Main class
  */
@@ -135,7 +168,8 @@ class Nr3gppIndoorCalibration
              double speed,
              std::string resultsDirPath,
              std::string tag,
-             uint32_t duration);
+             uint32_t duration,
+             DroppingParameters dropParam = DroppingParameters());
     /**
      * \brief Destructor that closes the output file stream and finished the
      * writing into the files.
@@ -345,7 +379,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              double speed,
                              std::string resultsDirPath,
                              std::string tag,
-                             uint32_t duration)
+                             uint32_t duration,
+                             DroppingParameters dropParam)
 {
     Time simTime = MilliSeconds(duration);
     Time udpAppStartTimeDl = MilliSeconds(100);
@@ -377,7 +412,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     }
 
     // if simulation tag is not provided create one
-    if (tag == "")
+    if (tag.empty())
     {
         tag = BuildTag(gNbAntennaModel, ueAntennaModel, indoorScenario, speed);
     }
@@ -621,6 +656,19 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                                          PointerValue(CreateObject<ThreeGppAntennaModel>()));
     }
 
+    // Setting antenna polarization for gNB and UE
+    if (dropParam.gnbAntennaPolarization)
+    {
+        nrHelper->SetGnbAntennaAttribute("IsPolarized", BooleanValue(true));
+    }
+    if (dropParam.ueAntennaPolarization)
+    {
+        nrHelper->SetUeAntennaAttribute("IsPolarized", BooleanValue(true));
+    }
+    nrHelper->SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsGnb));
+    nrHelper->SetGnbAntennaAttribute("NumHorizontalPorts", UintegerValue(dropParam.numHPortsGnb));
+    nrHelper->SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsUe));
+    nrHelper->SetUeAntennaAttribute("NumHorizontalPorts", UintegerValue(dropParam.numHPortsUe));
     // mobility.SetPositionAllocator (ueRandomRectPosAlloc);
     // install nr net devices
     NetDeviceContainer gNbDevs = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
@@ -634,8 +682,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)
-            ->SetAttribute("TxPower", DoubleValue(10 * log10(totalTxPower)));
+        // Remove log operation when input is in dBm
+        nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)->SetAttribute("TxPower", DoubleValue(totalTxPower));
         // gNB noise figure shall be set to 7 dB
         nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)->SetAttribute("NoiseFigure", DoubleValue(7));
     }
@@ -763,8 +811,13 @@ main(int argc, char* argv[])
     bool enableUeIso = true;
     std::string indoorScenario = "InH-OfficeOpen";
     double speed = 3.00;
-    std::string resultsDir = "./";
+    bool polarizedAntennas = false;
+    std::string outdir = "./";
     std::string simTag = "";
+    uint8_t numVPortsGnb = 1;
+    uint8_t numHPortsGnb = 1;
+    uint8_t numVPortsUe = 1;
+    uint8_t numHPortsUe = 1;
 
     CommandLine cmd(__FILE__);
 
@@ -785,10 +838,17 @@ main(int argc, char* argv[])
                  "The indoor scenario to be used can be: InH-OfficeMixed or InH-OfficeOpen",
                  indoorScenario);
     cmd.AddValue("speed", "UE speed in km/h", speed);
-    cmd.AddValue("resultsDir", "directory where to store the simulation results", resultsDir);
+    cmd.AddValue("outdir", "directory where to store the simulation results", outdir);
+    cmd.AddValue("polarizedAntennas",
+                 "Set true to to make UE and Gnb anetnna polarized",
+                 polarizedAntennas);
     cmd.AddValue("simTag",
                  "tag to be appended to output filenames to distinguish simulation campaigns",
                  simTag);
+    cmd.AddValue("vportGnb", "Set GNB Vertical Ports", numVPortsGnb);
+    cmd.AddValue("hportGnb", "Set GNB Horizontal Ports", numHPortsGnb);
+    cmd.AddValue("vportUe", "Set UE Vertical Ports", numVPortsUe);
+    cmd.AddValue("hportUE", "Set UE Horizontal Ports", numHPortsUe);
 
     cmd.Parse(argc, argv);
 
@@ -796,6 +856,14 @@ main(int argc, char* argv[])
     inputConfig.ConfigureDefaults();
 
     Nr3gppIndoorCalibration phase1CalibrationScenario;
+
+    DroppingParameters dropParam = {polarizedAntennas,
+                                    polarizedAntennas,
+                                    numVPortsGnb,
+                                    numHPortsGnb,
+                                    numVPortsUe,
+                                    numHPortsUe};
+
     phase1CalibrationScenario.Run(centralFrequencyBand,
                                   bandwidthBand,
                                   numerology,
@@ -806,9 +874,9 @@ main(int argc, char* argv[])
                                   enableUeIso,
                                   indoorScenario,
                                   speed,
-                                  resultsDir,
+                                  outdir,
                                   simTag,
-                                  duration);
-
+                                  duration,
+                                  dropParam);
     return 0;
 }

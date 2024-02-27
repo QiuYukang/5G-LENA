@@ -28,13 +28,13 @@ class NrSlMacPduTag : public Tag
      * \brief GetTypeId
      * \return the type id object
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief GetInstanceTypeId
      * \return the instance of the object
      */
-    virtual TypeId GetInstanceTypeId(void) const;
+    TypeId GetInstanceTypeId() const override;
 
     /**
      * Create an empty MacP PDU tag
@@ -57,10 +57,10 @@ class NrSlMacPduTag : public Tag
                   uint32_t tbSize,
                   uint32_t dstL2Id);
 
-    virtual void Serialize(TagBuffer i) const;
-    virtual void Deserialize(TagBuffer i);
-    virtual uint32_t GetSerializedSize() const;
-    virtual void Print(std::ostream& os) const;
+    void Serialize(TagBuffer i) const override;
+    void Deserialize(TagBuffer i) override;
+    uint32_t GetSerializedSize() const override;
+    void Print(std::ostream& os) const override;
 
     /**
      * \brief Get RNTI

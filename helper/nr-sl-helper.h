@@ -26,17 +26,17 @@ class NrSlHelper : public Object
     /**
      * \brief Constructor
      */
-    NrSlHelper(void);
+    NrSlHelper();
     /**
      * \brief Destructor
      */
-    virtual ~NrSlHelper(void);
+    ~NrSlHelper() override;
     /**
      * \brief \c GetTypeId, inherited from Object
      *
      * \returns The \c TypeId
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
     /**
      * \brief Prepare UE for Sidelink
      *
@@ -143,7 +143,7 @@ class NrSlHelper : public Object
     /**
      * \brief \c DoDispose method inherited from \c Object
      */
-    virtual void DoDispose(void) override;
+    void DoDispose() override;
 
   private:
     /**

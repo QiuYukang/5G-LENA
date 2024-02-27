@@ -1,35 +1,42 @@
-#Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
-#%SPDX-License-Identifier: GPL-2.0-only
+# Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+# %SPDX-License-Identifier: GPL-2.0-only
 
-import sys, os
+import os
+import sys
 
-sys.path.insert(0, os.path.abspath('extensions'))
+sys.path.insert(0, os.path.abspath("extensions"))
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
-                    'sphinx.ext.coverage', 'sphinx.ext.imgmath', 'sphinx.ext.ifconfig',
-                                  'sphinx.ext.autodoc']
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx.ext.imgmath",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.autodoc",
+]
 
-latex_engine = 'xelatex'
+latex_engine = "xelatex"
 todo_include_todos = True
-html_theme = 'ns3_html_theme'
-html_theme_path = ['../../../../doc/']
-html_title = 'Tutorial'
-#html_static_path = ['_static']
-html_last_updated_fmt = '%b %d, %Y %H:%M'
-templates_path = ['_templates']
-source_suffix = '.rst'
-master_doc = 'tutorial'
+html_theme = "ns3_html_theme"
+html_theme_path = ["../../../../doc/"]
+html_title = "Tutorial"
+# html_static_path = ['_static']
+html_last_updated_fmt = "%b %d, %Y %H:%M"
+templates_path = ["_templates"]
+source_suffix = ".rst"
+master_doc = "tutorial"
 exclude_patterns = []
 add_function_parentheses = True
-#add_module_names = True
-#modindex_common_prefix = []
+# add_module_names = True
+# modindex_common_prefix = []
 
-#project = u'cttc-nr-demo tutorial'
-copyright = u'2023'
-author = u''
+# project = u'cttc-nr-demo tutorial'
+copyright = "2024"
+author = ""
 
-version = '2.6'
-release = '2.6'
+version = "3.0"
+release = "3.0"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -37,11 +44,9 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # VerbatimBorderColor:  make the box around code samples blend into the background
@@ -54,10 +59,10 @@ latex_elements = {
     # See above to change the font size of verbatim code blocks
     #
     # 'preamble': '',
-    'preamble': u'''\\usepackage{amssymb}
+    "preamble": """\\usepackage{amssymb}
  \\definecolor{VerbatimBorderColor}{rgb}{1,1,1}
  \\renewcommand{\\sphinxcode}[1]{\\texttt{\\small{#1}}}
-'''
+"""
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -67,13 +72,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('tutorial', 'cttc-nr-demo-tutorial.tex', u'cttc-nr-demo tutorial', u'', 'manual'),
+    ("tutorial", "cttc-nr-demo-tutorial.tex", "cttc-nr-demo tutorial", "", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
 #
-#latex_logo = '../../ns3_html_theme/static/ns-3.png'
+# latex_logo = '../../ns3_html_theme/static/ns-3.png'
 
 # If true, show page references after internal links.
 #

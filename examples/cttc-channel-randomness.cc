@@ -73,14 +73,14 @@ DoBeamforming(Ptr<NetDevice> thisDevice,
     double vAngleRadian = completeAngle.GetInclination();           // the elevation angle
 
     // retrieve the number of antenna elements
-    unsigned int totNoArrayElements = thisAntenna->GetNumberOfElements();
+    size_t totNoArrayElements = thisAntenna->GetNumElems();
 
     // the total power is divided equally among the antenna elements
     double power = 1 / sqrt(totNoArrayElements);
 
     UniformPlanarArray::ComplexVector antennaWeights(totNoArrayElements);
     // compute the antenna weights
-    for (unsigned int ind = 0; ind < totNoArrayElements; ind++)
+    for (size_t ind = 0; ind < totNoArrayElements; ind++)
     {
         Vector loc = thisAntenna->GetElementLocation(ind);
         double phase = -2 * M_PI *
@@ -198,7 +198,7 @@ main(int argc, char* argv[])
     m_spectrumLossModel->SetChannelModelAttribute("ChannelConditionModel", PointerValue(condModel));
     m_propagationLossModel->SetChannelConditionModel(condModel);
 
-    // create the chennel model
+    // create the channel model
     Ptr<ThreeGppChannelModel> channelModel = CreateObject<ThreeGppChannelModel>();
     channelModel->SetAttribute("Frequency", DoubleValue(frequency));
     channelModel->SetAttribute("Scenario", StringValue(scenario));
@@ -248,18 +248,20 @@ main(int argc, char* argv[])
     Ptr<SpectrumSignalParameters> txParams1 = Create<SpectrumSignalParameters>();
     txParams1->psd = txPsd1->Copy();
     std::cout << "Average tx power 1: "
-              << 10 * log10(Sum(*txPsd1) / txPsd1->GetSpectrumModel()->GetNumBands()) << " dBm"
-              << std::endl;
-    Ptr<SpectrumValue> rxPsd1 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity(txParams1,
-                                                                                  txMob,
-                                                                                  rxMob,
-                                                                                  txAntenna,
-                                                                                  rxAntenna);
+              << 10 *
+                     log10(Sum(*txParams1->psd) / txParams1->psd->GetSpectrumModel()->GetNumBands())
+              << " dBm" << std::endl;
+    Ptr<SpectrumSignalParameters> rxParams1 =
+        m_spectrumLossModel->DoCalcRxPowerSpectralDensity(txParams1,
+                                                          txMob,
+                                                          rxMob,
+                                                          txAntenna,
+                                                          rxAntenna);
     std::cout << "Average rx power 1: "
-              << 10 * log10(Sum(*rxPsd1) / rxPsd1->GetSpectrumModel()->GetNumBands()) << " dBm"
-              << std::endl;
+              << 10 * log10(Sum(*(rxParams1->psd)) /
+                            rxParams1->psd->GetSpectrumModel()->GetNumBands())
+              << " dBm" << std::endl;
 
-    channelModel = {nullptr};
     channelModel = CreateObject<ThreeGppChannelModel>();
     channelModel->SetAttribute("Frequency", DoubleValue(frequency));
     channelModel->SetAttribute("Scenario", StringValue(scenario));
@@ -303,16 +305,19 @@ main(int argc, char* argv[])
     txParams2->psd = txPsd2->Copy();
 
     std::cout << "Average tx power 1: "
-              << 10 * log10(Sum(*txPsd2) / txPsd2->GetSpectrumModel()->GetNumBands()) << " dBm"
-              << std::endl;
-    Ptr<SpectrumValue> rxPsd2 = m_spectrumLossModel->DoCalcRxPowerSpectralDensity(txParams2,
-                                                                                  txMob,
-                                                                                  rxMob,
-                                                                                  txAntenna,
-                                                                                  rxAntenna);
+              << 10 *
+                     log10(Sum(*txParams2->psd) / txParams2->psd->GetSpectrumModel()->GetNumBands())
+              << " dBm" << std::endl;
+    Ptr<SpectrumSignalParameters> rxParams2 =
+        m_spectrumLossModel->DoCalcRxPowerSpectralDensity(txParams2,
+                                                          txMob,
+                                                          rxMob,
+                                                          txAntenna,
+                                                          rxAntenna);
     std::cout << "Average rx power 1: "
-              << 10 * log10(Sum(*rxPsd2) / rxPsd2->GetSpectrumModel()->GetNumBands()) << " dBm"
-              << std::endl;
+              << 10 * log10(Sum(*(rxParams2->psd)) /
+                            rxParams2->psd->GetSpectrumModel()->GetNumBands())
+              << " dBm" << std::endl;
 
     Simulator::Stop(MilliSeconds(simTimeMs));
     Simulator::Run();

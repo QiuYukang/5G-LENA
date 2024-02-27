@@ -97,7 +97,7 @@ NrMacSchedulerLcRR::AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& u
                 NS_LOG_INFO("Assigned to LCID " << static_cast<uint32_t>(lcId) << " inside LCG "
                                                 << static_cast<uint32_t>(GetLCGID(lcg))
                                                 << " an amount of " << amountPerLC << " B");
-                ret.emplace_back(Assignation(GetLCGID(lcg), lcId, amountPerLC));
+                ret.emplace_back(GetLCGID(lcg), lcId, amountPerLC);
             }
         }
     }

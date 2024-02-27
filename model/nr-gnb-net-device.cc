@@ -72,7 +72,7 @@ NrGnbNetDevice::GetScheduler(uint8_t index) const
 void
 NrGnbNetDevice::SetCcMap(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccm)
 {
-    NS_ABORT_IF(m_ccMap.size() > 0);
+    NS_ABORT_IF(!m_ccMap.empty());
     m_ccMap = ccm;
 }
 
@@ -174,6 +174,7 @@ NrGnbNetDevice::GetCellIds() const
 {
     std::vector<uint16_t> cellIds;
 
+    cellIds.reserve(m_ccMap.size());
     for (auto& it : m_ccMap)
     {
         cellIds.push_back(it.second->GetCellId());

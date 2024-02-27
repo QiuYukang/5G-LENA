@@ -28,14 +28,11 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
     /**
      * \brief NrMacSchedulerUeInfoPF constructor
      * \param rnti RNTI of the UE
-     * \param beamConfId BeamConfId of the UE
+     * \param beamId Beam ID of the UE
      * \param fn A function that tells how many RB per RBG
      */
-    NrMacSchedulerUeInfoPF(float alpha,
-                           uint16_t rnti,
-                           BeamConfId beamConfId,
-                           const GetRbPerRbgFn& fn)
-        : NrMacSchedulerUeInfo(rnti, beamConfId, fn),
+    NrMacSchedulerUeInfoPF(float alpha, uint16_t rnti, BeamId beamId, const GetRbPerRbgFn& fn)
+        : NrMacSchedulerUeInfo(rnti, beamId, fn),
           m_alpha(alpha)
     {
     }
@@ -100,7 +97,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
      *
      * Updates m_currTputDl and m_avgTputDl by keeping in consideration
      * the assigned resources (in form of TBS) and the time window.
-     * It gets the tbSise by calling NrMacSchedulerUeInfo::UpdateDlMetric.
+     * It gets the tbSize by calling NrMacSchedulerUeInfo::UpdateDlMetric.
      */
     void UpdateDlPFMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
                           double timeWindow,
@@ -114,7 +111,7 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
      *
      * Updates m_currTputUl and m_avgTputUl by keeping in consideration
      * the assigned resources (in form of TBS) and the time window.
-     * It gets the tbSise by calling NrMacSchedulerUeInfo::UpdateUlMetric.
+     * It gets the tbSize by calling NrMacSchedulerUeInfo::UpdateUlMetric.
      */
     void UpdateUlPFMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
                           double timeWindow,

@@ -50,6 +50,143 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v2.6 to v3.0
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.40 to ns-3.41.
+
+With this release we also move from the old DP-MIMO model to a new more general
+MIMO model, hence there are many API changes, i.e., those that were part of the
+old DP-MIMO model are mostly removed, while there are many new APIs that are
+added to support the new MIMO model. In the following are listed the most
+important API changes.
+
+### New API:
+- A new chunk processor ``NrMimoChunkProcessor`` is added to store the results of the
+``NrInterference`` in the two different types of chunks ``MimoSinrChunk`` and ``MimoSignalChunk``.
+- A new ``NrCbTypeOne`` class is added as an interface class for the precoding matrix
+codebooks defined in 3GPP TS 38.214, Sec. 5.2.2.2.1. The class provides an interface
+for the wideband precoding matrix index i1 and the subband precoding matrix index i2.
+- A new ``NrCbTwoPort`` class is added that implements the case of 2 antenna ports
+given in Table 5.2.2.2.1-1.
+- A new class ``NrPmSearch`` is added as an interface class for searching optimal precoding
+matrices and creating full CQI/PMI feedback. Provides configuration for common parameters.
+- A new class ``NrPmSearchFull`` provides an implementation of the ``NrPmSearch`` interface
+that uses exhaustive search over all possible precoding matrices specified in a codebook that
+is compatible with 3GPP TS 38.214 Type-I to find the optimal PMI and RI values,
+and creates a CQI/PMI/RI feedback message.
+- A new class ``NrMimoSignal`` is added to create an alternative representation of the MIMO signal.
+``NrMimoSignal`` averages over the multiple different interference signals over time
+and it stores (consolidates) the signals towards multiple UEs into a single channel matrix.
+- New functions are added to ``NrInterference`` to pass the MIMO signals: ``AddSignalMimo``,
+``StartRxMimo`` and ``DoSubtractSignalMimo``. Additionally, ``NrInterference`` is extended
+with functions that are used to compute the interference-and-noise covariance matrix.
+These functions are: ``CalcOutOfCellInterfCov``, ``CalcCurrInterfCov``, and ``AddInterference``.
+Finally, a function ``ComputeSinr`` is added to compute MIMO SINR.
+- New matrices that are used for MIMO calculations are defined in file nr-mimo-matrices.h/cc.
+These matrices are: `NrCovMat`, `NrIntfNormChanMat`, and `NrSinrMatrix`.
+- ``NrErrorModel`` is extended to include ``GetTbDecodificationStatsMimo`` which is called
+by the ``NrSpectrumPhy`` to determine if the transport block was received correctly.
+- ``NrAmc`` is extended to include additional methods to compute the maximum supported
+MCS when MIMO is used. These functions are ``GetMaxMcsForErrorModel``, and ``GetWbCqiFromMcs``.
+- In ``NrMacSchedulerUeInfo`` ``m_cqi`` is renamed to ``m_wbCqi``.
+- The ``GenerateDlCqiReportMimo`` function is added to ``NrUePhy`` to generate DL CQI,
+channel quality precoding matrix, and rank indicators (PMI, and RI).
+``CheckUpdatePmi`` is added to ``NrUePhy`` to allow limiting the frequency of PMI updates in
+the simulator to achieve better simulation performance.
+- In ``NrSpectrumPhy``, a new ``AddDataMimoChunkProcessor`` function is added  to
+set the MIMO chunk processor, and a new callback function ``UpdateMimoSinrPerceived``
+is added to store the MIMO SINR chunks for all received signals at the end of
+interference calculations. A private function ``GetMimoSinrForRnti`` is added to
+filter MIMO SINR for the RNTI of the expected signal.
+- A new structure ``PmCqiInfo`` is used as the CQI feedback message
+that contains the optimum CQI, RI, PMI, and full precoding matrix.
+- A new structure ``AntennaParams`` is added to NrHelper to allow easier configuration of
+the antenna parameters of the UE and gNB.
+- New functions ``SetupGnbAntennas`` and ``SetupUeAntennas`` are added to ``NrHelper``
+to allow easier configuration of antenna parameters. A new function ``SetupMimoPmi`` is added to allow
+easier configuration of PMI search in MIMO operation.
+- ``BandwidthPartInfo`` configuration is possible outside of helper.
+
+### Changes to existing API:
+- The rank number is added to many functions related to transport block and transport
+block calculations. It is added also to the output trace file of ``NrPhyRxTrace``.
+- In ``NrMacSchedulerUeInfo``, ``m_cqi`` renamed to ``m_wbCqi``.
+- In ``NrSpectrumPhy`` RNTI is added to the ``ExpectedTb`` struct.
+- ``SfnSf`` has a new function ``GetEncodingWithSymStartRnti`` that allows to encode
+RNTI uses 16 bits (48-63), frame number uses 24 bits(24-47), subframe number uses
+8 bits (16-23), slot number uses 8 bits (8-15), numerology uses 3 bits (5-7),
+and sym start uses 5 bits (0-4).
+- In OFDMA DL, multiple transmissions to different UEs are no longer
+represented by a single signal (aka OFDMD DL trick).
+To allow that many interfaces are extended with RNTI parameter.
+As already mentioned ``GetEncodingWithSymStartRnti`` allows a mapping of a single
+packet burst to a single signal for a specific UE. In ``NrGnbPhy`` it is
+implemented the scaling of the transmitted power based on the number of occupied
+resources per UE. The ``SetSubChannel`` function is called individually for each
+simultaneous transmission. In ``NrGnbPhy::FillTheEvent()`` is removed the logic that
+skips all the allocations other than the first one. ``NrGnbPhy::m_lastBfChange`` is
+used to prevent improper changes of analog beamforming vectors. In ``NrSpectrumPhy``
+are skipped receptions of signals that are intended for other UEs. However, the
+variable that controls whether the UE will consider the signal as intended for
+him is currently hardcoded to true ``isIntendedRx = true;`` to allow correct
+generation of CQI feedback from data signals, even from those for other UEs in
+the same cell. This workaround will be removed once proper CSI-RS signaling
+is implemented. In ``NrSpectrumPhy::StartTxDataFrames``, asserts that were
+not allowing multiple signals at the same time are removed.
+- ``CreateQuasiOmniBfv`` is updated to consider multiple ports and polarizations.
+- ``NrUePhy::GetSpectrumPhy`` does not have any parameter. It returns the only
+``NrSpectrumPhy`` that is attached to that ``NrUePhy`` instance.
+- Functions that were created to support DP-MIMO are removed. These are:
+``NrUePhy::SetFixedRankIndicator``, ``NrUePhy::GetFixedRankIndicator``, ``NrUePhy::UseFixedRankIndicator``,
+``NrUePhy::SetRiSinrThreshold1``, ``NrUePhy::GetRiSinrThreshold1``, ``NrUePhy::SetRiSinrThreshold2``,
+``NrUePhy::GetRiSinrThreshold2``, and ``NrUePhy::SelectRi``. Also,
+``NrSpectrumPhy::SetInterStreamInterferenceRatio`` is removed.
+- ``BeamConfId`` is removed. Instead is used ``BeamId``.
+- ``ThreeGppChannelModelParam`` is removed since its main purpose was testing the DP-MIMO.
+- Old `cttc-nr-mimo-demo` example that was using DP-MIMO, was replaced by a new
+example with the same name that uses a new MIMO implementation.
+- A "stream" parameter is removed from ``NrHelper``'s functions
+``InstallUeDevice``, ``InstallGnbDevice``, ``CreateGnbPhy``, ``CreateUePhy``,
+``InstallSingleUeDevice`` and ``InstallSingleGnbDevice``.
+``dlHarqCallback`` parameter is added back to ``CreateUePhy``
+- Parameter ``streamId`` removed from ``NrGnbPhy::GenerateDataCqiReport``.
+The index parameter was removed from ``NrGnbPhy::SendDataChannels``. The number of
+active streams parameter is removed from ``SetSubChannels``.
+Changed parameter type of the ``NrUePhy::CreateDlCqiFeedbackMessage`` function.
+Removed the parameter that indicates the number of active streams from
+``NrUePhy::SetSubChannelsForTransmission`` and ``NrUePhy::GetTxPowerSpectralDensity``.
+- Callback functions for the HARQ feedback are moved back from ``NrUePhy`` to
+``NrSpectrumPhy``. ``NrSpectrumPhy`` now has again the following functions:
+``SetPhyDlHarqFeedbackCallback``. Function ``NrUePhy::NotifyDlHarqFeedback`` is removed.
+- ``HarqProcessInfoSingleStream`` is removed.
+- The ``DciInfoElementTdma`` constructor is updated to remove the notion of multiple
+streams, i.e. the scalar parameters are used for tbs, ndi, and rv, instead of
+``std::vector``.
+- The ``NONE`` state is removed from ``HarqStatus`` enumeration.
+- The parameter stream is removed from the ``NrPhySap::SendMacPdu`` function.
+- APIs of ``BeamformingHelperBase``, ``RealisticBeamformingHelper`` and
+``IdealBeamformingHelper`` are updated to remove the notion of the stream. Also,
+``RealisticBeamformingAlgorithm`` and ``IdeaBeamformingAlgorithm`` child classes
+have been updated accordingly.
+- Unused code is removed from ``cttc-nr-traffic-3gpp-xr`` example.
+
+### Changed behavior:
+- ``cttc-nr-demo`` example's parameters are updated to be according 3GPP TR 38.901 UMi-Street Canyon. Also,
+the logged values in the NR tutorial are updated accordingly with the updated results.
+- ``NrHelper`` now creates an ``NrPmSearch`` object for each UE, and sets the corresponding parameters.
+- ``NrHelper`` creates the ``NrMimoChunkProcessor`` and adds the callback to
+``UpdateMimoSinrPerceived`` for MIMO SINR feedback, and to ``GenerateDlCqiReportMimo``
+to provide the MIMO signal to the PMI search.
+- ``NrMacSchedulerCQIManagement`` now processes the RI and PMI feedback.
+- The MAC schedulers (OFDMA, TDMA, HARQ, NrMacSchedulerNs3) now use the RI and precoding matrix
+from the feedback when scheduling a new downlink transmission, and set the precoding matrix in the DCI.
+- In ``NrPhyMacCommon`` the precoding matrix information is added to several structures, e.g., ``DlCqiInfo``.
+- In ``NrSpectrumPhy``, the downlink precoding matrix is set to the transmission
+parameters according to the DCI.
+
+---
+
 ## Changes from NR-v2.5 to v2.6
 
 This release contains the upgrade of the supported ns-3 release, i.e., upgrade
@@ -216,14 +353,14 @@ NrSpectrumPhy.
 * `HexagonalGridScenarioHelper` is extended to allow the configuration of a
 variable that defines the maximum distance between a UE and the closest site, through
 the `HexagonalGridScenarioHelper::SetMaxUeDistanceToClosestSite` function.
-This function can be used only in conjuction with the
+This function can be used only in conjunction with the
 `HexagonalGridScenarioHelper::CreateScenarioWithMobility`.
 
 * `HexagonalGridScenarioHelper` is also extended to set the results folder path
 and a simTag for the generated gnuplot file. This is useful so that different
-simulations will not overide the results.
+simulations will not override the results.
 
-* `GridScenarioHelper` includes now a funtion to set the starting position of the grid.
+* `GridScenarioHelper` includes now a function to set the starting position of the grid.
 
 * `Nrhelper` now avoids re-assigning a stream due to incorrect pointer.
 
@@ -248,7 +385,7 @@ because there can be ReTX DCI, and TX DCI for the same UE.
 The code at gNB MAC that keeps track of DL/UL RLC queues has been reworked, due
 to some inconsistencies related to the handling of information about RLC UE queues.
 In some cases, due to these misalignments, the gNB MAC was not assigning sufficient
-resources to a UE. Moreover, the UE MAC did not account correclty related to the
+resources to a UE. Moreover, the UE MAC did not account correctly related to the
 MAC header.
 
 ---
@@ -322,7 +459,7 @@ called `SetInterStreamInterferenceRatio`.
 
 * `BeamConfId` is a new class that is added to uniquely identify the beam
 configuration of a `NrUePhy` or `NrGnbPhy` supporting DP-MIMO, hence up to two streams.
-Previously, OFDMA scheduler was assigning at the same varTti only users beloning
+Previously, OFDMA scheduler was assigning at the same varTti only users belonging
 to the same beam (identified by BeamId), because there was maximum 1 beam per
 `NrUePhy` or `NrGnbPhy` instance. Now, since with DP-MIMO we can have 2 beams per
 PHY instance, it is used `BeamConfId` in OFDMA scheduling to select the users
@@ -370,7 +507,7 @@ Also, `NrHelper`'s private function `CreateUePhy` has now one less parameter,
 i.e., dlHarqCallback parameter is removed. These changes should not affect
 5G-LENA users who do not modify/inherit/extend `NrHelper`'s code.
 
-* `NrGnbPhy` function `GenerateDataCqiReport` has one more paramater `streamId` to
+* `NrGnbPhy` function `GenerateDataCqiReport` has one more parameter `streamId` to
 indicate for which stream is reported CQI. Private function `NrGnbPhy::SendDataChannels`
 has one more parameter that is the index of the `NrSpectrumPhy` of that `NrGnbPhy`
 over which will be sent the data. Private function `SetSubChannels` has one more
@@ -392,7 +529,7 @@ power will be split.
 * Old struct that represents HARQ information, called `NrDlHarqProcessInfo` has
 been replaced with `HarqProcessInfoSingleStream` that is used for the same purpose.
 Now, new `NrDlHarqProcessInfo` contains a vector of `HarqProcessInfoSingleStream`,
-one instance per spectrum phy (per antenna araray or antenna subpartition).
+one instance per spectrum phy (per antenna array or antenna subpartition).
 
 * `DciInfoElementTdma` constructor is changed to support more streams, i.e.,
 instead of scalar parameters for tbs, ndi and rv, now there are `std::vector`

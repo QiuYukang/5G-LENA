@@ -101,7 +101,6 @@ set(source_files
     model/nr-mac-scheduler-srs-default.cc
     model/nr-ue-power-control.cc
     model/realistic-bf-manager.cc
-    model/beam-conf-id.cc
     model/nr-sl-bwp-manager-ue.cc
     model/nr-sl-chunk-processor.cc
     model/nr-sl-comm-preconfig-resource-pool-factory.cc
@@ -119,7 +118,6 @@ set(source_files
     model/nr-sl-ue-mac-scheduler-ns3.cc
     model/nr-sl-ue-mac-scheduler-simple.cc
     model/nr-sl-ue-phy-sap.cc
-    utils/three-gpp-channel-model-param.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
     utils/traffic-generators/helper/traffic-generator-helper.cc
     utils/traffic-generators/model/traffic-generator.cc
@@ -132,6 +130,13 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-3gpp-audio-data.cc
     utils/traffic-generators/model/traffic-generator-3gpp-generic-video.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
+    model/nr-cb-two-port.cc
+    model/nr-cb-type-one.cc
+    model/nr-mimo-chunk-processor.cc
+    model/nr-mimo-matrices.cc
+    model/nr-pm-search-full.cc
+    model/nr-pm-search.cc
+    model/nr-mimo-signal.cc
 )
 
 set(header_files
@@ -231,6 +236,7 @@ set(header_files
     model/beam-id.h
     model/beamforming-vector.h
     model/beam-manager.h
+    model/beamforming-algorithm.h
     model/ideal-beamforming-algorithm.h
     model/realistic-beamforming-algorithm.h
     model/sfnsf.h
@@ -239,7 +245,6 @@ set(header_files
     model/nr-mac-scheduler-srs-default.h
     model/nr-ue-power-control.h
     model/realistic-bf-manager.h
-    model/beam-conf-id.h
     model/nr-sl-bwp-manager-ue.h
     model/nr-sl-chunk-processor.h
     model/nr-sl-comm-preconfig-resource-pool-factory.h
@@ -257,7 +262,6 @@ set(header_files
     model/nr-sl-ue-mac-scheduler-ns3.h
     model/nr-sl-ue-mac-scheduler-simple.h
     model/nr-sl-ue-phy-sap.h
-    utils/three-gpp-channel-model-param.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
     utils/traffic-generators/model/traffic-generator.h
     utils/traffic-generators/model/traffic-generator-ftp-single.h
@@ -270,8 +274,14 @@ set(header_files
     utils/traffic-generators/model/traffic-generator-3gpp-generic-video.h
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
+    model/nr-cb-two-port.h
+    model/nr-cb-type-one.h
+    model/nr-mimo-chunk-processor.h
+    model/nr-mimo-matrices.h
+    model/nr-pm-search-full.h
+    model/nr-pm-search.h
+    model/nr-mimo-signal.h
 )
-
 
 set(test_sources
     test/nr-system-test-configurations.cc
@@ -314,3 +324,15 @@ build_lib(
     ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )
+
+if(${ENABLE_EIGEN})
+  target_sources(
+    libnr
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
+  )
+else()
+  target_sources(
+    libnr
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
+  )
+endif()

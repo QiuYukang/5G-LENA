@@ -198,7 +198,7 @@ NrSchedGeneralTestCase::AddOneUser(uint16_t rnti, const Ptr<NrMacSchedulerNs3>& 
 {
     NrMacCschedSapProvider::CschedUeConfigReqParameters params;
     params.m_rnti = rnti;
-    params.m_beamConfId = BeamConfId(BeamId(8, 120.0), BeamId::GetEmptyBeamId());
+    params.m_beamId = BeamId(8, 120.0);
     sched->DoCschedUeConfigReq(params);
 }
 

@@ -27,7 +27,7 @@ namespace ns3
  *
  * NrUePowerControl functionality is inspired by LteUePowerControl,
  * but it does not inherits it because almost all of its functions needed to be
- * overidden and extended in order to support different specifications, i.e., to be
+ * overridden and extended in order to support different specifications, i.e., to be
  * compatible with both LTE and NR standard (e.g. support different numerologies).
  * And also to support power control for PUCCH.
  *
@@ -67,7 +67,7 @@ class NrUePowerControl : public Object
     /**
      * \brief Constructor that sets a pointer to its NrUePhy instance owner.
      * This is necessary in order to obtain information such as numerology
-     * that is used in calculation of tranmit power.
+     * that is used in calculation of transmit power.
      */
     NrUePowerControl(const Ptr<NrUePhy>& nrUePhy);
 

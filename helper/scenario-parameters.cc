@@ -84,7 +84,7 @@ ScenarioParameters::SetUMaParameters()
     m_bsHeight = 30.0;
     m_utHeight = 1.5;
     m_sectorization = SiteSectorizationType::TRIPLE;
-    m_minBsUtDistance = 30.203; // minimum 2D distace is 10 meters considering UE height of 1.5 m
+    m_minBsUtDistance = 30.203; // minimum 2D distance is 10 meters considering UE height of 1.5 m
     m_antennaOffset = 1.0;
 }
 
@@ -106,7 +106,7 @@ ScenarioParameters::SetRMaParameters()
     m_bsHeight = 45.0;
     m_utHeight = 1.5;
     m_sectorization = SiteSectorizationType::TRIPLE;
-    m_minBsUtDistance = 44.63; // minimum 2D distace is 10 meters considering UE height of 1.5 m
+    m_minBsUtDistance = 44.63; // minimum 2D distance is 10 meters considering UE height of 1.5 m
     m_antennaOffset = 1.0;
 }
 

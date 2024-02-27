@@ -35,7 +35,7 @@ class NrSlUeMacHarq : public Object
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrSlUeMacHarq constructor
@@ -45,7 +45,7 @@ class NrSlUeMacHarq : public Object
     /**
      * \brief NrSlUeMacHarq destructor
      */
-    virtual ~NrSlUeMacHarq();
+    ~NrSlUeMacHarq() override;
 
     /**
      * \brief Add destination to this HARQ entity
@@ -119,7 +119,7 @@ class NrSlUeMacHarq : public Object
     /**
      * \brief DoDispose method inherited from Object
      */
-    void virtual DoDispose() override;
+    void DoDispose() override;
 
   private:
     /**

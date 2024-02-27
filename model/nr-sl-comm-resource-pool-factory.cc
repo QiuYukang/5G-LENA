@@ -340,7 +340,7 @@ NrSlCommResourcePoolFactory::IsSetupPscchResources() const
 void
 NrSlCommResourcePoolFactory::SetupPscchResources()
 {
-    m_setupReleasePscch = LteRrcSap::SlPscchConfig::SETUP;
+    m_setupReleasePscch = std::to_string(LteRrcSap::SlPscchConfig::SETUP);
 }
 
 uint16_t

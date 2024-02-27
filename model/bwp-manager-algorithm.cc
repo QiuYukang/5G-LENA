@@ -220,8 +220,8 @@ BwpManagerAlgorithmStatic::GetTypeId()
                                                                                 "CONTENT_89 Qci "
                                                                                 "type should be "
                                                                                 "forwarded.",
-                                                                                GetVisualContant89Bwp,
-                                                                                SetVisualContant89Bwp)
+                                                                                GetVisualContent89Bwp,
+                                                                                SetVisualContent89Bwp)
                                                                                 DECLARE_ATTR(
                                                                                     "DGBR_VISUAL_"
                                                                                     "CONTENT_90",
@@ -233,8 +233,8 @@ BwpManagerAlgorithmStatic::GetTypeId()
                                                                                     "Qci "
                                                                                     "type should "
                                                                                     "be forwarded.",
-                                                                                    GetVisualContant90Bwp,
-                                                                                    SetVisualContant90Bwp);
+                                                                                    GetVisualContent90Bwp,
+                                                                                    SetVisualContent90Bwp);
     return tid;
 }
 

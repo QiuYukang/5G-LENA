@@ -141,7 +141,7 @@ main(int argc, char* argv[])
     gridScenario.SetBsNumber(gNbNum);
     gridScenario.SetUtNumber(ueNumPergNb * gNbNum);
     gridScenario.SetScenarioHeight(3); // Create a 3x3 scenario where the UE will
-    gridScenario.SetScenarioLength(3); // be distribuited.
+    gridScenario.SetScenarioLength(3); // be distributed.
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
@@ -205,7 +205,7 @@ main(int argc, char* argv[])
     std::string subType;
     std::string sched;
 
-    subType = enableOfdma == false ? "Tdma" : "Ofdma";
+    subType = !enableOfdma ? "Tdma" : "Ofdma";
     sched = "Qos";
     schedulerType << "ns3::NrMacScheduler" << subType << sched;
     std::cout << "SchedulerType: " << schedulerType.str() << std::endl;

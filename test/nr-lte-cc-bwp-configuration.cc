@@ -230,9 +230,9 @@ CcBwpTestCase::TestCcBwpNumbers(
 
     CcBwpCreator creator;
 
-    for (std::size_t i = 0; i < operationBandConfigs.size(); ++i)
+    for (auto& operationBandConfig : operationBandConfigs)
     {
-        CcBwpCreator::SimpleOperationBandConf bandConfig = operationBandConfigs.at(i);
+        CcBwpCreator::SimpleOperationBandConf bandConfig = operationBandConfig;
         OperationBandInfo band = creator.CreateOperationBandContiguousCc(bandConfig);
 
         NS_TEST_ASSERT_MSG_EQ(band.m_cc.size(), bandConfig.m_numCc, "Unexpected number of CCs");
@@ -251,7 +251,7 @@ bool
 CcBwpTestCase::ValidateCaBwpConfiguration(
     const std::vector<std::reference_wrapper<OperationBandInfo>>& operationBands)
 {
-    if (operationBands.empty() == true)
+    if (operationBands.empty())
     {
         std::cout << "No band information has been provided" << std::endl;
         return false;
@@ -311,7 +311,7 @@ CcBwpTestCase::ValidateOperationBand(const OperationBandInfo& band)
     // Check if each CC has BWP configuration and validate them
     for (const auto& cc : band.m_cc)
     {
-        if (CheckBwpsInCc(cc) == false)
+        if (!CheckBwpsInCc(cc))
         {
             return false;
         }
@@ -324,7 +324,7 @@ bool
 CcBwpTestCase::CheckBwpsInCc(const ComponentCarrierInfoPtr& cc)
 {
     //  //First check: number of BWP shall be larger than 0
-    if (cc->m_bwp.empty() == true)
+    if (cc->m_bwp.empty())
     {
         std::cout << "No BWPs inside the CC" << std::endl;
         return false;

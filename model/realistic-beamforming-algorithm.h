@@ -9,6 +9,7 @@
 
 #include "beam-id.h"
 #include "nr-gnb-net-device.h"
+#include "nr-mac-scheduler.h"
 #include "nr-spectrum-phy.h"
 #include "nr-ue-net-device.h"
 #include "realistic-bf-manager.h"
@@ -84,18 +85,14 @@ class RealisticBeamformingAlgorithm : public Object
     RealisticBeamformingAlgorithm();
     /*
      * \brief It is necessary to call this function in order to have
-     * initialized a pair of gNB and UE devices for which will be
-     * called this algorithm. And also the ccId.
-     * \param gnbDevice gNB instance of devicePair for which will work this algorithm
-     * \param ueDevice UE instance of devicePair for which will work this algorithm
-     * \param gnbSpectrumPhy the spectrum phy instance of the gNB
-     * \param ueSpectrumPhy the spectrum phy of the UE
+     * initialized a pair of gNB and UE spectrum phys for which will be
+     * called this algorithm.
+     * \param gnbSpectrumPhy gNB's spectrumPhy instance for which will work this algorithm
+     * \param ueSpectrumPhy UE's spectrumPhy instance of for which will work this algorithm
      * \param scheduler the pointer to the MAC scheduler to obtain the number of
      * SRS symbols
      */
-    void Install(const Ptr<NrGnbNetDevice>& gnbDevice,
-                 const Ptr<NrUeNetDevice>& ueDevice,
-                 const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+    void Install(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                  const Ptr<NrSpectrumPhy>& ueSpectrumPhy,
                  const Ptr<NrMacScheduler>& scheduler);
     /**
@@ -155,13 +152,9 @@ class RealisticBeamformingAlgorithm : public Object
     void NotifySrsReport(uint16_t cellId, uint16_t rnti, double srsReport);
     /**
      * \brief RunTask callback will be triggered when the event for updating the beamforming vectors
-     * occurs The parameters are: gnb device, ue device, gnb spectrum phy, ue spectrum phy.
+     * occurs The parameters are: gnb spectrum phy, ue spectrum phy.
      */
-    typedef Callback<void,
-                     const Ptr<NrGnbNetDevice>&,
-                     const Ptr<NrUeNetDevice>&,
-                     const Ptr<NrSpectrumPhy>&,
-                     const Ptr<NrSpectrumPhy>&>
+    typedef Callback<void, const Ptr<NrSpectrumPhy>&, const Ptr<NrSpectrumPhy>&>
         RealisticBfHelperCallback;
     /*
      * \brief Set whether to use SRS SNR report
@@ -190,9 +183,9 @@ class RealisticBeamformingAlgorithm : public Object
     /**
      * \brief Private function that is used to notify its the helper that is time
      * to update beamforming vectors.
-     * Basically, with this function realistic algoritm pass control to the
+     * Basically, with this function realistic algorithm pass control to the
      * realistic beamforming helper in the sense of calling necessary BF updates, e.g.
-     * calling BeamManager's function, etc. because we are trying to decouple responsabilities
+     * calling BeamManager's function, etc. because we are trying to decouple responsibilities
      * of the algorithm, which should be only to provide the best beamforming vector pair for
      * two communicating devices, and beamforming helper to take care of managing the necessary
      * updates.
@@ -250,7 +243,7 @@ class RealisticBeamformingAlgorithm : public Object
         const UniformPlanarArray::ComplexVector& longTermComponent) const;
 
     /**
-     * \brief Removes the "oldest" delayed update info - from the beggining of the queue
+     * \brief Removes the "oldest" delayed update info - from the beginning of the queue
      */
     void RemoveUsedDelayedUpdateInfo();
 
@@ -286,6 +279,7 @@ class RealisticBeamformingAlgorithm : public Object
     Ptr<NrSpectrumPhy> m_gnbSpectrumPhy; //!< pointer to gNB spectrum phy
     Ptr<NrSpectrumPhy> m_ueSpectrumPhy;  //!< pointer to UE spectrum phy
     Ptr<NrMacScheduler> m_scheduler;     //!< pointer to gNB MAC scheduler
+    Ptr<NrUePhy> m_nrUePhy;              //!< pointer to NR UE phy
 };
 
 } // namespace ns3

@@ -106,10 +106,10 @@ void
 NrBearerStatsSimple::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_dlTxOutFile.close(); //!< Output file strem to which DL RLC TX stats will be written
-    m_dlRxOutFile.close(); //!< Output file strem to which DL RLC RX stats will be written
-    m_ulTxOutFile.close(); //!< Output file strem to which UL RLC TX stats will be written
-    m_ulRxOutFile.close(); //!< Output file strem to which UL RLC RX stats will be written
+    m_dlTxOutFile.close(); //!< Output file stream to which DL RLC TX stats will be written
+    m_dlRxOutFile.close(); //!< Output file stream to which DL RLC RX stats will be written
+    m_ulTxOutFile.close(); //!< Output file stream to which UL RLC TX stats will be written
+    m_ulRxOutFile.close(); //!< Output file stream to which UL RLC RX stats will be written
     NrBearerStatsBase::DoDispose();
 }
 

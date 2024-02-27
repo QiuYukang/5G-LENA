@@ -406,7 +406,7 @@ class NrSlUeMac : public NrUeMac
      *
      * \return The active TX pool id
      */
-    uint8_t DoGetSlActiveTxPoolId();
+    uint8_t DoGetSlActiveTxPoolId() const;
     /**
      * \brief Get the list of Sidelink destination for transmission from UE MAC
      * \return A vector holding Sidelink communication destinations and the highest priority value

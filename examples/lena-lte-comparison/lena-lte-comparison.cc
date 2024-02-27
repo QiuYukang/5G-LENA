@@ -309,7 +309,7 @@ LenaLteComparison(const Parameters& params)
     FileScenarioHelper fileScenario;
     HexagonalGridScenarioHelper gridScenario;
 
-    if (params.baseStationFile != "" and params.useSiteFile)
+    if (!params.baseStationFile.empty() and params.useSiteFile)
     {
         std::cout << "  using tower positions from " << params.baseStationFile << std::endl;
         std::cout << "    setting sectorization" << std::endl;
@@ -672,7 +672,7 @@ LenaLteComparison(const Parameters& params)
 
     // enable the traces provided by the nr module
     std::cout << "  tracing\n";
-    if (params.traces == true)
+    if (params.traces)
     {
         if (lteHelper != nullptr)
         {
@@ -769,7 +769,8 @@ LenaLteComparison(const Parameters& params)
                         ->Get(siteId)
                         ->GetObject<NrGnbNetDevice>()
                         ->GetPhy(remPhyIndex)
-                        ->ChangeBeamformingVector(ueNdBySector[sectorIndex]->Get(siteId));
+                        ->ChangeBeamformingVector(
+                            DynamicCast<NrUeNetDevice>(ueNdBySector[sectorIndex]->Get(siteId)));
                 }
             }
         }
@@ -831,7 +832,7 @@ operator<<(std::ostream& os, const Parameters& parameters)
             MSG("Numerology") << p.numerologyBwp;
             MSG("TDD pattern") << p.pattern;
         }
-        if (p.errorModel != "")
+        if (!p.errorModel.empty())
         {
             MSG("Error model") << p.errorModel;
         }
@@ -854,7 +855,7 @@ operator<<(std::ostream& os, const Parameters& parameters)
         MSG("Operation mode") << p.operationMode;
     }
 
-    if (p.baseStationFile != "" and p.useSiteFile)
+    if (!p.baseStationFile.empty() and p.useSiteFile)
     {
         MSG("Base station positions") << "read from file " << p.baseStationFile;
     }
@@ -887,7 +888,7 @@ operator<<(std::ostream& os, const Parameters& parameters)
     {
         os << "\n  (unknown configuration)";
     }
-    if (p.baseStationFile == "" and p.useSiteFile)
+    if (p.baseStationFile.empty() and p.useSiteFile)
     {
         MSG("Number of outer rings") << p.numOuterRings;
     }

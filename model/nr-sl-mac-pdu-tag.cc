@@ -30,7 +30,7 @@ NrSlMacPduTag::NrSlMacPduTag(uint16_t rnti,
 }
 
 TypeId
-NrSlMacPduTag::GetTypeId(void)
+NrSlMacPduTag::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrSlMacPduTag").SetParent<Tag>().AddConstructor<NrSlMacPduTag>();
@@ -38,13 +38,13 @@ NrSlMacPduTag::GetTypeId(void)
 }
 
 TypeId
-NrSlMacPduTag::GetInstanceTypeId(void) const
+NrSlMacPduTag::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
 uint32_t
-NrSlMacPduTag::GetSerializedSize(void) const
+NrSlMacPduTag::GetSerializedSize() const
 {
     return 2 + 8 + 1 + 1 + 4 + 4;
 }

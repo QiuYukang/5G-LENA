@@ -81,10 +81,11 @@ main(int argc, char* argv[])
     std::string tbs;
     for (uint32_t mcs = 0; mcs <= amc->GetMaxMcs(); ++mcs)
     {
+        uint8_t rank{1};
         std::stringstream ss;
         ss << "\nResults for DL (UL only in NR case): MCS " << mcs << ". TBS in 1 RB: ["
-           << amc->CalculateTbSize(mcs, 1) << "] bytes. TBS in 1 sym: ["
-           << amc->CalculateTbSize(mcs, numRbsInBandwidth) << "] bytes.";
+           << amc->CalculateTbSize(mcs, rank, 1) << "] bytes. TBS in 1 sym: ["
+           << amc->CalculateTbSize(mcs, rank, numRbsInBandwidth) << "] bytes.";
         tbs += ss.str();
     }
 

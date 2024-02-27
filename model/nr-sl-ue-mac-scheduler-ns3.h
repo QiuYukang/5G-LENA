@@ -34,7 +34,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
      *
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrSlUeMacSchedulerNs3 default constructor
@@ -44,7 +44,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
     /**
      * \brief NrSlUeMacSchedulerNs3 destructor
      */
-    virtual ~NrSlUeMacSchedulerNs3();
+    ~NrSlUeMacSchedulerNs3() override;
 
     /**
      * \brief Install the AMC for the NR Sidelink
@@ -110,7 +110,7 @@ class NrSlUeMacSchedulerNs3 : public NrSlUeMacScheduler
      * \param stream The first stream index to use
      * \return The number of stream indices assigned by this model
      */
-    virtual int64_t AssignStreams(int64_t stream) override;
+    int64_t AssignStreams(int64_t stream) override;
 
   protected:
     /**

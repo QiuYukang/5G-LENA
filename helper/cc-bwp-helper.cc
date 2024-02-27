@@ -190,7 +190,7 @@ OperationBandInfo
 CcBwpCreator::CreateOperationBandContiguousCc(const SimpleOperationBandConf& conf)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("Creating an op band formed by " << +conf.m_numCc << " contingous CC"
+    NS_LOG_INFO("Creating an op band formed by " << +conf.m_numCc << " contiguous CC"
                                                  << " central freq "
                                                  << conf.m_centralFrequency / 1e6 << " MHz with BW "
                                                  << conf.m_channelBandwidth / 1e6 << " MHz");
@@ -278,7 +278,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
     }
 
     // FIXME: I think I can do this with calling the gnuclass in ns3 by calling
-    //        plot.AppendExtra (whatever gnu line sting) (see gnuplot documantation
+    //        plot.AppendExtra (whatever gnu line string) (see gnuplot documentation
     //        in ns3
 
     // Set the range for the x axis.
@@ -324,9 +324,8 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
                           90,
                           label);
         index++;
-        for (uint32_t i = 0; i < band->m_cc.size(); ++i)
+        for (auto& cc : band->m_cc)
         {
-            const auto& cc = band->m_cc.at(i);
             uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
             PlotFrequencyBand(outFile,
@@ -337,9 +336,8 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
                               60,
                               label);
             index++;
-            for (uint32_t j = 0; j < cc->m_bwp.size(); ++j)
+            for (auto& bwp : cc->m_bwp)
             {
-                const auto& bwp = cc->m_bwp.at(j);
                 uint16_t bwpId = static_cast<uint16_t>(bwp->m_bwpId);
                 label = "BWP" + std::to_string(bwpId);
                 PlotFrequencyBand(outFile,
@@ -371,7 +369,7 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
     }
 
     // FIXME: I think I can do this with calling the gnuclass in ns3 and use
-    //        plot.AppendExtra (whatever sting);
+    //        plot.AppendExtra (whatever string);
 
     double minFreq = 100e9;
     double maxFreq = 0;
@@ -415,9 +413,8 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
                           90,
                           label);
         index++;
-        for (uint32_t i = 0; i < band->m_cc.size(); ++i)
+        for (auto& cc : band->m_cc)
         {
-            const auto& cc = band->m_cc.at(i);
             uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
             PlotFrequencyBand(outFile,
@@ -453,6 +450,21 @@ CcBwpCreator::PlotFrequencyBand(std::ofstream& outFile,
             << index << std::endl;
 }
 
+BandwidthPartInfo::BandwidthPartInfo(uint8_t bwpId,
+                                     double centralFrequency,
+                                     double channelBandwidth,
+                                     enum Scenario scenario)
+    : m_bwpId(bwpId),
+      m_centralFrequency(centralFrequency),
+      m_channelBandwidth(channelBandwidth),
+      m_scenario(scenario)
+{
+    NS_ASSERT_MSG(centralFrequency > channelBandwidth / 2,
+                  "Configuration error with channel bandwidth");
+    m_lowerFrequency = centralFrequency - channelBandwidth / 2;
+    m_higherFrequency = centralFrequency + channelBandwidth / 2;
+}
+
 std::string
 BandwidthPartInfo::GetScenario() const
 {
@@ -477,6 +489,7 @@ BandwidthPartInfo::GetScenario() const
         {UMi_Buildings, "UMi-StreetCanyon"},
         {V2V_Highway, "V2V-Highway"},
         {V2V_Urban, "V2V-Urban"},
+        {Custom, "Custom"},
     };
 
     return lookupTable[m_scenario];

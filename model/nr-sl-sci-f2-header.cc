@@ -23,7 +23,7 @@ NrSlSciF2Header::~NrSlSciF2Header()
 }
 
 TypeId
-NrSlSciF2Header::GetTypeId(void)
+NrSlSciF2Header::GetTypeId()
 {
     static TypeId tid =
         TypeId("ns3::NrSlSciF2Header").SetParent<Header>().AddConstructor<NrSlSciF2Header>();
@@ -31,7 +31,7 @@ NrSlSciF2Header::GetTypeId(void)
 }
 
 TypeId
-NrSlSciF2Header::GetInstanceTypeId(void) const
+NrSlSciF2Header::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
@@ -129,7 +129,7 @@ NrSlSciF2Header::Print(std::ostream& os) const
 }
 
 uint32_t
-NrSlSciF2Header::GetSerializedSize(void) const
+NrSlSciF2Header::GetSerializedSize() const
 {
     return 4;
 }

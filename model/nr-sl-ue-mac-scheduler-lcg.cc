@@ -74,7 +74,7 @@ void
 NrSlUeMacSchedulerLCG::Insert(NrSlLCPtr&& lc)
 {
     std::pair<NrSlLCIt, bool> ret;
-    ret = m_lcMap.emplace(std::make_pair(lc->m_id, std::move(lc)));
+    ret = m_lcMap.emplace(lc->m_id, std::move(lc));
     bool insertStatus = ret.second;
     NS_ASSERT_MSG(insertStatus,
                   "LCG " << +m_id << " already contains LCID " << +ret.first->second->m_id);
@@ -111,7 +111,8 @@ std::vector<uint8_t>
 NrSlUeMacSchedulerLCG::GetLCId() const
 {
     std::vector<uint8_t> ret;
-    for (const auto& lc : m_lcMap)
+    ret.reserve(m_lcMap.size());
+for (const auto& lc : m_lcMap)
     {
         ret.emplace_back(lc.first);
     }
@@ -157,7 +158,7 @@ void
 NrSlUeMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size)
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(m_lcMap.size() > 0);
+    NS_ASSERT(!m_lcMap.empty());
 
     // Update queues: RLC tx order Status, ReTx, Tx. To understand this, you have
     // to see RlcAm::NotifyTxOpportunity

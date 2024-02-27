@@ -1,0 +1,9 @@
+# Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+# Ignoring 'whats'
+ * \section mainpage-whats-new What's new?
+# Ignoring 'fied'
+     * \return the string-fied version of the scenario
+# Ignoring 'infor'
+                // insert rlcPduInforPerStream of a LC

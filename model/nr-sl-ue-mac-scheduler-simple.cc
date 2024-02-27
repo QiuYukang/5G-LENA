@@ -23,7 +23,7 @@ NrSlUeMacSchedulerSimple::NrSlUeMacSchedulerSimple()
 }
 
 TypeId
-NrSlUeMacSchedulerSimple::GetTypeId(void)
+NrSlUeMacSchedulerSimple::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::NrSlUeMacSchedulerSimple")
                             .SetParent<NrSlUeMacSchedulerNs3>()
@@ -40,7 +40,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation(
 {
     NS_LOG_FUNCTION(this);
     bool allocated = false;
-    NS_ASSERT_MSG(txOpps.size() > 0, "Scheduler received an empty txOpps list from UE MAC");
+    NS_ASSERT_MSG(!txOpps.empty(), "Scheduler received an empty txOpps list from UE MAC");
     const auto& lcgMap = dstInfo->GetNrSlLCG(); // Map of unique_ptr should not copy
 
     NS_ASSERT_MSG(lcgMap.size() == 1, "NrSlUeMacSchedulerSimple can handle only one LCG");
@@ -60,7 +60,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation(
 
     std::list<NrSlSlotInfo> selectedTxOpps;
     selectedTxOpps = RandomlySelectSlots(txOpps);
-    NS_ASSERT_MSG(selectedTxOpps.size() > 0, "Scheduler should select at least 1 slot from txOpps");
+    NS_ASSERT_MSG(!selectedTxOpps.empty(), "Scheduler should select at least 1 slot from txOpps");
     uint32_t tbs = 0;
     uint8_t assignedSbCh = 0;
     uint16_t availableSymbols = selectedTxOpps.begin()->slPsschSymLength;
@@ -75,6 +75,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation(
     {
         assignedSbCh++;
         tbs = GetNrSlAmc()->CalculateTbSize(dstInfo->GetDstMcs(),
+                                            1, /* MIMO rank; see issue #181 */
                                             sbChSize * assignedSbCh * availableSymbols);
     } while (tbs < bufferSize + 5 /*(5 bytes overhead of SCI format 2A)*/ &&
              (sbChInfo.numSubCh - assignedSbCh) > 0);
@@ -112,7 +113,7 @@ NrSlUeMacSchedulerSimple::DoNrSlAllocation(
         slotAlloc.slPsschSubChStart = *itsbChIndexPerSlot;
         slotAlloc.slPsschSubChLength = assignedSbCh;
         slotAlloc.maxNumPerReserve = itTxOpps->slMaxNumPerReserve;
-        slotAlloc.ndi = slotAllocList.empty() == true ? 1 : 0;
+        slotAlloc.ndi = slotAllocList.empty() ? 1 : 0;
         slotAlloc.rv = GetRv(static_cast<uint8_t>(slotAllocList.size()));
         if (static_cast<uint16_t>(slotAllocList.size()) % itTxOpps->slMaxNumPerReserve == 0)
         {
@@ -196,7 +197,7 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
         // remember scheduler can get a slot with all the
         // subchannels occupied because of 3 dB RSRP threshold
         // at UE MAC
-        if (indexes.size() == 0)
+        if (indexes.empty())
         {
             for (uint8_t i = 0; i < GetNrSlUeMac()->GetTotalSubCh(); i++)
             {
@@ -204,7 +205,7 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
             }
         }
 
-        NS_ABORT_MSG_IF(indexes.size() == 0, "Available subchannels are zero");
+        NS_ABORT_MSG_IF(indexes.empty(), "Available subchannels are zero");
 
         availSbChIndPerSlot.push_back(indexes);
         uint8_t counter = 0;
@@ -235,7 +236,7 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
     info.availSbChIndPerSlot = availSbChIndPerSlot;
     for (const auto& it : info.availSbChIndPerSlot)
     {
-        NS_ABORT_MSG_IF(it.size() == 0, "Available subchannel size is 0");
+        NS_ABORT_MSG_IF(it.empty(), "Available subchannel size is 0");
     }
     return info;
 }
@@ -264,7 +265,7 @@ NrSlUeMacSchedulerSimple::RandSelSbChStart(SbChInfo sbChInfo, uint8_t assignedSb
             auto indexes = it;
             do
             {
-                NS_ABORT_MSG_IF(indexes.size() == 0, "No subchannels available to choose from");
+                NS_ABORT_MSG_IF(indexes.empty(), "No subchannels available to choose from");
                 uint8_t randIndex =
                     static_cast<uint8_t>(m_uniformVariable->GetInteger(0, indexes.size() - 1));
                 NS_LOG_DEBUG("Randomly drawn index of the subchannel vector is " << +randIndex);
@@ -285,7 +286,7 @@ NrSlUeMacSchedulerSimple::RandSelSbChStart(SbChInfo sbChInfo, uint8_t assignedSb
                         break;
                     }
                 }
-            } while (foundRandSbChStart == false);
+            } while (!foundRandSbChStart);
         }
     }
 

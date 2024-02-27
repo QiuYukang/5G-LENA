@@ -163,7 +163,7 @@ NrSlUeMac::SchedNrSlConfigInd(const std::set<NrSlSlotAlloc>& slotAllocList)
         itGrantInfo->second = grant;
     }
 
-    NS_ASSERT_MSG(itGrantInfo->second.slotAllocations.size() > 0,
+    NS_ASSERT_MSG(!itGrantInfo->second.slotAllocations.empty(),
                   "CreateGrantInfo failed to create grants");
 }
 
@@ -245,7 +245,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
                                                           GetSlActivePoolId(),
                                                           m_t1,
                                                           m_t2);
-    if (allTxOpps.size() == 0)
+    if (allTxOpps.empty())
     {
         // Since, all the parameters (i.e., T1, T2min, and T2) of the selection
         // window are in terms of physical slots, it may happen that there are no
@@ -259,7 +259,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
 
     if (m_enableSensing)
     {
-        if (m_sensingData.size() == 0)
+        if (m_sensingData.empty())
         {
             // no sensing
             nrCandSsResoA = GetNrSupportedList(sfn, candSsResoA);
@@ -557,7 +557,7 @@ NrSlUeMac::DoReceivePsschPhyPdu(Ptr<PacketBurst> pdu)
     for (auto packet : pdu->GetPackets())
     {
         LteRadioBearerTag tag;
-        if (packet->PeekPacketTag(tag) == false)
+        if (!packet->PeekPacketTag(tag))
         {
             // SCI stage 2 is the only packet in the packet burst, which does
             // not have the tag
@@ -571,7 +571,7 @@ NrSlUeMac::DoReceivePsschPhyPdu(Ptr<PacketBurst> pdu)
     }
 
     NS_ABORT_MSG_IF(foundSci2 == false, "Did not find SCI stage 2 in PSSCH packet burst");
-    NS_ASSERT_MSG(dataPkts.size() > 0, "Received PHY PDU with not data packets");
+    NS_ASSERT_MSG(!dataPkts.empty(), "Received PHY PDU with not data packets");
 
     // Perform L2 filtering.
     // Remember, all the packets in the packet burst are for the same
@@ -644,7 +644,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
             for (const auto& itDst : m_sidelinkTxDestinations)
             {
                 const auto itGrantInfo = m_grantInfo.find(itDst.first);
-                bool foundDest = itGrantInfo != m_grantInfo.end() ? true : false;
+                bool foundDest = itGrantInfo != m_grantInfo.end();
                 if (foundDest)
                 {
                     // If the re-selection counter of the found destination is not zero,
@@ -660,7 +660,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
 
                     double randProb = m_ueSelectedUniformVariable->GetValue(0, 1);
                     if (itGrantInfo->second.cReselCounter > 0 &&
-                        itGrantInfo->second.slotAllocations.size() > 0 &&
+                        !itGrantInfo->second.slotAllocations.empty() &&
                         m_slProbResourceKeep > randProb)
                     {
                         NS_LOG_INFO("IMSI " << GetImsi() << " keeping the resource for "
@@ -1297,7 +1297,7 @@ NrSlUeMac::AddNrSlDstL2Id(uint32_t dstL2Id, uint8_t lcPriority)
 
     if (!foundDst)
     {
-        m_sidelinkTxDestinations.push_back(std::make_pair(dstL2Id, lcPriority));
+        m_sidelinkTxDestinations.emplace_back(dstL2Id, lcPriority);
     }
 
     std::sort(m_sidelinkTxDestinations.begin(), m_sidelinkTxDestinations.end(), CompareSecond);
@@ -1358,7 +1358,7 @@ NrSlUeMac::DoAddNrSlRxDstL2Id(uint32_t dstL2Id)
 }
 
 uint8_t
-NrSlUeMac::DoGetSlActiveTxPoolId()
+NrSlUeMac::DoGetSlActiveTxPoolId() const
 {
     return GetSlActivePoolId();
 }
@@ -1552,7 +1552,7 @@ NrSlUeMac::SetNumSidelinkProcess(uint8_t numSidelinkProcess)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(
-        m_grantInfo.size() == 0,
+        m_grantInfo.empty(),
         "Can not reset the number of Sidelink processes. Scheduler already assigned grants");
     m_numSidelinkProcess = numSidelinkProcess;
     m_nrSlHarq->InitHarqBuffer(m_numSidelinkProcess);

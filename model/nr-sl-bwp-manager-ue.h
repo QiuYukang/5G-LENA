@@ -43,7 +43,7 @@ class NrSlBwpManagerUe : public BwpManagerUe
     /**
      * \brief ~NrSlBwpManagerUe
      */
-    virtual ~NrSlBwpManagerUe();
+    ~NrSlBwpManagerUe() override;
 
     /**
      * \brief Get the type ID.
@@ -89,7 +89,7 @@ class NrSlBwpManagerUe : public BwpManagerUe
 
   protected:
     // inherited from Object
-    virtual void DoDispose();
+    void DoDispose() override;
 
     /// allow NrSlBwpmUeMacSapProvider class friend access
     friend class NrSlBwpmUeMacSapProvider;

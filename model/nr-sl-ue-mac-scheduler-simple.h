@@ -26,7 +26,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      *
      * \return The TypeId of the class
      */
-    static TypeId GetTypeId(void);
+    static TypeId GetTypeId();
 
     /**
      * \brief NrSlUeMacSchedulerNs3 default constructor
@@ -48,7 +48,7 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      * \return The status of the allocation, true if the destination has been
      *         allocated some resources; false otherwise.
      */
-    virtual bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& txOpps,
+    bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& txOpps,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<NrSlSlotAlloc>& slotAllocList) override;
 

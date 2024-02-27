@@ -68,6 +68,7 @@ class LenaErrorModel : public NrLteMiErrorModel
      * \brief Get the payload size, following the MCSs in LTE
      * \param usefulSC Useful Subcarriers (ignored)
      * \param mcs MCS
+     * \param rank MIMO rank
      * \param rbNum Resource Block number (please pay attention)
      * \param mode UL or DL
      *
@@ -75,6 +76,7 @@ class LenaErrorModel : public NrLteMiErrorModel
      */
     uint32_t GetPayloadSize(uint32_t usefulSC,
                             uint8_t mcs,
+                            uint8_t rank,
                             uint32_t rbNum,
                             Mode mode) const override;
 };

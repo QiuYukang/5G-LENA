@@ -383,7 +383,7 @@ main(int argc, char* argv[])
     std::cout << "Packets received: " << packetsTime.size() << std::endl;
     std::cout << "Counter (packets not affected by reordering): " << +cont << std::endl;
 
-    if (packetsTime.size() > 0 && cont > 0)
+    if (!packetsTime.empty() && cont > 0)
     {
         std::cout << "Average e2e latency (over all received packets): " << sum / packetsTime.size()
                   << " us" << std::endl;

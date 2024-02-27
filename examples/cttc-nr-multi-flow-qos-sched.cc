@@ -165,7 +165,7 @@ main(int argc, char* argv[])
     gridScenario.SetBsNumber(gNbNum);
     gridScenario.SetUtNumber(ueNumPergNb * gNbNum);
     gridScenario.SetScenarioHeight(3); // Create a 3x3 scenario where the UE will
-    gridScenario.SetScenarioLength(3); // be distribuited.
+    gridScenario.SetScenarioLength(3); // be distributed.
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
@@ -228,7 +228,7 @@ main(int argc, char* argv[])
     std::stringstream scheduler;
     std::string subType;
 
-    subType = enableOfdma == false ? "Tdma" : "Ofdma";
+    subType = !enableOfdma ? "Tdma" : "Ofdma";
     scheduler << "ns3::NrMacScheduler" << subType << schedulerType;
     std::cout << "Scheduler: " << scheduler.str() << std::endl;
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName(scheduler.str()));
@@ -557,9 +557,9 @@ main(int argc, char* argv[])
     std::ostringstream throughputFileName;
 
     std::string lcSced;
-    lcSced = enableQoSLcScheduler == true ? "LcQos" : "LcRR";
+    lcSced = enableQoSLcScheduler ? "LcQos" : "LcRR";
 
-    if (simTag == "")
+    if (simTag.empty())
     {
         delayFileName << "Delay"
                       << "_" << schedulerType.c_str() << "_" << lcSced.c_str() << ".txt";

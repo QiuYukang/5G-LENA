@@ -36,7 +36,6 @@ class NrTestNumerologyDelayCase1 : public TestCase
     void DlScheduling(uint32_t frameNo,
                       uint32_t subframeNo,
                       uint32_t slotNum,
-                      uint8_t streamId,
                       uint32_t tbSize,
                       uint32_t mcs,
                       uint32_t rnti,
@@ -91,7 +90,6 @@ LteTestDlSchedCallback(NrTestNumerologyDelayCase1* testcase,
     testcase->DlScheduling(info.m_frameNum,
                            info.m_subframeNum,
                            info.m_slotNum,
-                           info.m_streamId,
                            info.m_tbSize,
                            info.m_mcs,
                            info.m_rnti,
@@ -295,12 +293,12 @@ NrTestNumerologyDelayCase1::DoRun()
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
                     MakeBoundCallback(&LteTestDlSchedCallback, this));
 
-    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/"
-                    "RxPacketTraceUe",
-                    MakeBoundCallback(&LteTestRxPacketUeCallback, this));
+    Config::Connect(
+        "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
+        MakeBoundCallback(&LteTestRxPacketUeCallback, this));
 
     Config::Connect(
-        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/NrSpectrumPhyList/*/TxPacketTraceEnb",
+        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/TxPacketTraceEnb",
         MakeBoundCallback(&LteTestTxPacketEnbCallback, this));
 
     Simulator::Schedule(MilliSeconds(200), &ConnectRlcPdcpTraces, this);
@@ -361,7 +359,6 @@ void
 NrTestNumerologyDelayCase1::DlScheduling(uint32_t frameNo,
                                          uint32_t subframeNo,
                                          uint32_t slotNum,
-                                         uint8_t streamId,
                                          uint32_t tbSize,
                                          uint32_t mcs,
                                          uint32_t rnti,

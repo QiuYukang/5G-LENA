@@ -6,8 +6,7 @@
 
 #include "beam-manager.h"
 
-#include "nr-gnb-net-device.h"
-#include "nr-ue-net-device.h"
+#include "nr-net-device.h"
 #include "nr-ue-phy.h"
 
 #include <ns3/boolean.h>
@@ -70,7 +69,7 @@ BeamManager::SetPredefinedBeam(PhasedArrayModel::ComplexVector predefinedBeam)
 {
     NS_LOG_FUNCTION(this);
     NS_ABORT_MSG_IF(predefinedBeam.GetSize() == 0, "Cannot assign an empty predefined beam");
-    NS_ABORT_MSG_IF(predefinedBeam.GetSize() != m_antennaArray->GetNumberOfElements(),
+    NS_ABORT_MSG_IF(predefinedBeam.GetSize() != m_antennaArray->GetNumElems(),
                     "Cannot assign a predefined beamforming vector whose dimension is not "
                     "compatible with antenna array");
     m_predefinedDirTxRxW = std::make_pair(predefinedBeam, PREDEFINED_BEAM_ID);
@@ -161,11 +160,14 @@ BeamManager::ChangeToQuasiOmniBeamformingVector()
      * We want to avoid recalculations, if these numbers didn't
      * change. Which will normally be the case.
      */
-    if (numRows.Get() != m_numRows || numColumns.Get() != m_numColumns)
+    if (numRows.Get() != m_numRows || numColumns.Get() != m_numColumns ||
+        m_isPolDual != m_antennaArray->IsDualPol())
     {
+        m_isPolDual = m_antennaArray->IsDualPol();
+        m_numPortElems = m_antennaArray->GetNumElemsPerPort();
         m_numRows = numRows.Get();
         m_numColumns = numColumns.Get();
-        m_omniTxRxW = std::make_pair(CreateQuasiOmniBfv(m_numRows, m_numColumns), OMNI_BEAM_ID);
+        m_omniTxRxW = std::make_pair(CreateQuasiOmniBfv(m_antennaArray), OMNI_BEAM_ID);
     }
 
     m_antennaArray->SetBeamformingVector(m_omniTxRxW.first);

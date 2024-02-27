@@ -43,7 +43,7 @@ struct NrLteMiErrorModelOutput : public NrErrorModelOutput
     }
 
     double m_mi{0.0};       //!< Mutual Information
-    double m_miTotal{0.0};  //!< Acumulated Mutual Information
+    double m_miTotal{0.0};  //!< Accumulated Mutual Information
     uint32_t m_infoBits{0}; //!< number of info bits
     uint32_t m_codeBits{0}; //!< number of code bits
 };
@@ -115,6 +115,7 @@ class NrLteMiErrorModel : public NrErrorModel
      */
     uint32_t GetPayloadSize(uint32_t usefulSC,
                             uint8_t mcs,
+                            uint8_t rank,
                             uint32_t rbNum,
                             Mode mode) const override;
     /**

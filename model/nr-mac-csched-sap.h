@@ -7,7 +7,7 @@
 #ifndef NR_MAC_CSCHED_SAP_H
 #define NR_MAC_CSCHED_SAP_H
 
-#include "beam-conf-id.h"
+#include "beam-id.h"
 
 #include <ns3/ff-mac-common.h>
 
@@ -124,7 +124,7 @@ class NrMacCschedSapProvider
     struct CschedUeConfigReqParameters
     {
         uint16_t m_rnti;
-        BeamConfId m_beamConfId; //!< Beam Id
+        BeamId m_beamId; //!< Beam Id
         bool m_reconfigureFlag;
         bool m_drxConfigPresent;
         struct DrxConfig_s m_drxConfig;

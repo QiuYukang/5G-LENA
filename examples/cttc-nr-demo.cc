@@ -98,15 +98,18 @@ main(int argc, char* argv[])
     Time simTime = MilliSeconds(1000);
     Time udpAppStartTime = MilliSeconds(400);
 
-    // NR parameters. We will take the input from the command line, and then we
+    // NR parameters (Reference: 3GPP TR 38.901 V17.0.0 (Release 17)
+    // Table 7.8-1 for the power and BW).
+    // In this example the BW has been split into two BWPs
+    // We will take the input from the command line, and then we
     // will pass them inside the NR module.
     uint16_t numerologyBwp1 = 4;
     double centralFrequencyBand1 = 28e9;
-    double bandwidthBand1 = 100e6;
+    double bandwidthBand1 = 50e6;
     uint16_t numerologyBwp2 = 2;
     double centralFrequencyBand2 = 28.2e9;
-    double bandwidthBand2 = 100e6;
-    double totalTxPower = 4;
+    double bandwidthBand2 = 50e6;
+    double totalTxPower = 35;
 
     // Where we will store the output files.
     std::string simTag = "default";
@@ -203,16 +206,16 @@ main(int argc, char* argv[])
     gridScenario.SetRows(1);
     gridScenario.SetColumns(gNbNum);
     // All units below are in meters
-    gridScenario.SetHorizontalBsDistance(5.0);
-    gridScenario.SetVerticalBsDistance(5.0);
-    gridScenario.SetBsHeight(1.5);
+    gridScenario.SetHorizontalBsDistance(10.0);
+    gridScenario.SetVerticalBsDistance(10.0);
+    gridScenario.SetBsHeight(10);
     gridScenario.SetUtHeight(1.5);
     // must be set before BS number
     gridScenario.SetSectorization(GridScenarioHelper::SINGLE);
     gridScenario.SetBsNumber(gNbNum);
     gridScenario.SetUtNumber(ueNumPergNb * gNbNum);
     gridScenario.SetScenarioHeight(3); // Create a 3x3 scenario where the UE will
-    gridScenario.SetScenarioLength(3); // be distribuited.
+    gridScenario.SetScenarioLength(3); // be distributed.
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
