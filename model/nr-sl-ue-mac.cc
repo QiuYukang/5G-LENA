@@ -343,7 +343,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
                             {
                                 uint16_t lastSbChInPlusOne =
                                     itFutureSensTx.sbChStart + itFutureSensTx.sbChLength;
-                                for (uint8_t i = itFutureSensTx.sbChStart; i < lastSbChInPlusOne;
+                                for (uint16_t i = itFutureSensTx.sbChStart; i < lastSbChInPlusOne;
                                      i++)
                                 {
                                     NS_LOG_DEBUG(this << " Overlapped Slot "

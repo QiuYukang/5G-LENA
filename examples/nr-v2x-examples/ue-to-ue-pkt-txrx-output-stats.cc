@@ -111,7 +111,7 @@ UeToUePktTxRxOutputStats::WriteCache()
         if (InetSocketAddress::IsMatchingType(v.srcAddrs))
         {
             oss << InetSocketAddress::ConvertFrom(v.srcAddrs).GetIpv4();
-            if (!oss.str().compare("0.0.0.0"))
+            if (oss.str() == "0.0.0.0")
             {
                 // srcAddr is not set (is "0.0.0.0")-- most likely a TX packet
                 std::ostringstream ip;
@@ -135,7 +135,7 @@ UeToUePktTxRxOutputStats::WriteCache()
             {
                 oss.str("");
                 oss << InetSocketAddress::ConvertFrom(v.dstAddrs).GetIpv4();
-                if (!oss.str().compare("0.0.0.0"))
+                if (oss.str() == "0.0.0.0")
                 {
                     // dstAddr is not set (is "0.0.0.0")
                     std::ostringstream ip;
@@ -186,7 +186,7 @@ UeToUePktTxRxOutputStats::WriteCache()
         else if (Inet6SocketAddress::IsMatchingType(v.srcAddrs))
         {
             oss << Inet6SocketAddress::ConvertFrom(v.srcAddrs).GetIpv6();
-            if (!oss.str().compare("::")) // srcAddrs not set
+            if (oss.str() == "::") // srcAddrs not set
             {
                 std::ostringstream ip;
                 ip << Ipv6Address::ConvertFrom(v.localAddrs);
@@ -209,7 +209,7 @@ UeToUePktTxRxOutputStats::WriteCache()
             {
                 oss.str("");
                 oss << Inet6SocketAddress::ConvertFrom(v.dstAddrs).GetIpv6();
-                if (!oss.str().compare("::")) // dstAddrs not set
+                if (oss.str() == "::") // dstAddrs not set
                 {
                     std::ostringstream ip;
                     ip << Inet6SocketAddress::ConvertFrom(v.srcAddrs).GetIpv6();

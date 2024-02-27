@@ -273,7 +273,7 @@ NrSlHelper::ConfigUeParams(const Ptr<NrUeNetDevice>& dev,
     Ptr<LteUeRrc> lteUeRrc = dev->GetRrc();
     std::set<uint8_t> bwpIds = lteUeRrc->GetNrSlBwpIdContainer();
 
-    for (uint8_t index = 0; index < freqCommon.slBwpList.size(); ++index)
+    for (std::size_t index = 0; index < freqCommon.slBwpList.size(); ++index)
     {
         // configure the parameters if both BWP generic and SL pools are configured.
         if (freqCommon.slBwpList[index].haveSlBwpGeneric &&

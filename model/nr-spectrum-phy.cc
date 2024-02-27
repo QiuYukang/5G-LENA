@@ -2062,7 +2062,7 @@ NrSpectrumPhy::EndRxSlFrame()
     std::vector<uint32_t> pscchIndexes;
     std::vector<uint32_t> psschIndexes;
 
-    for (uint16_t i = 0; i < m_slRxSigParamInfo.size(); i++)
+    for (std::size_t i = 0; i < m_slRxSigParamInfo.size(); i++)
     {
         Ptr<NrSpectrumSignalParametersSlFrame> params = m_slRxSigParamInfo.at(i).params;
         Ptr<NrSpectrumSignalParametersSlCtrlFrame> nrSlCtrlRxParams =

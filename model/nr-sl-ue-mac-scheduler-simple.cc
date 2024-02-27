@@ -209,7 +209,7 @@ NrSlUeMacSchedulerSimple::GetAvailSbChInfo(std::list<NrSlSlotInfo> txOpps)
 
         availSbChIndPerSlot.push_back(indexes);
         uint8_t counter = 0;
-        for (uint8_t i = 0; i < indexes.size(); i++)
+        for (std::size_t i = 0; i < indexes.size(); i++)
         {
             uint8_t counter2 = 0;
             uint8_t j = i;
@@ -270,7 +270,7 @@ NrSlUeMacSchedulerSimple::RandSelSbChStart(SbChInfo sbChInfo, uint8_t assignedSb
                     static_cast<uint8_t>(m_uniformVariable->GetInteger(0, indexes.size() - 1));
                 NS_LOG_DEBUG("Randomly drawn index of the subchannel vector is " << +randIndex);
                 uint8_t sbChCounter = 0;
-                for (uint8_t i = randIndex; i < indexes.size(); i++)
+                for (std::size_t i = randIndex; i < indexes.size(); i++)
                 {
                     sbChCounter++;
                     auto it = std::find(indexes.begin(), indexes.end(), indexes.at(i) + 1);

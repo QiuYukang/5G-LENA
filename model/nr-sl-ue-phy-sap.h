@@ -135,6 +135,7 @@ class MemberNrSlUePhySapProvider : public NrSlUePhySapProvider
      * \param owner The owner class
      */
     MemberNrSlUePhySapProvider(C* owner);
+    MemberNrSlUePhySapProvider() = delete;
 
     uint32_t GetBwInRbs() const override;
     Time GetSlotPeriod() const override;
@@ -147,7 +148,6 @@ class MemberNrSlUePhySapProvider : public NrSlUePhySapProvider
     // NR Sidelink communication
 
   private:
-    MemberNrSlUePhySapProvider() = delete;
     C* m_owner; ///< the owner class
 };
 
