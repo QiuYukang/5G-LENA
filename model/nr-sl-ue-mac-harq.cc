@@ -73,7 +73,7 @@ uint8_t
 NrSlUeMacHarq::AssignNrSlHarqProcessId(uint32_t dstL2Id)
 {
     NS_LOG_FUNCTION(this << dstL2Id);
-    NS_ABORT_MSG_IF(GetNumAvaiableHarqIds() == 0, "All the Sidelink processes are busy");
+    NS_ABORT_MSG_IF(GetNumAvailableHarqIds() == 0, "All the Sidelink processes are busy");
     uint8_t availableHarqId = m_nrSlHarqIdBuffer.front();
     // remove it. It is the indication that this id is not available anymore
     m_nrSlHarqIdBuffer.pop_front();
@@ -84,13 +84,13 @@ NrSlUeMacHarq::AssignNrSlHarqProcessId(uint32_t dstL2Id)
 }
 
 uint8_t
-NrSlUeMacHarq::GetNumAvaiableHarqIds() const
+NrSlUeMacHarq::GetNumAvailableHarqIds() const
 {
     return m_nrSlHarqIdBuffer.size();
 }
 
 bool
-NrSlUeMacHarq::IsHarqIdAvaiable(uint8_t harqId) const
+NrSlUeMacHarq::IsHarqIdAvailable(uint8_t harqId) const
 {
     for (const auto& it : m_nrSlHarqIdBuffer)
     {
@@ -130,7 +130,7 @@ NrSlUeMacHarq::RecvNrSlHarqFeedback(uint32_t dstL2Id, uint8_t harqId)
                     "the HARQ id " << +harqId << " does not belongs to the destination "
                                    << dstL2Id);
     // we expect the given HARQ to be not available before inserting back in m_nrSlHarqIdBuffer
-    NS_ASSERT_MSG(IsHarqIdAvaiable(harqId) == false,
+    NS_ASSERT_MSG(IsHarqIdAvailable(harqId) == false,
                   "Can not receive a feedback for a already available HARQ id " << harqId);
     // Put back the HARQ id so to be assigned again
     m_nrSlHarqIdBuffer.push_back(harqId);

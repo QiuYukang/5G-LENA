@@ -229,7 +229,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
     // and the following parameters: numerology and reservation period.
     uint16_t nsMs =
         (m_t2 - m_t1 + 1) *
-        (1 / pow(2, numerology)); // number of slots mutiplied by the slot duration in ms
+        (1 / pow(2, numerology)); // number of slots multiplied by the slot duration in ms
     uint16_t rsvpMs =
         static_cast<uint16_t>(m_pRsvpTx.GetMilliSeconds()); // reservation period in ms
     NS_ABORT_MSG_IF(nsMs > rsvpMs,
@@ -255,7 +255,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
     }
     candSsResoA = allTxOpps;
     uint32_t mTotal = candSsResoA.size(); // total number of candidate single-slot resources
-    int rsrpThrehold = GetSlThresPsschRsrp();
+    int rsrpThreshold = GetSlThresPsschRsrp();
 
     if (m_enableSensing)
     {
@@ -311,7 +311,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
         do
         {
             // following assignment is needed since we might have to perform
-            // multiple do-while over the same list by increasing the rsrpThrehold
+            // multiple do-while over the same list by increasing the rsrpThreshold
             candSsResoA = allTxOpps;
             nrCandSsResoA = GetNrSupportedList(sfn, candSsResoA);
             auto itCandSsResoA = nrCandSsResoA.begin();
@@ -355,7 +355,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
                                 }
                                 if (itCandSsResoA->occupiedSbCh.size() == GetTotalSubCh())
                                 {
-                                    if (itFutureSensTx.slRsrp > rsrpThrehold)
+                                    if (itFutureSensTx.slRsrp > rsrpThreshold)
                                     {
                                         itCandSsResoA = nrCandSsResoA.erase(itCandSsResoA);
                                         erased = true;
@@ -363,7 +363,7 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
                                                      << itFutureCand.sfn.Normalize()
                                                      << " erased. Its rsrp : "
                                                      << itFutureSensTx.slRsrp
-                                                     << " Threshold : " << rsrpThrehold);
+                                                     << " Threshold : " << rsrpThreshold);
                                         // stop traversing over sensing data as we have
                                         // already found the slot to exclude.
                                         break; // break for (const auto
@@ -389,8 +389,8 @@ NrSlUeMac::GetNrSlTxOpportunities(const SfnSf& sfn)
             }
             // step 7. If the following while will not break, start over do-while
             // loop with rsrpThreshold increased by 3dB
-            rsrpThrehold += 3;
-            if (rsrpThrehold > 0)
+            rsrpThreshold += 3;
+            if (rsrpThreshold > 0)
             {
                 // 0 dBm is the maximum RSRP threshold level so if we reach
                 // it, that means all the available slots are overlapping
@@ -639,7 +639,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
     else if (m_slTxPool->GetNrSlSchedulingType() == NrSlCommResourcePool::UE_SELECTED)
     {
         // Do not ask for resources if no HARQ/Sidelink process is available
-        if (m_nrSlHarq->GetNumAvaiableHarqIds() > 0)
+        if (m_nrSlHarq->GetNumAvailableHarqIds() > 0)
         {
             for (const auto& itDst : m_sidelinkTxDestinations)
             {
@@ -693,16 +693,16 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 m_reselCounter = GetRndmReselectionCounter();
                 m_cResel = m_reselCounter * 10;
                 NS_LOG_DEBUG("Resel Counter " << +m_reselCounter << " cResel " << m_cResel);
-                std::list<NrSlSlotInfo> availbleReso = GetNrSlTxOpportunities(sfn);
+                std::list<NrSlSlotInfo> availableReso = GetNrSlTxOpportunities(sfn);
                 // sensing or not, due to the semi-persistent scheduling, after
                 // calling the GetNrSlTxOpportunities method, and before asking the
                 // scheduler for resources, we need to remove those available slots,
                 // which are already part of the existing grant. When sensing is
                 // activated this step corresponds to step 2 in TS 38.214 sec 8.1.4
-                // Remember, availbleReso itself can be an empty list, we do not need
+                // Remember, availableReso itself can be an empty list, we do not need
                 // another if here because FilterTxOpportunities will return an empty
                 // list.
-                auto filteredReso = FilterTxOpportunities(availbleReso);
+                auto filteredReso = FilterTxOpportunities(availableReso);
                 if (!filteredReso.empty())
                 {
                     // we ask the scheduler for resources only if the filtered list is not empty.
@@ -1463,10 +1463,10 @@ NrSlUeMac::GetTotalSubCh() const
 {
     uint16_t subChSize = m_slTxPool->GetNrSlSubChSize(static_cast<uint8_t>(GetBwpId()), m_poolId);
 
-    uint8_t totalSubChanels =
+    uint8_t totalSubChannels =
         static_cast<uint8_t>(std::floor(m_nrSlUePhySapProvider->GetBwInRbs() / subChSize));
 
-    return totalSubChanels;
+    return totalSubChannels;
 }
 
 void

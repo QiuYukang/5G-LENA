@@ -64,7 +64,7 @@ class NrSlUeMacSchedulerDstInfo
     NrSlLCGIt Insert(NrSlLCGPtr&& lcg);
 
     /**
-     * \brief Get destiantion layer 2 id of this destination
+     * \brief Get destination layer 2 id of this destination
      *
      * \return The destination layer 2 id
      */

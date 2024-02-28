@@ -525,7 +525,7 @@ class NrSlUeMac : public NrUeMac
      * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
      * have an object of NR SfnSf class there due to dependency issue. The use of
      * SfnSf class makes our life easier since it already implements the necessary
-     * arithmetics of adding slots, constructing new SfnSf given the slot offset,
+     * arithmetic of adding slots, constructing new SfnSf given the slot offset,
      * and e.t.c. In this method, we use the slot offset value, which is the
      * offset in number of slots from the current slot to construct the object of
      * SfnSf class.

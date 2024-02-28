@@ -554,7 +554,7 @@ V2xKpi::SaveThput()
             {
                 if (it.second.find(itTx.second.at(0).ipAddrs) == it.second.end())
                 {
-                    // we didnt find the TX in our m_rxDataMap.
+                    // we didn't find the TX in our m_rxDataMap.
                     // avoid my own IP
                     if (itTx.second.at(0).ipAddrs != data.ipAddrs)
                     {

@@ -135,7 +135,8 @@ NrSlBwpManagerUe::DoNotifyNrSlTxOpportunity(
                                            << ", dstL2Id " << txOpParams.dstL2Id);
 
     NS_LOG_DEBUG(this << " SL lcid = " << +txOpParams.lcid << " layer= " << +txOpParams.layer
-                      << " componentCarierId " << +txOpParams.bwpId << " rnti " << txOpParams.rnti);
+                      << " componentCarrierId " << +txOpParams.bwpId << " rnti "
+                      << txOpParams.rnti);
 
     NS_LOG_DEBUG(this << " MAC is asking BWP id = " << +txOpParams.bwpId << " with SL lcid = "
                       << +txOpParams.lcid << " to transmit " << txOpParams.bytes << " bytes");

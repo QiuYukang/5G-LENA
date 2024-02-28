@@ -204,7 +204,7 @@ TransmitPacket(Ptr<const Packet> packet)
 uint64_t pirCounter =
     0; //!< counter to count how many time we computed the PIR. It is used to compute average PIR
 Time lastPktRxTime; //!< Global variable to store the RX time of a packet
-Time pir;           //!< Global varible to store PIR value
+Time pir;           //!< Global variable to store PIR value
 
 /**
  * \brief This method listens to the packet sink application trace Rx.

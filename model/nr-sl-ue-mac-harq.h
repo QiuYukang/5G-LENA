@@ -80,14 +80,14 @@ class NrSlUeMacHarq : public Object
      * \brief Get the total number of available HARQ process ids
      * \return The total number of available HARQ process ids
      */
-    uint8_t GetNumAvaiableHarqIds() const;
+    uint8_t GetNumAvailableHarqIds() const;
 
     /**
      * \brief Is the given HARQ id available
      * \param harqId The HARQ process id
      * \return returns true if the HARQ id is available; otherwise false
      */
-    bool IsHarqIdAvaiable(uint8_t harqId) const;
+    bool IsHarqIdAvailable(uint8_t harqId) const;
 
     /**
      * \brief Add the packet to the Sidelink process buffer, which is identified

@@ -115,14 +115,14 @@ NrSlSciF1aTestCase::DoRun()
     p->AddHeader(m_sciF1a);
 
     // deserialized
-    NrSlSciF1aHeader deSerSciF1a;
-    p->RemoveHeader(deSerSciF1a);
+    NrSlSciF1aHeader deSerializeSciF1a;
+    p->RemoveHeader(deSerializeSciF1a);
 
     NS_TEST_ASSERT_MSG_EQ(
-        deSerSciF1a,
+        deSerializeSciF1a,
         m_sciF1a,
         "SCI format 1A deserialized version is different than the one we serialized");
-    NS_TEST_ASSERT_MSG_EQ(deSerSciF1a.GetSerializedSize(),
+    NS_TEST_ASSERT_MSG_EQ(deSerializeSciF1a.GetSerializedSize(),
                           m_expectedHeaderSize,
                           "SCI format 1A header size is different than the expected size in bytes");
 
@@ -168,14 +168,14 @@ NrSlSciF2aTestCase::DoRun()
     p->AddHeader(m_sciF2a);
 
     // deserialized
-    NrSlSciF2aHeader deSerSciF02;
-    p->RemoveHeader(deSerSciF02);
+    NrSlSciF2aHeader deSerializeSciF02;
+    p->RemoveHeader(deSerializeSciF02);
 
     NS_TEST_ASSERT_MSG_EQ(
-        deSerSciF02,
+        deSerializeSciF02,
         m_sciF2a,
         "SCI format 02 deserialized version is different than the one we serialized");
-    NS_TEST_ASSERT_MSG_EQ(deSerSciF02.GetSerializedSize(),
+    NS_TEST_ASSERT_MSG_EQ(deSerializeSciF02.GetSerializedSize(),
                           m_expectedHeaderSize,
                           "SCI format 02 header size is different than the expected size in bytes");
 

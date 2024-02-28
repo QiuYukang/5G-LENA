@@ -29,7 +29,7 @@ class NrSlSciHeadersTestSuite : public TestSuite
  * \ingroup nr
  *
  * \brief Testing NR Sidelink SCI format 1A header for it correct serialization
- *        and deserialzation
+ *        and deserialization
  */
 class NrSlSciF1aTestCase : public TestCase
 {
@@ -67,7 +67,7 @@ class NrSlSciF1aTestCase : public TestCase
  * \ingroup nr
  *
  * \brief Testing NR Sidelink SCI format 2A header for it correct serialization
- *        and deserialzation
+ *        and deserialization
  */
 class NrSlSciF2aTestCase : public TestCase
 {
