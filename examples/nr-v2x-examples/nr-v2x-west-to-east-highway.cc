@@ -842,6 +842,8 @@ main(int argc, char* argv[])
     ptrFactory->SetSlFreqResourcePscch(10); // PSCCH RBs
     ptrFactory->SetSlSubchannelSize(slSubchannelSize);
     ptrFactory->SetSlMaxNumPerReserve(slMaxNumPerReserve);
+    std::list<uint16_t> resourceReservePeriodList = {0, reservationPeriod}; // in ms
+    ptrFactory->SetSlResourceReservePeriodList(resourceReservePeriodList);
     // Once parameters are configured, we can create the pool
     LteRrcSap::SlResourcePoolNr pool = ptrFactory->CreatePool();
     slResourcePoolNr = pool;

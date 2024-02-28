@@ -95,16 +95,16 @@ class NrSlCommResourcePoolFactory : public SimpleRefCount<NrSlCommResourcePoolFa
     /**
      * \brief Get Sidelink resource reservation period list
      *
-     * \return An array of 16 possible resource reservation period allowed in the resource pool
+     * \return A list of possible resource reservation period allowed in the resource pool
      */
-    const std::array<uint16_t, 16>& GetSlResourceReservePeriodList() const;
+    const std::list<uint16_t>& GetSlResourceReservePeriodList() const;
     /**
      * \brief Set Sidelink resource reservation period list
      *
-     * \param slResourceReservePeriodList An array of 16 possible resource reservation period
+     * \param slResourceReservePeriodList A list of possible resource reservation period
      * allowed in the resource pool
      */
-    void SetSlResourceReservePeriodList(std::array<uint16_t, 16>& slResourceReservePeriodList);
+    void SetSlResourceReservePeriodList(std::list<uint16_t>& slResourceReservePeriodList);
     /**
      * \brief Get Sidelink time resources
      *
@@ -149,10 +149,9 @@ class NrSlCommResourcePoolFactory : public SimpleRefCount<NrSlCommResourcePoolFa
     uint16_t m_slSensingWindow;   //!< Start of the sensing window in milliseconds.
     uint16_t m_slSelectionWindow; //!< End of the selection window in number of slots.
 
-    std::array<uint16_t, 16>
-        m_slResourceReservePeriodList; //!< Set of 16 possible resource reservation period allowed
-                                       //!< in the resource pool.
-    std::vector<std::bitset<1>> m_slTimeResource; //!< The sidelink time resource bitmap
+    std::list<uint16_t> m_slResourceReservePeriodList; //!< List of possible resource reservation
+                                                       //!< period allowed in the resource pool.
+    std::vector<std::bitset<1>> m_slTimeResource;      //!< The sidelink time resource bitmap
     uint16_t m_slMaxNumPerReserve; //!< The maximum number of reserved PSCCH/PSSCH resources that
                                    //!< can be indicated by an SCI.
 };
