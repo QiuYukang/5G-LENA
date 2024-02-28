@@ -335,14 +335,14 @@ bool
 NrSlSciF1aHeader::operator==(const NrSlSciF1aHeader& b) const
 {
     return m_priority == b.m_priority && m_mcs == b.m_mcs &&
-        m_slSciStage2Format == b.m_slSciStage2Format &&
-        m_slResourceReservePeriod == b.m_slResourceReservePeriod &&
-        m_totalSubChannels == b.m_totalSubChannels &&
-        m_indexStartSubChannel == b.m_indexStartSubChannel &&
-        m_lengthSubChannel == b.m_lengthSubChannel &&
-        m_slMaxNumPerReserve == b.m_slMaxNumPerReserve && m_gapReTx1 == b.m_gapReTx1 &&
-        m_gapReTx2 == b.m_gapReTx2 && m_indexStartSbChReTx1 == b.m_indexStartSbChReTx1 &&
-        m_indexStartSbChReTx2 == b.m_indexStartSbChReTx2;
+           m_slSciStage2Format == b.m_slSciStage2Format &&
+           m_slResourceReservePeriod == b.m_slResourceReservePeriod &&
+           m_totalSubChannels == b.m_totalSubChannels &&
+           m_indexStartSubChannel == b.m_indexStartSubChannel &&
+           m_lengthSubChannel == b.m_lengthSubChannel &&
+           m_slMaxNumPerReserve == b.m_slMaxNumPerReserve && m_gapReTx1 == b.m_gapReTx1 &&
+           m_gapReTx2 == b.m_gapReTx2 && m_indexStartSbChReTx1 == b.m_indexStartSbChReTx1 &&
+           m_indexStartSbChReTx2 == b.m_indexStartSbChReTx2;
 }
 
 } // namespace ns3

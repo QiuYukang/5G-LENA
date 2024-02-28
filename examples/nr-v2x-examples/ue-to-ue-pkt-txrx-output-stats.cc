@@ -62,14 +62,14 @@ UeToUePktTxRxOutputStats::Save(const std::string txRx,
                                uint32_t seq)
 {
     m_pktCache.emplace_back(Simulator::Now().GetNanoSeconds() / (double)1e9,
-                                                txRx,
-                                                localAddrs,
-                                                nodeId,
-                                                imsi,
-                                                pktSize,
-                                                srcAddrs,
-                                                dstAddrs,
-                                                seq);
+                            txRx,
+                            localAddrs,
+                            nodeId,
+                            imsi,
+                            pktSize,
+                            srcAddrs,
+                            dstAddrs,
+                            seq);
 
     // Let's wait until ~1MB of entries before storing it in the database
     if (m_pktCache.size() * sizeof(UePacketResultCache) > 1000000)

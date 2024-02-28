@@ -141,8 +141,7 @@ class MemberNrSlUePhySapProvider : public NrSlUePhySapProvider
     Time GetSlotPeriod() const override;
     void SendPscchMacPdu(Ptr<Packet> p) override;
     void SendPsschMacPdu(Ptr<Packet> p) override;
-    void SetNrSlVarTtiAllocInfo(const SfnSf& sfn,
-                                        const NrSlVarTtiAllocInfo& varTtiInfo) override;
+    void SetNrSlVarTtiAllocInfo(const SfnSf& sfn, const NrSlVarTtiAllocInfo& varTtiInfo) override;
 
     // methods inherited from NrSlUePhySapProvider go here
     // NR Sidelink communication

@@ -49,8 +49,8 @@ class NrSlUeMacSchedulerSimple : public NrSlUeMacSchedulerNs3
      *         allocated some resources; false otherwise.
      */
     bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& txOpps,
-                                  const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
-                                  std::set<NrSlSlotAlloc>& slotAllocList) override;
+                          const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
+                          std::set<NrSlSlotAlloc>& slotAllocList) override;
 
   protected:
     void DoDispose() override;

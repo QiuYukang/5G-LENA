@@ -124,7 +124,7 @@ bool
 NrSlSciF2aHeader::operator==(const NrSlSciF2aHeader& b) const
 {
     return m_harqId == b.m_harqId && m_ndi == b.m_ndi && m_rv == b.m_rv && m_srcId == b.m_srcId &&
-        m_dstId == b.m_dstId && m_csiReq == b.m_csiReq && m_castType == b.m_castType;
+           m_dstId == b.m_dstId && m_csiReq == b.m_csiReq && m_castType == b.m_castType;
 }
 
 } // namespace ns3

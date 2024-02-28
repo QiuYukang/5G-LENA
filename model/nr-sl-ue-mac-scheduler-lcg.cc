@@ -112,7 +112,7 @@ NrSlUeMacSchedulerLCG::GetLCId() const
 {
     std::vector<uint8_t> ret;
     ret.reserve(m_lcMap.size());
-for (const auto& lc : m_lcMap)
+    for (const auto& lc : m_lcMap)
     {
         ret.emplace_back(lc.first);
     }
