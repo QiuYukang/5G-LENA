@@ -61,9 +61,10 @@ foreach(
     NAME ${example}
     SOURCE_FILES nr-v2x-examples/${example}.cc
                  ${nr-v2x-examples_source_files}
-    LIBRARIES_TO_LINK ${libnr}
-                      ${libflow-monitor}
-                      ${libstats}
+    LIBRARIES_TO_LINK
+      ${libnr}
+      ${libflow-monitor}
+      ${libstats}
   )
 endforeach()
 
