@@ -79,6 +79,45 @@ class NrSlUeMac : public NrUeMac
 
   public:
     /**
+     * \brief Structure to pass parameters to trigger the selection of candidate
+     * resources as per TR 38.214 Section 8.1.4
+     */
+    struct NrSlTransmissionParams
+    {
+        NrSlTransmissionParams(uint8_t prio,
+                               Time pdb,
+                               uint16_t lSubch,
+                               Time pRsvpTx,
+                               uint16_t cResel);
+        uint8_t m_priority{0};                //!< L1 priority prio_TX
+        Time m_packetDelayBudget{Seconds(0)}; //!< remaining packet delay budget
+        uint16_t m_lSubch{0};                 //!< L_subCH; number of subchannels to be used
+        Time m_pRsvpTx{0};                    //!< resource reservation interval
+        uint16_t m_cResel{0};                 //!< C_resel counter
+    };
+
+    /**
+     * Structure to pass trace information about the execution of the
+     * mode 2 sensing algorithm.
+     */
+    struct SensingTraceReport
+    {
+        SfnSf m_sfn;                                 //!< Sfn
+        uint16_t m_t0;                               //!< T0
+        uint8_t m_tProc0;                            //!< T_proc0
+        uint8_t m_t1;                                //!< T1
+        uint16_t m_t2;                               //!< T2
+        uint16_t m_subchannels;                      //!< Subchannels in the pool
+        uint16_t m_lSubch;                           //!< Requested number of subchannels
+        uint8_t m_resourcePercentage;                //!< Resource percentage value
+        uint16_t m_initialCandidateSlotsSize;        //!< size of initial candidate slots
+        uint16_t m_initialCandidateResourcesSize;    //!< S_A at step 4
+        uint16_t m_candidateResourcesSizeAfterStep5; //!< S_A after step 5
+        int m_initialRsrpThreshold;                  //!< Initial RSRP threshold
+        int m_finalRsrpThreshold;                    //!< Final RSRP threshold used in algorithm
+    };
+
+    /**
      * TracedCallback signature for Receive with Tx RNTI
      *
      * \param [in] imsi The IMSI.
@@ -95,6 +134,19 @@ class NrSlUeMac : public NrUeMac
                                                     uint8_t lcid,
                                                     uint32_t bytes,
                                                     double delay);
+    /**
+     * TracedCallback signature for SensingAlgorithm
+     * \param [in] report sensing report.
+     * \param [in] candidateResources candidates found by the algorithm.
+     * \param [in] sensingData sensing input data.
+     * \param [in] transmitHistory transmit history.
+     */
+    typedef void (*SensingAlgorithmTracedCallback)(
+        const struct SensingTraceReport& report,
+        const std::list<NrSlSlotInfo>& candidateResources,
+        const std::list<SensingData>& sensingData,
+        const std::list<SfnSf>& transmitHistory);
+
     // Comparator function to sort pairs
     // according to second value
     /**
@@ -304,6 +356,91 @@ class NrSlUeMac : public NrUeMac
      */
     uint8_t GetSlMaxTxTransNumPssch() const;
 
+    /**
+     * Execute step 5 of the sensing algorithm in TS 38.214 Section 8.1.4
+     * Candidate resources passed in may be excluded (modified) based on
+     * transmit history and list of resource reservation periods.
+     *
+     * \param sfn The current system frame, subframe, and slot number.
+     * \param transmitHistory List of transmission history
+     * \param candidateList List of candidate resources (modified by this method)
+     * \param slResourceReservePeriodList List of resource reservation periods (ms)
+     */
+    void ExcludeResourcesBasedOnHistory(
+        const SfnSf& sfn,
+        const std::list<SfnSf>& transmitHistory,
+        std::list<NrSlSlotInfo>& candidateList,
+        const std::list<uint16_t>& slResourceReservePeriodList) const;
+
+    /**
+     * In resource allocation mode 2, the higher layer can request the UE to
+     * determine a subset of resources from which the higher layer will select
+     * resources for PSSCH/PSCCH transmission. This function first call the
+     * GetNrSlCandidateResources function to determine the set of candidate
+     * resources according to 3GPP TR 38.214 v16.7.0 Section 8.1.4 and then
+     * it filters out the resources that are already part of a published grant
+     * by calling the function FilterNrSlCandidateResources.
+     *
+     * \brief Get NR sidelink available resources
+     *
+     * \param sfn The current system frame, subframe, and slot number.
+     * \param params The input transmission parameters for the algorithm
+     * \return The list of the transmit opportunities (slots) as per the TDD pattern
+     *         and the NR SL bitmap
+     */
+    std::list<NrSlSlotInfo> GetNrSlAvailableResources(const SfnSf& sfn,
+                                                      const NrSlTransmissionParams& params);
+
+    /**
+     * This method implements the algorithm specified in 3GPP TR 38.214 v16.7.0
+     * Section 8.1.4.
+     *
+     * \brief Get NR sidelink candidate single-slot resources
+     *
+     * \param sfn The current system frame, subframe, and slot number.
+     * \param params The input transmission parameters for the algorithm
+     * \return The list of the transmit opportunities (slots) as per the TDD pattern
+     *         and the NR SL bitmap
+     */
+    std::list<NrSlSlotInfo> GetNrSlCandidateResources(const SfnSf& sfn,
+                                                      const NrSlTransmissionParams& params);
+
+    /**
+     * \brief Return all of the candidate single-slot resources (step 1 of
+     *        TS 38.214 Section 8.1.4)
+     *
+     * Method to convert the list of NrSlCommResourcePool::SlotInfo (slots)
+     * NrSlSlotInfo (with widths of subchannels)
+     *
+     * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
+     * have an object of NR SfnSf class there due to dependency issue. The use of
+     * SfnSf class makes our life easier since it already implements the necessary
+     * arithmetic of adding slots, constructing new SfnSf given the slot offset,
+     * and e.t.c. In this method, we use the slot offset value, which is the
+     * offset in number of slots from the current slot to construct the object of
+     * SfnSf class.
+     *
+     * \param sfn The current system frame, subframe, and slot number. This SfnSf
+     *        is aligned with the SfnSf of the physical layer.
+     * \param lSubch Width of candidate resource (number of subchannels)
+     * \param numSubch Number of contiguous subchannels
+     * \param slotInfo the list of LTE module compatible slot info
+     * \return The list of NR compatible slot info
+     */
+    std::list<NrSlSlotInfo> GetNrSlCandidateResourcesFromSlots(
+        const SfnSf& sfn,
+        uint16_t lSubch,
+        uint16_t numSubch,
+        std::list<NrSlCommResourcePool::SlotInfo> slotInfo) const;
+
+    /**
+     * \brief Removes resources which are already part of an existing published grant.
+     *
+     * \param txOppr The list of available slots
+     * \return The list of resources which are not used by any existing published grant.
+     */
+    std::list<NrSlSlotInfo> FilterNrSlCandidateResources(std::list<NrSlSlotInfo> txOppr);
+
   protected:
     // Inherited
     void DoDispose() override;
@@ -504,39 +641,48 @@ class NrSlUeMac : public NrUeMac
      * \param sfn
      */
     void DoNrSlSlotIndication(const SfnSf& sfn);
-    /**
-     * \brief Get NR Sidelink transmit opportunities
-     * \param sfn The current system frame, subframe, and slot number. This SfnSf
-     *        is aligned with the SfnSf of the physical layer.
-     * \return The list of the transmit opportunities (slots) asper the TDD pattern
-     *         and the NR SL bitmap
-     */
-    std::list<NrSlSlotInfo> GetNrSlTxOpportunities(const SfnSf& sfn);
+
     /**
      * \brief Get the list of the future transmission slots based on sensed data.
      * \param sensedData The data extracted from the sensed SCI 1-A.
+     * \param slotPeriod Slot period
+     * \param resvPeriodSlots Reservation period in slots
      * \return The list of the future transmission slots based on sensed data.
      */
-    std::list<SlotSensingData> GetFutSlotsBasedOnSens(SensingData sensedData);
+    std::list<SlotSensingData> GetFutSlotsBasedOnSens(SensingData sensedData,
+                                                      Time slotPeriod,
+                                                      uint16_t resvPeriodSlots) const;
+
     /**
-     * \brief Method to convert the list of NrSlCommResourcePool::SlotInfo to
-     *        NrSlSlotInfo
+     * Private, internal (const) method invoked by public
+     * NrSlUeMac::GetNrSlCandidateResources()
      *
-     * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
-     * have an object of NR SfnSf class there due to dependency issue. The use of
-     * SfnSf class makes our life easier since it already implements the necessary
-     * arithmetic of adding slots, constructing new SfnSf given the slot offset,
-     * and e.t.c. In this method, we use the slot offset value, which is the
-     * offset in number of slots from the current slot to construct the object of
-     * SfnSf class.
+     * \sa ns3::NrUeMac::GetNrSlCandidateResources
      *
-     * \param sfn The current system frame, subframe, and slot number. This SfnSf
-     *        is aligned with the SfnSf of the physical layer.
-     * \param slotInfo the list of LTE module compatible slot info
-     * \return The list of NR compatible slot info
+     * \param sfn The current system frame, subframe, and slot number.
+     * \param params The input transmission parameters for the algorithm
+     * \param txPool the transmit bandwidth pool
+     * \param slotPeriod the slot period
+     * \param imsi the IMSI
+     * \param bwpId the bandwidth part ID
+     * \param poolId the pool ID
+     * \param totalSubCh the total subchannels
+     * \param sensingData the sensing data
+     * \return The list of the transmit opportunities (slots) as per the TDD pattern
+     *         and the NR SL bitmap
      */
-    std::list<NrSlSlotInfo> GetNrSupportedList(const SfnSf& sfn,
-                                               std::list<NrSlCommResourcePool::SlotInfo> slotInfo);
+    std::list<NrSlSlotInfo> GetNrSlCandidateResourcesPrivate(
+        const SfnSf& sfn,
+        const NrSlTransmissionParams& params,
+        Ptr<const NrSlCommResourcePool> txPool,
+        Time slotPeriod,
+        uint64_t imsi,
+        uint8_t bwpId,
+        uint16_t poolId,
+        uint8_t totalSubCh,
+        const std::list<SensingData>& sensingData,
+        const std::list<SfnSf>& transmitHistory) const;
+
     /**
      * \brief Get the random selection counter
      * \return The randomly selected reselection counter
@@ -576,24 +722,46 @@ class NrSlUeMac : public NrUeMac
      * \see NrSlGrantInfo
      */
     NrSlGrantInfo CreateGrantInfo(const std::set<NrSlSlotAlloc>& params);
+
     /**
-     * \brief Filter the Transmit opportunities.
-     *
-     * Due to the semi-persistent scheduling, after calling the GetNrSlTxOpportunities
-     * method, and before asking the scheduler for resources, we need to remove
-     * those available slots, which are already part of the existing grant.
-     *
-     * \param txOppr The list of available slots
-     * \return The list of slots which are not used by any existing semi-persistent grant.
+     * \brief Check if subchannels ranges in two resources overlap
+     * \param firstStart Starting subchannel index of first resource
+     * \param firstLength Number of subchannels of first resource (must be greater than 0)
+     * \param secondStart Starting subchannel index of candidate resource
+     * \param secondLength Number of subchannels of second resource (must be greater than 0)
+     * \return True if the two resources overlap, false otherwise
      */
-    std::list<NrSlSlotInfo> FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr);
+    bool OverlappedResource(uint8_t firstStart,
+                            uint8_t firstLength,
+                            uint8_t secondStart,
+                            uint8_t secondLength) const;
+
     /**
-     * \brief Update the sensing window
+     * \brief Remove sensed data older than T0 (sl-SensingWindow)
+     * Sensing data outside of the other window edge (Tproc0) is not removed but
+     * will be ignored later by the resource selection algorithm.
      * \param sfn The current system frame, subframe, and slot number. This SfnSf
      *        is aligned with the SfnSf of the physical layer.
-     * It will remove the sensing data, which lies outside the sensing window length.
+     * \param sensingWindow The window length in slots (parameter sl-SensingWindow)
+     * \param sensingData Reference to the list of SensingData items to be updated
+     * \param imsi The IMSI of this instance
      */
-    void UpdateSensingWindow(const SfnSf& sfn);
+    void RemoveOldSensingData(const SfnSf& sfn,
+                              uint16_t sensingWindow,
+                              std::list<SensingData>& sensingData,
+                              [[maybe_unused]] uint64_t imsi);
+    /**
+     * \brief Remove transmit history older than T0 (sl-SensingWindow)
+     * \param sfn The current system frame, subframe, and slot number. This SfnSf
+     *        is aligned with the SfnSf of the physical layer.
+     * \param sensingWindow The window length in slots (parameter sl-SensingWindow)
+     * \param history Reference to the transmit history to be updated
+     * \param imsi The IMSI of this instance
+     */
+    void RemoveOldTransmitHistory(const SfnSf& sfn,
+                                  uint16_t sensingWindow,
+                                  std::list<SfnSf>& history,
+                                  [[maybe_unused]] uint64_t imsi);
     /**
      * \brief Compute the gaps in slots for the possible retransmissions
      *        indicated by an SCI 1-A.
@@ -619,6 +787,14 @@ class NrSlUeMac : public NrUeMac
      */
     std::vector<uint8_t> GetStartSbChOfReTx(std::set<NrSlSlotAlloc>::const_iterator it,
                                             uint8_t slotNumInd);
+
+    /**
+     * \brief Temporary method to convert new sensing output to old style
+     * \param availableResources available resources to iterate
+     * \return new list of resources in the scheduler format
+     */
+    std::list<NrSlSlotInfo> ConvertResources(
+        const std::list<NrSlSlotInfo>& availableResources) const;
 
     std::map<SidelinkLcIdentifier, SlLcInfoUeMac>
         m_nrSlLcInfoMap; //!< Sidelink logical channel info map
@@ -684,6 +860,8 @@ class NrSlUeMac : public NrUeMac
     uint8_t m_reselCounter{0};  //!< The resource selection counter
     uint16_t m_cResel{0};       //!< The C_resel counter
 
+    std::list<SfnSf> m_transmitHistory; //!< History of slots used for transmission
+
     /**
      * Trace information regarding NR Sidelink PSCCH UE scheduling.
      * SlPscchUeMacStatParameters (see nr-sl-phy-mac-common.h)
@@ -701,7 +879,32 @@ class NrSlUeMac : public NrUeMac
      * Trace information regarding RLC PDU reception from MAC
      */
     TracedCallback<uint64_t, uint16_t, uint16_t, uint8_t, uint32_t, double> m_rxRlcPduWithTxRnti;
+
+    /**
+     * Trace information regarding sensing operation
+     */
+    TracedCallback<const struct SensingTraceReport&,
+                   const std::list<NrSlSlotInfo>&,
+                   const std::list<SensingData>&,
+                   const std::list<SfnSf>&>
+        m_tracedSensingAlgorithm;
 };
+
+/**
+ * \brief Stream output operator
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
+std::ostream& operator<<(std::ostream& os, const NrSlUeMac::NrSlTransmissionParams& p);
+
+/**
+ * \brief Stream output operator
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
+std::ostream& operator<<(std::ostream& os, const struct NrSlUeMac::SensingTraceReport& report);
 
 } // namespace ns3
 
