@@ -192,7 +192,7 @@ Download then checkout the compatible version of nr:
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 cd nr
-git checkout -b 5g-lena-v3.0.y 5g-lena-v3.0.y
+git checkout -b 5g-lena-v3.0.y origin/5g-lena-v3.0.y
 ```
 
 Notice that since these are two independent git repositories, when you run
