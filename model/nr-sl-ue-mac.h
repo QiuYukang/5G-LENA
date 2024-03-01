@@ -20,6 +20,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// test classes outside of namespace ns3
+class NrSlSensingTestCase;
+class NrSlRemoveOldSensingDataTest;
+class NrSlSensingTransmitHistoryTest;
+
 namespace ns3
 {
 
@@ -46,6 +51,10 @@ class NrSlUeMac : public NrUeMac
     friend class MemberNrSlUeCmacSapProvider<NrSlUeMac>;
     /// allow MemberNrSlUePhySapUser<NrSlUeMac> class friend access
     friend class MemberNrSlUePhySapUser<NrSlUeMac>;
+    // Unit-test access to protected/private members
+    friend class ::NrSlSensingTestCase;
+    friend class ::NrSlRemoveOldSensingDataTest;
+    friend class ::NrSlSensingTransmitHistoryTest;
 
   public:
     /**
