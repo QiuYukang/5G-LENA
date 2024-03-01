@@ -300,6 +300,7 @@ set(test_sources
     test/nr-phy-patterns.cc
     test/nr-test-sfnsf.cc
     test/nr-test-timings.cc
+    test/nr-sl-sensing-test.cc
     test/nr-spectrum-phy-test.cc
     test/nr-lte-cc-bwp-configuration.cc
     test/system-scheduler-test.cc
