@@ -291,6 +291,10 @@ TrafficGenerator::SendNextPacket()
     }
     else
     {
+        NS_ABORT_MSG_IF(
+            m_tid == UdpSocketFactory::GetTypeId(),
+            "When using UDP socket the packet size cannot be greater than 65535, reconfigure your "
+            "application to generate packets up to this permitted size.");
         // it may happen that the buffer is full
         NS_LOG_WARN("Unable to send packet; actual " << actual << " size " << toSend
                                                      << "; caching for later attempt");
