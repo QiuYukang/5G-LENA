@@ -495,7 +495,7 @@ NrInterference::ComputeSinr(NrCovMat& outOfCellInterfCov,
     }
     else
     {
-        precMat = ComplexMatrixArray{chanSpct.GetNumRows(), 1, chanSpct.GetNumPages()};
+        precMat = ComplexMatrixArray{chanSpct.GetNumCols(), 1, chanSpct.GetNumPages()};
         for (size_t p = 0; p < chanSpct.GetNumPages(); p++)
         {
             precMat(0, 0, p) = 1.0;
