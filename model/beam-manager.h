@@ -13,6 +13,8 @@
 #include <ns3/net-device.h>
 #include <ns3/nstime.h>
 
+#include <map>
+
 namespace ns3
 {
 

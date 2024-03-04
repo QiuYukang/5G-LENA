@@ -10,6 +10,7 @@
 
 #include <ns3/boolean.h>
 #include <ns3/double.h>
+#include <ns3/enum.h>
 #include <ns3/integer.h>
 #include <ns3/log.h>
 #include <ns3/math.h>

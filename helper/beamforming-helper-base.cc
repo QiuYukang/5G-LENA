@@ -6,7 +6,6 @@
 
 #include "beamforming-helper-base.h"
 
-#include <ns3/beam-manager.h>
 #include <ns3/log.h>
 #include <ns3/node.h>
 #include <ns3/nr-gnb-net-device.h>

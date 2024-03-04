@@ -11,7 +11,6 @@
 #include <ns3/internet-module.h>
 #include <ns3/network-module.h>
 #include <ns3/node.h>
-#include <ns3/ping-helper.h>
 #include <ns3/traffic-generator-helper.h>
 
 namespace ns3

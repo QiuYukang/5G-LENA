@@ -8,10 +8,8 @@
 #ifndef NR_BEARER_STATS_CONNECTOR_H
 #define NR_BEARER_STATS_CONNECTOR_H
 
-#include <ns3/config.h>
 #include <ns3/ptr.h>
 #include <ns3/simple-ref-count.h>
-#include <ns3/traced-callback.h>
 
 #include <map>
 #include <set>

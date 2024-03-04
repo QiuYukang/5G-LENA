@@ -25,18 +25,14 @@
 #include <ns3/simple-channel.h>
 #include <ns3/simple-net-device.h>
 #include <ns3/simulator.h>
-#include <ns3/string.h>
-#include <ns3/test.h>
 #include <ns3/traffic-generator-ftp-single.h>
 #include <ns3/traffic-generator-helper.h>
 #include <ns3/traffic-generator-ngmn-ftp-multi.h>
 #include <ns3/traffic-generator-ngmn-gaming.h>
 #include <ns3/traffic-generator-ngmn-video.h>
 #include <ns3/traffic-generator-ngmn-voip.h>
-#include <ns3/uinteger.h>
 
 #include <fstream>
-#include <list>
 #include <ostream>
 
 using namespace ns3;

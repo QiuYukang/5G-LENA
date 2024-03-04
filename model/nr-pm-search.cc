@@ -6,8 +6,6 @@
 
 #include "nr-pm-search.h"
 
-#include <numeric>
-
 namespace ns3
 {
 

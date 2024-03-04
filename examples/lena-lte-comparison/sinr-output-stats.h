@@ -9,7 +9,6 @@
 
 #include <ns3/sqlite-output.h>
 
-#include <inttypes.h>
 #include <vector>
 
 namespace ns3

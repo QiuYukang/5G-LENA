@@ -11,13 +11,9 @@
 
 #include "sfnsf.h"
 
-#include <ns3/component-carrier.h>
-#include <ns3/enum.h>
 #include <ns3/log.h>
 #include <ns3/matrix-array.h>
 #include <ns3/object.h>
-#include <ns3/packet.h>
-#include <ns3/simulator.h>
 #include <ns3/string.h>
 
 #include <deque>

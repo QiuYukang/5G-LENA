@@ -10,9 +10,6 @@
 #include "ns3/string.h"
 #include <ns3/log.h>
 
-#include <algorithm>
-#include <vector>
-
 namespace ns3
 {
 

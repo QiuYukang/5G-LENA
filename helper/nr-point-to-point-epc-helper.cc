@@ -14,7 +14,6 @@
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-ue-net-device.h>
 #include <ns3/object.h>
-#include <ns3/point-to-point-helper.h>
 // clang-format off
 #include <ns3/epc-ue-nas.h>
 

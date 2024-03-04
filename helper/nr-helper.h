@@ -18,8 +18,6 @@
 #include <ns3/nr-control-messages.h>
 #include <ns3/nr-spectrum-phy.h>
 #include <ns3/object-factory.h>
-#include <ns3/three-gpp-propagation-loss-model.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 
 namespace ns3
 {

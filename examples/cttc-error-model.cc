@@ -11,7 +11,6 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/log.h"
 #include "ns3/mobility-module.h"
-#include "ns3/network-module.h"
 #include "ns3/nr-helper.h"
 #include "ns3/nr-module.h"
 #include "ns3/nr-point-to-point-epc-helper.h"

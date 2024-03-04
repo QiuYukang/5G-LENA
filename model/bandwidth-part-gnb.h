@@ -8,13 +8,10 @@
 #define COMPONENT_CARRIER_GNB_H
 
 #include "nr-gnb-phy.h"
-#include "nr-phy.h"
 
 #include <ns3/component-carrier.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
-#include <ns3/packet.h>
-#include <ns3/pointer.h>
 
 namespace ns3
 {

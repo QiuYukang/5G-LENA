@@ -7,7 +7,6 @@
 #ifndef NR_UE_MAC_H
 #define NR_UE_MAC_H
 
-#include "nr-mac-pdu-info.h"
 #include "nr-phy-mac-common.h"
 
 #include <ns3/lte-ccm-mac-sap.h>

@@ -13,10 +13,8 @@
 #include "nr-phy.h"
 
 #include "beam-manager.h"
-#include "nr-gnb-net-device.h"
 #include "nr-net-device.h"
 #include "nr-spectrum-phy.h"
-#include "nr-ue-net-device.h"
 
 #include "ns3/uniform-planar-array.h"
 #include <ns3/boolean.h>

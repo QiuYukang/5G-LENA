@@ -14,7 +14,6 @@
 #include "ns3/uinteger.h"
 
 #include <fstream>
-#include <map>
 #include <string>
 
 namespace ns3

@@ -13,7 +13,6 @@
 #include <ns3/callback.h>
 #include <ns3/config.h>
 #include <ns3/double.h>
-#include <ns3/ff-mac-scheduler.h>
 #include <ns3/integer.h>
 #include <ns3/log.h>
 #include <ns3/mobility-helper.h>
@@ -21,8 +20,6 @@
 #include <ns3/pointer.h>
 #include <ns3/rng-seed-manager.h>
 #include <ns3/simulator.h>
-#include <ns3/spectrum-value.h>
-#include <ns3/string.h>
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NrUplinkPowerControlTestCase");

@@ -8,10 +8,7 @@
 #define SRC_NR_MODEL_BEAM_ID_H_
 
 #include <complex>
-#include <map>
 #include <stdint.h>
-#include <unordered_map>
-#include <vector>
 
 namespace ns3
 {

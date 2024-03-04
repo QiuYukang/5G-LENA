@@ -13,9 +13,11 @@
 
 #include "ns3/log.h"
 #include <ns3/antenna-module.h>
+#include <ns3/config.h>
 #include <ns3/enum.h>
 #include <ns3/nr-spectrum-value-helper.h>
 #include <ns3/object-vector.h>
+#include <ns3/pointer.h>
 
 NS_LOG_COMPONENT_DEFINE("LenaV2Utils");
 

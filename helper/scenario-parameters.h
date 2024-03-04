@@ -7,7 +7,6 @@
 #ifndef SCENARIO_PARAMETERS_H
 #define SCENARIO_PARAMETERS_H
 
-#include <ns3/node-container.h>
 #include <ns3/vector.h>
 
 namespace ns3

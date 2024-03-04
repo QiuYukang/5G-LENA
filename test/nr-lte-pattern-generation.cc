@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <ns3/nr-gnb-phy.h>
-#include <ns3/object-factory.h>
 #include <ns3/test.h>
 
 /**

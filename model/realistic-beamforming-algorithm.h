@@ -7,7 +7,6 @@
 #ifndef SRC_NR_MODEL_REALISTIC_BEAMFORMING_ALGORITHM_H_
 #define SRC_NR_MODEL_REALISTIC_BEAMFORMING_ALGORITHM_H_
 
-#include "beam-id.h"
 #include "nr-gnb-net-device.h"
 #include "nr-mac-scheduler.h"
 #include "nr-spectrum-phy.h"

@@ -5,11 +5,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <ns3/antenna-module.h>
-#include <ns3/beamforming-vector.h>
 #include <ns3/core-module.h>
 #include <ns3/mobility-module.h>
 #include <ns3/nr-module.h>
-#include <ns3/simple-net-device.h>
 #include <ns3/spectrum-model.h>
 #include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>

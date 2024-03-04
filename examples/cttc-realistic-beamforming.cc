@@ -11,7 +11,6 @@
 #include "ns3/eps-bearer-tag.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/network-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/stats-module.h"

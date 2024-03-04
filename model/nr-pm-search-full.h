@@ -9,11 +9,9 @@
 
 #include "nr-amc.h"
 #include "nr-cb-two-port.h"
-#include "nr-mimo-chunk-processor.h"
-#include "nr-phy-mac-common.h"
 #include "nr-pm-search.h"
 
-#include <ns3/matrix-based-channel-model.h>
+#include <ns3/object-factory.h>
 
 namespace ns3
 {

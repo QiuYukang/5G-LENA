@@ -6,14 +6,9 @@
 
 #include "ideal-beamforming-algorithm.h"
 
-#include "beam-manager.h"
-#include "nr-gnb-phy.h"
 #include "nr-spectrum-phy.h"
-#include "nr-ue-phy.h"
 
-#include <ns3/angles.h>
 #include <ns3/double.h>
-#include <ns3/mobility-module.h>
 #include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/node.h>
 #include <ns3/nr-spectrum-value-helper.h>

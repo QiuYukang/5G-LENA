@@ -6,7 +6,6 @@
 
 #include "ideal-beamforming-helper.h"
 
-#include <ns3/beam-manager.h>
 #include <ns3/ideal-beamforming-algorithm.h>
 #include <ns3/log.h>
 #include <ns3/nr-gnb-net-device.h>

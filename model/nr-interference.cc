@@ -7,13 +7,13 @@
 #include "nr-interference.h"
 
 #include "nr-mimo-chunk-processor.h"
+#include "nr-spectrum-signal-parameters.h"
 
 #include <ns3/log.h>
 #include <ns3/lte-chunk-processor.h>
 #include <ns3/simulator.h>
 
 #include <algorithm>
-#include <stdio.h>
 
 NS_LOG_COMPONENT_DEFINE("NrInterference");
 

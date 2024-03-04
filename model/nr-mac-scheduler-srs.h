@@ -9,8 +9,6 @@
 
 #include "nr-mac-scheduler-ue-info.h"
 
-#include <stdint.h>
-
 namespace ns3
 {
 

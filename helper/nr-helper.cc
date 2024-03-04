@@ -17,6 +17,7 @@
 #include <ns3/bwp-manager-algorithm.h>
 #include <ns3/bwp-manager-gnb.h>
 #include <ns3/bwp-manager-ue.h>
+#include <ns3/config.h>
 #include <ns3/epc-enb-application.h>
 #include <ns3/epc-helper.h>
 #include <ns3/epc-ue-nas.h>
@@ -37,6 +38,7 @@
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-ue-net-device.h>
 #include <ns3/nr-ue-phy.h>
+#include <ns3/pointer.h>
 #include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>

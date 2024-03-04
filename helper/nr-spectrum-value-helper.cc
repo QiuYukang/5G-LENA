@@ -9,7 +9,6 @@
 #include <ns3/abort.h>
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
-#include <ns3/string.h>
 
 #include <cmath>
 #include <map>

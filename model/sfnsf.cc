@@ -8,8 +8,6 @@
 
 #include "ns3/abort.h"
 
-#include <math.h>
-
 namespace ns3
 {
 

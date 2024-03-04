@@ -10,7 +10,6 @@
 #include <ns3/eps-bearer.h>
 #include <ns3/lte-ccm-rrc-sap.h>
 #include <ns3/lte-rlc.h>
-#include <ns3/lte-rrc-sap.h>
 #include <ns3/no-op-component-carrier-manager.h>
 
 #include <unordered_map>

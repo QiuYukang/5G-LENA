@@ -8,7 +8,6 @@
 #define NR_MI_ERROR_MODEL_H
 
 #include "nr-error-model.h"
-#include "nr-harq-phy.h"
 
 namespace ns3
 {

@@ -10,7 +10,6 @@
 #include "nr-mac-scheduler-ns3.h"
 #include "nr-ue-phy.h"
 
-#include <ns3/angles.h>
 #include <ns3/double.h>
 #include <ns3/lte-ue-rrc.h>
 #include <ns3/mobility-model.h>
