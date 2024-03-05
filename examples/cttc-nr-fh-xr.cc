@@ -60,7 +60,7 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("CttcNrFhXr");
 
 std::string m_fhControlMethod;
-uint16_t m_fhCapacity;
+uint32_t m_fhCapacity;
 std::ofstream m_fhTraceFile;
 std::string m_fhTraceFileName;
 std::ofstream m_aiTraceFile;
@@ -140,6 +140,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
                double arDataRate,
                uint16_t arFps,
                double vrDataRate,
+               uint16_t vrFps,
                double cgDataRate,
                Ipv4Address remoteHostAddress,
                uint16_t remoteHostPort)
@@ -225,6 +226,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
         else if (app && config == NrXrConfig::VR_DL1)
         {
             app->SetAttribute("DataRate", DoubleValue(vrDataRate));
+            app->SetAttribute("Fps", UintegerValue(vrFps));
         }
         else if (app && config == NrXrConfig::CG_DL1)
         {
@@ -380,6 +382,9 @@ main(int argc, char* argv[])
     double uesWithRandomUtHeight = 0;
     double distance = 200;
 
+    double gnbNoiseFigure = 5.0;
+    double ueNoiseFigure = 7.0;
+
     uint32_t gnbNumRows = 4;
     uint32_t gnbNumColumns = 8;
     uint32_t ueNumRows = 1;
@@ -419,7 +424,7 @@ main(int argc, char* argv[])
     std::string errorModel = "ns3::NrEesmIrT1";
 
     // modulation compression parameters:
-    uint16_t fhCapacity = 10000;                 // in Mbps
+    uint32_t fhCapacity = 10000;                 // in Mbps
     uint8_t ohDyn = 100;                         // in bits
     std::string fhControlMethod = "OptimizeMcs"; // The FH Control Method to be applied
     // (Dropping, Postponing, OptimmizeMcs, OptimizeRBs)
@@ -434,6 +439,7 @@ main(int argc, char* argv[])
     double arDataRate = 5; // Mbps
     uint16_t arFps = 60;
     double vrDataRate = 5; // Mbps
+    uint16_t vrFps = 60;
     double cgDataRate = 5; // Mbps
 
     bool enablePdcpDiscarding = false;
@@ -507,6 +513,8 @@ main(int argc, char* argv[])
     cmd.AddValue("useFixedMcs",
                  "Whether to use fixed mcs, normally used for testing purposes",
                  useFixedMcs);
+    cmd.AddValue("gnbNoiseFigure", "gNB Noise Figure", gnbNoiseFigure);
+    cmd.AddValue("ueNoiseFigure", "UE Noise Figure", ueNoiseFigure);
     cmd.AddValue("useUdp",
                  "if true, the applications will run over UDP connection, otherwise a TCP "
                  "connection will be used. ",
@@ -640,10 +648,32 @@ main(int argc, char* argv[])
     }
     else if (deployment == "SIMPLE")
     {
-        arDataRate = 5; // Mbps
-        arFps = 30;
-        vrDataRate = 30; // Mbps
-        cgDataRate = 20; // Mbps
+        propScenario = "InH_OfficeOpen_LoS";
+        centralFrequency = 30e9;
+        pattern = "DL|DL|DL|DL|UL|DL|DL|DL|DL|UL|";
+        enableTDD4_1 = true;
+        numerology = 3;
+
+        txPower = 30;
+        bsHeight = 3.0;
+        utHeight = 1.5;
+
+        gnbNoiseFigure = 7;
+        ueNoiseFigure = 13;
+
+        useFixedMcs = false;
+
+        gnbNumRows = 16;
+        gnbNumColumns = 8;
+        ueNumRows = 1;
+        ueNumColumns = 4;
+        gnbVSpacing = 0.5;
+
+        arDataRate = 20; // Mbps
+        arFps = 60;
+        vrDataRate = 45; // Mbps
+        vrFps = 120;
+        cgDataRate = 30; // Mbps
     }
     else
     {
@@ -658,10 +688,12 @@ main(int argc, char* argv[])
     uint32_t simTimeMs = appStartTimeMs + appDuration + 10;
     std::cout << "Start example" << std::endl;
 
-    std::string frChosen = freqScenario == 0 ? "FR3" : "FR1";
+    if (deployment == "HEX")
+    {
+        std::string frChosen = freqScenario == 0 ? "FR3" : "FR1";
+    }
     std::cout << "Deployment chosen: " << deployment
-              << " - Configuration: " << nrConfigurationScenario << " - FR: " << frChosen
-              << std::endl;
+              << " - Configuration: " << nrConfigurationScenario << std::endl;
 
     std::string qosScenarioState = enableInterServ == 1 ? "Enabled" : "Disabled";
     std::cout << "Interactive Service for VR is: " << qosScenarioState << std::endl;
@@ -677,9 +709,11 @@ main(int argc, char* argv[])
             (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
         LogComponentEnable("NrFhControl", logLevel2);
         // LogComponentEnable("NrGnbPhy", logLevel1);
-        LogComponentEnable("NrMacSchedulerNs3", logLevel2);
+        // LogComponentEnable("NrMacSchedulerNs3", logLevel2);
+        // LogComponentEnable("NrMacSchedulerOfdma", logLevel2);
+        // LogComponentEnable("NrRlcUm", logLevel2);
         // LogComponentEnable("NrHelper", logLevel2);
-        //  LogComponentEnable("FlowMonitor", logLevel2);
+        // LogComponentEnable("FlowMonitor", logLevel2);
     }
     Config::SetDefault("ns3::NrRlcUm::EnablePdcpDiscarding", BooleanValue(enablePdcpDiscarding));
     Config::SetDefault("ns3::NrRlcUm::DiscardTimerMs", UintegerValue(discardTimerMs));
@@ -755,12 +789,16 @@ main(int argc, char* argv[])
         mobility.Install(ueNodes.Get(
             0)); // we want the first node on a specific location, the rest is randomly distributed
 
-        // by default the disc is of the radius of 200 meters
+        // by default the disc is of the radius of 200 meters - we change it to 20 meters
         Ptr<RandomDiscPositionAllocator> ueDiscPositionAlloc =
             CreateObject<RandomDiscPositionAllocator>();
         ueDiscPositionAlloc->SetX(0.0);
         ueDiscPositionAlloc->SetY(0.0);
         ueDiscPositionAlloc->SetZ(utHeight);
+        Ptr<UniformRandomVariable> randomDiscPos = CreateObject<UniformRandomVariable>();
+        randomDiscPos->SetAttribute("Min", DoubleValue(0));
+        randomDiscPos->SetAttribute("Max", DoubleValue(20));
+        ueDiscPositionAlloc->SetRho(randomDiscPos);
         mobility.SetPositionAllocator(ueDiscPositionAlloc);
 
         for (uint32_t i = 1; i < ueNodes.GetN(); i++)
@@ -923,6 +961,11 @@ main(int argc, char* argv[])
     {
         scene = isLos == 1 ? BandwidthPartInfo::RMa_LoS : BandwidthPartInfo::RMa;
     }
+    else if (propScenario == "InH_OfficeOpen_LoS")
+    {
+        scene = isLos == 1 ? BandwidthPartInfo::InH_OfficeOpen_LoS
+                           : BandwidthPartInfo::InH_OfficeOpen_nLoS;
+    }
     else
     {
         NS_ABORT_MSG("Unsupported scenario " << scenario << ". Supported values: UMa, RMa");
@@ -988,9 +1031,7 @@ main(int argc, char* argv[])
     nrHelper->SetSchedulerAttribute("EnableHarqReTx", BooleanValue(enableHarqRetx));
     nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPower));
     nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(numerology));
-    nrHelper->SetGnbPhyAttribute("NoiseFigure", DoubleValue(5));
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(ueTxPower));
-    nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(7));
 
     nrHelper->SetSchedulerAttribute("FixedMcsDl", BooleanValue(useFixedMcs));
     nrHelper->SetSchedulerAttribute("FixedMcsUl", BooleanValue(useFixedMcs));
@@ -1002,7 +1043,6 @@ main(int argc, char* argv[])
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     Config::SetDefault("ns3::NrGnbRrc::NrEpsBearerToRlcMapping",
-
                        EnumValue(useRlcUm ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
 
     if (deployment == "HEX")
@@ -1022,6 +1062,11 @@ main(int argc, char* argv[])
         nrHelper->SetUeMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
         nrHelper->SetGnbMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
     }
+
+    // Noise figure for the gNB
+    nrHelper->SetGnbPhyAttribute("NoiseFigure", DoubleValue(gnbNoiseFigure));
+    // Noise figure for the UE
+    nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(ueNoiseFigure));
 
     const double band0Start = centralFrequency;
     uint8_t numBwp = 1;
@@ -1178,8 +1223,9 @@ main(int argc, char* argv[])
     }
     else if (deployment == "SIMPLE")
     {
-        idealBeamformingHelper->SetAttribute("BeamformingMethod",
-                                             TypeIdValue(DirectPathBeamforming::GetTypeId()));
+        idealBeamformingHelper->SetAttribute(
+            "BeamformingMethod",
+            TypeIdValue(QuasiOmniDirectPathBeamforming::GetTypeId()));
     }
     if (enableFading)
     {
@@ -1730,6 +1776,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -1756,6 +1803,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -1782,6 +1830,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -1812,6 +1861,7 @@ main(int argc, char* argv[])
                            arDataRate,
                            arFps,
                            vrDataRate,
+                           vrFps,
                            cgDataRate,
                            internetIpIfaces.GetAddress(1),
                            remoteHostPort);
@@ -1839,6 +1889,7 @@ main(int argc, char* argv[])
                            arDataRate,
                            arFps,
                            vrDataRate,
+                           vrFps,
                            cgDataRate,
                            internetIpIfaces.GetAddress(1),
                            remoteHostPort);
@@ -1866,6 +1917,7 @@ main(int argc, char* argv[])
                            arDataRate,
                            arFps,
                            vrDataRate,
+                           vrFps,
                            cgDataRate,
                            internetIpIfaces.GetAddress(1),
                            remoteHostPort);
@@ -1895,6 +1947,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -1921,6 +1974,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -1947,6 +2001,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -1974,6 +2029,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -2000,6 +2056,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
@@ -2026,6 +2083,7 @@ main(int argc, char* argv[])
                        arDataRate,
                        arFps,
                        vrDataRate,
+                       vrFps,
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
