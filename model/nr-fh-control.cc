@@ -59,7 +59,7 @@ NrFhControl::GetTypeId()
                           "of a cell.",
                           UintegerValue(1000),
                           MakeUintegerAccessor(&NrFhControl::SetCellFhCapacity),
-                          MakeUintegerChecker<uint16_t>(0, 50000))
+                          MakeUintegerChecker<uint32_t>(0, 150000))
             .AddAttribute("OverheadDyn",
                           "The overhead for dynamic adaptation (in bits)",
                           UintegerValue(32),
@@ -162,7 +162,7 @@ NrFhControl::DoGetFhControlMethod() const
 }
 
 void
-NrFhControl::SetCellFhCapacity(uint16_t capacity)
+NrFhControl::SetCellFhCapacity(uint32_t capacity)
 {
     NS_LOG_FUNCTION(this);
     m_fhCapacity = capacity;
@@ -467,7 +467,7 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
 
     if (m_allocThrPerBwp.find(bwpId) == m_allocThrPerBwp.end()) // bwpId not in the map
     {
-        if (thr < ((m_fhCapacity / numOfActiveBwps) * 1e6))
+        if (thr < (m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps) * 1e6))
         {
             m_allocThrPerBwp.insert(std::make_pair(bwpId, thr));
             NS_LOG_DEBUG("BWP not in the map, Allocation can be included. BWP Thr: "
@@ -480,7 +480,8 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
             return false;
         }
     } // bwp in the map & we can store the allocation
-    else if ((m_allocThrPerBwp[bwpId] + thr) < ((m_fhCapacity / numOfActiveBwps) * 1e6))
+    else if ((m_allocThrPerBwp[bwpId] + thr) <
+             (m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps) * 1e6))
     {
         m_allocThrPerBwp[bwpId] += thr;
         NS_LOG_DEBUG(
@@ -501,7 +502,7 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
     NS_ASSERT_MSG(numOfActiveBwps > 0, "No Active BWPs, sth is wrong");
-    uint16_t availableCapacity = m_fhCapacity / numOfActiveBwps;
+    uint32_t availableCapacity = m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps);
 
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);
@@ -553,7 +554,7 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
     NS_ASSERT_MSG(numOfActiveBwps > 0, "No Active BWPs, sth is wrong");
-    uint16_t availableCapacity = m_fhCapacity / numOfActiveBwps;
+    uint32_t availableCapacity = m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps);
 
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);

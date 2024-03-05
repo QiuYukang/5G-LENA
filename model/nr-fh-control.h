@@ -135,7 +135,7 @@ class NrFhControl : public Object
      *        one of its UEs has data.
      * \param capacity The fronthaul capacity (in Mbps)
      */
-    void SetCellFhCapacity(uint16_t capacity);
+    void SetCellFhCapacity(uint32_t capacity);
 
     /**
      * \brief Set the overhead for dynamic modulation compression
@@ -347,7 +347,7 @@ class NrFhControl : public Object
     NrFhSchedSapProvider* m_fhSchedSapProvider; //!< FH Control -  SCHED SAP Provider
 
     enum FhControlMethod m_fhControlMethod;
-    uint16_t m_fhCapacity{
+    uint32_t m_fhCapacity{
         1000}; //!< the available FH capacity (in Mbps) for DL and UL (full-duplex FH link)
     uint8_t m_overheadDyn{32};    //!< the overhead (OH) for dynamic adaptation (in bits)
     uint8_t m_mcsTable{2};        //!< the MCS table
