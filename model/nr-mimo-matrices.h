@@ -72,6 +72,32 @@ class NrIntfNormChanMat : public ComplexMatrixArray
     /// @returns the SINR values for each layer and RB (dim: rank x nRbs)
     virtual NrSinrMatrix ComputeSinrForPrecoding(const ComplexMatrixArray& precMats) const;
 
+    /**
+     *  @brief Compute the average received signal parameters (channel and interference matrix)
+     *  between the different channel subbands.
+     *  @return the averaged received signal parameters
+     */
+    virtual NrIntfNormChanMat GetWidebandChannel() const;
+
+    /**
+     * @brief GetWaterfillingWidebandRank extracts the rank from an input channel matrix
+     * using the waterfilling technique
+     */
+
+    virtual uint8_t GetWaterfillingWidebandRank(uint8_t maxRank, double thr) const;
+    /**
+     * @brief GetEigenWidebandRank extracts the rank from an input channel matrix
+     */
+    virtual uint8_t GetEigenWidebandRank(double thr) const;
+
+    /**
+     * @brief GetEigenSubbandRanks extracts the rank from an input channel matrix
+     */
+    virtual std::vector<uint8_t> GetEigenSubbandRanks(double thr) const;
+
+    /// @brief ExtractOptimalPrecodingMatrices extracts optimal precoding matrices for a given rank
+    virtual ComplexMatrixArray ExtractOptimalPrecodingMatrices(uint8_t rank) const;
+
   private:
     /// @brief Compute the MSE (mean square error) for an MMSE receiver, for SISO and MIMO.
     /// @param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
