@@ -6,6 +6,7 @@
 
 import argparse
 import glob
+import itertools
 import os
 import re
 import shutil
@@ -23,7 +24,7 @@ if shutil.which("git") is None:
 
 # Define global variables
 CTTC_LENA_NR_REPOSITORY = "https://gitlab.com/cttc-lena/nr"
-COMMIT_STYLE_REGEX = r"^([a-z0-9\-]+(?:, [a-z0-9\-]+)*):((?: \(\w+ #\d+\))?) ([A-Z][^\n]*$)"
+COMMIT_STYLE_REGEX = r"^([a-z0-9\-\*]+(?:, [a-z0-9\-\*]+)*):((?: \(\w+ #\d+\))?) ([A-Z][^\n]*$)"
 
 
 # Get all file names without extension
@@ -31,6 +32,7 @@ def get_files_dictionary(list_of_files):
     files_ext = list_of_files
     files_wext = list(map(lambda x: os.path.splitext(os.path.basename(x))[0], files_ext))
     files_wext = list(map(lambda x: x[1:] if x[0] == "." else x, files_wext))
+    files_wext = list(map(lambda x: x.lower(), files_wext))
     return dict(zip(files_wext, files_ext))
 
 
@@ -236,10 +238,20 @@ class CheckPrefix(BaseCheck):
         if len(changed_files) < 4:
             # Test the case with less than 4 modified files
             for component in components:
-                if component not in FILES:
-                    return False
-                if component not in changed_files:
-                    return False
+                if component.endswith("*"):
+                    matching_files = list(filter(lambda x: component[:-1] in x, FILES))
+                    if len(matching_files) == 0:
+                        return False
+                    matching_changed_files = list(
+                        filter(lambda x: x in changed_files, matching_files)
+                    )
+                    if len(matching_changed_files) == 0:
+                        return False
+                else:
+                    if component not in FILES:
+                        return False
+                    if component not in changed_files:
+                        return False
             return True
         else:
             # Test the case with more than 3 modified files
@@ -277,12 +289,43 @@ class CheckPrefix(BaseCheck):
         if len(changed_files) < 4:
             # Check each component
             errors = []
+
+            # If the names of the files are bigger than 40 characters,
+            # look for similarities, so that we can save up on the prefix length
+            if len(", ".join(changed_files.keys())) > 40:
+                # Find the largest shared prefix
+                all_combinations = itertools.combinations(changed_files.keys(), len(changed_files))
+                max_prefix = ""
+                for combination in all_combinations:
+                    prefix = os.path.commonprefix(combination)
+                    if len(prefix) > len(max_prefix):
+                        max_prefix = prefix
+
+                # Regenerate prefix with shared prefix
+                changed_files_not_sharing_prefix = list(
+                    filter(lambda x: max_prefix not in x, changed_files.keys())
+                )
+                shorter_prefix = ", ".join(changed_files_not_sharing_prefix + [f"{max_prefix}-*"])
+                if shorter_prefix not in commit_info.header:
+                    errors.append(f'Prefix is too large: use "{shorter_prefix}"')
+
             for component in components:
-                if component not in FILES:
-                    errors.append(f"{component} is not an existing file")
-                    continue
-                if component not in changed_files:
-                    errors.append(f"{FILES[component]} has not been changed")
+                if component.endswith("*"):
+                    matching_files = list(filter(lambda x: component[:-1] in x, FILES))
+                    if len(matching_files) == 0:
+                        errors.append(f"{component} is not an existing file")
+                        continue
+                    matching_changed_files = list(
+                        filter(lambda x: x in changed_files, matching_files)
+                    )
+                    if len(matching_changed_files) == 0:
+                        errors.append(f"{matching_files} have not been changed")
+                else:
+                    if component not in FILES:
+                        errors.append(f"{component} is not an existing file")
+                        continue
+                    if component not in changed_files:
+                        errors.append(f"{FILES[component]} has not been changed")
             return f"  \tErrors: {', '.join(errors)}"
         else:
             # Get the common path between the changed files
