@@ -2614,7 +2614,7 @@ TrafficGeneratorTestCase checks that the traffic generator is correctly being co
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/traffic-generator-test_8cc.html
 
-
+.. include:: nr-v2x-tests.inc
 
 Open issues and future work
 ---------------------------

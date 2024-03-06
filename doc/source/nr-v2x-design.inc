@@ -242,7 +242,7 @@ pool configured by the ``RRC``, it computes the candidate resources
 (i.e., available slots) for sidelink transmission based on the selection window
 parameters, :math:`T_\text{1}`, :math:`T_\text{2,min}`, and :math:`T_\text{2}`.
 Since the final resources must be selected based on sensing information, the MAC
-follows the standard procedure described in Section III-B1 of [cttc-nr-v2x]_, to
+follows the standard procedure described in Section 8.1.4 of [TS38214]_, to
 filter out the resources from the total available ones, which could be occupied
 by the other transmitting UEs. Once the filtered candidate resources' list is
 ready, the ``MAC`` layer forwards it to the scheduler. Our model provides a
