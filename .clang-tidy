@@ -5,4 +5,6 @@
 # Apply all checks from ns-3
 InheritParentConfig: true
 # Plus our additional checks
-Checks: -modernize-use-auto
+Checks: >
+  -modernize-use-auto,
+  -modernize-use-emplace,
