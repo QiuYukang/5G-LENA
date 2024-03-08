@@ -126,6 +126,7 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-3gpp-generic-video.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
     model/nr-cb-two-port.cc
+    model/nr-cb-type-one-sp.cc
     model/nr-cb-type-one.cc
     model/nr-mimo-chunk-processor.cc
     model/nr-mimo-matrices.cc
@@ -250,6 +251,7 @@ set(header_files
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
     model/nr-cb-two-port.h
+    model/nr-cb-type-one-sp.h
     model/nr-cb-type-one.h
     model/nr-mimo-chunk-processor.h
     model/nr-mimo-matrices.h
