@@ -192,14 +192,14 @@ class NrSlUeMacSchedulerLCG
      * \param lcId The LC id
      * \return The PQI value of the LC
      */
-    uint8_t GetLcPqi(uint8_t lcId);
+    uint8_t GetLcPqi(uint8_t lcId) const;
 
     /**
      * \brief Get the LC priority
      * \param lcId The LC id
      * \return The priority of the LC
      */
-    uint8_t GetLcPriority(uint8_t lcId);
+    uint8_t GetLcPriority(uint8_t lcId) const;
 
     /**
      * \brief Check if the LC is GBR
@@ -207,7 +207,7 @@ class NrSlUeMacSchedulerLCG
      * \param lcId The LC id
      * \return true if the LC is GBR, false if the bearer is NON-GBR
      */
-    bool IsLcGbr(uint16_t lcId);
+    bool IsLcGbr(uint16_t lcId) const;
 
     /**
      * \brief Get the LC MBR value
@@ -215,7 +215,7 @@ class NrSlUeMacSchedulerLCG
      * \param lcId The LC id
      * \return The MBR value of the LC
      */
-    uint64_t GetLcMbr(uint8_t lcId);
+    uint64_t GetLcMbr(uint8_t lcId) const;
 
     /**
      * \brief Get the LC GBR value
@@ -223,7 +223,7 @@ class NrSlUeMacSchedulerLCG
      * \param lcId The LC id
      * \return The GBR value of the LC
      */
-    uint64_t GetLcGbr(uint8_t lcId);
+    uint64_t GetLcGbr(uint8_t lcId) const;
 
     /**
      * \brief Inform the LCG of the assigned data to a LC id

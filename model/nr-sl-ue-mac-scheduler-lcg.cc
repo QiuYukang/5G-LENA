@@ -120,35 +120,35 @@ NrSlUeMacSchedulerLCG::GetLCId() const
 }
 
 uint8_t
-NrSlUeMacSchedulerLCG::GetLcPqi(uint8_t lcId)
+NrSlUeMacSchedulerLCG::GetLcPqi(uint8_t lcId) const
 {
     NS_ASSERT(Contains(lcId));
     return m_lcMap.at(lcId)->m_pqi;
 }
 
 uint8_t
-NrSlUeMacSchedulerLCG::GetLcPriority(uint8_t lcId)
+NrSlUeMacSchedulerLCG::GetLcPriority(uint8_t lcId) const
 {
     NS_ASSERT(Contains(lcId));
     return m_lcMap.at(lcId)->m_priority;
 }
 
 bool
-NrSlUeMacSchedulerLCG::IsLcGbr(uint16_t lcId)
+NrSlUeMacSchedulerLCG::IsLcGbr(uint16_t lcId) const
 {
     NS_ASSERT(Contains(lcId));
     return m_lcMap.at(lcId)->m_isGbr;
 }
 
 uint64_t
-NrSlUeMacSchedulerLCG::GetLcMbr(uint8_t lcId)
+NrSlUeMacSchedulerLCG::GetLcMbr(uint8_t lcId) const
 {
     NS_ASSERT(Contains(lcId));
     return m_lcMap.at(lcId)->m_mbr;
 }
 
 uint64_t
-NrSlUeMacSchedulerLCG::GetLcGbr(uint8_t lcId)
+NrSlUeMacSchedulerLCG::GetLcGbr(uint8_t lcId) const
 {
     NS_ASSERT(Contains(lcId));
     return m_lcMap.at(lcId)->m_gbr;
