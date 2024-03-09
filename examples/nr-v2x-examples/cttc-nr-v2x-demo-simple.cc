@@ -711,9 +711,11 @@ main(int argc, char* argv[])
         remoteAddress = InetSocketAddress(groupAddress4, port);
         localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
         tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL,
-                               LteSlTft::CommType::GroupCast,
+                               LteSlTft::CastType::Groupcast,
                                groupAddress4,
-                               dstL2Id);
+                               dstL2Id,
+                               false,
+                               Time());
         // Set Sidelink bearers
         nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
     }
@@ -735,9 +737,11 @@ main(int argc, char* argv[])
         remoteAddress = Inet6SocketAddress(groupAddress6, port);
         localAddress = Inet6SocketAddress(Ipv6Address::GetAny(), port);
         tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL,
-                               LteSlTft::CommType::GroupCast,
+                               LteSlTft::CastType::Groupcast,
                                groupAddress6,
-                               dstL2Id);
+                               dstL2Id,
+                               false,
+                               Time());
         // Set Sidelink bearers
         nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
     }

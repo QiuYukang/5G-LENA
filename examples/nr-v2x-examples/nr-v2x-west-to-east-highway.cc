@@ -1027,16 +1027,20 @@ main(int argc, char* argv[])
         localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
 
         tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT,
-                               LteSlTft::CommType::GroupCast,
+                               LteSlTft::CastType::Groupcast,
                                groupAddress4,
-                               dstL2Id);
+                               dstL2Id,
+                               false,
+                               Time());
         // Set Sidelink bearers
         nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, txSlUesNetDevice, tft);
 
         tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE,
-                               LteSlTft::CommType::GroupCast,
+                               LteSlTft::CastType::Groupcast,
                                groupAddress4,
-                               dstL2Id);
+                               dstL2Id,
+                               false,
+                               Time());
         // Set Sidelink bearers
         nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, rxSlUesNetDevice, tft);
     }
@@ -1059,16 +1063,20 @@ main(int argc, char* argv[])
         localAddress = Inet6SocketAddress(Ipv6Address::GetAny(), port);
 
         tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT,
-                               LteSlTft::CommType::GroupCast,
+                               LteSlTft::CastType::Groupcast,
                                groupAddress4,
-                               dstL2Id);
+                               dstL2Id,
+                               false,
+                               Time());
         // Set Sidelink bearers for transmitting UEs
         nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, txSlUesNetDevice, tft);
 
         tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE,
-                               LteSlTft::CommType::GroupCast,
+                               LteSlTft::CastType::Groupcast,
                                groupAddress4,
-                               dstL2Id);
+                               dstL2Id,
+                               false,
+                               Time());
         // Set Sidelink bearers for receiving UEs
         nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, rxSlUesNetDevice, tft);
     }
