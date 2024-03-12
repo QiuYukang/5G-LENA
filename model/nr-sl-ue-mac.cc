@@ -873,7 +873,9 @@ NrSlUeMac::DoReceivePsschPhyPdu(Ptr<PacketBurst> pdu)
             // notify RRC to setup bearer
             m_nrSlUeCmacSapUser->NotifySidelinkReception(tag.GetLcid(),
                                                          identifier.srcL2Id,
-                                                         identifier.dstL2Id);
+                                                         identifier.dstL2Id,
+                                                         sciF2a.GetCastType(),
+                                                         sciF2a.GetHarqFeedbackIndicator());
 
             // should be setup now
             it = m_nrSlLcInfoMap.find(identifier);

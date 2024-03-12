@@ -240,6 +240,8 @@ main(int argc, char* argv[])
     bool useIPv6 = false; // default IPV4
     uint32_t udpPacketSizeBe = 200;
     double dataRateBe = 16; // 16 kilobits per second
+    bool harqEnabled = true;
+    Time delayBudget = MilliSeconds(20);
 
     // Simulation parameters.
     Time simTime = Seconds(10);
@@ -693,6 +695,13 @@ main(int argc, char* argv[])
     Address localAddress;
     uint16_t port = 8000;
     Ptr<LteSlTft> tft;
+    SidelinkInfo slInfo;
+    slInfo.m_castType = SidelinkInfo::CastType::Groupcast;
+    slInfo.m_dstL2Id = dstL2Id;
+    slInfo.m_rri = MilliSeconds(100);
+    slInfo.m_pdb = delayBudget;
+    slInfo.m_harqEnabled = harqEnabled;
+
     if (!useIPv6)
     {
         Ipv4InterfaceContainer ueIpIface;
@@ -710,12 +719,7 @@ main(int argc, char* argv[])
         }
         remoteAddress = InetSocketAddress(groupAddress4, port);
         localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
-        tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL,
-                               LteSlTft::CastType::Groupcast,
-                               groupAddress4,
-                               dstL2Id,
-                               false,
-                               Time());
+        tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, groupAddress4, slInfo);
         // Set Sidelink bearers
         nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
     }
@@ -736,12 +740,7 @@ main(int argc, char* argv[])
         }
         remoteAddress = Inet6SocketAddress(groupAddress6, port);
         localAddress = Inet6SocketAddress(Ipv6Address::GetAny(), port);
-        tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL,
-                               LteSlTft::CastType::Groupcast,
-                               groupAddress6,
-                               dstL2Id,
-                               false,
-                               Time());
+        tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, groupAddress6, slInfo);
         // Set Sidelink bearers
         nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
     }
