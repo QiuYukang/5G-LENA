@@ -47,6 +47,12 @@ NrSlSciF2aHeader::GetInstanceTypeId() const
 }
 
 void
+NrSlSciF2aHeader::SetHarqFeedbackIndicator(uint8_t harqFeedbackIndicator)
+{
+    m_harqFeedbackIndicator = harqFeedbackIndicator;
+}
+
+void
 NrSlSciF2aHeader::SetCastType(uint8_t castType)
 {
     NS_ASSERT(std::find(m_allowedCastType.begin(), m_allowedCastType.end(), castType) !=
@@ -58,6 +64,12 @@ void
 NrSlSciF2aHeader::SetCsiReq(uint8_t csiReq)
 {
     m_csiReq = csiReq;
+}
+
+uint8_t
+NrSlSciF2aHeader::GetHarqFeedbackIndicator() const
+{
+    return m_harqFeedbackIndicator;
 }
 
 uint8_t
@@ -77,7 +89,8 @@ NrSlSciF2aHeader::Print(std::ostream& os) const
 {
     NS_LOG_FUNCTION(this);
     NrSlSciF2Header::Print(os);
-    os << ", Cast type indicator " << +m_castType << ", Channel state information request "
+    os << ", HARQ feedback enabled/disabled indicator " << +m_harqFeedbackIndicator
+       << ", Cast type indicator " << +m_castType << ", Channel state information request "
        << +m_csiReq;
 }
 
@@ -96,12 +109,13 @@ NrSlSciF2aHeader::Serialize(Buffer::Iterator start) const
 
     uint8_t scif02a = 0;
 
-    scif02a = (m_castType & 0x3);
+    scif02a = (m_harqFeedbackIndicator & 0x1);
+    scif02a = (m_castType & 0x3) | (scif02a << 2);
     scif02a = (m_csiReq & 0x1) | (scif02a << 1);
 
-    // now the stinky 5 bits of padding
+    // now 4 bits of padding
     uint8_t padding = 0;
-    scif02a = (padding & 0x1F) | (scif02a << 5);
+    scif02a = (padding & 0x0F) | (scif02a << 4);
     i.WriteU8(scif02a);
 }
 
@@ -114,8 +128,9 @@ NrSlSciF2aHeader::Deserialize(Buffer::Iterator start)
 
     uint8_t scif02a = i.ReadU8();
 
-    m_castType = (scif02a >> 6) & 0x3;
-    m_csiReq = (scif02a >> 5) & 0x1;
+    m_harqFeedbackIndicator = (scif02a >> 7) & 0x1;
+    m_castType = (scif02a >> 5) & 0x3;
+    m_csiReq = (scif02a >> 4) & 0x1;
 
     return GetSerializedSize();
 }
@@ -124,7 +139,8 @@ bool
 NrSlSciF2aHeader::operator==(const NrSlSciF2aHeader& b) const
 {
     return m_harqId == b.m_harqId && m_ndi == b.m_ndi && m_rv == b.m_rv && m_srcId == b.m_srcId &&
-           m_dstId == b.m_dstId && m_csiReq == b.m_csiReq && m_castType == b.m_castType;
+           m_dstId == b.m_dstId && m_csiReq == b.m_csiReq && m_castType == b.m_castType &&
+           m_harqFeedbackIndicator == b.m_harqFeedbackIndicator;
 }
 
 } // namespace ns3

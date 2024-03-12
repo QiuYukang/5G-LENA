@@ -42,6 +42,13 @@ class NrSlSciF2aHeader : public NrSlSciF2Header
     NrSlSciF2aHeader();
     ~NrSlSciF2aHeader() override;
 
+    /// HARQ feedback enabled/disabled indicator enumeration
+    enum HarqFeedbackIndicator_t : uint8_t
+    {
+        Disabled = 0,
+        Enabled = 1
+    };
+
     /// Cast type indicator enumeration
     enum CastTypeIndicator_t : uint8_t
     {
@@ -51,6 +58,12 @@ class NrSlSciF2aHeader : public NrSlSciF2Header
         GroupcastOnlyNack = 3,
     };
 
+    /**
+     * \brief Set the HARQ feedback enabled/disabled indicator field
+     *
+     * \param harqFeedbackIndicator  Whether HARQ feedback is enabled
+     */
+    void SetHarqFeedbackIndicator(uint8_t harqFeedbackIndicator);
     /**
      * \brief Set the cast type indicator field
      *
@@ -64,6 +77,12 @@ class NrSlSciF2aHeader : public NrSlSciF2Header
      */
     void SetCsiReq(uint8_t csiReq);
 
+    /**
+     * \brief Get the HARQ feedback enabled/disabled indicator field value
+     *
+     * \return The HARQ feedback enabled/disabled indicator field value
+     */
+    uint8_t GetHarqFeedbackIndicator() const;
     /**
      * \brief Get the cast type indicator field value
      *
@@ -97,6 +116,7 @@ class NrSlSciF2aHeader : public NrSlSciF2Header
     uint32_t Deserialize(Buffer::Iterator start) override;
 
   private:
+    uint8_t m_harqFeedbackIndicator{Disabled}; //!< Whether HARQ feedback is enabled or disabled
     uint8_t m_castType{Broadcast}; //!< The type of communication this NrSlSciF2aHeader is used for
     uint8_t m_csiReq{0};           //!< The channel state information request flag
 
