@@ -2666,6 +2666,36 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                 m_slSci2aDecodeFailures++;
                 // If SCI stage 2 is corrupted, data is also corrupted.
                 tbIt.second.isDataCorrupted = true;
+
+                // Trace
+                SlRxDataPacketTraceParams traceParams;
+                traceParams.m_timeMs = Simulator::Now().GetSeconds() * 1000.0;
+                traceParams.m_cellId = ueRx->GetPhy(GetBwpId())->GetCellId();
+                traceParams.m_rnti = ueRx->GetPhy(GetBwpId())->GetRnti();
+                traceParams.m_tbSize = tbIt.second.expectedTb.tbSize;
+                traceParams.m_frameNum = tbIt.second.expectedTb.sfn.GetFrame();
+                traceParams.m_subframeNum = tbIt.second.expectedTb.sfn.GetSubframe();
+                traceParams.m_slotNum = tbIt.second.expectedTb.sfn.GetSlot();
+                traceParams.m_txRnti = tbIt.first; // this is the RNTI of the TX UE
+                traceParams.m_mcs = tbIt.second.expectedTb.mcs;
+                traceParams.m_sinr = tbIt.second.sinrAvg;
+                traceParams.m_sinrMin = tbIt.second.sinrMin;
+                traceParams.m_tblerSci2 = tbIt.second.outputEmForSci2->m_tbler;
+                traceParams.m_rv = sciF2a.GetRv();
+                traceParams.m_ndi = sciF2a.GetNdi();
+                traceParams.m_corrupt = tbIt.second.isDataCorrupted;
+                traceParams.m_sci2Corrupted = tbIt.second.isSci2Corrupted;
+                traceParams.m_symStart = tbIt.second.expectedTb.symStart;
+                traceParams.m_numSym = tbIt.second.expectedTb.numSym;
+                traceParams.m_bwpId = GetBwpId();
+                traceParams.m_dstL2Id = sciF2a.GetDstId();
+                traceParams.m_srcL2Id = sciF2a.GetSrcId();
+                uint32_t rbBitmapSize =
+                    static_cast<uint32_t>(tbIt.second.expectedTb.rbBitmap.size());
+                traceParams.m_rbStart = tbIt.second.expectedTb.rbBitmap.at(0);
+                traceParams.m_rbEnd = tbIt.second.expectedTb.rbBitmap.at(rbBitmapSize - 1);
+                traceParams.m_rbAssignedNum = rbBitmapSize;
+                m_rxPsschTraceUe(traceParams);
                 continue;
             }
             else
