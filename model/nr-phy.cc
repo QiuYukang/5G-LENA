@@ -912,9 +912,9 @@ NrPhy::DoSendPscchMacPdu(Ptr<Packet> p)
 }
 
 void
-NrPhy::DoSendPsschMacPdu(Ptr<Packet> p)
+NrPhy::DoSendPsschMacPdu(Ptr<Packet> p, uint32_t dstL2Id)
 {
-    SetPsschMacPdu(p);
+    SetPsschMacPdu(p, dstL2Id);
 }
 
 void
@@ -929,14 +929,22 @@ NrPhy::SetPscchMacPdu(Ptr<Packet> p)
 }
 
 void
-NrPhy::SetPsschMacPdu(Ptr<Packet> p)
+NrPhy::SetPsschMacPdu(Ptr<Packet> p, uint32_t dstL2Id)
 {
-    NS_LOG_FUNCTION(this);
-    // At a given time, we must send only one packet burst, which mimics a TB.
+    NS_LOG_FUNCTION(this << dstL2Id);
     // The packets in this packet burst would be equal to the number of LCs
     // multiplexed together plus one SCI format 2 packet
-    NS_ASSERT(m_nrSlPsschPacketBurstQueue.size() == 1);
-    m_nrSlPsschPacketBurstQueue.at(0)->AddPacket(p);
+    auto it = m_nrSlPsschPacketBurstQueue.find(dstL2Id);
+    if (it == m_nrSlPsschPacketBurstQueue.end())
+    {
+        Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
+        pb->AddPacket(p);
+        m_nrSlPsschPacketBurstQueue.insert({dstL2Id, pb});
+    }
+    else
+    {
+        it->second->AddPacket(p);
+    }
 }
 
 Ptr<PacketBurst>
@@ -945,11 +953,6 @@ NrPhy::PopPscchPacketBurst()
     NS_LOG_FUNCTION(this);
     if (m_nrSlPscchPacketBurstQueue.at(0)->GetSize() > 0)
     {
-        // At this stage we assume that PSCCH is not sent without data.
-        // Check the doxy of DoSendPscchMacPdu, and DoSendPsschMacPdu.
-        NS_ASSERT_MSG(m_nrSlPsschPacketBurstQueue.at(0)->GetSize() > 0,
-                      "Currently, PSCCH always goes with data.");
-
         Ptr<PacketBurst> ret = m_nrSlPscchPacketBurstQueue.at(0)->Copy();
         m_nrSlPscchPacketBurstQueue.erase(m_nrSlPscchPacketBurstQueue.begin());
         m_nrSlPscchPacketBurstQueue.push_back(CreateObject<PacketBurst>());
@@ -967,19 +970,17 @@ Ptr<PacketBurst>
 NrPhy::PopPsschPacketBurst()
 {
     NS_LOG_FUNCTION(this);
-    if (m_nrSlPsschPacketBurstQueue.at(0)->GetSize() > 0)
+    auto it = m_nrSlPsschPacketBurstQueue.begin();
+    if (it != m_nrSlPsschPacketBurstQueue.end())
     {
-        Ptr<PacketBurst> ret = m_nrSlPsschPacketBurstQueue.at(0)->Copy();
-        m_nrSlPsschPacketBurstQueue.erase(m_nrSlPsschPacketBurstQueue.begin());
-        m_nrSlPsschPacketBurstQueue.push_back(CreateObject<PacketBurst>());
-        return (ret);
+        if (it->second->GetSize() > 0)
+        {
+            Ptr<PacketBurst> ret = it->second->Copy();
+            m_nrSlPsschPacketBurstQueue.erase(it);
+            return (ret);
+        }
     }
-    else
-    {
-        m_nrSlPsschPacketBurstQueue.erase(m_nrSlPsschPacketBurstQueue.begin());
-        m_nrSlPsschPacketBurstQueue.push_back(CreateObject<PacketBurst>());
-        return (nullptr);
-    }
+    return (0);
 }
 
 void
@@ -1006,18 +1007,27 @@ NrPhy::DoSetNrSlVarTtiAllocInfo(const SfnSf& sfn, const NrSlVarTtiAllocInfo& var
         NS_ASSERT_MSG(it->sfn == sfn,
                       "Allocation queue must contain the allocation info of the same slot");
         // each Var TTI in slvarTtiInfoList list must differ in their symbol start
-        bool insertStatus = it->slvarTtiInfoList.emplace(varTtiInfo).second;
-        NS_ASSERT_MSG(insertStatus,
-                      "Insertion failed. A Var TTI starting from symbol " << varTtiInfo.symStart
-                                                                          << " already exists");
+        bool insertStatus [[maybe_unused]] = it->slvarTtiInfoList.emplace(varTtiInfo).second;
     }
 }
 
 bool
 NrPhy::NrSlSlotAllocInfoExists(const SfnSf& sfn) const
 {
-    NS_LOG_FUNCTION(this);
-    return m_nrSlPsschPacketBurstQueue.at(0)->GetNPackets() > 0 && !m_nrSlAllocInfoQueue.empty();
+    NS_LOG_FUNCTION(this << sfn);
+    if (!m_nrSlAllocInfoQueue.empty())
+    {
+        return true;
+    }
+    for (auto it = m_nrSlPsschPacketBurstQueue.begin(); it != m_nrSlPsschPacketBurstQueue.end();
+         it++)
+    {
+        if (it->second->GetNPackets() > 0)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 } // namespace ns3

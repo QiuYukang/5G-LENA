@@ -55,6 +55,7 @@ class NrControlMessage : public SimpleRefCount<NrControlMessage>
         RAR,           //!< Random Access Response
         BSR,           //!< Buffer Status Report
         DL_HARQ,       //!< DL HARQ feedback
+        SL_HARQ,       //!< SL HARQ feedback
         SR,            //!< Scheduling Request: asking for space
         SRS,           //!< SRS
     };
@@ -523,6 +524,41 @@ class NrSrsMessage : public NrControlMessage
      * \brief ~NrDlHarqFeedbackMessage
      */
     ~NrSrsMessage() override = default;
+};
+
+/**
+ * \ingroup utils
+ * \brief SlHarqFeedback message
+ *
+ * The sidelink NrSlHarqFeedbackMessage defines the specific
+ * messages for transmitting the SL HARQ feedback through PSFCH
+ */
+class NrSlHarqFeedbackMessage : public NrControlMessage
+{
+  public:
+    /**
+     * \brief NrSlHarqFeedbackMessage constructor
+     */
+    NrSlHarqFeedbackMessage();
+    /**
+     * \brief ~NrSlHarqFeedbackMessage
+     */
+    ~NrSlHarqFeedbackMessage() override = default;
+
+    /**
+     * \brief add a SL HARQ feedback record into the message.
+     * \param m the SL HARQ feedback
+     */
+    void SetSlHarqFeedback(SlHarqInfo m);
+
+    /**
+     * \brief Get SL HARQ informations
+     * \return SL HARQ message
+     */
+    SlHarqInfo GetSlHarqFeedback(void);
+
+  private:
+    SlHarqInfo m_slHarqInfo; //!< SL Harq Info
 };
 
 } // namespace ns3

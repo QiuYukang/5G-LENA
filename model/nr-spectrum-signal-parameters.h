@@ -16,6 +16,7 @@ namespace ns3
 
 class PacketBurst;
 class NrControlMessage;
+class NrSlHarqFeedbackMessage;
 
 /**
  * \ingroup spectrum
@@ -180,6 +181,30 @@ struct NrSpectrumSignalParametersSlDataFrame : public NrSpectrumSignalParameters
      * \param p The NrSlSpectrumSignalParametersSlFrame
      */
     NrSpectrumSignalParametersSlDataFrame(const NrSpectrumSignalParametersSlDataFrame& p);
+};
+
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * Signal parameters for NR SL feedback (PSFCH)
+ */
+struct NrSpectrumSignalParametersSlFeedback : public NrSpectrumSignalParametersSlFrame
+{
+    // inherited from SpectrumSignalParameters
+    Ptr<SpectrumSignalParameters> Copy() const override;
+
+    /**
+     * \brief NrSlSpectrumSignalParametersSlFeedback default constructor
+     */
+    NrSpectrumSignalParametersSlFeedback();
+
+    /**
+     * \brief NrSlSpectrumSignalParametersSlFeedback copy constructor
+     * \param p The NrSlSpectrumSignalParametersSlFrame
+     */
+    NrSpectrumSignalParametersSlFeedback(const NrSpectrumSignalParametersSlFeedback& p);
+    std::list<Ptr<NrSlHarqFeedbackMessage>> feedbackList; //!< Feedback message list
 };
 
 } // namespace ns3

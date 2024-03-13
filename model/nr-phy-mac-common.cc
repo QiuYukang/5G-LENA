@@ -150,6 +150,23 @@ operator<<(std::ostream& os, const UlHarqInfo& item)
 }
 
 std::ostream&
+operator<<(std::ostream& os, const SlHarqInfo& item)
+{
+    if (item.IsReceivedOk())
+    {
+        os << "ACK feedback ";
+    }
+    else
+    {
+        os << "NACK feedback ";
+    }
+    os << "for ProcessID: " << static_cast<uint32_t>(item.m_harqProcessId) << " of UE "
+       << static_cast<uint32_t>(item.m_rnti) << " Tx RNTI: " << static_cast<uint32_t>(item.m_txRnti)
+       << " BWP index: " << static_cast<uint32_t>(item.m_bwpIndex);
+    return os;
+}
+
+std::ostream&
 operator<<(std::ostream& os, const SfnSf& item)
 {
     os << "FrameNum: " << static_cast<uint32_t>(item.GetFrame())

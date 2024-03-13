@@ -502,6 +502,7 @@ struct RxPacketTraceParams
  *
  * \see DlHarqInfo
  * \see UlHarqInfo
+ * \see SlHarqInfo
  */
 struct HarqInfo
 {
@@ -570,10 +571,35 @@ struct UlHarqInfo : public HarqInfo
     }
 };
 
+/**
+ * \ingroup utils
+ * \brief A struct that contains info for the SL HARQ
+ */
+struct SlHarqInfo : public HarqInfo
+{
+    uint16_t m_txRnti{55};     //!< Transmitter RNTI
+    uint16_t m_dstL2Id{65535}; //!< DST L2 ID
+
+    /**
+     * \brief Status of the SL Harq: ACKed or NACKed
+     */
+    enum HarqStatus
+    {
+        ACK,
+        NACK
+    } m_harqStatus{NACK}; //!< HARQ status
+
+    virtual bool IsReceivedOk() const override
+    {
+        return m_harqStatus == ACK;
+    }
+};
+
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma& item);
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma::DciFormat& item);
 std::ostream& operator<<(std::ostream& os, const DlHarqInfo& item);
 std::ostream& operator<<(std::ostream& os, const UlHarqInfo& item);
+std::ostream& operator<<(std::ostream& os, const SlHarqInfo& item);
 std::ostream& operator<<(std::ostream& os, const SfnSf& item);
 std::ostream& operator<<(std::ostream& os, const SlotAllocInfo& item);
 std::ostream& operator<<(std::ostream& os, const SlotAllocInfo::AllocationType& item);

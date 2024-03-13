@@ -159,8 +159,8 @@ class NrHarqPhy : public SimpleRefCount<NrHarqPhy>
      * \param harqProcId the HARQ proc id
      * \return the vector of the info related to HARQ proc Id
      */
-    const NrErrorModel::NrErrorModelHistory& GetHarqProcessInfoSlData(uint16_t rnti,
-                                                                      uint8_t harqProcId);
+    const NrErrorModel::NrErrorModelHistory& GetHarqProcessInfoSl(uint16_t rnti,
+                                                                  uint8_t harqProcId);
     /**
      * \brief Update the Info associated to the decodification of an HARQ process
      *        for NR SL DATA
@@ -202,7 +202,7 @@ class NrHarqPhy : public SimpleRefCount<NrHarqPhy>
     void RemovePrevDecoded(uint16_t rnti, uint8_t harqId);
 
   private:
-    HistoryMap m_slDataHistory; //!< HARQ history map for NR SL PSSCH
+    HistoryMap m_slHistory; //!< HARQ history map for NR SL PSSCH
     std::unordered_set<uint32_t>
         m_slDecodedTb; //!< Container to track NR Sidelink communication decoded TBs
 };

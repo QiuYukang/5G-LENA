@@ -56,8 +56,9 @@ class NrSlUePhySapProvider
     /**
      * \brief Send NR Sidelink PSSCH MAC PDU
      * \param p The packet
+     * \param dstL2Id The destination L2 ID
      */
-    virtual void SendPsschMacPdu(Ptr<Packet> p) = 0;
+    virtual void SendPsschMacPdu(Ptr<Packet> p, uint32_t dstL2Id) = 0;
     /**
      * \brief Set the allocation info for NR SL slot in PHY
      * \param sfn The SfnSf
@@ -113,6 +114,12 @@ class NrSlUePhySapUser
      * \param sensingData The sensing data
      */
     virtual void ReceiveSensingData(SensingData sensingData) = 0;
+    /**
+     * \brief Receive the PSFCH from PHY to MAC
+     * \param sendingNodeId The sending nodeId
+     * \param harqInfo The HARQ info
+     */
+    virtual void ReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo) = 0;
 };
 
 /**
@@ -140,7 +147,7 @@ class MemberNrSlUePhySapProvider : public NrSlUePhySapProvider
     uint32_t GetBwInRbs() const override;
     Time GetSlotPeriod() const override;
     void SendPscchMacPdu(Ptr<Packet> p) override;
-    void SendPsschMacPdu(Ptr<Packet> p) override;
+    void SendPsschMacPdu(Ptr<Packet> p, uint32_t dstL2Id) override;
     void SetNrSlVarTtiAllocInfo(const SfnSf& sfn, const NrSlVarTtiAllocInfo& varTtiInfo) override;
 
     // methods inherited from NrSlUePhySapProvider go here
@@ -179,9 +186,9 @@ MemberNrSlUePhySapProvider<C>::SendPscchMacPdu(Ptr<Packet> p)
 
 template <class C>
 void
-MemberNrSlUePhySapProvider<C>::SendPsschMacPdu(Ptr<Packet> p)
+MemberNrSlUePhySapProvider<C>::SendPsschMacPdu(Ptr<Packet> p, uint32_t dstL2Id)
 {
-    m_owner->DoSendPsschMacPdu(p);
+    m_owner->DoSendPsschMacPdu(p, dstL2Id);
 }
 
 template <class C>
@@ -219,6 +226,7 @@ class MemberNrSlUePhySapUser : public NrSlUePhySapUser
     std::unordered_set<uint32_t> GetSlRxDestinations() override;
     void ReceivePsschPhyPdu(Ptr<PacketBurst> pdu) override;
     void ReceiveSensingData(SensingData sensingData) override;
+    void ReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo) override;
 
   private:
     C* m_owner; ///< the owner class
@@ -263,6 +271,13 @@ void
 MemberNrSlUePhySapUser<C>::ReceiveSensingData(SensingData sensingData)
 {
     m_owner->DoReceiveSensingData(sensingData);
+}
+
+template <class C>
+void
+MemberNrSlUePhySapUser<C>::ReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo)
+{
+    m_owner->DoReceivePsfch(sendingNodeId, harqInfo);
 }
 
 } // namespace ns3

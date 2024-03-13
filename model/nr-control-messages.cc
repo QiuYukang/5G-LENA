@@ -312,6 +312,23 @@ NrDlHarqFeedbackMessage::GetDlHarqFeedback()
     return m_dlHarqInfo;
 }
 
+NrSlHarqFeedbackMessage::NrSlHarqFeedbackMessage(void)
+{
+    SetMessageType(NrControlMessage::SL_HARQ);
+}
+
+void
+NrSlHarqFeedbackMessage::SetSlHarqFeedback(SlHarqInfo m)
+{
+    m_slHarqInfo = m;
+}
+
+SlHarqInfo
+NrSlHarqFeedbackMessage::GetSlHarqFeedback(void)
+{
+    return m_slHarqInfo;
+}
+
 NrSrsMessage::NrSrsMessage()
 {
     SetMessageType(NrControlMessage::SRS);

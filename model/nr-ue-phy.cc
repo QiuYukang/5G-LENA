@@ -54,6 +54,7 @@ NrUePhy::NrUePhy()
 NrUePhy::~NrUePhy()
 {
     NS_LOG_FUNCTION(this);
+    m_slHarqFbList.clear();
 }
 
 void
@@ -1210,6 +1211,18 @@ NrUePhy::EnqueueDlHarqFeedback(const DlHarqInfo& m)
 }
 
 void
+NrUePhy::EnqueueSlHarqFeedback(const SlHarqInfo& m)
+{
+    NS_LOG_FUNCTION(this);
+    NS_LOG_DEBUG("Enqueued SL HARQ " << (m.IsReceivedOk() ? "ACK" : "NACK") << " in slot "
+                                     << m_currentSlot.Normalize() << " for process "
+                                     << +m.m_harqProcessId);
+    Ptr<NrSlHarqFeedbackMessage> msg = Create<NrSlHarqFeedbackMessage>();
+    msg->SetSlHarqFeedback(m);
+    m_slHarqFbList.emplace_back(std::make_pair(m_currentSlot, msg));
+}
+
+void
 NrUePhy::SetCam(const Ptr<NrChAccessManager>& cam)
 {
     NS_LOG_FUNCTION(this);
@@ -1243,8 +1256,8 @@ NrUePhy::DoReset()
 
     // initialize NR SL PSSCH packet queue
     m_nrSlPsschPacketBurstQueue.clear();
-    Ptr<PacketBurst> pbPssch = CreateObject<PacketBurst>();
-    m_nrSlPsschPacketBurstQueue.push_back(pbPssch);
+    // initialize NR SL PSFCH feedback queue
+    m_slHarqFbList.clear();
 }
 
 void
@@ -1761,22 +1774,30 @@ NrUePhy::StartNrSlVarTti(const NrSlVarTtiAllocInfo& varTtiInfo)
 {
     NS_LOG_FUNCTION(this);
 
-    Time varTtiPeriod;
+    Time varTtiDuration;
 
     if (varTtiInfo.SlVarTtiType == NrSlVarTtiAllocInfo::CTRL)
     {
-        varTtiPeriod = SlCtrl(varTtiInfo);
+        varTtiDuration = SlCtrl(varTtiInfo);
+        NS_LOG_DEBUG("CTRL " << varTtiDuration.As(Time::MS));
     }
     else if (varTtiInfo.SlVarTtiType == NrSlVarTtiAllocInfo::DATA)
     {
-        varTtiPeriod = SlData(varTtiInfo);
+        varTtiDuration = SlData(varTtiInfo);
+        NS_LOG_DEBUG("DATA " << varTtiDuration.As(Time::MS));
+    }
+    else if (varTtiInfo.SlVarTtiType == NrSlVarTtiAllocInfo::FEEDBACK)
+    {
+        varTtiDuration = SlFeedback(varTtiInfo);
+        NS_LOG_DEBUG("FEEDBACK " << varTtiDuration.As(Time::MS));
     }
     else
     {
         NS_FATAL_ERROR("Invalid or unknown SL VarTti type " << varTtiInfo.SlVarTtiType);
     }
 
-    Simulator::Schedule(varTtiPeriod, &NrUePhy::EndNrSlVarTti, this, varTtiInfo);
+    NS_LOG_DEBUG("Scheduling EndNrSlVarTti at time " << (Now() + varTtiDuration).As(Time::S));
+    Simulator::Schedule(varTtiDuration, &NrUePhy::EndNrSlVarTti, this, varTtiInfo);
 }
 
 void
@@ -1829,7 +1850,7 @@ NrUePhy::SlCtrl(const NrSlVarTtiAllocInfo& varTtiInfo)
 
 void
 NrUePhy::SendNrSlCtrlChannels(const Ptr<PacketBurst>& pb,
-                              const Time& varTtiPeriod,
+                              const Time& varTtiDuration,
                               const NrSlVarTtiAllocInfo& varTtiInfo)
 {
     NS_LOG_FUNCTION(this);
@@ -1843,7 +1864,7 @@ NrUePhy::SendNrSlCtrlChannels(const Ptr<PacketBurst>& pb,
 
     SetSubChannelsForTransmission(channelRbs, varTtiInfo.symLength);
     NS_LOG_DEBUG("Sending PSCCH on SfnSf " << m_currentSlot);
-    m_spectrumPhy->StartTxSlCtrlFrames(pb, varTtiPeriod);
+    m_spectrumPhy->StartTxSlCtrlFrames(pb, varTtiDuration);
 }
 
 Time
@@ -1851,41 +1872,44 @@ NrUePhy::SlData(const NrSlVarTtiAllocInfo& varTtiInfo)
 {
     NS_LOG_FUNCTION(this);
 
-    Time varTtiPeriod = GetSymbolPeriod() * varTtiInfo.symLength;
+    Time varTtiDuration = GetSymbolPeriod() * varTtiInfo.symLength;
     Ptr<PacketBurst> pktBurst = PopPsschPacketBurst();
-
-    if (pktBurst && pktBurst->GetNPackets() > 0)
+    do
     {
-        std::list<Ptr<Packet>> pkts = pktBurst->GetPackets();
-        LteRadioBearerTag bearerTag;
-        if (!pkts.front()->PeekPacketTag(bearerTag))
+        if (pktBurst && pktBurst->GetNPackets() > 0)
         {
-            NS_FATAL_ERROR("No radio bearer tag");
+            std::list<Ptr<Packet>> pkts = pktBurst->GetPackets();
+            LteRadioBearerTag bearerTag;
+            if (!pkts.front()->PeekPacketTag(bearerTag))
+            {
+                NS_FATAL_ERROR("No radio bearer tag");
+            }
         }
-    }
-    else
-    {
-        // put an error, as something is wrong. The UE should not be scheduled
-        // if there is no data for it...
-        NS_FATAL_ERROR("The UE " << m_rnti << " has been scheduled without NR SL data");
-    }
+        else
+        {
+            // put an error, as something is wrong. The UE should not be scheduled
+            // if there is no data for it...
+            NS_FATAL_ERROR("The UE " << m_rnti << " has been scheduled without NR SL data");
+        }
 
-    NS_LOG_DEBUG("UE" << m_rnti << " TXing NR SL DATA frame for symbols " << varTtiInfo.symStart
-                      << "-" << varTtiInfo.symLength - 1 << "\t start " << Simulator::Now()
-                      << " end " << (Simulator::Now() + varTtiPeriod));
-
-    Simulator::Schedule(NanoSeconds(1.0),
-                        &NrUePhy::SendNrSlDataChannels,
-                        this,
-                        pktBurst,
-                        varTtiPeriod - NanoSeconds(2.0),
-                        varTtiInfo);
-    return varTtiPeriod;
+        NS_LOG_DEBUG("UE" << m_rnti << " TXing NR SL DATA frame for symbols " << varTtiInfo.symStart
+                          << "-" << varTtiInfo.symStart + varTtiInfo.symLength - 1 << "\t start "
+                          << Simulator::Now() << " end "
+                          << (Simulator::Now() + varTtiDuration).GetSeconds());
+        Simulator::Schedule(NanoSeconds(1.0),
+                            &NrUePhy::SendNrSlDataChannels,
+                            this,
+                            pktBurst,
+                            varTtiDuration - NanoSeconds(2.0),
+                            varTtiInfo);
+        pktBurst = PopPsschPacketBurst();
+    } while (pktBurst);
+    return varTtiDuration;
 }
 
 void
 NrUePhy::SendNrSlDataChannels(const Ptr<PacketBurst>& pb,
-                              const Time& varTtiPeriod,
+                              const Time& varTtiDuration,
                               const NrSlVarTtiAllocInfo& varTtiInfo)
 {
     NS_LOG_FUNCTION(this);
@@ -1900,7 +1924,122 @@ NrUePhy::SendNrSlDataChannels(const Ptr<PacketBurst>& pb,
     SetSubChannelsForTransmission(channelRbs, varTtiInfo.symLength);
     NS_LOG_DEBUG("Sending PSSCH on SfnSf " << m_currentSlot);
     // Assume Sl Data channel is sent through the first stream
-    m_spectrumPhy->StartTxSlDataFrames(pb, varTtiPeriod);
+    m_spectrumPhy->StartTxSlDataFrames(pb, varTtiDuration);
+}
+
+Time
+NrUePhy::SlFeedback(const NrSlVarTtiAllocInfo& varTtiInfo)
+{
+    NS_LOG_FUNCTION(this);
+
+    Time varTtiDuration = GetSymbolPeriod() * varTtiInfo.symLength;
+
+    // Walk the queue and insert all eligible feedback messages to the pktBurst.
+    // A message is eligible if the current slot is MinTimeGapPsfch slots or
+    // greater than the slot time associated with the feedback in the queue.
+
+    // Note:  Future revisions of this method will need to further filter
+    // feedback messages beyond simply whether MinTimeGapPsfch has been
+    // exceeded.  For instance, there may be two messages that require the
+    // same PSFCH resource (and the higher priority must be selected), or
+    // the UE may be expecting feedback on the PSFCH from a prior transmission
+    // at higher priority than the feedback queued for sending (in which
+    // case the sending of feedback in this slot should be suppressed).
+
+    std::list<Ptr<NrSlHarqFeedbackMessage>> feedbackList;
+    uint8_t gap =
+        m_slTxPool->GetMinTimeGapPsfch(GetBwpId(), m_nrSlUePhySapUser->GetSlActiveTxPoolId());
+    auto it = m_slHarqFbList.begin();
+    while (it != m_slHarqFbList.end())
+    {
+        if (m_currentSlot.Normalize() >= gap + it->first.Normalize())
+        {
+            NS_LOG_DEBUG("Inserting HARQ FB to packet burst from slot "
+                         << it->first.Normalize() << " for sender RNTI "
+                         << it->second->GetSlHarqFeedback().m_txRnti << " dstL2Id "
+                         << it->second->GetSlHarqFeedback().m_dstL2Id << " harqProcessId "
+                         << +it->second->GetSlHarqFeedback().m_harqProcessId << " bwpIndex "
+                         << +it->second->GetSlHarqFeedback().m_bwpIndex << " status "
+                         << (it->second->GetSlHarqFeedback().IsReceivedOk() ? "ACK" : "NACK"));
+            feedbackList.emplace_front(it->second);
+            auto prev = it++;
+            m_slHarqFbList.erase(prev);
+        }
+        else if (m_currentSlot.Normalize() >= it->first.Normalize())
+        {
+            NS_LOG_DEBUG("At slot "
+                         << m_currentSlot.Normalize() << "; suppressing (processing delay " << +gap
+                         << " slots from " << it->first.Normalize()
+                         << ") the insertion of HARQ FB for sender RNTI "
+                         << it->second->GetSlHarqFeedback().m_txRnti << " dstL2Id "
+                         << it->second->GetSlHarqFeedback().m_dstL2Id << " harqProcessId "
+                         << +it->second->GetSlHarqFeedback().m_harqProcessId << " bwpIndex "
+                         << +it->second->GetSlHarqFeedback().m_bwpIndex << " status "
+                         << (it->second->GetSlHarqFeedback().IsReceivedOk() ? "ACK" : "NACK"));
+            ++it;
+        }
+        else
+        {
+            ++it;
+        }
+    }
+    // It could be the case that among the eligible HARQ feedback messages to
+    // return, we have an earlier NACK that was later overridden by an ACK
+    // (possibly due to a blind retransmission).  Deliver only the latest
+    // one by iterating the feedback list and using a std::set to
+    // check for duplicates.  Because the previous iteration was in reverse,
+    // the unique feedback that we want to return will be the first encountered.
+    std::list<Ptr<NrSlHarqFeedbackMessage>> uniqueFeedbackList;
+    auto it2 = feedbackList.begin();
+    std::set<std::pair<uint16_t, uint8_t>> duplicateCheck;
+    while (it2 != feedbackList.end())
+    {
+        uint16_t rnti = (*it2)->GetSlHarqFeedback().m_txRnti;
+        uint8_t harqProcessId = (*it2)->GetSlHarqFeedback().m_harqProcessId;
+        // If insert() returns false, the (rnti, harqProcessId) already exists
+        if (duplicateCheck.insert(std::make_pair(rnti, harqProcessId)).second == true)
+        {
+            NS_LOG_DEBUG("Preparing HARQ feedback for sender RNTI " << rnti << " HARQ PID "
+                                                                    << +harqProcessId);
+            uniqueFeedbackList.emplace_front(*it2);
+        }
+        ++it2;
+    }
+    if (uniqueFeedbackList.size())
+    {
+        NS_LOG_DEBUG("UE" << m_rnti << " TXing NR SL FEEDBACK frame for symbols "
+                          << varTtiInfo.symStart << "-"
+                          << varTtiInfo.symStart + varTtiInfo.symLength - 1 << "\t start "
+                          << Simulator::Now().GetSeconds() << " end "
+                          << (Simulator::Now() + varTtiDuration).GetSeconds());
+
+        Simulator::Schedule(NanoSeconds(1.0),
+                            &NrUePhy::SendNrSlFbChannels,
+                            this,
+                            uniqueFeedbackList,
+                            varTtiDuration - NanoSeconds(2.0),
+                            varTtiInfo);
+    }
+    return varTtiDuration;
+}
+
+void
+NrUePhy::SendNrSlFbChannels(const std::list<Ptr<NrSlHarqFeedbackMessage>>& feedbackList,
+                            const Time& varTtiDuration,
+                            const NrSlVarTtiAllocInfo& varTtiInfo)
+{
+    NS_LOG_FUNCTION(this << varTtiDuration);
+
+    std::vector<int> channelRbs;
+    uint32_t lastRbInPlusOne = (varTtiInfo.rbStart + varTtiInfo.rbLength);
+    for (uint32_t i = varTtiInfo.rbStart; i < lastRbInPlusOne; i++)
+    {
+        channelRbs.push_back(static_cast<int>(i));
+    }
+
+    SetSubChannelsForTransmission(channelRbs, varTtiInfo.symLength);
+    NS_LOG_DEBUG("Sending PSFCH on SfnSf " << m_currentSlot);
+    m_spectrumPhy->StartTxSlFeedback(feedbackList, varTtiDuration);
 }
 
 void
@@ -1927,7 +2066,7 @@ NrUePhy::PhyPscchPduReceived(const Ptr<Packet>& p, const SpectrumValue& psd)
         rbBitMap.push_back(i);
     }
 
-    double rsrpDbm = GetSidelinkRsrp(psd);
+    double rsrpDbm = GetSidelinkRsrp(psd).second;
 
     NS_LOG_DEBUG("Sending sensing data to UE MAC. RSRP "
                  << rsrpDbm << " dBm "
@@ -1968,6 +2107,20 @@ NrUePhy::PhyPscchPduReceived(const Ptr<Packet>& p, const SpectrumValue& psd)
         NS_LOG_INFO("Ignoring PSCCH! Destination " << tag.GetDstL2Id()
                                                    << " is not monitored by RNTI " << m_rnti);
     }
+}
+
+void
+NrUePhy::PhyPsfchReceived(uint32_t sendingNodeId, SlHarqInfo harqInfo)
+{
+    NS_LOG_FUNCTION(this << sendingNodeId);
+    Simulator::ScheduleWithContext(m_netDevice->GetNode()->GetId(),
+                                   // Add PSFCH decode latency here
+                                   // XXX provisional value of 1 slot
+                                   GetSlotPeriod(),
+                                   &NrSlUePhySapUser::ReceivePsfch,
+                                   m_nrSlUePhySapUser,
+                                   sendingNodeId,
+                                   harqInfo);
 }
 
 void
@@ -2046,9 +2199,39 @@ NrUePhy::SendSlExpectedTbInfo(const SfnSf& s)
 }
 
 void
-NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb)
+NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb, const SpectrumValue& psd)
 {
     NS_LOG_FUNCTION(this);
+    LteRadioBearerTag tag;
+    NrSlSciF2aHeader sciF2a;
+    // Separate SCI stage 2 packet from data packets
+    std::list<Ptr<Packet>> dataPkts;
+    bool foundSci2 = false;
+    Ptr<PacketBurst> pdu = pb;
+    for (auto p : pdu->GetPackets())
+    {
+        LteRadioBearerTag tag;
+        if (p->PeekPacketTag(tag) == false)
+        {
+            // SCI stage 2 is the only packet in the packet burst, which does
+            // not have the tag
+            p->PeekHeader(sciF2a);
+            foundSci2 = true;
+        }
+        else
+        {
+            dataPkts.push_back(p);
+        }
+    }
+
+    NS_ABORT_MSG_IF(foundSci2 == false, "Did not find SCI stage 2 in PSSCH packet burst");
+    NS_ASSERT_MSG(dataPkts.size() > 0, "Received PHY PDU with not data packets");
+
+    for (auto& pktIt : dataPkts)
+    {
+        Ptr<Packet> packet = pktIt->Copy();
+        packet->RemovePacketTag(tag);
+    }
     Simulator::ScheduleWithContext(m_netDevice->GetNode()->GetId(),
                                    GetTbDecodeLatency(),
                                    &NrSlUePhySapUser::ReceivePsschPhyPdu,
@@ -2056,7 +2239,7 @@ NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb)
                                    pb);
 }
 
-double
+std::pair<double, double>
 NrUePhy::GetSidelinkRsrp(SpectrumValue psd)
 {
     // Measure instantaneous S-RSRP...
@@ -2086,7 +2269,7 @@ NrUePhy::GetSidelinkRsrp(SpectrumValue psd)
     double avrgRsrpWatt = (sum / ((double)numRB * 3.0));
     double rsrpDbm = 10 * log10(1000 * (avrgRsrpWatt));
 
-    return rsrpDbm;
+    return std::make_pair(avrgRsrpWatt, rsrpDbm);
 }
 
 } // namespace ns3

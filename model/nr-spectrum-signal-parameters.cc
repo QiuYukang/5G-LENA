@@ -215,4 +215,33 @@ NrSpectrumSignalParametersSlDataFrame::Copy() const
     return lssp;
 }
 
+NrSpectrumSignalParametersSlFeedback::NrSpectrumSignalParametersSlFeedback()
+{
+    NS_LOG_FUNCTION(this);
+}
+
+NrSpectrumSignalParametersSlFeedback::NrSpectrumSignalParametersSlFeedback(
+    const NrSpectrumSignalParametersSlFeedback& p)
+    : NrSpectrumSignalParametersSlFrame(p)
+{
+    NS_LOG_FUNCTION(this << &p);
+    nodeId = p.nodeId;
+    feedbackList = p.feedbackList;
+}
+
+Ptr<SpectrumSignalParameters>
+NrSpectrumSignalParametersSlFeedback::Copy() const
+{
+    NS_LOG_FUNCTION(this);
+    // Ideally we would use:
+    //   return Copy<NrSpectrumSignalParametersSlFeedback> (*this);
+    // but for some reason it doesn't work. Another alternative is
+    //   return Copy<NrSpectrumSignalParametersSlFeedback> (this);
+    // but it causes a double creation of the object, hence it is less efficient.
+    // The solution below is copied from the implementation of Copy<> (Ptr<>) in ptr.h
+    Ptr<NrSpectrumSignalParametersSlFeedback> lssp(new NrSpectrumSignalParametersSlFeedback(*this),
+                                                   false);
+    return lssp;
+}
+
 } // namespace ns3

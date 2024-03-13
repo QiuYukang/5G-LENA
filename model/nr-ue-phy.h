@@ -13,12 +13,16 @@
 #include "nr-pm-search.h"
 #include "nr-sl-mac-pdu-tag.h"
 #include "nr-sl-sci-f1a-header.h"
+#include "nr-sl-sci-f2a-header.h"
 #include "nr-sl-ue-phy-sap.h"
 
 #include <ns3/lte-ue-cphy-sap.h>
 #include <ns3/lte-ue-phy-sap.h>
 #include <ns3/nr-sl-ue-cphy-sap.h>
 #include <ns3/traced-callback.h>
+
+#include <queue>
+#include <utility>
 
 namespace ns3
 {
@@ -351,6 +355,16 @@ class NrUePhy : public NrPhy
                                                         const uint8_t bwpId,
                                                         uint8_t harqId,
                                                         uint32_t K1Delay);
+
+    /**
+     * \brief Receive the HARQ feedback (on the transmission) from
+     * NrSpectrumPhy and store it for PSFCH transmission
+     *
+     * Connected by the helper to a NrSpectrumPhy callback
+     *
+     * \param m the HARQ feedback
+     */
+    void EnqueueSlHarqFeedback(const SlHarqInfo& m);
 
     /**
      * \brief Set the channel access manager interface for this instance of the PHY
@@ -929,8 +943,15 @@ class NrUePhy : public NrPhy
     /**
      * \brief Receive new successfully decoded PSSCH PHY pdu from SpectrumPhy
      * \param pb The packet burst received
+     * \param psd The power spectral density received
      */
-    void PhyPsschPduReceived(const Ptr<PacketBurst>& pb);
+    void PhyPsschPduReceived(const Ptr<PacketBurst>& pb, const SpectrumValue& psd);
+    /**
+     * \brief Receive new successfully decoded PSFCH from SpectrumPhy
+     * \param sendingNodeId sending nodeId
+     * \param harqInfo the HARQ info
+     */
+    void PhyPsfchReceived(uint32_t sendingNodeId, SlHarqInfo harqInfo);
 
   protected:
     /**
@@ -1012,8 +1033,9 @@ class NrUePhy : public NrPhy
      * \brief Start the processing of a NR Sidelink variable TTI
      * \param varTtiInfo the slot VarTti allocation info of the variable TTI
      *
-     * This time can be a SL CTRL, a SL data, SL HARQ feedback (not available yet), with
-     * any number of symbols (limited to the number of symbols per slot).
+     * This time can be a SL CTRL, a SL data, or a SL PSFCH, with
+     * an appropriate number of symbols (limited to the number of symbols per
+     * slot).
      *
      * At the end of processing, it schedules the method EndNrSlVarTti that will finish
      * the processing of the variable TTI allocation.
@@ -1061,11 +1083,28 @@ class NrUePhy : public NrPhy
                               const Time& varTtiPeriod,
                               const NrSlVarTtiAllocInfo& varTtiInfo);
     /**
+     * \brief Transmit to the spectrum phy the NR SL FB message list
+     *
+     * \param feedbackList list of messages to transmit
+     * \param varTtiPeriod period of transmission
+     * \param varTtiInfo the slot VarTti allocation info of the variable TTI
+     */
+    void SendNrSlFbChannels(const std::list<Ptr<NrSlHarqFeedbackMessage>>& feedbackList,
+                            const Time& varTtiPeriod,
+                            const NrSlVarTtiAllocInfo& varTtiInfo);
+    /**
      * \brief Transmit NR SL DATA and return the time at which the transmission will end
      * \param varTtiInfo the current slot VarTti allocation info to TX NR SL DATA
      * \return the time at which the transmission of NR SL DATA will end
      */
     Time SlData(const NrSlVarTtiAllocInfo& varTtiInfo) __attribute__((warn_unused_result));
+    /**
+     * \brief Transmit NR SL feedback and return the time at which the transmission will end
+     * \param varTtiInfo the current slot VarTti allocation info to TX NR SL FEEDBACK
+     * \return the time at which the transmission of NR SL FEEDBACK will end
+     */
+    Time SlFeedback(const NrSlVarTtiAllocInfo& varTtiInfo) __attribute__((warn_unused_result));
+
     /**
      * \brief Get the Sidelink RSRP value in dBm
      *
@@ -1073,9 +1112,10 @@ class NrUePhy : public NrPhy
      * for which we have successfully decoded the SCI-1A.
      *
      * \param psd the power spectral density per each RB
-     * \return Sidelink RSRP in dBm
+     * \return a pair of Sidelink RSRP values in Watt and in dBm
      */
-    double GetSidelinkRsrp(SpectrumValue psd);
+    std::pair<double, double> GetSidelinkRsrp(SpectrumValue psd);
+
     /**
      * \brief Save the future Sidelink RX grants indicated by SCI 1-A
      * \param sciF1a SCI 1-A header
@@ -1103,6 +1143,9 @@ class NrUePhy : public NrPhy
     Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
     Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
     std::deque<SlRxGrantInfo> m_slRxGrants;     //!< Sidelink RX grants indicated by SCI 1-A
+
+    std::list<std::pair<SfnSf, Ptr<NrSlHarqFeedbackMessage>>>
+        m_slHarqFbList; // List of pending SL HARQ FB messages
 };
 
 } // namespace ns3

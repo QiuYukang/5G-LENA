@@ -70,8 +70,6 @@ NrHarqPhy::ResetUlHarqProcessStatus(uint16_t rnti, uint8_t id)
 NrHarqPhy::HistoryMap::iterator
 NrHarqPhy::GetHistoryMapOf(NrHarqPhy::HistoryMap* map, uint16_t rnti) const
 {
-    NS_LOG_FUNCTION(this);
-
     NrHarqPhy::HistoryMap::iterator it = map->find(rnti);
     if (it == map->end())
     {
@@ -87,8 +85,6 @@ NrHarqPhy::GetHistoryMapOf(NrHarqPhy::HistoryMap* map, uint16_t rnti) const
 NrHarqPhy::ProcIdHistoryMap::iterator
 NrHarqPhy::GetProcIdHistoryMapOf(NrHarqPhy::ProcIdHistoryMap* map, uint16_t procId) const
 {
-    NS_LOG_FUNCTION(this);
-
     NrHarqPhy::ProcIdHistoryMap::iterator it = map->find(procId);
     if (it == map->end())
     {
@@ -133,8 +129,6 @@ NrHarqPhy::UpdateHarqProcessStatus(NrHarqPhy::HistoryMap* map,
 const NrErrorModel::NrErrorModelHistory&
 NrHarqPhy::GetHarqProcessInfo(NrHarqPhy::HistoryMap* map, uint16_t rnti, uint8_t harqProcId) const
 {
-    NS_LOG_FUNCTION(this);
-
     NrHarqPhy::HistoryMap::iterator historyMap = GetHistoryMapOf(map, rnti);
 
     ProcIdHistoryMap* procIdMap = &(historyMap->second);
@@ -144,10 +138,9 @@ NrHarqPhy::GetHarqProcessInfo(NrHarqPhy::HistoryMap* map, uint16_t rnti, uint8_t
 
 // NR SL
 const NrErrorModel::NrErrorModelHistory&
-NrHarqPhy::GetHarqProcessInfoSlData(uint16_t rnti, uint8_t harqProcId)
+NrHarqPhy::GetHarqProcessInfoSl(uint16_t rnti, uint8_t harqProcId)
 {
-    NS_LOG_FUNCTION(this);
-    return GetHarqProcessInfo(&m_slDataHistory, rnti, harqProcId);
+    return GetHarqProcessInfo(&m_slHistory, rnti, harqProcId);
 }
 
 void
@@ -156,14 +149,14 @@ NrHarqPhy::UpdateSlDataHarqProcessStatus(uint16_t rnti,
                                          const Ptr<NrErrorModelOutput>& output)
 {
     NS_LOG_FUNCTION(this);
-    UpdateHarqProcessStatus(&m_slDataHistory, rnti, harqProcId, output);
+    UpdateHarqProcessStatus(&m_slHistory, rnti, harqProcId, output);
 }
 
 void
 NrHarqPhy::ResetSlDataHarqProcessStatus(uint16_t rnti, uint8_t id)
 {
     NS_LOG_FUNCTION(this);
-    ResetHarqProcessStatus(&m_slDataHistory, rnti, id);
+    ResetHarqProcessStatus(&m_slHistory, rnti, id);
 }
 
 void

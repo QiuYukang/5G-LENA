@@ -22,6 +22,7 @@
 #include <ns3/random-variable-stream.h>
 #include <ns3/spectrum-channel.h>
 #include <ns3/traced-callback.h>
+#include <ns3/traced-value.h>
 
 #include <functional>
 
@@ -132,6 +133,11 @@ class NrSpectrumPhy : public SpectrumPhy
      * the status of a UL HARQ feedback
      */
     typedef Callback<void, const UlHarqInfo&> NrPhyUlHarqFeedbackCallback;
+    /**
+     * This callback method type is used by the NrSpectrumPhy to notify the PHY about
+     * the status of a SL HARQ feedback
+     */
+    typedef Callback<void, const SlHarqInfo&> NrPhySlHarqFeedbackCallback;
 
     /**
      * \brief Sets the callback to be called when DATA is received successfully
@@ -160,6 +166,10 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Sets the callback to be called when UL HARQ feedback is generated
      */
     void SetPhyUlHarqFeedbackCallback(const NrPhyUlHarqFeedbackCallback& c);
+    /**
+     * \brief Sets the callback to be called when SL HARQ feedback is generated
+     */
+    void SetPhySlHarqFeedbackCallback(const NrPhySlHarqFeedbackCallback& c);
 
     // Methods inherited from spectrum phy
     void SetDevice(Ptr<NetDevice> d) override;
@@ -735,6 +745,9 @@ class NrSpectrumPhy : public SpectrumPhy
     NrPhyUlHarqFeedbackCallback
         m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is
                                      //!< being generated
+    NrPhySlHarqFeedbackCallback
+        m_phySlHarqFeedbackCallback; //!< callback that is notified when the SL HARQ feedback is
+                                     //!< being generated
 
     // traces
     TracedCallback<Time>
@@ -744,6 +757,9 @@ class NrSpectrumPhy : public SpectrumPhy
                                         //!< starts to occupy the channel with data transmission
     TracedCallback<Time> m_txCtrlTrace; //!< trace callback that is notifying when this spectrum phy
                                         //!< starts to occupy the channel with transmission of CTRL
+    TracedCallback<Time>
+        m_txFeedbackTrace; //!< trace callback that is notifying when this spectrum phy starts to
+                           //!< occupy the channel with transmission of HARQ feedback
     TracedCallback<RxPacketTraceParams>
         m_rxPacketTraceEnb; //!< trace callback that is notifying when eNB/gNB received the packet
     TracedCallback<RxPacketTraceParams>
@@ -910,6 +926,8 @@ class NrSpectrumPhy : public SpectrumPhy
         bool isSci2Corrupted{
             false}; //!< True if the ErrorModel indicates that the SCI stage 2 is corrupted.
                     //    Filled at the end of data rx/tx
+        bool isHarqEnabled{false};    //!< Indicate if the SCI2A header had HARQ enabled
+        bool harqFeedbackSent{false}; //!< Indicate if the feedback has been sent for an entire TB
         Ptr<NrErrorModelOutput>
             outputEmForData; //!< Output of the Error Model (depends on the EM type) for data
         Ptr<NrErrorModelOutput>
@@ -931,12 +949,18 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief This callback method type is used to notify about a successful
      *        PSSCH reception.
      */
-    typedef std::function<void(const Ptr<PacketBurst>&)> NrPhyRxPsschEndOkCallback;
+    typedef std::function<void(const Ptr<PacketBurst>&, const SpectrumValue&)>
+        NrPhyRxPsschEndOkCallback;
     /**
      * \brief This callback method type is used to notify about a unsuccessful
      *        PSSCH reception.
      */
     typedef std::function<void(const Ptr<PacketBurst>&)> NrPhyRxPsschEndErrorCallback;
+    /**
+     * \brief This callback method type is used to notify about a successful
+     *        PSFCH reception.
+     */
+    typedef std::function<void(uint32_t, SlHarqInfo)> NrPhyRxSlPsfchCallback;
     /**
      * \brief Sets the NR sidelink error model type
      *
@@ -979,6 +1003,13 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartTxSlCtrlFrames(const Ptr<PacketBurst>& pb, Time duration);
     /**
+     * \brief Starts transmission of NR SL FB symbols on connected spectrum channel object
+     * \param feedbackList messages to be transmitted
+     * \param duration the duration of transmission
+     */
+    void StartTxSlFeedback(const std::list<Ptr<NrSlHarqFeedbackMessage>>& feedbackList,
+                           const Time& duration);
+    /**
      * \brief Adds the NR SL chunk processor that passes the SINR of received
      *        signal (s) to this SpectrumPhy once its reception ends.
      * \param p The new NrSlChunkProcessor to be added to the NR Sidelink processing chain
@@ -1019,6 +1050,11 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void SetSlAmc(Ptr<NrAmc> slAmc);
     /**
+     * \brief Set SL error model
+     * param slErrorModel the sidelink error model
+     */
+    void SetSlErrorModel(Ptr<NrErrorModel> slErrorModel);
+    /**
      * \brief Set the callback for the successful end of a PSCCH RX, as part of the
      * interconnections between the PHY and the MAC
      *
@@ -1035,6 +1071,11 @@ class NrSpectrumPhy : public SpectrumPhy
      * \param c The callback
      */
     void SetNrPhyRxPsschEndErrorCallback(NrPhyRxPsschEndErrorCallback c);
+    /**
+     * \brief Set the callback for the reception of successful PSFCH
+     * \param c The callback
+     */
+    void SetNrPhyRxSlPsfchCallback(NrPhyRxSlPsfchCallback c);
     /**
      * \brief Add sidelink expected Transport Block (TB)
      * \param rnti The RNTI of the UE from whom to expect the TB
@@ -1088,6 +1129,11 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void RxSlPssch(std::vector<uint32_t> paramIndexes);
     /**
+     * \brief Function to process received PSFCH signals/messages function
+     * \param paramIndexes Indexes of received PSFCH signals/messages parameters
+     */
+    void RxSlPsfch(std::vector<uint32_t> paramIndexes);
+    /**
      * \brief Get SINR stats function
      *
      * This method computes an average SINR and a minimum SINR among the RBs in
@@ -1108,6 +1154,7 @@ class NrSpectrumPhy : public SpectrumPhy
         Object::GetTypeId()}; //!< Sidelink Error model type by default is NrLteMiErrorModel
     Ptr<NrSlInterference> m_slInterference;       //!< the Sidelink interference
     std::vector<SpectrumValue> m_slSinrPerceived; //!< SINR for each NR Sidelink packet received
+    Ptr<NrErrorModel> m_slErrorModel;             //!< Instance of sidelink error model
     std::vector<SpectrumValue> m_slSigPerceived;  //!< PSD for each NR Sidelink packet received
     std::vector<SlRxSigParamInfo>
         m_slRxSigParamInfo; //!< NR Sidelink received signal parameter info
@@ -1124,6 +1171,8 @@ class NrSpectrumPhy : public SpectrumPhy
         m_nrPhyRxPsschEndOkCallback; //!< The callback for the NR SL PHY PSSCH successful reception
     NrPhyRxPsschEndErrorCallback m_nrPhyRxPsschEndErrorCallback; //!< The callback for the NR SL PHY
                                                                  //!< PSSCH unsuccessful reception
+    NrPhyRxSlPsfchCallback
+        m_nrPhyRxSlPsfchCallback; //!< The callback for the NR SL PHY PSFCH successful reception
     /**
      * \brief typedef for NR SL transport block map per RNTI of TBs which are
      *        expected to be received after successful decoding of SCI stage-1.
@@ -1135,7 +1184,10 @@ class NrSpectrumPhy : public SpectrumPhy
     TracedCallback<SlRxCtrlPacketTraceParams>
         m_rxPscchTraceUe; //!< trace source for PSCCH reception
     TracedCallback<SlRxDataPacketTraceParams>
-        m_rxPsschTraceUe; //!< trace source for PSSCH reception
+        m_rxPsschTraceUe;                          //!< trace source for PSSCH reception
+    TracedValue<uint64_t> m_slPscchDecodeFailures; //!< Count of observed PSCCH decode failures
+    TracedValue<uint64_t> m_slSci2aDecodeFailures; //!< Count of observed SCI 2a decode failures
+    TracedValue<uint64_t> m_slTbDecodeFailures;    //!< Count of observed TB decode failures
 };
 
 } // namespace ns3
