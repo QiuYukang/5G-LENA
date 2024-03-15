@@ -7,8 +7,6 @@
 #ifndef NR_SL_UE_MAC_SCHEDULER_LCG_H
 #define NR_SL_UE_MAC_SCHEDULER_LCG_H
 
-#include "nr-sl-phy-mac-common.h"
-
 #include <ns3/nr-sl-mac-sap.h>
 #include <ns3/nr-sl-ue-cmac-sap.h>
 #include <ns3/nstime.h>
@@ -77,9 +75,14 @@ class NrSlUeMacSchedulerLC
 
     uint8_t m_pqi{std::numeric_limits<uint8_t>::max()};      //!< PC5 QoS Class Identifier
     uint8_t m_priority{std::numeric_limits<uint8_t>::max()}; //!< priority
-    bool m_isGbr{false}; //!< true if the bearer is GBR, false if the bearer is NON-GBR
-    uint64_t m_mbr{0};   //!< maximum bitrate
-    uint64_t m_gbr{0};   //!< guaranteed bitrate
+    bool m_isGbr{false};       //!< true if the bearer is GBR, false if the bearer is NON-GBR
+    uint64_t m_mbr{0};         //!< maximum bitrate
+    uint64_t m_gbr{0};         //!< guaranteed bitrate
+    bool m_harqEnabled{false}; //!< true if HARQ is enabled
+    Time m_pdb{0};             //!< Packet Delay Budget
+    bool m_dynamic{false};     //!< true if LC scheduling is dynamic, false if it is SPS
+    Time m_rri{0};             //!< Resource Reservation Interval
+    SidelinkInfo::CastType m_castType{SidelinkInfo::CastType::Invalid}; //!< Cast type
 };
 
 /**
@@ -154,6 +157,12 @@ class NrSlUeMacSchedulerLCG
     void Insert(NrSlLCPtr&& lc);
 
     /**
+     * \brief Remove LC from the group
+     * \param lcid LCID to remove
+     */
+    void Remove(uint8_t lcid);
+
+    /**
      * \brief Update the LCG with a message coming from RLC in the UE.
      *
      * \param params message from UE RLC layer.
@@ -163,7 +172,7 @@ class NrSlUeMacSchedulerLCG
      *
      * A call to NrSlUeMacSchedulerLC::UpdateLc is performed.
      */
-    void UpdateInfo(const NrSlMacSapProvider::NrSlReportBufferStatusParameters& params);
+    void UpdateInfo(const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params);
 
     /**
      * \brief Get the total size of the queue of all the LCs of the LCG
@@ -210,6 +219,13 @@ class NrSlUeMacSchedulerLCG
     bool IsLcGbr(uint16_t lcId) const;
 
     /**
+     * \brief Check if the LC has HARQ enabled
+     * \param lcId The LC id
+     * \return true if the LC has HARQ enabled
+     */
+    bool IsHarqEnabled(uint8_t lcId) const;
+
+    /**
      * \brief Get the LC MBR value
      *
      * \param lcId The LC id
@@ -224,6 +240,38 @@ class NrSlUeMacSchedulerLCG
      * \return The GBR value of the LC
      */
     uint64_t GetLcGbr(uint8_t lcId) const;
+
+    /**
+     * \brief Check if the LC scheduling is dynamic
+     *
+     * \param lcId The LC id
+     * \return true if the LC scheduling is dynamic, false if it is SPS
+     */
+    bool IsLcDynamic(uint16_t lcId) const;
+
+    /**
+     * \brief Check if the LC is configured to use HARQ
+     *
+     * \param lcId The LC id
+     * \return true if the LC is configured to use HARQ
+     */
+    bool IsLcHarqEnabled(uint16_t lcId) const;
+
+    /**
+     * \brief Get the LC RRI value
+     *
+     * \param lcId The LC id
+     * \return The RRI value of the LC
+     */
+    Time GetLcRri(uint8_t lcId) const;
+
+    /**
+     * \brief Get the LC remaining packet delay budget
+     *
+     * \param lcId The LC id
+     * \return The remaining packet delay budget of the LC
+     */
+    Time GetLcPdb(uint8_t lcId) const;
 
     /**
      * \brief Inform the LCG of the assigned data to a LC id

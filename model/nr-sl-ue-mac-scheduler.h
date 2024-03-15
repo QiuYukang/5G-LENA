@@ -2,16 +2,19 @@
 
 // Copyright (c) 2020 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-2.0-only and NIST-Software
 
 #ifndef NR_SL_UE_MAC_SCHEDULER_H
 #define NR_SL_UE_MAC_SCHEDULER_H
 
+#include "nr-amc.h"
 #include "nr-sl-phy-mac-common.h"
 
 #include <ns3/nr-sl-mac-sap.h>
 #include <ns3/nr-sl-ue-cmac-sap.h>
 #include <ns3/object.h>
+
+#include <deque>
 
 namespace ns3
 {
@@ -21,8 +24,6 @@ class NrSlUeMac;
 /**
  * \ingroup scheduler
  * \brief Interface for all the NR Sidelink schedulers
- *
- * \see NrSlUeMacSchedulerNs3
  */
 class NrSlUeMacScheduler : public Object
 {
@@ -33,7 +34,14 @@ class NrSlUeMacScheduler : public Object
      */
     static TypeId GetTypeId();
 
+    /**
+     * \brief NrSlUeMacScheduler constructor
+     */
     NrSlUeMacScheduler();
+
+    /**
+     * \brief NrSlUeMacScheduler destructor
+     */
     ~NrSlUeMacScheduler() override;
 
     //
@@ -43,12 +51,10 @@ class NrSlUeMacScheduler : public Object
     /**
      * \brief Starts the UL MAC scheduler for this subframe.
      *
-     * Requests scheduling to a destination based on provided sensing information
-     *
-     * \param dstL2Id The destination layer 2 id
-     * \param params List of NrSlSlotInfo (sensing information)
+     * \param sfn The current SfnSf
+     * \param ids available HARQ process IDs from the MAC
      */
-    void SchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params);
+    void SchedNrSlTriggerReq(const SfnSf& sfn, const std::deque<uint8_t>& ids);
 
     /**
      * \brief Update buffer status of logical channel data in RLC.
@@ -68,17 +74,16 @@ class NrSlUeMacScheduler : public Object
         const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params);
 
     /**
-     * Assign a fixed random variable stream number to the random variables
-     * used by this model.  Return the number of streams (possibly zero) that
-     * have been assigned.
+     * \brief Remove the NR Sidelink logical channel configuration from the scheduler and propagate
+     * to the MAC
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * \param lcid logical channel ID
+     * \param dstL2Id destination layer 2 ID
      */
-    virtual int64_t AssignStreams(int64_t stream) = 0;
+    void RemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2Id);
 
     /**
-     * Setter for pointer to NrSlUeMac
+     * \brief Set pointer to associated NrSlUeMac object
      * \param nrSlUeMac Pointer to NrSlUeMac
      */
     void SetNrSlUeMac(Ptr<NrSlUeMac> nrSlUeMac);
@@ -89,6 +94,42 @@ class NrSlUeMacScheduler : public Object
      */
     Ptr<NrSlUeMac> GetNrSlUeMac() const;
 
+    /**
+     * \brief Install the AMC for the NR Sidelink
+     *
+     * Usually called by the helper
+     *
+     * \param nrSlAmc NR Sidelink AMC
+     */
+    void InstallNrSlAmc(const Ptr<NrAmc>& nrSlAmc);
+
+    /**
+     * \brief Get the AMC for NR Sidelink
+     *
+     * \return the NR Sidelink AMC
+     */
+    Ptr<const NrAmc> GetNrSlAmc() const;
+
+    /**
+     * Assign a fixed random variable stream number to the random variables
+     * used by this model.  Return the number of streams (possibly zero) that
+     * have been assigned.
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    virtual int64_t AssignStreams(int64_t stream) = 0;
+
+    /**
+     * \brief Tell the scheduler that an RLC PDU packet has been dequeued and is now in the HARQ
+     * buffer
+     *
+     * \param dstL2Id The destination layer 2 ID
+     * \param lcId The logical channel ID
+     * \param size The size of the RLC PDU
+     */
+    void NotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint32_t size);
+
   protected:
     void DoDispose() override;
 
@@ -97,12 +138,11 @@ class NrSlUeMacScheduler : public Object
     /**
      * \brief Starts the UL MAC scheduler for this subframe.
      *
-     * Requests scheduling to a destination based on provided sensing information
-     *
-     * \param dstL2Id The destination layer 2 id
-     * \param params List of NrSlSlotInfo (sensing information)
+     * \param sfn The current SfnSf
+     * \param ids available HARQ process IDs from the MAC
      */
-    virtual void DoSchedNrSlTriggerReq(uint32_t dstL2Id, const std::list<NrSlSlotInfo>& params) = 0;
+    virtual void DoSchedNrSlTriggerReq(const SfnSf& sfn, const std::deque<uint8_t>& ids) = 0;
+
     /**
      * \brief Update buffer status of logical channel data in RLC.
      *
@@ -118,8 +158,27 @@ class NrSlUeMacScheduler : public Object
      */
     virtual void DoCschedNrSlLcConfigReq(
         const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) = 0;
+    /**
+     * \brief Remove the NR Sidelink logical channel configuration from the scheduler and propagate
+     * to the MAC
+     *
+     * \param lcid logical channel ID
+     * \param dstL2Id destination layer 2 ID
+     */
+    virtual void DoRemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2Id) = 0;
+
+    /**
+     * \brief Tell the scheduler that an RLC PDU packet has been dequeued and is now in the HARQ
+     * buffer
+     *
+     * \param dstL2Id The destination layer 2 ID
+     * \param lcId The logical channel ID
+     * \param size The size of the RLC PDU
+     */
+    virtual void DoNotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint32_t size) = 0;
 
     Ptr<NrSlUeMac> m_nrSlUeMac; //!< Pointer to NrSlUeMac instance
+    Ptr<NrAmc> m_nrSlAmc;       //!< AMC pointer for NR SL
 };
 
 } // namespace ns3

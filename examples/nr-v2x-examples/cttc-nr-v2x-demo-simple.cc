@@ -472,9 +472,7 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(100)));
     nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(4));
-    nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
 
     uint8_t bwpIdForGbrMcptt = 0;
 
@@ -545,10 +543,10 @@ main(int argc, char* argv[])
 
     /*
      * Set the SL scheduler attributes
-     * In this example we use NrSlUeMacSchedulerSimple scheduler, which uses
+     * In this example we use NrSlUeMacSchedulerDefault scheduler, which uses
      * fix MCS value
      */
-    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
+    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
     nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
     nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
 
@@ -569,12 +567,11 @@ main(int argc, char* argv[])
     // SlResourcePoolNr IE
     LteRrcSap::SlResourcePoolNr slResourcePoolNr;
     // get it from pool factory
-    Ptr<NrSlCommPreconfigResourcePoolFactory> ptrFactory =
-        Create<NrSlCommPreconfigResourcePoolFactory>();
+    Ptr<NrSlCommResourcePoolFactory> ptrFactory = Create<NrSlCommResourcePoolFactory>();
     /*
      * Above pool factory is created to help the users of the simulator to create
      * a pool with valid default configuration. Please have a look at the
-     * constructor of NrSlCommPreconfigResourcePoolFactory class.
+     * constructor of NrSlCommResourcePoolFactory class.
      *
      * In the following, we show how one could change those default pool parameter
      * values as per the need.

@@ -7,7 +7,10 @@
 #ifndef NR_SL_UE_MAC_HARQ_H
 #define NR_SL_UE_MAC_HARQ_H
 
+#include "nr-phy-mac-common.h"
+
 #include <ns3/object.h>
+#include <ns3/traced-callback.h>
 
 #include <deque>
 #include <map>
@@ -35,7 +38,7 @@ class NrSlUeMacHarq : public Object
      * \brief Get the type id
      * \return the type id of the class
      */
-    static TypeId GetTypeId();
+    static TypeId GetTypeId(void);
 
     /**
      * \brief NrSlUeMacHarq constructor
@@ -45,7 +48,7 @@ class NrSlUeMacHarq : public Object
     /**
      * \brief NrSlUeMacHarq destructor
      */
-    ~NrSlUeMacHarq() override;
+    virtual ~NrSlUeMacHarq();
 
     /**
      * \brief Add destination to this HARQ entity
@@ -65,22 +68,35 @@ class NrSlUeMacHarq : public Object
      * \brief Assign NR Sidelink HARQ process id to a destination
      *
      * This method is used to assign a HARQ process id to a destination
-     * if there is an available Sidelink process in NrSlUeMacHarq#m_nrSlHarqIdBuffer.
      * In this implementation, an idle Sidelink process id is basically a number
      * stored in NrSlUeMacHarq#m_nrSlHarqIdBuffer vector, which starts from zero,
      * and ends at <b>maxSidelinkProcess - 1</b>.
      * Moreover, HARQ process id is the same as Sidelink process id.
      *
+     * The timeout value is to protect against the process ID becoming blocked
+     * on a HARQ-protected transmission that is never acknowledged.  Because
+     * the arrival of HARQ feedback for an old process will trigger an abort,
+     * the timeout value should be set to a conservative value (such as twice
+     * the packet delay budget).
+     *
+     * \param harqId The requested HARQ process ID
      * \param dstL2Id The destination Layer 2 id
+     * \param timeout The timeout value
      * \return The NR Sidelink HARQ id
      */
-    uint8_t AssignNrSlHarqProcessId(uint32_t dstL2Id);
+    uint8_t AssignNrSlHarqProcessId(uint8_t harqId, uint32_t dstL2Id, Time timeout);
 
     /**
      * \brief Get the total number of available HARQ process ids
      * \return The total number of available HARQ process ids
      */
     uint8_t GetNumAvailableHarqIds() const;
+
+    /**
+     * \brief Get a deque containing the available HARQ process IDs
+     * \return A deque (possibly empty) containing available HARQ process IDs
+     */
+    std::deque<uint8_t> GetAvailableHarqIds() const;
 
     /**
      * \brief Is the given HARQ id available
@@ -100,26 +116,73 @@ class NrSlUeMacHarq : public Object
     void AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Packet> pkt);
 
     /**
-     * \brief Get the packet burst from the Sidelink process buffer, which is identified
-     *        using destination L2 id and the HARQ id.
+     * \brief Get the packet burst from the Sidelink process buffer, which is
+     *        identified using destination L2 id and the HARQ id.
+     *
+     * This method may return nullptr if no matching PacketBurst is found
+     *
      * \param dstL2Id The destination Layer 2 id
      * \param harqId The HARQ id
-     * \return The packet burst
+     * \return The packet burst (if found) or a nullptr if not found
      */
     Ptr<PacketBurst> GetPacketBurst(uint32_t dstL2Id, uint8_t harqId) const;
 
     /**
      * \brief Receive NR Sidelink Harq feedback
-     * \param dstL2Id Destination Layer 2 id
-     * \param harqId The harq process id
+     * \param harqInfo Sidelink HARQ info structure
      */
-    void RecvNrSlHarqFeedback(uint32_t dstL2Id, uint8_t harqId);
+    void RecvNrSlHarqFeedback(SlHarqInfo harqInfo);
+
+    /**
+     * Flush the HARQ buffer associated with the HARQ process id.
+     *
+     * \param harqId HARQ process ID
+     */
+    void FlushNrSlHarqBuffer(uint8_t harqId);
+
+    /**
+     * TracedCallback signature for received HARQ feedback
+     * \param [in] slHarqInfo received SlHarqInfo parameter
+     */
+    typedef void (*RxHarqFeedbackTracedCallback)(const SlHarqInfo& slHarqInfo);
+
+    /**
+     * TracedCallback signature for HARQ process allocate
+     * \param [in] harqId HARQ process ID
+     * \param [in] dstL2Id Destination L2 ID
+     * \param [in] timeout Timeout
+     * \param [in] available Number of remaining available HARQ process IDs
+     */
+    typedef void (*AllocateTracedCallback)(uint8_t harqId,
+                                           uint32_t dstL2Id,
+                                           Time timeout,
+                                           std::size_t available);
+
+    /**
+     * TracedCallback signature for HARQ process deallocate
+     * \param [in] harqId HARQ process ID
+     * \param [in] available Number of remaining available HARQ process IDs
+     */
+    typedef void (*DeallocateTracedCallback)(uint8_t harqId, std::size_t available);
+
+    /**
+     * TracedCallback signature for request for packet burst (retransmission)
+     * \param [in] dstL2Id Destination L2 ID
+     * \param [in] harqId HARQ process ID
+     */
+    typedef void (*PacketBurstTracedCallback)(uint32_t dstL2Id, uint8_t harqId);
+
+    /**
+     * TracedCallback signature for HARQ timer expiry
+     * \param [in] harqId HARQ process ID
+     */
+    typedef void (*TimeoutTracedCallback)(uint8_t harqId);
 
   protected:
     /**
      * \brief DoDispose method inherited from Object
      */
-    void DoDispose() override;
+    void virtual DoDispose() override;
 
   private:
     /**
@@ -132,10 +195,25 @@ class NrSlUeMacHarq : public Object
         // used to signal HARQ failure to RLC handlers
         std::unordered_set<uint8_t> lcidList;                   //!< LC id container
         uint32_t dstL2Id{std::numeric_limits<uint32_t>::max()}; //!< Destination L2 id
+        EventId timer; //!< Timer to expire process ID if not successfully ACKed
     };
+
+    /**
+     * Timer handler to prevent HARQ process from being bound to a transport
+     * block that is never acknowledged.
+     * \param harqId the HARQ process ID
+     */
+    void HarqProcessTimerExpiry(uint8_t harqId);
 
     std::vector<NrSlProcessInfo> m_nrSlHarqPktBuffer; //!< NR SL HARQ packet buffer
     std::deque<uint8_t> m_nrSlHarqIdBuffer; //!< A container to store available HARQ/SL process ids
+
+    TracedCallback<const SlHarqInfo&> m_rxHarqFeedback; //!< Trace of SlHarqInfo
+    TracedCallback<uint8_t, uint32_t, Time, std::size_t>
+        m_allocateTrace;                                    // Trace HARQ ID allocation
+    TracedCallback<uint8_t, std::size_t> m_deallocateTrace; // Trace HARQ ID deallocation
+    TracedCallback<uint32_t, uint8_t> m_packetBurstTrace;   // Trace PB requests
+    TracedCallback<uint8_t> m_timeoutTrace;                 // Trace HARQ timer expiry
 };
 
 } // namespace ns3

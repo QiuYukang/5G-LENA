@@ -25,6 +25,8 @@ NrSlCommResourcePoolFactory::NrSlCommResourcePoolFactory()
     m_slResourceReservePeriodList = {0};
     m_slTimeResource = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
     m_slMaxNumPerReserve = 2;
+    m_slPsfchPeriod = 0; // PSFCH disabled by default
+    m_slMinTimeGapPsfch = 3;
 }
 
 NrSlCommResourcePoolFactory::~NrSlCommResourcePoolFactory()
@@ -291,6 +293,39 @@ NrSlCommResourcePoolFactory::CreatePool()
 
     m_pool.slTimeResource = m_slTimeResource;
 
+    switch (m_slPsfchPeriod)
+    {
+    case 0:
+        m_pool.slPsfchConfig.slPsfchPeriod.period = LteRrcSap::SlPsfchPeriod::SL0;
+        break;
+    case 1:
+        m_pool.slPsfchConfig.slPsfchPeriod.period = LteRrcSap::SlPsfchPeriod::SL1;
+        break;
+    case 2:
+        m_pool.slPsfchConfig.slPsfchPeriod.period = LteRrcSap::SlPsfchPeriod::SL2;
+        break;
+    case 4:
+        m_pool.slPsfchConfig.slPsfchPeriod.period = LteRrcSap::SlPsfchPeriod::SL4;
+        break;
+    default:
+        NS_FATAL_ERROR("Invalid PSFCH period value " << m_slPsfchPeriod);
+    }
+
+    switch (m_slMinTimeGapPsfch)
+    {
+    case 2:
+        m_pool.slPsfchConfig.slMinTimeGapPsfch.gap = LteRrcSap::SlMinTimeGapPsfch::SL2;
+        break;
+    case 3:
+        m_pool.slPsfchConfig.slMinTimeGapPsfch.gap = LteRrcSap::SlMinTimeGapPsfch::SL3;
+        break;
+    default:
+        if (m_pool.slPsfchConfig.slPsfchPeriod.period != LteRrcSap::SlPsfchPeriod::SL0)
+        {
+            NS_FATAL_ERROR("Invalid MinTimeGapPSFCH value " << m_slMinTimeGapPsfch);
+        }
+    }
+
     return m_pool;
 }
 
@@ -407,6 +442,30 @@ void
 NrSlCommResourcePoolFactory::SetSlMaxNumPerReserve(uint16_t maxNumPerReserve)
 {
     m_slMaxNumPerReserve = maxNumPerReserve;
+}
+
+uint16_t
+NrSlCommResourcePoolFactory::GetSlPsfchPeriod() const
+{
+    return m_slPsfchPeriod;
+}
+
+void
+NrSlCommResourcePoolFactory::SetSlPsfchPeriod(uint16_t psfchPeriod)
+{
+    m_slPsfchPeriod = psfchPeriod;
+}
+
+uint16_t
+NrSlCommResourcePoolFactory::GetSlMinTimeGapPsfch() const
+{
+    return m_slMinTimeGapPsfch;
+}
+
+void
+NrSlCommResourcePoolFactory::SetSlMinTimeGapPsfch(uint16_t minTimeGap)
+{
+    m_slMinTimeGapPsfch = minTimeGap;
 }
 
 } // namespace ns3

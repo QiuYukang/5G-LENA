@@ -181,10 +181,14 @@ struct NrSlSlotInfo
      * the starting symbol used for sidelink PSSCH in a slot \param slPsschSymLength Indicates
      * the total number of symbols available for sidelink PSSCH \param slSubchannelSize
      * Indicates the subchannel size in number of RBs \param slMaxNumPerReserve Indicates the
-     * maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI. \param
+     * maximum number of reserved PSCCH/PSSCH resources that can be indicated by an SCI.
+     * \param slPsfchPeriod Indicates PSFCH period for the pool
+     * \param slMinTimeGapPsfch Indicates MinTimeGapPsfch for the pool
+     * \param slMinTimeGapProcessing Indicates MinTimeGapProcessing value of NrUeMac
+     * \param sfn The SfnSf
      * \param slSubchannelStart The starting subchannel index
      * \param slSubchannelLength The number of subchannels
-     * sfn The SfnSf \param occupiedSbCh The set of occupied subchannel indexes
+     * \param occupiedSbCh The set of occupied subchannel indexes
      */
     NrSlSlotInfo(uint16_t numSlPscchRbs,
                  uint16_t slPscchSymStart,
@@ -193,6 +197,9 @@ struct NrSlSlotInfo
                  uint16_t slPsschSymLength,
                  uint16_t slSubchannelSize,
                  uint16_t slMaxNumPerReserve,
+                 uint8_t slPsfchPeriod,
+                 uint8_t slMinTimeGapPsfch,
+                 uint8_t slMinTimeGapProcessing,
                  SfnSf sfn,
                  uint8_t slSubchannelStart,
                  uint8_t slSubchannelLength,
@@ -206,6 +213,9 @@ struct NrSlSlotInfo
         this->slPsschSymLength = slPsschSymLength;
         this->slSubchannelSize = slSubchannelSize;
         this->slMaxNumPerReserve = slMaxNumPerReserve;
+        this->slPsfchPeriod = slPsfchPeriod;
+        this->slMinTimeGapPsfch = slMinTimeGapPsfch;
+        this->slMinTimeGapProcessing = slMinTimeGapProcessing;
         this->sfn = sfn;
         this->slSubchannelStart = slSubchannelStart;
         this->slSubchannelLength = slSubchannelLength;
@@ -234,7 +244,14 @@ struct NrSlSlotInfo
     uint16_t slMaxNumPerReserve{
         std::numeric_limits<uint16_t>::max()}; //!< The maximum number of reserved PSCCH/PSSCH
                                                //!< resources that can be indicated by an SCI.
-    SfnSf sfn{};                               //!< The SfnSf
+    uint8_t slPsfchPeriod{
+        std::numeric_limits<uint8_t>::max()}; //!< The PSFCH period configured for this pool
+    uint8_t slMinTimeGapPsfch{
+        std::numeric_limits<uint8_t>::max()}; //!< The MinTimeGapPsfch configured for this pool
+    uint8_t slMinTimeGapProcessing{
+        std::numeric_limits<uint8_t>::max()}; //!< The MinTimeGapProcessing of NrUeMac
+
+    SfnSf sfn{}; //!< The SfnSf
 
     uint8_t slSubchannelStart{
         std::numeric_limits<uint8_t>::max()}; //!< Starting index of subchannel for this resource
@@ -296,6 +313,7 @@ struct NrSlSlotAlloc
     uint16_t slPsschSubChLength{
         std::numeric_limits<uint16_t>::max()}; //!< Indicates the total number of subchannel
                                                //!< allocated for data
+    bool slHasPsfch{false};                    //!< Indicates whether PSFCH is present in the slot
 
     uint16_t maxNumPerReserve{
         std::numeric_limits<uint16_t>::max()}; //!< The maximum number of reserved PSCCH/PSSCH
@@ -339,9 +357,10 @@ struct NrSlVarTtiAllocInfo
      */
     enum
     {
-        CTRL,   //!< Used for SL CTRL
-        DATA,   //!< Used for SL DATA
-        INVALID //!< Default value. Used to initialize
+        CTRL,     //!< Used for SL CTRL
+        DATA,     //!< Used for SL DATA
+        FEEDBACK, //!< Used for SL FEEDBACK
+        INVALID   //!< Default value. Used to initialize
     } SlVarTtiType{INVALID};
 
     /**
@@ -540,6 +559,30 @@ struct SlotSensingData
     uint8_t prio{std::numeric_limits<uint8_t>::max()}; //!< The priority
     double slRsrp{0.0}; //!< The measured RSRP value over the used resource blocks
 };
+
+/**
+ * \brief Stream output operator for SensingData
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
+std::ostream& operator<<(std::ostream& os, const SensingData& p);
+
+/**
+ * \brief Stream output operator for SlotSensingData
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
+std::ostream& operator<<(std::ostream& os, const SlotSensingData& p);
+
+/**
+ * \brief Stream output operator for NrSlSlotAlloc
+ * \param os output stream
+ * \param p struct whose parameter to output
+ * \return updated stream
+ */
+std::ostream& operator<<(std::ostream& os, const NrSlSlotAlloc& p);
 
 } // namespace ns3
 

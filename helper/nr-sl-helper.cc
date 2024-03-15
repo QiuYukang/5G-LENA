@@ -18,7 +18,7 @@
 #include <ns3/nr-amc.h>
 #include <ns3/nr-sl-bwp-manager-ue.h>
 #include <ns3/nr-sl-chunk-processor.h>
-#include <ns3/nr-sl-ue-mac-scheduler-simple.h>
+#include <ns3/nr-sl-ue-mac-scheduler-default.h>
 #include <ns3/nr-sl-ue-mac-scheduler.h>
 #include <ns3/nr-sl-ue-mac.h>
 #include <ns3/nr-sl-ue-rrc.h>
@@ -43,7 +43,7 @@ NrSlHelper::NrSlHelper()
 {
     NS_LOG_FUNCTION(this);
     m_ueSlAmcFactory.SetTypeId(NrAmc::GetTypeId());
-    m_ueSlSchedulerFactory.SetTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
+    m_ueSlSchedulerFactory.SetTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
 }
 
 NrSlHelper::~NrSlHelper()
@@ -181,7 +181,7 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
         sched->SetNrSlUeMac(nrSlUeMac);
         nrSlUeMac->SetAttribute("NrSlUeMacScheduler", PointerValue(sched));
         // Set AMC in the NR SL UE MAC scheduler
-        Ptr<NrSlUeMacSchedulerNs3> schedNs3 = sched->GetObject<NrSlUeMacSchedulerNs3>();
+        Ptr<NrSlUeMacScheduler> schedNs3 = sched->GetObject<NrSlUeMacScheduler>();
         schedNs3->InstallNrSlAmc(slAmc);
         // SAPs between MAC and PHY
         nrUeDev->GetPhy(itBwps)->SetNrSlUePhySapUser(nrSlUeMac->GetNrSlUePhySapUser());
@@ -206,11 +206,22 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
                                         std::placeholders::_2);
         spectrumPhy->SetNrPhyRxPscchEndOkCallback(pscchPhyPduCallback);
 
-        std::function<void(const Ptr<PacketBurst>&)> psschPhyPduOkCallback;
+        std::function<void(const Ptr<PacketBurst>&, const SpectrumValue&)> psschPhyPduOkCallback;
         psschPhyPduOkCallback = std::bind(&NrUePhy::PhyPsschPduReceived,
                                           nrUeDev->GetPhy(itBwps),
-                                          std::placeholders::_1);
+                                          std::placeholders::_1,
+                                          std::placeholders::_2);
         spectrumPhy->SetNrPhyRxPsschEndOkCallback(psschPhyPduOkCallback);
+
+        std::function<void(uint32_t, SlHarqInfo)> psfchCallback;
+        psfchCallback = std::bind(&NrUePhy::PhyPsfchReceived,
+                                  nrUeDev->GetPhy(itBwps),
+                                  std::placeholders::_1,
+                                  std::placeholders::_2);
+        spectrumPhy->SetNrPhyRxSlPsfchCallback(psfchCallback);
+
+        spectrumPhy->SetPhySlHarqFeedbackCallback(
+            MakeCallback(&NrUePhy::EnqueueSlHarqFeedback, nrUeDev->GetPhy(itBwps)));
 
         // Set the SAP of NR UE MAC in SL BWP manager
         bool bwpmTest =

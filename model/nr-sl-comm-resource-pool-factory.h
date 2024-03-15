@@ -131,6 +131,38 @@ class NrSlCommResourcePoolFactory : public SimpleRefCount<NrSlCommResourcePoolFa
      *        resources that can be indicated by an SCI.
      */
     void SetSlMaxNumPerReserve(uint16_t maxNumPerReserve);
+    /**
+     * \brief Get Sidelink PSFCH period value (slots)
+     *
+     * Valid values are 0 (no PSFCH or HARQ), 1, 2, or 4 slots.
+     *
+     * \return The PSFCH period value in slots
+     */
+    uint16_t GetSlPsfchPeriod() const;
+    /**
+     * \brief Set Sidelink PSFCH period value (slots)
+     *
+     * Valid values are 0 (no PSFCH or HARQ), 1, 2, or 4 slots.
+     *
+     * \param psfchPeriod The PSFCH period value in slots
+     */
+    void SetSlPsfchPeriod(uint16_t psfchPeriod);
+    /**
+     * \brief Get Sidelink PSFCH minimum time gap interval (slots)
+     *
+     * Valid values are 2 or 3 slots.
+     *
+     * \return The PSFCH minimum time gap interval, in slots
+     */
+    uint16_t GetSlMinTimeGapPsfch() const;
+    /**
+     * \brief Set Sidelink PSFCH minimum time gap interval (slots)
+     *
+     * Valid values are 2 or 3 slots.
+     *
+     * \param minTimeGap The PSFCH minimum time gap interval, in slots
+     */
+    void SetSlMinTimeGapPsfch(uint16_t minTimeGap);
 
   private:
     LteRrcSap::SlResourcePoolNr m_pool; //!< Sidelink communication pool
@@ -154,6 +186,9 @@ class NrSlCommResourcePoolFactory : public SimpleRefCount<NrSlCommResourcePoolFa
     std::vector<std::bitset<1>> m_slTimeResource;      //!< The sidelink time resource bitmap
     uint16_t m_slMaxNumPerReserve; //!< The maximum number of reserved PSCCH/PSSCH resources that
                                    //!< can be indicated by an SCI.
+
+    uint16_t m_slPsfchPeriod;     //!< PSFCH period value
+    uint16_t m_slMinTimeGapPsfch; //!< Minimum Time Gap PSFCH value
 };
 
 } // namespace ns3

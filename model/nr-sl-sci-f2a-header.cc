@@ -26,10 +26,10 @@ NrSlSciF2aHeader::~NrSlSciF2aHeader()
 
 /**
  * TS 38.212 Table Table 8.4.1.1-1 specifies the values for cast type indicator.
- * Currently, we only support Broadcast = 0;
  */
-std::vector<NrSlSciF2aHeader::CastTypeIndicator_t> NrSlSciF2aHeader::m_allowedCastType = {
-    Broadcast};
+std::vector<NrSlSciF2aHeader::CastTypeIndicator_t> NrSlSciF2aHeader::m_allowedCastType = {Broadcast,
+                                                                                          Groupcast,
+                                                                                          Unicast};
 
 TypeId
 NrSlSciF2aHeader::GetTypeId()

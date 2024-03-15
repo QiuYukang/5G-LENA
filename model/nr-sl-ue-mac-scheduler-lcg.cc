@@ -16,18 +16,26 @@ NS_LOG_COMPONENT_DEFINE("NrSlUeMacSchedulerLCG");
 NrSlUeMacSchedulerLC::NrSlUeMacSchedulerLC(
     const struct NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& conf)
 {
+    NS_LOG_FUNCTION(this << +conf.lcId << +conf.pqi << +conf.priority << conf.isGbr << conf.mbr
+                         << conf.gbr);
     m_id = conf.lcId;
     m_pqi = conf.pqi;
     m_priority = conf.priority;
     m_isGbr = conf.isGbr;
     m_mbr = conf.mbr;
     m_gbr = conf.gbr;
+    m_harqEnabled = conf.harqEnabled;
+    m_pdb = conf.pdb;
+    m_dynamic = conf.dynamic;
+    m_rri = conf.rri;
+    m_castType = conf.castType;
 }
 
 int
 NrSlUeMacSchedulerLC::UpdateLC(
     const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
+    NS_LOG_FUNCTION(this << +params.lcid);
     NS_ASSERT(params.lcid == m_id);
 
     int ret = 0;
@@ -55,6 +63,7 @@ NrSlUeMacSchedulerLC::GetTotalQueueSize() const
 
 NrSlUeMacSchedulerLCG::NrSlUeMacSchedulerLCG(uint8_t id)
 {
+    NS_LOG_FUNCTION(this << +id);
     m_id = id;
 }
 
@@ -73,6 +82,7 @@ NrSlUeMacSchedulerLCG::GetNumOfLC() const
 void
 NrSlUeMacSchedulerLCG::Insert(NrSlLCPtr&& lc)
 {
+    NS_LOG_FUNCTION(this << +lc->m_id);
     std::pair<NrSlLCIt, bool> ret;
     ret = m_lcMap.emplace(lc->m_id, std::move(lc));
     bool insertStatus = ret.second;
@@ -81,9 +91,23 @@ NrSlUeMacSchedulerLCG::Insert(NrSlLCPtr&& lc)
 }
 
 void
+NrSlUeMacSchedulerLCG::Remove(uint8_t lcid)
+{
+    if (Contains(lcid))
+    {
+        m_lcMap.erase(lcid);
+    }
+    else
+    {
+        NS_LOG_INFO("LCID " << lcid << " doesn't belong to LCGID " << m_id);
+    }
+}
+
+void
 NrSlUeMacSchedulerLCG::UpdateInfo(
     const NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
+    NS_LOG_FUNCTION(this << +params.lcid);
     NS_ASSERT(Contains(params.lcid));
     int ret = m_lcMap.at(params.lcid)->UpdateLC(params);
     if (ret < 0)
@@ -140,6 +164,13 @@ NrSlUeMacSchedulerLCG::IsLcGbr(uint16_t lcId) const
     return m_lcMap.at(lcId)->m_isGbr;
 }
 
+bool
+NrSlUeMacSchedulerLCG::IsHarqEnabled(uint8_t lcId) const
+{
+    NS_ASSERT(Contains(lcId));
+    return m_lcMap.at(lcId)->m_harqEnabled;
+}
+
 uint64_t
 NrSlUeMacSchedulerLCG::GetLcMbr(uint8_t lcId) const
 {
@@ -154,11 +185,39 @@ NrSlUeMacSchedulerLCG::GetLcGbr(uint8_t lcId) const
     return m_lcMap.at(lcId)->m_gbr;
 }
 
+bool
+NrSlUeMacSchedulerLCG::IsLcDynamic(uint16_t lcId) const
+{
+    NS_ASSERT(Contains(lcId));
+    return m_lcMap.at(lcId)->m_dynamic;
+}
+
+bool
+NrSlUeMacSchedulerLCG::IsLcHarqEnabled(uint16_t lcId) const
+{
+    NS_ASSERT(Contains(lcId));
+    return m_lcMap.at(lcId)->m_harqEnabled;
+}
+
+Time
+NrSlUeMacSchedulerLCG::GetLcRri(uint8_t lcId) const
+{
+    NS_ASSERT(Contains(lcId));
+    return m_lcMap.at(lcId)->m_rri;
+}
+
+Time
+NrSlUeMacSchedulerLCG::GetLcPdb(uint8_t lcId) const
+{
+    NS_ASSERT(Contains(lcId));
+    return m_lcMap.at(lcId)->m_pdb;
+}
+
 void
 NrSlUeMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size)
 {
-    NS_LOG_FUNCTION(this);
-    NS_ASSERT(!m_lcMap.empty());
+    NS_LOG_FUNCTION(this << +lcId << size);
+    NS_ASSERT(m_lcMap.size() > 0);
 
     // Update queues: RLC tx order Status, ReTx, Tx. To understand this, you have
     // to see RlcAm::NotifyTxOpportunity

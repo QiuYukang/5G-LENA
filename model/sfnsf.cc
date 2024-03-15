@@ -152,6 +152,30 @@ SfnSf::operator<(const SfnSf& rhs) const
 }
 
 bool
+SfnSf::operator<=(const SfnSf& rhs) const
+{
+    NS_ASSERT(rhs.m_numerology == m_numerology);
+    if (m_frameNum < rhs.m_frameNum)
+    {
+        return true;
+    }
+    else if ((m_frameNum == rhs.m_frameNum) && (m_subframeNum < rhs.m_subframeNum))
+    {
+        return true;
+    }
+    else if (((m_frameNum == rhs.m_frameNum) && (m_subframeNum == rhs.m_subframeNum)) &&
+             (m_slotNum < rhs.m_slotNum))
+    {
+        return true;
+    }
+    else
+    {
+        return (m_frameNum == rhs.m_frameNum) && (m_subframeNum == rhs.m_subframeNum) &&
+               (m_slotNum == rhs.m_slotNum);
+    }
+}
+
+bool
 SfnSf::operator==(const SfnSf& o) const
 {
     NS_ASSERT_MSG(o.m_numerology == m_numerology, "Numerology does not match");

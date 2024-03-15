@@ -40,6 +40,15 @@ NrSlUeMacSchedulerDstInfo::Insert(NrSlLCGPtr&& lcg)
     return ret.first;
 }
 
+void
+NrSlUeMacSchedulerDstInfo::Remove(uint8_t lcgid)
+{
+    std::unordered_map<uint8_t, NrSlLCGPtr>::iterator it = m_nrSlLCG.find(lcgid);
+    NS_ASSERT_MSG(it != m_nrSlLCG.end(),
+                  "Can't find LCG ID " << lcgid << " for destination " << m_dstL2Id);
+    m_nrSlLCG.erase(it);
+}
+
 uint32_t
 NrSlUeMacSchedulerDstInfo::GetDstL2Id() const
 {

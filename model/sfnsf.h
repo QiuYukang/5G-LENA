@@ -127,6 +127,15 @@ class SfnSf : public SimpleRefCount<SfnSf>
     bool operator<(const SfnSf& rhs) const;
 
     /**
+     * \brief operator <= (less than or equal to)
+     * \param rhs other SfnSf to compare
+     * \return true if this SfnSf is less than or equal to rhs
+     *
+     * The comparison is done on m_frameNum, m_subframeNum, and m_slotNum: not on varTti
+     */
+    bool operator<=(const SfnSf& rhs) const;
+
+    /**
      * \brief operator ==, compares frame, subframe, and slot
      * \param o other instance to compare
      * \return true if this instance and the other have the same frame, subframe, and slot

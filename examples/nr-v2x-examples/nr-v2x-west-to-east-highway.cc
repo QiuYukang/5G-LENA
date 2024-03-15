@@ -571,7 +571,6 @@ main(int argc, char* argv[])
                  "The parameter which indicates the maximum transmission number "
                  "(including new transmission and retransmission) for PSSCH.",
                  slMaxTxTransNumPssch);
-    cmd.AddValue("ReservationPeriod", "The resource reservation period in ms", reservationPeriod);
     cmd.AddValue("enableSensing",
                  "If true, it enables the sensing based resource selection for "
                  "SL, otherwise, no sensing is applied",
@@ -743,9 +742,7 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("T1", UintegerValue(static_cast<uint8_t>(t1)));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(reservationPeriod)));
     nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(4));
-    nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
     nrHelper->SetUeMacAttribute("SlThresPsschRsrp", IntegerValue(slThresPsschRsrp));
 
     uint8_t bwpIdForGbrMcptt = 0;
@@ -804,7 +801,7 @@ main(int argc, char* argv[])
      * In this example we use NrSlUeMacSchedulerSimple scheduler, which uses
      * fix MCS value
      */
-    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
+    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
     nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
     nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(mcs));
 
@@ -825,12 +822,11 @@ main(int argc, char* argv[])
     // SlResourcePoolNr IE
     LteRrcSap::SlResourcePoolNr slResourcePoolNr;
     // get it from pool factory
-    Ptr<NrSlCommPreconfigResourcePoolFactory> ptrFactory =
-        Create<NrSlCommPreconfigResourcePoolFactory>();
+    Ptr<NrSlCommResourcePoolFactory> ptrFactory = Create<NrSlCommResourcePoolFactory>();
     /*
      * Above pool factory is created to help the users of the simulator to create
      * a pool with valid default configuration. Please have a look at the
-     * constructor of NrSlCommPreconfigResourcePoolFactory class.
+     * constructor of NrSlCommResourcePoolFactory class.
      *
      * In the following, we show how one could change those default pool parameter
      * values as per the need.

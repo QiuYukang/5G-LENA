@@ -64,7 +64,14 @@ class NrSlUeMacSchedulerDstInfo
     NrSlLCGIt Insert(NrSlLCGPtr&& lcg);
 
     /**
-     * \brief Get destination layer 2 id of this destination
+     *  \bried Remove the pointer to the NrSlUeMacSchedulerLCG object
+     *
+     *  \param lcgid LCGID to be removed
+     */
+    void Remove(uint8_t lcgid);
+
+    /**
+     * \brief Get destiantion layer 2 id of this destination
      *
      * \return The destination layer 2 id
      */
