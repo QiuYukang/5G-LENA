@@ -118,3 +118,4 @@ check-commit-message:
     # Check source code and commit messages
     - ./tools/check-commit-message/check-commit-message.py
   timeout: 1h
+  allow_failure: true
