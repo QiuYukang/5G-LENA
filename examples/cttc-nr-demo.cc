@@ -136,7 +136,7 @@ main(int argc, char* argv[])
                  "Number of UDP packets in one second for ultra low latency traffic",
                  lambdaULL);
     cmd.AddValue("lambdaBe",
-                 "Number of UDP packets in one second for best effor traffic",
+                 "Number of UDP packets in one second for best effort traffic",
                  lambdaBe);
     cmd.AddValue("simTime", "Simulation time", simTime);
     cmd.AddValue("numerologyBwp1", "The numerology to be used in bandwidth part 1", numerologyBwp1);

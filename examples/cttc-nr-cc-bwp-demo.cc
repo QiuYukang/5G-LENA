@@ -167,7 +167,7 @@ main(int argc, char* argv[])
                  "Number of UDP packets in one second for ultra low latency traffic",
                  lambdaUll);
     cmd.AddValue("lambdaBe",
-                 "Number of UDP packets in one second for best effor traffic",
+                 "Number of UDP packets in one second for best effort traffic",
                  lambdaBe);
     cmd.AddValue("logging", "Enable logging", logging);
     cmd.AddValue("disableDl", "Disable DL flow", disableDl);
