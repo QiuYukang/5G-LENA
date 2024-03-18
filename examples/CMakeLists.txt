@@ -40,6 +40,20 @@ foreach(
   )
 endforeach()
 
+set(nr-sidelink-harq_examples
+    sidelink-harq-example
+)
+foreach(
+  example
+  ${nr-sidelink-harq_examples}
+)
+  build_lib_example(
+    NAME ${example}
+    SOURCE_FILES nr-v2x-examples/${example}.cc
+    LIBRARIES_TO_LINK ${libnr}
+  )
+endforeach()
+
 set(nr-v2x-examples_examples
     cttc-nr-v2x-demo-simple
     nr-v2x-west-to-east-highway
