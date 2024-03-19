@@ -359,11 +359,11 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
                         << (M_PI * static_cast<double>(gnbSector) /
                                 static_cast<double>(gnbNumRows) -
                             0.5 * M_PI) /
-                               (M_PI)*180
+                               M_PI * 180
                         << " ue sector "
                         << (M_PI * static_cast<double>(ueSector) / static_cast<double>(ueNumRows) -
                             0.5 * M_PI) /
-                               (M_PI)*180);
+                               M_PI * 180);
 
                     if (max < estimatedLongTermMetric)
                     {
@@ -390,10 +390,10 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
         << " txTheta " << maxTxTheta << " rxTheta " << maxRxTheta << " tx sector "
         << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(gnbNumRows) -
             0.5 * M_PI) /
-               (M_PI)*180
+               M_PI * 180
         << " rx sector "
         << (M_PI * static_cast<double>(maxRxSector) / static_cast<double>(ueNumRows) - 0.5 * M_PI) /
-               (M_PI)*180);
+               M_PI * 180);
 
     return bfPair;
 }
