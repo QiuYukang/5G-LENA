@@ -285,9 +285,9 @@ class NrTestL2smEesm : public TestSuite
 {
   public:
     NrTestL2smEesm()
-        : TestSuite("nr-test-l2sm-eesm", UNIT)
+        : TestSuite("nr-test-l2sm-eesm", Type::UNIT)
     {
-        AddTestCase(new NrL2smEesmTestCase("First test"), QUICK);
+        AddTestCase(new NrL2smEesmTestCase("First test"), Duration::QUICK);
     }
 };
 

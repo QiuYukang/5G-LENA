@@ -421,7 +421,7 @@ class Antenna3gppModelConfTestSuite : public TestSuite
 };
 
 Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite()
-    : TestSuite("nr-antenna-3gpp-model-conf", SYSTEM)
+    : TestSuite("nr-antenna-3gpp-model-conf", Type::SYSTEM)
 {
     std::list<TestAntenna3gppModelConf::DirectionGnbUeXYAngle> conf = {
         TestAntenna3gppModelConf::DirectionGnbUe_45,
@@ -519,7 +519,7 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite()
                                                                  oaaUe,
                                                                  n,
                                                                  losCondition),
-                                    TestDuration::QUICK);
+                                    Duration::QUICK);
                     }
                 }
             }

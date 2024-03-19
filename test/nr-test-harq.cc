@@ -188,7 +188,7 @@ class TestHarq : public TestSuite
 {
   public:
     TestHarq()
-        : TestSuite("nr-test-harq", SYSTEM)
+        : TestSuite("nr-test-harq", Type::SYSTEM)
     {
         // test-1: 2 receptions
         std::vector<std::vector<double>> rxSinrDb;
@@ -210,7 +210,7 @@ class TestHarq : public TestSuite
                                          mcs,
                                          tbSize,
                                          "HARQ test with 2 receptions"),
-                    QUICK);
+                    Duration::QUICK);
     }
 };
 

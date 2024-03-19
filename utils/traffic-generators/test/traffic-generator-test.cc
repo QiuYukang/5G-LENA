@@ -648,7 +648,7 @@ TrafficGeneratorThreeGppHttpTestCase::DoRun()
 }
 
 TrafficGeneratorTestSuite::TrafficGeneratorTestSuite()
-    : TestSuite("traffic-generator-test", UNIT)
+    : TestSuite("traffic-generator-test", Type::UNIT)
 {
     std::list<TypeId> trafficGeneratorTypes = {TrafficGeneratorNgmnFtpMulti::GetTypeId(),
                                                TrafficGeneratorNgmnVideo::GetTypeId(),
@@ -663,16 +663,16 @@ TrafficGeneratorTestSuite::TrafficGeneratorTestSuite()
         {
             std::string name = trafficGeneratorType.GetName() + " and " + transportProtocol;
             AddTestCase(new TrafficGeneratorTestCase(name, trafficGeneratorType, transportProtocol),
-                        TestCase::QUICK);
+                        Duration::QUICK);
         }
     }
 
-    AddTestCase(new TrafficGeneratorNgmnFtpTestCase(), TestCase::QUICK);
-    AddTestCase(new TrafficGeneratorNgmnVideoTestCase(), TestCase::QUICK);
-    AddTestCase(new TrafficGeneratorNgmnGamingTestCase(), TestCase::QUICK);
-    AddTestCase(new TrafficGeneratorNgmnVoipTestCase("ns3::UdpSocketFactory"), TestCase::QUICK);
-    AddTestCase(new TrafficGeneratorNgmnVoipTestCase("ns3::TcpSocketFactory"), TestCase::QUICK);
-    // AddTestCase(new TrafficGeneratorThreeGppHttpTestCase(), TestCase::QUICK);
+    AddTestCase(new TrafficGeneratorNgmnFtpTestCase(), Duration::QUICK);
+    AddTestCase(new TrafficGeneratorNgmnVideoTestCase(), Duration::QUICK);
+    AddTestCase(new TrafficGeneratorNgmnGamingTestCase(), Duration::QUICK);
+    AddTestCase(new TrafficGeneratorNgmnVoipTestCase("ns3::UdpSocketFactory"), Duration::QUICK);
+    AddTestCase(new TrafficGeneratorNgmnVoipTestCase("ns3::TcpSocketFactory"), Duration::QUICK);
+    // AddTestCase(new TrafficGeneratorThreeGppHttpTestCase(), Duration::QUICK);
 }
 
 static TrafficGeneratorTestSuite

@@ -39,7 +39,7 @@ class NrSystemTestSchedulerTdmaRrDlSuite : public TestSuite
 };
 
 NrSystemTestSchedulerTdmaRrDlSuite::NrSystemTestSchedulerTdmaRrDlSuite()
-    : TestSuite("nr-system-test-schedulers-tdma-rr-dl", SYSTEM)
+    : TestSuite("nr-system-test-schedulers-tdma-rr-dl", Type::SYSTEM)
 {
     std::list<std::string> subdivision = {
         "Tdma",
@@ -85,7 +85,7 @@ NrSystemTestSchedulerTdmaRrDlSuite::NrSystemTestSchedulerTdmaRrDlSuite()
                                                                 isDl,
                                                                 isUl,
                                                                 schedName.str()),
-                                        TestCase::QUICK);
+                                        Duration::QUICK);
                         }
                     }
                 }
@@ -118,7 +118,7 @@ class NrSystemTestSchedulerTdmaRrUlSuite : public TestSuite
 };
 
 NrSystemTestSchedulerTdmaRrUlSuite::NrSystemTestSchedulerTdmaRrUlSuite()
-    : TestSuite("nr-system-test-schedulers-tdma-rr-ul", SYSTEM)
+    : TestSuite("nr-system-test-schedulers-tdma-rr-ul", Type::SYSTEM)
 {
     std::list<std::string> subdivision = {
         "Tdma",
@@ -164,7 +164,7 @@ NrSystemTestSchedulerTdmaRrUlSuite::NrSystemTestSchedulerTdmaRrUlSuite()
                                                                 isDl,
                                                                 isUl,
                                                                 schedName.str()),
-                                        TestCase::QUICK);
+                                        Duration::QUICK);
                         }
                     }
                 }
@@ -197,7 +197,7 @@ class NrSystemTestSchedulerTdmaRrDlUlSuite : public TestSuite
 };
 
 NrSystemTestSchedulerTdmaRrDlUlSuite::NrSystemTestSchedulerTdmaRrDlUlSuite()
-    : TestSuite("nr-system-test-schedulers-tdma-rr-dl-ul", SYSTEM)
+    : TestSuite("nr-system-test-schedulers-tdma-rr-dl-ul", Type::SYSTEM)
 {
     std::list<std::string> subdivision = {
         "Tdma",
@@ -244,7 +244,7 @@ NrSystemTestSchedulerTdmaRrDlUlSuite::NrSystemTestSchedulerTdmaRrDlUlSuite()
                                                                 isDl,
                                                                 isUl,
                                                                 schedName.str()),
-                                        TestCase::QUICK);
+                                        Duration::QUICK);
                         }
                     }
                 }

@@ -462,21 +462,21 @@ class NrTestFdmOfNumerologiesTestSuiteDlFour : public TestSuite
 };
 
 NrTestFdmOfNumerologiesTestSuiteDlFour::NrTestFdmOfNumerologiesTestSuiteDlFour()
-    : TestSuite("nr-test-fdm-of-numerologies-dl-4", SYSTEM)
+    : TestSuite("nr-test-fdm-of-numerologies-dl-4", Type::SYSTEM)
 {
     // downlink test cases
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 4, 50e6, 150e6", 4, 50e6, 150e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 4, 100e6, 100e6", 4, 100e6, 100e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 4, 80e6, 120e6", 4, 80e6, 120e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 4 60e6, 140e6", 4, 60e6, 140e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
@@ -491,20 +491,20 @@ class NrTestFdmOfNumerologiesTestSuiteDlTwo : public TestSuite
 };
 
 NrTestFdmOfNumerologiesTestSuiteDlTwo::NrTestFdmOfNumerologiesTestSuiteDlTwo()
-    : TestSuite("nr-test-fdm-of-numerologies-dl-2", SYSTEM)
+    : TestSuite("nr-test-fdm-of-numerologies-dl-2", Type::SYSTEM)
 {
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 2 50e6 150e6", 2, 50e6, 150e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 2 100e6 100e6", 2, 100e6, 100e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 2 80e6 120e6", 2, 80e6, 120e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm dl 2 60e6 140e6", 2, 60e6, 140e6, true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
@@ -519,20 +519,20 @@ class NrTestFdmOfNumerologiesTestSuiteUlFour : public TestSuite
 };
 
 NrTestFdmOfNumerologiesTestSuiteUlFour::NrTestFdmOfNumerologiesTestSuiteUlFour()
-    : TestSuite("nr-test-fdm-of-numerologies-ul-4", SYSTEM)
+    : TestSuite("nr-test-fdm-of-numerologies-ul-4", Type::SYSTEM)
 {
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm ul 4, 50e6, 150e6", 4, 50e6, 150e6, false, true),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm ul 4, 100e6, 100e6", 4, 100e6, 100e6, false, true),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm ul 4, 80e6, 120e6", 4, 80e6, 120e6, false, true),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm ul 4 60e6, 140e6", 4, 60e6, 140e6, false, true),
-        TestCase::QUICK);
+        Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
@@ -547,16 +547,16 @@ class NrTestFdmOfNumerologiesTestSuiteUlTwo : public TestSuite
 };
 
 NrTestFdmOfNumerologiesTestSuiteUlTwo::NrTestFdmOfNumerologiesTestSuiteUlTwo()
-    : TestSuite("nr-test-fdm-of-numerologies-ul-2", SYSTEM)
+    : TestSuite("nr-test-fdm-of-numerologies-ul-2", Type::SYSTEM)
 {
     AddTestCase(
         new NrTestFdmOfNumerologiesCase1("fdm ul 2 50e6 150e6", 2, 50e6, 150e6, false, true),
-        TestCase::QUICK);
+        Duration::QUICK);
     // AddTestCase (new NrTestFdmOfNumerologiesCase1 ("fdm ul 2 100e6 100e6", 2, 100e6, 100e6,
-    // false, true), TestCase::QUICK); AddTestCase (new NrTestFdmOfNumerologiesCase1 ("fdm ul 2 80e6
-    // 120e6" , 2, 80e6, 120e6, false, true), TestCase::QUICK); AddTestCase (new
+    // false, true), Duration::QUICK); AddTestCase (new NrTestFdmOfNumerologiesCase1 ("fdm ul 2 80e6
+    // 120e6" , 2, 80e6, 120e6, false, true), Duration::QUICK); AddTestCase (new
     // NrTestFdmOfNumerologiesCase1 ("fdm ul 2 60e6 140e6", 2, 60e6, 140e6, false, true),
-    // TestCase::QUICK);
+    // Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite

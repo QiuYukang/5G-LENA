@@ -90,9 +90,9 @@ class NrMacShortBsrCeTestSuite : public TestSuite
 {
   public:
     NrMacShortBsrCeTestSuite()
-        : TestSuite("nr-mac-short-bsr-ce-test", UNIT)
+        : TestSuite("nr-mac-short-bsr-ce-test", Type::UNIT)
     {
-        AddTestCase(new NrMacShortBsrCeTest("Short BSR CE test"), QUICK);
+        AddTestCase(new NrMacShortBsrCeTest("Short BSR CE test"), Duration::QUICK);
     }
 };
 

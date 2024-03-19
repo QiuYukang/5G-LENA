@@ -956,13 +956,13 @@ class NrTimingsTestSuite : public TestSuite
 };
 
 NrTimingsTestSuite::NrTimingsTestSuite()
-    : TestSuite("nr-test-timings", SYSTEM)
+    : TestSuite("nr-test-timings", Type::SYSTEM)
 {
-    AddTestCase(new NrTimingsTest("num=4", 4, false), TestCase::QUICK);
-    AddTestCase(new NrTimingsTest("num=3", 3, false), TestCase::QUICK);
-    AddTestCase(new NrTimingsTest("num=2", 2, false), TestCase::QUICK);
-    AddTestCase(new NrTimingsTest("num=1", 1, false), TestCase::QUICK);
-    AddTestCase(new NrTimingsTest("num=0", 0, false), TestCase::QUICK);
+    AddTestCase(new NrTimingsTest("num=4", 4, false), Duration::QUICK);
+    AddTestCase(new NrTimingsTest("num=3", 3, false), Duration::QUICK);
+    AddTestCase(new NrTimingsTest("num=2", 2, false), Duration::QUICK);
+    AddTestCase(new NrTimingsTest("num=1", 1, false), Duration::QUICK);
+    AddTestCase(new NrTimingsTest("num=0", 0, false), Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite

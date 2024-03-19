@@ -105,19 +105,19 @@ class NrUplinkPowerControlTestCase : public TestCase
 };
 
 NrUplinkPowerControlTestSuite::NrUplinkPowerControlTestSuite()
-    : TestSuite("nr-uplink-power-control-test", SYSTEM)
+    : TestSuite("nr-uplink-power-control-test", Type::SYSTEM)
 {
     // LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_DEBUG);
     // LogComponentEnable ("NrUplinkPowerControlTestSuite", logLevel);
     NS_LOG_INFO("Creating NrUplinkPowerControlTestSuite");
     AddTestCase(new NrUplinkPowerControlTestCase("OpenLoopPowerControlTest", false, false),
-                TestCase::QUICK);
+                Duration::QUICK);
     AddTestCase(
         new NrUplinkPowerControlTestCase("ClosedLoopPowerControlAbsoluteModeTest", true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrUplinkPowerControlTestCase("ClosedLoopPowerControlAccumulatedModeTest", true, true),
-        TestCase::QUICK);
+        Duration::QUICK);
 }
 
 static NrUplinkPowerControlTestSuite lteUplinkPowerControlTestSuite;

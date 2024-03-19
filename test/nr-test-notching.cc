@@ -426,7 +426,7 @@ class NrNotchingTestSuite : public TestSuite
 {
   public:
     NrNotchingTestSuite()
-        : TestSuite("nr-test-notching", UNIT)
+        : TestSuite("nr-test-notching", Type::UNIT)
     {
         // We simulate BW of 10 MHz so the size of the mask is 53 RBGs
         // considering that 1 RBG contains 1 RB
@@ -463,13 +463,13 @@ class NrNotchingTestSuite : public TestSuite
                                                            schedName.str(),
                                                            uesPerBeam,
                                                            beam),
-                                    QUICK);
+                                    Duration::QUICK);
                         AddTestCase(new NrNotchingTestCase(ss.str(),
                                                            notchedMask2,
                                                            schedName.str(),
                                                            uesPerBeam,
                                                            beam),
-                                    QUICK);
+                                    Duration::QUICK);
                     }
                 }
             }

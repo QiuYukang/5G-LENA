@@ -48,13 +48,13 @@ class TestSfnSf : public TestSuite
 {
   public:
     TestSfnSf()
-        : TestSuite("nr-test-sfnsf", UNIT)
+        : TestSuite("nr-test-sfnsf", Type::UNIT)
     {
-        AddTestCase(new TestSfnSfTestCase(0, "SfnSf TestAdd with num 2"), QUICK);
-        AddTestCase(new TestSfnSfTestCase(1, "SfnSf TestAdd with num 2"), QUICK);
-        AddTestCase(new TestSfnSfTestCase(2, "SfnSf TestAdd with num 2"), QUICK);
-        AddTestCase(new TestSfnSfTestCase(3, "SfnSf TestAdd with num 2"), QUICK);
-        AddTestCase(new TestSfnSfTestCase(4, "SfnSf TestAdd with num 2"), QUICK);
+        AddTestCase(new TestSfnSfTestCase(0, "SfnSf TestAdd with num 2"), Duration::QUICK);
+        AddTestCase(new TestSfnSfTestCase(1, "SfnSf TestAdd with num 2"), Duration::QUICK);
+        AddTestCase(new TestSfnSfTestCase(2, "SfnSf TestAdd with num 2"), Duration::QUICK);
+        AddTestCase(new TestSfnSfTestCase(3, "SfnSf TestAdd with num 2"), Duration::QUICK);
+        AddTestCase(new TestSfnSfTestCase(4, "SfnSf TestAdd with num 2"), Duration::QUICK);
     }
 };
 

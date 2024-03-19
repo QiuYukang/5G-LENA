@@ -292,7 +292,7 @@ NrSpectrumPhyTestSuite::NrSpectrumPhyTestSuite()
                                             expectedSnr1,
                                             expectedSnr2,
                                             input.numerology),
-                    TestDuration::QUICK);
+                    Duration::QUICK);
     }
 }
 

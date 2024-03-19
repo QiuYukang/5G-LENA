@@ -39,7 +39,7 @@ class NrSystemTestSchedulerOfdmaMrSuite : public TestSuite
 };
 
 NrSystemTestSchedulerOfdmaMrSuite::NrSystemTestSchedulerOfdmaMrSuite()
-    : TestSuite("nr-system-test-schedulers-ofdma-mr", SYSTEM)
+    : TestSuite("nr-system-test-schedulers-ofdma-mr", Type::SYSTEM)
 {
     enum TxMode
     {
@@ -101,7 +101,7 @@ NrSystemTestSchedulerOfdmaMrSuite::NrSystemTestSchedulerOfdmaMrSuite()
                                                                 isDl,
                                                                 isUl,
                                                                 schedName.str()),
-                                        TestCase::QUICK);
+                                        Duration::QUICK);
                         }
                     }
                 }

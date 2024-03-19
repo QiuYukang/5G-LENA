@@ -1540,9 +1540,9 @@ class NrLtePatternTestSuite : public TestSuite
 {
   public:
     NrLtePatternTestSuite()
-        : TestSuite("nr-lte-pattern-generation", UNIT)
+        : TestSuite("nr-lte-pattern-generation", Type::UNIT)
     {
-        AddTestCase(new LtePatternTestCase("LTE TDD Pattern test"), QUICK);
+        AddTestCase(new LtePatternTestCase("LTE TDD Pattern test"), Duration::QUICK);
     }
 };
 

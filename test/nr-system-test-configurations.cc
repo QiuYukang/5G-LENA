@@ -199,46 +199,46 @@ class NrSystemTestConfigurationsTestSuite : public TestSuite
 };
 
 NrSystemTestConfigurationsTestSuite::NrSystemTestConfigurationsTestSuite()
-    : TestSuite("nr-system-test-configurations", SYSTEM)
+    : TestSuite("nr-system-test-configurations", Type::SYSTEM)
 {
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=0, scheduler=rr",
                                                         0,
                                                         "ns3::NrMacSchedulerTdmaRR"),
-                QUICK);
+                Duration::QUICK);
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=2, scheduler=rr",
                                                         2,
                                                         "ns3::NrMacSchedulerTdmaRR"),
-                QUICK);
+                Duration::QUICK);
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=4, scheduler=rr",
                                                         4,
                                                         "ns3::NrMacSchedulerTdmaRR"),
-                QUICK);
+                Duration::QUICK);
 
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=0, scheduler=pf",
                                                         0,
                                                         "ns3::NrMacSchedulerTdmaPF"),
-                QUICK);
+                Duration::QUICK);
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=2, scheduler=pf",
                                                         2,
                                                         "ns3::NrMacSchedulerTdmaPF"),
-                QUICK);
+                Duration::QUICK);
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=4, scheduler=pf",
                                                         4,
                                                         "ns3::NrMacSchedulerTdmaPF"),
-                QUICK);
+                Duration::QUICK);
 
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=0, scheduler=mr",
                                                         0,
                                                         "ns3::NrMacSchedulerTdmaMR"),
-                QUICK);
+                Duration::QUICK);
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=2, scheduler=mr",
                                                         2,
                                                         "ns3::NrMacSchedulerTdmaMR"),
-                QUICK);
+                Duration::QUICK);
     AddTestCase(new NrSystemTestConfigurationsTestCase1("num=4, scheduler=mr",
                                                         4,
                                                         "ns3::NrMacSchedulerTdmaMR"),
-                QUICK);
+                Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
