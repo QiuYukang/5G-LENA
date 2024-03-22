@@ -226,10 +226,11 @@ class NrFhControl : public Object
      * \param bwpId the BWP ID
      * \param rnti the allocated MCS
      * \param nRegs the number of allocated REGs (1 REGs = 1 RB (12 subcarriers) x 1 symbol)
+     * \param dlRank the DL rank (number of MIMO layers)
      *
      * \return true if the current allocation can fit, false if not
      */
-    bool DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs);
+    bool DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank);
 
     /**
      * \brief Returns the maximum MCS that can be assigned to a
@@ -238,10 +239,11 @@ class NrFhControl : public Object
      * \param bwpId the BWP ID
      * \param reg the allocated REGs
      * \param rnti the RNTI
+     * \param dlRank the DL rank (number of MIMO layers)
      *
      * \return the maximum MCS
      */
-    uint8_t DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti);
+    uint8_t DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti, uint8_t dlRank);
 
     /**
      * \brief Returns the maximum number of REGs that can be assigned to a
@@ -250,10 +252,11 @@ class NrFhControl : public Object
      * \param bwpId the BWP ID
      * \param mcs the MCS
      * \param rnti the RNTI
+     * \param dlRank the DL rank (number of MIMO layers)
      *
      * \return the maximum number of REGs
      */
-    uint32_t DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti);
+    uint32_t DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, uint8_t dlRank);
 
     /**
      * \brief Updates the FH DL trace based on some dropped data+allocation,
@@ -263,11 +266,13 @@ class NrFhControl : public Object
      * \param mcs the MCS
      * \param nRbgs the number of RBGs
      * \param nSymb the number of symbols
+     * \param dlRank the DL rank (number of MIMO layers)
      */
     void DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
                                           uint32_t mcs,
                                           uint32_t nRbgs,
-                                          uint32_t nSymb);
+                                          uint32_t nSymb,
+                                          uint8_t dlRank);
 
     /**
      * \brief End slot notification from gnb-phy, to track the required fronthaul
@@ -283,10 +288,11 @@ class NrFhControl : public Object
      * \param bwpId the BWP ID
      * \param mcs the allocated MCS
      * \param nRegs the number of allocated REGs (1 REGs = 1 RB (12 subcarriers) x 1 symbol)
+     * \param dlRank the DL rank (number of MIMO layers)
      *
      * \return the calculated FH throughput
      */
-    uint64_t GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const;
+    uint64_t GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const;
 
     /**
      * \brief Returns the number of all active BWPs, i.e., BWPs with new data

@@ -573,11 +573,11 @@ NrGnbPhy::SetN2Delay(uint32_t delay)
 }
 
 bool
-NrGnbPhy::DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
+NrGnbPhy::DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_nrFhPhySapProvider);
-    return m_nrFhPhySapProvider->DoesAllocationFit(bwpId, mcs, nRegs);
+    return m_nrFhPhySapProvider->DoesAllocationFit(bwpId, mcs, nRegs, dlRank);
 }
 
 BeamId
@@ -1627,7 +1627,8 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
 
                 if (DoesFhAllocationFit(GetBwpId(),
                                         dciInfoElem->m_mcs,
-                                        rbgAssigned * dciInfoElem->m_numSym) == 0)
+                                        rbgAssigned * dciInfoElem->m_numSym,
+                                        dciInfoElem->m_rank) == 0)
                 {
                     // drop DL DCI because data does not fit in available FH BW
                     ctrlIt = fhCtrlMsgs.erase(ctrlIt);
@@ -1639,7 +1640,8 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
                     m_nrFhPhySapProvider->UpdateTracesBasedOnDroppedData(GetBwpId(),
                                                                          dciInfoElem->m_mcs,
                                                                          rbgAssigned,
-                                                                         dciInfoElem->m_numSym);
+                                                                         dciInfoElem->m_numSym,
+                                                                         dciInfoElem->m_rank);
                 }
             }
             else

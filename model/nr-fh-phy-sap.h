@@ -26,11 +26,15 @@ class NrFhPhySapProvider
     virtual ~NrFhPhySapProvider();
 
     virtual uint8_t GetFhControlMethod() = 0;
-    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) = 0;
+    virtual bool DoesAllocationFit(uint16_t bwpId,
+                                   uint32_t mcs,
+                                   uint32_t nRegs,
+                                   uint8_t dlRank) = 0;
     virtual void UpdateTracesBasedOnDroppedData(uint16_t bwpId,
                                                 uint32_t mcs,
                                                 uint32_t nRbgs,
-                                                uint32_t nSymb) = 0;
+                                                uint32_t nSymb,
+                                                uint8_t dlRank) = 0;
     virtual void NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot) = 0;
 };
 
@@ -70,11 +74,12 @@ class MemberNrFhPhySapProvider : public NrFhPhySapProvider
     MemberNrFhPhySapProvider() = delete;
 
     uint8_t GetFhControlMethod() override;
-    bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) override;
+    bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) override;
     void UpdateTracesBasedOnDroppedData(uint16_t bwpId,
                                         uint32_t mcs,
                                         uint32_t nRbgs,
-                                        uint32_t nSymb) override;
+                                        uint32_t nSymb,
+                                        uint8_t dlRank) override;
     void NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot) override;
 
   private:
@@ -97,9 +102,12 @@ MemberNrFhPhySapProvider<C>::GetFhControlMethod()
 
 template <class C>
 bool
-MemberNrFhPhySapProvider<C>::DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
+MemberNrFhPhySapProvider<C>::DoesAllocationFit(uint16_t bwpId,
+                                               uint32_t mcs,
+                                               uint32_t nRegs,
+                                               uint8_t dlRank)
 {
-    return m_owner->DoGetDoesAllocationFit(bwpId, mcs, nRegs);
+    return m_owner->DoGetDoesAllocationFit(bwpId, mcs, nRegs, dlRank);
 }
 
 template <class C>
@@ -107,9 +115,10 @@ void
 MemberNrFhPhySapProvider<C>::UpdateTracesBasedOnDroppedData(uint16_t bwpId,
                                                             uint32_t mcs,
                                                             uint32_t nRbgs,
-                                                            uint32_t nSymb)
+                                                            uint32_t nSymb,
+                                                            uint8_t dlRank)
 {
-    return m_owner->DoUpdateTracesBasedOnDroppedData(bwpId, mcs, nRbgs, nSymb);
+    return m_owner->DoUpdateTracesBasedOnDroppedData(bwpId, mcs, nRbgs, nSymb, dlRank);
 }
 
 template <class C>

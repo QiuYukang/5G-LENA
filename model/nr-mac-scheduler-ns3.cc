@@ -48,7 +48,8 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
                                                         this,
                                                         std::placeholders::_1,
                                                         std::placeholders::_2,
-                                                        std::placeholders::_3));
+                                                        std::placeholders::_3,
+                                                        std::placeholders::_4));
 
     m_cqiManagement.InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_cqiManagement.InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
@@ -2275,11 +2276,14 @@ NrMacSchedulerNs3::GetFhControlMethod() const
 }
 
 bool
-NrMacSchedulerNs3::DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
+NrMacSchedulerNs3::DoesFhAllocationFit(uint16_t bwpId,
+                                       uint32_t mcs,
+                                       uint32_t nRegs,
+                                       uint8_t dlRank) const
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_nrFhSchedSapProvider);
-    return m_nrFhSchedSapProvider->DoesAllocationFit(bwpId, mcs, nRegs);
+    return m_nrFhSchedSapProvider->DoesAllocationFit(bwpId, mcs, nRegs, dlRank);
 }
 
 /**

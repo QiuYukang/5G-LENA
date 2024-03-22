@@ -419,7 +419,7 @@ class NrGnbPhy : public NrPhy
      */
     void DoDispose() override;
 
-    bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const;
+    bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const;
 
     // FFR SAPs
     NrFhPhySapUser* m_nrFhPhySapUser{nullptr};         //!< FH Control SAP user

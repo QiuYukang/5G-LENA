@@ -214,7 +214,8 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                         uint32_t maxAssignable = m_nrFhSchedSapProvider->GetMaxRegAssignable(
                             GetBwpId(),
                             GetUe(*schedInfoIt)->m_dlMcs,
-                            GetUe(*schedInfoIt)->m_rnti); // maxAssignable is in REGs
+                            GetUe(*schedInfoIt)->m_rnti,
+                            GetUe(*schedInfoIt)->m_dlRank); // maxAssignable is in REGs
                         // set a minimum of the maxAssignable equal to 5 RBGs
                         maxAssignable = std::max(maxAssignable, 5 * rbgAssignable);
 
@@ -287,7 +288,8 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                         uint8_t maxMcsAssignable = m_nrFhSchedSapProvider->GetMaxMcsAssignable(
                             GetBwpId(),
                             GetUe(*schedInfoIt)->m_dlRBG,
-                            GetUe(*schedInfoIt)->m_rnti); // max MCS index assignable
+                            GetUe(*schedInfoIt)->m_rnti,
+                            GetUe(*schedInfoIt)->m_dlRank); // max MCS index assignable
 
                         NS_LOG_DEBUG("UE " << GetUe(*schedInfoIt)->m_rnti
                                            << " MCS form sched: " << +GetUe(*schedInfoIt)->m_dlMcs
@@ -315,7 +317,8 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                     {
                         if (DoesFhAllocationFit(GetBwpId(),
                                                 GetUe(*schedInfoIt)->m_dlMcs,
-                                                GetUe(*schedInfoIt)->m_dlRBG) == 0)
+                                                GetUe(*schedInfoIt)->m_dlRBG,
+                                                GetUe(*schedInfoIt)->m_dlRank) == 0)
                         {
                             GetUe(*schedInfoIt)->m_dlRBG =
                                 0; // remove allocation if the UE does not fit in the available FH

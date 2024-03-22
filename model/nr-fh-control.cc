@@ -314,7 +314,8 @@ NrFhControl::DoUpdateActiveUesMap(
         // Create/Update FH DL Throughput per BWP
         uint64_t fhDlThr = GetFhThr(bwpId,
                                     static_cast<uint32_t>(alloc.m_dci->m_mcs),
-                                    static_cast<uint32_t>(alloc.m_dci->m_numSym) * numRbs);
+                                    static_cast<uint32_t>(alloc.m_dci->m_numSym) * numRbs,
+                                    alloc.m_dci->m_rank);
         if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
         {
             m_reqFhDlThrTracedValuePerBwp.insert(std::make_pair(bwpId, fhDlThr));
@@ -445,7 +446,7 @@ NrFhControl::GetNumberActiveBwps() const
 }
 
 bool
-NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
+NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank)
 {
     NS_LOG_INFO("NrFhControl::DoGetDoesAllocationFit for cell: " << m_physicalCellId << " bwpId: "
                                                                  << bwpId << " mcs: " << mcs
@@ -463,7 +464,8 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
     uint64_t thr = GetFhThr(
         bwpId,
         mcs,
-        nRegs * static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched()));
+        nRegs * static_cast<uint32_t>(m_fhSchedSapUser.at(bwpId)->GetNumRbPerRbgFromSched()),
+        dlRank);
 
     if (m_allocThrPerBwp.find(bwpId) == m_allocThrPerBwp.end()) // bwpId not in the map
     {
@@ -497,7 +499,7 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
 }
 
 uint8_t
-NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
+NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti, uint8_t dlRank)
 {
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
@@ -534,7 +536,7 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
         return 0;
     }
     uint16_t modOrderMax =
-        num / (12 * Kp * reg) /
+        num / (12 * Kp * reg * dlRank) /
         static_cast<uint32_t>(
             m_fhSchedSapUser.at(bwpId)
                 ->GetNumRbPerRbgFromSched());            // REGs, otherwise, should divide by nSymb
@@ -546,7 +548,7 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
 }
 
 uint32_t
-NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
+NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, uint8_t dlRank)
 {
     uint32_t modulationOrder =
         m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
@@ -586,7 +588,7 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
         return 0;
     }
     uint32_t nMax =
-        num / (12 * Kp * modulationOrder) /
+        num / (12 * Kp * modulationOrder * dlRank) /
         static_cast<uint32_t>(
             m_fhSchedSapUser.at(bwpId)
                 ->GetNumRbPerRbgFromSched()); // in REGs, otherwise, should divide by nSymb
@@ -601,7 +603,8 @@ void
 NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
                                               uint32_t mcs,
                                               uint32_t nRbgs,
-                                              uint32_t nSymb)
+                                              uint32_t nSymb,
+                                              uint8_t dlRank)
 {
     // in Dropping, the trace is computed from PHY layer
     uint32_t numRbs =
@@ -613,14 +616,14 @@ NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
     if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
     {
         m_reqFhDlThrTracedValuePerBwp.insert(
-            std::make_pair(bwpId, GetFhThr(bwpId, mcs, (numRbs * nSymb))));
+            std::make_pair(bwpId, GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank)));
         NS_LOG_DEBUG("Create pair for"
                      << " m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
                      << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
     }
     else // bwpId already in the map: increase traced value
     {
-        m_reqFhDlThrTracedValuePerBwp.at(bwpId) += GetFhThr(bwpId, mcs, (numRbs * nSymb));
+        m_reqFhDlThrTracedValuePerBwp.at(bwpId) += GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank);
         NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
                      << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
     }
@@ -698,7 +701,7 @@ NrFhControl::DoNotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
 }
 
 uint64_t
-NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
+NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const
 {
     uint64_t thr;
     uint32_t modulationOrder =
@@ -712,7 +715,7 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const
     uint32_t overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
 
-    thr = (12 * modulationOrder * nRegs + m_overheadDyn + overheadMac + 12 * 2 * 10) /
+    thr = (12 * modulationOrder * nRegs * dlRank + m_overheadDyn + overheadMac + 12 * 2 * 10) /
           slotLength.GetSeconds(); // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
 
     return thr;

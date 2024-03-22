@@ -883,7 +883,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \brief Returns a boolean indicating whether the current allocation can
      *        fit in the available FH bandwidth (when FH Control is enabled).
      */
-    bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) const;
+    bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const;
 
     // FFR SAPs
     NrFhSchedSapUser* m_nrFhSchedSapUser{nullptr};         //!< FH Control SAP user

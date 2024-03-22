@@ -26,7 +26,10 @@ class NrFhSchedSapProvider
   public:
     virtual ~NrFhSchedSapProvider();
 
-    virtual bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) = 0;
+    virtual bool DoesAllocationFit(uint16_t bwpId,
+                                   uint32_t mcs,
+                                   uint32_t nRegs,
+                                   uint8_t dlRank) = 0;
     virtual uint8_t GetFhControlMethod() = 0;
     virtual uint16_t GetNrFhPhysicalCellId() = 0;
     virtual void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) = 0;
@@ -35,8 +38,14 @@ class NrFhSchedSapProvider
         uint16_t bwpId,
         const std::deque<VarTtiAllocInfo>& allocation,
         const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap) = 0;
-    virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti) = 0;
-    virtual uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti) = 0;
+    virtual uint8_t GetMaxMcsAssignable(uint16_t bwpId,
+                                        uint32_t reg,
+                                        uint32_t rnti,
+                                        uint8_t dlRank) = 0;
+    virtual uint32_t GetMaxRegAssignable(uint16_t bwpId,
+                                         uint32_t mcs,
+                                         uint32_t rnti,
+                                         uint8_t dlRank) = 0;
 };
 
 /**
@@ -73,7 +82,7 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
 
     MemberNrFhSchedSapProvider() = delete;
 
-    bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs) override;
+    bool DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) override;
     uint8_t GetFhControlMethod() override;
     uint16_t GetNrFhPhysicalCellId() override;
     void SetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes) override;
@@ -82,8 +91,14 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
         uint16_t bwpId,
         const std::deque<VarTtiAllocInfo>& allocation,
         const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap) override;
-    uint8_t GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti) override;
-    uint32_t GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti) override;
+    uint8_t GetMaxMcsAssignable(uint16_t bwpId,
+                                uint32_t reg,
+                                uint32_t rnti,
+                                uint8_t dlRank) override;
+    uint32_t GetMaxRegAssignable(uint16_t bwpId,
+                                 uint32_t mcs,
+                                 uint32_t rnti,
+                                 uint8_t dlRank) override;
 
   private:
     C* m_owner; ///< the owner class
@@ -98,9 +113,12 @@ MemberNrFhSchedSapProvider<C>::MemberNrFhSchedSapProvider(C* owner)
 
 template <class C>
 bool
-MemberNrFhSchedSapProvider<C>::DoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs)
+MemberNrFhSchedSapProvider<C>::DoesAllocationFit(uint16_t bwpId,
+                                                 uint32_t mcs,
+                                                 uint32_t nRegs,
+                                                 uint8_t dlRank)
 {
-    return m_owner->DoGetDoesAllocationFit(bwpId, mcs, nRegs);
+    return m_owner->DoGetDoesAllocationFit(bwpId, mcs, nRegs, dlRank);
 }
 
 template <class C>
@@ -143,16 +161,22 @@ MemberNrFhSchedSapProvider<C>::UpdateActiveUesMap(
 
 template <class C>
 uint8_t
-MemberNrFhSchedSapProvider<C>::GetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti)
+MemberNrFhSchedSapProvider<C>::GetMaxMcsAssignable(uint16_t bwpId,
+                                                   uint32_t reg,
+                                                   uint32_t rnti,
+                                                   uint8_t dlRank)
 {
-    return m_owner->DoGetMaxMcsAssignable(bwpId, reg, rnti);
+    return m_owner->DoGetMaxMcsAssignable(bwpId, reg, rnti, dlRank);
 }
 
 template <class C>
 uint32_t
-MemberNrFhSchedSapProvider<C>::GetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti)
+MemberNrFhSchedSapProvider<C>::GetMaxRegAssignable(uint16_t bwpId,
+                                                   uint32_t mcs,
+                                                   uint32_t rnti,
+                                                   uint8_t dlRank)
 {
-    return m_owner->DoGetMaxRegAssignable(bwpId, mcs, rnti);
+    return m_owner->DoGetMaxRegAssignable(bwpId, mcs, rnti, dlRank);
 }
 
 /**
