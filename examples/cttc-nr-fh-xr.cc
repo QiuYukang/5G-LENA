@@ -103,8 +103,6 @@ void
 ConfigurePhy(Ptr<NrHelper>& nrHelper,
              Ptr<NetDevice> gnb,
              double orientationRads,
-             double gnbFirstSubArray,
-             double gnbSecondSubArray,
              uint16_t beamConfSector,
              double beamConfElevation)
 {
@@ -385,26 +383,37 @@ main(int argc, char* argv[])
     double gnbNoiseFigure = 5.0;
     double ueNoiseFigure = 7.0;
 
+    bool enableMimoFeedback = false;
+
+    bool isGnbDualPolarized = false;
     uint32_t gnbNumRows = 4;
     uint32_t gnbNumColumns = 8;
-    uint32_t ueNumRows = 1;
-    uint32_t ueNumColumns = 1;
-
+    size_t gnbHorizPorts = 1;
+    size_t gnbVertPorts = 1;
     double gnbHSpacing = 0.5;
     double gnbVSpacing = 0.8;
+    double polSlantAngleGnb = 0.0;
+    double bearingAngleGnb = 0.0;
+
+    bool isUeDualPolarized = false;
+    uint32_t ueNumRows = 1;
+    uint32_t ueNumColumns = 1;
+    size_t ueHorizPorts = 1;
+    size_t ueVertPorts = 1;
     double ueHSpacing = 0.5;
     double ueVSpacing = 0.5;
+    double polSlantAngleUe = 90.0;
+    double bearingAngleUe = 180.0;
 
-    // The polarization slant angle of first and second subarray for gNB in degrees
-    double polSlantAngleGnb1 = 0.0; // we can set to 45
-    double polSlantAngleGnb2 = -45;
-    // The polarization slant angle of first and second subarray for UE in degrees
-    double polSlantAngleUe1 = 0.0;
-    double polSlantAngleUe2 = 90;
     double downtiltAngle = 0.0;
     uint16_t bfConfSector = 1;
     double bfConfElevation = 30;
     std::string bfMethod = "CellScan";
+
+    NrHelper::MimoPmiParams mimoPmiParams;
+    mimoPmiParams.pmSearchMethod = "ns3::NrPmSearchFull";
+    mimoPmiParams.fullSearchCb = "ns3::NrCbTwoPort";
+    mimoPmiParams.rankLimit = 2;
 
     bool enableOfdma = true;
     std::string schedulerType = "RR";
@@ -421,7 +430,7 @@ main(int argc, char* argv[])
     bool enableShadowing = true;
     uint8_t fixedMcs = 0;
     bool useFixedMcs = false;
-    std::string errorModel = "ns3::NrEesmIrT1";
+    std::string errorModel = "ns3::NrEesmIrT2";
 
     // modulation compression parameters:
     uint32_t fhCapacity = 10000;                 // in Mbps
@@ -496,6 +505,7 @@ main(int argc, char* argv[])
                  "The radius of the disc (in meters) that the UEs will be distributed."
                  "Default value is 200m",
                  distance);
+    cmd.AddValue("enableMimoFeedback", "Enables MIMO feedback", enableMimoFeedback);
     cmd.AddValue("gnbNumRows", "The number of rows of the phased array of the gNB", gnbNumRows);
     cmd.AddValue("gnbNumColumns",
                  "The number of columns of the phased array of the gNB",
@@ -601,12 +611,17 @@ main(int argc, char* argv[])
 
     cmd.Parse(argc, argv);
 
+    NS_ABORT_MSG_IF(deployment == "HEX",
+                    "HEX deployment needs to be updated for proper operation."
+                    "Currently, only SIMPLE deployment can be tested.");
     NS_ABORT_MSG_IF(appDuration < 1000, "The appDuration should be at least 1000ms.");
     NS_ABORT_MSG_IF(!voiceUeNum && !vrUeNum && !arUeNum && !cgUeNum,
                     "Activate at least one type of traffic");
     NS_ABORT_MSG_IF(dlRem && !voiceUeNum, "For REM generation please declare a VoIP UE.");
     NS_ABORT_MSG_IF(deployment == "SIMPLE" && (nrConfigurationScenario == "RuralA"),
                     "SIMPLE can be used only with default DenseA configuration");
+
+    // TODO: Fix HEX deployment to work properly with the latest code updates
 
     m_fhControlMethod = fhControlMethod;
     m_fhCapacity = fhCapacity;
@@ -648,6 +663,7 @@ main(int argc, char* argv[])
     }
     else if (deployment == "SIMPLE")
     {
+        nrConfigurationScenario = "InH_OfficeOpen_LoS";
         propScenario = "InH_OfficeOpen_LoS";
         centralFrequency = 30e9;
         pattern = "DL|DL|DL|DL|UL|DL|DL|DL|DL|UL|";
@@ -665,9 +681,31 @@ main(int argc, char* argv[])
 
         gnbNumRows = 16;
         gnbNumColumns = 8;
+        gnbHSpacing = 0.5;
+        gnbVSpacing = 0.5;
+
         ueNumRows = 1;
         ueNumColumns = 4;
-        gnbVSpacing = 0.5;
+        ueHSpacing = 0.5;
+        ueVSpacing = 0.5;
+
+        bearingAngleGnb = 0.0;
+        bearingAngleUe = 180.0;
+
+        if (enableMimoFeedback)
+        {
+            isGnbDualPolarized = true;
+            gnbHorizPorts = 1;
+            gnbVertPorts = 1;
+            polSlantAngleGnb = 0.0;
+
+            isUeDualPolarized = true;
+            ueHorizPorts = 2;
+            ueVertPorts = 1;
+            polSlantAngleUe = 0.0;
+        }
+
+        downtiltAngle = 90.0;
 
         arDataRate = 20; // Mbps
         arFps = 60;
@@ -701,6 +739,9 @@ main(int argc, char* argv[])
     std::string mappingArch = isMx1 == 1 ? "Mx1" : "1x1";
     std::cout << "Mapping architecture is set to: " << mappingArch << std::endl;
 
+    std::string enableMimo = enableMimoFeedback == 1 ? "Enabled" : "Disabled";
+    std::cout << "Mimo is set to: " << enableMimo << std::endl;
+
     if (logging)
     {
         // LogLevel logLevel1 =
@@ -721,6 +762,9 @@ main(int argc, char* argv[])
 
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
                        TimeValue(MilliSeconds(channelUpdatePeriod)));
+    Config::SetDefault("ns3::NrGnbRrc::EpsBearerToRlcMapping",
+                       EnumValue(useUdp ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     // Set simulation run number
     SeedManager::SetRun(rngRun);
@@ -940,9 +984,6 @@ main(int argc, char* argv[])
     Ptr<IdealBeamformingHelper> idealBeamformingHelper;
     idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
 
-    Config::SetDefault("ns3::NrGnbRrc::NrEpsBearerToRlcMapping",
-                       EnumValue(useUdp ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
-
     uint8_t numScPerRb = 1;
     double rbOverhead = 0.04;
     uint32_t harqProcesses = 16;
@@ -963,8 +1004,8 @@ main(int argc, char* argv[])
     }
     else if (propScenario == "InH_OfficeOpen_LoS")
     {
-        scene = isLos == 1 ? BandwidthPartInfo::InH_OfficeOpen_LoS
-                           : BandwidthPartInfo::InH_OfficeOpen_nLoS;
+        scene =
+            isLos == 1 ? BandwidthPartInfo::InH_OfficeOpen_LoS : BandwidthPartInfo::InH_OfficeOpen;
     }
     else
     {
@@ -1025,28 +1066,11 @@ main(int argc, char* argv[])
     if (deployment == "HEX")
     {
         Config::SetDefault("ns3::NrMacSchedulerSrsDefault::StartingPeriodicity", UintegerValue(16));
+        // configure SRS symbols
         nrHelper->SetSchedulerAttribute("SrsSymbols", UintegerValue(1));
-    }
+        nrHelper->SetSchedulerAttribute("EnableSrsInUlSlots", BooleanValue(false));
+        nrHelper->SetSchedulerAttribute("EnableSrsInFSlots", BooleanValue(false));
 
-    nrHelper->SetSchedulerAttribute("EnableHarqReTx", BooleanValue(enableHarqRetx));
-    nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPower));
-    nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(numerology));
-    nrHelper->SetUePhyAttribute("TxPower", DoubleValue(ueTxPower));
-
-    nrHelper->SetSchedulerAttribute("FixedMcsDl", BooleanValue(useFixedMcs));
-    nrHelper->SetSchedulerAttribute("FixedMcsUl", BooleanValue(useFixedMcs));
-    if (useFixedMcs)
-    {
-        nrHelper->SetSchedulerAttribute("StartingMcsDl", UintegerValue(fixedMcs));
-        nrHelper->SetSchedulerAttribute("StartingMcsUl", UintegerValue(fixedMcs));
-    }
-    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-
-    Config::SetDefault("ns3::NrGnbRrc::NrEpsBearerToRlcMapping",
-                       EnumValue(useRlcUm ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
-
-    if (deployment == "HEX")
-    {
         /*
          * Adjust the average number of Reference symbols per RB only for LTE case,
          * which is larger than in NR. We assume a value of 4 (could be 3 too).
@@ -1061,6 +1085,22 @@ main(int argc, char* argv[])
 
         nrHelper->SetUeMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
         nrHelper->SetGnbMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
+
+        // configure CTRL symbols
+        nrHelper->SetSchedulerAttribute("DlCtrlSymbols", UintegerValue(dlCtrlSymbols));
+    }
+
+    nrHelper->SetSchedulerAttribute("EnableHarqReTx", BooleanValue(enableHarqRetx));
+    nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPower));
+    nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(numerology));
+    nrHelper->SetUePhyAttribute("TxPower", DoubleValue(ueTxPower));
+
+    nrHelper->SetSchedulerAttribute("FixedMcsDl", BooleanValue(useFixedMcs));
+    nrHelper->SetSchedulerAttribute("FixedMcsUl", BooleanValue(useFixedMcs));
+    if (useFixedMcs)
+    {
+        nrHelper->SetSchedulerAttribute("StartingMcsDl", UintegerValue(fixedMcs));
+        nrHelper->SetSchedulerAttribute("StartingMcsUl", UintegerValue(fixedMcs));
     }
 
     // Noise figure for the gNB
@@ -1232,26 +1272,19 @@ main(int argc, char* argv[])
         nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     }
 
-    if (deployment == "HEX")
-    {
-        // configure SRS symbols
-        nrHelper->SetSchedulerAttribute("SrsSymbols", UintegerValue(1));
-        nrHelper->SetSchedulerAttribute("EnableSrsInUlSlots", BooleanValue(false));
-        nrHelper->SetSchedulerAttribute("EnableSrsInFSlots", BooleanValue(false));
-
-        // configure CTRL symbols
-        nrHelper->SetSchedulerAttribute("DlCtrlSymbols", UintegerValue(dlCtrlSymbols));
-    }
+    bearingAngleGnb = bearingAngleGnb * (M_PI / 180);
+    bearingAngleUe = bearingAngleUe * (M_PI / 180);
 
     epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
     nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(gnbNumRows));
     nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(gnbNumColumns));
-    nrHelper->SetGnbAntennaAttribute("AntennaElement",
-                                     PointerValue(CreateObject<ThreeGppAntennaModel>()));
     nrHelper->SetGnbAntennaAttribute("AntennaHorizontalSpacing", DoubleValue(gnbHSpacing));
     nrHelper->SetGnbAntennaAttribute("AntennaVerticalSpacing", DoubleValue(gnbVSpacing));
     nrHelper->SetGnbAntennaAttribute("DowntiltAngle", DoubleValue(downtiltAngle * M_PI / 180.0));
+    nrHelper->SetGnbAntennaAttribute("AntennaElement",
+                                     PointerValue(CreateObject<IsotropicAntennaModel>()));
+    nrHelper->SetGnbAntennaAttribute("BearingAngle", DoubleValue(bearingAngleGnb));
 
     nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(ueNumRows));
     nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(ueNumColumns));
@@ -1259,6 +1292,26 @@ main(int argc, char* argv[])
     nrHelper->SetUeAntennaAttribute("AntennaVerticalSpacing", DoubleValue(ueVSpacing));
     nrHelper->SetUeAntennaAttribute("AntennaElement",
                                     PointerValue(CreateObject<IsotropicAntennaModel>()));
+    nrHelper->SetUeAntennaAttribute("BearingAngle", DoubleValue(bearingAngleUe));
+
+    if (enableMimoFeedback)
+    {
+        polSlantAngleGnb = bearingAngleGnb * (M_PI / 180);
+
+        nrHelper->SetGnbAntennaAttribute("IsDualPolarized", BooleanValue(isGnbDualPolarized));
+        nrHelper->SetGnbAntennaAttribute("NumHorizontalPorts", UintegerValue(gnbHorizPorts));
+        nrHelper->SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(gnbVertPorts));
+        nrHelper->SetGnbAntennaAttribute("PolSlantAngle", DoubleValue(polSlantAngleGnb));
+
+        polSlantAngleUe = polSlantAngleUe * (M_PI / 180);
+
+        nrHelper->SetUeAntennaAttribute("IsDualPolarized", BooleanValue(isUeDualPolarized));
+        nrHelper->SetUeAntennaAttribute("NumHorizontalPorts", UintegerValue(ueHorizPorts));
+        nrHelper->SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(ueVertPorts));
+        nrHelper->SetUeAntennaAttribute("PolSlantAngle", DoubleValue(polSlantAngleUe));
+
+        nrHelper->SetupMimoPmi(mimoPmiParams);
+    }
 
     uint32_t bwpIdForLowLat = 0;
     uint32_t bwpIdForVoice = 0;
@@ -1352,11 +1405,6 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(gnbNetDevs, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDevs, randomStream);
 
-    double gnbFirstSubArray = (polSlantAngleGnb1 * M_PI) / 180.0;  // converting to radians
-    double gnbSecondSubArray = (polSlantAngleGnb2 * M_PI) / 180.0; // converting to radians
-    double ueFirstSubArray = (polSlantAngleUe1 * M_PI) / 180.0;    // converting to radians
-    double ueSecondSubArray = (polSlantAngleUe2 * M_PI) / 180.0;   // converting to radians
-
     // Sectors (cells) of a site are pointing at different directions
     std::vector<double> sectorOrientationRad{
         sector0AngleRad,
@@ -1364,6 +1412,7 @@ main(int argc, char* argv[])
         sector0AngleRad - 2.0 * M_PI / 3.0  // - 120 deg
     };
 
+    // TODO: Check that for HEX case we configure correctly the antenna orientations
     if (deployment == "HEX")
     {
         for (uint32_t cellId = 0; cellId < gnbNetDevs.GetN(); ++cellId)
@@ -1379,33 +1428,7 @@ main(int argc, char* argv[])
             double orientation = sectorOrientationRad[sector];
 
             // BWP (in case of TDD)
-            ConfigurePhy(nrHelper,
-                         gnb,
-                         orientation,
-                         gnbFirstSubArray,
-                         gnbSecondSubArray,
-                         bfConfSector,
-                         bfConfElevation);
-        }
-
-        for (auto nd = ueNetDevs.Begin(); nd != ueNetDevs.End(); ++nd)
-        {
-            auto uePhyFirst = nrHelper->GetUePhy(*nd, 0);
-
-            ObjectVectorValue ueSpectrumPhysFirstBwp;
-            Ptr<NrSpectrumPhy> nrSpectrumPhy;
-            uePhyFirst->GetAttribute("NrSpectrumPhyList", ueSpectrumPhysFirstBwp);
-            nrSpectrumPhy = ueSpectrumPhysFirstBwp.Get(0)->GetObject<NrSpectrumPhy>();
-            nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-                "PolSlantAngle",
-                DoubleValue(ueFirstSubArray));
-            if (ueSpectrumPhysFirstBwp.GetN() == 2)
-            {
-                nrSpectrumPhy = ueSpectrumPhysFirstBwp.Get(1)->GetObject<NrSpectrumPhy>();
-                nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-                    "PolSlantAngle",
-                    DoubleValue(ueSecondSubArray));
-            }
+            ConfigurePhy(nrHelper, gnb, orientation, bfConfSector, bfConfElevation);
         }
     }
 
@@ -2338,7 +2361,8 @@ main(int argc, char* argv[])
             }
             else if (t.protocol == 17) // udp
             {
-                rxDuration = i->second.timeLastRxPacket - i->second.timeFirstTxPacket;
+                // rxDuration = i->second.timeLastRxPacket - i->second.timeFirstTxPacket;
+                rxDuration = MilliSeconds(appDuration + 10);
             }
             else
             {
