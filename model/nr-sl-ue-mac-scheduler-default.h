@@ -210,35 +210,6 @@ class NrSlUeMacSchedulerDefault : public NrSlUeMacScheduler
     void CheckForGrantsToPublish(const SfnSf& sfn);
 
     /**
-     * \brief Set the flag if the MCS for NR SL is fixed (in this case,
-     *        it will take the initial value)
-     *
-     * \param fixMcs the flag to indicate if the NR SL MCS is fixed
-     *
-     * \see SetInitialMcsSl
-     */
-    void UseFixedNrSlMcs(bool fixMcs);
-    /**
-     * \brief Check if the MCS in NR SL is fixed
-     * \return true if the NR SL MCS is fixed, false otherwise
-     */
-    bool IsNrSlMcsFixed() const;
-
-    /**
-     * \brief Set the initial value for the NR SL MCS
-     *
-     * \param mcs the MCS value
-     */
-    void SetInitialNrSlMcs(uint8_t mcs);
-
-    /**
-     * \brief Get the SL MCS initial value
-     *
-     * \return the value
-     */
-    uint8_t GetInitialNrSlMcs() const;
-
-    /**
      * \brief Get Redundancy Version number
      *
      * We assume rvid = 0, so RV would take 0, 2, 3, 1. See TS 38.21 table 6.1.2.1-2
@@ -490,9 +461,7 @@ class NrSlUeMacSchedulerDefault : public NrSlUeMacScheduler
 
     Ptr<NrAmc> m_nrSlAmc; //!< AMC pointer for NR SL
 
-    bool m_fixedNrSlMcs{false}; //!< Fixed MCS for *all* the destinations
-
-    uint8_t m_initialNrSlMcs{0}; //!< Initial (or fixed) value for NR SL MCS
+    uint8_t m_mcs{0}; //!< (fixed) value for MCS
 
     std::map<uint32_t, std::vector<NrSlUeMac::NrSlGrantInfo>> m_grantInfo;
 

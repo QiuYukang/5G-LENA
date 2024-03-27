@@ -547,8 +547,7 @@ main(int argc, char* argv[])
      * fix MCS value
      */
     nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
-    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
-    nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
+    nrSlHelper->SetUeSlSchedulerAttribute("Mcs", UintegerValue(14));
 
     /*
      * Very important method to configure UE protocol stack, i.e., it would

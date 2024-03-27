@@ -29,17 +29,10 @@ NrSlUeMacSchedulerDefault::GetTypeId(void)
             .SetParent<NrSlUeMacScheduler>()
             .AddConstructor<NrSlUeMacSchedulerDefault>()
             .SetGroupName("nr")
-            .AddAttribute("FixNrSlMcs",
-                          "Fix MCS to value set in SetInitialNrSlMcs",
-                          BooleanValue(false),
-                          MakeBooleanAccessor(&NrSlUeMacSchedulerDefault::UseFixedNrSlMcs,
-                                              &NrSlUeMacSchedulerDefault::IsNrSlMcsFixed),
-                          MakeBooleanChecker())
-            .AddAttribute("InitialNrSlMcs",
-                          "The initial value of the MCS used for NR Sidelink",
+            .AddAttribute("Mcs",
+                          "The fixed value of the MCS used by this scheduler",
                           UintegerValue(14),
-                          MakeUintegerAccessor(&NrSlUeMacSchedulerDefault::SetInitialNrSlMcs,
-                                               &NrSlUeMacSchedulerDefault::GetInitialNrSlMcs),
+                          MakeUintegerAccessor(&NrSlUeMacSchedulerDefault::m_mcs),
                           MakeUintegerChecker<uint8_t>())
             .AddAttribute("PriorityToSps",
                           "Flag to give scheduling priority to logical channels that are "
@@ -105,7 +98,7 @@ NrSlUeMacSchedulerDefault::CreateDstInfo(
         NS_LOG_INFO("Creating destination info. Destination L2 id " << params.dstL2Id);
 
         dstInfo = std::make_shared<NrSlUeMacSchedulerDstInfo>(params.dstL2Id);
-        dstInfo->SetDstMcs(m_initialNrSlMcs);
+        dstInfo->SetDstMcs(m_mcs);
 
         itDst = m_dstMap.insert(std::make_pair(params.dstL2Id, dstInfo)).first;
     }
@@ -1405,34 +1398,6 @@ NrSlUeMacSchedulerDefault::GetSlMaxTxTransNumPssch() const
     return GetNrSlUeMac()->GetSlMaxTxTransNumPssch();
 }
 
-void
-NrSlUeMacSchedulerDefault::UseFixedNrSlMcs(bool fixMcs)
-{
-    NS_LOG_FUNCTION(this);
-    m_fixedNrSlMcs = fixMcs;
-}
-
-bool
-NrSlUeMacSchedulerDefault::IsNrSlMcsFixed() const
-{
-    NS_LOG_FUNCTION(this);
-    return m_fixedNrSlMcs;
-}
-
-void
-NrSlUeMacSchedulerDefault::SetInitialNrSlMcs(uint8_t mcs)
-{
-    NS_LOG_FUNCTION(this);
-    m_initialNrSlMcs = mcs;
-}
-
-uint8_t
-NrSlUeMacSchedulerDefault::GetInitialNrSlMcs() const
-{
-    NS_LOG_FUNCTION(this);
-    return m_initialNrSlMcs;
-}
-
 uint8_t
 NrSlUeMacSchedulerDefault::GetRv(uint8_t txNumTb) const
 {
@@ -1507,8 +1472,6 @@ NrSlUeMacSchedulerDefault::DoNrSlAllocation(
     bool allocated = false;
     NS_ASSERT_MSG(candResources.size() > 0,
                   "Scheduler received an empty resource list from UE MAC");
-    NS_ASSERT_MSG(IsNrSlMcsFixed(),
-                  "Attribute FixNrSlMcs must be true for NrSlUeMacSchedulerDefault scheduler");
 
     std::list<NrSlSlotInfo> selectedTxOpps;
     // blind retransmission corresponds to HARQ enabled AND (PSFCH period == 0)
