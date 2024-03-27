@@ -944,7 +944,7 @@ TestSidelinkHarq::DoRun()
     nrSlHelper->SetSlErrorModel(errorModel);
     nrSlHelper->SetUeSlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
 
-    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
+    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerFixedMcs::GetTypeId());
     nrSlHelper->SetUeSlSchedulerAttribute("Mcs", UintegerValue(14));
 
     nrSlHelper->PrepareUeForSidelink(ueNetDevices, bwpIdContainer);

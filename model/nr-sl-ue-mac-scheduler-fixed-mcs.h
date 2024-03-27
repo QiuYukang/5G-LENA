@@ -4,8 +4,8 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only and NIST-Software
 
-#ifndef NR_SL_UE_MAC_SCHEDULER_DEFAULT_H
-#define NR_SL_UE_MAC_SCHEDULER_DEFAULT_H
+#ifndef NR_SL_UE_MAC_SCHEDULER_FIXED_MCS_H
+#define NR_SL_UE_MAC_SCHEDULER_FIXED_MCS_H
 
 #include "nr-sl-phy-mac-common.h"
 #include "nr-sl-ue-mac-scheduler-dst-info.h"
@@ -34,9 +34,10 @@ struct AllocationInfo
 /**
  * \ingroup scheduler
  *
- * \brief A general scheduler for NR SL UE in NS3
+ * \brief A general scheduler for NR SL UE that uses a fixed MCS, but supports multiple
+ *        logical channels, prioritization, and both dynamic and SPS grants
  */
-class NrSlUeMacSchedulerDefault : public NrSlUeMacScheduler
+class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
 {
   public:
     /**
@@ -47,14 +48,14 @@ class NrSlUeMacSchedulerDefault : public NrSlUeMacScheduler
     static TypeId GetTypeId(void);
 
     /**
-     * \brief NrSlUeMacSchedulerDefault default constructor
+     * \brief NrSlUeMacSchedulerFixedMcs default constructor
      */
-    NrSlUeMacSchedulerDefault();
+    NrSlUeMacSchedulerFixedMcs();
 
     /**
-     * \brief NrSlUeMacSchedulerDefault destructor
+     * \brief NrSlUeMacSchedulerFixedMcs destructor
      */
-    ~NrSlUeMacSchedulerDefault() override;
+    ~NrSlUeMacSchedulerFixedMcs() override;
 
   private:
     void DoRemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2Id) override;
@@ -484,4 +485,4 @@ class NrSlUeMacSchedulerDefault : public NrSlUeMacScheduler
 
 } // namespace ns3
 
-#endif /* NR_SL_UE_MAC_SCHEDULER_DEFAULT_H */
+#endif /* NR_SL_UE_MAC_SCHEDULER_FIXED_MCS_H */

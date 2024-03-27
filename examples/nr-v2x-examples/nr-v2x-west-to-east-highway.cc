@@ -799,9 +799,9 @@ main(int argc, char* argv[])
     /*
      * Set the SL scheduler attributes
      * In this example we use NrSlUeMacSchedulerSimple scheduler, which uses
-     * fix MCS value
+     * a fixed MCS value
      */
-    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
+    nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerFixedMcs::GetTypeId());
     nrSlHelper->SetUeSlSchedulerAttribute("Mcs", UintegerValue(mcs));
 
     /*

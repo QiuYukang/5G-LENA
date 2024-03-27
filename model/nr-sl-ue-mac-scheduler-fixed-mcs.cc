@@ -18,38 +18,38 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("NrSlUeMacSchedulerDefault");
-NS_OBJECT_ENSURE_REGISTERED(NrSlUeMacSchedulerDefault);
+NS_LOG_COMPONENT_DEFINE("NrSlUeMacSchedulerFixedMcs");
+NS_OBJECT_ENSURE_REGISTERED(NrSlUeMacSchedulerFixedMcs);
 
 TypeId
-NrSlUeMacSchedulerDefault::GetTypeId(void)
+NrSlUeMacSchedulerFixedMcs::GetTypeId(void)
 {
     static TypeId tid =
-        TypeId("ns3::NrSlUeMacSchedulerDefault")
+        TypeId("ns3::NrSlUeMacSchedulerFixedMcs")
             .SetParent<NrSlUeMacScheduler>()
-            .AddConstructor<NrSlUeMacSchedulerDefault>()
+            .AddConstructor<NrSlUeMacSchedulerFixedMcs>()
             .SetGroupName("nr")
             .AddAttribute("Mcs",
                           "The fixed value of the MCS used by this scheduler",
                           UintegerValue(14),
-                          MakeUintegerAccessor(&NrSlUeMacSchedulerDefault::m_mcs),
+                          MakeUintegerAccessor(&NrSlUeMacSchedulerFixedMcs::m_mcs),
                           MakeUintegerChecker<uint8_t>())
             .AddAttribute("PriorityToSps",
                           "Flag to give scheduling priority to logical channels that are "
                           "configured with SPS in case of priority tie",
                           BooleanValue(true),
-                          MakeBooleanAccessor(&NrSlUeMacSchedulerDefault::m_prioToSps),
+                          MakeBooleanAccessor(&NrSlUeMacSchedulerFixedMcs::m_prioToSps),
                           MakeBooleanChecker())
-            .AddAttribute(
-                "AllowMultipleDestinationsPerSlot",
-                "Allow scheduling of multiple destinations in same slot",
-                BooleanValue(false),
-                MakeBooleanAccessor(&NrSlUeMacSchedulerDefault::m_allowMultipleDestinationsPerSlot),
-                MakeBooleanChecker());
+            .AddAttribute("AllowMultipleDestinationsPerSlot",
+                          "Allow scheduling of multiple destinations in same slot",
+                          BooleanValue(false),
+                          MakeBooleanAccessor(
+                              &NrSlUeMacSchedulerFixedMcs::m_allowMultipleDestinationsPerSlot),
+                          MakeBooleanChecker());
     return tid;
 }
 
-NrSlUeMacSchedulerDefault::NrSlUeMacSchedulerDefault()
+NrSlUeMacSchedulerFixedMcs::NrSlUeMacSchedulerFixedMcs()
 {
     NS_LOG_FUNCTION(this);
     m_grantSelectionUniformVariable = CreateObject<UniformRandomVariable>();
@@ -57,14 +57,14 @@ NrSlUeMacSchedulerDefault::NrSlUeMacSchedulerDefault()
     m_ueSelectedUniformVariable = CreateObject<UniformRandomVariable>();
 }
 
-NrSlUeMacSchedulerDefault::~NrSlUeMacSchedulerDefault()
+NrSlUeMacSchedulerFixedMcs::~NrSlUeMacSchedulerFixedMcs()
 {
     // just to make sure
     m_dstMap.clear();
 }
 
 void
-NrSlUeMacSchedulerDefault::DoCschedNrSlLcConfigReq(
+NrSlUeMacSchedulerFixedMcs::DoCschedNrSlLcConfigReq(
     const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params)
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << +params.lcId);
@@ -88,7 +88,7 @@ NrSlUeMacSchedulerDefault::DoCschedNrSlLcConfigReq(
 }
 
 std::shared_ptr<NrSlUeMacSchedulerDstInfo>
-NrSlUeMacSchedulerDefault::CreateDstInfo(
+NrSlUeMacSchedulerFixedMcs::CreateDstInfo(
     const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params)
 {
     std::shared_ptr<NrSlUeMacSchedulerDstInfo> dstInfo = nullptr;
@@ -113,7 +113,7 @@ NrSlUeMacSchedulerDefault::CreateDstInfo(
 }
 
 void
-NrSlUeMacSchedulerDefault::DoRemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2Id)
+NrSlUeMacSchedulerFixedMcs::DoRemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2Id)
 {
     NS_LOG_FUNCTION(this << lcid << dstL2Id);
     RemoveDstInfo(lcid, dstL2Id);
@@ -122,7 +122,7 @@ NrSlUeMacSchedulerDefault::DoRemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2I
 }
 
 void
-NrSlUeMacSchedulerDefault::RemoveDstInfo(uint8_t lcid, uint32_t dstL2Id)
+NrSlUeMacSchedulerFixedMcs::RemoveDstInfo(uint8_t lcid, uint32_t dstL2Id)
 {
     NS_LOG_FUNCTION(this << lcid << dstL2Id);
     auto itDst = m_dstMap.find(dstL2Id);
@@ -143,14 +143,14 @@ NrSlUeMacSchedulerDefault::RemoveDstInfo(uint8_t lcid, uint32_t dstL2Id)
 }
 
 NrSlLCGPtr
-NrSlUeMacSchedulerDefault::CreateLCG(uint8_t lcGroup) const
+NrSlUeMacSchedulerFixedMcs::CreateLCG(uint8_t lcGroup) const
 {
     NS_LOG_FUNCTION(this << +lcGroup);
     return std::unique_ptr<NrSlUeMacSchedulerLCG>(new NrSlUeMacSchedulerLCG(lcGroup));
 }
 
 NrSlLCPtr
-NrSlUeMacSchedulerDefault::CreateLC(
+NrSlUeMacSchedulerFixedMcs::CreateLC(
     const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) const
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << +params.lcId);
@@ -158,7 +158,7 @@ NrSlUeMacSchedulerDefault::CreateLC(
 }
 
 void
-NrSlUeMacSchedulerDefault::DoSchedNrSlRlcBufferReq(
+NrSlUeMacSchedulerFixedMcs::DoSchedNrSlRlcBufferReq(
     const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
     NS_LOG_FUNCTION(this << params.dstL2Id << +params.lcid);
@@ -183,7 +183,7 @@ NrSlUeMacSchedulerDefault::DoSchedNrSlRlcBufferReq(
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetRandomReselectionCounter() const
+NrSlUeMacSchedulerFixedMcs::GetRandomReselectionCounter() const
 {
     uint8_t min;
     uint8_t max;
@@ -230,7 +230,7 @@ NrSlUeMacSchedulerDefault::GetRandomReselectionCounter() const
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetLowerBoundReselCounter(uint16_t pRsrv) const
+NrSlUeMacSchedulerFixedMcs::GetLowerBoundReselCounter(uint16_t pRsrv) const
 {
     NS_ASSERT_MSG(pRsrv < 100, "Resource reservation must be less than 100 ms");
     uint8_t lBound = (5 * std::ceil(100 / (std::max(static_cast<uint16_t>(20), pRsrv))));
@@ -238,7 +238,7 @@ NrSlUeMacSchedulerDefault::GetLowerBoundReselCounter(uint16_t pRsrv) const
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetUpperBoundReselCounter(uint16_t pRsrv) const
+NrSlUeMacSchedulerFixedMcs::GetUpperBoundReselCounter(uint16_t pRsrv) const
 {
     NS_ASSERT_MSG(pRsrv < 100, "Resource reservation must be less than 100 ms");
     uint8_t uBound = (15 * std::ceil(100 / (std::max(static_cast<uint16_t>(20), pRsrv))));
@@ -246,8 +246,8 @@ NrSlUeMacSchedulerDefault::GetUpperBoundReselCounter(uint16_t pRsrv) const
 }
 
 void
-NrSlUeMacSchedulerDefault::DoSchedNrSlTriggerReq(const SfnSf& sfn,
-                                                 const std::deque<uint8_t>& harqIds)
+NrSlUeMacSchedulerFixedMcs::DoSchedNrSlTriggerReq(const SfnSf& sfn,
+                                                  const std::deque<uint8_t>& harqIds)
 {
     NS_LOG_FUNCTION(this << harqIds.size());
 
@@ -356,7 +356,7 @@ NrSlUeMacSchedulerDefault::DoSchedNrSlTriggerReq(const SfnSf& sfn,
 }
 
 void
-NrSlUeMacSchedulerDefault::DoNotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint32_t size)
+NrSlUeMacSchedulerFixedMcs::DoNotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint32_t size)
 {
     NS_LOG_FUNCTION(this << dstL2Id << +lcId << size);
 
@@ -368,7 +368,7 @@ NrSlUeMacSchedulerDefault::DoNotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t l
 }
 
 bool
-NrSlUeMacSchedulerDefault::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t lcId)
+NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t lcId)
 {
     NS_LOG_FUNCTION(this << dstL2Id << +lcId);
     const auto itDstInfo = m_dstMap.find(dstL2Id);
@@ -494,7 +494,7 @@ NrSlUeMacSchedulerDefault::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t 
 }
 
 uint32_t
-NrSlUeMacSchedulerDefault::LogicalChannelPrioritization(
+NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
     const SfnSf& sfn,
     std::map<uint32_t, std::vector<uint8_t>> dstsAndLcsToSched,
     AllocationInfo& allocationInfo,
@@ -837,7 +837,7 @@ NrSlUeMacSchedulerDefault::LogicalChannelPrioritization(
 }
 
 void
-NrSlUeMacSchedulerDefault::GetDstsAndLcsNeedingScheduling(
+NrSlUeMacSchedulerFixedMcs::GetDstsAndLcsNeedingScheduling(
     std::map<uint32_t, std::vector<uint8_t>>& dstsAndLcsToSched)
 {
     NS_LOG_FUNCTION(this);
@@ -863,7 +863,7 @@ NrSlUeMacSchedulerDefault::GetDstsAndLcsNeedingScheduling(
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetUnusedHarqId(const std::deque<uint8_t>& ids)
+NrSlUeMacSchedulerFixedMcs::GetUnusedHarqId(const std::deque<uint8_t>& ids)
 {
     NS_LOG_FUNCTION(this << ids.size());
     uint8_t id = std::numeric_limits<uint8_t>::max();
@@ -908,10 +908,10 @@ NrSlUeMacSchedulerDefault::GetUnusedHarqId(const std::deque<uint8_t>& ids)
 }
 
 void
-NrSlUeMacSchedulerDefault::AttemptGrantAllocation(uint32_t dstL2Id,
-                                                  const std::list<NrSlSlotInfo>& candResources,
-                                                  const std::deque<uint8_t>& harqIds,
-                                                  AllocationInfo allocationInfo)
+NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(uint32_t dstL2Id,
+                                                   const std::list<NrSlSlotInfo>& candResources,
+                                                   const std::deque<uint8_t>& harqIds,
+                                                   AllocationInfo allocationInfo)
 {
     NS_LOG_FUNCTION(this << dstL2Id);
 
@@ -936,10 +936,10 @@ NrSlUeMacSchedulerDefault::AttemptGrantAllocation(uint32_t dstL2Id,
 }
 
 void
-NrSlUeMacSchedulerDefault::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
-                                          const std::deque<uint8_t>& ids,
-                                          bool harqEnabled,
-                                          Time rri)
+NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
+                                           const std::deque<uint8_t>& ids,
+                                           bool harqEnabled,
+                                           Time rri)
 {
     NS_LOG_FUNCTION(this << ids.size() << harqEnabled << rri);
     // itGrantInfo iterates a map of a vector of NrSlUeMac::NrSlGrantInfo items
@@ -1033,9 +1033,9 @@ NrSlUeMacSchedulerDefault::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAll
 }
 
 void
-NrSlUeMacSchedulerDefault::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
-                                                const std::deque<uint8_t>& ids,
-                                                bool harqEnabled)
+NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
+                                                 const std::deque<uint8_t>& ids,
+                                                 bool harqEnabled)
 {
     NS_LOG_FUNCTION(this << ids.size() << harqEnabled);
     auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
@@ -1124,8 +1124,8 @@ NrSlUeMacSchedulerDefault::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& s
 }
 
 NrSlUeMac::NrSlGrantInfo
-NrSlUeMacSchedulerDefault::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList,
-                                              Time rri)
+NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList,
+                                               Time rri)
 {
     NS_LOG_FUNCTION(this << rri);
     NS_ASSERT_MSG((m_reselCounter != 0),
@@ -1187,7 +1187,7 @@ NrSlUeMacSchedulerDefault::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& slo
 }
 
 NrSlUeMac::NrSlGrantInfo
-NrSlUeMacSchedulerDefault::CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList)
+NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList)
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_LOGIC("Creating single-PDU grant for dstL2Id " << slotAllocList.begin()->dstL2Id);
@@ -1225,7 +1225,7 @@ NrSlUeMacSchedulerDefault::CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc
 }
 
 void
-NrSlUeMacSchedulerDefault::CheckForGrantsToPublish(const SfnSf& sfn)
+NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
 {
     NS_LOG_FUNCTION(this << sfn.Normalize());
     for (auto& itGrantInfo : m_grantInfo)
@@ -1301,12 +1301,12 @@ NrSlUeMacSchedulerDefault::CheckForGrantsToPublish(const SfnSf& sfn)
 }
 
 bool
-NrSlUeMacSchedulerDefault::OverlappedResources(const SfnSf& firstSfn,
-                                               uint16_t firstStart,
-                                               uint16_t firstLength,
-                                               const SfnSf& secondSfn,
-                                               uint16_t secondStart,
-                                               uint16_t secondLength) const
+NrSlUeMacSchedulerFixedMcs::OverlappedResources(const SfnSf& firstSfn,
+                                                uint16_t firstStart,
+                                                uint16_t firstLength,
+                                                const SfnSf& secondSfn,
+                                                uint16_t secondStart,
+                                                uint16_t secondLength) const
 {
     NS_ASSERT_MSG(firstLength && secondLength, "Length should not be zero");
     if (firstSfn == secondSfn)
@@ -1328,7 +1328,7 @@ NrSlUeMacSchedulerDefault::OverlappedResources(const SfnSf& firstSfn,
 }
 
 std::list<NrSlSlotInfo>
-NrSlUeMacSchedulerDefault::FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr)
+NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr)
 {
     NS_LOG_FUNCTION(this);
 
@@ -1387,19 +1387,19 @@ NrSlUeMacSchedulerDefault::FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr)
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetTotalSubCh() const
+NrSlUeMacSchedulerFixedMcs::GetTotalSubCh() const
 {
     return GetNrSlUeMac()->GetTotalSubCh();
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetSlMaxTxTransNumPssch() const
+NrSlUeMacSchedulerFixedMcs::GetSlMaxTxTransNumPssch() const
 {
     return GetNrSlUeMac()->GetSlMaxTxTransNumPssch();
 }
 
 uint8_t
-NrSlUeMacSchedulerDefault::GetRv(uint8_t txNumTb) const
+NrSlUeMacSchedulerFixedMcs::GetRv(uint8_t txNumTb) const
 {
     NS_LOG_FUNCTION(this << +txNumTb);
     uint8_t modulo = txNumTb % 4;
@@ -1428,7 +1428,7 @@ NrSlUeMacSchedulerDefault::GetRv(uint8_t txNumTb) const
 }
 
 int64_t
-NrSlUeMacSchedulerDefault::AssignStreams(int64_t stream)
+NrSlUeMacSchedulerFixedMcs::AssignStreams(int64_t stream)
 {
     NS_LOG_FUNCTION(this << stream);
     m_grantSelectionUniformVariable->SetStream(stream);
@@ -1438,17 +1438,17 @@ NrSlUeMacSchedulerDefault::AssignStreams(int64_t stream)
 }
 
 void
-NrSlUeMacSchedulerDefault::DoDispose()
+NrSlUeMacSchedulerFixedMcs::DoDispose()
 {
     NS_LOG_FUNCTION(this);
 }
 
 uint32_t
-NrSlUeMacSchedulerDefault::CalculateTbSize(Ptr<const NrAmc> nrAmc,
-                                           uint8_t dstMcs,
-                                           uint16_t symbolsPerSlot,
-                                           uint16_t availableSubChannels,
-                                           uint16_t subChannelSize) const
+NrSlUeMacSchedulerFixedMcs::CalculateTbSize(Ptr<const NrAmc> nrAmc,
+                                            uint8_t dstMcs,
+                                            uint16_t symbolsPerSlot,
+                                            uint16_t availableSubChannels,
+                                            uint16_t subChannelSize) const
 {
     NS_LOG_FUNCTION(this << nrAmc << dstMcs << symbolsPerSlot << availableSubChannels
                          << subChannelSize);
@@ -1462,7 +1462,7 @@ NrSlUeMacSchedulerDefault::CalculateTbSize(Ptr<const NrAmc> nrAmc,
 }
 
 bool
-NrSlUeMacSchedulerDefault::DoNrSlAllocation(
+NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
     const std::list<NrSlSlotInfo>& candResources,
     const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
     std::set<NrSlSlotAlloc>& slotAllocList,
@@ -1533,8 +1533,8 @@ NrSlUeMacSchedulerDefault::DoNrSlAllocation(
 }
 
 bool
-NrSlUeMacSchedulerDefault::OverlappedSlots(const std::list<NrSlSlotInfo>& resources,
-                                           const NrSlSlotInfo& candidate) const
+NrSlUeMacSchedulerFixedMcs::OverlappedSlots(const std::list<NrSlSlotInfo>& resources,
+                                            const NrSlSlotInfo& candidate) const
 {
     for (const auto& it : resources)
     {
@@ -1547,7 +1547,7 @@ NrSlUeMacSchedulerDefault::OverlappedSlots(const std::list<NrSlSlotInfo>& resour
 }
 
 std::list<NrSlSlotInfo>
-NrSlUeMacSchedulerDefault::SelectResourcesForBlindRetransmissions(std::list<NrSlSlotInfo> txOpps)
+NrSlUeMacSchedulerFixedMcs::SelectResourcesForBlindRetransmissions(std::list<NrSlSlotInfo> txOpps)
 {
     NS_LOG_FUNCTION(this << txOpps.size());
 
@@ -1595,8 +1595,8 @@ NrSlUeMacSchedulerDefault::SelectResourcesForBlindRetransmissions(std::list<NrSl
 }
 
 std::list<NrSlSlotInfo>
-NrSlUeMacSchedulerDefault::SelectResourcesWithConstraint(std::list<NrSlSlotInfo> txOpps,
-                                                         bool harqEnabled)
+NrSlUeMacSchedulerFixedMcs::SelectResourcesWithConstraint(std::list<NrSlSlotInfo> txOpps,
+                                                          bool harqEnabled)
 {
     NS_LOG_FUNCTION(this << txOpps.size() << harqEnabled);
     uint8_t totalTx = 1;
@@ -1640,10 +1640,10 @@ NrSlUeMacSchedulerDefault::SelectResourcesWithConstraint(std::list<NrSlSlotInfo>
 // assigning SCI 1-A frequently enough, not on slot selection) can be
 // handled in DoNrSlAllocation
 bool
-NrSlUeMacSchedulerDefault::IsMinTimeGapSatisfied(const SfnSf& first,
-                                                 const SfnSf& second,
-                                                 uint8_t minTimeGapPsfch,
-                                                 uint8_t minTimeGapProcessing) const
+NrSlUeMacSchedulerFixedMcs::IsMinTimeGapSatisfied(const SfnSf& first,
+                                                  const SfnSf& second,
+                                                  uint8_t minTimeGapPsfch,
+                                                  uint8_t minTimeGapProcessing) const
 {
     NS_ASSERT_MSG(minTimeGapPsfch > 0, "Invalid minimum time gap");
     SfnSf sfnsf = first;
@@ -1657,8 +1657,8 @@ NrSlUeMacSchedulerDefault::IsMinTimeGapSatisfied(const SfnSf& first,
 }
 
 bool
-NrSlUeMacSchedulerDefault::IsCandidateResourceEligible(const std::list<NrSlSlotInfo>& txOpps,
-                                                       const NrSlSlotInfo& slotInfo) const
+NrSlUeMacSchedulerFixedMcs::IsCandidateResourceEligible(const std::list<NrSlSlotInfo>& txOpps,
+                                                        const NrSlSlotInfo& slotInfo) const
 {
     NS_LOG_FUNCTION(txOpps.size() << slotInfo.sfn.Normalize());
     if (txOpps.size() == 0)

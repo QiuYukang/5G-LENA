@@ -43,7 +43,7 @@ NrSlHelper::NrSlHelper()
 {
     NS_LOG_FUNCTION(this);
     m_ueSlAmcFactory.SetTypeId(NrAmc::GetTypeId());
-    m_ueSlSchedulerFactory.SetTypeId(NrSlUeMacSchedulerDefault::GetTypeId());
+    m_ueSlSchedulerFactory.SetTypeId(NrSlUeMacSchedulerFixedMcs::GetTypeId());
 }
 
 NrSlHelper::~NrSlHelper()
