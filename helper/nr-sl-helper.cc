@@ -18,7 +18,7 @@
 #include <ns3/nr-amc.h>
 #include <ns3/nr-sl-bwp-manager-ue.h>
 #include <ns3/nr-sl-chunk-processor.h>
-#include <ns3/nr-sl-ue-mac-scheduler-default.h>
+#include <ns3/nr-sl-ue-mac-scheduler-fixed-mcs.h>
 #include <ns3/nr-sl-ue-mac-scheduler.h>
 #include <ns3/nr-sl-ue-mac.h>
 #include <ns3/nr-sl-ue-rrc.h>

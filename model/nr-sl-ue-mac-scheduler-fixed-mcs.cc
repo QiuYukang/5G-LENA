@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only and NIST-Software
 
-#include "nr-sl-ue-mac-scheduler-default.h"
+#include "nr-sl-ue-mac-scheduler-fixed-mcs.h"
 
 #include "nr-ue-mac.h"
 

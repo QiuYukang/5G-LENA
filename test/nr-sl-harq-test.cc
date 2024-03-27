@@ -42,7 +42,7 @@
 #include <ns3/nr-sl-comm-resource-pool.h>
 #include <ns3/nr-sl-helper.h>
 #include <ns3/nr-sl-ue-mac-harq.h>
-#include <ns3/nr-sl-ue-mac-scheduler-default.h>
+#include <ns3/nr-sl-ue-mac-scheduler-fixed-mcs.h>
 #include <ns3/nr-spectrum-phy.h>
 #include <ns3/nr-ue-mac.h>
 #include <ns3/nr-ue-net-device.h>
