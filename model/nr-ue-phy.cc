@@ -644,7 +644,7 @@ NrUePhy::TryToPerformLbt()
     }
     else
     {
-        NS_LOG_INFO("Not scheduling LBT; the UE has no UL CTRL symbols available");
+        NS_LOG_DEBUG("Not scheduling LBT; the UE has no UL CTRL symbols available");
     }
 }
 
@@ -1804,8 +1804,8 @@ void
 NrUePhy::EndNrSlVarTti(const NrSlVarTtiAllocInfo& varTtiInfo)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_INFO("NR SL var TTI started at symbol " << varTtiInfo.symStart << " which lasted for "
-                                                   << varTtiInfo.symLength << " symbols");
+    NS_LOG_DEBUG("NR SL var TTI started at symbol " << varTtiInfo.symStart << " which lasted for "
+                                                    << varTtiInfo.symLength << " symbols");
 
     if (m_nrSlCurrentAlloc.slvarTtiInfoList.empty())
     {
@@ -2232,6 +2232,8 @@ NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb, const SpectrumValue& ps
         Ptr<Packet> packet = pktIt->Copy();
         packet->RemovePacketTag(tag);
     }
+    NS_LOG_INFO("Scheduling ReceivePsschPhyPdu after decode latency of "
+                << GetTbDecodeLatency().As(Time::US));
     Simulator::ScheduleWithContext(m_netDevice->GetNode()->GetId(),
                                    GetTbDecodeLatency(),
                                    &NrSlUePhySapUser::ReceivePsschPhyPdu,
