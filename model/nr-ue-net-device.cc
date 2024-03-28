@@ -211,6 +211,7 @@ NrUeNetDevice::DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocol
                         protocolNumber != Ipv6L3Protocol::PROT_NUMBER,
                     "unsupported protocol " << protocolNumber
                                             << ", only IPv4 and IPv6 are supported");
+    NS_LOG_INFO("Send packet size " << packet->GetSize() << " protocol " << protocolNumber);
     return m_nas->Send(packet, protocolNumber);
 }
 
