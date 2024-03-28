@@ -975,6 +975,9 @@ NrSlUeMac::DoReceivePsschPhyPdu(Ptr<PacketBurst> pdu)
                 NS_FATAL_ERROR("Failure to setup Sidelink radio bearer for reception");
             }
         }
+        NS_LOG_INFO("SL PDU reception on LC " << +tag.GetLcid()
+                                              << " from src: " << identifier.srcL2Id
+                                              << " to dst: " << identifier.dstL2Id);
         NrSlMacSapUser::NrSlReceiveRlcPduParameters rxPduParams(pktIt,
                                                                 GetRnti(),
                                                                 tag.GetLcid(),
@@ -1014,8 +1017,8 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
         feedbackVarTtiInfo.rbLength =
             GetTotalSubCh() * m_slTxPool->GetNrSlSubChSize(GetBwpId(), m_poolId);
         m_nrSlUePhySapProvider->SetNrSlVarTtiAllocInfo(sfn, feedbackVarTtiInfo);
-        NS_LOG_INFO("PSFCH at : Frame = " << sfn.GetFrame() << " SF = " << +sfn.GetSubframe()
-                                          << " slot = " << +sfn.GetSlot());
+        NS_LOG_DEBUG("PSFCH at : Frame = " << sfn.GetFrame() << " SF = " << +sfn.GetSubframe()
+                                           << " slot = " << +sfn.GetSlot());
     }
 
     // check if we need to transmit PSCCH + PSSCH
@@ -1059,10 +1062,10 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                                                                   << " is empty");
                         for (const auto& itPkt : pb->GetPackets())
                         {
-                            NS_LOG_DEBUG("Sending PSSCH MAC PDU (1st Tx) dstL2Id: "
-                                         << currentSlot.dstL2Id
-                                         << " harqId: " << +currentGrant.nrSlHarqId
-                                         << " Packet Size: " << itPkt->GetSize());
+                            NS_LOG_INFO("Sending PSSCH MAC PDU (1st Tx) dstL2Id: "
+                                        << currentSlot.dstL2Id
+                                        << " harqId: " << +currentGrant.nrSlHarqId
+                                        << " Packet Size: " << itPkt->GetSize());
                             m_nrSlUePhySapProvider->SendPsschMacPdu(itPkt, currentSlot.dstL2Id);
                         }
                     }
@@ -1545,6 +1548,8 @@ NrSlUeMac::AddNrSlDstL2Id(uint32_t dstL2Id, uint8_t lcPriority)
 
     if (!foundDst)
     {
+        NS_LOG_INFO("Adding destination " << dstL2Id << " with priority " << +lcPriority
+                                          << " to list of sidelink Tx destinations");
         m_sidelinkTxDestinations.emplace_back(dstL2Id, lcPriority);
     }
 
@@ -1598,6 +1603,7 @@ void
 NrSlUeMac::DoAddNrSlRxDstL2Id(uint32_t dstL2Id)
 {
     NS_LOG_FUNCTION(this << dstL2Id);
+    NS_LOG_INFO("Adding destination " << dstL2Id << " to list of sidelink Rx destinations");
     m_sidelinkRxDestinations.insert(dstL2Id);
 }
 
