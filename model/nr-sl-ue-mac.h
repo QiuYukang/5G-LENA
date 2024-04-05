@@ -407,22 +407,6 @@ class NrSlUeMac : public NrUeMac
     uint8_t GetPsfchPeriod() const;
 
     /**
-     * Execute step 5 of the sensing algorithm in TS 38.214 Section 8.1.4
-     * Candidate resources passed in may be excluded (modified) based on
-     * transmit history and list of resource reservation periods.
-     *
-     * \param sfn The current system frame, subframe, and slot number.
-     * \param transmitHistory List of transmission history
-     * \param candidateList List of candidate resources (modified by this method)
-     * \param slResourceReservePeriodList List of resource reservation periods (ms)
-     */
-    void ExcludeResourcesBasedOnHistory(
-        const SfnSf& sfn,
-        const std::list<SfnSf>& transmitHistory,
-        std::list<NrSlSlotInfo>& candidateList,
-        const std::list<uint16_t>& slResourceReservePeriodList) const;
-
-    /**
      * In resource allocation mode 2, the higher layer can request the UE to
      * determine a subset of resources from which the higher layer will select
      * resources for PSSCH/PSCCH transmission. This function first call the
@@ -440,60 +424,6 @@ class NrSlUeMac : public NrUeMac
      */
     std::list<NrSlSlotInfo> GetNrSlAvailableResources(const SfnSf& sfn,
                                                       const NrSlTransmissionParams& params);
-
-    /**
-     * This method implements the algorithm specified in 3GPP TR 38.214 v16.7.0
-     * Section 8.1.4.
-     *
-     * \brief Get NR sidelink candidate single-slot resources
-     *
-     * \param sfn The current system frame, subframe, and slot number.
-     * \param params The input transmission parameters for the algorithm
-     * \return The list of the transmit opportunities (slots) as per the TDD pattern
-     *         and the NR SL bitmap
-     */
-    std::list<NrSlSlotInfo> GetNrSlCandidateResources(const SfnSf& sfn,
-                                                      const NrSlTransmissionParams& params);
-
-    /**
-     * \brief Return all of the candidate single-slot resources (step 1 of
-     *        TS 38.214 Section 8.1.4)
-     *
-     * Method to convert the list of NrSlCommResourcePool::SlotInfo (slots)
-     * NrSlSlotInfo (with widths of subchannels)
-     *
-     * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
-     * have an object of NR SfnSf class there due to dependency issue. The use of
-     * SfnSf class makes our life easier since it already implements the necessary
-     * arithmetic of adding slots, constructing new SfnSf given the slot offset,
-     * and e.t.c. In this method, we use the slot offset value, which is the
-     * offset in number of slots from the current slot to construct the object of
-     * SfnSf class.
-     *
-     * \param sfn The current system frame, subframe, and slot number. This SfnSf
-     *        is aligned with the SfnSf of the physical layer.
-     * \param psfchPeriod The PSFCH period in slots
-     * \param minTimeGapPsfch The MinTimeGapPsfch parameter (in slots)
-     * \param lSubch Width of candidate resource (number of subchannels)
-     * \param numSubch Number of contiguous subchannels
-     * \param slotInfo the list of LTE module compatible slot info
-     * \return The list of NR compatible slot info
-     */
-    std::list<NrSlSlotInfo> GetNrSlCandidateResourcesFromSlots(
-        const SfnSf& sfn,
-        uint8_t psfchPeriod,
-        uint8_t minTimeGapPsfch,
-        uint16_t lSubch,
-        uint16_t numSubch,
-        std::list<NrSlCommResourcePool::SlotInfo> slotInfo) const;
-
-    /**
-     * \brief Removes resources which are already part of an existing published grant.
-     *
-     * \param txOppr The list of available slots
-     * \return The list of resources which are not used by any existing published grant.
-     */
-    std::list<NrSlSlotInfo> FilterNrSlCandidateResources(std::list<NrSlSlotInfo> txOppr);
 
   protected:
     // Inherited
@@ -628,6 +558,77 @@ class NrSlUeMac : public NrUeMac
 
   private:
     void DoSlotIndication(const SfnSf& sfn) override;
+
+
+    /**
+     * Execute step 5 of the sensing algorithm in TS 38.214 Section 8.1.4
+     * Candidate resources passed in may be excluded (modified) based on
+     * transmit history and list of resource reservation periods.
+     *
+     * \param sfn The current system frame, subframe, and slot number.
+     * \param transmitHistory List of transmission history
+     * \param candidateList List of candidate resources (modified by this method)
+     * \param slResourceReservePeriodList List of resource reservation periods (ms)
+     */
+    void ExcludeResourcesBasedOnHistory(
+        const SfnSf& sfn,
+        const std::list<SfnSf>& transmitHistory,
+        std::list<NrSlSlotInfo>& candidateList,
+        const std::list<uint16_t>& slResourceReservePeriodList) const;
+
+    /**
+     * This method implements the algorithm specified in 3GPP TR 38.214 v16.7.0
+     * Section 8.1.4.
+     *
+     * \brief Get NR sidelink candidate single-slot resources
+     *
+     * \param sfn The current system frame, subframe, and slot number.
+     * \param params The input transmission parameters for the algorithm
+     * \return The list of the transmit opportunities (slots) as per the TDD pattern
+     *         and the NR SL bitmap
+     */
+    std::list<NrSlSlotInfo> GetNrSlCandidateResources(const SfnSf& sfn,
+                                                      const NrSlTransmissionParams& params);
+
+    /**
+     * \brief Return all of the candidate single-slot resources (step 1 of
+     *        TS 38.214 Section 8.1.4)
+     *
+     * Method to convert the list of NrSlCommResourcePool::SlotInfo (slots)
+     * NrSlSlotInfo (with widths of subchannels)
+     *
+     * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
+     * have an object of NR SfnSf class there due to dependency issue. The use of
+     * SfnSf class makes our life easier since it already implements the necessary
+     * arithmetic of adding slots, constructing new SfnSf given the slot offset,
+     * and e.t.c. In this method, we use the slot offset value, which is the
+     * offset in number of slots from the current slot to construct the object of
+     * SfnSf class.
+     *
+     * \param sfn The current system frame, subframe, and slot number. This SfnSf
+     *        is aligned with the SfnSf of the physical layer.
+     * \param psfchPeriod The PSFCH period in slots
+     * \param minTimeGapPsfch The MinTimeGapPsfch parameter (in slots)
+     * \param lSubch Width of candidate resource (number of subchannels)
+     * \param numSubch Number of contiguous subchannels
+     * \param slotInfo the list of LTE module compatible slot info
+     * \return The list of NR compatible slot info
+     */
+    std::list<NrSlSlotInfo> GetNrSlCandidateResourcesFromSlots(
+        const SfnSf& sfn,
+        uint8_t psfchPeriod,
+        uint8_t minTimeGapPsfch,
+        uint16_t lSubch,
+        uint16_t numSubch,
+        std::list<NrSlCommResourcePool::SlotInfo> slotInfo) const;
+
+    /**
+     * \brief Removes resources which are already part of an existing published grant.
+     *
+     * \param txOppr The list of available slots
+     * \return The list of resources which are not used by any existing published grant.
+     */
+    std::list<NrSlSlotInfo> FilterNrSlCandidateResources(std::list<NrSlSlotInfo> txOppr);
 
     /// Sidelink Logical Channel Identifier
     struct SidelinkLcIdentifier
