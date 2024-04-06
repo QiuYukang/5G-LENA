@@ -571,7 +571,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
      * Case (iii): Go node for node and change the attributes we have to setup
      * per-node.
      */
-    int16_t maxMcsPerCell[gridScenario.GetNumCells()];
+    std::vector<int16_t> maxMcsPerCell(gridScenario.GetNumCells());
     if (uniformMcs) // if uniformMcs -> same maximum MCS for all cells, input parameter maxMcsDl1
     {
         for (uint32_t i = 0; i < gridScenario.GetNumCells(); ++i)
@@ -1361,7 +1361,7 @@ main(int argc, char* argv[])
     }
     lowLatTft->Add(dlpfLowLat);
 
-    uint32_t lambdaPerCell[gridScenario.GetNumCells()];
+    std::vector<uint32_t> lambdaPerCell(gridScenario.GetNumCells());
     if (uniformLambda)
     {
         for (uint32_t bs = 0; bs < gridScenario.GetNumCells(); ++bs)
@@ -1633,7 +1633,7 @@ main(int argc, char* argv[])
 
     std::ofstream outFile;
     std::string filename = outputDir + "/" + simTag;
-    double delayValues[stats.size()];
+    std::vector<double> delayValues(stats.size());
     uint64_t cont = 0;
 
     outFile.open(filename.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -1692,7 +1692,7 @@ main(int argc, char* argv[])
         }
         // outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
-    std::sort(delayValues, delayValues + stats.size());
+    std::sort(delayValues.begin(), delayValues.end());
     // for (uint32_t i = 0; i < stats.size(); i++)
     //   {
     //     std::cout << delayValues[i] << " ";
