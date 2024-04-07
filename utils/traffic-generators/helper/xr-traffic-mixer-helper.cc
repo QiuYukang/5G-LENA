@@ -18,6 +18,26 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("XrTrafficMixerHelper");
 NS_OBJECT_ENSURE_REGISTERED(XrTrafficMixerHelper);
 
+const std::map<NrXrConfig, std::list<TypeId>> XrPreconfig = {
+    {AR_M3,
+     {TrafficGenerator3gppPoseControl::GetTypeId(),
+      TrafficGenerator3gppGenericVideo::GetTypeId(),
+      TrafficGenerator3gppAudioData::GetTypeId()}},
+    {AR_M3_V2,
+     {TrafficGenerator3gppPoseControl::GetTypeId(),
+      TrafficGeneratorNgmnVideo::GetTypeId(),
+      TrafficGenerator3gppAudioData::GetTypeId()}},
+    {VR_DL1, {TrafficGenerator3gppGenericVideo::GetTypeId()}},
+    {VR_DL2,
+     {TrafficGenerator3gppGenericVideo::GetTypeId(), TrafficGenerator3gppAudioData::GetTypeId()}},
+    {VR_UL, {TrafficGenerator3gppPoseControl::GetTypeId()}},
+    {CG_DL1, {TrafficGenerator3gppGenericVideo::GetTypeId()}},
+    {CG_DL2,
+     {TrafficGenerator3gppGenericVideo::GetTypeId(), TrafficGenerator3gppAudioData::GetTypeId()}},
+    {CG_UL, {TrafficGenerator3gppPoseControl::GetTypeId()}},
+    {NGMN_VOICE, {TrafficGeneratorNgmnVoip::GetTypeId()}},
+};
+
 enum NrXrConfig
 GetXrTrafficType(const std::string& item)
 {

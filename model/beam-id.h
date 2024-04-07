@@ -86,7 +86,7 @@ class BeamId
  * \brief Name of the OMNI beam
  * \ingroup utils
  */
-const BeamId OMNI_BEAM_ID = BeamId(UINT16_MAX, UINT16_MAX);
+extern const BeamId OMNI_BEAM_ID;
 
 // we reserve pair 65534, 65534 to identify the directional predefined beam
 /**
@@ -94,7 +94,7 @@ const BeamId OMNI_BEAM_ID = BeamId(UINT16_MAX, UINT16_MAX);
  * through sector and elevation
  * \ingroup utils
  */
-const BeamId PREDEFINED_BEAM_ID = BeamId(UINT16_MAX - 1, UINT16_MAX - 1);
+extern const BeamId PREDEFINED_BEAM_ID;
 
 /**
  * \brief Calculate the hash of a BeamId

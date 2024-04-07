@@ -8,6 +8,8 @@
 
 namespace ns3
 {
+const BeamId OMNI_BEAM_ID = BeamId(UINT16_MAX, UINT16_MAX);
+const BeamId PREDEFINED_BEAM_ID = BeamId(UINT16_MAX - 1, UINT16_MAX - 1);
 
 std::ostream&
 operator<<(std::ostream& os, const BeamId& item)

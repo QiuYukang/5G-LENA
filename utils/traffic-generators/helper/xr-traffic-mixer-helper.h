@@ -75,25 +75,7 @@ operator<<(std::ostream& os, const NrXrConfig& item)
     return os;
 }
 
-const std::map<NrXrConfig, std::list<TypeId>> XrPreconfig = {
-    {AR_M3,
-     {TrafficGenerator3gppPoseControl::GetTypeId(),
-      TrafficGenerator3gppGenericVideo::GetTypeId(),
-      TrafficGenerator3gppAudioData::GetTypeId()}},
-    {AR_M3_V2,
-     {TrafficGenerator3gppPoseControl::GetTypeId(),
-      TrafficGeneratorNgmnVideo::GetTypeId(),
-      TrafficGenerator3gppAudioData::GetTypeId()}},
-    {VR_DL1, {TrafficGenerator3gppGenericVideo::GetTypeId()}},
-    {VR_DL2,
-     {TrafficGenerator3gppGenericVideo::GetTypeId(), TrafficGenerator3gppAudioData::GetTypeId()}},
-    {VR_UL, {TrafficGenerator3gppPoseControl::GetTypeId()}},
-    {CG_DL1, {TrafficGenerator3gppGenericVideo::GetTypeId()}},
-    {CG_DL2,
-     {TrafficGenerator3gppGenericVideo::GetTypeId(), TrafficGenerator3gppAudioData::GetTypeId()}},
-    {CG_UL, {TrafficGenerator3gppPoseControl::GetTypeId()}},
-    {NGMN_VOICE, {TrafficGeneratorNgmnVoip::GetTypeId()}},
-};
+extern const std::map<NrXrConfig, std::list<TypeId>> XrPreconfig;
 
 /**
  * \ingroup applications
