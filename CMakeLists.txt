@@ -215,7 +215,6 @@ set(header_files
     model/beam-id.h
     model/beamforming-vector.h
     model/beam-manager.h
-    model/beamforming-algorithm.h
     model/ideal-beamforming-algorithm.h
     model/realistic-beamforming-algorithm.h
     model/sfnsf.h
