@@ -155,4 +155,13 @@ ThreeGppFtpM1Helper::DoGetNextTime() const
     return Seconds(m_ftpArrivals->GetValue());
 }
 
+int64_t
+ThreeGppFtpM1Helper::AssignStreams(int64_t stream)
+{
+    m_ftpArrivals->SetStream(stream);
+    m_startJitter->SetStream(stream + 1);
+
+    return 2;
+}
+
 } // namespace ns3

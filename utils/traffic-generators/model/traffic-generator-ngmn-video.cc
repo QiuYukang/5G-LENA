@@ -186,4 +186,13 @@ TrafficGeneratorNgmnVideo::DoInitialize()
     TrafficGenerator::DoInitialize();
 }
 
+int64_t
+TrafficGeneratorNgmnVideo::AssignStreams(int64_t stream)
+{
+    m_packetSizeGenerator->SetStream(stream);
+    m_packetTimeGenerator->SetStream(stream + 1);
+
+    return 2;
+}
+
 } // Namespace ns3

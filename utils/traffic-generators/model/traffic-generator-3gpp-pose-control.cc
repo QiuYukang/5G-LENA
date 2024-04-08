@@ -100,4 +100,10 @@ TrafficGenerator3gppPoseControl::GetNextPacketTime() const
     return MilliSeconds(m_periodicity);
 }
 
+int64_t
+TrafficGenerator3gppPoseControl::AssignStreams(int64_t stream)
+{
+    return 0;
+}
+
 } // Namespace ns3

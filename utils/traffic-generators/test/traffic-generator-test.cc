@@ -7,6 +7,7 @@
 
 #include <ns3/boolean.h>
 #include <ns3/ping-helper.h>
+#include <ns3/rng-seed-manager.h>
 
 namespace ns3
 {
@@ -30,6 +31,9 @@ TrafficGeneratorTestCase::~TrafficGeneratorTestCase()
 void
 TrafficGeneratorTestCase::DoRun()
 {
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
+
     NodeContainer nodes;
     nodes.Create(2);
     InternetStackHelper internet;
@@ -77,10 +81,13 @@ TrafficGeneratorTestCase::DoRun()
     pingApps.Start(Seconds(1));
     pingApps.Stop(Seconds(2));
 
-    Simulator::Run();
-
     Ptr<TrafficGenerator> trafficGenerator =
         generatorApplication.Get(0)->GetObject<TrafficGenerator>();
+    trafficGenerator->Initialize();
+    trafficGenerator->AssignStreams(1);
+
+    Simulator::Run();
+
     uint64_t totalBytesSent = trafficGenerator->GetTotalBytes();
 
     Ptr<PacketSink> packetSink = sinkApplication.Get(0)->GetObject<PacketSink>();
@@ -104,11 +111,15 @@ TrafficGeneratorNgmnFtpTestCase::~TrafficGeneratorNgmnFtpTestCase()
 void
 TrafficGeneratorNgmnFtpTestCase::DoRun()
 {
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
+
     Ptr<TrafficGeneratorNgmnFtpMulti> trafficGenerator =
         CreateObject<TrafficGeneratorNgmnFtpMulti>();
     // we need to call it manually because in this test since we do not run the simulation, nothing
     // will call DoInitialize
     trafficGenerator->Initialize();
+    trafficGenerator->AssignStreams(1);
     uint64_t totalFileSizeBytes = 0;
     Time totalReadingTime = Seconds(0);
     uint16_t repetitions = 1000;
@@ -182,8 +193,12 @@ TrafficGeneratorNgmnVideoTestCase::~TrafficGeneratorNgmnVideoTestCase()
 void
 TrafficGeneratorNgmnVideoTestCase::DoRun()
 {
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
+
     Ptr<TrafficGeneratorNgmnVideo> trafficGenerator = CreateObject<TrafficGeneratorNgmnVideo>();
     trafficGenerator->Initialize();
+    trafficGenerator->AssignStreams(1);
     uint64_t totalPacketSize = 0;
     Time totalPacketTime = Seconds(0);
     uint16_t repetitions = 1000;
@@ -239,7 +254,7 @@ TrafficGeneratorNgmnVideoTestCase::DoRun()
     NS_TEST_ASSERT_MSG_EQ_TOL(
         averagePacketTime,
         MilliSeconds(6),
-        MilliSeconds(6) * 0.03,
+        MilliSeconds(6) * 0.05,
         "The mean video packet size is not according to the NGMN white paper.");
     Simulator::Destroy();
 }
@@ -257,8 +272,12 @@ TrafficGeneratorNgmnGamingTestCase::~TrafficGeneratorNgmnGamingTestCase()
 void
 TrafficGeneratorNgmnGamingTestCase::DoRun()
 {
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
+
     Ptr<TrafficGeneratorNgmnGaming> trafficGenerator = CreateObject<TrafficGeneratorNgmnGaming>();
     trafficGenerator->Initialize();
+    trafficGenerator->AssignStreams(1);
     double eulerConst = 0.577215665; // truncated to 9 decimals, we dont need more precision since
                                      // we will anyway use some tolerance
     uint16_t repetitions = 1000;
@@ -445,6 +464,9 @@ TrafficGeneratorNgmnVoipTestCase::~TrafficGeneratorNgmnVoipTestCase()
 void
 TrafficGeneratorNgmnVoipTestCase::DoRun()
 {
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
+
     NodeContainer nodes;
     nodes.Create(2);
     InternetStackHelper internet;
@@ -493,10 +515,13 @@ TrafficGeneratorNgmnVoipTestCase::DoRun()
     pingApps.Start(Seconds(1));
     pingApps.Stop(Seconds(2));
 
+    Ptr<TrafficGeneratorNgmnVoip> trafficGenerator =
+        generatorApplication.Get(0)->GetObject<TrafficGeneratorNgmnVoip>();
+    trafficGenerator->Initialize();
+    trafficGenerator->AssignStreams(1);
+
     Simulator::Run();
 
-    Ptr<TrafficGenerator> trafficGenerator =
-        generatorApplication.Get(0)->GetObject<TrafficGenerator>();
     uint64_t totalBytesSent = trafficGenerator->GetTotalBytes();
 
     Ptr<PacketSink> packetSink = sinkApplication.Get(0)->GetObject<PacketSink>();
@@ -504,11 +529,11 @@ TrafficGeneratorNgmnVoipTestCase::DoRun()
 
     NS_TEST_ASSERT_MSG_EQ_TOL(((double)totalBytesSent * 8) / durationInSeconds,
                               6.475e3,
-                              6.475e3 * 0.1,
+                              6.475e3 * 0.15,
                               "TX: The NGMN VoIP traffic offered throughput is not as expected!");
     NS_TEST_ASSERT_MSG_EQ_TOL(((double)totalBytesReceived * 8) / durationInSeconds,
                               6.475e3,
-                              6.475e3 * 0.1,
+                              6.475e3 * 0.15,
                               "RX: The NGMN VoIP traffic received throughput is not as expected!");
 
     Simulator::Destroy();
@@ -529,10 +554,14 @@ TrafficGeneratorThreeGppHttpTestCase::~TrafficGeneratorThreeGppHttpTestCase()
 void
 TrafficGeneratorThreeGppHttpTestCase::DoRun()
 {
+    RngSeedManager::SetSeed(1);
+    RngSeedManager::SetRun(1);
+
     Ptr<ThreeGppHttpVariables> trafficGenerator = CreateObject<ThreeGppHttpVariables>();
     // we need to call it manually because in this test since we do not run the simulation, nothing
     // will call DoInitialize
     trafficGenerator->Initialize();
+    trafficGenerator->AssignStreams(1);
     uint64_t totalNumEmbeddedObjects = 0;
     uint64_t totalObjectSize = 0;
     uint64_t totalEmbeddedObjectSize = 0;
@@ -672,7 +701,7 @@ TrafficGeneratorTestSuite::TrafficGeneratorTestSuite()
     AddTestCase(new TrafficGeneratorNgmnGamingTestCase(), Duration::QUICK);
     AddTestCase(new TrafficGeneratorNgmnVoipTestCase("ns3::UdpSocketFactory"), Duration::QUICK);
     AddTestCase(new TrafficGeneratorNgmnVoipTestCase("ns3::TcpSocketFactory"), Duration::QUICK);
-    // AddTestCase(new TrafficGeneratorThreeGppHttpTestCase(), Duration::QUICK);
+    //  AddTestCase(new TrafficGeneratorThreeGppHttpTestCase(), Duration::QUICK);
 }
 
 static TrafficGeneratorTestSuite

@@ -29,6 +29,16 @@ class TrafficGenerator3gppPoseControl : public TrafficGenerator
     TrafficGenerator3gppPoseControl();
     ~TrafficGenerator3gppPoseControl() override;
 
+    /**
+     * Assign a fixed random variable stream number to the random variables
+     * used by this model. Return the number of streams (possibly zero) that
+     * have been assigned.
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    int64_t AssignStreams(int64_t stream) override;
+
   private:
     // inherited from Application base class.
     //  Called at time specified by Start by the DoInitialize method

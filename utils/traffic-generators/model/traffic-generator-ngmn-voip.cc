@@ -214,4 +214,13 @@ TrafficGeneratorNgmnVoip::DoInitialize()
     TrafficGenerator::DoInitialize();
 }
 
+int64_t
+TrafficGeneratorNgmnVoip::AssignStreams(int64_t stream)
+{
+    m_fromActiveToInactive->SetStream(stream);
+    m_fromInactiveToActive->SetStream(stream + 1);
+
+    return 2;
+}
+
 } // Namespace ns3

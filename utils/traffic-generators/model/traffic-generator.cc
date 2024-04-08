@@ -438,4 +438,10 @@ TrafficGenerator::GetPeer() const
     return m_peer;
 }
 
+int64_t
+TrafficGenerator::AssignStreams(int64_t stream)
+{
+    return 0;
+}
+
 } // Namespace ns3
