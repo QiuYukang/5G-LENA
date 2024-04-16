@@ -87,6 +87,15 @@ NrPmSearchFull::CreateCqiFeedbackMimo(const NrMimoSignal& rxSignalRb, PmiUpdate 
     {
         auto cqiMsg = CreateCqiForRank(rank, rbNormChanMat);
         optPrecForRanks.emplace_back(std::move(cqiMsg));
+        // Skip higher ranks when the current is incapable of maintaining the connection
+        if (optPrecForRanks.back().m_wbCqi == 0)
+        {
+            if (optPrecForRanks.size() >= 2)
+            {
+                optPrecForRanks.pop_back();
+            }
+            break;
+        }
     }
 
     // Find the rank which results in largest expected TB size, and return corresponding CQI/PMI
