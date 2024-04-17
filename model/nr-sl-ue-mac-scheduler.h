@@ -52,9 +52,8 @@ class NrSlUeMacScheduler : public Object
      * \brief Starts the UL MAC scheduler for this subframe.
      *
      * \param sfn The current SfnSf
-     * \param ids available HARQ process IDs from the MAC
      */
-    void SchedNrSlTriggerReq(const SfnSf& sfn, const std::deque<uint8_t>& ids);
+    void SchedNrSlTriggerReq(const SfnSf& sfn);
 
     /**
      * \brief Update buffer status of logical channel data in RLC.
@@ -139,9 +138,8 @@ class NrSlUeMacScheduler : public Object
      * \brief Starts the UL MAC scheduler for this subframe.
      *
      * \param sfn The current SfnSf
-     * \param ids available HARQ process IDs from the MAC
      */
-    virtual void DoSchedNrSlTriggerReq(const SfnSf& sfn, const std::deque<uint8_t>& ids) = 0;
+    virtual void DoSchedNrSlTriggerReq(const SfnSf& sfn) = 0;
 
     /**
      * \brief Update buffer status of logical channel data in RLC.

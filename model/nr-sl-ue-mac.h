@@ -317,16 +317,15 @@ class NrSlUeMac : public NrUeMac
     uint16_t GetSlActivePoolId() const;
 
     /**
-     * \brief Sets the number of Sidelink processes of Sidelink HARQ
-     * \param numSidelinkProcess the maximum number of Sidelink processes
-     */
-    void SetNumSidelinkProcess(uint8_t numSidelinkProcess);
-
-    /**
      * \brief Gets the number of Sidelink processes of Sidelink HARQ
+     *
+     * The first item of the pair is the maximum number of processes
+     * corresponding to multiple PDU transmissions.  The second item of
+     * the pair is the maximum number of processes.
+     *
      * \return The maximum number of Sidelink processes
      */
-    uint8_t GetNumSidelinkProcess() const;
+    std::pair<uint8_t, uint8_t> GetNumSidelinkProcess() const;
 
     /**
      * \brief Sets a threshold in dBm used for sensing based UE autonomous resource selection
@@ -558,7 +557,6 @@ class NrSlUeMac : public NrUeMac
 
   private:
     void DoSlotIndication(const SfnSf& sfn) override;
-
 
     /**
      * Execute step 5 of the sensing algorithm in TS 38.214 Section 8.1.4
@@ -844,7 +842,6 @@ class NrSlUeMac : public NrUeMac
                                                  (including new transmission and
                                                  retransmission) for PSSCH.
                                                  */
-    uint8_t m_numSidelinkProcess{0};              //!< Maximum number of Sidelink processes
     Ptr<NrSlUeMacHarq> m_nrSlHarq;                //!< Pointer to the NR SL UE MAC HARQ object
     Ptr<NrSlUeMacScheduler> m_nrSlUeMacScheduler; //!< Pointer to the NR SL UE MAC scheduler
     uint32_t m_srcL2Id{std::numeric_limits<uint32_t>::max()}; //!< The NR Sidelink Source L2 id;

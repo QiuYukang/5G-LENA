@@ -154,6 +154,7 @@ void NotifyRxHarqFeedback(std::string context, const SlHarqInfo& harqInfo);
 void NotifyAllocate(std::string context,
                     uint8_t harqId,
                     uint32_t dstL2Id,
+                    bool multiplePdu,
                     Time timeout,
                     std::size_t available);
 // Listen to HARQ process ID deallocation events
@@ -397,7 +398,6 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("T1", UintegerValue(t1));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(4));
 
     uint8_t bwpIdForGbrMcptt = 0;
 
@@ -1104,13 +1104,14 @@ void
 NotifyAllocate(std::string context,
                uint8_t harqId,
                uint32_t dstL2Id,
+               bool multiplePdu,
                Time timeout,
                std::size_t available)
 {
     std::cout << std::fixed << std::showpoint << std::setprecision(9)
               << Simulator::Now().As(Time::S) << " " << ContextToNodeId(context)
-              << " allocate; processId " << +harqId << " dstL2Id " << dstL2Id << " timeout "
-              << timeout.GetMilliSeconds() << "ms"
+              << " allocate; processId " << +harqId << " dstL2Id " << dstL2Id << " multiple PDU "
+              << multiplePdu << " timeout " << timeout.GetMilliSeconds() << "ms"
               << " available " << available << std::endl;
 }
 

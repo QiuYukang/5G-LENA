@@ -50,9 +50,9 @@ NrSlUeMacScheduler::DoDispose()
 }
 
 void
-NrSlUeMacScheduler::SchedNrSlTriggerReq(const SfnSf& sfn, const std::deque<uint8_t>& ids)
+NrSlUeMacScheduler::SchedNrSlTriggerReq(const SfnSf& sfn)
 {
-    DoSchedNrSlTriggerReq(sfn, ids);
+    DoSchedNrSlTriggerReq(sfn);
 }
 
 void

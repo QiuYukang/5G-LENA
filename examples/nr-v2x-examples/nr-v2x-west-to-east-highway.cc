@@ -742,7 +742,6 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("T1", UintegerValue(static_cast<uint8_t>(t1)));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(4));
     nrHelper->SetUeMacAttribute("SlThresPsschRsrp", IntegerValue(slThresPsschRsrp));
 
     uint8_t bwpIdForGbrMcptt = 0;

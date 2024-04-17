@@ -43,6 +43,11 @@ NS_LOG_COMPONENT_DEFINE("NrSlUeMac");
 
 NS_OBJECT_ENSURE_REGISTERED(NrSlUeMac);
 
+// Constants defined in TS 38.321 Section 5.22.1.3
+// Values are restricted to be <= 16, due to a 4-bit protocol field
+constexpr uint8_t MAX_SIDELINK_PROCESS_MULTIPLE_PDU = 4;
+constexpr uint8_t MAX_SIDELINK_PROCESS = 16;
+
 TypeId
 NrSlUeMac::GetTypeId()
 {
@@ -78,12 +83,6 @@ NrSlUeMac::GetTypeId()
                 UintegerValue(0),
                 MakeUintegerAccessor(&NrSlUeMac::SetSlActivePoolId, &NrSlUeMac::GetSlActivePoolId),
                 MakeUintegerChecker<uint16_t>())
-            .AddAttribute("NumSidelinkProcess",
-                          "Number of concurrent stop-and-wait Sidelink processes for this UE",
-                          UintegerValue(4),
-                          MakeUintegerAccessor(&NrSlUeMac::SetNumSidelinkProcess,
-                                               &NrSlUeMac::GetNumSidelinkProcess),
-                          MakeUintegerChecker<uint8_t>())
             .AddAttribute(
                 "MinTimeGapProcessing",
                 "Minimum time (in slots) for processing PSFCH and preparing retransmission",
@@ -143,6 +142,7 @@ NrSlUeMac::NrSlUeMac()
     m_nrSlUePhySapUser = new MemberNrSlUePhySapUser<NrSlUeMac>(this);
     m_ueSelectedUniformVariable = CreateObject<UniformRandomVariable>();
     m_nrSlHarq = CreateObject<NrSlUeMacHarq>();
+    m_nrSlHarq->InitHarqBuffer(MAX_SIDELINK_PROCESS_MULTIPLE_PDU, MAX_SIDELINK_PROCESS);
 }
 
 void
@@ -153,40 +153,6 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
     NS_LOG_INFO("Received grant to dstL2Id " << dstL2Id << " on HARQ ID " << +grant.nrSlHarqId
                                              << " containing " << grant.slotAllocations.size()
                                              << " slots and RRI " << grant.rri.As(Time::MS));
-    // This grant will lead to dequeue of a new transport block.  There should
-    // be a HARQ process ID available (otherwise the later enqueue will fail)
-    NS_ABORT_MSG_UNLESS(m_nrSlHarq->IsHarqIdAvailable(grant.nrSlHarqId),
-                        "Unable to assign granted HARQ ID");
-    // To ensure that the scheduler's choice of HARQ ID is available on a recurring
-    // basis, a timeout value is necessary to return the HARQ ID before the next
-    // scheduled grant can arrive (otherwise, the above ABORT may trigger)
-    if (grant.rri > Seconds(0))
-    {
-        // SPS grant-- use the RRI as the timeout value
-        m_nrSlHarq->AssignNrSlHarqProcessId(grant.nrSlHarqId, dstL2Id, grant.rri);
-    }
-    else
-    {
-        // Dynamic grant-- allow some time after the last scheduled Tx
-        // XXX Need a less hacky way to compute this
-        std::vector<uint64_t> slots;
-        uint8_t numerology = 0;
-        for (const auto& itSlotAlloc : grant.slotAllocations)
-        {
-            slots.push_back(itSlotAlloc.sfn.Normalize());
-            numerology = itSlotAlloc.sfn.GetNumerology();
-        }
-        auto minValue = std::min_element(slots.begin(), slots.end());
-        auto maxValue = std::max_element(slots.begin(), slots.end());
-        // Assume that the first slot in the grant is T1 time from now.  Wait for
-        // T1 + (max - min) slots, plus some small number (4) of additional slots,
-        // as a timeout value on the HARQ ID
-        auto timeoutInSlots = (*maxValue - *minValue) + GetT1() + 4;
-        auto slotsPerMs = 1 << numerology;
-        m_nrSlHarq->AssignNrSlHarqProcessId(grant.nrSlHarqId,
-                                            dstL2Id,
-                                            MilliSeconds((timeoutInSlots / slotsPerMs) + 1));
-    }
     auto it = m_slGrants.find(dstL2Id);
     if (it == m_slGrants.end())
     {
@@ -198,13 +164,6 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
     else
     {
         NS_LOG_LOGIC("Inserting new grant to " << dstL2Id);
-        if (m_nrSlHarq->IsHarqIdAvailable(grant.nrSlHarqId))
-        {
-            // XXX need to convey the timeout value across this API
-            // Consider to have the scheduler make this assignment directly instead
-            // of asking NrUeMac to make the assignment
-            m_nrSlHarq->AssignNrSlHarqProcessId(grant.nrSlHarqId, dstL2Id, MilliSeconds(40));
-        }
         it->second.push_back(grant);
     }
     // The grant has a set of NrSlSlotAlloc.  One of these slots will be for
@@ -304,7 +263,7 @@ NrSlUeMac::DoSlotIndication(const SfnSf& sfn)
     }
 
     // Scheduling can occur on any slot boundary
-    m_nrSlUeMacScheduler->SchedNrSlTriggerReq(sfn, m_nrSlHarq->GetAvailableHarqIds());
+    m_nrSlUeMacScheduler->SchedNrSlTriggerReq(sfn);
 
     // trigger SL only when it is a SL slot
     if (m_slTxPool->IsSidelinkSlot(GetBwpId(), m_poolId, sfn.Normalize()))
@@ -1817,22 +1776,10 @@ NrSlUeMac::GetTotalSubCh() const
     return totalSubChannels;
 }
 
-void
-NrSlUeMac::SetNumSidelinkProcess(uint8_t numSidelinkProcess)
-{
-    NS_LOG_FUNCTION(this);
-    NS_ASSERT_MSG(
-        m_grantInfo.empty(),
-        "Can not reset the number of Sidelink processes. Scheduler already assigned grants");
-    m_numSidelinkProcess = numSidelinkProcess;
-    m_nrSlHarq->InitHarqBuffer(m_numSidelinkProcess);
-}
-
-uint8_t
+std::pair<uint8_t, uint8_t>
 NrSlUeMac::GetNumSidelinkProcess() const
 {
-    NS_LOG_FUNCTION(this);
-    return m_numSidelinkProcess;
+    return std::make_pair(MAX_SIDELINK_PROCESS_MULTIPLE_PDU, MAX_SIDELINK_PROCESS);
 }
 
 void

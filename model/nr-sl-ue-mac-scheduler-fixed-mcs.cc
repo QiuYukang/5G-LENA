@@ -6,6 +6,7 @@
 
 #include "nr-sl-ue-mac-scheduler-fixed-mcs.h"
 
+#include "nr-sl-ue-mac-harq.h"
 #include "nr-ue-mac.h"
 
 #include <ns3/boolean.h>
@@ -13,6 +14,7 @@
 #include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 
+#include <optional>
 #include <queue>
 
 namespace ns3
@@ -246,20 +248,21 @@ NrSlUeMacSchedulerFixedMcs::GetUpperBoundReselCounter(uint16_t pRsrv) const
 }
 
 void
-NrSlUeMacSchedulerFixedMcs::DoSchedNrSlTriggerReq(const SfnSf& sfn,
-                                                  const std::deque<uint8_t>& harqIds)
+NrSlUeMacSchedulerFixedMcs::DoSchedNrSlTriggerReq(const SfnSf& sfn)
 {
-    NS_LOG_FUNCTION(this << harqIds.size());
+    NS_LOG_FUNCTION(this << sfn);
 
-    if (harqIds.empty())
+    if (!GetNrSlUeMacHarq()->GetNumAvailableHarqIds())
     {
+        // Cannot create new grants at this time but there may be existing
+        // ones to publish
         CheckForGrantsToPublish(sfn);
         return;
     }
 
     // 1. Obtain which destinations and logical channels are in need of scheduling
     std::map<uint32_t, std::vector<uint8_t>> dstsAndLcsToSched;
-    GetDstsAndLcsNeedingScheduling(dstsAndLcsToSched);
+    GetDstsAndLcsNeedingScheduling(sfn, dstsAndLcsToSched);
     if (dstsAndLcsToSched.size() > 0)
     {
         NS_LOG_LOGIC("There are " << dstsAndLcsToSched.size()
@@ -292,7 +295,7 @@ NrSlUeMacSchedulerFixedMcs::DoSchedNrSlTriggerReq(const SfnSf& sfn,
             {
                 if (candResources.size() > 0 && allocationInfo.m_allocatedRlcPdus.size() > 0)
                 {
-                    AttemptGrantAllocation(dstL2IdtoServe, candResources, harqIds, allocationInfo);
+                    AttemptGrantAllocation(sfn, dstL2IdtoServe, candResources, allocationInfo);
                     m_reselCounter = 0;
                     m_cResel = 0;
 
@@ -368,9 +371,11 @@ NrSlUeMacSchedulerFixedMcs::DoNotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t 
 }
 
 bool
-NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t lcId)
+NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(const SfnSf& sfn,
+                                                       uint32_t dstL2Id,
+                                                       uint8_t lcId)
 {
-    NS_LOG_FUNCTION(this << dstL2Id << +lcId);
+    NS_LOG_FUNCTION(this << sfn << dstL2Id << +lcId);
     const auto itDstInfo = m_dstMap.find(dstL2Id);
     const auto& lcgMap = itDstInfo->second->GetNrSlLCG();
 
@@ -458,6 +463,14 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t
                             // re-selection counter we chose while creating the fresh grant
                             itGrantFoundLc->slResoReselCounter =
                                 itGrantFoundLc->prevSlResoReselCounter;
+                            auto timeout =
+                                GetSpsGrantTimeout(sfn,
+                                                   itGrantFoundLc->prevSlResoReselCounter,
+                                                   itGrantFoundLc->rri);
+                            bool renewed [[maybe_unused]] =
+                                GetNrSlUeMacHarq()->RenewProcessIdTimer(itGrantFoundLc->nrSlHarqId,
+                                                                        timeout);
+                            NS_ASSERT_MSG(renewed, "Timer failed to renew");
                         }
                         else
                         {
@@ -467,6 +480,9 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t
                                         << m_slProbResourceKeep << ") <= randProb (" << randProb
                                         << ")"
                                         << ", Clearing the SPS grant");
+                            GetNrSlUeMacHarq()->DeallocateNrSlHarqProcessId(
+                                itGrantFoundLc->nrSlHarqId);
+
                             pass = true;
                         }
                     }
@@ -476,6 +492,7 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t
                         itGrantInfo->second.erase(itGrantFoundLc);
                         NS_LOG_INFO("Passed, cReselCounter == 0, Clearing the SPS grant");
                         pass = true;
+                        GetNrSlUeMacHarq()->DeallocateNrSlHarqProcessId(itGrantFoundLc->nrSlHarqId);
                     }
                 }
                 else
@@ -838,9 +855,10 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
 
 void
 NrSlUeMacSchedulerFixedMcs::GetDstsAndLcsNeedingScheduling(
+    const SfnSf& sfn,
     std::map<uint32_t, std::vector<uint8_t>>& dstsAndLcsToSched)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << sfn);
     for (auto& itDstInfo : m_dstMap)
     {
         const auto& lcgMap = itDstInfo.second->GetNrSlLCG(); // Map of unique_ptr should not copy
@@ -848,7 +866,7 @@ NrSlUeMacSchedulerFixedMcs::GetDstsAndLcsNeedingScheduling(
         std::vector<uint8_t> passedLcsVector;
         for (auto& itLcId : lcVector)
         {
-            if (TxResourceReselectionCheck(itDstInfo.first, itLcId))
+            if (TxResourceReselectionCheck(sfn, itDstInfo.first, itLcId))
             {
                 passedLcsVector.emplace_back(itLcId);
             }
@@ -862,58 +880,13 @@ NrSlUeMacSchedulerFixedMcs::GetDstsAndLcsNeedingScheduling(
     }
 }
 
-uint8_t
-NrSlUeMacSchedulerFixedMcs::GetUnusedHarqId(const std::deque<uint8_t>& ids)
-{
-    NS_LOG_FUNCTION(this << ids.size());
-    uint8_t id = std::numeric_limits<uint8_t>::max();
-    std::deque<uint8_t> idsInUse;
-
-    if (ids.size() > 0)
-    {
-        for (auto& itGrantInfo : m_grantInfo)
-        {
-            for (auto& itGrantVector : itGrantInfo.second)
-            {
-                idsInUse.push_back(itGrantVector.nrSlHarqId);
-            }
-        }
-        if (idsInUse.size() > 0)
-        {
-            for (auto& itId : ids)
-            {
-                bool found = false;
-                for (auto& itIdsInUse : idsInUse)
-                {
-                    if (itId == itIdsInUse)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    id = itId;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            id = ids.front();
-        }
-    }
-
-    return id;
-}
-
 void
-NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(uint32_t dstL2Id,
+NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(const SfnSf& sfn,
+                                                   uint32_t dstL2Id,
                                                    const std::list<NrSlSlotInfo>& candResources,
-                                                   const std::deque<uint8_t>& harqIds,
                                                    AllocationInfo allocationInfo)
 {
-    NS_LOG_FUNCTION(this << dstL2Id);
+    NS_LOG_FUNCTION(this << sfn << dstL2Id);
 
     std::set<NrSlSlotAlloc> allocList;
 
@@ -927,35 +900,49 @@ NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(uint32_t dstL2Id,
 
     if (allocationInfo.m_isDynamic)
     {
-        CreateSinglePduGrant(allocList, harqIds, allocationInfo.m_harqEnabled);
+        CreateSinglePduGrant(sfn, allocList, allocationInfo.m_harqEnabled);
     }
     else
     {
-        CreateSpsGrant(allocList, harqIds, allocationInfo.m_harqEnabled, allocationInfo.m_rri);
+        CreateSpsGrant(sfn, allocList, allocationInfo.m_harqEnabled, allocationInfo.m_rri);
     }
 }
 
+Time
+NrSlUeMacSchedulerFixedMcs::GetSpsGrantTimeout(const SfnSf& sfn,
+                                               uint8_t resoReselCounter,
+                                               Time rri) const
+{
+    NS_LOG_FUNCTION(this << sfn << +resoReselCounter << rri.As(Time::MS));
+    auto timePerSlot = MicroSeconds(1000 >> sfn.GetNumerology());
+    auto timeout = rri * (resoReselCounter + 1);
+    return timeout;
+}
+
 void
-NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
-                                           const std::deque<uint8_t>& ids,
+NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
+                                           const std::set<NrSlSlotAlloc>& slotAllocList,
                                            bool harqEnabled,
                                            Time rri)
 {
-    NS_LOG_FUNCTION(this << ids.size() << harqEnabled << rri);
+    NS_LOG_FUNCTION(this << sfn << harqEnabled << rri);
     // itGrantInfo iterates a map of a vector of NrSlUeMac::NrSlGrantInfo items
     auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
 
     if (itGrantInfo == m_grantInfo.end())
     {
         NS_LOG_LOGIC("New destination " << slotAllocList.begin()->dstL2Id);
-        uint8_t harqId = GetUnusedHarqId(ids); // Assign new HARQ process ID
-        if (harqId == std::numeric_limits<uint8_t>::max())
+        NrSlUeMac::NrSlGrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
+        auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, rri);
+        auto harqId = GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                                    true,
+                                                                    timeout);
+        if (!harqId.has_value())
         {
             NS_LOG_WARN("Unable to create grant, HARQ Id not available");
             return;
         }
-        NrSlUeMac::NrSlGrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
-        grant.nrSlHarqId = harqId;
+        grant.nrSlHarqId = harqId.value();
         grant.harqEnabled = harqEnabled;
         std::vector<NrSlUeMac::NrSlGrantInfo> grantVector;
         grantVector.push_back(grant);
@@ -999,6 +986,11 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAl
         }
         if (grantFound)
         {
+            // This case corresponds to slResoReselCounter going to zero but
+            // the grant still existing-- can it happen?
+            // If this is reachable code, the below nees to be reworked
+            // to avoid copying harq ID to a new grant without updating the timer
+            NS_FATAL_ERROR("Check whether this code is unreachable");
             // Update
             NS_ASSERT_MSG(
                 itGrantVector->slResoReselCounter == 0,
@@ -1015,14 +1007,18 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAl
         else
         {
             // Insert
-            uint8_t harqId = GetUnusedHarqId(ids); // Assign new HARQ process ID
-            if (harqId == std::numeric_limits<uint8_t>::max())
+            NrSlUeMac::NrSlGrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
+            auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, rri);
+            auto harqId =
+                GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                              true,
+                                                              timeout);
+            if (!harqId.has_value())
             {
                 NS_LOG_WARN("Unable to create grant, HARQ Id not available");
                 return;
             }
-            NrSlUeMac::NrSlGrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
-            grant.nrSlHarqId = harqId;
+            grant.nrSlHarqId = harqId.value();
             grant.harqEnabled = harqEnabled;
             itGrantInfo->second.push_back(grant);
             NS_LOG_INFO("New SPS grant created to existing destination "
@@ -1032,26 +1028,68 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAl
     }
 }
 
+Time
+NrSlUeMacSchedulerFixedMcs::GetDynamicGrantTimeout(const SfnSf& sfn,
+                                                   const std::set<NrSlSlotAlloc>& slotAllocList,
+                                                   bool harqEnabled,
+                                                   uint16_t psfchPeriod) const
+{
+    NS_LOG_FUNCTION(this << sfn << slotAllocList.size() << harqEnabled << psfchPeriod);
+    NS_ABORT_MSG_UNLESS(slotAllocList.size(), "Grant has no allocated slots");
+    auto timePerSlot = MicroSeconds(1000 >> sfn.GetNumerology());
+    auto it = slotAllocList.end();
+    it--; // it points to the last element of the list
+    NS_ASSERT_MSG(it->sfn.Normalize() >= sfn.Normalize(), "allocation occurs in the past");
+    // Current time is (sfn.Normalize() * timePerSlot)
+    // The last grant transmission time will be at time (it->sfn.Normalize() * timePerSlot)
+    // If there is no HARQ feedback, we can set the time to one slot beyond
+    // the last grant transmission time
+    if (!(harqEnabled && psfchPeriod))
+    {
+        auto timeout = timePerSlot * (it->sfn.Normalize() + 1 - sfn.Normalize());
+        NS_LOG_DEBUG("Timeout (without HARQ FB): " << timeout.As(Time::US));
+        return timeout;
+    }
+    // PSFCH feedback will usually be delivered in the first PSFCH-enabled slot after the
+    // MinTimeGapPsfch has elapsed Therefore, find the this PSFCH-enabled slot, and set the timeout
+    // value to (PSFCH-enabled slot + 1 - current slot) * timePerSlot
+    SfnSf futureSlot = it->sfn;
+    futureSlot.Add(1);
+    while (!GetNrSlUeMac()->SlotHasPsfch(futureSlot))
+    {
+        futureSlot.Add(1);
+    }
+    auto timeout = timePerSlot * (futureSlot.Normalize() + 1 - sfn.Normalize());
+    NS_LOG_DEBUG("Timeout (with HARQ FB): " << timeout.As(Time::US));
+    return timeout;
+}
+
 void
-NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
-                                                 const std::deque<uint8_t>& ids,
+NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
+                                                 const std::set<NrSlSlotAlloc>& slotAllocList,
                                                  bool harqEnabled)
 {
-    NS_LOG_FUNCTION(this << ids.size() << harqEnabled);
+    NS_LOG_FUNCTION(this << sfn << harqEnabled);
     auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
 
     if (itGrantInfo == m_grantInfo.end())
     {
         // New destination
         NS_LOG_LOGIC("New destination " << slotAllocList.begin()->dstL2Id);
-        uint8_t harqId = GetUnusedHarqId(ids); // Assign new HARQ process ID
-        if (harqId == std::numeric_limits<uint8_t>::max())
+        auto timeout = GetDynamicGrantTimeout(sfn,
+                                              slotAllocList,
+                                              harqEnabled,
+                                              GetNrSlUeMac()->GetPsfchPeriod());
+        auto harqId = GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                                    false,
+                                                                    timeout);
+        if (!harqId.has_value())
         {
             NS_LOG_WARN("Unable to create grant, HARQ Id not available");
             return;
         }
         NrSlUeMac::NrSlGrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
-        grant.nrSlHarqId = harqId;
+        grant.nrSlHarqId = harqId.value();
         grant.harqEnabled = harqEnabled;
         std::vector<NrSlUeMac::NrSlGrantInfo> grantVector;
         grantVector.push_back(grant);
@@ -1095,6 +1133,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& 
         if (grantFound)
         {
             // Update
+            NS_FATAL_ERROR("Attempt to update dynamic grant-- shouldn't happen");
             uint8_t prevHarqId = itGrantVector->nrSlHarqId;
             NrSlUeMac::NrSlGrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
             *itGrantVector = grant;
@@ -1106,14 +1145,22 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& 
         else
         {
             // Insert
-            uint8_t harqId = GetUnusedHarqId(ids); // Assign new HARQ process ID
-            if (harqId == std::numeric_limits<uint8_t>::max())
+            auto timeout = GetDynamicGrantTimeout(sfn,
+                                                  slotAllocList,
+                                                  harqEnabled,
+                                                  GetNrSlUeMac()->GetPsfchPeriod());
+            NS_LOG_INFO("Inserting dynamic grant with timeout of " << timeout.As(Time::MS));
+            auto harqId =
+                GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                              false,
+                                                              timeout);
+            if (!harqId.has_value())
             {
                 NS_LOG_WARN("Unable to create grant, HARQ Id not available");
                 return;
             }
             NrSlUeMac::NrSlGrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
-            grant.nrSlHarqId = harqId;
+            grant.nrSlHarqId = harqId.value();
             grant.harqEnabled = harqEnabled;
             itGrantInfo->second.push_back(grant);
             NS_LOG_INFO("New dynamic grant created to existing destination "
@@ -1125,7 +1172,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& 
 
 NrSlUeMac::NrSlGrantInfo
 NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList,
-                                               Time rri)
+                                               Time rri) const
 {
     NS_LOG_FUNCTION(this << rri);
     NS_ASSERT_MSG((m_reselCounter != 0),
@@ -1187,7 +1234,8 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& sl
 }
 
 NrSlUeMac::NrSlGrantInfo
-NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList)
+NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(
+    const std::set<NrSlSlotAlloc>& slotAllocList) const
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_LOGIC("Creating single-PDU grant for dstL2Id " << slotAllocList.begin()->dstL2Id);
@@ -1282,8 +1330,9 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
                 slotIt = itGrantVector->slotAllocations.begin();
             }
             GetNrSlUeMac()->SchedNrSlConfigInd(currentSlot.dstL2Id, grant);
-            NS_LOG_INFO("Publishing grant to destination " << currentSlot.dstL2Id << " HARQ ID "
-                                                           << +grant.nrSlHarqId);
+            NS_LOG_INFO("Publishing grant with " << grant.slotAllocations.size()
+                                                 << " slots to destination " << currentSlot.dstL2Id
+                                                 << " HARQ ID " << +grant.nrSlHarqId);
 
             if (itGrantVector->isDynamic)
             {
@@ -1753,6 +1802,18 @@ NrSlUeMacSchedulerFixedMcs::IsCandidateResourceEligible(const std::list<NrSlSlot
         return eligible;
     }
     return true; // unreachable, but can silence compiler warning
+}
+
+Ptr<NrSlUeMacHarq>
+NrSlUeMacSchedulerFixedMcs::GetNrSlUeMacHarq(void) const
+{
+    if (!m_nrSlUeMacHarq)
+    {
+        PointerValue val;
+        GetNrSlUeMac()->GetAttribute("NrSlUeMacHarq", val);
+        m_nrSlUeMacHarq = val.Get<NrSlUeMacHarq>();
+    }
+    return m_nrSlUeMacHarq;
 }
 
 } // namespace ns3

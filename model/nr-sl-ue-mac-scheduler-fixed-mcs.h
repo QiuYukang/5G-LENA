@@ -8,6 +8,7 @@
 #define NR_SL_UE_MAC_SCHEDULER_FIXED_MCS_H
 
 #include "nr-sl-phy-mac-common.h"
+#include "nr-sl-ue-mac-harq.h"
 #include "nr-sl-ue-mac-scheduler-dst-info.h"
 #include "nr-sl-ue-mac-scheduler.h"
 #include "nr-sl-ue-mac.h"
@@ -63,7 +64,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
     void DoSchedNrSlRlcBufferReq(
         const struct NrSlMacSapProvider::NrSlReportBufferStatusParameters& params) override;
 
-    void DoSchedNrSlTriggerReq(const SfnSf& sfn, const std::deque<uint8_t>& ids) override;
+    void DoSchedNrSlTriggerReq(const SfnSf& sfn) override;
 
     void DoCschedNrSlLcConfigReq(
         const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& params) override;
@@ -74,20 +75,23 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \brief Perform the Tx resource (re-)selection check for the given destination and logical
      * channel
      *
+     * \param sfn The SfnSf
      * \param dstL2Id The destination layer 2 ID
      * \param lcId The logical channel ID
      * \return True if the LC passes the check, false otherwise
      */
-    bool TxResourceReselectionCheck(uint32_t dstL2Id, uint8_t lcId);
+    bool TxResourceReselectionCheck(const SfnSf& sfn, uint32_t dstL2Id, uint8_t lcId);
     /**
      * \brief Select the destinations and logical channels that need scheduling
      *
      * The function fills the dstsAndLcsToSched map with the destinations and logical channels that
      * pass the transmission resource (re-)selection check in function TxResourceReselectionCheck
      *
+     * \param sfn The SfnSf
      * \param dstsAndLcsToSched The map of destinations and logical channels IDs to be updated
      */
     void GetDstsAndLcsNeedingScheduling(
+        const SfnSf& sfn,
         std::map<uint32_t, std::vector<uint8_t>>& dstsAndLcsToSched);
     /**
      * \brief Select the destination and logical channels to be allocated
@@ -115,14 +119,14 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * If successful, CreateSpsGrant () will be called for SPS grants
      * or CreateSinglePduGrant () for dynamic grants
      *
+     * \param sfn The SfnSf
      * \param dstL2Id The destination layer 2 id
      * \param candResources The list of candidate resources
-     * \param ids available HARQ process IDs
      * \param allocatedRlcPdus the RLC PDU information vector
      */
-    void AttemptGrantAllocation(uint32_t dstL2Id,
+    void AttemptGrantAllocation(const SfnSf& sfn,
+                                uint32_t dstL2Id,
                                 const std::list<NrSlSlotInfo>& candResources,
-                                const std::deque<uint8_t>& harqIds,
                                 AllocationInfo allocationInfo);
     /**
      * \brief Create future SPS grants based on slot allocation
@@ -134,7 +138,8 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \see NrSlSlotAlloc
      * \see NrSlUeMac::NrSlGrantInfo
      */
-    NrSlUeMac::NrSlGrantInfo CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& params, Time rri);
+    NrSlUeMac::NrSlGrantInfo CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& params,
+                                                Time rri) const;
     /**
      * \brief Create a single-PDU grant based on slot allocation
      *
@@ -144,7 +149,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \see NrSlSlotAlloc
      * \see NrSlUeMac::NrSlGrantInfo
      */
-    NrSlUeMac::NrSlGrantInfo CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc>& params);
+    NrSlUeMac::NrSlGrantInfo CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc>& params) const;
 
     /**
      * \brief Check if the resources indicated by two SFN/subchannel ranges overlap
@@ -171,37 +176,77 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \return The list of resources which are not used by any existing unpublished grant.
      */
     std::list<NrSlSlotInfo> FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr);
+
+    /**
+     * \brief Calculate a timeout value for the grant allocation.
+     *
+     * The SL HARQ entity will keep the HARQ process ID allocated until
+     * the TB is ACKed or until after the last transmission.  This
+     * method calculates the timeout time to pass to the HARQ entity.
+     * If no HARQ FB is configured, the time corresponds to one slot
+     * beyond the last slot in the list.  If HARQ FB is configured, the
+     * time corresponds to a time at which HARQ FB from the last scheduled
+     * retransmission should have had a chance to have been returned.
+     *
+     * \param sfn The SfnSf
+     * \param slotAllocList The slot allocation list from the selection window
+     * \param harqEnabled Whether HARQ is enabled
+     * \param psfchPeriod The PSFCH period
+     * \return the timeout value to pass to the NrSlUeMac for recycling the process ID
+     */
+    Time GetDynamicGrantTimeout(const SfnSf& sfn,
+                                const std::set<NrSlSlotAlloc>& slotAllocList,
+                                bool harqEnabled,
+                                uint16_t psfchPeriod) const;
+
+    /**
+     * \brief Calculate a timeout value for the grant allocation.
+     *
+     * For SPS grants, the SL HARQ entity will keep the HARQ process ID
+     * allocated until the process is deallocated or a timeout occurs.
+     * This scheduler typically deallocates and then reallocates SPS
+     * grants every (ResourceReselCounter) * RRI time interval.
+     *
+     * This method calculates a failsafe timeout time to pass to the HARQ
+     * entity, in case the scheduler does not explicitly deallocate the
+     * HARQ process ID.  If an SPS grant is scheduled for 'ResourceReselCounter'
+     * future iterations, with new transmissions separated by the RRI interval,
+     * this method will schedule a timeout of the HARQ process ID at
+     * (ResourceReselCounter + 1) * RRI time in the future.  Allowing one
+     * extra RRI allows for some amount of jitter in the packet arrival
+     * process.
+     *
+     * \param sfn The SfnSf
+     * \param resoReselCounter The resource reselection counter
+     * \param rri The resource reservation interval
+     * \return the timeout value to pass to the NrSlUeMac for recycling the process ID
+     */
+    Time GetSpsGrantTimeout(const SfnSf& sfn, uint8_t resoReselCounter, Time rri) const;
+
     /**
      * \brief Method to create future SPS grant repetitions
+     * \param sfn The SfnSf
      * \param slotAllocList The slot allocation list from the selection window
-     * \param ids The available HARQ process IDs
      * \param harqEnabled Whether HARQ is enabled
      * \param rri The resource reservation interval
      *
      * \see NrSlSlotAlloc
      */
-    void CreateSpsGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
-                        const std::deque<uint8_t>& ids,
+    void CreateSpsGrant(const SfnSf& sfn,
+                        const std::set<NrSlSlotAlloc>& slotAllocList,
                         bool harqEnabled,
                         Time rri);
     /**
      * \brief Method to create a single-PDU grant
+     * \param sfn The SfnSf
      * \param slotAllocList The slot allocation list from the selection window
-     * \param ids The available HARQ process IDs
      * \param harqEnabled Whether HARQ is enabled
      *
      * \see NrSlSlotAlloc
      */
-    void CreateSinglePduGrant(const std::set<NrSlSlotAlloc>& slotAllocList,
-                              const std::deque<uint8_t>& ids,
+    void CreateSinglePduGrant(const SfnSf& sfn,
+                              const std::set<NrSlSlotAlloc>& slotAllocList,
                               bool harqEnabled);
-
-    /**
-     * \brief Get an available HARQ Id that hasn't been used for a unpublished grant
-     * \param ids The available HARQ process IDs received from the MAC
-     * \return an available HARQ Id
-     */
-    uint8_t GetUnusedHarqId(const std::deque<uint8_t>& ids);
 
     /**
      * \brief Check whether any grants are at the processing delay deadline
@@ -456,6 +501,11 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      *         counter will be drawn.
      */
     uint8_t GetUpperBoundReselCounter(uint16_t pRsrv) const;
+    /**
+     * \brief utility function to retrieve and cache a pointer to NrSlUeMacHarq object
+     * \return pointer to NrSlUeMacHarq
+     */
+    Ptr<NrSlUeMacHarq> GetNrSlUeMacHarq(void) const;
 
     std::unordered_map<uint32_t, std::shared_ptr<NrSlUeMacSchedulerDstInfo>>
         m_dstMap; //!< The map of between destination layer 2 id and the destination info
@@ -481,6 +531,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
                             //!< configured with SPS in case of priority tie
     bool m_allowMultipleDestinationsPerSlot{
         false}; //!< Allow scheduling of multiple destinations in same slot
+    mutable Ptr<NrSlUeMacHarq> m_nrSlUeMacHarq{nullptr}; //!< Pointer to cache object
 };
 
 } // namespace ns3

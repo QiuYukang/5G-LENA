@@ -197,6 +197,11 @@ class TestSidelinkHarq : public TestCase
         m_psfchPeriod = psfchPeriod;
     }
 
+    void SetDynamic(bool dynamic)
+    {
+        m_dynamic = dynamic;
+    }
+
     void SetHarqEnabled(bool harqEnabled)
     {
         m_harqEnabled = harqEnabled;
@@ -341,12 +346,14 @@ class TestSidelinkHarq : public TestCase
      * \param context The trace context
      * \param harqId HARQ process ID
      * \param dstL2Id Destination L2 ID
+     * \param multiplePdu Whether allocation is for multiple PDUs
      * \param timeout Timeout
      * \param available Number of remaining available HARQ process IDs
      */
     void HarqAllocate(std::string context,
                       uint8_t harqId,
                       uint32_t dstL2Id,
+                      bool multiplePdu,
                       Time timeout,
                       std::size_t available);
 
@@ -398,7 +405,7 @@ class TestSidelinkHarq : public TestCase
     uint32_t FindGridWidth(uint32_t numUe) const;
 
     // Virtual members
-    virtual void DoRun(void) override;
+    void DoRun(void) override;
 
     // Constructor arguments, initialized by member initializers
     uint32_t m_numUe{3};
@@ -416,6 +423,7 @@ class TestSidelinkHarq : public TestCase
     std::vector<std::bitset<1>> m_slBitmap{
         std::vector<std::bitset<1>>{1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1}};
     uint16_t m_psfchPeriod{4};
+    bool m_dynamic{false};
     bool m_useIpv6{true};
     Time m_simulationStopTime;
     double m_interUeDistance{20};      // meters
@@ -535,6 +543,7 @@ TestSidelinkHarq::ConfigureTfts(Ptr<NrSlHelper> nrSlHelper,
     slInfo.m_dstL2Id = dstL2Id;
     slInfo.m_rri = MilliSeconds(100);
     slInfo.m_harqEnabled = m_harqEnabled;
+    slInfo.m_dynamic = m_dynamic;
     slInfo.m_pdb = delayBudget;
     if (!m_useIpv6)
     {
@@ -761,6 +770,7 @@ void
 TestSidelinkHarq::HarqAllocate(std::string context,
                                uint8_t harqId,
                                uint32_t dstL2Id,
+                               bool multiplePdu,
                                Time timeout,
                                std::size_t available)
 {
@@ -907,7 +917,6 @@ TestSidelinkHarq::DoRun()
     nrHelper->SetUeMacAttribute("T1", UintegerValue(m_t1));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(m_t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(4));
 
     uint8_t bwpIdForGbrMcptt = 0;
 
@@ -1214,24 +1223,24 @@ class TestSidelinkHarqTwoSenders : public TestSidelinkHarq
 
   protected:
     // Documented in TestSidelinkHarq
-    virtual void ConfigureTfts(Ptr<NrSlHelper> nrSlHelper,
-                               Ptr<NrPointToPointEpcHelper> epcHelper,
-                               const NodeContainer& ueContainer,
-                               const NetDeviceContainer& ueNetDevices,
-                               Ipv4Address groupAddress4,
+    void ConfigureTfts(Ptr<NrSlHelper> nrSlHelper,
+                       Ptr<NrPointToPointEpcHelper> epcHelper,
+                       const NodeContainer& ueContainer,
+                       const NetDeviceContainer& ueNetDevices,
+                       Ipv4Address groupAddress4,
+                       Ipv6Address groupAddress6,
+                       uint16_t port,
+                       uint32_t dstL2Id,
+                       Address& localAddress,
+                       Address& remoteAddress,
+                       Time delayBudget,
+                       Time finalSlBearersActivationTime) override;
+    void ConfigureApplications(Address remoteAddress,
+                               Address localAddress,
                                Ipv6Address groupAddress6,
-                               uint16_t port,
-                               uint32_t dstL2Id,
-                               Address& localAddress,
-                               Address& remoteAddress,
-                               Time delayBudget,
-                               Time finalSlBearersActivationTime) override;
-    virtual void ConfigureApplications(Address remoteAddress,
-                                       Address localAddress,
-                                       Ipv6Address groupAddress6,
-                                       const NodeContainer& ueContainer,
-                                       Time finalSlBearersActivationTime,
-                                       Time simulationStopTime) override;
+                               const NodeContainer& ueContainer,
+                               Time finalSlBearersActivationTime,
+                               Time simulationStopTime) override;
 };
 
 void
@@ -1454,7 +1463,7 @@ class TestSidelinkHarqHasPsfch : public TestCase
     }
 
   private:
-    virtual void DoRun(void) override;
+    void DoRun(void) override;
     Ptr<NrSlCommResourcePool> CreatePool(const std::string& tddPatternString,
                                          const std::vector<std::bitset<1>>& slBitmap,
                                          uint16_t psfchPeriod);
@@ -1852,9 +1861,11 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->CheckHarqAckCount(20); // 20 HARQ FB should be received
         AddTestCase(testCase);
 
-        // Test various loss conditions.  First test is a no loss (control) case
-        testCase = new TestSidelinkHarq("no loss");
+        // Test various loss conditions.  First tests are no loss (control) case
+        // With dynamic grants, we expect to see no timeouts and one deallocation
+        testCase = new TestSidelinkHarq("no loss, dynamic grant");
         testCase->SetCastType("groupcast");
+        testCase->SetDynamic(true);
         testCase->SetNumUe(2);
         testCase->SetNumPackets(1);
         testCase->CheckHarqAllocateCount(1);    // 1 initial transmission
@@ -1869,14 +1880,34 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->CheckAppRxCount(1); // Application receives data
         AddTestCase(testCase);
 
+        // With SPS grants, we expect to see no timeouts or deallocation
+        // The test terminates before the SPS grant is finished
+        testCase = new TestSidelinkHarq("no loss, SPS grant");
+        testCase->SetCastType("groupcast");
+        testCase->SetDynamic(false);
+        testCase->SetNumUe(2);
+        testCase->SetNumPackets(1);
+        testCase->CheckHarqAllocateCount(1);    // 1 initial transmission
+        testCase->CheckHarqPacketBurstCount(1); // One transmission, no HARQ retransmissions needed
+        testCase->CheckPscchDecodeFailure(0);
+        testCase->CheckSci2aDecodeFailure(0);
+        testCase->CheckTbDecodeFailure(0);
+        testCase->CheckHarqTimeoutCount(0);
+        testCase->CheckHarqAckCount(1);        // Received positive HARQ feedback
+        testCase->CheckHarqDeallocateCount(0); // 0 HARQ deallocations observed
+        testCase->CheckHarqNackCount(0);
+        testCase->CheckAppRxCount(1); // Application receives data
+        AddTestCase(testCase);
+
         // Losses can be forced by setting the TBLER to 1 for NrSpectrumPhy
         // receptions for selected packets.  In these initial simple first cases,
         // the first reception is PSCCH, the second is the 2nd-stage SCI header,
         // and the third is the TB.
 
         // Loss of SCI 1 should result in no HARQ feedback
-        testCase = new TestSidelinkHarq("loss of SCI 1");
+        testCase = new TestSidelinkHarq("loss of SCI 1 - SPS grant");
         testCase->SetCastType("groupcast");
+        testCase->SetDynamic(false);
         testCase->SetNumUe(2);
         testCase->SetNumPackets(1);
         // Distance is so large that the SCI-1 will fail to decode
@@ -1886,25 +1917,55 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->SetSimulationStopTime(NanoSeconds(1111750001));
         // The SCI 2A and transport block will not even be attempted to decode
         testCase->CheckHarqPacketBurstCount(2); // One transmission, one HARQ retransmission
-        // HARQ Process ID will be allocated upon each grant arrival.  There will
-        // be two:  one at 1.010750 seconds, one at 1.110750 seconds (100 ms
-        // later, just before the simulation is scheduled to end.
-        testCase->CheckHarqAllocateCount(2);
+        // HARQ Process ID will be allocated only once during timeframe of
+        // this test, at 1.01750 seconds.
+        testCase->CheckHarqAllocateCount(1);
+        testCase->CheckPscchDecodeFailure(1); // 1 PSCCH transmission failure
+        testCase->CheckSci2aDecodeFailure(0);
+        testCase->CheckTbDecodeFailure(0);
+        testCase->CheckHarqTimeoutCount(0); // Simulation ends before timeout could occur
+        // There will be no HARQ deallocations observed since the grant
+        // slot allocations exceed the stopping time of this test
+        testCase->CheckHarqDeallocateCount(0);
+        testCase->CheckHarqAckCount(0);
+        testCase->CheckHarqNackCount(0);
+        testCase->CheckAppRxCount(0);
+        AddTestCase(testCase);
+
+        // Loss of SCI 1 should result in no HARQ feedback
+        // Repeat for dynamic grant
+        testCase = new TestSidelinkHarq("loss of SCI 1 - dynamic grant");
+        testCase->SetCastType("groupcast");
+        testCase->SetDynamic(true);
+        testCase->SetNumUe(2);
+        testCase->SetNumPackets(1);
+        // Distance is so large that the SCI-1 will fail to decode
+        testCase->SetDistance(10000);
+        // Override the default stop time.  The timeout that we want to observe
+        // will occur at 1.111750 seconds.
+        testCase->SetSimulationStopTime(NanoSeconds(1111750001));
+        // The SCI 2A and transport block will not even be attempted to decode
+        testCase->CheckHarqPacketBurstCount(2); // One transmission, one HARQ retransmission
+        // HARQ Process ID will be allocated only once during timeframe of
+        // this test, at 1.01750 seconds.
+        testCase->CheckHarqAllocateCount(1);
         testCase->CheckPscchDecodeFailure(1); // 1 PSCCH transmission failure
         testCase->CheckSci2aDecodeFailure(0);
         testCase->CheckTbDecodeFailure(0);
         testCase->CheckHarqTimeoutCount(
             1); // 1 timeout observed; simulation ends before second timeout observed
-        testCase->CheckHarqDeallocateCount(1); // 1 HARQ deallocation observed
+        // Unlike the SPS grant, there will be one HARQ deallocations observed
+        testCase->CheckHarqDeallocateCount(1);
         testCase->CheckHarqAckCount(0);
         testCase->CheckHarqNackCount(0);
         testCase->CheckAppRxCount(0);
         AddTestCase(testCase);
 
         // Loss of 2nd stage SCI should result in no HARQ feedback
-        testCase = new TestSidelinkHarq("loss of 2nd stage SCI");
+        testCase = new TestSidelinkHarq("loss of 2nd stage SCI - SPS grant");
         testCase->SetCastType("groupcast");
         testCase->SetNumUe(2);
+        testCase->SetDynamic(false);
         testCase->SetNumPackets(1);
         // Manual override of TB error rate (PSCCH, SCI-2A, SCI-2A)
         // There is no attempted decode of TB because SCI-2A is lost twice
@@ -1912,10 +1973,9 @@ class TestSidelinkHarqSuite : public TestSuite
         // Override the default stop time.  The timeout that we want to observe
         // will occur at 1.111750 seconds.
         testCase->SetSimulationStopTime(NanoSeconds(1111750001));
-        // HARQ Process ID will be allocated upon each grant arrival.  There will
-        // be two:  one at 1.010750 seconds, one at 1.110750 seconds (100 ms
-        // later, just before the simulation is scheduled to end.
-        testCase->CheckHarqAllocateCount(2);
+        // HARQ Process ID will be allocated only once during timeframe of
+        // this test, at 1.01750 seconds.
+        testCase->CheckHarqAllocateCount(1);
         // The key here is that 2 SCI-2A failures are observed and no HARQ
         // feedback is generated, because there is no decoded process ID
         testCase->CheckHarqPacketBurstCount(
@@ -1923,17 +1983,51 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->CheckPscchDecodeFailure(0); // 0 PSCCH transmission failure
         testCase->CheckSci2aDecodeFailure(2);
         testCase->CheckTbDecodeFailure(0);
-        testCase->CheckHarqTimeoutCount(1);    // 1 timeout observed
-        testCase->CheckHarqDeallocateCount(1); // 1 HARQ deallocation observed
+        testCase->CheckHarqTimeoutCount(
+            0); // No timeout observed because simulation terminates before timeout
+        // There will be no HARQ deallocations observed since the grant
+        // slot allocations exceed the stopping time of this test
+        testCase->CheckHarqDeallocateCount(0);
+        testCase->CheckHarqAckCount(0);
+        testCase->CheckHarqNackCount(0);
+        testCase->CheckAppRxCount(0);
+        AddTestCase(testCase);
+
+        // Loss of 2nd stage SCI should result in no HARQ feedback
+        testCase = new TestSidelinkHarq("loss of 2nd stage SCI - dynamic grant");
+        testCase->SetCastType("groupcast");
+        testCase->SetNumUe(2);
+        testCase->SetDynamic(true);
+        testCase->SetNumPackets(1);
+        // Manual override of TB error rate (PSCCH, SCI-2A, SCI-2A)
+        // There is no attempted decode of TB because SCI-2A is lost twice
+        testCase->SetTblerVector({0, 1, 1});
+        // Override the default stop time.  The timeout that we want to observe
+        // will occur at 1.111750 seconds.
+        testCase->SetSimulationStopTime(NanoSeconds(1111750001));
+        // HARQ Process ID will be allocated only once during timeframe of
+        // this test, at 1.01750 seconds.
+        testCase->CheckHarqAllocateCount(1);
+        // The key here is that 2 SCI-2A failures are observed and no HARQ
+        // feedback is generated, because there is no decoded process ID
+        testCase->CheckHarqPacketBurstCount(
+            2); // One transmission, one HARQ retransmission due to no ACK
+        testCase->CheckPscchDecodeFailure(0); // 0 PSCCH transmission failure
+        testCase->CheckSci2aDecodeFailure(2);
+        testCase->CheckTbDecodeFailure(0);
+        testCase->CheckHarqTimeoutCount(1); // 1 timeout observed
+        // Unlike the SPS grant, there will be one HARQ deallocations observed
+        testCase->CheckHarqDeallocateCount(1);
         testCase->CheckHarqAckCount(0);
         testCase->CheckHarqNackCount(0);
         testCase->CheckAppRxCount(0);
         AddTestCase(testCase);
 
         // Loss of both TB should result in HARQ feedback and timeout
-        testCase = new TestSidelinkHarq("loss of both TB");
+        testCase = new TestSidelinkHarq("loss of both TB - SPS grant");
         testCase->SetCastType("groupcast");
         testCase->SetNumUe(2);
+        testCase->SetDynamic(false);
         testCase->SetNumPackets(1);
         // Manual override of TB error rate (PSCCH, SCI-2A, TB, SCI-2A, TB)
         // There is no attempted decode of TB because SCI-2A is lost twice
@@ -1941,18 +2035,50 @@ class TestSidelinkHarqSuite : public TestSuite
         // Override the default stop time.  The timeout that we want to observe
         // will occur at 1.111750 seconds.
         testCase->SetSimulationStopTime(NanoSeconds(1111750001));
-        // HARQ Process ID will be allocated upon each grant arrival.  There will
-        // be two:  one at 1.010750 seconds, one at 1.110750 seconds (100 ms
-        // later, just before the simulation is scheduled to end.
-        testCase->CheckHarqAllocateCount(2);
+        // HARQ Process ID will be allocated only once during timeframe of
+        // this test, at 1.01750 seconds.
+        testCase->CheckHarqAllocateCount(1);
         // The key here is that 2 TB failures are observed and HARQ NACK
         // feedback is generated, and HARQ timeout occurs
         testCase->CheckHarqPacketBurstCount(2); // One transmission, one HARQ retransmission
         testCase->CheckPscchDecodeFailure(0);   // 0 PSCCH transmission failure
         testCase->CheckSci2aDecodeFailure(0);
         testCase->CheckTbDecodeFailure(2);
-        testCase->CheckHarqTimeoutCount(1);    // 1 timeout observed
-        testCase->CheckHarqDeallocateCount(1); // 1 HARQ deallocation observed
+        testCase->CheckHarqTimeoutCount(
+            0); // No timeout observed because simulation terminates before timeout
+        // There will be no HARQ deallocations observed since the grant
+        // slot allocations exceed the stopping time of this test
+        testCase->CheckHarqDeallocateCount(0);
+        testCase->CheckHarqAckCount(0);
+        testCase->CheckHarqNackCount(2);
+        testCase->CheckAppRxCount(0);
+        AddTestCase(testCase);
+
+        // Loss of both TB should result in HARQ feedback and timeout
+        testCase = new TestSidelinkHarq("loss of both TB - dynamic grant");
+        testCase->SetCastType("groupcast");
+        testCase->SetNumUe(2);
+        testCase->SetDynamic(true);
+        testCase->SetNumPackets(1);
+        // Manual override of TB error rate (PSCCH, SCI-2A, TB, SCI-2A, TB)
+        // There is no attempted decode of TB because SCI-2A is lost twice
+        testCase->SetTblerVector({0, 0, 1, 0, 1});
+        // Override the default stop time.  The timeout that we want to observe
+        // will occur at 1.111750 seconds.
+        testCase->SetSimulationStopTime(NanoSeconds(1111750001));
+        // HARQ Process ID will be allocated only once during timeframe of
+        // this test, at 1.01750 seconds.
+        testCase->CheckHarqAllocateCount(1);
+        // The key here is that 2 TB failures are observed and HARQ NACK
+        // feedback is generated, and HARQ timeout occurs
+        testCase->CheckHarqPacketBurstCount(2); // One transmission, one HARQ retransmission
+        testCase->CheckPscchDecodeFailure(0);   // 0 PSCCH transmission failure
+        testCase->CheckSci2aDecodeFailure(0);
+        testCase->CheckTbDecodeFailure(2);
+        testCase->CheckHarqTimeoutCount(1); // 1 timeout observed
+        // There will be no HARQ deallocations observed since the grant
+        // slot allocations exceed the stopping time of this test
+        testCase->CheckHarqDeallocateCount(1);
         testCase->CheckHarqAckCount(0);
         testCase->CheckHarqNackCount(2);
         testCase->CheckAppRxCount(0);
@@ -1964,6 +2090,7 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase = new TestSidelinkHarq("loss of first TB");
         testCase->SetCastType("groupcast");
         testCase->SetNumUe(2);
+        testCase->SetDynamic(false);
         testCase->SetNumPackets(1);
         // Manual override of TB error rate (PSCCH, SCI-2A, TB, SCI-2A, TB)
         testCase->SetTblerVector({0, 0, 1, 0, 0});
@@ -1975,7 +2102,7 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->CheckSci2aDecodeFailure(0);
         testCase->CheckTbDecodeFailure(1);
         testCase->CheckHarqTimeoutCount(0);
-        testCase->CheckHarqDeallocateCount(1); // 1 HARQ deallocation observed
+        testCase->CheckHarqDeallocateCount(0); // Test ends before deallocation
         testCase->CheckHarqAckCount(1);        // second TB reception leads to ACK
         testCase->CheckHarqNackCount(1);       // first TB loss leads to NACK
         testCase->CheckAppRxCount(1);          // Packet is delivered
