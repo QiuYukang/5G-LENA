@@ -1523,11 +1523,11 @@ NrSlUeMac::DoAddNrSlCommRxPool(Ptr<const NrSlCommResourcePool> rxPool)
 }
 
 void
-NrSlUeMac::DoSetSlProbResoKeep(double prob)
+NrSlUeMac::DoSetSlProbResourceKeep(double probability)
 {
-    NS_LOG_FUNCTION(this << prob);
-    NS_ASSERT_MSG(prob <= 1.0, "Probability value must be between 0 and 1");
-    m_slProbResourceKeep = prob;
+    NS_LOG_FUNCTION(this << probability);
+    NS_ASSERT_MSG(probability <= 1.0, "Probability value must be between 0 and 1");
+    m_slProbResourceKeep = probability;
 }
 
 void
@@ -1576,6 +1576,12 @@ NrSlUeMac::GetSlMaxTxTransNumPssch() const
 {
     NS_LOG_FUNCTION(this);
     return m_slMaxTxTransNumPssch;
+}
+
+double
+NrSlUeMac::GetSlProbResourceKeep() const
+{
+    return m_slProbResourceKeep;
 }
 
 bool

@@ -369,6 +369,16 @@ class NrSlUeMac : public NrUeMac
      * \return The max number of PSSCH transmissions
      */
     uint8_t GetSlMaxTxTransNumPssch() const;
+
+    /**
+     * \brief Get the value of SlProbResourceKeep
+     *
+     * This value is set through RRC preconfiguration.
+     *
+     * \return The probability of keeping resources upon reselection
+     */
+    double GetSlProbResourceKeep() const;
+
     /**
      * \brief Method to check whether the provided slot has PSFCH
      *
@@ -494,11 +504,11 @@ class NrSlUeMac : public NrUeMac
     /**
      * \brief Set Sidelink probability resource keep
      *
-     * \param prob Indicates the probability with which the UE keeps the
+     * \param probability Indicates the probability with which the UE keeps the
      *        current resource when the resource reselection counter reaches zero
-     *        for sensing based UE autonomous resource selection (see TS 38.321)
+     *        for semi-persistent scheduling resource selection (see TS 38.321)
      */
-    void DoSetSlProbResoKeep(double prob);
+    void DoSetSlProbResourceKeep(double probability);
     /**
      * \brief Set the maximum transmission number (including new transmission and
      *        retransmission) for PSSCH.

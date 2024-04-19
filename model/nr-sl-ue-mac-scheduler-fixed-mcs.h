@@ -518,11 +518,9 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
 
     Ptr<NrUeMac> m_nrUeMac{nullptr}; //!< Pointer to associated NrUeMac object
     Ptr<UniformRandomVariable>
-        m_ueSelectedUniformVariable;  //!< uniform random variable used for NR Sidelink
-    double m_slProbResourceKeep{0.0}; //!< Sidelink probability of keeping a resource after resource
-                                      //!< re-selection counter reaches zero
-    uint8_t m_reselCounter{0};        //!< The resource selection counter
-    uint16_t m_cResel{0};             //!< The C_resel counter
+        m_ueSelectedUniformVariable;   //!< uniform random variable used for NR Sidelink
+    uint8_t m_reselCounter{0};         //!< The resource selection counter
+    uint16_t m_cResel{0};              //!< The C_resel counter
     Time m_pRsvpTx{MilliSeconds(100)}; //!< Resource Reservation Interval for NR Sidelink in ms
     uint8_t m_t1{2}; //!< The offset in number of slots between the slot in which the resource
                      //!< selection is triggered and the start of the selection window

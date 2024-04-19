@@ -453,11 +453,12 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(const SfnSf& sfn,
                     if (itGrantFoundLc->cReselCounter > 0)
                     {
                         double randProb = m_ueSelectedUniformVariable->GetValue(0, 1);
-                        if (m_slProbResourceKeep > randProb)
+                        double slProbResourceKeep = GetNrSlUeMac()->GetSlProbResourceKeep();
+                        if (slProbResourceKeep > randProb)
                         {
                             NS_LOG_INFO(
-                                "m_slProbResourceKeep ("
-                                << m_slProbResourceKeep << ") > randProb (" << randProb << ")"
+                                "slProbResourceKeep ("
+                                << slProbResourceKeep << ") > randProb (" << randProb << ")"
                                 << ", Keeping the SPS grant, restarting slResoReselCounter");
                             // keeping the resource, reassign the same sidelink resource
                             // re-selection counter we chose while creating the fresh grant
@@ -477,8 +478,8 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(const SfnSf& sfn,
                         {
                             // Clear the grant.
                             itGrantInfo->second.erase(itGrantFoundLc);
-                            NS_LOG_INFO("Passed, m_slProbResourceKeep ("
-                                        << m_slProbResourceKeep << ") <= randProb (" << randProb
+                            NS_LOG_INFO("Passed, slProbResourceKeep ("
+                                        << slProbResourceKeep << ") <= randProb (" << randProb
                                         << ")"
                                         << ", Clearing the SPS grant");
                             GetNrSlUeMacHarq()->DeallocateHarqProcessId(itGrantFoundLc->nrSlHarqId);
