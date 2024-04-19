@@ -25,19 +25,33 @@ class Packet;
 
 /**
  * \ingroup MAC
- * \brief NR Sidelink MAC HARQ entity
+ * \brief NR Sidelink HARQ Entity
  *
- * This is HARQ entity to NR SL MAC PDUs under retransmission. The
- * total number of HARQ/Sidelink processes can be configured
- * only once by calling \ref InitHarqBuffer (uint8_t, uint8_t), which is
- * the responsibility of a UE MAC.
+ * Objects of this class provide the Sidelink HARQ Entity defined in
+ * Section 5.22.1.3.1 of TS 38.331.  Objects are responsible for associating
+ * a TB with a sidelink process ID (HARQ ID) and for ensuring that the
+ * total number of process IDs do not exceed configured maximums.
+ * This object caches TBs until notified by positive HARQ feedback that
+ * the TB can be freed.  To guard against the possibility that the MAC
+ * allocates a HARQ ID but feedback is never received for the TB, a
+ * timer is used to eventually deallocate the HARQ ID if not explicitly
+ * deallocated by positive feedback (in the case of dynamic grants)
+ * or by the scheduler (in the case of SPS grants).  The number of
+ * HARQ/Sidelink processes can be configured by calling
+ * \ref InitHarqBuffer(), which is the responsibility of a SL MAC.
+ *
+ * The standard describes that processes may be configured for transmission
+ * of multiple MAC PDUs.  We interpret that mode of operation to correspond
+ * to semi-persistent scheduling (SPS) grants.  If not configured for
+ * transmission of multiple MAC PDUs, we interpret the mode of operation
+ * to correspond to dynamic (or single PDU) grants.
  */
 class NrSlUeMacHarq : public Object
 {
   public:
     /**
-     * \brief Get the type id
-     * \return the type id of the class
+     * \brief Get the type ID
+     * \return the type ID of the class
      */
     static TypeId GetTypeId(void);
 
@@ -52,12 +66,10 @@ class NrSlUeMacHarq : public Object
     virtual ~NrSlUeMacHarq();
 
     /**
-     * \brief Add destination to this HARQ entity
-     *
-     * This method is responsible to initialize NR SL HARQ process id buffer
-     * (see NrSlUeMacHarq#m_nrSlHarqIdBuffer) and NR SL HARQ packet buffer
-     * (see NrSlUeMacHarq#m_nrSlHarqPktBuffer). The size of these buffers
-     * will be equivalent to the maximum number of sidelink processes passed
+     * This method initializes and sizes the NR SL HARQ process ID buffer
+     * (see NrSlUeMacHarq#m_idBuffer) and NR SL HARQ packet buffer
+     * (see NrSlUeMacHarq#m_pktBuffer). The size of these buffers
+     * will be setto the maximum number of sidelink processes passed
      * through this method.
      *
      * \param maxSlProcessesMultiplePdu The maximum number of sidelink
@@ -68,21 +80,21 @@ class NrSlUeMacHarq : public Object
     void InitHarqBuffer(uint8_t maxSlProcessesMultiplePdu, uint8_t maxSlProcesses);
 
     /**
-     * \brief Assign NR Sidelink HARQ process id to a destination
+     * \brief Allocate and assign a HARQ Process ID to a destination
      *
-     * Allocate and assign a HARQ process id to a destination
+     * This method will return an assigned HARQ process ID if one is available.
+     * For SPS grants, the MAC is responsible for deallocating (and
+     * reallocating) the Process ID when the SPS grant resources are
+     * reselected.  For dynamic grants, the MAC does not have responsibility
+     * for deallocation; the ID will be deallocated upon positive HARQ
+     * feedback or else if it times out.
      *
-     * The timeout value is to protect against the process ID becoming blocked
-     * on a HARQ-protected transmission that is never acknowledged.
-     *
-     * \param dstL2Id The destination Layer 2 id
-     * \param multiplePdu Whether the process corresponds to a multiple PDU grant
+     * \param dstL2Id The destination Layer 2 ID
+     * \param multiplePdu Whether the process corresponds to a multiple PDU (i.e., SPS) grant
      * \param timeout The timeout value
-     * \return The NR Sidelink HARQ id
+     * \return The NR Sidelink HARQ ID assigned, or an empty value
      */
-    std::optional<uint8_t> AllocateNrSlHarqProcessId(uint32_t dstL2Id,
-                                                     bool multiplePdu,
-                                                     Time timeout);
+    std::optional<uint8_t> AllocateHarqProcessId(uint32_t dstL2Id, bool multiplePdu, Time timeout);
 
     /**
      * \brief Deallocate a previously allocated HARQ process ID
@@ -92,7 +104,7 @@ class NrSlUeMacHarq : public Object
      *
      * \param harqId The HARQ process ID to deallocate
      */
-    void DeallocateNrSlHarqProcessId(uint8_t harqId);
+    void DeallocateHarqProcessId(uint8_t harqId);
 
     /**
      * Stop and restart the timer protecting the deallocation of the
@@ -102,39 +114,39 @@ class NrSlUeMacHarq : public Object
      * \param timeout The new expiration time (relative to now)
      * \return true if the timer was renewed
      */
-    bool RenewProcessIdTimer(uint8_t harqId, Time timeout);
+    bool RenewHarqProcessIdTimer(uint8_t harqId, Time timeout);
 
     /**
-     * \brief Get the number of available HARQ process ids
-     * \return The number of available HARQ process ids
+     * \brief Get the number of available HARQ process IDs
+     * \return The number of available HARQ process IDs
      */
     uint32_t GetNumAvailableHarqIds() const;
 
     /**
-     * \brief Is the given HARQ id available
-     * \param harqId The HARQ process id
-     * \return returns true if the HARQ id is available; otherwise false
+     * \brief Is the given HARQ ID available
+     * \param harqId The HARQ process ID
+     * \return returns true if the HARQ ID is available; otherwise false
      */
     bool IsHarqIdAvailable(uint8_t harqId) const;
 
     /**
      * \brief Add the packet to the Sidelink process buffer, which is identified
-     *        using destination L2 id, LC id, and the HARQ id.
-     * \param dstL2Id The destination Layer 2 id
-     * \param lcId The logical channel id
-     * \param harqId The HARQ id
+     *        using destination L2 ID, LC ID, and the HARQ ID.
+     * \param dstL2Id The destination Layer 2 ID
+     * \param lcId The logical channel ID
+     * \param harqId The HARQ ID
      * \param pkt Packet
      */
     void AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Packet> pkt);
 
     /**
      * \brief Get the packet burst from the Sidelink process buffer, which is
-     *        identified using destination L2 id and the HARQ id.
+     *        identified using destination L2 ID and the HARQ ID.
      *
      * This method may return nullptr if no matching PacketBurst is found
      *
-     * \param dstL2Id The destination Layer 2 id
-     * \param harqId The HARQ id
+     * \param dstL2Id The destination Layer 2 ID
+     * \param harqId The HARQ ID
      * \return The packet burst (if found) or a nullptr if not found
      */
     Ptr<PacketBurst> GetPacketBurst(uint32_t dstL2Id, uint8_t harqId) const;
@@ -143,14 +155,17 @@ class NrSlUeMacHarq : public Object
      * \brief Receive NR Sidelink Harq feedback
      * \param harqInfo Sidelink HARQ info structure
      */
-    void RecvNrSlHarqFeedback(SlHarqInfo harqInfo);
+    void RecvHarqFeedback(SlHarqInfo harqInfo);
 
     /**
-     * Flush the HARQ buffer associated with the HARQ process id.
+     * Flush the HARQ buffer associated with the HARQ process ID.
+     *
+     * The HARQ process ID remains allocated (i.e., \ref AddPacket()
+     * may be called again).
      *
      * \param harqId HARQ process ID
      */
-    void FlushNrSlHarqBuffer(uint8_t harqId);
+    void FlushHarqBuffer(uint8_t harqId);
 
     /**
      * TracedCallback signature for received HARQ feedback
@@ -207,8 +222,8 @@ class NrSlUeMacHarq : public Object
         Ptr<PacketBurst> pktBurst; //!< TB under HARQ
         // maintain list of LCs contained in this TB
         // used to signal HARQ failure to RLC handlers
-        std::unordered_set<uint8_t> lcidList;                   //!< LC id container
-        uint32_t dstL2Id{std::numeric_limits<uint32_t>::max()}; //!< Destination L2 id
+        std::unordered_set<uint8_t> lcidList;                   //!< LC ID container
+        uint32_t dstL2Id{std::numeric_limits<uint32_t>::max()}; //!< Destination L2 ID
         bool multiplePdu{false}; //!< Whether this process is for a multiple PDU grant
         EventId timer;           //!< Timer to expire process ID if not successfully ACKed
         bool allocated{false};   //!< Whether this process is allocated
@@ -222,17 +237,17 @@ class NrSlUeMacHarq : public Object
     void HarqProcessTimerExpiry(uint8_t harqId);
 
     /**
-     * Re-initialize the packet buffer data structure.
+     * Re-initialize the HARQ buffer data structure.
      * \param harqId the HARQ process ID to reset
      */
-    void ResetPacketBuffer(uint8_t harqId);
+    void ResetHarqBuffer(uint8_t harqId);
 
     uint8_t m_maxSlProcessesMultiplePdu{0}; //!< Maximum no. of SL processes for multiple PDU grants
     uint8_t m_maxSlProcesses{0};            //!< Maximum no. of SL processes
-    std::vector<NrSlProcessInfo> m_nrSlHarqPktBuffer; //!< NR SL HARQ packet buffer
+    std::vector<NrSlProcessInfo> m_pktBuffer; //!< NR SL HARQ packet buffer
     uint8_t m_numProcessesMultiplePdu{
-        0}; //!< Number of SL processes allocated for multiple PDU grants
-    std::deque<uint8_t> m_nrSlHarqIdBuffer; //!< A container to store available HARQ/SL process ids
+        0};                         //!< Number of SL processes allocated for multiple PDU grants
+    std::deque<uint8_t> m_idBuffer; //!< A container to store available HARQ/SL process IDs
 
     TracedCallback<const SlHarqInfo&> m_rxHarqFeedback; //!< Trace of SlHarqInfo
     TracedCallback<uint8_t, uint32_t, bool, Time, std::size_t>

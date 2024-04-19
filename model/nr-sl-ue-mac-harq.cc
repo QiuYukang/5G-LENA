@@ -62,11 +62,11 @@ void
 NrSlUeMacHarq::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    for (auto it : m_nrSlHarqPktBuffer)
+    for (auto it : m_pktBuffer)
     {
         it.pktBurst = nullptr;
     }
-    m_nrSlHarqPktBuffer.clear();
+    m_pktBuffer.clear();
 }
 
 void
@@ -77,20 +77,20 @@ NrSlUeMacHarq::InitHarqBuffer(uint8_t maxSlProcessesMultiplePdu, uint8_t maxSlPr
     m_maxSlProcessesMultiplePdu = maxSlProcessesMultiplePdu;
     m_maxSlProcesses = maxSlProcesses;
     NS_ABORT_MSG_UNLESS(maxSlProcesses >= maxSlProcessesMultiplePdu, "Misconfiguration");
-    m_nrSlHarqPktBuffer.resize(maxSlProcesses);
+    m_pktBuffer.resize(maxSlProcesses);
     for (uint8_t i = 0; i < maxSlProcesses; i++)
     {
-        ResetPacketBuffer(i);
-        m_nrSlHarqIdBuffer.push_back(i);
+        ResetHarqBuffer(i);
+        m_idBuffer.push_back(i);
     }
 }
 
 std::optional<uint8_t>
-NrSlUeMacHarq::AllocateNrSlHarqProcessId(uint32_t dstL2Id, bool multiplePdu, Time timeout)
+NrSlUeMacHarq::AllocateHarqProcessId(uint32_t dstL2Id, bool multiplePdu, Time timeout)
 {
     NS_LOG_FUNCTION(this << dstL2Id << timeout);
     std::optional<uint8_t> harqId;
-    if (!m_nrSlHarqIdBuffer.size())
+    if (!m_idBuffer.size())
     {
         NS_LOG_INFO("No HARQ process IDs available for " << dstL2Id);
         return harqId;
@@ -100,65 +100,65 @@ NrSlUeMacHarq::AllocateNrSlHarqProcessId(uint32_t dstL2Id, bool multiplePdu, Tim
         NS_LOG_INFO("No HARQ process IDs for multiple PDUs available for " << dstL2Id);
         return harqId;
     }
-    harqId = m_nrSlHarqIdBuffer.front();
-    m_nrSlHarqIdBuffer.pop_front();
+    harqId = m_idBuffer.front();
+    m_idBuffer.pop_front();
     if (multiplePdu)
     {
         m_numProcessesMultiplePdu++;
     }
     NS_LOG_INFO("Allocating HARQ ID " << +harqId.value() << " dstL2Id " << dstL2Id << " timeout "
                                       << timeout.As(Time::MS) << " multiple PDU " << multiplePdu
-                                      << " remaining " << m_nrSlHarqIdBuffer.size());
-    m_allocateTrace(harqId.value(), dstL2Id, multiplePdu, timeout, m_nrSlHarqIdBuffer.size());
-    // set the given destination in m_nrSlHarqPktBuffer at the index equal to
+                                      << " remaining " << m_idBuffer.size());
+    m_allocateTrace(harqId.value(), dstL2Id, multiplePdu, timeout, m_idBuffer.size());
+    // set the given destination in m_pktBuffer at the index equal to
     // availableHarqId so we can check it while adding the packet.
-    m_nrSlHarqPktBuffer.at(harqId.value()).dstL2Id = dstL2Id;
+    m_pktBuffer.at(harqId.value()).dstL2Id = dstL2Id;
     NS_LOG_INFO("Scheduling HARQ process ID " << +harqId.value() << " timer to expire in "
                                               << timeout.As(Time::MS) << " at "
                                               << (Now() + timeout).As(Time::S));
-    m_nrSlHarqPktBuffer.at(harqId.value()).timer =
+    m_pktBuffer.at(harqId.value()).timer =
         Simulator::Schedule(timeout, &NrSlUeMacHarq::HarqProcessTimerExpiry, this, harqId.value());
-    m_nrSlHarqPktBuffer.at(harqId.value()).multiplePdu = multiplePdu;
-    m_nrSlHarqPktBuffer.at(harqId.value()).allocated = true;
+    m_pktBuffer.at(harqId.value()).multiplePdu = multiplePdu;
+    m_pktBuffer.at(harqId.value()).allocated = true;
     return harqId;
 }
 
 void
-NrSlUeMacHarq::DeallocateNrSlHarqProcessId(uint8_t harqId)
+NrSlUeMacHarq::DeallocateHarqProcessId(uint8_t harqId)
 {
     NS_LOG_FUNCTION(this << +harqId);
-    if (m_nrSlHarqPktBuffer.at(harqId).allocated)
+    if (m_pktBuffer.at(harqId).allocated)
     {
-        if (m_nrSlHarqPktBuffer.at(harqId).multiplePdu && m_numProcessesMultiplePdu)
+        if (m_pktBuffer.at(harqId).multiplePdu && m_numProcessesMultiplePdu)
         {
             m_numProcessesMultiplePdu--;
         }
-        m_nrSlHarqIdBuffer.push_back(harqId);
-        NS_LOG_INFO("Deallocating ID " << +harqId << " remaining " << m_nrSlHarqIdBuffer.size());
-        m_deallocateTrace(harqId, m_nrSlHarqIdBuffer.size());
-        ResetPacketBuffer(harqId);
+        m_idBuffer.push_back(harqId);
+        NS_LOG_INFO("Deallocating ID " << +harqId << " remaining " << m_idBuffer.size());
+        m_deallocateTrace(harqId, m_idBuffer.size());
+        ResetHarqBuffer(harqId);
     }
 }
 
 bool
-NrSlUeMacHarq::RenewProcessIdTimer(uint8_t harqId, Time timeout)
+NrSlUeMacHarq::RenewHarqProcessIdTimer(uint8_t harqId, Time timeout)
 {
     NS_LOG_FUNCTION(this << harqId << timeout);
-    if (!m_nrSlHarqPktBuffer.at(harqId).allocated)
+    if (!m_pktBuffer.at(harqId).allocated)
     {
         NS_LOG_INFO("HARQ process ID " << +harqId << " is not allocated; not renewing timer");
-        NS_ASSERT_MSG(m_nrSlHarqPktBuffer.at(harqId).timer.IsRunning(),
+        NS_ASSERT_MSG(m_pktBuffer.at(harqId).timer.IsRunning(),
                       "Timer should not be running on a deallocated process");
         return false;
     }
-    if (m_nrSlHarqPktBuffer.at(harqId).timer.IsRunning())
+    if (m_pktBuffer.at(harqId).timer.IsRunning())
     {
-        m_nrSlHarqPktBuffer.at(harqId).timer.Cancel();
+        m_pktBuffer.at(harqId).timer.Cancel();
     }
     NS_LOG_INFO("Renewing HARQ process ID " << +harqId << " timer to expire in "
                                             << timeout.As(Time::MS) << " at "
                                             << (Now() + timeout).As(Time::S));
-    m_nrSlHarqPktBuffer.at(harqId).timer =
+    m_pktBuffer.at(harqId).timer =
         Simulator::Schedule(timeout, &NrSlUeMacHarq::HarqProcessTimerExpiry, this, harqId);
     return true;
 }
@@ -166,26 +166,25 @@ NrSlUeMacHarq::RenewProcessIdTimer(uint8_t harqId, Time timeout)
 uint32_t
 NrSlUeMacHarq::GetNumAvailableHarqIds() const
 {
-    return m_nrSlHarqIdBuffer.size();
+    return m_idBuffer.size();
 }
 
 bool
 NrSlUeMacHarq::IsHarqIdAvailable(uint8_t harqId) const
 {
-    return !(m_nrSlHarqPktBuffer.at(harqId).allocated);
+    return !(m_pktBuffer.at(harqId).allocated);
 }
 
 void
 NrSlUeMacHarq::AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Packet> pkt)
 {
     NS_LOG_FUNCTION(this << dstL2Id << +lcId << +harqId);
-    NS_ABORT_MSG_IF(m_nrSlHarqPktBuffer.at(harqId).dstL2Id != dstL2Id,
+    NS_ABORT_MSG_IF(m_pktBuffer.at(harqId).dstL2Id != dstL2Id,
                     "the HARQ id " << +harqId << " does not belongs to the destination "
                                    << dstL2Id);
-    NS_ASSERT_MSG(m_nrSlHarqPktBuffer.at(harqId).pktBurst != nullptr,
+    NS_ASSERT_MSG(m_pktBuffer.at(harqId).pktBurst != nullptr,
                   " Packet burst not initialized for HARQ id " << +harqId);
-    if (m_nrSlHarqPktBuffer.at(harqId).multiplePdu &&
-        m_nrSlHarqPktBuffer.at(harqId).pktBurst->GetNPackets())
+    if (m_pktBuffer.at(harqId).multiplePdu && m_pktBuffer.at(harqId).pktBurst->GetNPackets())
     {
         // If there is an SPS grant and no HARQ feedback, there is no way
         // to clear out the previous TB, so flush it here.
@@ -194,19 +193,19 @@ NrSlUeMacHarq::AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Pac
     }
     NS_LOG_INFO("Adding packet for dstL2Id " << dstL2Id << " LC ID " << +lcId << " HARQ ID "
                                              << +harqId);
-    m_nrSlHarqPktBuffer.at(harqId).lcidList.insert(lcId);
-    m_nrSlHarqPktBuffer.at(harqId).pktBurst->AddPacket(pkt);
+    m_pktBuffer.at(harqId).lcidList.insert(lcId);
+    m_pktBuffer.at(harqId).pktBurst->AddPacket(pkt);
     // Each LC have one MAC PDU in a TB. Packet burst here, imitates a TB, therefore,
     // the number of LCs inside lcidList and the packets inside the packet burst
     // must be equal.
-    NS_ABORT_MSG_IF(m_nrSlHarqPktBuffer.at(harqId).lcidList.size() !=
-                        m_nrSlHarqPktBuffer.at(harqId).pktBurst->GetNPackets(),
+    NS_ABORT_MSG_IF(m_pktBuffer.at(harqId).lcidList.size() !=
+                        m_pktBuffer.at(harqId).pktBurst->GetNPackets(),
                     "Mismatch in number of LCIDs and the number of packets for SL HARQ ID "
                         << +harqId << " dest " << dstL2Id);
 }
 
 void
-NrSlUeMacHarq::RecvNrSlHarqFeedback(SlHarqInfo harqInfo)
+NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
 {
     NS_LOG_FUNCTION(this << harqInfo.m_dstL2Id << +harqInfo.m_harqProcessId
                          << harqInfo.IsReceivedOk());
@@ -218,7 +217,7 @@ NrSlUeMacHarq::RecvNrSlHarqFeedback(SlHarqInfo harqInfo)
         return;
     }
     if (harqInfo.IsReceivedOk() &&
-        (m_nrSlHarqPktBuffer.at(harqInfo.m_harqProcessId).dstL2Id != harqInfo.m_dstL2Id))
+        (m_pktBuffer.at(harqInfo.m_harqProcessId).dstL2Id != harqInfo.m_dstL2Id))
     {
         NS_LOG_DEBUG("Feedback (possibly stale) received for different dstL2Id "
                      << harqInfo.m_dstL2Id << " on HARQ ID " << +harqInfo.m_harqProcessId);
@@ -229,41 +228,40 @@ NrSlUeMacHarq::RecvNrSlHarqFeedback(SlHarqInfo harqInfo)
     // SPS grant, do not free the HARQ ID but mark the buffer as not allocated.
     if (harqInfo.IsReceivedOk())
     {
-        if (m_nrSlHarqPktBuffer.at(harqInfo.m_harqProcessId).pktBurst->GetSize())
+        if (m_pktBuffer.at(harqInfo.m_harqProcessId).pktBurst->GetSize())
         {
             // Only deallocate process IDs for dynamic grants upon ACK feedback
-            if (m_nrSlHarqPktBuffer.at(harqInfo.m_harqProcessId).multiplePdu)
+            if (m_pktBuffer.at(harqInfo.m_harqProcessId).multiplePdu)
             {
-                FlushNrSlHarqBuffer(harqInfo.m_harqProcessId);
+                FlushHarqBuffer(harqInfo.m_harqProcessId);
             }
             else
             {
-                m_nrSlHarqIdBuffer.push_back(harqInfo.m_harqProcessId);
+                m_idBuffer.push_back(harqInfo.m_harqProcessId);
                 NS_LOG_INFO("Deallocating ID " << +harqInfo.m_harqProcessId << " remaining "
-                                               << m_nrSlHarqIdBuffer.size());
-                m_deallocateTrace(harqInfo.m_harqProcessId, m_nrSlHarqIdBuffer.size());
-                ResetPacketBuffer(harqInfo.m_harqProcessId);
+                                               << m_idBuffer.size());
+                m_deallocateTrace(harqInfo.m_harqProcessId, m_idBuffer.size());
+                ResetHarqBuffer(harqInfo.m_harqProcessId);
             }
         }
     }
 }
 
 void
-NrSlUeMacHarq::FlushNrSlHarqBuffer(uint8_t harqId)
+NrSlUeMacHarq::FlushHarqBuffer(uint8_t harqId)
 {
     NS_LOG_FUNCTION(this << harqId);
     NS_LOG_INFO("Flush packet buffer for HARQ ID " << +harqId);
     Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
-    m_nrSlHarqPktBuffer.at(harqId).pktBurst = pb;
-    m_nrSlHarqPktBuffer.at(harqId).lcidList.clear();
+    m_pktBuffer.at(harqId).pktBurst = pb;
+    m_pktBuffer.at(harqId).lcidList.clear();
 }
 
 Ptr<PacketBurst>
 NrSlUeMacHarq::GetPacketBurst(uint32_t dstL2Id, uint8_t harqId) const
 {
     NS_LOG_FUNCTION(this << dstL2Id << +harqId);
-    if (m_nrSlHarqPktBuffer.at(harqId).dstL2Id != dstL2Id ||
-        !m_nrSlHarqPktBuffer.at(harqId).allocated)
+    if (m_pktBuffer.at(harqId).dstL2Id != dstL2Id || !m_pktBuffer.at(harqId).allocated)
     {
         // This operation can fail to return a packet burst if retransmissions
         // have been completed on this HARQ Process ID
@@ -272,7 +270,7 @@ NrSlUeMacHarq::GetPacketBurst(uint32_t dstL2Id, uint8_t harqId) const
     }
     NS_LOG_INFO("Packet burst retrieved for dstL2Id " << dstL2Id << " HARQ ID " << +harqId);
     m_packetBurstTrace(dstL2Id, harqId);
-    return m_nrSlHarqPktBuffer.at(harqId).pktBurst;
+    return m_pktBuffer.at(harqId).pktBurst;
 }
 
 void
@@ -282,31 +280,31 @@ NrSlUeMacHarq::HarqProcessTimerExpiry(uint8_t harqId)
     NS_LOG_INFO("HARQ process ID " << +harqId << " timed out");
     m_timeoutTrace(harqId);
     // If this was a dynamic grant, deallocate the HARQ process ID and Reset
-    if (m_nrSlHarqPktBuffer.at(harqId).multiplePdu)
+    if (m_pktBuffer.at(harqId).multiplePdu)
     {
-        FlushNrSlHarqBuffer(harqId);
+        FlushHarqBuffer(harqId);
     }
     else
     {
-        m_nrSlHarqIdBuffer.push_back(harqId);
-        NS_LOG_INFO("Deallocating ID " << +harqId << " remaining " << m_nrSlHarqIdBuffer.size());
-        m_deallocateTrace(harqId, m_nrSlHarqIdBuffer.size());
-        ResetPacketBuffer(harqId);
+        m_idBuffer.push_back(harqId);
+        NS_LOG_INFO("Deallocating ID " << +harqId << " remaining " << m_idBuffer.size());
+        m_deallocateTrace(harqId, m_idBuffer.size());
+        ResetHarqBuffer(harqId);
     }
 }
 
 void
-NrSlUeMacHarq::ResetPacketBuffer(uint8_t harqId)
+NrSlUeMacHarq::ResetHarqBuffer(uint8_t harqId)
 {
     NS_LOG_FUNCTION(this << +harqId);
-    FlushNrSlHarqBuffer(harqId);
-    if (m_nrSlHarqPktBuffer.at(harqId).timer.IsRunning())
+    FlushHarqBuffer(harqId);
+    if (m_pktBuffer.at(harqId).timer.IsRunning())
     {
-        m_nrSlHarqPktBuffer.at(harqId).timer.Cancel();
+        m_pktBuffer.at(harqId).timer.Cancel();
     }
-    m_nrSlHarqPktBuffer.at(harqId).dstL2Id = std::numeric_limits<uint32_t>::max();
-    m_nrSlHarqPktBuffer.at(harqId).multiplePdu = false;
-    m_nrSlHarqPktBuffer.at(harqId).allocated = false;
+    m_pktBuffer.at(harqId).dstL2Id = std::numeric_limits<uint32_t>::max();
+    m_pktBuffer.at(harqId).multiplePdu = false;
+    m_pktBuffer.at(harqId).allocated = false;
 }
 
 } // namespace ns3

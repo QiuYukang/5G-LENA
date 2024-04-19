@@ -468,8 +468,9 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(const SfnSf& sfn,
                                                    itGrantFoundLc->prevSlResoReselCounter,
                                                    itGrantFoundLc->rri);
                             bool renewed [[maybe_unused]] =
-                                GetNrSlUeMacHarq()->RenewProcessIdTimer(itGrantFoundLc->nrSlHarqId,
-                                                                        timeout);
+                                GetNrSlUeMacHarq()->RenewHarqProcessIdTimer(
+                                    itGrantFoundLc->nrSlHarqId,
+                                    timeout);
                             NS_ASSERT_MSG(renewed, "Timer failed to renew");
                         }
                         else
@@ -480,9 +481,7 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(const SfnSf& sfn,
                                         << m_slProbResourceKeep << ") <= randProb (" << randProb
                                         << ")"
                                         << ", Clearing the SPS grant");
-                            GetNrSlUeMacHarq()->DeallocateNrSlHarqProcessId(
-                                itGrantFoundLc->nrSlHarqId);
-
+                            GetNrSlUeMacHarq()->DeallocateHarqProcessId(itGrantFoundLc->nrSlHarqId);
                             pass = true;
                         }
                     }
@@ -492,7 +491,7 @@ NrSlUeMacSchedulerFixedMcs::TxResourceReselectionCheck(const SfnSf& sfn,
                         itGrantInfo->second.erase(itGrantFoundLc);
                         NS_LOG_INFO("Passed, cReselCounter == 0, Clearing the SPS grant");
                         pass = true;
-                        GetNrSlUeMacHarq()->DeallocateNrSlHarqProcessId(itGrantFoundLc->nrSlHarqId);
+                        GetNrSlUeMacHarq()->DeallocateHarqProcessId(itGrantFoundLc->nrSlHarqId);
                     }
                 }
                 else
@@ -934,9 +933,9 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
         NS_LOG_LOGIC("New destination " << slotAllocList.begin()->dstL2Id);
         NrSlUeMac::NrSlGrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
         auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, rri);
-        auto harqId = GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
-                                                                    true,
-                                                                    timeout);
+        auto harqId = GetNrSlUeMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                                true,
+                                                                timeout);
         if (!harqId.has_value())
         {
             NS_LOG_WARN("Unable to create grant, HARQ Id not available");
@@ -1009,10 +1008,9 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
             // Insert
             NrSlUeMac::NrSlGrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
             auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, rri);
-            auto harqId =
-                GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
-                                                              true,
-                                                              timeout);
+            auto harqId = GetNrSlUeMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                                    true,
+                                                                    timeout);
             if (!harqId.has_value())
             {
                 NS_LOG_WARN("Unable to create grant, HARQ Id not available");
@@ -1080,9 +1078,9 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
                                               slotAllocList,
                                               harqEnabled,
                                               GetNrSlUeMac()->GetPsfchPeriod());
-        auto harqId = GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
-                                                                    false,
-                                                                    timeout);
+        auto harqId = GetNrSlUeMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                                false,
+                                                                timeout);
         if (!harqId.has_value())
         {
             NS_LOG_WARN("Unable to create grant, HARQ Id not available");
@@ -1150,10 +1148,9 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
                                                   harqEnabled,
                                                   GetNrSlUeMac()->GetPsfchPeriod());
             NS_LOG_INFO("Inserting dynamic grant with timeout of " << timeout.As(Time::MS));
-            auto harqId =
-                GetNrSlUeMacHarq()->AllocateNrSlHarqProcessId(slotAllocList.begin()->dstL2Id,
-                                                              false,
-                                                              timeout);
+            auto harqId = GetNrSlUeMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id,
+                                                                    false,
+                                                                    timeout);
             if (!harqId.has_value())
             {
                 NS_LOG_WARN("Unable to create grant, HARQ Id not available");

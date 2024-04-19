@@ -1035,8 +1035,6 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                         // application supported by SPS has stopped.
                         m_nrSlMacPduTxed = false;
                         NS_LOG_DEBUG("Wasted grant opportunity ");
-                        // Free up HARQ ID
-                        m_nrSlHarq->FlushNrSlHarqBuffer(itGrant->nrSlHarqId);
                         itGrant = itGrantMap.second.erase(itGrant);
                         continue;
                     }
@@ -1079,18 +1077,12 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     removeGrant = true;
                     NS_LOG_DEBUG("No slot allocations remain for grant to " << currentSlot.dstL2Id);
                     // Blind retransmissions if HARQ enabled and PSFCH period == 0
-                    if (itGrant->harqEnabled &&
-                        (m_slTxPool->GetPsfchPeriod(GetBwpId(), m_poolId) == 0))
+                    if (!itGrant->harqEnabled ||
+                        (itGrant->harqEnabled &&
+                         (m_slTxPool->GetPsfchPeriod(GetBwpId(), m_poolId) == 0)))
                     {
-                        // Do not wait for feedback, just flush the buffer and
-                        // make the HARQ process ID available again
-                        m_nrSlHarq->FlushNrSlHarqBuffer(itGrant->nrSlHarqId);
-                    }
-                    if (!itGrant->harqEnabled)
-                    {
-                        // There will not be feedback, just flush the buffer and
-                        // make the HARQ process ID available again
-                        m_nrSlHarq->FlushNrSlHarqBuffer(itGrant->nrSlHarqId);
+                        // No retransmissions remain of this TB
+                        m_nrSlHarq->FlushHarqBuffer(itGrant->nrSlHarqId);
                     }
                 }
                 itGrant->slotAllocations.erase(currentSlotIt);
@@ -1101,11 +1093,6 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                                  << currentSlot.sfn.GetFrame()
                                  << " SF = " << +currentSlot.sfn.GetSubframe()
                                  << " slot = " << currentSlot.sfn.GetSlot());
-                    if (!currentGrant.tbTxCounter)
-                    {
-                        // Restore the previously allocated HarqID
-                        m_nrSlHarq->FlushNrSlHarqBuffer(itGrant->nrSlHarqId);
-                    }
                     continue;
                 }
                 atLeastOneTransmissionInSlot = true;
@@ -1710,7 +1697,7 @@ NrSlUeMac::DoReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo)
                 }
             }
         }
-        m_nrSlHarq->RecvNrSlHarqFeedback(harqInfo);
+        m_nrSlHarq->RecvHarqFeedback(harqInfo);
     }
 }
 
