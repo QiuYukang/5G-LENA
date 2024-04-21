@@ -779,7 +779,8 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
                                                  lcgMap.begin()->second->GetLcPdb(lcIdOfRef),
                                                  lSubch,
                                                  lcgMap.begin()->second->GetLcRri(lcIdOfRef),
-                                                 m_cResel};
+                                                 m_cResel,
+                                                 lcgMap.begin()->second->GetLcT2(lcIdOfRef)};
         std::list<NrSlSlotInfo> filteredReso;
         filteredReso =
             FilterTxOpportunities(GetNrSlUeMac()->GetNrSlAvailableResources(sfn, params));

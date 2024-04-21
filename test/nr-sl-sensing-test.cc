@@ -266,7 +266,6 @@ NrSlSensingTestCase::DoRun()
     // Set attributes used by the sensing code
     nrSlUeMac->SetAttribute("EnableSensing", BooleanValue(true));
     nrSlUeMac->SetAttribute("T1", UintegerValue(2));
-    nrSlUeMac->SetAttribute("T2", UintegerValue(33));
     nrSlUeMac->SetAttribute("ResourcePercentage", UintegerValue(20));
     nrSlUeMac->SetAttribute("SlThresPsschRsrp", IntegerValue(-128));
     nrSlUeMac->TraceConnectWithoutContext("SensingAlgorithm", MakeCallback(&TraceSensingAlgorithm));
@@ -311,7 +310,13 @@ NrSlSensingTestCase::DoRun()
     Time packetDelayBudget = MilliSeconds(20);
     Time pRsvpTx = MilliSeconds(100);
     uint16_t cResel = 5;
-    NrSlUeMac::NrSlTransmissionParams params{priority, packetDelayBudget, lSubch, pRsvpTx, cResel};
+    Time t2 = MicroSeconds(8250); // 33 slots
+    NrSlUeMac::NrSlTransmissionParams params{priority,
+                                             packetDelayBudget,
+                                             lSubch,
+                                             pRsvpTx,
+                                             cResel,
+                                             t2};
     std::list<NrSlSlotInfo> availableReso;
     availableReso =
         nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
@@ -335,7 +340,7 @@ NrSlSensingTestCase::DoRun()
     NS_LOG_DEBUG("Set requested subchannel width to 2");
     // Resetting the subchannel width to 2 should cause 15 resources of two subchannel width
     lSubch = 2;
-    NrSlUeMac::NrSlTransmissionParams params2{priority, packetDelayBudget, lSubch, pRsvpTx, cResel};
+    NrSlUeMac::NrSlTransmissionParams params2{priority, packetDelayBudget, lSubch, pRsvpTx, cResel, t2};
     availableReso =
         nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
                                                     params2,
@@ -430,7 +435,6 @@ NrSlSensingTransmitHistoryTest::DoRun()
     // Set attributes used by the sensing code
     nrSlUeMac->SetAttribute("EnableSensing", BooleanValue(true));
     nrSlUeMac->SetAttribute("T1", UintegerValue(2));
-    nrSlUeMac->SetAttribute("T2", UintegerValue(33));
     nrSlUeMac->SetAttribute("ResourcePercentage", UintegerValue(20));
     nrSlUeMac->SetAttribute("SlThresPsschRsrp", IntegerValue(-128));
     nrSlUeMac->TraceConnectWithoutContext("SensingAlgorithm", MakeCallback(&TraceSensingAlgorithm));
@@ -462,7 +466,13 @@ NrSlSensingTransmitHistoryTest::DoRun()
     Time pRsvpTx = MilliSeconds(100);
     uint16_t cResel = 5;
     uint8_t priority = 0;
-    NrSlUeMac::NrSlTransmissionParams params{priority, packetDelayBudget, lSubch, pRsvpTx, cResel};
+    Time t2 = MicroSeconds(8250); // 33 slots
+    NrSlUeMac::NrSlTransmissionParams params{priority,
+                                             packetDelayBudget,
+                                             lSubch,
+                                             pRsvpTx,
+                                             cResel,
+                                             t2};
     std::list<NrSlSlotInfo> availableReso;
     availableReso =
         nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,

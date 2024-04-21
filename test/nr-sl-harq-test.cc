@@ -227,7 +227,7 @@ class TestSidelinkHarq : public TestCase
         m_slSubchannelSize = size;
     }
 
-    void SetT2(uint16_t t2)
+    void SetT2(Time t2)
     {
         m_t2 = t2;
     }
@@ -414,7 +414,7 @@ class TestSidelinkHarq : public TestCase
     uint16_t m_numerologyBwpSl{2};
     uint16_t m_slSubchannelSize{50}; // PRBs
     uint16_t m_t1{2};
-    uint16_t m_t2{33};
+    Time m_t2{MicroSeconds(8250)}; // 33 slots with numerology 2
     Time m_delayBudget{MilliSeconds(20)};
     uint32_t m_numPackets{10};
     uint32_t m_udpPacketSize{200};
@@ -545,6 +545,7 @@ TestSidelinkHarq::ConfigureTfts(Ptr<NrSlHelper> nrSlHelper,
     slInfo.m_harqEnabled = m_harqEnabled;
     slInfo.m_dynamic = m_dynamic;
     slInfo.m_pdb = delayBudget;
+    slInfo.m_t2 = m_t2;
     if (!m_useIpv6)
     {
         Ipv4InterfaceContainer ueIpIface;
@@ -915,7 +916,6 @@ TestSidelinkHarq::DoRun()
     // NR Sidelink attribute of UE MAC, which are would be common for all the UEs
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(m_t1));
-    nrHelper->SetUeMacAttribute("T2", UintegerValue(m_t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
 
     uint8_t bwpIdForGbrMcptt = 0;
@@ -1267,6 +1267,7 @@ TestSidelinkHarqTwoSenders::ConfigureTfts(Ptr<NrSlHelper> nrSlHelper,
     slInfo.m_rri = MilliSeconds(100);
     slInfo.m_harqEnabled = m_harqEnabled;
     slInfo.m_pdb = delayBudget;
+    slInfo.m_t2 = m_t2;
     if (!m_useIpv6)
     {
         Ipv4InterfaceContainer ueIpIface;
@@ -1827,7 +1828,7 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->SetCastType("groupcast");
         testCase->SetNumUe(3);
         testCase->SetNumerology(0);
-        testCase->SetT2(10);
+        testCase->SetT2(MilliSeconds(10));
         testCase->CheckAppRxCount(20);   // 10 packets * 2 receivers
         testCase->CheckHarqAckCount(20); // 20 HARQ FB should be received
         AddTestCase(testCase);
@@ -1836,7 +1837,7 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->SetCastType("groupcast");
         testCase->SetNumUe(3);
         testCase->SetNumerology(1);
-        testCase->SetT2(17);
+        testCase->SetT2(MicroSeconds(8500));
         testCase->CheckAppRxCount(20);   // 10 packets * 2 receivers
         testCase->CheckHarqAckCount(20); // 20 HARQ FB should be received
         AddTestCase(testCase);
@@ -1846,7 +1847,7 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase->SetNumUe(3);
         testCase->SetNumerology(3);
         testCase->SetSlSubchannelSize(25);
-        testCase->SetT2(50);
+        testCase->SetT2(MicroSeconds(6250));
         testCase->CheckAppRxCount(20);   // 10 packets * 2 receivers
         testCase->CheckHarqAckCount(20); // 20 HARQ FB should be received
         AddTestCase(testCase);
@@ -1854,9 +1855,8 @@ class TestSidelinkHarqSuite : public TestSuite
         testCase = new TestSidelinkHarq("numerology 4");
         testCase->SetCastType("groupcast");
         testCase->SetNumUe(3);
-        testCase->SetNumerology(4);
+        testCase->SetT2(MicroSeconds(6250));
         testCase->SetSlSubchannelSize(10);
-        testCase->SetT2(100);
         testCase->CheckAppRxCount(20);   // 10 packets * 2 receivers
         testCase->CheckHarqAckCount(20); // 20 HARQ FB should be received
         AddTestCase(testCase);

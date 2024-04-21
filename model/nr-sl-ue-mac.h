@@ -124,12 +124,14 @@ class NrSlUeMac : public NrUeMac
                                Time pdb,
                                uint16_t lSubch,
                                Time pRsvpTx,
-                               uint16_t cResel);
+                               uint16_t cResel,
+                               Time t2 = Seconds(0));
         uint8_t m_priority{0};                //!< L1 priority prio_TX
         Time m_packetDelayBudget{Seconds(0)}; //!< remaining packet delay budget
         uint16_t m_lSubch{0};                 //!< L_subCH; number of subchannels to be used
         Time m_pRsvpTx{0};                    //!< resource reservation interval
         uint16_t m_cResel{0};                 //!< C_resel counter
+        Time m_t2{0};                         //!< T2 selection window value
     };
 
     /**
@@ -291,18 +293,6 @@ class NrSlUeMac : public NrUeMac
      *            for physical layer processing delay.
      */
     uint8_t GetT1() const;
-
-    /**
-     * \brief Set T2
-     * \param t2 The end of the selection window in physical slots.
-     */
-    void SetT2(uint16_t t2);
-
-    /**
-     * \brief Get T2
-     * \return T2 The end of the selection window in physical slots.
-     */
-    uint16_t GetT2() const;
 
     /**
      * \brief Set the pool id of the active pool
@@ -692,11 +682,13 @@ class NrSlUeMac : public NrUeMac
      * \param sensedData The data extracted from the sensed SCI 1-A.
      * \param slotPeriod Slot period
      * \param resvPeriodSlots Reservation period in slots
+     * \param t2 Right edge of selection window (T2)
      * \return The list of the future transmission slots based on sensed data.
      */
     std::list<SlotSensingData> GetFutSlotsBasedOnSens(SensingData sensedData,
                                                       Time slotPeriod,
-                                                      uint16_t resvPeriodSlots) const;
+                                                      uint16_t resvPeriodSlots,
+                                                      uint16_t t2) const;
 
     /**
      * Private, internal (const) method invoked by public
@@ -803,6 +795,20 @@ class NrSlUeMac : public NrUeMac
      *         pair second value, false otherwise.
      */
     static bool CompareSecond(std::pair<uint32_t, uint8_t>& a, std::pair<uint32_t, uint8_t>& b);
+
+    /**
+     * \brief Convert a time quantity to slots based on numerology
+     *
+     * The time quantity must be less than 4000 ms to avoid integer overflow
+     * if the maximum numerology shift is applied.
+     *
+     * \param sfn The SfnSf corresponding to numerology
+     * \param timeVal The Time value to convert
+     * \return the number of slots
+     *
+     * \note This utility function could possibly be moved to SfnSf
+     */
+    uint16_t TimeToSlots(const SfnSf& sfn, Time timeVal) const;
 
     std::map<SidelinkLcIdentifier, SlLcInfoUeMac>
         m_nrSlLcInfoMap; //!< Sidelink logical channel info map

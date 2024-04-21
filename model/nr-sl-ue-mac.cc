@@ -72,11 +72,6 @@ NrSlUeMac::GetTypeId()
                           UintegerValue(2),
                           MakeUintegerAccessor(&NrSlUeMac::SetT1, &NrSlUeMac::GetT1),
                           MakeUintegerChecker<uint8_t>())
-            .AddAttribute("T2",
-                          "The end of the selection window in physical slots",
-                          UintegerValue(33),
-                          MakeUintegerAccessor(&NrSlUeMac::SetT2, &NrSlUeMac::GetT2),
-                          MakeUintegerChecker<uint16_t>())
             .AddAttribute(
                 "ActivePoolId",
                 "The pool id of the active pool used for TX and RX",
@@ -333,6 +328,15 @@ NrSlUeMac::GetNrSlCandidateResources(const SfnSf& sfn, const NrSlTransmissionPar
                                             m_transmitHistory);
 }
 
+uint16_t
+NrSlUeMac::TimeToSlots(const SfnSf& sfn, Time timeVal) const
+{
+    NS_ASSERT_MSG(timeVal.GetMilliSeconds() <= 4000,
+                  "Overflow check failed on input time " << timeVal.As(Time::MS));
+    uint32_t t2 = static_cast<uint16_t>((timeVal.GetMicroSeconds() << sfn.GetNumerology()) / 1000);
+    return t2;
+}
+
 std::list<NrSlSlotInfo>
 NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
                                             const NrSlTransmissionParams& params,
@@ -348,12 +352,50 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
     NS_LOG_FUNCTION(this << sfn.GetFrame() << +sfn.GetSubframe() << sfn.GetSlot() << params
                          << txPool << slotPeriod << imsi << +bwpId << poolId << +totalSubCh);
 
+    // If the SidelinkInfo LC config indicated a value for T2, check that
+    // the value falls between T2min <= T2 <= Packet Delay Budget
+    // and adjust accordingly if out of range.
+    // If no value is provided, set T2 to Packet Delay Budget
+    NS_ABORT_MSG_UNLESS(params.m_packetDelayBudget != Seconds(0) || params.m_t2 != Seconds(0),
+                        "Error: either T2 or packet delay budget must be set in SidelinkInfo");
+    uint16_t t2 = TimeToSlots(sfn, params.m_t2);
+    uint16_t t2DelayBudget = TimeToSlots(sfn, params.m_packetDelayBudget);
+    uint16_t t2Min = txPool->GetT2Min(bwpId, poolId, sfn.GetNumerology());
+    if (t2 && (t2 > t2DelayBudget && t2DelayBudget >= t2Min))
+    {
+        NS_LOG_DEBUG("Lowering configured T2 " << t2 << " to packet delay budget "
+                                               << t2DelayBudget);
+        t2 = t2DelayBudget;
+    }
+    else if (t2 && (t2 < t2Min))
+    {
+        NS_LOG_DEBUG("Raising configured T2 " << t2 << " to T2min " << t2Min);
+        t2 = t2Min;
+    }
+    else if (t2)
+    {
+        NS_LOG_DEBUG("Using configured T2 " << t2);
+    }
+    else
+    {
+        // T2 was not configured-- set to the maximum of T2min and packet delay budget
+        if (t2Min <= t2DelayBudget)
+        {
+            NS_LOG_DEBUG("Setting T2 to packet delay budget: " << t2DelayBudget);
+            t2 = t2DelayBudget;
+        }
+        else
+        {
+            NS_LOG_DEBUG("Setting T2 to T2min: " << t2Min);
+            t2 = t2Min;
+        }
+    }
     SensingTraceReport report; // for tracing
     report.m_sfn = sfn;
     report.m_t0 = txPool->GetNrSlSensWindInSlots(bwpId, poolId, slotPeriod);
     report.m_tProc0 = m_tproc0;
     report.m_t1 = m_t1;
-    report.m_t2 = m_t2;
+    report.m_t2 = t2;
     report.m_subchannels = totalSubCh;
     report.m_lSubch = params.m_lSubch;
     report.m_resourcePercentage = GetResourcePercentage();
@@ -389,7 +431,7 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
     // Check the validity of the resource selection window configuration (T1 and T2)
     // and the following parameters: numerology and reservation period.
     uint16_t nsMs =
-        (m_t2 - m_t1 + 1) *
+        (t2 - m_t1 + 1) *
         (1 / pow(2, numerology)); // number of slots multiplied by the slot duration in ms
     uint16_t rsvpMs =
         static_cast<uint16_t>(params.m_pRsvpTx.GetMilliSeconds()); // reservation period in ms
@@ -401,7 +443,7 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
 
     // step 4 as per TS 38.214 sec 8.1.4
     candidateSlots =
-        txPool->GetNrSlCommOpportunities(absSlotIndex, bwpId, numerology, poolId, m_t1, m_t2);
+        txPool->GetNrSlCommOpportunities(absSlotIndex, bwpId, numerology, poolId, m_t1, t2);
     report.m_initialCandidateSlotsSize = candidateSlots.size();
     if (candidateSlots.empty())
     {
@@ -512,7 +554,7 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
                                                                 MilliSeconds(itSensedSlot.rsvp),
                                                                 slotPeriod);
         std::list<SlotSensingData> listFutureSensTx =
-            GetFutSlotsBasedOnSens(itSensedSlot, slotPeriod, resvPeriodSlots);
+            GetFutSlotsBasedOnSens(itSensedSlot, slotPeriod, resvPeriodSlots, t2);
         sensingDataProjections.push_back(listFutureSensTx);
     }
 
@@ -727,14 +769,15 @@ NrSlUeMac::ExcludeResourcesBasedOnHistory(
 std::list<SlotSensingData>
 NrSlUeMac::GetFutSlotsBasedOnSens(SensingData sensedData,
                                   Time slotPeriod,
-                                  uint16_t resvPeriodSlots) const
+                                  uint16_t resvPeriodSlots,
+                                  uint16_t t2) const
 {
     NS_LOG_FUNCTION(this << sensedData.sfn.Normalize() << slotPeriod << resvPeriodSlots);
     std::list<SlotSensingData> listFutureSensTx;
 
     double slotLenMiSec = slotPeriod.GetSeconds() * 1000.0;
     NS_ABORT_MSG_IF(slotLenMiSec > 1, "Slot length can not exceed 1 ms");
-    uint16_t selecWindLen = (m_t2 - m_t1) + 1; // selection window length in physical slots
+    uint16_t selecWindLen = (t2 - m_t1) + 1; // selection window length in physical slots
     double tScalMilSec = selecWindLen * slotLenMiSec;
     double pRsvpRxMilSec = static_cast<double>(sensedData.rsvp);
     uint16_t q = 0;
@@ -1650,12 +1693,14 @@ NrSlUeMac::NrSlTransmissionParams::NrSlTransmissionParams(uint8_t prio,
                                                           Time pdb,
                                                           uint16_t lSubch,
                                                           Time pRsvpTx,
-                                                          uint16_t cResel)
+                                                          uint16_t cResel,
+                                                          Time t2)
     : m_priority(prio),
       m_packetDelayBudget(pdb),
       m_lSubch(lSubch),
       m_pRsvpTx(pRsvpTx),
-      m_cResel(cResel)
+      m_cResel(cResel),
+      m_t2(t2)
 {
 }
 
@@ -1731,19 +1776,6 @@ NrSlUeMac::SetT1(uint8_t t1)
 {
     NS_LOG_FUNCTION(this << +t1);
     m_t1 = t1;
-}
-
-uint16_t
-NrSlUeMac::GetT2() const
-{
-    return m_t2;
-}
-
-void
-NrSlUeMac::SetT2(uint16_t t2)
-{
-    NS_LOG_FUNCTION(this << t2);
-    m_t2 = t2;
 }
 
 uint16_t
@@ -1828,7 +1860,7 @@ operator<<(std::ostream& os, const NrSlUeMac::NrSlTransmissionParams& p)
 {
     os << "Prio: " << +p.m_priority << ", PDB: " << p.m_packetDelayBudget.As(Time::MS)
        << ", subchannels: " << p.m_lSubch << ", RRI: " << p.m_pRsvpTx.As(Time::MS)
-       << ", Cresel: " << p.m_cResel;
+       << ", Cresel: " << p.m_cResel << ", T2: " << p.m_t2.As(Time::MS);
     return os;
 }
 
