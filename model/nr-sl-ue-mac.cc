@@ -68,7 +68,8 @@ NrSlUeMac::GetTypeId()
                           MakeUintegerChecker<uint8_t>())
             .AddAttribute("T1",
                           "The start of the selection window in physical slots, accounting for "
-                          "physical layer processing delay",
+                          "physical layer processing delay.  Must be less than 3, 5, 9, or 17 "
+                          "slots for numerologies 0, 1, 2, 3.",
                           UintegerValue(2),
                           MakeUintegerAccessor(&NrSlUeMac::SetT1, &NrSlUeMac::GetT1),
                           MakeUintegerChecker<uint8_t>())
@@ -328,6 +329,17 @@ NrSlUeMac::GetNrSlCandidateResources(const SfnSf& sfn, const NrSlTransmissionPar
                                             m_transmitHistory);
 }
 
+bool
+NrSlUeMac::CheckT1WithinTproc1(const SfnSf& sfn, uint16_t t1Slots) const
+{
+    if ((sfn.GetNumerology() == 0 && t1Slots <= 3) || (sfn.GetNumerology() == 1 && t1Slots <= 5) ||
+        (sfn.GetNumerology() == 2 && t1Slots <= 9) || (sfn.GetNumerology() == 3 && t1Slots <= 17))
+    {
+        return true;
+    }
+    return false;
+}
+
 uint16_t
 NrSlUeMac::TimeToSlots(const SfnSf& sfn, Time timeVal) const
 {
@@ -390,6 +402,8 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
             t2 = t2Min;
         }
     }
+    NS_ABORT_MSG_UNLESS(CheckT1WithinTproc1(sfn, m_t1),
+                        "Configured T1 " << m_t1 << " is greater than Tproc1 for this numerology");
     SensingTraceReport report; // for tracing
     report.m_sfn = sfn;
     report.m_t0 = txPool->GetNrSlSensWindInSlots(bwpId, poolId, slotPeriod);

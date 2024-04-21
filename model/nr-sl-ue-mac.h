@@ -797,6 +797,15 @@ class NrSlUeMac : public NrUeMac
     static bool CompareSecond(std::pair<uint32_t, uint8_t>& a, std::pair<uint32_t, uint8_t>& b);
 
     /**
+     * \brief Check that T1 value is <= Tproc1
+     *
+     * \param sfn The SfnSf
+     * \param t1Slots The value of T1 in slots
+     * \return True if the condition is satisfied
+     */
+    bool CheckT1WithinTproc1(const SfnSf& sfn, uint16_t t1Slots) const;
+
+    /**
      * \brief Convert a time quantity to slots based on numerology
      *
      * The time quantity must be less than 4000 ms to avoid integer overflow
