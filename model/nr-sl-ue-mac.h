@@ -406,23 +406,30 @@ class NrSlUeMac : public NrUeMac
     uint8_t GetPsfchPeriod() const;
 
     /**
-     * In resource allocation mode 2, the higher layer can request the UE to
-     * determine a subset of resources from which the higher layer will select
-     * resources for PSSCH/PSCCH transmission. This function first call the
-     * GetNrSlCandidateResources function to determine the set of candidate
-     * resources according to 3GPP TR 38.214 v16.7.0 Section 8.1.4 and then
-     * it filters out the resources that are already part of a published grant
-     * by calling the function FilterNrSlCandidateResources.
-     *
      * \brief Get NR sidelink available resources
+     *
+     * In resource allocation mode 2, as specified in TS 38.214 section 8,
+     * the higher layer (MAC) can request the UE (PHY) to
+     * determine a subset of resources from which the higher layer will select
+     * resources for PSSCH/PSCCH transmission.  In ns-3, we implement
+     * this as part of this UE MAC implementation, based on sensing data
+     * provided by the PHY.
+     *
+     * This function first calls the GetAllCandidateResources function to
+     * determine the set of candidate resources according to 3GPP TR 38.214
+     * Section 8.1.4 step 1).  The size of the returned list of candidates
+     * is defined as M_total in the standard.
+     *
+     * This function next performs steps 5-7 to possibly reduce the
+     * candidate set to the list defined as S_A in the standard.
      *
      * \param sfn The current system frame, subframe, and slot number.
      * \param params The input transmission parameters for the algorithm
      * \return The list of the transmit opportunities (slots) as per the TDD pattern
      *         and the NR SL bitmap
      */
-    std::list<SlResourceInfo> GetNrSlAvailableResources(const SfnSf& sfn,
-                                                        const NrSlTransmissionParams& params);
+    std::list<SlResourceInfo> GetCandidateResources(const SfnSf& sfn,
+                                                    const NrSlTransmissionParams& params);
 
   protected:
     // Inherited
@@ -559,9 +566,11 @@ class NrSlUeMac : public NrUeMac
     void DoSlotIndication(const SfnSf& sfn) override;
 
     /**
+     * \brief Selection window exclusion based on half-duplex considerations.
+     *
      * Execute step 5 of the sensing algorithm in TS 38.214 Section 8.1.4
-     * Candidate resources passed in may be excluded (modified) based on
-     * transmit history and list of resource reservation periods.
+     * Candidate resources passed in may be excluded (removed based on
+     * transmit history and list of possible resource reservation periods.
      *
      * \param sfn The current system frame, subframe, and slot number.
      * \param transmitHistory List of transmission history
@@ -573,20 +582,6 @@ class NrSlUeMac : public NrUeMac
         const std::list<SfnSf>& transmitHistory,
         std::list<SlResourceInfo>& candidateList,
         const std::list<uint16_t>& slResourceReservePeriodList) const;
-
-    /**
-     * This method implements the algorithm specified in 3GPP TR 38.214 v16.7.0
-     * Section 8.1.4.
-     *
-     * \brief Get NR sidelink candidate single-slot resources
-     *
-     * \param sfn The current system frame, subframe, and slot number.
-     * \param params The input transmission parameters for the algorithm
-     * \return The list of the transmit opportunities (slots) as per the TDD pattern
-     *         and the NR SL bitmap
-     */
-    std::list<SlResourceInfo> GetNrSlCandidateResources(const SfnSf& sfn,
-                                                        const NrSlTransmissionParams& params);
 
     /**
      * \brief Return all of the candidate single-slot resources (step 1 of
@@ -612,21 +607,13 @@ class NrSlUeMac : public NrUeMac
      * \param slotInfo the list of LTE module compatible slot info
      * \return The list of NR compatible slot info
      */
-    std::list<SlResourceInfo> GetNrSlCandidateResourcesFromSlots(
+    std::list<SlResourceInfo> GetCandidateResourcesFromSlots(
         const SfnSf& sfn,
         uint8_t psfchPeriod,
         uint8_t minTimeGapPsfch,
         uint16_t lSubch,
         uint16_t numSubch,
         std::list<NrSlCommResourcePool::SlotInfo> slotInfo) const;
-
-    /**
-     * \brief Removes resources which are already part of an existing published grant.
-     *
-     * \param txOppr The list of available slots
-     * \return The list of resources which are not used by any existing published grant.
-     */
-    std::list<SlResourceInfo> FilterNrSlCandidateResources(std::list<SlResourceInfo> txOppr);
 
     /// Sidelink Logical Channel Identifier
     struct SidelinkLcIdentifier
@@ -678,23 +665,25 @@ class NrSlUeMac : public NrUeMac
     void DoNrSlSlotIndication(const SfnSf& sfn);
 
     /**
-     * \brief Get the list of the future transmission slots based on sensed data.
+     * \brief Get the list of the future reserved resources based on sensed data.
      * \param sensedData The data extracted from the sensed SCI 1-A.
      * \param slotPeriod Slot period
      * \param resvPeriodSlots Reservation period in slots
+     * \param t1 Left edge of selection window (T1)
      * \param t2 Right edge of selection window (T2)
      * \return The list of the future transmission slots based on sensed data.
      */
-    std::list<SlotSensingData> GetFutSlotsBasedOnSens(SensingData sensedData,
-                                                      Time slotPeriod,
-                                                      uint16_t resvPeriodSlots,
-                                                      uint16_t t2) const;
+    std::list<ReservedResource> ExcludeReservedResources(SensingData sensedData,
+                                                         Time slotPeriod,
+                                                         uint16_t resvPeriodSlots,
+                                                         uint16_t t1,
+                                                         uint16_t t2) const;
 
     /**
      * Private, internal (const) method invoked by public
-     * NrSlUeMac::GetNrSlCandidateResources()
+     * NrSlUeMac::GetCandidateResources()
      *
-     * \sa ns3::NrUeMac::GetNrSlCandidateResources
+     * \sa ns3::NrUeMac::GetCandidateResources
      *
      * \param sfn The current system frame, subframe, and slot number.
      * \param params The input transmission parameters for the algorithm
@@ -708,7 +697,7 @@ class NrSlUeMac : public NrUeMac
      * \return The list of the transmit opportunities (slots) as per the TDD pattern
      *         and the NR SL bitmap
      */
-    std::list<SlResourceInfo> GetNrSlCandidateResourcesPrivate(
+    std::list<SlResourceInfo> GetCandidateResourcesPrivate(
         const SfnSf& sfn,
         const NrSlTransmissionParams& params,
         Ptr<const NrSlCommResourcePool> txPool,

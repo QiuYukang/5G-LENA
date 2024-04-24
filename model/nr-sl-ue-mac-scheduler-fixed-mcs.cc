@@ -781,9 +781,12 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
                                                  lcgMap.begin()->second->GetLcRri(lcIdOfRef),
                                                  m_cResel,
                                                  lcgMap.begin()->second->GetLcT2(lcIdOfRef)};
+        // GetCandidateResources() will return the set S_A defined in
+        // sec. 8.1.4 of TS 38.214.  The scheduler is responsible for
+        // further filtering out any candidates that overlap with already
+        // scheduled grants within the selection window.
         std::list<SlResourceInfo> filteredReso;
-        filteredReso =
-            FilterTxOpportunities(GetNrSlUeMac()->GetNrSlAvailableResources(sfn, params));
+        filteredReso = FilterTxOpportunities(GetNrSlUeMac()->GetCandidateResources(sfn, params));
         if (filteredReso.size() == 0)
         {
             NS_LOG_LOGIC("Resources not found");

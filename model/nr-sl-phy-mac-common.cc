@@ -38,7 +38,7 @@ operator<<(std::ostream& os, const SensingData& p)
 }
 
 std::ostream&
-operator<<(std::ostream& os, const SlotSensingData& p)
+operator<<(std::ostream& os, const ReservedResource& p)
 {
     os << "SfnSf: " << p.sfn << " rsvp: " << p.rsvp << " sbChLength: " << +p.sbChLength
        << " sbChStart: " << +p.sbChStart << " prio: " << +p.prio << " slRsrp: " << p.slRsrp;

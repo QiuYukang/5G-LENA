@@ -450,6 +450,9 @@ struct SlRxCtrlPacketTraceParams : public RxPacketTraceParams
 /**
  * \ingroup utils
  * \brief The SensingData struct
+ *
+ * Sensing information pertaining to the reception of an SCI-1A header
+ * for mode 2 sensing purposes.
  */
 struct SensingData
 {
@@ -512,21 +515,15 @@ struct SensingData
 
 /**
  * \ingroup utils
- * \brief The SlotSensingData struct
+ * \brief Structure to denote a future resource reserved by another UE
+ *
+ * This data structure represents resources excluded by step 6c) of the
+ * TS 38.214 Sec. 8.1.4 sensing algorithm.
  */
-struct SlotSensingData
+struct ReservedResource
 {
     /**
-     * \brief SlotSensingData constructor
-     *
-     * The data in this Struct represent the sensing data of only one slot, i.e.,
-     * it can be used even to represent a slot at which a future retransmission
-     * would be received. This Struct is only used to make a list of all the
-     * future slots based on one slot at which SCI 1A was received. Perhaps, one
-     * could use SensingData Struct instead of using this new Struct but in that
-     * case the info of the starting subchannel index of retransmission(s) cannot
-     * be filled and would be left unassigned. I do not like this because it
-     * could create the confusion and reduce the code readability.
+     * \brief ReservedResource constructor
      *
      * \param sfn The SfnSf
      * \param rsvp The resource reservation period in ms
@@ -535,12 +532,12 @@ struct SlotSensingData
      * \param prio The priority
      * \param slRsrp The measured RSRP value over the used resource blocks
      */
-    SlotSensingData(SfnSf sfn,
-                    uint16_t rsvp,
-                    uint8_t sbChLength,
-                    uint8_t sbChStart,
-                    uint8_t prio,
-                    double slRsrp)
+    ReservedResource(SfnSf sfn,
+                     uint16_t rsvp,
+                     uint8_t sbChLength,
+                     uint8_t sbChStart,
+                     uint8_t prio,
+                     double slRsrp)
     {
         this->sfn = sfn;
         this->rsvp = rsvp;
@@ -569,12 +566,12 @@ struct SlotSensingData
 std::ostream& operator<<(std::ostream& os, const SensingData& p);
 
 /**
- * \brief Stream output operator for SlotSensingData
+ * \brief Stream output operator for ReservedResource
  * \param os output stream
  * \param p struct whose parameter to output
  * \return updated stream
  */
-std::ostream& operator<<(std::ostream& os, const SlotSensingData& p);
+std::ostream& operator<<(std::ostream& os, const ReservedResource& p);
 
 /**
  * \brief Stream output operator for SlGrantResource

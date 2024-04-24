@@ -198,7 +198,7 @@ TraceSensingAlgorithm(const struct NrSlUeMac::SensingTraceReport& report,
  *
  * This testcase creates instances of a resource pool (with two subchannels),
  * an NrSlUeMac and an NrUePhy, and configures enough of these objects to
- * support the scheduling process (NrSlUeMac::GetNrSlCandidateResources).
+ * support the scheduling process (NrSlUeMac::GetCandidateResources).
  * Configuration is based heavily on the example program
  * cttc-nr-v2x-demo-simple.cc, except that two subchannels are used.
  * The sensing window is 100 ms (400 slots), and the selection window is
@@ -216,7 +216,7 @@ TraceSensingAlgorithm(const struct NrSlUeMac::SensingTraceReport& report,
  * to the NrSlUeMac sensing algorithm in lieu of actual sensing.
  *
  * At time 2.11 sec (corresponding to the first sensing time found in
- * cttc-nr-v2x-demo-simple), the test calls GetNrSlCandidateResources().
+ * cttc-nr-v2x-demo-simple), the test calls GetCandidateResources().
  * This code therefore sets the Sfn to a time corresponding to 2.11 sec
  * and runs the algorithm.  The ns-3 code follows most of the algorithm in
  * TS 38.214 and projects the (past) sensed transmissions into the
@@ -318,17 +318,16 @@ NrSlSensingTestCase::DoRun()
                                              cResel,
                                              t2};
     std::list<SlResourceInfo> availableReso;
-    availableReso =
-        nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
-                                                    params,
-                                                    CreateNrSlCommResourcePool(totalSubCh),
-                                                    slotPeriod,
-                                                    imsi,
-                                                    bwpId,
-                                                    poolId,
-                                                    totalSubCh,
-                                                    sensingDataList,
-                                                    transmitHistory);
+    availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
+                                                            params,
+                                                            CreateNrSlCommResourcePool(totalSubCh),
+                                                            slotPeriod,
+                                                            imsi,
+                                                            bwpId,
+                                                            poolId,
+                                                            totalSubCh,
+                                                            sensingDataList,
+                                                            transmitHistory);
 
     for (const SlResourceInfo& slot : availableReso)
     {
@@ -346,17 +345,16 @@ NrSlSensingTestCase::DoRun()
                                               pRsvpTx,
                                               cResel,
                                               t2};
-    availableReso =
-        nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
-                                                    params2,
-                                                    CreateNrSlCommResourcePool(totalSubCh),
-                                                    slotPeriod,
-                                                    imsi,
-                                                    bwpId,
-                                                    poolId,
-                                                    totalSubCh,
-                                                    sensingDataList,
-                                                    transmitHistory);
+    availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
+                                                            params2,
+                                                            CreateNrSlCommResourcePool(totalSubCh),
+                                                            slotPeriod,
+                                                            imsi,
+                                                            bwpId,
+                                                            poolId,
+                                                            totalSubCh,
+                                                            sensingDataList,
+                                                            transmitHistory);
     for (const SlResourceInfo& slot : availableReso)
     {
         NS_TEST_ASSERT_MSG_EQ(availableReso.size(), 15, "Expecting 15 resources");
@@ -391,17 +389,16 @@ NrSlSensingTestCase::DoRun()
         }
     }
     NS_LOG_DEBUG("Adding sensing data only to slots 8045 and 8046");
-    availableReso =
-        nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
-                                                    params2,
-                                                    CreateNrSlCommResourcePool(totalSubCh),
-                                                    slotPeriod,
-                                                    imsi,
-                                                    bwpId,
-                                                    poolId,
-                                                    totalSubCh,
-                                                    sensingDataList2,
-                                                    transmitHistory);
+    availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
+                                                            params2,
+                                                            CreateNrSlCommResourcePool(totalSubCh),
+                                                            slotPeriod,
+                                                            imsi,
+                                                            bwpId,
+                                                            poolId,
+                                                            totalSubCh,
+                                                            sensingDataList2,
+                                                            transmitHistory);
     // Two resources (at 8445 and 8446) should have been excluded from the original 15
     NS_TEST_ASSERT_MSG_EQ(availableReso.size(), 13, "Expecting 13 resources");
     for (const auto& it : availableReso)
@@ -479,17 +476,16 @@ NrSlSensingTransmitHistoryTest::DoRun()
                                              cResel,
                                              t2};
     std::list<SlResourceInfo> availableReso;
-    availableReso =
-        nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
-                                                    params,
-                                                    CreateNrSlCommResourcePool(totalSubCh),
-                                                    slotPeriod,
-                                                    imsi,
-                                                    bwpId,
-                                                    poolId,
-                                                    totalSubCh,
-                                                    sensingDataList,
-                                                    transmitHistory);
+    availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
+                                                            params,
+                                                            CreateNrSlCommResourcePool(totalSubCh),
+                                                            slotPeriod,
+                                                            imsi,
+                                                            bwpId,
+                                                            poolId,
+                                                            totalSubCh,
+                                                            sensingDataList,
+                                                            transmitHistory);
 
     for (const auto& it : availableReso)
     {
