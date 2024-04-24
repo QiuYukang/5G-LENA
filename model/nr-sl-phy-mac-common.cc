@@ -10,7 +10,7 @@ namespace ns3
 {
 
 bool
-NrSlSlotInfo::operator<(const NrSlSlotInfo& rhs) const
+SlResourceInfo::operator<(const SlResourceInfo& rhs) const
 {
     return (sfn < rhs.sfn || (sfn == rhs.sfn && slSubchannelStart < rhs.slSubchannelStart));
 }

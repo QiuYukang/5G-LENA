@@ -268,8 +268,8 @@ NrSlUeMac::DoSlotIndication(const SfnSf& sfn)
     }
 }
 
-std::list<NrSlSlotInfo>
-NrSlUeMac::FilterNrSlCandidateResources(std::list<NrSlSlotInfo> candidateReso)
+std::list<SlResourceInfo>
+NrSlUeMac::FilterNrSlCandidateResources(std::list<SlResourceInfo> candidateReso)
 {
     NS_LOG_FUNCTION(this);
 
@@ -300,13 +300,13 @@ NrSlUeMac::FilterNrSlCandidateResources(std::list<NrSlSlotInfo> candidateReso)
     return candidateReso;
 }
 
-std::list<NrSlSlotInfo>
+std::list<SlResourceInfo>
 NrSlUeMac::GetNrSlAvailableResources(const SfnSf& sfn, const NrSlTransmissionParams& params)
 {
     NS_LOG_FUNCTION(this << sfn.GetFrame() << +sfn.GetSubframe() << sfn.GetSlot() << params);
 
-    std::list<NrSlSlotInfo> availableResources;
-    std::list<NrSlSlotInfo> candidateResources;
+    std::list<SlResourceInfo> availableResources;
+    std::list<SlResourceInfo> candidateResources;
 
     candidateResources = GetNrSlCandidateResources(sfn, params);
     availableResources = FilterNrSlCandidateResources(candidateResources);
@@ -314,7 +314,7 @@ NrSlUeMac::GetNrSlAvailableResources(const SfnSf& sfn, const NrSlTransmissionPar
     return availableResources;
 }
 
-std::list<NrSlSlotInfo>
+std::list<SlResourceInfo>
 NrSlUeMac::GetNrSlCandidateResources(const SfnSf& sfn, const NrSlTransmissionParams& params)
 {
     return GetNrSlCandidateResourcesPrivate(sfn,
@@ -349,7 +349,7 @@ NrSlUeMac::TimeToSlots(const SfnSf& sfn, Time timeVal) const
     return t2;
 }
 
-std::list<NrSlSlotInfo>
+std::list<SlResourceInfo>
 NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
                                             const NrSlTransmissionParams& params,
                                             Ptr<const NrSlCommResourcePool> txPool,
@@ -428,16 +428,13 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
     // TR 38.214 Section 8.1.4, return the set 'S_A' (candidate single slot
     // resources).  The size of this list is the algorithm parameter 'M_total'.
 
-    // In this code, the list of candidateSlots is taken from the resource pool,
-    // each SlotInfo doesn't have a list of subchannel (indices).
-    // The NrUeMac copies each resource to the candidateResources list,
-    // the only difference being that this NrSlSlotInfo
-    // exists at the mac/scheduler API.  In a future revision, it is
-    // planned to convert NrSlSlotInfo into a different structure that is
-    // resource, not slot, based.
+    // In this code, the list of candidateSlots is first obtained from the resource pool;
+    // however, each SlotInfo doesn't have a list of subchannel (indices).
+    // The NrUeMac copies each resource to the candidateResources list containing
+    // SlResourceInfo which contains resource (slot and subchannel) information.
 
     std::list<NrSlCommResourcePool::SlotInfo> candidateSlots; // candidate single slots
-    std::list<NrSlSlotInfo> candidateResources;               // S_A as per TS 38.214
+    std::list<SlResourceInfo> candidateResources;             // S_A as per TS 38.214
 
     uint64_t absSlotIndex = sfn.Normalize();
     uint16_t numerology = sfn.GetNumerology();
@@ -465,7 +462,7 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
         // window are in terms of physical slots, it may happen that there are no
         // slots available for Sidelink, which depends on the TDD pattern and the
         // Sidelink bitmap.
-        return std::list<NrSlSlotInfo>();
+        return std::list<SlResourceInfo>();
     }
     uint8_t psfchPeriod = txPool->GetPsfchPeriod(bwpId, poolId);
     uint8_t minTimeGapPsfch = txPool->GetMinTimeGapPsfch(bwpId, poolId);
@@ -591,7 +588,7 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
             bool erased = false;
             // calculate all proposed transmissions of current candidate resource within selection
             // window
-            std::list<NrSlSlotInfo> listFutureCands;
+            std::list<SlResourceInfo> listFutureCands;
             uint16_t pPrimeRsvpTx =
                 txPool->GetResvPeriodInSlots(bwpId, poolId, params.m_pRsvpTx, slotPeriod);
             for (uint16_t i = 0; i < params.m_cResel; i++)
@@ -676,7 +673,7 @@ NrSlUeMac::GetNrSlCandidateResourcesPrivate(const SfnSf& sfn,
     return candidateResources;
 }
 
-std::list<NrSlSlotInfo>
+std::list<SlResourceInfo>
 NrSlUeMac::GetNrSlCandidateResourcesFromSlots(
     const SfnSf& sfn,
     uint8_t psfchPeriod,
@@ -688,26 +685,26 @@ NrSlUeMac::GetNrSlCandidateResourcesFromSlots(
     NS_LOG_FUNCTION(this << sfn.Normalize() << psfchPeriod << minTimeGapPsfch << lSubCh
                          << totalSubCh << slotInfo.size());
 
-    std::list<NrSlSlotInfo> nrResourceList;
+    std::list<SlResourceInfo> nrResourceList;
     for (const auto& it : slotInfo)
     {
         for (uint16_t i = 0; i + lSubCh <= totalSubCh; i++)
         {
             std::set<uint8_t> emptySet;
-            NrSlSlotInfo info(it.numSlPscchRbs,
-                              it.slPscchSymStart,
-                              it.slPscchSymLength,
-                              it.slPsschSymStart,
-                              it.slPsschSymLength,
-                              it.slSubchannelSize,
-                              it.slMaxNumPerReserve,
-                              psfchPeriod,
-                              minTimeGapPsfch,
-                              m_minTimeGapProcessing,
-                              sfn.GetFutureSfnSf(it.slotOffset),
-                              i,
-                              lSubCh,
-                              emptySet);
+            SlResourceInfo info(it.numSlPscchRbs,
+                                it.slPscchSymStart,
+                                it.slPscchSymLength,
+                                it.slPsschSymStart,
+                                it.slPsschSymLength,
+                                it.slSubchannelSize,
+                                it.slMaxNumPerReserve,
+                                psfchPeriod,
+                                minTimeGapPsfch,
+                                m_minTimeGapProcessing,
+                                sfn.GetFutureSfnSf(it.slotOffset),
+                                i,
+                                lSubCh,
+                                emptySet);
             nrResourceList.emplace_back(info);
         }
     }
@@ -719,7 +716,7 @@ void
 NrSlUeMac::ExcludeResourcesBasedOnHistory(
     const SfnSf& sfn,
     const std::list<SfnSf>& transmitHistory,
-    std::list<NrSlSlotInfo>& candidateList,
+    std::list<SlResourceInfo>& candidateList,
     const std::list<uint16_t>& slResourceReservePeriodList) const
 {
     NS_LOG_FUNCTION(this << sfn.Normalize() << transmitHistory.size() << candidateList.size()

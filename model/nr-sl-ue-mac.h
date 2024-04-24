@@ -209,7 +209,7 @@ class NrSlUeMac : public NrUeMac
      */
     typedef void (*SensingAlgorithmTracedCallback)(
         const struct SensingTraceReport& report,
-        const std::list<NrSlSlotInfo>& candidateResources,
+        const std::list<SlResourceInfo>& candidateResources,
         const std::list<SensingData>& sensingData,
         const std::list<SfnSf>& transmitHistory);
 
@@ -421,8 +421,8 @@ class NrSlUeMac : public NrUeMac
      * \return The list of the transmit opportunities (slots) as per the TDD pattern
      *         and the NR SL bitmap
      */
-    std::list<NrSlSlotInfo> GetNrSlAvailableResources(const SfnSf& sfn,
-                                                      const NrSlTransmissionParams& params);
+    std::list<SlResourceInfo> GetNrSlAvailableResources(const SfnSf& sfn,
+                                                        const NrSlTransmissionParams& params);
 
   protected:
     // Inherited
@@ -571,7 +571,7 @@ class NrSlUeMac : public NrUeMac
     void ExcludeResourcesBasedOnHistory(
         const SfnSf& sfn,
         const std::list<SfnSf>& transmitHistory,
-        std::list<NrSlSlotInfo>& candidateList,
+        std::list<SlResourceInfo>& candidateList,
         const std::list<uint16_t>& slResourceReservePeriodList) const;
 
     /**
@@ -585,15 +585,15 @@ class NrSlUeMac : public NrUeMac
      * \return The list of the transmit opportunities (slots) as per the TDD pattern
      *         and the NR SL bitmap
      */
-    std::list<NrSlSlotInfo> GetNrSlCandidateResources(const SfnSf& sfn,
-                                                      const NrSlTransmissionParams& params);
+    std::list<SlResourceInfo> GetNrSlCandidateResources(const SfnSf& sfn,
+                                                        const NrSlTransmissionParams& params);
 
     /**
      * \brief Return all of the candidate single-slot resources (step 1 of
      *        TS 38.214 Section 8.1.4)
      *
      * Method to convert the list of NrSlCommResourcePool::SlotInfo (slots)
-     * NrSlSlotInfo (with widths of subchannels)
+     * SlResourceInfo (with widths of subchannels)
      *
      * NrSlCommResourcePool class exists in the LTE module, therefore, we can not
      * have an object of NR SfnSf class there due to dependency issue. The use of
@@ -612,7 +612,7 @@ class NrSlUeMac : public NrUeMac
      * \param slotInfo the list of LTE module compatible slot info
      * \return The list of NR compatible slot info
      */
-    std::list<NrSlSlotInfo> GetNrSlCandidateResourcesFromSlots(
+    std::list<SlResourceInfo> GetNrSlCandidateResourcesFromSlots(
         const SfnSf& sfn,
         uint8_t psfchPeriod,
         uint8_t minTimeGapPsfch,
@@ -626,7 +626,7 @@ class NrSlUeMac : public NrUeMac
      * \param txOppr The list of available slots
      * \return The list of resources which are not used by any existing published grant.
      */
-    std::list<NrSlSlotInfo> FilterNrSlCandidateResources(std::list<NrSlSlotInfo> txOppr);
+    std::list<SlResourceInfo> FilterNrSlCandidateResources(std::list<SlResourceInfo> txOppr);
 
     /// Sidelink Logical Channel Identifier
     struct SidelinkLcIdentifier
@@ -708,7 +708,7 @@ class NrSlUeMac : public NrUeMac
      * \return The list of the transmit opportunities (slots) as per the TDD pattern
      *         and the NR SL bitmap
      */
-    std::list<NrSlSlotInfo> GetNrSlCandidateResourcesPrivate(
+    std::list<SlResourceInfo> GetNrSlCandidateResourcesPrivate(
         const SfnSf& sfn,
         const NrSlTransmissionParams& params,
         Ptr<const NrSlCommResourcePool> txPool,
@@ -905,7 +905,7 @@ class NrSlUeMac : public NrUeMac
      * Trace information regarding sensing operation
      */
     TracedCallback<const struct SensingTraceReport&,
-                   const std::list<NrSlSlotInfo>&,
+                   const std::list<SlResourceInfo>&,
                    const std::list<SensingData>&,
                    const std::list<SfnSf>&>
         m_tracedSensingAlgorithm;

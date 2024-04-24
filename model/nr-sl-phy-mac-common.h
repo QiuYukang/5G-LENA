@@ -167,12 +167,12 @@ struct SlRlcPduInfo
 };
 
 /**
- * \brief NR Sidelink slot info.
+ * \brief Information about a sidelink candidate single-slot resource
  */
-struct NrSlSlotInfo
+struct SlResourceInfo
 {
     /**
-     * \brief NrSlSlotInfo constructor
+     * \brief SlResourceInfo constructor
      *
      * \param numSlPscchRbs Indicates the number of PRBs for PSCCH in a resource pool where it
      * is not greater than the number PRBs of the subchannel. \param slPscchSymStart Indicates
@@ -190,20 +190,20 @@ struct NrSlSlotInfo
      * \param slSubchannelLength The number of subchannels
      * \param occupiedSbCh The set of occupied subchannel indexes
      */
-    NrSlSlotInfo(uint16_t numSlPscchRbs,
-                 uint16_t slPscchSymStart,
-                 uint16_t slPscchSymLength,
-                 uint16_t slPsschSymStart,
-                 uint16_t slPsschSymLength,
-                 uint16_t slSubchannelSize,
-                 uint16_t slMaxNumPerReserve,
-                 uint8_t slPsfchPeriod,
-                 uint8_t slMinTimeGapPsfch,
-                 uint8_t slMinTimeGapProcessing,
-                 SfnSf sfn,
-                 uint8_t slSubchannelStart,
-                 uint8_t slSubchannelLength,
-                 std::set<uint8_t> occupiedSbCh)
+    SlResourceInfo(uint16_t numSlPscchRbs,
+                   uint16_t slPscchSymStart,
+                   uint16_t slPscchSymLength,
+                   uint16_t slPsschSymStart,
+                   uint16_t slPsschSymLength,
+                   uint16_t slSubchannelSize,
+                   uint16_t slMaxNumPerReserve,
+                   uint8_t slPsfchPeriod,
+                   uint8_t slMinTimeGapPsfch,
+                   uint8_t slMinTimeGapProcessing,
+                   SfnSf sfn,
+                   uint8_t slSubchannelStart,
+                   uint8_t slSubchannelLength,
+                   std::set<uint8_t> occupiedSbCh)
 
     {
         this->numSlPscchRbs = numSlPscchRbs;
@@ -265,12 +265,12 @@ struct NrSlSlotInfo
 
     /**
      * \brief operator < (less than)
-     * \param rhs other NrSlSlotInfo to compare
-     * \return true if this NrSlSlotInfo is less than rhs
+     * \param rhs other SlResourceInfo to compare
+     * \return true if this SlResourceInfo is less than rhs
      *
      * The comparison is done on sfnSf
      */
-    bool operator<(const NrSlSlotInfo& rhs) const;
+    bool operator<(const SlResourceInfo& rhs) const;
 };
 
 /**

@@ -112,7 +112,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
         const SfnSf& sfn,
         std::map<uint32_t, std::vector<uint8_t>> dstsAndLcsToSched,
         AllocationInfo& allocationInfo,
-        std::list<NrSlSlotInfo>& candResources);
+        std::list<SlResourceInfo>& candResources);
     /**
      * \brief Attempt to select new grant from the selection window
      *
@@ -126,7 +126,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      */
     void AttemptGrantAllocation(const SfnSf& sfn,
                                 uint32_t dstL2Id,
-                                const std::list<NrSlSlotInfo>& candResources,
+                                const std::list<SlResourceInfo>& candResources,
                                 AllocationInfo allocationInfo);
     /**
      * \brief Create future SPS grants based on slot allocation
@@ -175,7 +175,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param txOppr The list of available slots
      * \return The list of resources which are not used by any existing unpublished grant.
      */
-    std::list<NrSlSlotInfo> FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr);
+    std::list<SlResourceInfo> FilterTxOpportunities(std::list<SlResourceInfo> txOppr);
 
     /**
      * \brief Calculate a timeout value for the grant allocation.
@@ -321,7 +321,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \return The status of the resource allocation, true if the destination has been
      *         allocated some resources; false otherwise.
      */
-    virtual bool DoNrSlAllocation(const std::list<NrSlSlotInfo>& candResources,
+    virtual bool DoNrSlAllocation(const std::list<SlResourceInfo>& candResources,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<NrSlSlotAlloc>& slotAllocList,
                                   AllocationInfo allocationInfo);
@@ -401,8 +401,8 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param candidate candidate to check
      * \return true if candidate overlaps any slots in the list of resources
      */
-    bool OverlappedSlots(const std::list<NrSlSlotInfo>& resources,
-                         const NrSlSlotInfo& candidate) const;
+    bool OverlappedSlots(const std::list<SlResourceInfo>& resources,
+                         const SlResourceInfo& candidate) const;
 
     /**
      * \brief Randomly select resources for a grant from the candidate resources
@@ -419,7 +419,8 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param txOpps The list of the candidate resources
      * \return The list of randomly selected resources
      */
-    std::list<NrSlSlotInfo> SelectResourcesForBlindRetransmissions(std::list<NrSlSlotInfo> txOpps);
+    std::list<SlResourceInfo> SelectResourcesForBlindRetransmissions(
+        std::list<SlResourceInfo> txOpps);
 
     /**
      * \brief Randomly select resources for a grant from the candidate resources,
@@ -443,8 +444,8 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param harqEnabled Whether HARQ retransmission resources should be selected
      * \return The list of randomly selected resources
      */
-    std::list<NrSlSlotInfo> SelectResourcesWithConstraint(std::list<NrSlSlotInfo> txOpps,
-                                                          bool harqEnabled);
+    std::list<SlResourceInfo> SelectResourcesWithConstraint(std::list<SlResourceInfo> txOpps,
+                                                            bool harqEnabled);
 
     /**
      * Check if the time difference between the two slots meets or exceeds the
@@ -466,11 +467,11 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * any two selected resources as specified in TS 38.321 Section 5.22.1.1
      *
      * \param txOpps list of currently selected resources
-     * \param slotInfo slot information of the candidate resource
+     * \param resourceInfo information of the candidate resource
      * \return true if minimum time gap of candidate resource is satisfied
      */
-    bool IsCandidateResourceEligible(const std::list<NrSlSlotInfo>& txOpps,
-                                     const NrSlSlotInfo& slotInfo) const;
+    bool IsCandidateResourceEligible(const std::list<SlResourceInfo>& txOpps,
+                                     const SlResourceInfo& resourceInfo) const;
 
     /**
      * \brief Get the random selection counter

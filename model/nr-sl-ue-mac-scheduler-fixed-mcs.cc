@@ -273,7 +273,7 @@ NrSlUeMacSchedulerFixedMcs::DoSchedNrSlTriggerReq(const SfnSf& sfn)
         while (dstsAndLcsToSched.size() > 0)
         {
             AllocationInfo allocationInfo;
-            std::list<NrSlSlotInfo> candResources;
+            std::list<SlResourceInfo> candResources;
             uint32_t dstL2IdtoServe = 0;
             dstL2IdtoServe =
                 LogicalChannelPrioritization(sfn, dstsAndLcsToSched, allocationInfo, candResources);
@@ -515,7 +515,7 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
     const SfnSf& sfn,
     std::map<uint32_t, std::vector<uint8_t>> dstsAndLcsToSched,
     AllocationInfo& allocationInfo,
-    std::list<NrSlSlotInfo>& candResources)
+    std::list<SlResourceInfo>& candResources)
 
 {
     NS_LOG_FUNCTION(this << dstsAndLcsToSched.size() << candResources.size());
@@ -781,7 +781,7 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
                                                  lcgMap.begin()->second->GetLcRri(lcIdOfRef),
                                                  m_cResel,
                                                  lcgMap.begin()->second->GetLcT2(lcIdOfRef)};
-        std::list<NrSlSlotInfo> filteredReso;
+        std::list<SlResourceInfo> filteredReso;
         filteredReso =
             FilterTxOpportunities(GetNrSlUeMac()->GetNrSlAvailableResources(sfn, params));
         if (filteredReso.size() == 0)
@@ -884,7 +884,7 @@ NrSlUeMacSchedulerFixedMcs::GetDstsAndLcsNeedingScheduling(
 void
 NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(const SfnSf& sfn,
                                                    uint32_t dstL2Id,
-                                                   const std::list<NrSlSlotInfo>& candResources,
+                                                   const std::list<SlResourceInfo>& candResources,
                                                    AllocationInfo allocationInfo)
 {
     NS_LOG_FUNCTION(this << sfn << dstL2Id);
@@ -1375,8 +1375,8 @@ NrSlUeMacSchedulerFixedMcs::OverlappedResources(const SfnSf& firstSfn,
     }
 }
 
-std::list<NrSlSlotInfo>
-NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<NrSlSlotInfo> txOppr)
+std::list<SlResourceInfo>
+NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<SlResourceInfo> txOppr)
 {
     NS_LOG_FUNCTION(this);
 
@@ -1511,7 +1511,7 @@ NrSlUeMacSchedulerFixedMcs::CalculateTbSize(Ptr<const NrAmc> nrAmc,
 
 bool
 NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
-    const std::list<NrSlSlotInfo>& candResources,
+    const std::list<SlResourceInfo>& candResources,
     const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
     std::set<NrSlSlotAlloc>& slotAllocList,
     AllocationInfo allocationInfo)
@@ -1521,7 +1521,7 @@ NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
     NS_ASSERT_MSG(candResources.size() > 0,
                   "Scheduler received an empty resource list from UE MAC");
 
-    std::list<NrSlSlotInfo> selectedTxOpps;
+    std::list<SlResourceInfo> selectedTxOpps;
     // blind retransmission corresponds to HARQ enabled AND (PSFCH period == 0)
     if (allocationInfo.m_harqEnabled && (GetNrSlUeMac()->GetPsfchPeriod() == 0))
     {
@@ -1581,8 +1581,8 @@ NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
 }
 
 bool
-NrSlUeMacSchedulerFixedMcs::OverlappedSlots(const std::list<NrSlSlotInfo>& resources,
-                                            const NrSlSlotInfo& candidate) const
+NrSlUeMacSchedulerFixedMcs::OverlappedSlots(const std::list<SlResourceInfo>& resources,
+                                            const SlResourceInfo& candidate) const
 {
     for (const auto& it : resources)
     {
@@ -1594,13 +1594,13 @@ NrSlUeMacSchedulerFixedMcs::OverlappedSlots(const std::list<NrSlSlotInfo>& resou
     return false;
 }
 
-std::list<NrSlSlotInfo>
-NrSlUeMacSchedulerFixedMcs::SelectResourcesForBlindRetransmissions(std::list<NrSlSlotInfo> txOpps)
+std::list<SlResourceInfo>
+NrSlUeMacSchedulerFixedMcs::SelectResourcesForBlindRetransmissions(std::list<SlResourceInfo> txOpps)
 {
     NS_LOG_FUNCTION(this << txOpps.size());
 
     uint8_t totalTx = GetSlMaxTxTransNumPssch();
-    std::list<NrSlSlotInfo> newTxOpps;
+    std::list<SlResourceInfo> newTxOpps;
 
     if (txOpps.size() > totalTx)
     {
@@ -1642,8 +1642,8 @@ NrSlUeMacSchedulerFixedMcs::SelectResourcesForBlindRetransmissions(std::list<NrS
     return newTxOpps;
 }
 
-std::list<NrSlSlotInfo>
-NrSlUeMacSchedulerFixedMcs::SelectResourcesWithConstraint(std::list<NrSlSlotInfo> txOpps,
+std::list<SlResourceInfo>
+NrSlUeMacSchedulerFixedMcs::SelectResourcesWithConstraint(std::list<SlResourceInfo> txOpps,
                                                           bool harqEnabled)
 {
     NS_LOG_FUNCTION(this << txOpps.size() << harqEnabled);
@@ -1652,7 +1652,7 @@ NrSlUeMacSchedulerFixedMcs::SelectResourcesWithConstraint(std::list<NrSlSlotInfo
     {
         totalTx = GetSlMaxTxTransNumPssch();
     }
-    std::list<NrSlSlotInfo> newTxOpps;
+    std::list<SlResourceInfo> newTxOpps;
     std::size_t originalSize [[maybe_unused]] = txOpps.size();
 
     // TS 38.321 states to randomly select a resource from the available
@@ -1705,57 +1705,58 @@ NrSlUeMacSchedulerFixedMcs::IsMinTimeGapSatisfied(const SfnSf& first,
 }
 
 bool
-NrSlUeMacSchedulerFixedMcs::IsCandidateResourceEligible(const std::list<NrSlSlotInfo>& txOpps,
-                                                        const NrSlSlotInfo& slotInfo) const
+NrSlUeMacSchedulerFixedMcs::IsCandidateResourceEligible(const std::list<SlResourceInfo>& txOpps,
+                                                        const SlResourceInfo& resourceInfo) const
 {
-    NS_LOG_FUNCTION(txOpps.size() << slotInfo.sfn.Normalize());
+    NS_LOG_FUNCTION(txOpps.size() << resourceInfo.sfn.Normalize());
     if (txOpps.size() == 0)
     {
-        NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize()
-                             << " is eligible as the first slot in the list");
+        NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                 << " is eligible as the first slot in the list");
         return true; // first slot is always eligible
     }
     auto firstElementIt = txOpps.cbegin();
     auto lastElementIt = std::prev(txOpps.cend(), 1);
-    if (slotInfo.sfn == (*firstElementIt).sfn || slotInfo.sfn == (*lastElementIt).sfn)
+    if (resourceInfo.sfn == (*firstElementIt).sfn || resourceInfo.sfn == (*lastElementIt).sfn)
     {
-        NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize()
-                             << " overlaps with first or last on the list");
+        NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                 << " overlaps with first or last on the list");
         return false;
     }
-    if (slotInfo.sfn < (*firstElementIt).sfn)
+    if (resourceInfo.sfn < (*firstElementIt).sfn)
     {
-        bool eligible = IsMinTimeGapSatisfied(slotInfo.sfn,
+        bool eligible = IsMinTimeGapSatisfied(resourceInfo.sfn,
                                               (*firstElementIt).sfn,
                                               (*firstElementIt).slMinTimeGapPsfch,
                                               (*firstElementIt).slMinTimeGapProcessing);
         if (eligible)
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize()
-                                 << " is eligible as a new first slot in the list");
+            NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                     << " is eligible as a new first slot in the list");
         }
         else
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize()
-                                 << " is not outside of minimum time gap to first slot in list");
+            NS_LOG_LOGIC("Resource "
+                         << resourceInfo.sfn.Normalize()
+                         << " is not outside of minimum time gap to first slot in list");
         }
         return eligible;
     }
-    else if ((*lastElementIt).sfn < slotInfo.sfn)
+    else if ((*lastElementIt).sfn < resourceInfo.sfn)
     {
         bool eligible = IsMinTimeGapSatisfied((*lastElementIt).sfn,
-                                              slotInfo.sfn,
+                                              resourceInfo.sfn,
                                               (*lastElementIt).slMinTimeGapPsfch,
                                               (*lastElementIt).slMinTimeGapProcessing);
         if (eligible)
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize()
-                                 << " is eligible as a new last slot in the list");
+            NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                     << " is eligible as a new last slot in the list");
         }
         else
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize()
-                                 << " is not outside of minimum time gap to last slot in list");
+            NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                     << " is not outside of minimum time gap to last slot in list");
         }
         return eligible;
     }
@@ -1769,34 +1770,36 @@ NrSlUeMacSchedulerFixedMcs::IsCandidateResourceEligible(const std::list<NrSlSlot
         auto rightIt = std::next(leftIt, 1);
         // we have already checked firstElementIt for an SFN match, so only
         // need to check the next one (rightIt)
-        if (slotInfo.sfn == (*rightIt).sfn)
+        if (resourceInfo.sfn == (*rightIt).sfn)
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize() << " overlaps with one on the list");
+            NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                     << " overlaps with one on the list");
             return false;
         }
-        while ((*rightIt).sfn < slotInfo.sfn)
+        while ((*rightIt).sfn < resourceInfo.sfn)
         {
             leftIt++;
             rightIt++;
             NS_ASSERT_MSG(leftIt != lastElementIt, "Unexpectedly reached end");
         }
         bool eligible = (IsMinTimeGapSatisfied((*leftIt).sfn,
-                                               slotInfo.sfn,
+                                               resourceInfo.sfn,
                                                (*leftIt).slMinTimeGapPsfch,
                                                (*leftIt).slMinTimeGapProcessing) &&
-                         IsMinTimeGapSatisfied(slotInfo.sfn,
+                         IsMinTimeGapSatisfied(resourceInfo.sfn,
                                                (*rightIt).sfn,
                                                (*rightIt).slMinTimeGapPsfch,
                                                (*rightIt).slMinTimeGapProcessing));
         if (eligible)
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize() << " is eligible between "
-                                 << (*leftIt).sfn.Normalize() << " and "
-                                 << (*rightIt).sfn.Normalize());
+            NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize() << " is eligible between "
+                                     << (*leftIt).sfn.Normalize() << " and "
+                                     << (*rightIt).sfn.Normalize());
         }
         else
         {
-            NS_LOG_LOGIC("Slot " << slotInfo.sfn.Normalize() << " does not meet constraints");
+            NS_LOG_LOGIC("Resource " << resourceInfo.sfn.Normalize()
+                                     << " does not meet constraints");
         }
         return eligible;
     }

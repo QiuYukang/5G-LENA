@@ -168,7 +168,7 @@ CreateNrSlCommResourcePool(uint16_t numSubchannels)
 // Generic logging function for debug tracing
 void
 TraceSensingAlgorithm(const struct NrSlUeMac::SensingTraceReport& report,
-                      const std::list<NrSlSlotInfo>& candidates,
+                      const std::list<SlResourceInfo>& candidates,
                       const std::list<SensingData>& sensingData,
                       const std::list<SfnSf>& transmitHistory)
 {
@@ -317,7 +317,7 @@ NrSlSensingTestCase::DoRun()
                                              pRsvpTx,
                                              cResel,
                                              t2};
-    std::list<NrSlSlotInfo> availableReso;
+    std::list<SlResourceInfo> availableReso;
     availableReso =
         nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
                                                     params,
@@ -330,7 +330,7 @@ NrSlSensingTestCase::DoRun()
                                                     sensingDataList,
                                                     transmitHistory);
 
-    for (const NrSlSlotInfo& slot : availableReso)
+    for (const SlResourceInfo& slot : availableReso)
     {
         NS_TEST_ASSERT_MSG_EQ(availableReso.size(), 15, "Expecting 15 resources");
         NS_TEST_ASSERT_MSG_NE(slot.slSubchannelStart,
@@ -340,7 +340,12 @@ NrSlSensingTestCase::DoRun()
     NS_LOG_DEBUG("Set requested subchannel width to 2");
     // Resetting the subchannel width to 2 should cause 15 resources of two subchannel width
     lSubch = 2;
-    NrSlUeMac::NrSlTransmissionParams params2{priority, packetDelayBudget, lSubch, pRsvpTx, cResel, t2};
+    NrSlUeMac::NrSlTransmissionParams params2{priority,
+                                              packetDelayBudget,
+                                              lSubch,
+                                              pRsvpTx,
+                                              cResel,
+                                              t2};
     availableReso =
         nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
                                                     params2,
@@ -352,7 +357,7 @@ NrSlSensingTestCase::DoRun()
                                                     totalSubCh,
                                                     sensingDataList,
                                                     transmitHistory);
-    for (const NrSlSlotInfo& slot : availableReso)
+    for (const SlResourceInfo& slot : availableReso)
     {
         NS_TEST_ASSERT_MSG_EQ(availableReso.size(), 15, "Expecting 15 resources");
         NS_TEST_ASSERT_MSG_EQ(slot.slSubchannelStart,
@@ -473,7 +478,7 @@ NrSlSensingTransmitHistoryTest::DoRun()
                                              pRsvpTx,
                                              cResel,
                                              t2};
-    std::list<NrSlSlotInfo> availableReso;
+    std::list<SlResourceInfo> availableReso;
     availableReso =
         nrSlUeMac->GetNrSlCandidateResourcesPrivate(currentSfn,
                                                     params,
