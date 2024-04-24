@@ -147,7 +147,7 @@ struct SlPsschUeMacStatParameters
  * \ingroup utils
  * \brief The SlRlcPduInfo struct
  *
- * \see NrSlSlotAlloc
+ * \see SlGrantResource
  */
 struct SlRlcPduInfo
 {
@@ -278,7 +278,7 @@ struct SlResourceInfo
  * \brief A struct used by the NR SL UE MAC scheduler to communicate slot
  *        allocation to UE MAC.
  */
-struct NrSlSlotAlloc
+struct SlGrantResource
 {
     SfnSf sfn{};                                            //!< The SfnSf
     uint32_t dstL2Id{std::numeric_limits<uint32_t>::max()}; //!< The destination Layer 2 Id
@@ -323,14 +323,14 @@ struct NrSlSlotAlloc
 
     /**
      * \ingroup utils
-     * \brief Less than operator overloaded for NrSlSlotAlloc
-     * \param rhs other NrSlSlotAlloc to compare
-     * \return true if this NrSlSlotAlloc SfnSf parameter values are less than the rhs NrSlSlotAlloc
-     * SfnSf parameters
+     * \brief Less than operator overloaded for SlGrantResource
+     * \param rhs other SlGrantResource to compare
+     * \return true if this SlGrantResource SfnSf parameter values are less than the rhs
+     * SlGrantResource SfnSf parameters
      *
      * The comparison is done on sfnSf
      */
-    bool operator<(const NrSlSlotAlloc& rhs) const;
+    bool operator<(const SlGrantResource& rhs) const;
 };
 
 /**
@@ -577,12 +577,12 @@ std::ostream& operator<<(std::ostream& os, const SensingData& p);
 std::ostream& operator<<(std::ostream& os, const SlotSensingData& p);
 
 /**
- * \brief Stream output operator for NrSlSlotAlloc
+ * \brief Stream output operator for SlGrantResource
  * \param os output stream
  * \param p struct whose parameter to output
  * \return updated stream
  */
-std::ostream& operator<<(std::ostream& os, const NrSlSlotAlloc& p);
+std::ostream& operator<<(std::ostream& os, const SlGrantResource& p);
 
 } // namespace ns3
 

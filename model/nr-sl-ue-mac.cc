@@ -162,7 +162,7 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
         NS_LOG_LOGIC("Inserting new grant to " << dstL2Id);
         it->second.push_back(grant);
     }
-    // The grant has a set of NrSlSlotAlloc.  One of these slots will be for
+    // The grant has a set of SlGrantResource.  One of these slots will be for
     // new data and some for retransmissions.  For the new data slots, notify
     // the RLC layer of transmission opportunities.
     for (const auto& itSlotAlloc : grant.slotAllocations)
@@ -278,7 +278,7 @@ NrSlUeMac::FilterNrSlCandidateResources(std::list<SlResourceInfo> candidateReso)
         return candidateReso;
     }
 
-    NrSlSlotAlloc dummyAlloc;
+    SlGrantResource dummyAlloc;
 
     for (const auto& itDst : m_grantInfo)
     {
@@ -1055,7 +1055,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 "Empty grant in m_slGrants when iterated in NrUeMac::DoNrSlSlotIndication, rnti: "
                     << GetRnti() << " harqId: " << +itGrant->nrSlHarqId);
             auto currentSlotIt = itGrant->slotAllocations.begin();
-            NrSlSlotAlloc currentSlot = *currentSlotIt;
+            SlGrantResource currentSlot = *currentSlotIt;
             // Rename use of currentSlot below with "nrSlSlotAlloc"
             if (currentGrant.slotAllocations.begin()->sfn == sfn)
             {
@@ -1346,7 +1346,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
 
 std::vector<uint8_t>
 NrSlUeMac::ComputeGaps(const SfnSf& sfn,
-                       std::set<NrSlSlotAlloc>::const_iterator it,
+                       std::set<SlGrantResource>::const_iterator it,
                        uint8_t slotNumInd)
 {
     NS_LOG_FUNCTION(this);
@@ -1363,7 +1363,7 @@ NrSlUeMac::ComputeGaps(const SfnSf& sfn,
 }
 
 std::vector<uint8_t>
-NrSlUeMac::GetStartSbChOfReTx(std::set<NrSlSlotAlloc>::const_iterator it, uint8_t slotNumInd)
+NrSlUeMac::GetStartSbChOfReTx(std::set<SlGrantResource>::const_iterator it, uint8_t slotNumInd)
 {
     NS_LOG_FUNCTION(this);
     std::vector<uint8_t> startSbChIndex;

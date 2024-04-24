@@ -135,10 +135,10 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param rri The resource reservation interval
      * \return The grant info for a destination based on the scheduler allocation
      *
-     * \see NrSlSlotAlloc
+     * \see SlGrantResource
      * \see NrSlUeMac::NrSlGrantInfo
      */
-    NrSlUeMac::NrSlGrantInfo CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& params,
+    NrSlUeMac::NrSlGrantInfo CreateSpsGrantInfo(const std::set<SlGrantResource>& params,
                                                 Time rri) const;
     /**
      * \brief Create a single-PDU grant based on slot allocation
@@ -146,10 +146,11 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param slotAllocList The slot allocation list
      * \return The grant info for a destination based on the scheduler allocation
      *
-     * \see NrSlSlotAlloc
+     * \see SlGrantResource
      * \see NrSlUeMac::NrSlGrantInfo
      */
-    NrSlUeMac::NrSlGrantInfo CreateSinglePduGrantInfo(const std::set<NrSlSlotAlloc>& params) const;
+    NrSlUeMac::NrSlGrantInfo CreateSinglePduGrantInfo(
+        const std::set<SlGrantResource>& params) const;
 
     /**
      * \brief Check if the resources indicated by two SFN/subchannel ranges overlap
@@ -195,7 +196,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \return the timeout value to pass to the NrSlUeMac for recycling the process ID
      */
     Time GetDynamicGrantTimeout(const SfnSf& sfn,
-                                const std::set<NrSlSlotAlloc>& slotAllocList,
+                                const std::set<SlGrantResource>& slotAllocList,
                                 bool harqEnabled,
                                 uint16_t psfchPeriod) const;
 
@@ -230,10 +231,10 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param harqEnabled Whether HARQ is enabled
      * \param rri The resource reservation interval
      *
-     * \see NrSlSlotAlloc
+     * \see SlGrantResource
      */
     void CreateSpsGrant(const SfnSf& sfn,
-                        const std::set<NrSlSlotAlloc>& slotAllocList,
+                        const std::set<SlGrantResource>& slotAllocList,
                         bool harqEnabled,
                         Time rri);
     /**
@@ -242,10 +243,10 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param slotAllocList The slot allocation list from the selection window
      * \param harqEnabled Whether HARQ is enabled
      *
-     * \see NrSlSlotAlloc
+     * \see SlGrantResource
      */
     void CreateSinglePduGrant(const SfnSf& sfn,
-                              const std::set<NrSlSlotAlloc>& slotAllocList,
+                              const std::set<SlGrantResource>& slotAllocList,
                               bool harqEnabled);
 
     /**
@@ -323,7 +324,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      */
     virtual bool DoNrSlAllocation(const std::list<SlResourceInfo>& candResources,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
-                                  std::set<NrSlSlotAlloc>& slotAllocList,
+                                  std::set<SlGrantResource>& slotAllocList,
                                   AllocationInfo allocationInfo);
     /**
      * \brief Method to get total number of sub-channels.

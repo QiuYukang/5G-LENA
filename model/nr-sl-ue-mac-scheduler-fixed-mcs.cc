@@ -889,7 +889,7 @@ NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(const SfnSf& sfn,
 {
     NS_LOG_FUNCTION(this << sfn << dstL2Id);
 
-    std::set<NrSlSlotAlloc> allocList;
+    std::set<SlGrantResource> allocList;
 
     const auto itDstInfo = m_dstMap.find(dstL2Id);
     bool allocated = DoNrSlAllocation(candResources, itDstInfo->second, allocList, allocationInfo);
@@ -922,7 +922,7 @@ NrSlUeMacSchedulerFixedMcs::GetSpsGrantTimeout(const SfnSf& sfn,
 
 void
 NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
-                                           const std::set<NrSlSlotAlloc>& slotAllocList,
+                                           const std::set<SlGrantResource>& slotAllocList,
                                            bool harqEnabled,
                                            Time rri)
 {
@@ -1030,7 +1030,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
 
 Time
 NrSlUeMacSchedulerFixedMcs::GetDynamicGrantTimeout(const SfnSf& sfn,
-                                                   const std::set<NrSlSlotAlloc>& slotAllocList,
+                                                   const std::set<SlGrantResource>& slotAllocList,
                                                    bool harqEnabled,
                                                    uint16_t psfchPeriod) const
 {
@@ -1066,7 +1066,7 @@ NrSlUeMacSchedulerFixedMcs::GetDynamicGrantTimeout(const SfnSf& sfn,
 
 void
 NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
-                                                 const std::set<NrSlSlotAlloc>& slotAllocList,
+                                                 const std::set<SlGrantResource>& slotAllocList,
                                                  bool harqEnabled)
 {
     NS_LOG_FUNCTION(this << sfn << harqEnabled);
@@ -1170,7 +1170,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
 }
 
 NrSlUeMac::NrSlGrantInfo
-NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& slotAllocList,
+NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& slotAllocList,
                                                Time rri) const
 {
     NS_LOG_FUNCTION(this << rri);
@@ -1234,7 +1234,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<NrSlSlotAlloc>& sl
 
 NrSlUeMac::NrSlGrantInfo
 NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(
-    const std::set<NrSlSlotAlloc>& slotAllocList) const
+    const std::set<SlGrantResource>& slotAllocList) const
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_LOGIC("Creating single-PDU grant for dstL2Id " << slotAllocList.begin()->dstL2Id);
@@ -1296,7 +1296,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             auto slotIt = itGrantVector->slotAllocations.begin();
             NS_ASSERT_MSG(slotIt->ndi == 1, "New data indication not found");
             NS_ASSERT_MSG(slotIt->sfn.Normalize() >= sfn.Normalize(), "Stale slot in m_grantInfo");
-            NrSlSlotAlloc currentSlot = *slotIt;
+            SlGrantResource currentSlot = *slotIt;
             NS_LOG_LOGIC("Slot at : Frame = " << currentSlot.sfn.GetFrame()
                                               << " SF = " << +currentSlot.sfn.GetSubframe()
                                               << " slot = " << +currentSlot.sfn.GetSlot());
@@ -1323,7 +1323,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             slotIt = itGrantVector->slotAllocations.begin();
             while (slotIt != itGrantVector->slotAllocations.end() && slotIt->ndi == 0)
             {
-                NrSlSlotAlloc nextSlot = *slotIt;
+                SlGrantResource nextSlot = *slotIt;
                 grant.slotAllocations.emplace(nextSlot);
                 itGrantVector->slotAllocations.erase(slotIt);
                 slotIt = itGrantVector->slotAllocations.begin();
@@ -1385,7 +1385,7 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<SlResourceInfo> txOp
         return txOppr;
     }
 
-    NrSlSlotAlloc dummyAlloc;
+    SlGrantResource dummyAlloc;
     for (const auto& itDst : m_grantInfo)
     {
         for (auto itGrantVector = itDst.second.begin(); itGrantVector != itDst.second.end();
@@ -1513,7 +1513,7 @@ bool
 NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
     const std::list<SlResourceInfo>& candResources,
     const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
-    std::set<NrSlSlotAlloc>& slotAllocList,
+    std::set<SlGrantResource>& slotAllocList,
     AllocationInfo allocationInfo)
 {
     NS_LOG_FUNCTION(this);
@@ -1538,7 +1538,7 @@ NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
     auto itTxOpps = selectedTxOpps.cbegin();
     for (; itTxOpps != selectedTxOpps.cend(); ++itTxOpps)
     {
-        NrSlSlotAlloc slotAlloc;
+        SlGrantResource slotAlloc;
         slotAlloc.sfn = itTxOpps->sfn;
         slotAlloc.dstL2Id = dstInfo->GetDstL2Id();
         slotAlloc.priority = allocationInfo.m_priority;

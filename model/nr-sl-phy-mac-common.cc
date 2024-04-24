@@ -16,7 +16,7 @@ SlResourceInfo::operator<(const SlResourceInfo& rhs) const
 }
 
 bool
-NrSlSlotAlloc::operator<(const NrSlSlotAlloc& rhs) const
+SlGrantResource::operator<(const SlGrantResource& rhs) const
 {
     return (sfn < rhs.sfn);
 }
@@ -46,7 +46,7 @@ operator<<(std::ostream& os, const SlotSensingData& p)
 }
 
 std::ostream&
-operator<<(std::ostream& os, const NrSlSlotAlloc& p)
+operator<<(std::ostream& os, const SlGrantResource& p)
 {
     os << "SfnSf: " << p.sfn << " dstL2Id: " << p.dstL2Id
        << " ndi: " << static_cast<uint16_t>(p.ndi) << " rv: " << static_cast<uint16_t>(p.rv)

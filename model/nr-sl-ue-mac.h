@@ -80,7 +80,7 @@ class NrSlUeMac : public NrUeMac
             std::numeric_limits<uint8_t>::max()}; //!< The Sidelink resource re-selection counter
                                                   //!< for the semi-persistently scheduled resources
                                                   //!< as per TS 38.214
-        std::set<NrSlSlotAlloc>
+        std::set<SlGrantResource>
             slotAllocations; //!< List of all the slots available for transmission with the pool
         uint8_t prevSlResoReselCounter{
             std::numeric_limits<uint8_t>::max()}; //!< Previously drawn Sidelink resource
@@ -100,7 +100,7 @@ class NrSlUeMac : public NrUeMac
 
     struct NrSlGrant
     {
-        std::set<NrSlSlotAlloc>
+        std::set<SlGrantResource>
             slotAllocations;     //!< List of all the slots available for transmission with the pool
         bool harqEnabled{false}; //!< Whether HARQ is enabled for the grant
         uint8_t nrSlHarqId{
@@ -770,7 +770,7 @@ class NrSlUeMac : public NrUeMac
      *        indicated by an SCI 1-A.
      */
     std::vector<uint8_t> ComputeGaps(const SfnSf& sfn,
-                                     std::set<NrSlSlotAlloc>::const_iterator it,
+                                     std::set<SlGrantResource>::const_iterator it,
                                      uint8_t slotNumInd);
     /**
      * \brief Get the start subchannel index of the possible retransmissions
@@ -782,7 +782,7 @@ class NrSlUeMac : public NrUeMac
      * \return A vector containing the starting subchannel index of the possible
      *         retransmissions which would be indicated by an SCI 1-A.
      */
-    std::vector<uint8_t> GetStartSbChOfReTx(std::set<NrSlSlotAlloc>::const_iterator it,
+    std::vector<uint8_t> GetStartSbChOfReTx(std::set<SlGrantResource>::const_iterator it,
                                             uint8_t slotNumInd);
 
     // Comparator function to sort pairs
