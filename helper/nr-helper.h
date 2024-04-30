@@ -870,6 +870,8 @@ class NrHelper : public Object
         std::string pmSearchMethod{"ns3::NrPmSearchFull"}; ///< Precoding matrix search algorithm
         std::string fullSearchCb{"ns3::NrCbTwoPort"}; ///< Codebook when using full-search algorithm
         uint8_t rankLimit{UINT8_MAX}; ///< Limit maximum MIMO rank to model limited UE capabilities.
+        uint8_t subbandSize{1};       ///< Number of PRBs per subband for downsampling
+        std::string downsamplingTechnique{"FirstPRB"}; ///< Sub-band compression technique
     };
 
     /// \brief Set TypeId of the precoding matrix search algorithm

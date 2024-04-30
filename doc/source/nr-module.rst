@@ -1238,6 +1238,9 @@ Finally, the feedback message is created that includes the optimal rank, the cor
 ``NrPmSearch`` is the base class and ``NrPmSearchFull`` is one possible specialization that finds PMI, RI and CQI. One could create
 another specialization of ``NrPmSearch`` that would implement a different algorithm to find PMI and RI values.
 
+The size of the subbands depends on the channel bandwidth, both in numbers of PRBs. It should be set accordingly to 3GPP
+TS 38.214 Table 5.2.1.4-2 via the attribute ``NrPmSearch::SubbandSize``.
+
 MIMO activation
 ###############
 ``NrHelper`` is the class that is responsible of setting the ``NrPmSearch`` algorithm to ``NrUePhy`` instance, and the configuration of the corresponding parameters,

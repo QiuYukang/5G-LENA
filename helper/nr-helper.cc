@@ -1903,6 +1903,8 @@ NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
     auto searchTypeId = TypeId::LookupByName(mp.pmSearchMethod);
     SetPmSearchTypeId(searchTypeId);
     SetPmSearchAttribute("RankLimit", UintegerValue(mp.rankLimit));
+    SetPmSearchAttribute("SubbandSize", UintegerValue(mp.subbandSize));
+    SetPmSearchAttribute("DownsamplingTechnique", StringValue(mp.downsamplingTechnique));
     if (searchTypeId == NrPmSearchFull::GetTypeId())
     {
         SetPmSearchAttribute("NrPmSearchFull::CodebookType",

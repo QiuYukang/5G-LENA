@@ -123,8 +123,9 @@ NrPmSearchFull::ConditionallyUpdatePrecoding(const NrIntfNormChanMat& rbNormChan
 void
 NrPmSearchFull::UpdateAllPrecoding(const NrIntfNormChanMat& rbNormChanMat)
 {
-    NS_ASSERT(m_subbandSize == 1); // TODO: enable compression from RB to subband and remove
-    // auto sbNormChanMat = rbNormChanMat; // TODO: enable compression from RB to subband
+    // Compute downsampled channel per subband
+    auto sbNormChanMat = SubbandDownsampling(rbNormChanMat);
+
     for (auto rank : m_ranks)
     {
         // Loop over wideband precoding matrices W1 (index i1).
@@ -133,7 +134,7 @@ NrPmSearchFull::UpdateAllPrecoding(const NrIntfNormChanMat& rbNormChanMat)
         for (auto i1 = size_t{0}; i1 < numI1; i1++)
         {
             // Find the optimal subband PMI values (i2) for this particular i1
-            auto subbandParams = FindOptSubbandPrecoding(rbNormChanMat, i1, rank);
+            auto subbandParams = FindOptSubbandPrecoding(sbNormChanMat, i1, rank);
 
             // Store the parameters for this wideband index i1
             optSubbandPrecoders.emplace_back(subbandParams);
@@ -152,15 +153,15 @@ NrPmSearchFull::UpdateAllPrecoding(const NrIntfNormChanMat& rbNormChanMat)
 void
 NrPmSearchFull::UpdateSubbandPrecoding(const NrIntfNormChanMat& rbNormChanMat)
 {
-    NS_ASSERT(m_subbandSize == 1); // TODO: enable compression from RB to subband and remove
-    // auto sbNormChanMat = rbNormChanMat; // TODO: enable compression from RB to subband
+    // Compute downsampled channel per subband
+    auto sbNormChanMat = SubbandDownsampling(rbNormChanMat);
     for (auto rank : m_ranks)
     {
         // Recompute the best subband precoding (W2) for previously found W1 and store results
         auto& optPrec = m_rankParams[rank].precParams;
         NS_ASSERT(optPrec);
         auto wbPmi = optPrec->wbPmi;
-        optPrec = FindOptSubbandPrecoding(rbNormChanMat, wbPmi, rank);
+        optPrec = FindOptSubbandPrecoding(sbNormChanMat, wbPmi, rank);
     }
 }
 
@@ -171,8 +172,8 @@ NrPmSearchFull::CreateCqiForRank(uint8_t rank, const NrIntfNormChanMat& rbNormCh
     auto optPrec = m_rankParams[rank].precParams;
     NS_ASSERT_MSG(optPrec, "Tried to create a CQI message but precoding matrix does not exist");
 
-    // TODO: Upsample/convert subband precoding matrix to full RB size (size of rbNormChanMat)
-    auto rbPrecMat = optPrec->sbPrecMat;
+    // Upsample/convert subband precoding matrix to full RB size (size of rbNormChanMat)
+    auto rbPrecMat = SubbandUpsampling(optPrec->sbPrecMat, rbNormChanMat.GetNumPages());
 
     // Recompute SINR value for current channel (for all RBs)
     auto sinrMat = rbNormChanMat.ComputeSinrForPrecoding(rbPrecMat);

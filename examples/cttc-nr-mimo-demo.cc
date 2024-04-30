@@ -129,6 +129,11 @@ main(int argc, char* argv[])
                  "is the two-port codebook in 3GPP TS 38.214 (ns3::NrCbTwoPort)",
                  mimoPmiParams.fullSearchCb);
     cmd.AddValue("rankLimit", "The maximum rank number to be used.", mimoPmiParams.rankLimit);
+    cmd.AddValue("subbandSize", "Number of PRBs in a subband.", mimoPmiParams.subbandSize);
+    cmd.AddValue("downsamplingTechnique",
+                 "Algorithm to downsample PRBs into subbands."
+                 "Available options are: FirstPRB, RandomPRB, AveragePRB",
+                 mimoPmiParams.downsamplingTechnique);
     cmd.AddValue("numRowsGnb", "Number of antenna rows at the gNB", apGnb.nAntRows);
     cmd.AddValue("numRowsUe", "Number of antenna rows at the UE", apUe.nAntRows);
     cmd.AddValue("numColumnsGnb", "Number of antenna columns at the gNB", apGnb.nAntCols);
