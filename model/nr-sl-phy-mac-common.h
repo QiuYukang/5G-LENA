@@ -188,7 +188,6 @@ struct SlResourceInfo
      * \param sfn The SfnSf
      * \param slSubchannelStart The starting subchannel index
      * \param slSubchannelLength The number of subchannels
-     * \param occupiedSbCh The set of occupied subchannel indexes
      */
     SlResourceInfo(uint16_t numSlPscchRbs,
                    uint16_t slPscchSymStart,
@@ -202,9 +201,7 @@ struct SlResourceInfo
                    uint8_t slMinTimeGapProcessing,
                    SfnSf sfn,
                    uint8_t slSubchannelStart,
-                   uint8_t slSubchannelLength,
-                   std::set<uint8_t> occupiedSbCh)
-
+                   uint8_t slSubchannelLength)
     {
         this->numSlPscchRbs = numSlPscchRbs;
         this->slPscchSymStart = slPscchSymStart;
@@ -219,7 +216,6 @@ struct SlResourceInfo
         this->sfn = sfn;
         this->slSubchannelStart = slSubchannelStart;
         this->slSubchannelLength = slSubchannelLength;
-        this->occupiedSbCh = occupiedSbCh;
     }
 
     // PSCCH
@@ -258,11 +254,6 @@ struct SlResourceInfo
     uint8_t slSubchannelLength{
         std::numeric_limits<uint8_t>::max()}; //!< Number of continuous subchannels starting from
                                               //!< the index
-
-    // occupiedSbCh set is filled by the UE MAC before
-    // giving the available candidate slots to the scheduler
-    std::set<uint8_t> occupiedSbCh; //!< The set of occupied subchannel indexes
-
     /**
      * \brief operator < (less than)
      * \param rhs other SlResourceInfo to compare

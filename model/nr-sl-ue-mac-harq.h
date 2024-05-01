@@ -223,7 +223,7 @@ class NrSlUeMacHarq : public Object
         // maintain list of LCs contained in this TB
         // used to signal HARQ failure to RLC handlers
         std::unordered_set<uint8_t> lcidList;                   //!< LC ID container
-        uint32_t dstL2Id{std::numeric_limits<uint32_t>::max()}; //!< Destination L2 ID
+        uint16_t dstL2Id{std::numeric_limits<uint16_t>::max()}; //!< Destination L2 ID
         bool multiplePdu{false}; //!< Whether this process is for a multiple PDU grant
         EventId timer;           //!< Timer to expire process ID if not successfully ACKed
         bool allocated{false};   //!< Whether this process is allocated

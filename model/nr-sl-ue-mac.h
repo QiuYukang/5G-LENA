@@ -70,42 +70,16 @@ class NrSlUeMac : public NrUeMac
 
     // Structures/classes used in API
 
-    /// NR Sidelink grant Information
-    struct NrSlGrantInfo
-    {
-        uint16_t cReselCounter{
-            std::numeric_limits<uint8_t>::max()}; //!< The Cresel counter for the semi-persistently
-                                                  //!< scheduled resources as per TS 38.214
-        uint8_t slResoReselCounter{
-            std::numeric_limits<uint8_t>::max()}; //!< The Sidelink resource re-selection counter
-                                                  //!< for the semi-persistently scheduled resources
-                                                  //!< as per TS 38.214
-        std::set<SlGrantResource>
-            slotAllocations; //!< List of all the slots available for transmission with the pool
-        uint8_t prevSlResoReselCounter{
-            std::numeric_limits<uint8_t>::max()}; //!< Previously drawn Sidelink resource
-                                                  //!< re-selection counter
-        uint8_t nrSlHarqId{
-            std::numeric_limits<uint8_t>::max()}; //!< The NR SL HARQ process id assigned at the
-                                                  //!< time of transmitting new data
-        uint8_t nSelected{
-            0}; //!< The number of slots selected by the scheduler for first reservation period
-        uint8_t tbTxCounter{
-            0}; //!< The counter to count the number of time a TB is tx/reTx in a reservation period
-        bool isDynamic{false}; //!< true if the grant is for dynamic scheduling (single-PDU), false
-                               //!< if it is for semi-persistent scheduling
-        bool harqEnabled{false}; //!< true if the grant should use HARQ
-        Time rri{0}; //!< The resource reservation interval for the semi-persistent scheduled grant
-    };
-
+    /**
+     * \brief Structure to pass grant from NrSlUeMacScheduler to this object
+     */
     struct NrSlGrant
     {
         std::set<SlGrantResource>
             slotAllocations;     //!< List of all the slots available for transmission with the pool
         bool harqEnabled{false}; //!< Whether HARQ is enabled for the grant
-        uint8_t nrSlHarqId{
-            std::numeric_limits<uint8_t>::max()}; //!< The NR SL HARQ process id assigned at the
-                                                  //!< time of transmitting new data
+        uint8_t harqId{std::numeric_limits<uint8_t>::max()}; //!< The HARQ process id assigned at
+                                                             //!< the time of transmitting new data
         uint8_t nSelected{
             0}; //!< The number of slots selected by the scheduler for first reservation period
         uint8_t tbTxCounter{
@@ -844,11 +818,6 @@ class NrSlUeMac : public NrUeMac
     uint16_t m_poolId{std::numeric_limits<uint16_t>::max()}; //!< Sidelink active pool id
     Ptr<UniformRandomVariable>
         m_ueSelectedUniformVariable; //!< uniform random variable used for NR Sidelink
-    typedef std::unordered_map<uint32_t, struct NrSlGrantInfo>
-        GrantInfo_t; //!< The typedef for the map of grant info per destination layer 2 id
-    typedef std::unordered_map<uint32_t, struct NrSlGrantInfo>::iterator
-        GrantInfoIt_t;       //!< The typedef for the iterator of the grant info map
-    GrantInfo_t m_grantInfo; //!< The map of grant info per destination layer 2 id
     std::map<uint32_t, std::deque<NrSlGrant>> m_slGrants;
     double m_slProbResourceKeep{0.0}; //!< Sidelink probability of keeping a resource after resource
                                       //!< re-selection counter reaches zero

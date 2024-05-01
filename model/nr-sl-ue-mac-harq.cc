@@ -179,9 +179,11 @@ void
 NrSlUeMacHarq::AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Packet> pkt)
 {
     NS_LOG_FUNCTION(this << dstL2Id << +lcId << +harqId);
+    NS_ABORT_MSG_IF(m_pktBuffer.at(harqId).dstL2Id == std::numeric_limits<uint16_t>::max(),
+                    "Trying to add packet but dstL2Id for HARQ ID " << +harqId << " is unassigned");
     NS_ABORT_MSG_IF(m_pktBuffer.at(harqId).dstL2Id != dstL2Id,
-                    "the HARQ id " << +harqId << " does not belongs to the destination "
-                                   << dstL2Id);
+                    "the HARQ id " << +harqId << " does not belongs to the destination " << dstL2Id
+                                   << "; instead belongs to: " << m_pktBuffer.at(harqId).dstL2Id);
     NS_ASSERT_MSG(m_pktBuffer.at(harqId).pktBurst != nullptr,
                   " Packet burst not initialized for HARQ id " << +harqId);
     if (m_pktBuffer.at(harqId).multiplePdu && m_pktBuffer.at(harqId).pktBurst->GetNPackets())
@@ -228,6 +230,8 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
     // SPS grant, do not free the HARQ ID but mark the buffer as not allocated.
     if (harqInfo.IsReceivedOk())
     {
+        NS_LOG_INFO("Positive feedback for dstL2Id " << harqInfo.m_dstL2Id << " on HARQ ID "
+                                                     << +harqInfo.m_harqProcessId);
         if (m_pktBuffer.at(harqInfo.m_harqProcessId).pktBurst->GetSize())
         {
             // Only deallocate process IDs for dynamic grants upon ACK feedback
@@ -244,6 +248,11 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
                 ResetHarqBuffer(harqInfo.m_harqProcessId);
             }
         }
+    }
+    else
+    {
+        NS_LOG_INFO("Negative feedback for dstL2Id " << harqInfo.m_dstL2Id << " on HARQ ID "
+                                                     << +harqInfo.m_harqProcessId);
     }
 }
 
@@ -302,7 +311,7 @@ NrSlUeMacHarq::ResetHarqBuffer(uint8_t harqId)
     {
         m_pktBuffer.at(harqId).timer.Cancel();
     }
-    m_pktBuffer.at(harqId).dstL2Id = std::numeric_limits<uint32_t>::max();
+    m_pktBuffer.at(harqId).dstL2Id = std::numeric_limits<uint16_t>::max();
     m_pktBuffer.at(harqId).multiplePdu = false;
     m_pktBuffer.at(harqId).allocated = false;
 }

@@ -136,10 +136,9 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \return The grant info for a destination based on the scheduler allocation
      *
      * \see SlGrantResource
-     * \see NrSlUeMac::NrSlGrantInfo
+     * \see GrantInfo
      */
-    NrSlUeMac::NrSlGrantInfo CreateSpsGrantInfo(const std::set<SlGrantResource>& params,
-                                                Time rri) const;
+    GrantInfo CreateSpsGrantInfo(const std::set<SlGrantResource>& params, Time rri) const;
     /**
      * \brief Create a single-PDU grant based on slot allocation
      *
@@ -147,10 +146,9 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \return The grant info for a destination based on the scheduler allocation
      *
      * \see SlGrantResource
-     * \see NrSlUeMac::NrSlGrantInfo
+     * \see GrantInfo
      */
-    NrSlUeMac::NrSlGrantInfo CreateSinglePduGrantInfo(
-        const std::set<SlGrantResource>& params) const;
+    GrantInfo CreateSinglePduGrantInfo(const std::set<SlGrantResource>& params) const;
 
     /**
      * \brief Check if the resources indicated by two SFN/subchannel ranges overlap
@@ -476,13 +474,14 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
 
     /**
      * \brief Get the random selection counter
+     * \param rri The RRI value
      * \return The randomly selected reselection counter
      *
      * See 38.321 section 5.22.1.1 V16
      *
      * For 50 ms we use the range as per 36.321 section 5.14.1.1
      */
-    uint8_t GetRandomReselectionCounter() const;
+    uint8_t GetRandomReselectionCounter(Time rri) const;
     /**
      * \brief Get the lower bound for the Sidelink resource re-selection
      *        counter when the resource reservation period is less than
@@ -507,7 +506,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \brief utility function to retrieve and cache a pointer to NrSlUeMacHarq object
      * \return pointer to NrSlUeMacHarq
      */
-    Ptr<NrSlUeMacHarq> GetNrSlUeMacHarq(void) const;
+    Ptr<NrSlUeMacHarq> GetMacHarq(void) const;
 
     std::unordered_map<uint32_t, std::shared_ptr<NrSlUeMacSchedulerDstInfo>>
         m_dstMap; //!< The map of between destination layer 2 id and the destination info
@@ -516,14 +515,12 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
 
     uint8_t m_mcs{0}; //!< (fixed) value for MCS
 
-    std::map<uint32_t, std::vector<NrSlUeMac::NrSlGrantInfo>> m_grantInfo;
+    std::map<uint32_t, std::vector<GrantInfo>> m_grantInfo;
 
-    Ptr<NrUeMac> m_nrUeMac{nullptr}; //!< Pointer to associated NrUeMac object
     Ptr<UniformRandomVariable>
-        m_ueSelectedUniformVariable;   //!< uniform random variable used for NR Sidelink
-    uint8_t m_reselCounter{0};         //!< The resource selection counter
-    uint16_t m_cResel{0};              //!< The C_resel counter
-    Time m_pRsvpTx{MilliSeconds(100)}; //!< Resource Reservation Interval for NR Sidelink in ms
+        m_ueSelectedUniformVariable; //!< uniform random variable used for NR Sidelink
+    uint8_t m_reselCounter{0};       //!< The resource selection counter
+    uint16_t m_cResel{0};            //!< The C_resel counter
     uint8_t m_t1{2}; //!< The offset in number of slots between the slot in which the resource
                      //!< selection is triggered and the start of the selection window
 

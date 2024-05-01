@@ -20,14 +20,19 @@ NS_OBJECT_ENSURE_REGISTERED(NrSlUeMacScheduler);
 TypeId
 NrSlUeMacScheduler::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrSlUeMacScheduler")
-                            .SetParent<Object>()
-                            .SetGroupName("nr")
-                            .AddAttribute("NrSlAmc",
-                                          "The NR SL AMC of this scheduler",
-                                          PointerValue(),
-                                          MakePointerAccessor(&NrSlUeMacScheduler::m_nrSlAmc),
-                                          MakePointerChecker<NrAmc>());
+    static TypeId tid =
+        TypeId("ns3::NrSlUeMacScheduler")
+            .SetParent<Object>()
+            .SetGroupName("nr")
+            .AddAttribute("NrSlAmc",
+                          "The AMC used by this scheduler",
+                          PointerValue(),
+                          MakePointerAccessor(&NrSlUeMacScheduler::m_amc),
+                          MakePointerChecker<NrAmc>())
+            .AddTraceSource("GrantCreated",
+                            "Trace the creation of a grant",
+                            MakeTraceSourceAccessor(&NrSlUeMacScheduler::m_grantCreatedTrace),
+                            "ns3::NrSlUeMacScheduler::GrantCreatedCallback");
     return tid;
 }
 
@@ -44,8 +49,8 @@ NrSlUeMacScheduler::~NrSlUeMacScheduler()
 void
 NrSlUeMacScheduler::DoDispose()
 {
-    m_nrSlUeMac = nullptr;
-    m_nrSlAmc = nullptr;
+    m_ueMac = nullptr;
+    m_amc = nullptr;
     Object::DoDispose();
 }
 
@@ -82,31 +87,37 @@ NrSlUeMacScheduler::NotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint
 }
 
 void
-NrSlUeMacScheduler::SetNrSlUeMac(Ptr<NrSlUeMac> nrSlUeMac)
+NrSlUeMacScheduler::SetNrSlUeMac(Ptr<NrSlUeMac> ueMac)
 {
-    m_nrSlUeMac = nrSlUeMac;
+    m_ueMac = ueMac;
 }
 
 Ptr<NrSlUeMac>
-NrSlUeMacScheduler::GetNrSlUeMac() const
+NrSlUeMacScheduler::GetMac() const
 {
-    return m_nrSlUeMac;
+    return m_ueMac;
 }
 
 void
-NrSlUeMacScheduler::InstallNrSlAmc(const Ptr<NrAmc>& nrSlAmc)
+NrSlUeMacScheduler::InstallAmc(const Ptr<NrAmc>& amc)
 {
     NS_LOG_FUNCTION(this);
-    m_nrSlAmc = nrSlAmc;
+    m_amc = amc;
     // In NR it does not have any impact
-    m_nrSlAmc->SetUlMode();
+    m_amc->SetUlMode();
 }
 
 Ptr<const NrAmc>
-NrSlUeMacScheduler::GetNrSlAmc() const
+NrSlUeMacScheduler::GetAmc() const
 {
     NS_LOG_FUNCTION(this);
-    return m_nrSlAmc;
+    return m_amc;
+}
+
+void
+NrSlUeMacScheduler::NotifyGrantCreated(const struct GrantInfo& grant) const
+{
+    m_grantCreatedTrace(grant, m_ueMac->GetPsfchPeriod());
 }
 
 } // namespace ns3

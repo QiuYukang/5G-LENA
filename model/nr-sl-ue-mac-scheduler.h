@@ -13,8 +13,7 @@
 #include <ns3/nr-sl-mac-sap.h>
 #include <ns3/nr-sl-ue-cmac-sap.h>
 #include <ns3/object.h>
-
-#include <deque>
+#include <ns3/traced-callback.h>
 
 namespace ns3
 {
@@ -43,6 +42,35 @@ class NrSlUeMacScheduler : public Object
      * \brief NrSlUeMacScheduler destructor
      */
     ~NrSlUeMacScheduler() override;
+
+    /**
+     * \brief Internal structure to store grant information
+     */
+    struct GrantInfo
+    {
+        uint16_t cReselCounter{
+            std::numeric_limits<uint8_t>::max()}; //!< The Cresel counter for the semi-persistently
+                                                  //!< scheduled resources as per TS 38.214
+        uint8_t slResoReselCounter{
+            std::numeric_limits<uint8_t>::max()}; //!< The Sidelink resource re-selection counter
+                                                  //!< for the semi-persistently scheduled resources
+                                                  //!< as per TS 38.214
+        std::set<SlGrantResource>
+            slotAllocations; //!< List of all the slots available for transmission with the pool
+        uint8_t prevSlResoReselCounter{
+            std::numeric_limits<uint8_t>::max()};            //!< Previously drawn Sidelink resource
+                                                             //!< re-selection counter
+        uint8_t harqId{std::numeric_limits<uint8_t>::max()}; //!< The HARQ process id assigned at
+                                                             //!< the time of transmitting new data
+        uint8_t nSelected{
+            0}; //!< The number of slots selected by the scheduler for first reservation period
+        uint8_t tbTxCounter{
+            0}; //!< The counter to count the number of time a TB is tx/reTx in a reservation period
+        bool isDynamic{false}; //!< true if the grant is for dynamic scheduling (single-PDU), false
+                               //!< if it is for semi-persistent scheduling
+        bool harqEnabled{false}; //!< true if the grant should use HARQ
+        Time rri{0}; //!< The resource reservation interval for the semi-persistent scheduled grant
+    };
 
     //
     // SCHED API primitives for NR Sidelink
@@ -83,31 +111,31 @@ class NrSlUeMacScheduler : public Object
 
     /**
      * \brief Set pointer to associated NrSlUeMac object
-     * \param nrSlUeMac Pointer to NrSlUeMac
+     * \param ueMac Pointer to NrSlUeMac
      */
-    void SetNrSlUeMac(Ptr<NrSlUeMac> nrSlUeMac);
+    void SetNrSlUeMac(Ptr<NrSlUeMac> ueMac);
 
     /**
      * Getter for pointer to NrSlUeMac
      * \return Pointer to NrSlUeMac
      */
-    Ptr<NrSlUeMac> GetNrSlUeMac() const;
+    Ptr<NrSlUeMac> GetMac() const;
 
     /**
      * \brief Install the AMC for the NR Sidelink
      *
      * Usually called by the helper
      *
-     * \param nrSlAmc NR Sidelink AMC
+     * \param amc NR Sidelink AMC
      */
-    void InstallNrSlAmc(const Ptr<NrAmc>& nrSlAmc);
+    void InstallAmc(const Ptr<NrAmc>& amc);
 
     /**
      * \brief Get the AMC for NR Sidelink
      *
      * \return the NR Sidelink AMC
      */
-    Ptr<const NrAmc> GetNrSlAmc() const;
+    Ptr<const NrAmc> GetAmc() const;
 
     /**
      * Assign a fixed random variable stream number to the random variables
@@ -129,8 +157,21 @@ class NrSlUeMacScheduler : public Object
      */
     void NotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint32_t size);
 
+    /**
+     * TracedCallback signature for report on grant creation
+     * \param [in] grant grant information
+     * \param [in] psfchPeriod PSFCH period for the configured resource pool
+     */
+    typedef void (*GrantCreatedTracedCallback)(const struct GrantInfo& grant, uint16_t psfchPeriod);
+
   protected:
     void DoDispose() override;
+
+    /**
+     * Trigger the 'GrantCreated' trace source
+     * \param grant Grant information
+     */
+    void NotifyGrantCreated(const struct GrantInfo& grant) const;
 
   private:
     // Implementation of SCHED API primitives for NR Sidelink
@@ -175,8 +216,11 @@ class NrSlUeMacScheduler : public Object
      */
     virtual void DoNotifyNrSlRlcPduDequeue(uint32_t dstL2Id, uint8_t lcId, uint32_t size) = 0;
 
-    Ptr<NrSlUeMac> m_nrSlUeMac; //!< Pointer to NrSlUeMac instance
-    Ptr<NrAmc> m_nrSlAmc;       //!< AMC pointer for NR SL
+    Ptr<NrSlUeMac> m_ueMac; //!< Pointer to NrSlUeMac instance
+    Ptr<NrAmc> m_amc;       //!< AMC pointer
+
+    TracedCallback<const struct GrantInfo&, uint16_t>
+        m_grantCreatedTrace; //!< Trace source for grant creation
 };
 
 } // namespace ns3

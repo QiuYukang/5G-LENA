@@ -146,20 +146,20 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
 {
     NS_LOG_FUNCTION(this << dstL2Id);
 
-    NS_LOG_INFO("Received grant to dstL2Id " << dstL2Id << " on HARQ ID " << +grant.nrSlHarqId
+    NS_LOG_INFO("Received grant to dstL2Id " << dstL2Id << " on HARQ ID " << +grant.harqId
                                              << " containing " << grant.slotAllocations.size()
                                              << " slots and RRI " << grant.rri.As(Time::MS));
     auto it = m_slGrants.find(dstL2Id);
     if (it == m_slGrants.end())
     {
-        NS_LOG_LOGIC("Adding new grant structure for " << dstL2Id);
+        NS_LOG_DEBUG("Adding new grant structure for " << dstL2Id);
         std::deque<NrSlGrant> q;
         q.push_back(grant);
         m_slGrants.emplace(dstL2Id, q);
     }
     else
     {
-        NS_LOG_LOGIC("Inserting new grant to " << dstL2Id);
+        NS_LOG_DEBUG("Inserting new grant to " << dstL2Id);
         it->second.push_back(grant);
     }
     // The grant has a set of SlGrantResource.  One of these slots will be for
@@ -187,7 +187,7 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
                                                                 GetRnti(),
                                                                 itLcRlcPduInfo.lcid,
                                                                 0,
-                                                                grant.nrSlHarqId,
+                                                                grant.harqId,
                                                                 GetBwpId(),
                                                                 m_srcL2Id,
                                                                 dstL2Id));
@@ -650,7 +650,6 @@ NrSlUeMac::GetCandidateResourcesFromSlots(const SfnSf& sfn,
     {
         for (uint16_t i = 0; i + lSubCh <= totalSubCh; i++)
         {
-            std::set<uint8_t> emptySet;
             SlResourceInfo info(it.numSlPscchRbs,
                                 it.slPscchSymStart,
                                 it.slPscchSymLength,
@@ -663,8 +662,7 @@ NrSlUeMac::GetCandidateResourcesFromSlots(const SfnSf& sfn,
                                 m_minTimeGapProcessing,
                                 sfn.GetFutureSfnSf(it.slotOffset),
                                 i,
-                                lSubCh,
-                                emptySet);
+                                lSubCh);
             nrResourceList.emplace_back(info);
         }
     }
@@ -1013,7 +1011,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
             NS_ASSERT_MSG(
                 itGrant->slotAllocations.size() > 0,
                 "Empty grant in m_slGrants when iterated in NrUeMac::DoNrSlSlotIndication, rnti: "
-                    << GetRnti() << " harqId: " << +itGrant->nrSlHarqId);
+                    << GetRnti() << " harqId: " << +itGrant->harqId);
             auto currentSlotIt = itGrant->slotAllocations.begin();
             SlGrantResource currentSlot = *currentSlotIt;
             // Rename use of currentSlot below with "nrSlSlotAlloc"
@@ -1025,19 +1023,19 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 if (currentSlot.ndi)
                 {
                     Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
-                    pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.nrSlHarqId);
+                    pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
                     if (pb->GetNPackets() > 0)
                     {
                         m_nrSlMacPduTxed = true;
 
                         NS_ASSERT_MSG(pb->GetNPackets() > 0,
-                                      "Packet burst for HARQ id " << +currentGrant.nrSlHarqId
+                                      "Packet burst for HARQ id " << +currentGrant.harqId
                                                                   << " is empty");
                         for (const auto& itPkt : pb->GetPackets())
                         {
                             NS_LOG_INFO("Sending PSSCH MAC PDU (1st Tx) dstL2Id: "
                                         << currentSlot.dstL2Id
-                                        << " harqId: " << +currentGrant.nrSlHarqId
+                                        << " harqId: " << +currentGrant.harqId
                                         << " Packet Size: " << itPkt->GetSize());
                             m_nrSlUePhySapProvider->SendPsschMacPdu(itPkt, currentSlot.dstL2Id);
                         }
@@ -1063,18 +1061,18 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     // the simulation.
                     itGrant->tbTxCounter++;
                     Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
-                    pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.nrSlHarqId);
+                    pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
                     if (pb && pb->GetNPackets() > 0)
                     {
                         m_nrSlMacPduTxed = true;
                         NS_ASSERT_MSG(pb->GetNPackets() > 0,
-                                      "Packet burst for HARQ id " << +currentGrant.nrSlHarqId
+                                      "Packet burst for HARQ id " << +currentGrant.harqId
                                                                   << " is empty");
                         for (const auto& itPkt : pb->GetPackets())
                         {
                             NS_LOG_DEBUG("Sending PSSCH MAC PDU (Rtx) dstL2Id: "
                                          << currentSlot.dstL2Id
-                                         << " harqId: " << +currentGrant.nrSlHarqId
+                                         << " harqId: " << +currentGrant.harqId
                                          << " Packet Size: " << itPkt->GetSize());
                             m_nrSlUePhySapProvider->SendPsschMacPdu(itPkt, currentSlot.dstL2Id);
                         }
@@ -1096,7 +1094,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                          (m_slTxPool->GetPsfchPeriod(GetBwpId(), m_poolId) == 0)))
                     {
                         // No retransmissions remain of this TB
-                        m_nrSlHarq->FlushHarqBuffer(itGrant->nrSlHarqId);
+                        m_nrSlHarq->FlushHarqBuffer(itGrant->harqId);
                     }
                 }
                 itGrant->slotAllocations.erase(currentSlotIt);
@@ -1113,7 +1111,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
 
                 // prepare and send SCI format 2A message
                 NrSlSciF2aHeader sciF2a;
-                sciF2a.SetHarqId(currentGrant.nrSlHarqId);
+                sciF2a.SetHarqId(currentGrant.harqId);
                 sciF2a.SetNdi(currentSlot.ndi);
                 sciF2a.SetRv(currentSlot.rv);
                 sciF2a.SetSrcId(m_srcL2Id);
@@ -1176,7 +1174,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     m_slTxPool->GetNrSlSubChSize(GetBwpId(), m_poolId);
                 psschStatsParams.rbLength = currentSlot.slPsschSubChLength *
                                             m_slTxPool->GetNrSlSubChSize(GetBwpId(), m_poolId);
-                psschStatsParams.harqId = currentGrant.nrSlHarqId;
+                psschStatsParams.harqId = currentGrant.harqId;
                 psschStatsParams.ndi = currentSlot.ndi;
                 psschStatsParams.rv = currentSlot.rv;
                 psschStatsParams.srcL2Id = m_srcL2Id;
@@ -1235,7 +1233,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     pktSciF1a->AddPacketTag(tag);
 
                     NS_LOG_DEBUG("Sending PSCCH MAC PDU dstL2Id: "
-                                 << currentSlot.dstL2Id << " harqId: " << +currentGrant.nrSlHarqId);
+                                 << currentSlot.dstL2Id << " harqId: " << +currentGrant.harqId);
                     m_nrSlUePhySapProvider->SendPscchMacPdu(pktSciF1a);
 
                     // set the VarTti allocation info for PSCCH
@@ -1704,7 +1702,7 @@ NrSlUeMac::DoReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo)
                 for (auto itNrSlGrant = itNrSlGrantMap->second.begin();
                      itNrSlGrant != itNrSlGrantMap->second.end();)
                 {
-                    if (itNrSlGrant->nrSlHarqId == harqInfo.m_harqProcessId)
+                    if (itNrSlGrant->harqId == harqInfo.m_harqProcessId)
                     {
                         NS_LOG_DEBUG("HARQ ACK: erasing grant to " << harqInfo.m_dstL2Id
                                                                    << " with HARQ process ID "
