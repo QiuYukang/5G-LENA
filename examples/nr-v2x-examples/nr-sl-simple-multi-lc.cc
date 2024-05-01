@@ -72,11 +72,11 @@
  * |-----------------|-------|---------|---------|---------|
  * | schedTypeConfig |   4   |   SPS   |   SPS   | Dynamic |
  * |-----------------|-------|---------|---------|---------|
- * | dstL2IdConfig   |   1   |   255   |   255   |   255   |
+ * | dstL2IdConfig   |   1   |   254   |   254   |   254   |
  * |-----------------|-------|---------|---------|---------|
  * | dstL2IdConfig   |   2   |   255   |   254   |   255   |
  * |-----------------|-------|---------|---------|---------|
- * | dstL2IdConfig   |   3   |   254   |   254   |   255   |
+ * | dstL2IdConfig   |   3   |    2    |   254   |   255   |
  * |-----------------|-------|---------|---------|---------|
  * | priorityConfig  |   1   |    1    |    1    |    1    |
  * |-----------------|-------|---------|---------|---------|
@@ -87,15 +87,23 @@
  * | priorityConfig  |   4   |    1    |    1    |    2    |
  * |-----------------|-------|---------|---------|---------|
  * |-----------------|-------|---------|---------|---------|
- * | rriConfig       |   1   |   100   |   100   |   100   |
+ * | rriConfig       |   1   |   20    |   20    |   20    |
  * |-----------------|-------|---------|---------|---------|
  * | rriConfig       |   2   |   100   |    50   |   100   |
  *  -----------------|-------|---------|---------|---------
  *
- *  The other parameter related to the scheduling that we configure is
- *  'prioToSps' which sets the attribute 'PriorityToSps' in the scheduler and
- *  it is flag to give scheduling priority to logical channels that are
- *  configured with SPS scheduling in case of priority tie.
+ *  Three other parameters related to the scheduling that we configure are
+ *  (1) 'prioToSps' which sets the scheduler attribute 'PriorityToSps' and
+ *      is a flag to give scheduling priority to logical channels that are
+ *      configured with SPS scheduling in case of priority tie
+ *  (2) 'harqEnabled' which, if enabled, causes the scheduler to add additional
+ *      resources for retransmissions, and
+ *  (3) 'psfchPeriod' which affects scheduling by imposing requirements on
+ *      the number of slots between retransmission attempts
+ *
+ * If 'psfchPeriod' is set to zero, then no PSFCH feedback channel will be
+ * added to the resource pool, and the setting of 'harqEnabled' will instead
+ * cause blind retransmissions to be scheduled
  *
  * The default configuration is:
  * --schedTypeConfig=1 (i.e., all LCs will have dynamic (per-packet) scheduling)
@@ -105,7 +113,14 @@
  *                      this configuration as schedTypeConfig=1)
  * --prioToSps=false   (i.e., no priority to SPS, which doesn't matter in this
  *                      configuration as schedTypeConfig=1)
+ * --harqEnabled=true  (retransmissions slots will be scheduled)
+ * --psfchPeriod=4     (retransmissions slots will be scheduled)
  *
+ * The selection of dstL2Id value configures the following:
+ * - If the dstL2Id is 255, the CastType will be Broadcast
+ * - If the dstL2Id is 254, the CastType will be Groupcast
+ * - If the dstL2Id is 2, the CastType will be Unicast
+
  * The example will print on-screen the number of transmitted and received
  * packets during the simulation and the average packet delay.
  *
@@ -129,14 +144,16 @@ $ ./ns3 run "nr-sl-simple-multi-lc --help"
 #include "ns3/stats-module.h"
 
 #include <iomanip>
+#include <ostream>
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("NrSlSimpleMultiLc");
 
-uint32_t g_rxPktCounter = 0; //!< Global variable to count RX packets
-uint32_t g_txPktCounter = 0; //!< Global variable to count TX packets
-std::list<double> g_delays;  //!< Global list to store packet delays upon RX
+uint32_t g_rxPktCounter = 0;      //!< Global variable to count RX packets
+uint32_t g_txPktCounter = 0;      //!< Global variable to count TX packets
+std::list<double> g_delays;       //!< Global list to store packet delays upon RX
+std::ofstream g_fileGrantCreated; //!< File stream for saving scheduling output
 
 /*
  * Structure to keep track of the transmission time of the packets at the
@@ -219,11 +236,17 @@ RxPacketTraceForDelay(Ptr<const Packet> p,
     NS_LOG_DEBUG(" RX: " << mapKey << delay);
 }
 
+// Forward declaration
+void TraceGrantCreated(std::string context,
+                       const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
+                       uint16_t psfchPeriod);
+
 int
 main(int argc, char* argv[])
 {
     // Scenario parameters
     uint16_t interUeDistance = 20; // meters
+    uint16_t enableSingleFlow = 0; // 0 corresponds to all flows
 
     // Traffic parameters
     uint32_t udpPacketSize = 200;
@@ -235,6 +258,8 @@ main(int argc, char* argv[])
     uint16_t priorityConfig = 1;
     uint16_t rriConfig = 1;
     bool prioToSps = false;
+    bool harqEnabled = true;
+    uint16_t psfchPeriod = 4;
     Time t2 = MicroSeconds(8250); // 33 slots with numerology 2
 
     // Simulation parameters.
@@ -242,6 +267,12 @@ main(int argc, char* argv[])
 
     // Testing flag
     bool testing = false;
+
+    // NR parameters
+    uint16_t numerologyBwpSl = 2;
+    double centralFrequencyBandSl = 5.89e9; // band n47  TDD //Here band is analogous to channel
+    uint16_t bandwidthBandSl = 400;         // Multiple of 100 KHz; 400 = 40 MHz
+    double txPower = 23;                    // dBm
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("trafficTime", "The time traffic will be active in seconds", trafficTime);
@@ -266,6 +297,9 @@ main(int argc, char* argv[])
         "prioToSps",
         "Give scheduling priority to SPS logical channels in case of a tie (if set to True)",
         prioToSps);
+    cmd.AddValue("harqEnabled", "Whether HARQ is enabled", harqEnabled);
+    cmd.AddValue("psfchPeriod", "PSFCH period, in slots", psfchPeriod);
+    cmd.AddValue("enableSingleFlow", "Enable single flow only (1, 2, or 3)", enableSingleFlow);
     cmd.AddValue(
         "testing",
         "Testing flag to do verification that the example is working as expected (if set to True)",
@@ -274,11 +308,8 @@ main(int argc, char* argv[])
     // Parse the command line
     cmd.Parse(argc, argv);
 
-    // NR parameters
-    uint16_t numerologyBwpSl = 2;
-    double centralFrequencyBandSl = 5.89e9; // band n47  TDD //Here band is analogous to channel
-    uint16_t bandwidthBandSl = 400;         // Multiple of 100 KHz; 400 = 40 MHz
-    double txPower = 23;                    // dBm
+    // Check command line values
+    NS_ABORT_MSG_UNLESS(enableSingleFlow <= 3, "Unsupported value: " << enableSingleFlow);
 
     // Final simulation time
     Time slBearersActivationTime = Seconds(2.0);
@@ -404,8 +435,10 @@ main(int argc, char* argv[])
     ptrFactory->SetSlFreqResourcePscch(10); // PSCCH RBs
     ptrFactory->SetSlSubchannelSize(50);
     ptrFactory->SetSlMaxNumPerReserve(3);
-    ptrFactory->SetSlPsfchPeriod(0);                              // for blind retransmissions
-    std::list<uint16_t> resourceReservePeriodList = {0, 50, 100}; // in ms
+    ptrFactory->SetSlPsfchPeriod(psfchPeriod);
+    ptrFactory->SetSlMinTimeGapPsfch(3);
+
+    std::list<uint16_t> resourceReservePeriodList = {0, 20, 50, 100}; // in ms
     ptrFactory->SetSlResourceReservePeriodList(resourceReservePeriodList);
     // Once parameters are configured, we can create the pool
     LteRrcSap::SlResourcePoolNr pool = ptrFactory->CreatePool();
@@ -498,6 +531,7 @@ main(int argc, char* argv[])
 
     // Target IP
     Ipv4Address groupAddress4("225.0.0.0"); // use multicast address as destination
+    Ipv4Address unicastAddress4("7.0.0.3");
 
     /************************** Traffic flows configuration ********************/
     /*
@@ -509,20 +543,19 @@ main(int argc, char* argv[])
      */
 
     // Create the traffic profiles
-    uint32_t dstL2Id1 = 255;
-    uint32_t dstL2Id2 = 254;
+    uint32_t dstL2Broadcast = 255;
+    uint32_t dstL2Groupcast = 254;
+    uint32_t dstL2Unicast = 2; // IMSI 1 is assigned to first node, IMSI 2 to second
+                               // Source L2 ID is the lower bits of the IMSI.
 
     SidelinkInfo slInfo1;
-    slInfo1.m_castType = SidelinkInfo::CastType::Groupcast;
-    slInfo1.m_harqEnabled = true;
+    slInfo1.m_harqEnabled = harqEnabled;
     slInfo1.m_t2 = t2;
     SidelinkInfo slInfo2;
-    slInfo2.m_castType = SidelinkInfo::CastType::Groupcast;
-    slInfo2.m_harqEnabled = true;
-    slInfo1.m_t2 = t2;
+    slInfo2.m_harqEnabled = harqEnabled;
+    slInfo2.m_t2 = t2;
     SidelinkInfo slInfo3;
-    slInfo3.m_castType = SidelinkInfo::CastType::Groupcast;
-    slInfo3.m_harqEnabled = true;
+    slInfo3.m_harqEnabled = harqEnabled;
     slInfo3.m_t2 = t2;
 
     // Assign the three traffic profile parameter values depending on the configuration
@@ -553,19 +586,28 @@ main(int argc, char* argv[])
     switch (dstL2IdConfig)
     {
     case 1:
-        slInfo1.m_dstL2Id = dstL2Id1;
-        slInfo2.m_dstL2Id = dstL2Id1;
-        slInfo3.m_dstL2Id = dstL2Id1;
+        slInfo1.m_dstL2Id = dstL2Groupcast;
+        slInfo1.m_castType = SidelinkInfo::CastType::Groupcast;
+        slInfo2.m_dstL2Id = dstL2Groupcast;
+        slInfo2.m_castType = SidelinkInfo::CastType::Groupcast;
+        slInfo3.m_dstL2Id = dstL2Groupcast;
+        slInfo3.m_castType = SidelinkInfo::CastType::Groupcast;
         break;
     case 2:
-        slInfo1.m_dstL2Id = dstL2Id1;
-        slInfo2.m_dstL2Id = dstL2Id2;
-        slInfo3.m_dstL2Id = dstL2Id1;
+        slInfo1.m_dstL2Id = dstL2Broadcast;
+        slInfo1.m_castType = SidelinkInfo::CastType::Broadcast;
+        slInfo2.m_dstL2Id = dstL2Groupcast;
+        slInfo2.m_castType = SidelinkInfo::CastType::Groupcast;
+        slInfo3.m_dstL2Id = dstL2Broadcast;
+        slInfo3.m_castType = SidelinkInfo::CastType::Broadcast;
         break;
     case 3:
-        slInfo1.m_dstL2Id = dstL2Id2;
-        slInfo2.m_dstL2Id = dstL2Id2;
-        slInfo3.m_dstL2Id = dstL2Id1;
+        slInfo1.m_dstL2Id = dstL2Unicast;
+        slInfo1.m_castType = SidelinkInfo::CastType::Unicast;
+        slInfo2.m_dstL2Id = dstL2Groupcast;
+        slInfo2.m_castType = SidelinkInfo::CastType::Groupcast;
+        slInfo3.m_dstL2Id = dstL2Broadcast;
+        slInfo3.m_castType = SidelinkInfo::CastType::Broadcast;
         break;
     }
 
@@ -596,9 +638,9 @@ main(int argc, char* argv[])
     switch (rriConfig)
     {
     case 1:
-        slInfo1.m_rri = MilliSeconds(100);
-        slInfo2.m_rri = MilliSeconds(100);
-        slInfo3.m_rri = MilliSeconds(100);
+        slInfo1.m_rri = MilliSeconds(20);
+        slInfo2.m_rri = MilliSeconds(20);
+        slInfo3.m_rri = MilliSeconds(20);
         break;
     case 2:
         slInfo1.m_rri = MilliSeconds(100);
@@ -624,6 +666,8 @@ main(int argc, char* argv[])
     // Assign IP address for the UEs
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueNetDev);
+    NS_LOG_DEBUG("Device 0 has address " << ueIpIface.GetAddress(0)); // 7.0.0.2
+    NS_LOG_DEBUG("Device 1 has address " << ueIpIface.GetAddress(1)); // 7.0.0.3
 
     // Set the default gateway for the UEs
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
@@ -636,9 +680,19 @@ main(int argc, char* argv[])
     }
 
     // Create TFTs for each traffic profile and corresponding addresses/port
-    remoteAddress1 = InetSocketAddress(groupAddress4, port1);
+    // Use groupAddress4 for both Groupcast and Broadcast cast types
     localAddress1 = InetSocketAddress(Ipv4Address::GetAny(), port1);
-    tft1 = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, groupAddress4, port1, slInfo1);
+    if (dstL2IdConfig == 3)
+    {
+        remoteAddress1 = InetSocketAddress(unicastAddress4, port1);
+        tft1 =
+            Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, unicastAddress4, port1, slInfo1);
+    }
+    else
+    {
+        remoteAddress1 = InetSocketAddress(groupAddress4, port1);
+        tft1 = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, groupAddress4, port1, slInfo1);
+    }
 
     remoteAddress2 = InetSocketAddress(groupAddress4, port2);
     localAddress2 = InetSocketAddress(Ipv4Address::GetAny(), port2);
@@ -649,9 +703,18 @@ main(int argc, char* argv[])
     tft3 = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, groupAddress4, port3, slInfo3);
 
     // Activate SL data radio bearers for each traffic flow template and profile
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueNetDev, tft1);
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueNetDev, tft2);
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueNetDev, tft3);
+    if (!enableSingleFlow || enableSingleFlow == 1)
+    {
+        nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueNetDev, tft1);
+    }
+    if (!enableSingleFlow || enableSingleFlow == 2)
+    {
+        nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueNetDev, tft2);
+    }
+    if (!enableSingleFlow || enableSingleFlow == 3)
+    {
+        nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueNetDev, tft3);
+    }
 
     /*
      * Configure the applications:
@@ -676,43 +739,61 @@ main(int argc, char* argv[])
     ApplicationContainer allClientApps;
     ApplicationContainer allServerApps;
 
-    // Install client applications on the first UE (Tx)
-    ApplicationContainer clientApps1 = sidelinkClient1.Install(ueNodeContainer.Get(0));
-    clientApps1.Start(finalSlBearersActivationTime);
-    clientApps1.Stop(finalSimTime);
-    allClientApps.Add(clientApps1);
+    if (!enableSingleFlow || enableSingleFlow == 1)
+    {
+        // Install client applications on the first UE (Tx)
+        ApplicationContainer clientApps1 = sidelinkClient1.Install(ueNodeContainer.Get(0));
+        clientApps1.Start(finalSlBearersActivationTime);
+        clientApps1.Stop(finalSimTime);
+        allClientApps.Add(clientApps1);
+    }
 
-    ApplicationContainer clientApps2 = sidelinkClient2.Install(ueNodeContainer.Get(0));
-    clientApps2.Start(finalSlBearersActivationTime);
-    clientApps2.Stop(finalSimTime);
-    allClientApps.Add(clientApps2);
+    if (!enableSingleFlow || enableSingleFlow == 2)
+    {
+        ApplicationContainer clientApps2 = sidelinkClient2.Install(ueNodeContainer.Get(0));
+        clientApps2.Start(finalSlBearersActivationTime);
+        clientApps2.Stop(finalSimTime);
+        allClientApps.Add(clientApps2);
+    }
 
-    ApplicationContainer clientApps3 = sidelinkClient3.Install(ueNodeContainer.Get(0));
-    clientApps3.Start(finalSlBearersActivationTime);
-    clientApps3.Stop(finalSimTime);
-    allClientApps.Add(clientApps3);
+    if (!enableSingleFlow || enableSingleFlow == 3)
+    {
+        ApplicationContainer clientApps3 = sidelinkClient3.Install(ueNodeContainer.Get(0));
+        clientApps3.Start(finalSlBearersActivationTime);
+        clientApps3.Stop(finalSimTime);
+        allClientApps.Add(clientApps3);
+    }
 
-    // Configure server applications and install them in the second UE (Rx)
-    ApplicationContainer serverApps1;
-    PacketSinkHelper sidelinkSink1("ns3::UdpSocketFactory", localAddress1);
-    sidelinkSink1.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    serverApps1 = sidelinkSink1.Install(ueNodeContainer.Get(1));
-    serverApps1.Start(Seconds(2.0));
-    allServerApps.Add(serverApps1);
+    if (!enableSingleFlow || enableSingleFlow == 1)
+    {
+        // Configure server applications and install them in the second UE (Rx)
+        ApplicationContainer serverApps1;
+        PacketSinkHelper sidelinkSink1("ns3::UdpSocketFactory", localAddress1);
+        sidelinkSink1.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+        serverApps1 = sidelinkSink1.Install(ueNodeContainer.Get(1));
+        serverApps1.Start(Seconds(2.0));
+        allServerApps.Add(serverApps1);
+    }
 
-    ApplicationContainer serverApps2;
-    PacketSinkHelper sidelinkSink2("ns3::UdpSocketFactory", localAddress2);
-    sidelinkSink2.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    serverApps2 = sidelinkSink2.Install(ueNodeContainer.Get(1));
-    serverApps2.Start(Seconds(2.0));
-    allServerApps.Add(serverApps2);
+    if (!enableSingleFlow || enableSingleFlow == 2)
+    {
+        ApplicationContainer serverApps2;
+        PacketSinkHelper sidelinkSink2("ns3::UdpSocketFactory", localAddress2);
+        sidelinkSink2.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+        serverApps2 = sidelinkSink2.Install(ueNodeContainer.Get(1));
+        serverApps2.Start(Seconds(2.0));
+        allServerApps.Add(serverApps2);
+    }
 
-    ApplicationContainer serverApps3;
-    PacketSinkHelper sidelinkSink3("ns3::UdpSocketFactory", localAddress3);
-    sidelinkSink3.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    serverApps3 = sidelinkSink3.Install(ueNodeContainer.Get(1));
-    serverApps3.Start(Seconds(2.0));
-    allServerApps.Add(serverApps3);
+    if (!enableSingleFlow || enableSingleFlow == 3)
+    {
+        ApplicationContainer serverApps3;
+        PacketSinkHelper sidelinkSink3("ns3::UdpSocketFactory", localAddress3);
+        sidelinkSink3.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+        serverApps3 = sidelinkSink3.Install(ueNodeContainer.Get(1));
+        serverApps3.Start(Seconds(2.0));
+        allServerApps.Add(serverApps3);
+    }
 
     /************************ END Traffic flows configuration ******************/
 
@@ -735,8 +816,18 @@ main(int argc, char* argv[])
     }
     /******************** END Application packet  tracing **********************/
 
+    g_fileGrantCreated.open("nr-sl-simple-multi-lc.scheduling.dat", std::ofstream::out);
+    auto ueDevice0 = ueNetDev.Get(0)->GetObject<NrUeNetDevice>();
+    auto ueMac0 = ueDevice0->GetMac(0)->GetObject<NrSlUeMac>();
+    PointerValue v;
+    ueMac0->GetAttribute("NrSlUeMacScheduler", v);
+    auto scheduler0 = v.Get<NrSlUeMacScheduler>()->GetObject<NrSlUeMacSchedulerFixedMcs>();
+    scheduler0->TraceConnect("GrantCreated", "0", MakeCallback(&TraceGrantCreated));
+
     Simulator::Stop(finalSimTime);
     Simulator::Run();
+
+    g_fileGrantCreated.close();
 
     std::cout << "Total Tx packets = " << g_txPktCounter << std::endl;
     std::cout << "Total Rx packets = " << g_rxPktCounter << std::endl;
@@ -757,4 +848,41 @@ main(int argc, char* argv[])
         }
     }
     return 0;
+}
+
+void
+TraceGrantCreated(std::string context,
+                  const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
+                  uint16_t psfchPeriod)
+{
+    g_fileGrantCreated << Now().As(Time::S) << " " << context << " ";
+    g_fileGrantCreated << (grantInfo.isDynamic ? "dynamic " : "sps ");
+    g_fileGrantCreated << +grantInfo.harqId << " ";
+    g_fileGrantCreated << (grantInfo.harqEnabled ? "harq " : "no-harq ");
+    if (!grantInfo.isDynamic)
+    {
+        g_fileGrantCreated << +grantInfo.cReselCounter << " " << +grantInfo.slResoReselCounter
+                           << " " << +grantInfo.nSelected << " " << +grantInfo.tbTxCounter
+                           << grantInfo.rri.GetMilliSeconds() << std::endl;
+    }
+    else
+    {
+        g_fileGrantCreated << std::endl;
+    }
+    for (const auto& it : grantInfo.slotAllocations)
+    {
+        uint64_t slot = it.sfn.Normalize();
+        double slotDurationS = 0.001 / (1 << it.sfn.GetNumerology());
+        double slotTimeS = slot * slotDurationS;
+        g_fileGrantCreated << "    " << std::fixed << std::setprecision(6) << slotTimeS << " "
+                           << it.sfn.Normalize() << " ";
+        g_fileGrantCreated << it.slPsschSubChStart << ":" << it.slPsschSubChLength << " "
+                           << it.dstL2Id << " ";
+        g_fileGrantCreated << psfchPeriod << " " << it.txSci1A << " " << +it.slotNumInd;
+        for (const auto& it2 : it.slRlcPduInfo)
+        {
+            g_fileGrantCreated << " (LCID " << +it2.lcid << " size " << it2.size << ")";
+        }
+        g_fileGrantCreated << std::endl;
+    }
 }
