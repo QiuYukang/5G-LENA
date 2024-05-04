@@ -1,0 +1,8 @@
+schedTypeConfig = 1; dstL2IdConfig = 1 priorityConfig = 1; rriConfig = 1
+prioToSps = 0; harqEnabled = 0; psfchPeriod = 4
+Total Tx packets = 60
+Total Rx packets = 60
+Average packet delay = 3.97857 ms
+Output trace of first grant created:
++2.1s 0 dynamic 0 no-harq 
+    2.106500 8426 0:1 254 4 1 1 (LCID 6 size 235) (LCID 5 size 235) (LCID 4 size 235)

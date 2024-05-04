@@ -2,6 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-only
 
+set(example_as_test_suite)
+if(${ENABLE_EXAMPLES})
+  set(example_as_test_suite
+      test/nr-sl-simple-multi-lc-example-test.cc
+  )
+endif()
+
 set(source_files
     helper/nr-helper.cc
     helper/nr-phy-rx-trace.cc
@@ -280,6 +287,7 @@ set(header_files
 )
 
 set(test_sources
+    ${example_as_test_suite}
     test/nr-system-test-configurations.cc
     test/nr-test-numerology-delay.cc
     test/nr-test-fdm-of-numerologies.cc
