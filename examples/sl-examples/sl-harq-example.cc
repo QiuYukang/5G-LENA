@@ -7,7 +7,7 @@
 
 /**
  * \ingroup examples
- * \file sidelink-harq-example.cc
+ * \file sl-harq-example.cc
  *
  * This example describes how to configure and observe sidelink HARQ
  * properties in an NR sidelink out-of-coverage simulation.  Sidelink HARQ
@@ -37,7 +37,7 @@
  *
  * Delay samples are calculated by the NrUeMac reading the timestamp
  * from the RlcTag attached to each transmitted packet.  The delay
- * samples are stored in a file 'sidelink-harq-example-delay.dat' with
+ * samples are stored in a file 'sl-harq-example-delay.dat' with
  * a format of "Time delay" (units of seconds, resolution of microseconds).
  * Additionally, the minimum and maximum delay are tracked and output
  * to the terminal.
@@ -59,7 +59,7 @@
  * Min/max delay (us) 778.569000000 832.140000000
  *
  * \code{.unparsed}
-$ ./waf --run "sidelink-harq-example --PrintHelp"
+$ ./waf --run "sl-harq-example --PrintHelp"
     \endcode
  */
 
@@ -77,7 +77,7 @@ $ ./waf --run "sidelink-harq-example --PrintHelp"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("SidelinkHarqExample");
+NS_LOG_COMPONENT_DEFINE("SlHarqExample");
 
 /*
  * Global variables
@@ -86,7 +86,7 @@ NS_LOG_COMPONENT_DEFINE("SidelinkHarqExample");
 double g_delayMin = 1e9; //!< Global varible to store delay min value
 double g_delayMax = 0;   //!< Global varible to store delay max value
 bool g_verbose = false;  //!< Global variable to store verbose mode
-std::ofstream delaySamples("sidelink-harq-example-delay.dat",
+std::ofstream delaySamples("sl-harq-example-delay.dat",
                            std::ofstream::out); //!< Global variable to save latency
 uint32_t rxByteCounter = 0;                     //!< Global variable to count RX bytes
 uint32_t txByteCounter = 0;                     //!< Global variable to count TX bytes
@@ -391,7 +391,7 @@ main(int argc, char* argv[])
 
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPower));
 
-    // NR Sidelink attribute of UE MAC, which are would be common for all the UEs
+    // Sidelink attribute of UE MAC, which are would be common for all the UEs
     nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(t1));
@@ -442,7 +442,7 @@ main(int argc, char* argv[])
 
     /*
      * Configure Sidelink. We create the following helpers needed for the
-     * NR Sidelink, i.e., V2X simulation:
+     * Sidelink
      * - NrSlHelper, which will configure the UEs protocol stack to be ready to
      *   perform Sidelink related procedures.
      * - EpcHelper, which takes care of triggering the call to EpcUeNas class

@@ -40,16 +40,17 @@ foreach(
   )
 endforeach()
 
-set(nr-sidelink-harq_examples
-    sidelink-harq-example
+set(sl_examples
+    sl-harq-example
+    sl-multi-lc-example
 )
 foreach(
   example
-  ${nr-sidelink-harq_examples}
+  ${sl_examples}
 )
   build_lib_example(
     NAME ${example}
-    SOURCE_FILES nr-v2x-examples/${example}.cc
+    SOURCE_FILES sl-examples/${example}.cc
     LIBRARIES_TO_LINK ${libnr}
   )
 endforeach()
@@ -57,7 +58,6 @@ endforeach()
 set(nr-v2x-examples_examples
     cttc-nr-v2x-demo-simple
     nr-v2x-west-to-east-highway
-    nr-sl-simple-multi-lc
 )
 set(nr-v2x-examples_source_files
     nr-v2x-examples/ue-mac-pscch-tx-output-stats.cc

@@ -6,7 +6,7 @@
 
 /**
  * \ingroup examples
- * \file nr-sl-simple-multi-lc.cc
+ * \file sl-multi-lc-example.cc
  *
  * This example is based on cttc-nr-v2x-demo-simple and simulates a simple
  * topology consisting of 2 out-of-coverage UEs, where UE-1 transmits, and UE-2
@@ -125,7 +125,7 @@
  * packets during the simulation and the average packet delay.
  *
  * \code{.unparsed}
-$ ./ns3 run "nr-sl-simple-multi-lc --help"
+$ ./ns3 run "sl-multi-lc-example --help"
     \endcode
  *
  */
@@ -148,7 +148,7 @@ $ ./ns3 run "nr-sl-simple-multi-lc --help"
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("NrSlSimpleMultiLc");
+NS_LOG_COMPONENT_DEFINE("SlMultiLcExample");
 
 uint32_t g_rxPktCounter = 0;            //!< Global variable to count RX packets
 uint32_t g_txPktCounter = 0;            //!< Global variable to count TX packets
@@ -823,7 +823,7 @@ main(int argc, char* argv[])
     }
     /******************** END Application packet  tracing **********************/
 
-    g_fileGrantCreated.open("nr-sl-simple-multi-lc.scheduling.dat", std::ofstream::out);
+    g_fileGrantCreated.open("sl-multi-lc-scheduling.dat", std::ofstream::out);
     auto ueDevice0 = ueNetDev.Get(0)->GetObject<NrUeNetDevice>();
     auto ueMac0 = ueDevice0->GetMac(0)->GetObject<NrSlUeMac>();
     PointerValue v;

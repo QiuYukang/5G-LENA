@@ -6,7 +6,7 @@
 
 //
 // Each statement below runs a specific variation of the program
-// nr-sl-simple-multi-lc.cc and then checks the output produced against
+// sl-multi-lc-example.cc and then checks the output produced against
 // the known good output in the '.reflog' files in the directory 'sl-test-data'
 //
 // The first test is dynamic grants, groupcast, HARQ enabled.  The output
@@ -14,8 +14,8 @@
 // same destination), and that three transmissions can be fit into the selection
 // window.
 //
-static ns3::ExampleAsTestSuite g_slMultiLcDynGcastHarq("nr-sl-simple-multi-lc-dyn-gcast-harq",
-                                                       "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcDynGcastHarq("sl-multi-lc-dyn-gcast-harq",
+                                                       "sl-multi-lc-example",
                                                        "contrib/nr/test/sl-test-data",
                                                        "");
 
@@ -23,8 +23,8 @@ static ns3::ExampleAsTestSuite g_slMultiLcDynGcastHarq("nr-sl-simple-multi-lc-dy
 // demonstrates that all three LCs are scheduled in the same grant, but only
 // one transmission is scheduled in the grant.
 //
-static ns3::ExampleAsTestSuite g_slMultiLcDynGcastNoHarq("nr-sl-simple-multi-lc-dyn-gcast-no-harq",
-                                                         "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcDynGcastNoHarq("sl-multi-lc-dyn-gcast-no-harq",
+                                                         "sl-multi-lc-example",
                                                          "contrib/nr/test/sl-test-data",
                                                          "--harqEnabled=0");
 
@@ -33,8 +33,8 @@ static ns3::ExampleAsTestSuite g_slMultiLcDynGcastNoHarq("nr-sl-simple-multi-lc-
 // transmissions can be scheduled in the selection window, because there is no
 // MinTimeGapPsfch constraint on scheduling.
 //
-static ns3::ExampleAsTestSuite g_slMultiLcDynGcastBlind("nr-sl-simple-multi-lc-dyn-gcast-blind",
-                                                        "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcDynGcastBlind("sl-multi-lc-dyn-gcast-blind",
+                                                        "sl-multi-lc-example",
                                                         "contrib/nr/test/sl-test-data",
                                                         "--psfchPeriod=0");
 
@@ -44,14 +44,14 @@ static ns3::ExampleAsTestSuite g_slMultiLcDynGcastBlind("nr-sl-simple-multi-lc-d
 // 'prioToSps' is false, and as a result, the first grant scheduled is the dynamic
 // grant for LCs 4 and 5.
 //
-static ns3::ExampleAsTestSuite g_slMultiLcPrioDyn("nr-sl-simple-multi-lc-prio-dyn",
-                                                  "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcPrioDyn("sl-multi-lc-prio-dyn",
+                                                  "sl-multi-lc-example",
                                                   "contrib/nr/test/sl-test-data",
                                                   "--schedTypeConfig=3");
 
 // When the 'prioToSps' flag is set to true, the SPS grant (LC 6) is scheduled first.
-static ns3::ExampleAsTestSuite g_slMultiLcPrioSps("nr-sl-simple-multi-lc-prio-sps",
-                                                  "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcPrioSps("sl-multi-lc-prio-sps",
+                                                  "sl-multi-lc-example",
                                                   "contrib/nr/test/sl-test-data",
                                                   "--schedTypeConfig=3 --prioToSps=1");
 
@@ -60,8 +60,8 @@ static ns3::ExampleAsTestSuite g_slMultiLcPrioSps("nr-sl-simple-multi-lc-prio-sp
 // dstL2Id=255 will be sent as broadcast.  This will cause all flows to have to
 // use a separate LC.  The priorityConfig value of 2 will cause the broadcast flow
 // to be scheduled with highest priority.
-static ns3::ExampleAsTestSuite g_slMultiLcPrioBcast("nr-sl-simple-multi-lc-prio-bcast",
-                                                    "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcPrioBcast("sl-multi-lc-prio-bcast",
+                                                    "sl-multi-lc-example",
                                                     "contrib/nr/test/sl-test-data",
                                                     "--dstL2IdConfig=3 --priorityConfig=2");
 
@@ -70,14 +70,14 @@ static ns3::ExampleAsTestSuite g_slMultiLcPrioBcast("nr-sl-simple-multi-lc-prio-
 // of the broadcast (1).  Which one is selected will depend on a random variable
 // draw.  With RngRun=1, the groupcast (dstL2Id 254) will be scheduled first,
 // while with RngRun=2, the unicast one (dstL2Id 4) will be scheduled first.
-static ns3::ExampleAsTestSuite g_slMultiLcPrioGcast("nr-sl-simple-multi-lc-prio-gcast",
-                                                    "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcPrioGcast("sl-multi-lc-prio-gcast",
+                                                    "sl-multi-lc-example",
                                                     "contrib/nr/test/sl-test-data",
                                                     "--dstL2IdConfig=3 --priorityConfig=3");
 // Repeat with RngRun=2
 static ns3::ExampleAsTestSuite g_slMultiLcPrioUni(
-    "nr-sl-simple-multi-lc-prio-uni",
-    "nr-sl-simple-multi-lc",
+    "sl-multi-lc-prio-uni",
+    "sl-multi-lc-example",
     "contrib/nr/test/sl-test-data",
     "--dstL2IdConfig=3 --priorityConfig=3 --RngRun=2");
 
@@ -86,7 +86,7 @@ static ns3::ExampleAsTestSuite g_slMultiLcPrioUni(
 // LCIDs 4 and 6, but not 5 (flow 2) to be scheduled in the same grant
 // Since flow 2 has a smaller RRI, its packets arrive first and it is the
 // first to be scheduled (and saved in the reference log).
-static ns3::ExampleAsTestSuite g_slMultiLcRri("nr-sl-simple-multi-lc-rri",
-                                              "nr-sl-simple-multi-lc",
+static ns3::ExampleAsTestSuite g_slMultiLcRri("sl-multi-lc-rri",
+                                              "sl-multi-lc-example",
                                               "contrib/nr/test/sl-test-data",
                                               "--rriConfig=2 --schedTypeConfig=2");
