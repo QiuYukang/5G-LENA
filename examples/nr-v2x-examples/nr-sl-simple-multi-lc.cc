@@ -150,10 +150,12 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("NrSlSimpleMultiLc");
 
-uint32_t g_rxPktCounter = 0;      //!< Global variable to count RX packets
-uint32_t g_txPktCounter = 0;      //!< Global variable to count TX packets
-std::list<double> g_delays;       //!< Global list to store packet delays upon RX
-std::ofstream g_fileGrantCreated; //!< File stream for saving scheduling output
+uint32_t g_rxPktCounter = 0;            //!< Global variable to count RX packets
+uint32_t g_txPktCounter = 0;            //!< Global variable to count TX packets
+std::list<double> g_delays;             //!< Global list to store packet delays upon RX
+std::ofstream g_fileGrantCreated;       //!< File stream for saving scheduling output
+std::ostringstream g_firstGrantCreated; //!< String stream for saving first scheduling output
+bool g_firstGrant = true; //!< Flag to control writing first grant to g_firstGrantCreated
 
 /*
  * Structure to keep track of the transmission time of the packets at the
@@ -238,6 +240,11 @@ RxPacketTraceForDelay(Ptr<const Packet> p,
 
 // Forward declaration
 void TraceGrantCreated(std::string context,
+                       const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
+                       uint16_t psfchPeriod);
+
+void WriteGrantCreated(std::ostream& grantStream,
+                       std::string context,
                        const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
                        uint16_t psfchPeriod);
 
@@ -828,6 +835,11 @@ main(int argc, char* argv[])
     Simulator::Run();
 
     g_fileGrantCreated.close();
+    std::cout << "schedTypeConfig = " << schedTypeConfig << "; dstL2IdConfig = " << dstL2IdConfig;
+    std::cout << " priorityConfig = " << priorityConfig << "; rriConfig = " << rriConfig
+              << std::endl;
+    std::cout << "prioToSps = " << prioToSps << "; harqEnabled = " << harqEnabled
+              << "; psfchPeriod = " << psfchPeriod << std::endl;
 
     std::cout << "Total Tx packets = " << g_txPktCounter << std::endl;
     std::cout << "Total Rx packets = " << g_rxPktCounter << std::endl;
@@ -837,6 +849,8 @@ main(int argc, char* argv[])
         delaySum += *it;
     }
     std::cout << "Average packet delay = " << delaySum / g_delays.size() << " ms" << std::endl;
+    std::cout << "Output trace of first grant created:" << std::endl;
+    std::cout << g_firstGrantCreated.str();
 
     Simulator::Destroy();
     if (testing)
@@ -855,34 +869,52 @@ TraceGrantCreated(std::string context,
                   const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
                   uint16_t psfchPeriod)
 {
-    g_fileGrantCreated << Now().As(Time::S) << " " << context << " ";
-    g_fileGrantCreated << (grantInfo.isDynamic ? "dynamic " : "sps ");
-    g_fileGrantCreated << +grantInfo.harqId << " ";
-    g_fileGrantCreated << (grantInfo.harqEnabled ? "harq " : "no-harq ");
-    if (!grantInfo.isDynamic)
+    if (g_firstGrant)
     {
-        g_fileGrantCreated << +grantInfo.cReselCounter << " " << +grantInfo.slResoReselCounter
-                           << " " << +grantInfo.nSelected << " " << +grantInfo.tbTxCounter
-                           << grantInfo.rri.GetMilliSeconds() << std::endl;
+        WriteGrantCreated(g_fileGrantCreated, context, grantInfo, psfchPeriod);
+        WriteGrantCreated(g_firstGrantCreated, context, grantInfo, psfchPeriod);
+        g_firstGrant = false;
     }
     else
     {
-        g_fileGrantCreated << std::endl;
+        WriteGrantCreated(g_fileGrantCreated, context, grantInfo, psfchPeriod);
+    }
+}
+
+void
+WriteGrantCreated(std::ostream& grantStream,
+                  std::string context,
+                  const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
+                  uint16_t psfchPeriod)
+{
+    grantStream << Now().As(Time::S) << " " << context << " ";
+    grantStream << (grantInfo.isDynamic ? "dynamic " : "sps ");
+    grantStream << +grantInfo.harqId << " ";
+    grantStream << (grantInfo.harqEnabled ? "harq " : "no-harq ");
+    if (!grantInfo.isDynamic)
+    {
+        grantStream << +grantInfo.cReselCounter << " " << +grantInfo.slResoReselCounter << " "
+                    << +grantInfo.nSelected << " " << +grantInfo.tbTxCounter
+                    << grantInfo.rri.GetMilliSeconds() << std::endl;
+    }
+    else
+    {
+        grantStream << std::endl;
     }
     for (const auto& it : grantInfo.slotAllocations)
     {
         uint64_t slot = it.sfn.Normalize();
         double slotDurationS = 0.001 / (1 << it.sfn.GetNumerology());
         double slotTimeS = slot * slotDurationS;
-        g_fileGrantCreated << "    " << std::fixed << std::setprecision(6) << slotTimeS << " "
-                           << it.sfn.Normalize() << " ";
-        g_fileGrantCreated << it.slPsschSubChStart << ":" << it.slPsschSubChLength << " "
-                           << it.dstL2Id << " ";
-        g_fileGrantCreated << psfchPeriod << " " << it.txSci1A << " " << +it.slotNumInd;
+        grantStream << "    " << std::fixed << std::setprecision(6) << slotTimeS << " "
+                    << it.sfn.Normalize() << " ";
+        grantStream << it.slPsschSubChStart << ":" << it.slPsschSubChLength << " " << it.dstL2Id
+                    << " ";
+        grantStream << psfchPeriod << " " << it.txSci1A << " " << +it.slotNumInd;
         for (const auto& it2 : it.slRlcPduInfo)
         {
-            g_fileGrantCreated << " (LCID " << +it2.lcid << " size " << it2.size << ")";
+            grantStream << " (LCID " << +it2.lcid << " size " << it2.size << ")";
         }
-        g_fileGrantCreated << std::endl;
+        grantStream << std::endl;
     }
 }
