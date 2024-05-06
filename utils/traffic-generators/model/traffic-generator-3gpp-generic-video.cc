@@ -315,7 +315,7 @@ TrafficGenerator3gppGenericVideo::ReceiveLoopbackInformation(double packetLoss,
 {
     NS_LOG_FUNCTION(this);
 
-    if (!m_stopEvent.IsRunning())
+    if (!m_stopEvent.IsPending())
     {
         NS_LOG_WARN("The application stopped working ignore this function call...");
         return;

@@ -116,7 +116,7 @@ TrafficGeneratorNgmnVoip::StopApplication()
 {
     NS_LOG_FUNCTION(this);
     TrafficGenerator::StopApplication();
-    NS_ASSERT(m_updateState.IsRunning());
+    NS_ASSERT(m_updateState.IsPending());
     m_updateState.Cancel();
 }
 

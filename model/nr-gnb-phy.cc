@@ -1817,7 +1817,7 @@ NrGnbPhy::ChannelAccessGranted(const Time& time)
     NS_LOG_INFO("Channel access granted for " << time << ", which corresponds to " << slotGranted
                                               << " slot in which each slot is " << GetSlotPeriod()
                                               << ". We lost " << toNextSlot);
-    NS_ASSERT(!m_channelLostTimer.IsRunning());
+    NS_ASSERT(!m_channelLostTimer.IsPending());
 
     if (slotGranted < 1)
     {
