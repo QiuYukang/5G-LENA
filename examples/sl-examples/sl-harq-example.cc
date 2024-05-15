@@ -816,14 +816,14 @@ main(int argc, char* argv[])
 
     if (useIPv6)
     {
-        for (uint16_t ac = 0; ac < clientApps.GetN(); ac++)
+        for (uint32_t ac = 0; ac < clientApps.GetN(); ac++)
         {
             clientApps.Get(ac)->GetNode()->GetObject<Ipv6L3Protocol>()->AddMulticastAddress(
                 groupAddress6);
         }
 
         // Set Rx traces
-        for (uint16_t ac = 0; ac < serverApps.GetN(); ac++)
+        for (uint32_t ac = 0; ac < serverApps.GetN(); ac++)
         {
             serverApps.Get(ac)->GetNode()->GetObject<Ipv6L3Protocol>()->AddMulticastAddress(
                 groupAddress6);
@@ -1003,9 +1003,13 @@ TraceRxRlcPduWithTxRnti(uint64_t imsi,
         std::cout << Now().GetSeconds() << " RX bytes " << bytes << " delay " << delay << std::endl;
     }
     if (delay > g_delayMax)
+    {
         g_delayMax = delay;
+    }
     if (delay < g_delayMin)
+    {
         g_delayMin = delay;
+    }
     delaySamples << std::fixed << std::showpoint << std::setprecision(6)
                  << Now().GetMicroSeconds() / 1000000.0 << " " << delay << std::endl;
 }
