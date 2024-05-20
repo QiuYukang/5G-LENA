@@ -35,7 +35,7 @@
  * for sufficient time to send and receive the configured number of
  * application data packets (default 100).
  *
- * Delay samples are calculated by the NrUeMac reading the timestamp
+ * Delay samples are calculated by the NrSlUeMac reading the timestamp
  * from the RlcTag attached to each transmitted packet.  The delay
  * samples are stored in a file 'sl-harq-example-delay.dat' with
  * a format of "Time delay" (units of seconds, resolution of microseconds).
@@ -776,18 +776,18 @@ main(int argc, char* argv[])
     path.str("");
 
     Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/SlPscchScheduling",
+                                  "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/SlPscchScheduling",
                                   MakeCallback(&NotifySlPscchScheduling));
 
     Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/SlPsschScheduling",
+                                  "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/SlPsschScheduling",
                                   MakeCallback(&NotifySlPsschScheduling));
 
     Config::ConnectWithoutContextFailSafe("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
                                           "ComponentCarrierMapUe/*/NrUeMac/TxRlcPduWithTxRnti",
                                           MakeCallback(&TraceTxRlcPduWithTxRnti));
     Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/RxRlcPduWithTxRnti",
+                                  "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/RxRlcPduWithTxRnti",
                                   MakeCallback(&TraceRxRlcPduWithTxRnti));
 
     Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
@@ -1096,10 +1096,7 @@ NotifyRxHarqFeedback(std::string context, const SlHarqInfo& harqInfo)
               << Simulator::Now().As(Time::S) << " " << ContextToNodeId(context)
               << " rx harq; rnti " << harqInfo.m_rnti << " process ID "
               << +harqInfo.m_harqProcessId
-#ifdef NOTYET
-              // need to fix retransmission counting after the merge
               << " numRetx " << +harqInfo.m_numRetx
-#endif
               << " bwpIndex " << +harqInfo.m_bwpIndex << std::endl;
 }
 
