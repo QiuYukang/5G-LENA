@@ -4,7 +4,7 @@
 
 Overview
 ========
-The extension to support NR V2X functionalities involved modifications at
+The extension to support NR V2X involved modifications at
 all layers of the protocol stack, from the ``NAS`` and down to the ``PHY`` layer.
 One of the most important changes towards the implementation of NR V2X communications,
 compared to the typical cellular communications available in 5G-LENA simulator,
@@ -14,13 +14,13 @@ according to NR V2X ``RRC`` specification in TS 38.331. Also, ``MAC`` and ``PHY`
 layers have been redesigned to implement NR V2X Mode 2 procedures using sensing-based
 Semi Persistent Scheduling (SPS), as described in Section III-B of [cttc-nr-v2x]_,
 according to TS 38.321 for the MAC layer, and TS 38.211 and TS 38.212 for the PHY layer. 
+Non-persistent grants (dynamic grants) are also supported by the scheduler.
 In the simulator, we focus on NR V2X Mode 2 for out-of-coverage
-scenarios with broadcast communications and therefore, for the moment only blind
-retransmissions (i.e., without sidelink HARQ feedback) are considered. In
+scenarios, with broadcast, groupcast, and unicast communications, and also support both
+blind retransmissions (i.e., without sidelink HARQ feedback) and sidelink HARQ-based
+retransmissions. In
 Table :ref:`tab-nr-v2x-models`, we detail the features and functionalities that
 are available in the developed NR V2X system-level simulator.
-The features listed for our simulator are those included in the first release, which allow
-the evaluation of a full NR V2X system with a subset of NR V2X features.
 
 
 .. only:: latex
@@ -79,7 +79,7 @@ the evaluation of a full NR V2X system with a subset of NR V2X features.
    +--------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
    | HARQ                           | NR PHY abstraction for HARQ includes support for HARQ-IR and HARQ-CC                                                                   |
    +--------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-   | Retransmissions                | Blind retransmissions, including up to a pre-configured number with retransmission combining.                                          |
+   | Retransmissions                | Blind or HARQ acknowledged retransmissions, including up to a pre-configured number with retransmission combining.                     |
    +--------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
    | Resource allocation            | Sensing-based and random resource selections are supported.                                                                            |
    +--------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
@@ -208,18 +208,18 @@ MAC
 ===
 The UE's ``MAC`` layer has been extensively modified to transmit and receive
 sidelink transmissions. In the following, we explain these procedures in detail.
+The sidelink implementation is found in class ``NrSlUeMac`` while the uplink
+and downlink are found in the base class ``NrUeMac``.  Furthermore, the scheduling
+implementations are separated into different classes, and the base class
+``NrSlUeMacScheduler`` defines the interface between schedulers and the
+``NrSlUeMac``.
 
 MAC transmitting procedure
 ##########################
 In out-of-coverage scenarios, UEs are required to perform the autonomous resource
 selection following Mode 2, which could be based on sensing-based or random
-selection procedures, as [TS38321]_, respectively. The first significant
-modification introduced in
-this respect is the new ``MAC`` scheduler interface. This interface allows the
-implementation of sidelink UE-specific schedulers, which could assign resources
-following specific strategies, e.g., fixed MCS, adaptive MCS based on Channel
-Sensing Information (CSI),
-etc. The UE ``MAC`` layer is extended to provide all the information needed by
+selection procedures, as described in [TS38321]_, respectively. 
+The UE ``MAC`` layer is extended to provide all the information needed by
 a scheduler to perform resource selection. For example, the information related
 to all the LCs of destinations the UE is interested in transmitting to,
 the total number of available subchannels, :math:`N_{\max\_\text{reserve}}`, the
@@ -234,26 +234,40 @@ where :math:`n` is the slot at which the resource selection is triggered, and
 is a ``MAC`` layer parameter. In what follows we will dive into the details of
 UE's ``MAC`` layer operation to perform sensing-based resource selection.
 
-At slot :math:`n`, when a resource selection is triggered for a destination, the
-``MAC`` layer draws a random counter known as Sidelink Resource Reselection
-Counter (SLRRC) based on the user configured Resource Reservation Period (PRSVP)
-value, which is used to compute :math:`C_\text{resel}`. Then, for an active
+Resource selection is triggered on slot boundaries when the scheduler is made
+aware of transport blocks (TBs) buffered at the RLC layer, for which no active
+grants are already configured to handle the TBs.
+At slot :math:`n`, when a resource selection is triggered for a destination,
+ the scheduler first triggers the calculation of available resources within
+a future selection window, according to the algorithm and constraints specified
+in Section 8.1.4 of [TS38214]_.  Although the standard describes this calculation
+of available resources as being performed at the ``PHY`` layer, in this ns-3
+model, it is actually implemented in the ``NrSlUeMac`` based on sensing data
+that has been provided by the ``NrUePhy``.  Then, for an active
 pool configured by the ``RRC``, it computes the candidate resources
-(i.e., available slots) for sidelink transmission based on the selection window
-parameters, :math:`T_\text{1}`, :math:`T_\text{2,min}`, and :math:`T_\text{2}`.
+for sidelink transmission based on the selection window
+parameters, :math:`T_\text{1}`, :math:`T_\text{2,min}`, and :math:`T_\text{2}`,
+the sensing data, and the ``MAC`` history of its own transmissions.
 Since the final resources must be selected based on sensing information, the MAC
 follows the standard procedure described in Section 8.1.4 of [TS38214]_, to
 filter out the resources from the total available ones, which could be occupied
 by the other transmitting UEs. Once the filtered candidate resources' list is
-ready, the ``MAC`` layer forwards it to the scheduler. Our model provides a
-sample scheduler, which as per the standard [TS38331]_, first randomly selects a
-number of slots, i.e., :math:`N_\text{selected}`, for sidelink transmissions.
-The number of :math:`N_\text{selected}` slots depends on the number of slots that
-are available in the filtered list and the maximum number of configured PSSCH
-transmissions. If :math:`K` denotes the total number of available slots, and
-:math:`N_\text{PSSCH,maxTx}` is the maximum number of PSSCH configured
-transmissions, then:
-
+ready, the ``MAC`` layer forwards it to the scheduler.  One scheduler implementation
+is provided, called a ``Fixed MCS`` scheduler, which uses a configured MCS
+value for all transmissions.  The scheduler determines the necessary resource
+size for a single-slot resource (i.e., one or more subchannels) to encode the pending
+TB(s) for the logical channel, taking into account also the 5-bytes-overhead for
+2nd-stage SCI,
+and then requests the ``NrSlUeMac`` to provide candidate resources within the
+desired selection window.  Once these candidate resources are returned, the
+scheduler selects one (if no retransmissions are configured) or more than one
+(if retransmissions are configured) resources.  If the grant is semi-persistent
+(SPS), the scheduler draws a random counter known as Sidelink Resource Reselection
+Counter (SLRRC) based on the user configured Resource Reservation Period (PRSVP)
+value, which is used to compute :math:`C_\text{resel}`.  If :math:`K` denotes
+the total number of available resources, and :math:`N_\text{PSSCH,maxTx}` is the
+maximum number of PSSCH configured transmissions, then 
+ 
 .. math::
 
     N_{selected}=\begin{Bmatrix}
@@ -261,25 +275,31 @@ transmissions, then:
                    K, & \text{otherwise}
                  \end{Bmatrix}
 
+If feedback-based HARQ retransmissions are configured, the above
+:math:`N_\text{selected}` transmissions may be further constrained, because each
+retransmission must be spaced apart in time from the previous transmission such
+as to allow enough time for positive ACK feedback to be returned; the scheduler
+enforces this constraint.
 
 After randomly selecting the required number of slots, it then randomly the selects
 the required number of contiguous subchannels computed using a fixed MCS
-strategy. Note that, adaptive MCS strategy makes sense in unicast and
-groupcast communications when the CSI from the receiving UE can be acquired
-through the PSSCH. As for this initial implementation, we have focused on broadcast communications,
-without PSFCH, the fixed MCS strategy is the adequate one. However, the
-implemented scheduler interface is general enough to accommodate more sophisticated
-schedulers. After selecting the :math:`N_\text{selected}` number of slots, the scheduler
-computes the TB size using the fixed MCS by taking into account the
-BSR of a LC, and the 5 bytes overhead of 2nd-stage-SCI, which needs
-to be multiplexed with data. Finally, it prepares a sidelink allocation valid for
-the first resource reservation period deciding also aspects like which slots from
+strategy. 
+
+Note that a fixed MCS scheduler is more applicable to broadcast communications;
+an adaptive MCS scheduler may be more suitable for unicast and groupcast communications
+where the CSI from the receiving UE can be acquired through the PSSCH.  
+The C++ class design allows for other to develop more sophisticated schedulers.
+
+Once the grant has been scheduled (including retransmissions, and, for SPS grants,
+the configured value of of PRSVP and the already drawn counters, i.e., SLRRC and
+:math:`C_\text{resel}`), the grant is passed to the `` the ``NrSlUeMac``, which prepares
+a sidelink allocation valid for
+the first resource reservation period, deciding also aspects like which slots from
 the :math:`N_\text{selected}` have to carry the 1st-stage-SCI, the New Data
-Indicator (NDI), and the Redundancy Version (RV) number of each slot. The UE
-``MAC`` layer, upon receiving this allocation, creates the SPS grants based on the
-configured value of PRSVP and the already drawn counters, i.e., SLRRC and
-:math:`C_\text{resel}`. After using these grants for a number of transmissions
-equal to the SLRRC, a resource reselection is triggered. That is, once SLRRC
+Indicator (NDI), and the Redundancy Version (RV) number of each slot.
+
+After using these grants for a number of transmissions equal to the SLRRC,
+a resource reselection is triggered at the scheduler. That is, once SLRRC
 reaches zero, the UE either keeps the previous selection or selects new resources
 based on the pre-configured probability of resource keep. Finally, if
 :math:`C_\text{resel}` reaches zero, the resource reselection is triggered,
@@ -289,17 +309,166 @@ that the random resource selection procedure does not filter the slots from the
 available ones before giving the list to the scheduler, so that the sensing
 information is not used.
 
-
 Before forwarding the sidelink packets to the ``PHY`` layer, a check is
 performed at the beginning of each slot to ensure the availability of a valid
 grant for that slot. If there is, the ``MAC`` layer prepares two packet bursts,
 one for the 1st-stage-SCI and the second for the 2nd-stage-SCI plus data, and
 assigns a HARQ process ID to the data packet. It also saves this data packet
-into a HARQ buffer if blind retransmissions are configured. We note that the
+into a HARQ buffer. We note that the
 model allows to configure multiple (no limit for research purposes) sidelink/HARQ
 processes to allow continuous flow of data. After this, both packet bursts are
 forwarded to the lower layer. Upon receiving these packet bursts, the ``PHY``,
 places them in a queue to be transmitted on the configured PSCCH and PSSCH symbols.
+
+Sidelink HARQ operation
+#######################
+
+Hybrid Automatic Repeat ReQuest (HARQ) for NR Sidelink provides improved
+probability of transport block delivery at the expense of additional
+transmissions on the channel.  HARQ combines forward error correction (FEC)
+techniques with automatic repeat request (ARQ) retransmission techniques
+using positive acknowledgments.
+
+HARQ is used in 4G LTE and 5G NR, on both the uplink and downlink.  Additional
+modes of operation are defined for NR sidelink.  HARQ is a somewhat
+complicated process with elements located at different parts of the NR
+stack.  Using typical terminology, a HARQ Entity manages a number of HARQ
+Processes and Buffers that interact with the scheduler, MAC, and PHY layers.
+
+Sidelink HARQ is mainly implemented in the following ``nr`` module source files:
+
+- nr-sl-ue-mac.cc
+- nr-sl-ue-mac-harq.cc
+
+The following capabilities are implemented, following 3GPP TS 38.321, section
+5.22.1.3:
+
+- A sidelink HARQ entity with a configurable number of sidelink HARQ processes;
+  the default for mode 2 is four SPS processes (fixed by a constant in the code),
+  and 16 overall processes (configurable by an attribute in ``NrUeMac``).
+
+- Each sidelink process supports one transport block (TB), and a HARQ process
+  ID is assigned to the MAC PDU, and the sidelink process is associated with
+  a HARQ buffer.
+
+- HARQ feedback can be enabled or disabled for groupcast, unicast, or broadcast.
+
+- For groupcast, the positive-negative acknowledgment option is implemented;
+  all receivers will return either a positive or negative acknowledgment
+  (negative acknowledgment relies on successful SCI decode).
+
+- Support of configuring a feedback channel (PSFCH) with a periodicity of
+  one, two, or four sidelink slots.  The PSFCH can deliver HARQ feedback
+  from a receiver to a sender using an idealized (i.e., no error model)
+  channel.  The PSFCH logically occupies one symbol of a slot, but due to
+  guard interval, three symbols for that slot become unusable for PSSCH.
+
+- Support of MinTimeGapPsfch parameter of either two or three slots, to
+  ensure that HARQ feedback is delayed due to notional processing delays.
+
+- Scheduling support to ensure that constraints are met around scheduling
+  future resources for HARQ retransmissions.
+
+PSFCH slots
+###########
+
+The pattern of slots that correspond to sidelink slots is established by
+the TDD pattern establishing the UL slots, and the sidelink bitmap that
+is overlaid on the UL slots.  PSFCH, if enabled, is present in every
+one, two, or four sidelink slots.  If PSFCH periodicity is set to zero slots,
+HARQ feedback will be disabled (although blind transmissions are still
+possible if HARQ is enabled in the `SidelinkInfo` structure of the TFT).
+
+A slot with PSFCH will consume three symbols; one for the PSFCH slot
+itself, one for the AGC (which duplicates the PSFCH), and an additional
+guard slot.
+
+The scheduler needs to be aware of the SL pattern as well as of the
+PSFCH pattern, to determine which slots are candidates for possible
+retransmisssions, because the scheduler must allow for enough time
+for a transmission of a transport block to be acknowledged before
+attempting a HARQ retransmission.  Additionally, the receiver must
+know the PSFCH pattern in order to schedule a feedback transmission.
+In ns-3, the class ``NrSlCommResourcePool`` was extended with a
+``SlotHasPsfch()`` method, complementing the ``IsSidelinkSlot()`` method,
+to allow ns-3 models to determine whether any given slot
+is a PSFCH-enabled slot.
+
+Retransmission Scheduling Constraints
+#####################################
+
+According to TS 38.321 section 5.22.1, when the scheduler must configure
+a grant based on sensing and/or random selection, and when HARQ is
+enabled and the bandwidth pool is configured for PSFCH, the scheduler
+will select resources for the sidelink data such that the following
+constraints are honored:
+
+1. the packet delay budget is not exceeded,
+
+2. the maximum number of transmissions is not exceeded,
+
+3. the resources selected can be indicated by a prior SCI transmission, and
+
+4. the time gap between selected resources is at least as large as the
+   minimum time gap between such resources.
+
+The standard describes this minimum time gap as follows:
+
+.. code-block:: shell
+
+  -	a time gap between the end of the last symbol of a PSSCH transmission of the first resource and the start of the first symbol of the corresponding PSFCH reception determined by sl-MinTimeGapPSFCH and sl-PSFCH-Period for the pool of resources; and
+  -	a time required for PSFCH reception and processing plus sidelink retransmission preparation including multiplexing of necessary physical channels and any TX-RX/RX-TX switching time.
+  NOTE 4:	How to determine the time required for PSFCH reception and processing plus sidelink retransmission preparation is left to UE implementation.
+
+This essentially means that the scheduler must ensure that there exists
+enough time for HARQ feedback to be generated, sent back to the
+transmitter, and processed, before the next retransmission must be prepared.
+If HARQ feedback indicates that no further retransmissions are needed,
+the future resources reserved for that sidelink data will go unused.
+This is a lost sending opportunity but will reduce possible interference.
+Additionally, note that the number of slots required to wait for
+this minimum time gap depends on the specific TDD patterns of future
+SL and PSFCH-enabled slots, and varies over time.
+The ``NrSlUeMacSchedulerFixedMcs`` scheduler class contains logic to
+select slots for HARQ retransmissions subject to this scheduling
+constraint.
+
+It is possible that HARQ feedback may be delayed due to an internal
+collision on the receiver-- because the system is half-duplex, the receiver
+must make a priority decision whether to transmit or receive on a given
+PSFCH symbol.  It could be the case that the scheduler plans for a
+given PSFCH to deliver feedback, but the receiver decides not to send it.
+The current ns-3 model does not yet implement handling for such collisions,
+but even if/when it is implemented, the penalty for deferring the sending
+of HARQ feedback may be an unnecessary retransmission by the sender,
+which should not be much of a concern.
+
+HARQ Scope and Limitations
+##########################
+
+* No support for 'negative-only' groupcast HARQ mode (a.k.a. Option 1).
+* PSSCH channel error model is not sidelink-based, but reuses uplink error model
+* PSFCH channel is ideal (no error model)
+* Receiver-side collisions on PSFCH half-duplex operation is not supported
+* Need to set the RBs correctly in varTtiInfo
+* Need to add NrSpectrumPhy::TxFbTrace
+
+.. _NrSidelinkHarqReferences:
+
+Sidelink HARQ References
+########################
+
+The sidelink HARQ operation is mostly specified in Section
+5.22.1.3 of the MAC layer specification 3GPP TS 38.321 [TS38321]_.
+Aspects of the |ns3| HARQ implementation are described in [Ali21]_.  Aspects
+of the |ns3| NR error model and strategy for combining multiple transmissions
+at the physical layer are described in [Lag20]_.
+
+.. [Ali21] Z. Ali, S. Lagén, L. Giupponi and R. Rouil, "3GPP NR V2X Mode 2: Overview, Models and System-Level Evaluation," in IEEE Access, vol. 9, pp. 89554-89579, 2021
+
+.. [Lag20] S. Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello and L. Giupponi, "New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks," ICC 2020 - 2020 IEEE International Conference on Communications (ICC), 2020, pp. 1-7.
+
+.. [TS38321] 3GPP TS 38.321, TSG RAN; NR; Medium Access Control (MAC) Protocol Specification, Release 17, v17.0.0, Mar. 2022.
 
 
 MAC receiving procedure
@@ -336,9 +505,9 @@ Upon finding the allocation for the slot, the ``PHY`` layer transmits PSCCH and
 PSSCH PDU on their respective symbols whose duration depend on the configured
 numerology and CP.
 
-
 PHY receiving procedure
 #######################
+
 To receive the sidelink transmissions, one of the key enhancements of the ``PHY``
 is the introduction of the ability to handle collisions/interference, also
 introduced in [nist-d2d]_. The interference model available in the 5G-LENA
