@@ -65,6 +65,11 @@ NrFhControl::GetTypeId()
                           UintegerValue(32),
                           MakeUintegerAccessor(&NrFhControl::SetOverheadDyn),
                           MakeUintegerChecker<uint8_t>(0, 100))
+            .AddAttribute("EnableDynamicModComp",
+                          "Enable dynamic modulation compression for split 7.2",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrFhControl::SetEnableModComp),
+                          MakeBooleanChecker())
             .AddTraceSource(
                 "RequiredFhDlThroughput",
                 "Report required fronthaul throughput in DL per BWP (Sfnfn, bwpId, reqFhThr)",
@@ -175,6 +180,13 @@ NrFhControl::SetOverheadDyn(uint8_t overhead)
 {
     NS_LOG_FUNCTION(this);
     m_overheadDyn = overhead;
+}
+
+void
+NrFhControl::SetEnableModComp(bool v)
+{
+    NS_LOG_FUNCTION(this);
+    m_enableModComp = v;
 }
 
 void
@@ -454,6 +466,8 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti, 
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
     NS_ASSERT_MSG(numOfActiveBwps > 0, "No Active BWPs, sth is wrong");
+    NS_ASSERT_MSG(m_enableModComp == true,
+                  "DoGetMaxMcsAssignable has no sense without modulation compression enabled");
     uint32_t availableCapacity = m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps);
 
     uint16_t numActiveUes = GetNumberActiveUes(bwpId);
@@ -467,20 +481,20 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti, 
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
     if (availableCapacity * 1e6 * slotLength.GetSeconds() <=
-        numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
+        numActiveUes * (m_overheadDyn + overheadMac + (12 * 2 * 10)))
     {
         while (availableCapacity * 1e6 * slotLength.GetSeconds() <=
-               Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
+               Kp * (m_overheadDyn + overheadMac + (12 * 2 * 10)))
         {
             Kp--;
         }
     }
     NS_ABORT_MSG_IF(availableCapacity * 1e6 * slotLength.GetSeconds() <=
-                        Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
+                        Kp * (m_overheadDyn + overheadMac + (12 * 2 * 10)),
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
     uint32_t num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
-                                         Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
+                                         Kp * (m_overheadDyn - overheadMac - (12 * 2 * 10)));
     if (Kp == 0)
     {
         return 0;
@@ -512,6 +526,11 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, 
     NS_LOG_INFO("BwpId: " << bwpId << " Number of Active UEs: " << numActiveUes);
     uint16_t Kp = numActiveUes;
 
+    uint8_t overheadDyn =
+        (m_enableModComp ? m_overheadDyn : 0); // overhead of dynamic adaptations due to
+                                               // dynamic modulation compression.
+                                               // 0 if modulation compression is disabled.
+
     Time slotLength = MicroSeconds(
         static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
     uint32_t overheadMac = static_cast<uint32_t>(
@@ -519,26 +538,28 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, 
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
     if (availableCapacity * 1e6 * slotLength.GetSeconds() <=
-        numActiveUes * m_overheadDyn + numActiveUes * overheadMac + numActiveUes * 12 * 2 * 10)
+        numActiveUes * (overheadDyn + overheadMac + (12 * 2 * 10)))
     {
         while (availableCapacity * 1e6 * slotLength.GetSeconds() <=
-               Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10)
+               Kp * (overheadDyn + overheadMac + (12 * 2 * 10)))
         {
             Kp--;
         }
     }
     NS_ABORT_MSG_IF(availableCapacity * 1e6 * slotLength.GetSeconds() <=
-                        Kp * m_overheadDyn + Kp * overheadMac + Kp * 12 * 2 * 10,
+                        Kp * (overheadDyn + overheadMac + (12 * 2 * 10)),
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
     uint32_t num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
-                                         Kp * m_overheadDyn - Kp * overheadMac - Kp * 12 * 2 * 10);
+                                         Kp * (overheadDyn - overheadMac - (12 * 2 * 10)));
     if (Kp == 0)
     {
         return 0;
     }
+
+    uint32_t W = (m_enableModComp ? modulationOrder : 32); // bitwidth (number of IQ bits)
     uint32_t nMax =
-        num / (12 * Kp * modulationOrder * dlRank) /
+        num / (12 * Kp * W * dlRank) /
         static_cast<uint32_t>(
             m_fhSchedSapUser.at(bwpId)
                 ->GetNumRbPerRbgFromSched()); // in REGs, otherwise, should divide by nSymb
@@ -645,9 +666,6 @@ uint64_t
 NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const
 {
     uint64_t thr;
-    uint32_t modulationOrder =
-        m_mcsTable == 1 ? nrEesmT1.m_mcsMTable->at(mcs) : nrEesmT2.m_mcsMTable->at(mcs);
-
     uint16_t numerology = m_fhPhySapUser.at(bwpId)->GetNumerology();
     NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId),
                   " Numerology has not been configured properly for bwpId: " << bwpId);
@@ -656,8 +674,16 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRa
     uint32_t overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
 
-    thr = (12 * modulationOrder * nRegs * dlRank + m_overheadDyn + overheadMac + 12 * 2 * 10) /
-          slotLength.GetSeconds(); // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
+    uint32_t effectiveModulationOrder =
+        m_enableModComp
+            ? (m_mcsTable == 1 ? nrEesmT1.m_mcsMTable->at(mcs) : nrEesmT2.m_mcsMTable->at(mcs))
+            : 32;
+
+    uint8_t overheadDyn = (m_enableModComp ? m_overheadDyn : 0);
+    thr = ((12 * effectiveModulationOrder * nRegs * dlRank) + overheadDyn + overheadMac +
+           (12 * 2 * 10)) /
+          slotLength.GetSeconds();
+    // added 10 RBs of DCI overhead over 1 symbol, encoded with QPSK
 
     return thr;
 }

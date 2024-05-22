@@ -140,6 +140,12 @@ class NrFhControl : public Object
     void SetOverheadDyn(uint8_t overhead);
 
     /**
+     * @brief Set modulation compression usage for functional split option 7.2
+     * @param v true to enable modulation compression, false to disable it
+     */
+    void SetEnableModComp(bool v);
+
+    /**
      * @brief Set the ErrorModelType based on which the MCS Table
      *        (1 or 2) will be set."
               "ns3::NrEesmIrT1 and ns3::NrEesmCcT1 for MCS Table 1"
@@ -334,6 +340,8 @@ class NrFhControl : public Object
     uint8_t m_overheadDyn{32};    //!< the overhead (OH) for dynamic adaptation (in bits)
     uint8_t m_mcsTable{2};        //!< the MCS table
     std::string m_errorModelType; //!< the error model type based on which the MCS Table will be set
+    bool m_enableModComp{
+        true}; //!< enable dynamic modulation compression (used in split option 7.2 only)
 
     std::unordered_map<uint16_t, uint16_t> m_numerologyPerBwp; //!< Map of bwpIds and numerologies
     std::unordered_map<uint32_t, uint32_t>
