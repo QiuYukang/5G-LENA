@@ -647,24 +647,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     // BWP.
     if (radioNetwork == "LTE")
     {
-        if (bandwidthMHz == 20)
+        switch (bandwidthMHz)
         {
+        case 20:
+        case 15:
             nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(4));
-        }
-        else if (bandwidthMHz == 15)
-        {
-            nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(4));
-        }
-        else if (bandwidthMHz == 10)
-        {
+            break;
+        case 10:
             nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(3));
-        }
-        else if (bandwidthMHz == 5)
-        {
+            break;
+        case 5:
             nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(2));
-        }
-        else
-        {
+            break;
+        default:
             NS_ABORT_MSG("Currently, only supported bandwidths are 5, 10, 15, and 20MHz, you chose "
                          << bandwidthMHz);
         }

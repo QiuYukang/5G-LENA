@@ -149,17 +149,13 @@ TestNotchingPhySapProvider::GetBeamId(uint8_t rnti) const
     {
         for (uint32_t u = 0; u < m_sapNumOfBeams; u++)
         {
-            if (rntiCnt == rnti && beam == 0)
+            if (rnti == 0 || (rntiCnt == rnti && beam == 0))
             {
                 beamId = BeamId(0, 0.0);
             }
             else if (rntiCnt == rnti && beam == 1)
             {
                 beamId = BeamId(1, 120.0);
-            }
-            else if (rnti == 0)
-            {
-                beamId = BeamId(0, 0.0);
             }
             rntiCnt++;
         }

@@ -88,11 +88,7 @@ TestGnbMac::TestGnbMac(const std::string& pattern)
                                       // duplicated slots will not be counted
             break;
         case LteNrTddSlotType::DL:
-            m_totalSlotToCreate += 1;
-            break;
         case LteNrTddSlotType::UL:
-            m_totalSlotToCreate += 1;
-            break;
         case LteNrTddSlotType::S:
             m_totalSlotToCreate += 1;
             break;
