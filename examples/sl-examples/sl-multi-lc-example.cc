@@ -248,6 +248,8 @@ void WriteGrantCreated(std::ostream& grantStream,
                        const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
                        uint16_t psfchPeriod);
 
+uint32_t GetPacketSize(double dataRateKbps, Time rri);
+
 int
 main(int argc, char* argv[])
 {
@@ -733,15 +735,18 @@ main(int argc, char* argv[])
     std::string dataRateString = std::to_string(dataRate) + "kb/s";
     OnOffHelper sidelinkClient1("ns3::UdpSocketFactory", remoteAddress1);
     sidelinkClient1.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    sidelinkClient1.SetConstantRate(DataRate(dataRateString), udpPacketSize);
+    sidelinkClient1.SetConstantRate(DataRate(dataRateString),
+                                    GetPacketSize(dataRate, slInfo1.m_rri));
 
     OnOffHelper sidelinkClient2("ns3::UdpSocketFactory", remoteAddress2);
     sidelinkClient2.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    sidelinkClient2.SetConstantRate(DataRate(dataRateString), udpPacketSize);
+    sidelinkClient2.SetConstantRate(DataRate(dataRateString),
+                                    GetPacketSize(dataRate, slInfo2.m_rri));
 
     OnOffHelper sidelinkClient3("ns3::UdpSocketFactory", remoteAddress3);
     sidelinkClient3.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    sidelinkClient3.SetConstantRate(DataRate(dataRateString), udpPacketSize);
+    sidelinkClient3.SetConstantRate(DataRate(dataRateString),
+                                    GetPacketSize(dataRate, slInfo3.m_rri));
 
     ApplicationContainer allClientApps;
     ApplicationContainer allServerApps;
@@ -890,11 +895,11 @@ WriteGrantCreated(std::ostream& grantStream,
     grantStream << Now().As(Time::S) << " " << context << " ";
     grantStream << (grantInfo.isDynamic ? "dynamic " : "sps ");
     grantStream << +grantInfo.harqId << " ";
-    grantStream << (grantInfo.harqEnabled ? "harq " : "no-harq ");
+    grantStream << (grantInfo.harqEnabled ? "harq" : "no-harq");
     if (!grantInfo.isDynamic)
     {
-        grantStream << +grantInfo.cReselCounter << " " << +grantInfo.slResoReselCounter << " "
-                    << +grantInfo.nSelected << " " << +grantInfo.tbTxCounter
+        grantStream << " " << +grantInfo.cReselCounter << " " << +grantInfo.slResoReselCounter
+                    << " " << +grantInfo.nSelected << " " << +grantInfo.tbTxCounter
                     << grantInfo.rri.GetMilliSeconds() << std::endl;
     }
     else
@@ -917,4 +922,11 @@ WriteGrantCreated(std::ostream& grantStream,
         }
         grantStream << std::endl;
     }
+}
+
+// Get the packet size in bytes that supports the provided data rate and RRI
+uint32_t
+GetPacketSize(double dataRateKbps, Time rri)
+{
+    return static_cast<uint32_t>(dataRateKbps * 1000 * rri.GetSeconds() / 8);
 }
