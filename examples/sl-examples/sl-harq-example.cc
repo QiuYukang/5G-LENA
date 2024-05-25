@@ -775,20 +775,23 @@ main(int argc, char* argv[])
     Config::ConnectWithoutContext(path.str(), MakeCallback(&TransmitPacket));
     path.str("");
 
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/SlPscchScheduling",
-                                  MakeCallback(&NotifySlPscchScheduling));
+    Config::ConnectWithoutContext(
+        "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
+        "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/SlPscchScheduling",
+        MakeCallback(&NotifySlPscchScheduling));
 
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/SlPsschScheduling",
-                                  MakeCallback(&NotifySlPsschScheduling));
+    Config::ConnectWithoutContext(
+        "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
+        "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/SlPsschScheduling",
+        MakeCallback(&NotifySlPsschScheduling));
 
     Config::ConnectWithoutContextFailSafe("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
                                           "ComponentCarrierMapUe/*/NrUeMac/TxRlcPduWithTxRnti",
                                           MakeCallback(&TraceTxRlcPduWithTxRnti));
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/RxRlcPduWithTxRnti",
-                                  MakeCallback(&TraceRxRlcPduWithTxRnti));
+    Config::ConnectWithoutContext(
+        "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
+        "ComponentCarrierMapUe/*/NrUeMac/$ns3::NrSlUeMac/RxRlcPduWithTxRnti",
+        MakeCallback(&TraceRxRlcPduWithTxRnti));
 
     Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
                                   "ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPscchTraceUe",
@@ -1094,9 +1097,7 @@ NotifyRxHarqFeedback(std::string context, const SlHarqInfo& harqInfo)
 {
     std::cout << std::fixed << std::showpoint << std::setprecision(9)
               << Simulator::Now().As(Time::S) << " " << ContextToNodeId(context)
-              << " rx harq; rnti " << harqInfo.m_rnti << " process ID "
-              << +harqInfo.m_harqProcessId
-              << " numRetx " << +harqInfo.m_numRetx
+              << " rx harq; rnti " << harqInfo.m_rnti << " process ID " << +harqInfo.m_harqProcessId
               << " bwpIndex " << +harqInfo.m_bwpIndex << std::endl;
 }
 
