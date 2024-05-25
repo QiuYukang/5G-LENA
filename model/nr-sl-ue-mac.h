@@ -499,6 +499,12 @@ class NrSlUeMac : public NrUeMac
      * \param dstL2Id The Sidelink layer 2 id of the destination to listen to.
      */
     void DoAddNrSlRxDstL2Id(uint32_t dstL2Id);
+    /**
+     * \brief Remove NR Sidelink destination layer 2 id for reception
+     *
+     * \param dstL2Id The Sidelink layer 2 id of the destination to be removed.
+     */
+    void DoRemoveNrSlRxDstL2Id(uint32_t dstL2Id);
 
     // Forwarded from NR SL UE PHY SAP User
     /**

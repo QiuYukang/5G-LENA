@@ -1219,7 +1219,7 @@ NrUePhy::EnqueueSlHarqFeedback(const SlHarqInfo& m)
                                      << +m.m_harqProcessId);
     Ptr<NrSlHarqFeedbackMessage> msg = Create<NrSlHarqFeedbackMessage>();
     msg->SetSlHarqFeedback(m);
-    m_slHarqFbList.emplace_back(std::make_pair(m_currentSlot, msg));
+    m_slHarqFbList.emplace_back(m_currentSlot, msg);
 }
 
 void
@@ -1997,7 +1997,7 @@ NrUePhy::SlFeedback(const NrSlVarTtiAllocInfo& varTtiInfo)
         uint16_t rnti = (*it2)->GetSlHarqFeedback().m_txRnti;
         uint8_t harqProcessId = (*it2)->GetSlHarqFeedback().m_harqProcessId;
         // If insert() returns false, the (rnti, harqProcessId) already exists
-        if (duplicateCheck.insert(std::make_pair(rnti, harqProcessId)).second == true)
+        if (duplicateCheck.insert(std::make_pair(rnti, harqProcessId)).second)
         {
             NS_LOG_DEBUG("Preparing HARQ feedback for sender RNTI " << rnti << " HARQ PID "
                                                                     << +harqProcessId);
@@ -2005,7 +2005,7 @@ NrUePhy::SlFeedback(const NrSlVarTtiAllocInfo& varTtiInfo)
         }
         ++it2;
     }
-    if (uniqueFeedbackList.size())
+    if (!uniqueFeedbackList.empty())
     {
         NS_LOG_DEBUG("UE" << m_rnti << " TXing NR SL FEEDBACK frame for symbols "
                           << varTtiInfo.symStart << "-"
@@ -2211,7 +2211,7 @@ NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb, const SpectrumValue& ps
     for (auto p : pdu->GetPackets())
     {
         LteRadioBearerTag tag;
-        if (p->PeekPacketTag(tag) == false)
+        if (!p->PeekPacketTag(tag))
         {
             // SCI stage 2 is the only packet in the packet burst, which does
             // not have the tag
@@ -2225,7 +2225,7 @@ NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb, const SpectrumValue& ps
     }
 
     NS_ABORT_MSG_IF(foundSci2 == false, "Did not find SCI stage 2 in PSSCH packet burst");
-    NS_ASSERT_MSG(dataPkts.size() > 0, "Received PHY PDU with not data packets");
+    NS_ASSERT_MSG(!dataPkts.empty(), "Received PHY PDU with not data packets");
 
     for (auto& pktIt : dataPkts)
     {
@@ -2272,6 +2272,64 @@ NrUePhy::GetSidelinkRsrp(SpectrumValue psd)
     double rsrpDbm = 10 * log10(1000 * (avrgRsrpWatt));
 
     return std::make_pair(avrgRsrpWatt, rsrpDbm);
+}
+
+void
+NrUePhy::DoEnableUeSlRsrpMeasurements()
+{
+    NS_LOG_FUNCTION(this);
+    Simulator::Schedule(m_rsrpFilterPeriod, &NrUePhy::ReportUeSlRsrpMeasurements, this);
+    m_ueSlRsrpMeasurementsEnabled = true;
+    // Let the RRC know the L1 measurement period
+    m_nrSlUeCphySapUser->SetRsrpFilterPeriod(m_rsrpFilterPeriod);
+}
+
+void
+NrUePhy::DoDisableUeSlRsrpMeasurements()
+{
+    NS_LOG_FUNCTION(this);
+    m_ueSlRsrpMeasurementsEnabled = false;
+}
+
+void
+NrUePhy::ReportUeSlRsrpMeasurements()
+{
+    NS_LOG_FUNCTION(this << m_rnti);
+    if (m_ueSlRsrpMeasurementsEnabled)
+    {
+        NrSlUeCphySapUser::RsrpElementsList rsrpList;
+        // Perform the L1 filtering
+        for (auto it = m_ueSlRsrpMeasurementsMap.begin(); it != m_ueSlRsrpMeasurementsMap.end();
+             it++)
+        {
+            // L1 filtering: linear average
+            double avgRsrpW = it->second.rsrpSum / static_cast<double>(it->second.rsrpNum);
+            // The stored values are in W, the report to the MAC/RRC should be in dBm
+            double avgRsrpDbm = 10 * log10(1000 * (avgRsrpW));
+
+            NS_LOG_INFO(this << " UE L2 Id " << it->first << " averaged RSRP (dBm) " << avgRsrpDbm
+                             << " number of measurements " << it->second.rsrpNum);
+
+            NrSlUeCphySapUser::RsrpElement elt;
+            elt.l2Id = it->first;
+            elt.rsrp = avgRsrpDbm;
+            rsrpList.rsrpMeasurementsList.push_back(elt);
+
+            // Save RSRP Measurements
+            m_reportUeSlRsrpMeasurements(m_rnti, it->first, avgRsrpDbm);
+        }
+
+        // Notify RRC
+        m_nrSlUeCphySapUser->ReceiveUeSlRsrpMeasurements(rsrpList);
+        // Notify RRC
+        m_nrSlUeCphySapUser->ReceiveUeSlRsrpMeasurements(rsrpList);
+
+        // Schedule next L1 filtering
+        Simulator::Schedule(m_rsrpFilterPeriod, &NrUePhy::ReportUeSlRsrpMeasurements, this);
+
+        // Clear map after finishing the L1 filtering
+        m_ueSlRsrpMeasurementsMap.clear();
+    }
 }
 
 } // namespace ns3

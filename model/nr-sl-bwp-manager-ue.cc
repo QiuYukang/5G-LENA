@@ -65,7 +65,7 @@ NrSlBwpManagerUe::SetNrSlUeBwpmRrcSapUser(NrSlUeBwpmRrcSapUser* nrSlUeBwpmRrcSap
 void
 NrSlBwpManagerUe::DoTransmitNrSlRlcPdu(const NrSlMacSapProvider::NrSlRlcPduParameters& params)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)params.lcid << params.srcL2Id << params.dstL2Id);
 
     NS_LOG_INFO("NR SL BWP manager forwarding SL RLC PDU to MAC");
     std::map<uint8_t, std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*>>::iterator it;
@@ -87,7 +87,7 @@ void
 NrSlBwpManagerUe::DoReportNrSlBufferStatus(
     const NrSlMacSapProvider::NrSlReportBufferStatusParameters& params)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)params.lcid << params.srcL2Id << params.dstL2Id);
 
     NS_ASSERT(m_algorithm != nullptr);
     NrSlUeBwpLcIdentifier slLcIdentifier;
@@ -120,7 +120,7 @@ void
 NrSlBwpManagerUe::DoNotifyNrSlTxOpportunity(
     const NrSlMacSapUser::NrSlTxOpportunityParameters& txOpParams)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)txOpParams.lcid << txOpParams.srcL2Id << txOpParams.dstL2Id);
 
     NrSlUeBwpLcIdentifier slLcIdentifier;
     slLcIdentifier.lcId = txOpParams.lcid;
@@ -130,24 +130,29 @@ NrSlBwpManagerUe::DoNotifyNrSlTxOpportunity(
     std::map<NrSlUeBwpLcIdentifier, NrSlMacSapUser*>::iterator slLcIdIt =
         m_nrSlDrbLcInfoMap.find(slLcIdentifier);
 
-    NS_ABORT_MSG_IF(slLcIdIt == m_nrSlDrbLcInfoMap.end(),
-                    "cannot find SL LCID " << +txOpParams.lcid << ", srcL2Id " << txOpParams.srcL2Id
-                                           << ", dstL2Id " << txOpParams.dstL2Id);
-
-    NS_LOG_DEBUG(this << " SL lcid = " << +txOpParams.lcid << " layer= " << +txOpParams.layer
-                      << " componentCarrierId " << +txOpParams.bwpId << " rnti "
-                      << txOpParams.rnti);
-
-    NS_LOG_DEBUG(this << " MAC is asking BWP id = " << +txOpParams.bwpId << " with SL lcid = "
-                      << +txOpParams.lcid << " to transmit " << txOpParams.bytes << " bytes");
-
-    slLcIdIt->second->NotifyNrSlTxOpportunity(txOpParams);
+    if (slLcIdIt != m_nrSlDrbLcInfoMap.end())
+    {
+        NS_LOG_DEBUG(this << " SL lcid = " << +txOpParams.lcid << " layer= " << +txOpParams.layer
+                          << " componentCarierId " << +txOpParams.bwpId << " rnti "
+                          << txOpParams.rnti);
+        NS_LOG_DEBUG(this << " MAC is asking BWP id = " << +txOpParams.bwpId << " with SL lcid = "
+                          << +txOpParams.lcid << " to transmit " << txOpParams.bytes << " bytes");
+        slLcIdIt->second->NotifyNrSlTxOpportunity(txOpParams);
+    }
+    else
+    {
+        NS_ABORT_MSG_IF(slLcIdIt == m_nrSlDrbLcInfoMap.end(),
+                        "cannot find SL LCID " << +txOpParams.lcid << ", srcL2Id "
+                                               << txOpParams.srcL2Id << ", dstL2Id "
+                                               << txOpParams.dstL2Id);
+    }
 }
 
 void
 NrSlBwpManagerUe::DoReceiveNrSlRlcPdu(NrSlMacSapUser::NrSlReceiveRlcPduParameters rxPduParams)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)rxPduParams.lcid << rxPduParams.srcL2Id
+                         << rxPduParams.dstL2Id);
 
     NrSlUeBwpLcIdentifier slLcIdentifier;
     slLcIdentifier.lcId = rxPduParams.lcid;
@@ -157,11 +162,17 @@ NrSlBwpManagerUe::DoReceiveNrSlRlcPdu(NrSlMacSapUser::NrSlReceiveRlcPduParameter
     std::map<NrSlUeBwpLcIdentifier, NrSlMacSapUser*>::iterator slLcIdIt =
         m_nrSlDrbLcInfoMap.find(slLcIdentifier);
 
-    NS_ABORT_MSG_IF(slLcIdIt == m_nrSlDrbLcInfoMap.end(),
-                    "cannot find SL LCID " << +rxPduParams.lcid << ", srcL2Id "
-                                           << rxPduParams.srcL2Id << ", dstL2Id "
-                                           << rxPduParams.dstL2Id);
-    slLcIdIt->second->ReceiveNrSlRlcPdu(rxPduParams);
+    if (slLcIdIt != m_nrSlDrbLcInfoMap.end())
+    {
+        slLcIdIt->second->ReceiveNrSlRlcPdu(rxPduParams);
+    }
+    else
+    {
+        NS_ABORT_MSG_IF(slLcIdIt == m_nrSlDrbLcInfoMap.end(),
+                        "cannot find SL LCID " << +rxPduParams.lcid << ", srcL2Id "
+                                               << rxPduParams.srcL2Id << ", dstL2Id "
+                                               << rxPduParams.dstL2Id);
+    }
 }
 
 ///////////////////////////////////////////////////////////
@@ -172,10 +183,10 @@ std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm>
 NrSlBwpManagerUe::DoAddNrSlDrbLc(const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
                                  NrSlMacSapUser* msu)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)lcInfo.lcId << lcInfo.srcL2Id << lcInfo.dstL2Id << msu);
 
-    // SL DRB LC starts from 4
-    NS_ASSERT_MSG(lcInfo.lcId > 3, "Hey! I can only add the LC for data radio bearers.");
+    // SL DRB LC starts from 5
+    NS_ASSERT_MSG(lcInfo.lcId > 4, "Hey! I can only add the LC for data radio bearers.");
     std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> res;
     NrSlUeBwpLcIdentifier slLcIdentifier;
     slLcIdentifier.lcId = lcInfo.lcId;
@@ -229,9 +240,10 @@ NrSlBwpManagerUe::DoAddNrSlDrbLc(const NrSlUeCmacSapProvider::SidelinkLogicalCha
 std::vector<uint8_t>
 NrSlBwpManagerUe::DoRemoveNrSlDrbLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)slLcId << srcL2Id << dstL2Id);
 
-    NS_ASSERT_MSG(slLcId > 3, "Hey! I can delete only the LC for data radio bearers.");
+    NS_ASSERT_MSG(slLcId > 4, "Hey! I can delete only the LC for data radio bearers.");
+
     std::vector<uint8_t> res;
 
     // block RLC to reach MAC
@@ -247,7 +259,7 @@ NrSlBwpManagerUe::DoRemoveNrSlDrbLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t d
     while (it != m_nrSlBwpLcMap.end())
     {
         itSlLc = it->second.find(slLcIdentifier);
-        if (itSlLc != it->second.end() && itSlLc->first.lcId > 3) // SL DRB LC starts from 4
+        if (itSlLc != it->second.end() && itSlLc->first.lcId > 4) // SL DRB LC starts from45
         {
             res.push_back(it->first);
             it->second.erase(itSlLc);
@@ -261,7 +273,7 @@ NrSlBwpManagerUe::DoRemoveNrSlDrbLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t d
     // block MAC to reach RLC
     std::map<NrSlUeBwpLcIdentifier, NrSlMacSapUser*>::iterator itToRlc;
     itToRlc = m_nrSlDrbLcInfoMap.find(slLcIdentifier);
-    if (itToRlc != m_nrSlDrbLcInfoMap.end() && itToRlc->first.lcId > 3) // SL DRB LC starts from 4
+    if (itToRlc != m_nrSlDrbLcInfoMap.end() && itToRlc->first.lcId > 4) // SL DRB LC starts from 5
     {
         m_nrSlDrbLcInfoMap.erase(itToRlc);
     }
@@ -287,7 +299,8 @@ NrSlBwpManagerUe::DoSetBwpIdContainer(const std::set<uint8_t>& bwpIdVec)
 bool
 NrSlBwpManagerUe::SetNrSlMacSapProviders(uint8_t bwpId, NrSlMacSapProvider* sap)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << (uint16_t)bwpId << sap);
+
     bool result = false;
     std::map<uint8_t, NrSlMacSapProvider*>::iterator it;
     it = m_nrSlMacSapProvidersMap.find(bwpId);
@@ -308,6 +321,125 @@ NrSlBwpManagerUe::GetNrSlMacSapProviderFromBwpm()
 {
     NS_LOG_FUNCTION(this);
     return m_nrSlBwpmUeMacSapProvider;
+}
+
+std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm>
+NrSlBwpManagerUe::DoAddNrSlSrbLc(const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
+                                 NrSlMacSapUser* msu)
+{
+    NS_LOG_FUNCTION(this << (uint16_t)lcInfo.lcId << lcInfo.srcL2Id << lcInfo.dstL2Id << msu);
+
+    // SL SRB LC form 0 to 3
+    NS_ASSERT_MSG(lcInfo.lcId < 4,
+                  "Hey! This method can only add the LC for signalling radio bearers.");
+    std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> res;
+    NrSlUeBwpLcIdentifier slLcIdentifier;
+    slLcIdentifier.lcId = lcInfo.lcId;
+    slLcIdentifier.srcL2Id = lcInfo.srcL2Id;
+    slLcIdentifier.dstL2Id = lcInfo.dstL2Id;
+
+    NS_LOG_DEBUG("UE CCM Adding SL LcId = " << +lcInfo.lcId << " srcL2Id = " << lcInfo.srcL2Id
+                                            << " dstL2Id = " << lcInfo.dstL2Id);
+
+    NS_ASSERT_MSG(m_nrSlDrbLcInfoMap.find(slLcIdentifier) == m_nrSlDrbLcInfoMap.end(),
+                  "cannot add channel because LCID " << +lcInfo.lcId << ", srcL2Id "
+                                                     << lcInfo.srcL2Id << ", dstL2Id "
+                                                     << lcInfo.dstL2Id << " is already present");
+
+    m_nrSlDrbLcInfoMap.insert(std::make_pair(slLcIdentifier, msu));
+
+    m_slLcToBearerMap.insert(
+        std::make_pair(slLcIdentifier, static_cast<EpsBearer::Qci>(lcInfo.pqi)));
+
+    NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm elem;
+    std::map<uint8_t, std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*>>::iterator slCcLcMapIt;
+    NS_ASSERT_MSG(!m_slBwpIds.empty(), "Did you forget to set BWP container from RRC");
+    for (const auto& itBwpIt : m_slBwpIds)
+    {
+        elem.bwpId = itBwpIt;
+        elem.lcInfo = lcInfo;
+        elem.msu = m_nrSlBwpmUeMacSapUser;
+        res.insert(res.end(), elem);
+
+        slCcLcMapIt = m_nrSlBwpLcMap.find(elem.bwpId);
+        if (slCcLcMapIt != m_nrSlBwpLcMap.end())
+        {
+            slCcLcMapIt->second.insert(
+                std::make_pair(slLcIdentifier, m_nrSlMacSapProvidersMap.at(elem.bwpId)));
+        }
+        else
+        {
+            std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*> empty;
+            std::pair<
+                std::map<uint8_t, std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*>>::iterator,
+                bool>
+                ret;
+            ret = m_nrSlBwpLcMap.insert(std::make_pair(elem.bwpId, empty));
+            ret.first->second.insert(
+                std::make_pair(slLcIdentifier, m_nrSlMacSapProvidersMap.at(elem.bwpId)));
+        }
+    }
+    return res;
+}
+
+std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm>
+NrSlBwpManagerUe::DoAddNrSlDiscoveryRbLc(
+    const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& lcInfo,
+    NrSlMacSapUser* msu)
+{
+    NS_LOG_FUNCTION(this << (uint16_t)lcInfo.lcId << lcInfo.srcL2Id << lcInfo.dstL2Id << msu);
+
+    //\todo At the moment this is just a C&P of DoAddNrSlDrbLc. TBD if having only one
+    // function and differentiate the behavior inside worth the implementation hassle
+
+    // SL Discovey RB LC 4
+    NS_ASSERT_MSG(lcInfo.lcId == 4, "This method can only add the LC for discovery radio bearers.");
+    std::vector<NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm> res;
+    NrSlUeBwpLcIdentifier slLcIdentifier;
+    slLcIdentifier.lcId = lcInfo.lcId;
+    slLcIdentifier.srcL2Id = lcInfo.srcL2Id;
+    slLcIdentifier.dstL2Id = lcInfo.dstL2Id;
+
+    NS_LOG_DEBUG("UE CCM Adding SL LcId = " << +lcInfo.lcId << " srcL2Id = " << lcInfo.srcL2Id
+                                            << " dstL2Id = " << lcInfo.dstL2Id);
+
+    NS_ASSERT_MSG(m_nrSlDrbLcInfoMap.find(slLcIdentifier) == m_nrSlDrbLcInfoMap.end(),
+                  "cannot add channel because LCID " << +lcInfo.lcId << ", srcL2Id "
+                                                     << lcInfo.srcL2Id << ", dstL2Id "
+                                                     << lcInfo.dstL2Id << " is already present");
+    m_nrSlDrbLcInfoMap.insert(std::make_pair(slLcIdentifier, msu));
+    m_slLcToBearerMap.insert(
+        std::make_pair(slLcIdentifier, static_cast<EpsBearer::Qci>(lcInfo.pqi)));
+
+    NrSlUeBwpmRrcSapProvider::SlLcInfoBwpm elem;
+    std::map<uint8_t, std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*>>::iterator slCcLcMapIt;
+    NS_ASSERT_MSG(!m_slBwpIds.empty(), "Did you forget to set BWP container from RRC");
+    for (const auto& itBwpIt : m_slBwpIds)
+    {
+        elem.bwpId = itBwpIt;
+        elem.lcInfo = lcInfo;
+        elem.msu = m_nrSlBwpmUeMacSapUser;
+        res.insert(res.end(), elem);
+
+        slCcLcMapIt = m_nrSlBwpLcMap.find(elem.bwpId);
+        if (slCcLcMapIt != m_nrSlBwpLcMap.end())
+        {
+            slCcLcMapIt->second.insert(
+                std::make_pair(slLcIdentifier, m_nrSlMacSapProvidersMap.at(elem.bwpId)));
+        }
+        else
+        {
+            std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*> empty;
+            std::pair<
+                std::map<uint8_t, std::map<NrSlUeBwpLcIdentifier, NrSlMacSapProvider*>>::iterator,
+                bool>
+                ret;
+            ret = m_nrSlBwpLcMap.insert(std::make_pair(elem.bwpId, empty));
+            ret.first->second.insert(
+                std::make_pair(slLcIdentifier, m_nrSlMacSapProvidersMap.at(elem.bwpId)));
+        }
+    }
+    return res;
 }
 
 } // end of namespace ns3

@@ -1565,6 +1565,13 @@ NrSlUeMac::DoAddNrSlRxDstL2Id(uint32_t dstL2Id)
     m_sidelinkRxDestinations.insert(dstL2Id);
 }
 
+void
+NrSlUeMac::DoRemoveNrSlRxDstL2Id (uint32_t dstL2Id)
+{
+  NS_LOG_FUNCTION (this << dstL2Id);
+  m_sidelinkRxDestinations.erase (dstL2Id);
+}
+
 uint8_t
 NrSlUeMac::DoGetSlActiveTxPoolId() const
 {

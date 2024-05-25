@@ -1143,9 +1143,53 @@ class NrUePhy : public NrPhy
     Ptr<const NrSlCommResourcePool> m_slTxPool; //!< Sidelink communication transmission pools
     Ptr<const NrSlCommResourcePool> m_slRxPool; //!< Sidelink communication reception pools
     std::deque<SlRxGrantInfo> m_slRxGrants;     //!< Sidelink RX grants indicated by SCI 1-A
-
     std::list<std::pair<SfnSf, Ptr<NrSlHarqFeedbackMessage>>>
         m_slHarqFbList; // List of pending SL HARQ FB messages
+
+    /**
+     * Structure to keep track of the RSRP measurements of a specific UE
+     * within a layer-1 filtering period
+     */
+    struct UeSlRsrpMeasurementsElement
+    {
+        double rsrpSum;   ///< Sum of RSRP sample values in linear unit.
+        uint16_t rsrpNum; ///< Number of RSRP samples.
+    };
+
+    /**
+     * Structure to store the RSRP measurements of the current layer-1 filtering period.
+     * Indexed by the L2Id of the UE the measurements come from
+     */
+    std::map<uint32_t, UeSlRsrpMeasurementsElement> m_ueSlRsrpMeasurementsMap;
+
+    /**
+     * True if a the UE is measuring and reporting UEs RSRP
+     */
+    bool m_ueSlRsrpMeasurementsEnabled;
+    /**
+     * The `ReportUeSlRsrpMeasurements` trace source. Contains trace information
+     * regarding sidelink RSRP measured.
+     * Exporting the RNTI of the originating UE, the L2 ID of the destination, and the RSRP (in dBm)
+     */
+    TracedCallback<uint16_t, uint32_t, double> m_reportUeSlRsrpMeasurements;
+
+    /**
+     * The RRC instructs the PHY to enable the RSRP measurements of the UEs in proximity
+     */
+    void DoEnableUeSlRsrpMeasurements();
+
+    /**
+     * The RRC instructs the PHY to disable the RSRP measurements of the UEs in proximity
+     */
+    void DoDisableUeSlRsrpMeasurements();
+
+    /**
+     * Perform the layer-1 filtering of RSRP measurements and report the
+     * results to the RRC entity.
+     */
+    void ReportUeSlRsrpMeasurements();
+
+    Time m_rsrpFilterPeriod; //!< L1 Filter Period for RSRP measurements
 };
 
 } // namespace ns3
