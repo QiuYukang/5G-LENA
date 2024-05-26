@@ -36,12 +36,6 @@ $ ./ns3 run "cttc-nr-v2x-demo-simple --help"
  * do that by including the name of the module you need with the suffix "-module.h".
  */
 
-#include "ue-mac-pscch-tx-output-stats.h"
-#include "ue-mac-pssch-tx-output-stats.h"
-#include "ue-phy-pscch-rx-output-stats.h"
-#include "ue-phy-pssch-rx-output-stats.h"
-#include "ue-to-ue-pkt-txrx-output-stats.h"
-
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/config-store-module.h"

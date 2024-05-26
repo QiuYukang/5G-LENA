@@ -44,12 +44,6 @@ $ ./ns3 run "nr-v2x-west-to-east-highway --help"
  *
  */
 
-#include "ue-mac-pscch-tx-output-stats.h"
-#include "ue-mac-pssch-tx-output-stats.h"
-#include "ue-phy-pscch-rx-output-stats.h"
-#include "ue-phy-pssch-rx-output-stats.h"
-#include "ue-rlc-rx-output-stats.h"
-#include "ue-to-ue-pkt-txrx-output-stats.h"
 #include "v2x-kpi.h"
 
 #include "ns3/antenna-module.h"

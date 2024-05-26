@@ -60,12 +60,6 @@ set(nr-v2x-examples_examples
     nr-v2x-west-to-east-highway
 )
 set(nr-v2x-examples_source_files
-    nr-v2x-examples/ue-mac-pscch-tx-output-stats.cc
-    nr-v2x-examples/ue-mac-pssch-tx-output-stats.cc
-    nr-v2x-examples/ue-phy-pscch-rx-output-stats.cc
-    nr-v2x-examples/ue-phy-pssch-rx-output-stats.cc
-    nr-v2x-examples/ue-rlc-rx-output-stats.cc
-    nr-v2x-examples/ue-to-ue-pkt-txrx-output-stats.cc
     nr-v2x-examples/v2x-kpi.cc
 )
 foreach(
