@@ -354,7 +354,11 @@ NrSlHelper::AssignStreams(NetDeviceContainer c, int64_t stream)
             for (uint32_t bwp = 0; bwp < ccMap.size(); bwp++)
             {
                 Ptr<NrSlUeMacScheduler> sched = ccMap.at(bwp)->GetNrSlUeMacScheduler();
-                currentStream += sched->AssignStreams(currentStream);
+                // Validate pointer before using, in case the BWP is not configured for sidelink
+                if (sched)
+                {
+                    currentStream += sched->AssignStreams(currentStream);
+                }
             }
         }
     }
