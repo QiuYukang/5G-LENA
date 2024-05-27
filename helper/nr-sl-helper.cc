@@ -15,6 +15,7 @@
 #include <ns3/lte-rrc-sap.h>
 #include <ns3/lte-sl-tft.h>
 #include <ns3/lte-ue-rrc.h>
+#include <ns3/node.h>
 #include <ns3/nr-amc.h>
 #include <ns3/nr-sl-bwp-manager-ue.h>
 #include <ns3/nr-sl-chunk-processor.h>
@@ -163,9 +164,18 @@ NrSlHelper::PrepareSingleUeForSidelink(Ptr<NrUeNetDevice> nrUeDev,
 
     for (const auto& itBwps : slBwpIds)
     {
+        auto nrSlUeMac = nrUeDev->GetMac(itBwps)->GetObject<NrSlUeMac>();
+        if (!nrSlUeMac)
+        {
+            NS_LOG_DEBUG("Skipping installation of SL components on node "
+                         << nrUeDev->GetNode()->GetId() << " bwpId " << +itBwps);
+            // could be a relay with some BWPs not configured for sidelink
+            continue;
+        }
+        NS_LOG_INFO("Installation of SL components on node " << nrUeDev->GetNode()->GetId()
+                                                             << " bwpId " << +itBwps);
         // Store BWP id in NrSlUeRrc
         nrUeDev->GetRrc()->GetObject<NrSlUeRrc>()->StoreSlBwpId(itBwps);
-        auto nrSlUeMac = nrUeDev->GetMac(itBwps)->GetObject<NrSlUeMac>();
         // SAPs between the RRC and the NR UE MAC
         lteUeRrc->SetNrSlUeCmacSapProvider(itBwps, nrSlUeMac->GetNrSlUeCmacSapProvider());
         nrSlUeMac->SetNrSlUeCmacSapUser(lteUeRrc->GetNrSlUeCmacSapUser());

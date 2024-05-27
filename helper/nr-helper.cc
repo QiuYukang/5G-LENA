@@ -502,6 +502,24 @@ NrHelper::InstallUeDevice(const NodeContainer& c,
 }
 
 NetDeviceContainer
+NrHelper::InstallUeDevice(const NodeContainer& c,
+                          const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps,
+                          const std::vector<ObjectFactory>& ueMacFactories)
+{
+    NS_LOG_FUNCTION(this);
+    Initialize(); // Run DoInitialize (), if necessary
+    NetDeviceContainer devices;
+    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
+    {
+        Ptr<Node> node = *i;
+        Ptr<NetDevice> device = InstallSingleUeDevice(node, allBwps, ueMacFactories);
+        device->SetAddress(Mac48Address::Allocate());
+        devices.Add(device);
+    }
+    return devices;
+}
+
+NetDeviceContainer
 NrHelper::InstallGnbDevice(const NodeContainer& c,
                            const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps)
 {
@@ -641,6 +659,150 @@ NrHelper::InstallSingleUeDevice(
         cc->SetUlEarfcn(0); // Used for nothing..
 
         auto mac = CreateUeMac();
+        cc->SetMac(mac);
+
+        auto phy = CreateUePhy(
+            n,
+            allBwps[bwpId].get(),
+            dev,
+            MakeCallback(&NrUeNetDevice::EnqueueDlHarqFeedback, dev),
+            std::bind(&NrUeNetDevice::RouteIngoingCtrlMsgs, dev, std::placeholders::_1, bwpId));
+
+        phy->SetBwpId(bwpId);
+        cc->SetPhy(phy);
+
+        if (bwpId == 0)
+        {
+            cc->SetAsPrimary(true);
+        }
+        else
+        {
+            cc->SetAsPrimary(false);
+        }
+
+        ueCcMap.insert(std::make_pair(bwpId, cc));
+    }
+
+    Ptr<LteUeComponentCarrierManager> ccmUe =
+        DynamicCast<LteUeComponentCarrierManager>(m_bwpManagerFactory.Create());
+    DynamicCast<BwpManagerUe>(ccmUe)->SetBwpManagerAlgorithm(
+        m_ueBwpManagerAlgoFactory.Create<BwpManagerAlgorithm>());
+
+    Ptr<LteUeRrc> rrc = CreateObject<LteUeRrc>();
+    rrc->m_numberOfComponentCarriers = ueCcMap.size();
+    // run InitializeSap to create the proper number of sap provider/users
+    rrc->InitializeSap();
+    rrc->SetLteMacSapProvider(ccmUe->GetLteMacSapProvider());
+    // setting ComponentCarrierManager SAP
+    rrc->SetLteCcmRrcSapProvider(ccmUe->GetLteCcmRrcSapProvider());
+    ccmUe->SetLteCcmRrcSapUser(rrc->GetLteCcmRrcSapUser());
+    ccmUe->SetNumberOfComponentCarriers(ueCcMap.size());
+
+    bool useIdealRrc = true;
+    if (useIdealRrc)
+    {
+        Ptr<nrUeRrcProtocolIdeal> rrcProtocol = CreateObject<nrUeRrcProtocolIdeal>();
+        rrcProtocol->SetUeRrc(rrc);
+        rrc->AggregateObject(rrcProtocol);
+        rrcProtocol->SetLteUeRrcSapProvider(rrc->GetLteUeRrcSapProvider());
+        rrc->SetLteUeRrcSapUser(rrcProtocol->GetLteUeRrcSapUser());
+    }
+    else
+    {
+        Ptr<LteUeRrcProtocolReal> rrcProtocol = CreateObject<LteUeRrcProtocolReal>();
+        rrcProtocol->SetUeRrc(rrc);
+        rrc->AggregateObject(rrcProtocol);
+        rrcProtocol->SetLteUeRrcSapProvider(rrc->GetLteUeRrcSapProvider());
+        rrc->SetLteUeRrcSapUser(rrcProtocol->GetLteUeRrcSapUser());
+    }
+
+    if (m_epcHelper != nullptr)
+    {
+        rrc->SetUseRlcSm(false);
+    }
+    else
+    {
+        rrc->SetUseRlcSm(true);
+    }
+    Ptr<EpcUeNas> nas = CreateObject<EpcUeNas>();
+
+    nas->SetAsSapProvider(rrc->GetAsSapProvider());
+    nas->SetDevice(dev);
+    nas->SetForwardUpCallback(MakeCallback(&NrUeNetDevice::Receive, dev));
+
+    rrc->SetAsSapUser(nas->GetAsSapUser());
+
+    for (auto& it : ueCcMap)
+    {
+        rrc->SetLteUeCmacSapProvider(it.second->GetMac()->GetUeCmacSapProvider(), it.first);
+        it.second->GetMac()->SetUeCmacSapUser(rrc->GetLteUeCmacSapUser(it.first));
+
+        it.second->GetPhy()->SetUeCphySapUser(rrc->GetLteUeCphySapUser());
+        rrc->SetLteUeCphySapProvider(it.second->GetPhy()->GetUeCphySapProvider(), it.first);
+
+        it.second->GetPhy()->SetPhySapUser(it.second->GetMac()->GetPhySapUser());
+        it.second->GetMac()->SetPhySapProvider(it.second->GetPhy()->GetPhySapProvider());
+
+        bool ccmTest =
+            ccmUe->SetComponentCarrierMacSapProviders(it.first,
+                                                      it.second->GetMac()->GetUeMacSapProvider());
+
+        if (!ccmTest)
+        {
+            NS_FATAL_ERROR("Error in SetComponentCarrierMacSapProviders");
+        }
+    }
+
+    NS_ABORT_MSG_IF(m_imsiCounter >= 0xFFFFFFFF, "max num UEs exceeded");
+    uint64_t imsi = ++m_imsiCounter;
+
+    dev->SetAttribute("Imsi", UintegerValue(imsi));
+    dev->SetCcMap(ueCcMap);
+    dev->SetAttribute("nrUeRrc", PointerValue(rrc));
+    dev->SetAttribute("EpcUeNas", PointerValue(nas));
+    dev->SetAttribute("LteUeComponentCarrierManager", PointerValue(ccmUe));
+
+    n->AddDevice(dev);
+
+    if (m_epcHelper != nullptr)
+    {
+        m_epcHelper->AddUe(dev, dev->GetImsi());
+    }
+
+    dev->Initialize();
+
+    return dev;
+}
+
+Ptr<NetDevice>
+NrHelper::InstallSingleUeDevice(
+    const Ptr<Node>& n,
+    const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+    const std::vector<ObjectFactory>& ueMacFactories)
+{
+    NS_LOG_FUNCTION(this);
+
+    Ptr<NrUeNetDevice> dev = m_ueNetDeviceFactory.Create<NrUeNetDevice>();
+    dev->SetNode(n);
+
+    std::map<uint8_t, Ptr<BandwidthPartUe>> ueCcMap;
+
+    NS_ABORT_MSG_UNLESS(ueMacFactories.size() == allBwps.size(), "Configuration size mismatch");
+    // Create, for each ue, its bandwidth parts
+    for (uint32_t bwpId = 0; bwpId < allBwps.size(); ++bwpId)
+    {
+        Ptr<BandwidthPartUe> cc = CreateObject<BandwidthPartUe>();
+        double bwInKhz = allBwps[bwpId].get()->m_channelBandwidth / 1000.0;
+        NS_ABORT_MSG_IF(bwInKhz / 100.0 > 65535.0,
+                        "A bandwidth of " << bwInKhz / 100.0 << " kHz cannot be represented");
+        cc->SetUlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
+        cc->SetDlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
+        cc->SetDlEarfcn(0); // Used for nothing..
+        cc->SetUlEarfcn(0); // Used for nothing..
+
+        auto mac = ueMacFactories[bwpId].Create<NrUeMac>();
+        NS_LOG_INFO("Configuring NrUeMac type of " << mac->GetTypeId().GetName() << " on node "
+                                                   << n->GetId() << " bwpId " << +bwpId);
         cc->SetMac(mac);
 
         auto phy = CreateUePhy(

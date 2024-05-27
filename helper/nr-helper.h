@@ -230,6 +230,17 @@ class NrHelper : public Object
         const NodeContainer& c,
         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps);
     /**
+     * \brief Install one (or more) UEs with a dedicated NrUeMac object factory per BWP
+     * \param c Node container with the UEs
+     * \param allBwps The spectrum configuration that comes from CcBwpHelper
+     * \param ueMacFactories Object factories to use for NrUeMac corresponding to each Bwp
+     * \return a NetDeviceContainer with the net devices that have been installed.
+     */
+    NetDeviceContainer InstallUeDevice(
+        const NodeContainer& c,
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps,
+        const std::vector<ObjectFactory>& ueMacFactories);
+    /**
      * \brief Install one (or more) GNBs
      * \param c Node container with the GNB
      * \param allBwps The spectrum configuration that comes from CcBwpHelper
@@ -953,6 +964,10 @@ class NrHelper : public Object
     Ptr<NetDevice> InstallSingleUeDevice(
         const Ptr<Node>& n,
         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+    Ptr<NetDevice> InstallSingleUeDevice(
+        const Ptr<Node>& n,
+        const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps,
+        const std::vector<ObjectFactory>& ueMacFactories);
     Ptr<NetDevice> InstallSingleGnbDevice(
         const Ptr<Node>& n,
         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
