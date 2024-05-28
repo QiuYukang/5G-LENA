@@ -1427,6 +1427,9 @@ NrSlUeMac::DoAddNrSlLc(const NrSlUeCmacSapProvider::SidelinkLogicalChannelInfo& 
                        NrSlMacSapUser* msu)
 {
     NS_LOG_FUNCTION(this << +slLcInfo.lcId << slLcInfo.srcL2Id << slLcInfo.dstL2Id);
+    NS_LOG_INFO("IMSI " << GetImsi() << " adding LC from " << slLcInfo.srcL2Id << " to "
+                        << slLcInfo.dstL2Id << " lcId " << +slLcInfo.lcId << " dynamic "
+                        << slLcInfo.dynamic << " pdb " << slLcInfo.pdb.As(Time::MS));
     SidelinkLcIdentifier slLcIdentifier;
     slLcIdentifier.lcId = slLcInfo.lcId;
     slLcIdentifier.srcL2Id = slLcInfo.srcL2Id;
@@ -1463,6 +1466,10 @@ NrSlUeMac::DoRemoveNrSlLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id)
     slLcIdentifier.dstL2Id = dstL2Id;
     NS_ASSERT_MSG(m_nrSlLcInfoMap.find(slLcIdentifier) != m_nrSlLcInfoMap.end(),
                   "could not find Sidelink LCID " << slLcId);
+    if (srcL2Id == m_srcL2Id)
+    {
+        m_nrSlUeMacScheduler->RemoveNrSlLcConfigReq(slLcId, dstL2Id);
+    }
     m_nrSlLcInfoMap.erase(slLcIdentifier);
 }
 
@@ -1566,10 +1573,10 @@ NrSlUeMac::DoAddNrSlRxDstL2Id(uint32_t dstL2Id)
 }
 
 void
-NrSlUeMac::DoRemoveNrSlRxDstL2Id (uint32_t dstL2Id)
+NrSlUeMac::DoRemoveNrSlRxDstL2Id(uint32_t dstL2Id)
 {
-  NS_LOG_FUNCTION (this << dstL2Id);
-  m_sidelinkRxDestinations.erase (dstL2Id);
+    NS_LOG_FUNCTION(this << dstL2Id);
+    m_sidelinkRxDestinations.erase(dstL2Id);
 }
 
 uint8_t
