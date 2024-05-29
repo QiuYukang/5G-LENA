@@ -135,6 +135,11 @@ NrUePhy::GetTypeId()
                           TimeValue(MicroSeconds(100)),
                           MakeTimeAccessor(&NrPhy::SetTbDecodeLatency, &NrPhy::GetTbDecodeLatency),
                           MakeTimeChecker())
+            .AddAttribute("RsrpFilterPeriod",
+                          "L1 Filter period for RSRP",
+                          TimeValue(MilliSeconds(200)),
+                          MakeTimeAccessor(&NrUePhy::m_rsrpFilterPeriod),
+                          MakeTimeChecker())
             .AddAttribute("EnableUplinkPowerControl",
                           "If true, Uplink Power Control will be enabled.",
                           BooleanValue(false),
@@ -2229,9 +2234,36 @@ NrUePhy::PhyPsschPduReceived(const Ptr<PacketBurst>& pb, const SpectrumValue& ps
 
     for (auto& pktIt : dataPkts)
     {
+        uint32_t srcL2Id = sciF2a.GetSrcId();
         Ptr<Packet> packet = pktIt->Copy();
         packet->RemovePacketTag(tag);
+
+        double rsrpWatt = GetSidelinkRsrp(psd).first;
+
+        // We only monitor RSRP for relay discovery messages (LCID = 4)
+        if ((tag.GetLcid() == 4))
+        {
+            // Store RSRP for L1 filtering
+            std::map<uint32_t, UeSlRsrpMeasurementsElement>::iterator itRsrp =
+                m_ueSlRsrpMeasurementsMap.find(srcL2Id);
+            if (itRsrp == m_ueSlRsrpMeasurementsMap.end())
+            {
+                NS_LOG_LOGIC(this << "First RSRP measurement entry");
+                UeSlRsrpMeasurementsElement elt;
+                elt.rsrpSum = rsrpWatt;
+                elt.rsrpNum = 1;
+                m_ueSlRsrpMeasurementsMap.insert(
+                    std::pair<uint32_t, UeSlRsrpMeasurementsElement>(srcL2Id, elt));
+            }
+            else
+            {
+                NS_LOG_LOGIC(this << "RSRP Measurement entry found... Adding values");
+                itRsrp->second.rsrpSum += rsrpWatt;
+                itRsrp->second.rsrpNum++;
+            }
+        }
     }
+
     NS_LOG_INFO("Scheduling ReceivePsschPhyPdu after decode latency of "
                 << GetTbDecodeLatency().As(Time::US));
     Simulator::ScheduleWithContext(m_netDevice->GetNode()->GetId(),
@@ -2278,6 +2310,8 @@ void
 NrUePhy::DoEnableUeSlRsrpMeasurements()
 {
     NS_LOG_FUNCTION(this);
+    NS_ABORT_MSG_IF(m_rsrpFilterPeriod.IsZero(),
+                    "RSRP filter period must be non-zero; otherwise will endlessly loop");
     Simulator::Schedule(m_rsrpFilterPeriod, &NrUePhy::ReportUeSlRsrpMeasurements, this);
     m_ueSlRsrpMeasurementsEnabled = true;
     // Let the RRC know the L1 measurement period
@@ -2309,7 +2343,6 @@ NrUePhy::ReportUeSlRsrpMeasurements()
 
             NS_LOG_INFO(this << " UE L2 Id " << it->first << " averaged RSRP (dBm) " << avgRsrpDbm
                              << " number of measurements " << it->second.rsrpNum);
-
             NrSlUeCphySapUser::RsrpElement elt;
             elt.l2Id = it->first;
             elt.rsrp = avgRsrpDbm;
@@ -2319,8 +2352,6 @@ NrUePhy::ReportUeSlRsrpMeasurements()
             m_reportUeSlRsrpMeasurements(m_rnti, it->first, avgRsrpDbm);
         }
 
-        // Notify RRC
-        m_nrSlUeCphySapUser->ReceiveUeSlRsrpMeasurements(rsrpList);
         // Notify RRC
         m_nrSlUeCphySapUser->ReceiveUeSlRsrpMeasurements(rsrpList);
 
