@@ -35,23 +35,6 @@ class Socket;
  * UDP sockets can not be used.
  */
 
-/**
- * \ingroup filetransfer
- *
- * \brief Send as much traffic as possible, trying to fill the bandwidth.
- *
- * This traffic generator simply sends data
- * as fast as possible up to FileSize or until
- * the application is stopped (if FileSize is
- * zero). Once the lower layer send buffer is
- * filled, it waits until space is free to
- * send more data, essentially keeping a
- * constant flow of data. Only SOCK_STREAM
- * and SOCK_SEQPACKET sockets are supported.
- * For example, TCP sockets can be used, but
- * UDP sockets can not be used.
- *
- */
 class TrafficGenerator : public Application
 {
   public:
@@ -111,6 +94,16 @@ class TrafficGenerator : public Application
     /// Traced Callback: sent packets
     typedef TracedCallback<Ptr<const Packet>> TxTracedCallback;
     TxTracedCallback m_txTrace;
+
+    /**
+     * Assign a fixed random variable stream number to the random variables
+     * used by this model. Return the number of streams (possibly zero) that
+     * have been assigned.
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    int64_t AssignStreams(int64_t stream) override;
 
   protected:
     void DoDispose() override;

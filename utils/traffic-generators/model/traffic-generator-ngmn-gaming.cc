@@ -267,4 +267,14 @@ TrafficGeneratorNgmnGaming::DoInitialize()
     TrafficGenerator::DoInitialize();
 }
 
+int64_t
+TrafficGeneratorNgmnGaming::AssignStreams(int64_t stream)
+{
+    m_initPacketArrivalVariable->SetStream(stream);
+    m_packetSizeRandomVariable->SetStream(stream + 1);
+    m_packetArrivalVariable->SetStream(stream + 2);
+
+    return 3;
+}
+
 } // Namespace ns3

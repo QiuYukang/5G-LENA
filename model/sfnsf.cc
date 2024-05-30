@@ -8,8 +8,6 @@
 
 #include "ns3/abort.h"
 
-#include <math.h>
-
 namespace ns3
 {
 
@@ -136,19 +134,12 @@ SfnSf::operator<(const SfnSf& rhs) const
     {
         return true;
     }
-    else if ((m_frameNum == rhs.m_frameNum) && (m_subframeNum < rhs.m_subframeNum))
+    if ((m_frameNum == rhs.m_frameNum) && (m_subframeNum < rhs.m_subframeNum))
     {
         return true;
     }
-    else if (((m_frameNum == rhs.m_frameNum) && (m_subframeNum == rhs.m_subframeNum)) &&
-             (m_slotNum < rhs.m_slotNum))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return (((m_frameNum == rhs.m_frameNum) && (m_subframeNum == rhs.m_subframeNum)) &&
+            (m_slotNum < rhs.m_slotNum));
 }
 
 bool

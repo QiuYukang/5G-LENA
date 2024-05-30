@@ -11,8 +11,6 @@
     } while (false);
 #include "nr-mac-scheduler-harq-rr.h"
 
-#include "beam-id.h"
-
 #include <ns3/log.h>
 
 #include <algorithm>

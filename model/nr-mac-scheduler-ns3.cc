@@ -18,7 +18,6 @@
 #include "nr-mac-short-bsr-ce.h"
 
 #include <ns3/boolean.h>
-#include <ns3/eps-bearer.h>
 #include <ns3/integer.h>
 #include <ns3/log.h>
 #include <ns3/pointer.h>

@@ -116,7 +116,7 @@ TrafficGeneratorNgmnVoip::StopApplication()
 {
     NS_LOG_FUNCTION(this);
     TrafficGenerator::StopApplication();
-    NS_ASSERT(m_updateState.IsRunning());
+    NS_ASSERT(m_updateState.IsPending());
     m_updateState.Cancel();
 }
 
@@ -212,6 +212,15 @@ TrafficGeneratorNgmnVoip::DoInitialize()
     m_fromInactiveToActive->SetAttribute("Max", DoubleValue(1));
     // chain up
     TrafficGenerator::DoInitialize();
+}
+
+int64_t
+TrafficGeneratorNgmnVoip::AssignStreams(int64_t stream)
+{
+    m_fromActiveToInactive->SetStream(stream);
+    m_fromInactiveToActive->SetStream(stream + 1);
+
+    return 2;
 }
 
 } // Namespace ns3

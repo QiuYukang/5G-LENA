@@ -8,55 +8,64 @@ SPDX-License-Identifier: GPL-2.0-only
 This is an [ns-3](https://www.nsnam.org "ns-3 Website") NR module for the simulation of NR V2X.
 ns-3 is used as a base, on top of which we add NR module with V2X extensions as plug-in.
 
-## ns-3 + NR prerequisites
+## License ##
 
-### ns-3 prerequisites:
+This software is licensed under the terms of the GNU GPLv2, as like as ns-3.
+See the LICENSE file for more details.
 
-Make sure to install all [ns-3 prerequisites](https://www.nsnam.org/docs/installation/html/index.html)
+## Features
 
-### NR prerequisites:
+To see the features, please go to the [official webpage](https://5g-lena.cttc.es/features/).
 
-Install libc6-dev (it provides `semaphore.h` header file).  The Ubuntu
-package name is:
+## Papers
 
-```
-sudo apt-get install libc6-dev
-```
+An updated list of published papers that are based on the outcome of this
+module is available
+[here](https://5g-lena.cttc.es/papers/).
 
-Install sqlite:
+## About
 
-```
-apt-get install sqlite sqlite3 libsqlite3-dev
-```
+The [OpenSim](https://www.cttc.cat/open-simulations-opensim/) research group in CTTC is a group of highly skilled researchers,
+with expertise in the area of cellular networks, O-RAN, radio resource management,
+ML/AI based network management, with a focus on the following research lines:
 
-Notice that ns-3 and nr prerequisites are required (otherwise you will get an error, e.g: `fatal error: ns3/sqlite-output.h`).
+- Developing models, algorithms, and architectures for next-generation virtualized open radio access networks
+- Designing, implementing, validating, and evaluating 5G and beyond extensions in ns-3, including licensed/unlicensed/shared-based access and vehicular communications
+- Deriving 3GPP/IEEE technologies coexistence and spectrum sharing strategies
+- Designing radio resource, interference, and spectrum management techniques.
 
-## ns-3 + nr installation
+## Collaborations
 
 The implementation of NR V2X is divided between ns-3 LTE (RLC and above) and
 5G-LENA NR (MAC and PHY) modules, and it is contained in separate branches.
 Therefore, to be able to use this code one has to use CTTC customized LTE module
 of ns-3, and a specific branch in the nr module.
 
-###  Download ns-3 with extensions for V2X:
+### 1. Download ns-3 with extensions for V2X:
 
 ```
 git clone https://gitlab.com/cttc-lena/ns-3-dev.git
 cd ns-3-dev
+git checkout -b v2x-lte-dev origin/v2x-lte-dev
 ```
 
-### Download the NR module:
+### 2. Switch to the recommended ns-3 release branch that includes V2X extensions:
+
+Switch to ns-3 branch with V2X extensions:
+
+```
+cd ../..
+$ git checkout -b v2x-lte-dev origin/v2x-lte-dev
+```
+
+### 3. Download nr with extensions for V2X:
 
 ```
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 ```
 
-Notice that since these are two independent git repositories, when you run
-`git status` inside of the ns-3, you will notice that the contrib/nr
-directory will be listed as "Untracked files". This is normal.
-
-### 3. Switch to the latest NR release branch with V2X extensions:
+### 4. Switch to the latest NR release branch with V2X extensions:
 
 Checkout the latest NR release branch (usually the branch with the highest version
 number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
@@ -66,15 +75,6 @@ in the following way:
 ```
 cd nr
 git checkout 5g-lena-v2x-v0.4.y
-```
-
-### 4. Switch to the recommended ns-3 release branch that includes V2X extensions:
-
-Switch to ns-3 branch with V2X extensions:
-
-```
-cd ../..
-$ git checkout -b v2x-lte-dev origin/v2x-lte-dev
 ```
 
 ### 5. Check out compatible ns-3 V2X tag
@@ -87,6 +87,99 @@ To check out the correct tag, consult the following table:
 | 5g-lena-v2x-v0.2.y | ns-3-dev-v2x-v0.2 | cmake | ns-3.36 |
 | 5g-lena-v2x-v0.3.y | ns-3-dev-v2x-v0.3 | cmake | ns-3.40 |
 | 5g-lena-v2x-v0.4.y | ns-3-dev-v2x-v0.4 | cmake | ns-3.41 |
+=======
+## ns-3 + nr prerequisites
+
+### ns-3 prerequisites:
+
+Make sure to install all [ns-3 prerequisites](https://www.nsnam.org/docs/installation/html/quick-start.html#prerequisites)
+
+### nr prerequisites: {#prerequisites}
+
+Install libc6-dev (it provides `semaphore.h` header file).  The Ubuntu
+package name is:
+
+```
+sudo apt-get install libc6-dev
+```
+
+Install sqlite (enables optional examples `lena-lte-comparison`,
+`cttc-nr-3gpp-calibration` and `cttc-realistic-beamforming`):
+
+```
+apt-get install sqlite sqlite3 libsqlite3-dev
+```
+
+Install eigen3 (enables optional MIMO features):
+
+```
+apt-get install libeigen3-dev
+```
+
+Notice that ns-3 and nr prerequisites are required to use all nr features.
+Otherwise, you will get a warning at configuration time
+and/or an error message during compilation or execution.
+
+## ns-3 + nr installation
+
+Check in the [nr RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the
+recommended ns-3 release for each nr release.
+
+For a quicker reference we provide a table with the supported versions of ns-3-dev
+for each nr release.
+
+| nr version     | ns-3 version | Build system  | Release date       |
+| :------------: | :-----------:| :-----------: |--------------------|
+| 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |
+| 5g-lena-v2.6.y | ns-3.40      | cmake         | November 30, 2023  |
+| 5g-lena-v2.5.y | ns-3.39      | cmake         | July 26, 2023      |
+| 5g-lena-v2.4.y | ns-3.38      | cmake         | April 5, 2023      |
+| 5g-lena-v2.3.y | ns-3.37      | cmake         | November 23, 2022  |
+| 5g-lena-v2.2.y | ns-3.36.1    | cmake         | June 03, 2022      |
+| 5g-lena-v2.1.y | ns-3.36      | cmake         | May 06, 2022       |
+| 5g-lena-v2.0.y | ns-3.36      | cmake         | April 21, 2022     |
+| 5g-lena-v1.3.y | ns-3.35      | waf           | April 7, 2022      |
+| 5g-lena-v1.2.y | ns-3-dev     | waf           | June 4, 2021       |
+| 5g-lena-v1.1.y | ns-3-dev     | waf           | March 2, 2021      |
+| 5g-lena-v1.0.y | ns-3-dev     | waf           | September 16, 2020 |
+| 5g-lena-v0.4.y | ns-3-dev     | waf           | February 13 2020   |
+| 5g-lena-v0.3.y | ns-3-dev     | waf           | August 27 2019     |
+| 5g-lena-v0.2.y | ns-3-dev     | waf           | February 1 2019    |
+
+###  Download ns-3:
+
+Download then checkout the compatible version of ns-3:
+
+```
+git clone https://gitlab.com/nsnam/ns-3-dev.git
+cd ns-3-dev
+git checkout -b ns-3.41 ns-3.41
+```
+
+To make sure everything is working properly, run the ns-3 tests:
+
+```
+$ ./ns3 configure --enable-examples --enable-tests
+$ ./test.py
+```
+
+A success for both previous commands indicates an overall success, and you are
+ready to install the nr module.
+
+### Download the nr module:
+
+Download then checkout the compatible version of nr:
+
+```
+cd contrib
+git clone https://gitlab.com/cttc-lena/nr.git
+cd nr
+git checkout -b 5g-lena-v3.0.y origin/5g-lena-v3.0.y
+```
+
+Notice that since these are two independent git repositories, when you run
+`git status` inside of the ns-3, you will notice that the contrib/nr
+directory will be listed as "Untracked files". This is normal.
 
 For example, for NR release branch called 5g-lena-v2x-v0.4.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.4.
 (To see the list of available ns-3 v2x release tags you can run: `git tag -l "*v2x*"`)
@@ -110,7 +203,17 @@ cd ../..
 
 In the output you should see: `SQLite stats support: enabled`. If that is not the case, return to "ns-3 and NR prerequisites" section, and install all prerequisites. After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
 
-To compile the ns-3 with NR you can run the following command:
+In the output you should see:
+
+```
+SQLite support                : ON
+Eigen3 support                : ON
+```
+
+If that is not the case, return to "ns-3 and nr prerequisites" section, and install all prerequisites.
+After the installation of the missing packages run again `./ns3 configure --enable-tests --enable-examples`.
+
+To compile the ns-3 with nr you can run the following command:
 
 ```
 ./ns3 build
@@ -119,9 +222,44 @@ To compile the ns-3 with NR you can run the following command:
 If the NR module is recognized correctly, you should see "nr" in the list of
 built modules. If that is the case, _Welcome to the NR V2X world !_
 
-Further instructions on how to run the examples are given in the [Getting Started instructions](https://cttc-lena.gitlab.io/nr/html/getting-started.html).
-
 ## Run examples:
+
+Note that some of the examples may be missing if
+the dependencies listed in [nr Prerequisites](#prerequisites)
+section haven't been installed.
+
+Also, the nr target listed below is the module library for nr,
+so it **cannot** be used with `./ns3 run`, and only `./ns3 build nr`.
+```
+$ ./ns3 show targets | grep nr
+nix-vector-routing            nr
+cttc-lte-ca-demo              cttc-nr-3gpp-calibration-user
+cttc-nr-cc-bwp-demo           cttc-nr-demo
+cttc-nr-mimo-demo             cttc-nr-multi-flow-qos-sched
+cttc-nr-notching              cttc-nr-simple-qos-sched
+cttc-nr-traffic-3gpp-xr       cttc-nr-traffic-ngmn-mixed
+```
+
+Now, you can run one of these examples
+(see the nr/examples folder for their source code):
+
+```
+$ ./ns3 run cttc-nr-demo
+```
+
+The `cttc-nr-demo` example has a complete tutorial explaining the
+example in details available [here](https://cttc-lena.gitlab.io/nr/cttc-nr-demo-tutorial.pdf).
+
+Note: when writing or modifying examples, be aware that
+our code is stored under the ns3 namespace. You will either
+need to use such namespace or add the prefix "ns3::" for
+classes, structs and enums.
+
+## Upgrading 5G-LENA {#upgrade}
+
+We assume that your work lives in a separate branch, and that the 'master'
+branch of the nr repository is left untouched as the first time you downloaded
+it. If it is not the case, then please move all your work in a separate branch.
 
 To run `cttc-nr-v2x-demo-simple.cc` example from the nr/examples folder run:
 

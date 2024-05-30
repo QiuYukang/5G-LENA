@@ -11,7 +11,6 @@
 #include <ns3/internet-module.h>
 #include <ns3/network-module.h>
 #include <ns3/node.h>
-#include <ns3/ping-helper.h>
 #include <ns3/traffic-generator-helper.h>
 
 namespace ns3
@@ -98,6 +97,16 @@ class ThreeGppFtpM1Helper : public Object
      * \brief Start to generate file transfers according to FTP Model 1
      */
     void Start();
+
+    /**
+     * Assign a fixed random variable stream number to the random variables
+     * used by this model. Return the number of streams (possibly zero) that
+     * have been assigned.
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    int64_t AssignStreams(int64_t stream);
 
   private:
     /**

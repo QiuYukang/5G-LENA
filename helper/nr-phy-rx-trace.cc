@@ -14,6 +14,7 @@
 #include <ns3/string.h>
 
 #include <stdio.h>
+#include <string>
 
 namespace ns3
 {
@@ -237,9 +238,8 @@ NrPhyRxTrace::UlSinrTraceCallback(Ptr<NrPhyRxTrace> phyStats,
     uint64_t tti_count = Now().GetMicroSeconds() / 125;
     uint32_t rb_count = 1;
     FILE* log_file;
-    char fname[255];
-    sprintf(fname, "UE_%llu_UL_SINR_dB.txt", (long long unsigned)imsi);
-    log_file = fopen(fname, "a");
+    std::string fname = "UE_" + std::to_string(imsi) + "_UL_SINR_dB.txt";
+    log_file = fopen(fname.c_str(), "a");
     Values::iterator it = sinr.ValuesBegin();
     while (it != sinr.ValuesEnd())
     {
@@ -673,9 +673,8 @@ NrPhyRxTrace::ReportInterferenceTrace(uint64_t imsi, SpectrumValue& sinr)
     uint64_t tti_count = Now().GetMicroSeconds() / 125;
     uint32_t rb_count = 1;
     FILE* log_file;
-    char fname[255];
-    sprintf(fname, "UE_%llu_SINR_dB.txt", (long long unsigned)imsi);
-    log_file = fopen(fname, "a");
+    std::string fname = "UE_" + std::to_string(imsi) + "_SINR_dB.txt";
+    log_file = fopen(fname.c_str(), "a");
     Values::iterator it = sinr.ValuesBegin();
     while (it != sinr.ValuesEnd())
     {
@@ -699,9 +698,8 @@ NrPhyRxTrace::ReportPowerTrace(uint64_t imsi, SpectrumValue& power)
     uint32_t tti_count = Now().GetMicroSeconds() / 125;
     uint32_t rb_count = 1;
     FILE* log_file;
-    char fname[255];
-    printf(fname, "UE_%llu_ReceivedPower_dB.txt", (long long unsigned)imsi);
-    log_file = fopen(fname, "a");
+    std::string fname = "UE_" + std::to_string(imsi) + "_ReceivedPower_dB.txt";
+    log_file = fopen(fname.c_str(), "a");
     Values::iterator it = power.ValuesBegin();
     while (it != power.ValuesEnd())
     {
@@ -747,9 +745,8 @@ void
 NrPhyRxTrace::ReportPacketCountUe(UePhyPacketCountParameter param)
 {
     FILE* log_file;
-    char fname[255];
-    sprintf(fname, "UE_%llu_Packet_Trace.txt", (long long unsigned)param.m_imsi);
-    log_file = fopen(fname, "a");
+    std::string fname = "UE_" + std::to_string(param.m_imsi) + "_Packet_Trace.txt";
+    log_file = fopen(fname.c_str(), "a");
     if (param.m_isTx)
     {
         fprintf(log_file, "%d\t%d\t%d\n", param.m_subframeno, param.m_noBytes, 0);
@@ -767,9 +764,8 @@ void
 NrPhyRxTrace::ReportPacketCountEnb(GnbPhyPacketCountParameter param)
 {
     FILE* log_file;
-    char fname[255];
-    sprintf(fname, "BS_%llu_Packet_Trace.txt", (long long unsigned)param.m_cellId);
-    log_file = fopen(fname, "a");
+    std::string fname = "BS_" + std::to_string(param.m_cellId) + "_Packet_Trace.txt";
+    log_file = fopen(fname.c_str(), "a");
     if (param.m_isTx)
     {
         fprintf(log_file, "%d\t%d\t%d\n", param.m_subframeno, param.m_noBytes, 0);
@@ -787,9 +783,8 @@ void
 NrPhyRxTrace::ReportDLTbSize(uint64_t imsi, uint64_t tbSize)
 {
     FILE* log_file;
-    char fname[255];
-    sprintf(fname, "UE_%llu_Tb_Size.txt", (long long unsigned)imsi);
-    log_file = fopen(fname, "a");
+    std::string fname = "UE_" + std::to_string(imsi) + "_Tb_Size.txt";
+    log_file = fopen(fname.c_str(), "a");
 
     fprintf(log_file,
             "%llu \t %llu\n",

@@ -13,7 +13,6 @@
 #include <ns3/callback.h>
 #include <ns3/config.h>
 #include <ns3/double.h>
-#include <ns3/ff-mac-scheduler.h>
 #include <ns3/integer.h>
 #include <ns3/log.h>
 #include <ns3/mobility-helper.h>
@@ -21,8 +20,6 @@
 #include <ns3/pointer.h>
 #include <ns3/rng-seed-manager.h>
 #include <ns3/simulator.h>
-#include <ns3/spectrum-value.h>
-#include <ns3/string.h>
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NrUplinkPowerControlTestCase");
@@ -108,19 +105,19 @@ class NrUplinkPowerControlTestCase : public TestCase
 };
 
 NrUplinkPowerControlTestSuite::NrUplinkPowerControlTestSuite()
-    : TestSuite("nr-uplink-power-control-test", SYSTEM)
+    : TestSuite("nr-uplink-power-control-test", Type::SYSTEM)
 {
     // LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_DEBUG);
     // LogComponentEnable ("NrUplinkPowerControlTestSuite", logLevel);
     NS_LOG_INFO("Creating NrUplinkPowerControlTestSuite");
     AddTestCase(new NrUplinkPowerControlTestCase("OpenLoopPowerControlTest", false, false),
-                TestCase::QUICK);
+                Duration::QUICK);
     AddTestCase(
         new NrUplinkPowerControlTestCase("ClosedLoopPowerControlAbsoluteModeTest", true, false),
-        TestCase::QUICK);
+        Duration::QUICK);
     AddTestCase(
         new NrUplinkPowerControlTestCase("ClosedLoopPowerControlAccumulatedModeTest", true, true),
-        TestCase::QUICK);
+        Duration::QUICK);
 }
 
 static NrUplinkPowerControlTestSuite lteUplinkPowerControlTestSuite;

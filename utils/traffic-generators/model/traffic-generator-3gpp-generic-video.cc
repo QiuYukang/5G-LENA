@@ -315,7 +315,7 @@ TrafficGenerator3gppGenericVideo::ReceiveLoopbackInformation(double packetLoss,
 {
     NS_LOG_FUNCTION(this);
 
-    if (!m_stopEvent.IsRunning())
+    if (!m_stopEvent.IsPending())
     {
         NS_LOG_WARN("The application stopped working ignore this function call...");
         return;
@@ -446,8 +446,7 @@ TrafficGenerator3gppGenericVideo::ReceiveLoopbackInformation(double packetLoss,
         */
     // update mean packet size
     m_meanPacketSize = (m_dataRate * 1e6) / (m_fps) / 8;
-    // update packet size random generator
-    m_packetSize = CreateObject<NormalRandomVariable>();
+    // update packet size random generator parameters
     m_packetSize->SetAttribute("Mean", DoubleValue(m_meanPacketSize));
     m_packetSize->SetAttribute("Variance", DoubleValue(m_stdRatioPacketSize * m_meanPacketSize));
 
@@ -468,6 +467,14 @@ TrafficGenerator3gppGenericVideo::ReceiveLoopbackInformation(double packetLoss,
         NS_LOG_DEBUG("Old mean packet size:       "
                      << tempMeanPacketSize << " new mean packet size:       " << m_meanPacketSize);
     }
+}
+
+int64_t
+TrafficGenerator3gppGenericVideo::AssignStreams(int64_t stream)
+{
+    m_packetSize->SetStream(stream);
+    m_packetJitter->SetStream(stream + 1);
+    return 2;
 }
 
 } // Namespace ns3

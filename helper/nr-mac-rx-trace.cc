@@ -10,7 +10,6 @@
 #include <ns3/simulator.h>
 
 #include <fstream>
-#include <stdio.h>
 
 namespace ns3
 {

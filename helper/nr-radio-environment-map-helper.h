@@ -13,7 +13,6 @@
 #include "ns3/simple-net-device.h"
 #include <ns3/mobility-helper.h>
 #include <ns3/object-factory.h>
-#include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 

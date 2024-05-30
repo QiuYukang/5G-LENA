@@ -6,10 +6,8 @@
 
 #include "nr-ch-access-manager.h"
 
-#include <ns3/assert.h>
 #include <ns3/double.h>
 #include <ns3/log.h>
-#include <ns3/uinteger.h>
 
 namespace ns3
 {

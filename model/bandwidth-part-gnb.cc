@@ -14,8 +14,6 @@
 #include <ns3/ff-mac-scheduler.h>
 #include <ns3/log.h>
 #include <ns3/pointer.h>
-#include <ns3/simulator.h>
-#include <ns3/uinteger.h>
 
 namespace ns3
 {

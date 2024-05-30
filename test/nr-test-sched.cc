@@ -302,14 +302,16 @@ class NrTestSchedSuite : public TestSuite
 {
   public:
     NrTestSchedSuite()
-        : TestSuite("nr-test-sched", SYSTEM)
+        : TestSuite("nr-test-sched", Type::SYSTEM)
     {
-        AddTestCase(new NrSchedGeneralTestCase("ns3::NrMacSchedulerTdmaRR", "TdmaRR test"), QUICK);
-        AddTestCase(new NrSchedGeneralTestCase("ns3::NrMacSchedulerTdmaPF", "TdmaPF test"), QUICK);
+        AddTestCase(new NrSchedGeneralTestCase("ns3::NrMacSchedulerTdmaRR", "TdmaRR test"),
+                    Duration::QUICK);
+        AddTestCase(new NrSchedGeneralTestCase("ns3::NrMacSchedulerTdmaPF", "TdmaPF test"),
+                    Duration::QUICK);
         AddTestCase(new NrSchedGeneralTestCase("ns3::NrMacSchedulerOfdmaRR", "OfdmaRR test"),
-                    QUICK);
+                    Duration::QUICK);
         AddTestCase(new NrSchedGeneralTestCase("ns3::NrMacSchedulerOfdmaPF", "OfdmaPF test"),
-                    QUICK);
+                    Duration::QUICK);
     }
 };
 

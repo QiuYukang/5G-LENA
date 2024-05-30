@@ -496,14 +496,14 @@ class NrTestNumerologyDelayTestSuite : public TestSuite
 };
 
 NrTestNumerologyDelayTestSuite::NrTestNumerologyDelayTestSuite()
-    : TestSuite("nr-test-numerology-delay", SYSTEM)
+    : TestSuite("nr-test-numerology-delay", Type::SYSTEM)
 {
-    AddTestCase(new NrTestNumerologyDelayCase1("num=0", 0), TestCase::QUICK);
-    AddTestCase(new NrTestNumerologyDelayCase1("num=1", 1), TestCase::QUICK);
-    AddTestCase(new NrTestNumerologyDelayCase1("num=2", 2), TestCase::QUICK);
-    AddTestCase(new NrTestNumerologyDelayCase1("num=3", 3), TestCase::QUICK);
-    AddTestCase(new NrTestNumerologyDelayCase1("num=4", 4), TestCase::QUICK);
-    AddTestCase(new NrTestNumerologyDelayCase1("num=5", 5), TestCase::QUICK);
+    AddTestCase(new NrTestNumerologyDelayCase1("num=0", 0), Duration::QUICK);
+    AddTestCase(new NrTestNumerologyDelayCase1("num=1", 1), Duration::QUICK);
+    AddTestCase(new NrTestNumerologyDelayCase1("num=2", 2), Duration::QUICK);
+    AddTestCase(new NrTestNumerologyDelayCase1("num=3", 3), Duration::QUICK);
+    AddTestCase(new NrTestNumerologyDelayCase1("num=4", 4), Duration::QUICK);
+    AddTestCase(new NrTestNumerologyDelayCase1("num=5", 5), Duration::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite

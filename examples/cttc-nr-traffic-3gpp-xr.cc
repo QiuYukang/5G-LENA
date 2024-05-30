@@ -13,7 +13,6 @@
 #include "ns3/internet-module.h"
 #include "ns3/lte-enb-rrc.h"
 #include "ns3/mobility-module.h"
-#include "ns3/network-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/packet-sink.h"
 #include "ns3/point-to-point-module.h"
@@ -44,6 +43,8 @@ ConfigureXrApp(NodeContainer& ueContainer,
                uint32_t i,
                Ipv4InterfaceContainer& ueIpIface,
                enum NrXrConfig config,
+               double appDataRate,
+               uint16_t appFps,
                uint16_t port,
                std::string transportProtocol,
                NodeContainer& remoteHostContainer,
@@ -102,6 +103,13 @@ ConfigureXrApp(NodeContainer& ueContainer,
         PacketSinkHelper dlPacketSinkHelper(transportProtocol, localAddresses.at(j));
         Ptr<Application> packetSink = dlPacketSinkHelper.Install(ueContainer.Get(i)).Get(0);
         serverApps.Add(packetSink);
+        Ptr<TrafficGenerator3gppGenericVideo> app =
+            DynamicCast<TrafficGenerator3gppGenericVideo>(currentUeClientApps.Get(j));
+        if (app)
+        {
+            app->SetAttribute("DataRate", DoubleValue(appDataRate));
+            app->SetAttribute("Fps", UintegerValue(appFps));
+        }
     }
     clientApps.Add(currentUeClientApps);
 }
@@ -121,12 +129,24 @@ main(int argc, char* argv[])
     double txPower = 41;
     bool isMx1 = true;
     bool useUdp = true;
+    double arDataRate = 5;  // Mbps
+    double vrDataRate = 30; // Mbps
+    double cgDataRate = 20; // Mbps
+    uint16_t arFps = 30;
+    uint16_t vrFps = 60;
+    uint16_t cgFps = 60;
     uint32_t rngRun = 1;
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("arUeNum", "The number of AR UEs", arUeNum);
     cmd.AddValue("vrUeNum", "The number of VR UEs", vrUeNum);
     cmd.AddValue("cgUeNum", "The number of CG UEs", cgUeNum);
+    cmd.AddValue("arDataRate", "The Datarate for AR UEs", arDataRate);
+    cmd.AddValue("vrDataRate", "The Datarate for vR UEs", vrDataRate);
+    cmd.AddValue("cgDataRate", "The Datarate for cg UEs", cgDataRate);
+    cmd.AddValue("arFps", "The fps for AR UEs", arFps);
+    cmd.AddValue("vrFps", "The fps for vR UEs", vrFps);
+    cmd.AddValue("cgFps", "The fps for cg UEs", cgFps);
     cmd.AddValue("numerology", "The numerology to be used.", numerology);
     cmd.AddValue("txPower", "Tx power to be configured to gNB", txPower);
     cmd.AddValue("frequency", "The system frequency", centralFrequency);
@@ -392,6 +412,8 @@ main(int argc, char* argv[])
                        i,
                        ueArIpIface,
                        AR_M3,
+                       arDataRate,
+                       arFps,
                        dlPortArStart,
                        transportProtocol,
                        remoteHostContainer,
@@ -413,6 +435,8 @@ main(int argc, char* argv[])
                        i,
                        ueVrIpIface,
                        VR_DL1,
+                       vrDataRate,
+                       vrFps,
                        dlPortVrStart,
                        transportProtocol,
                        remoteHostContainer,
@@ -432,6 +456,8 @@ main(int argc, char* argv[])
                        i,
                        ueCgIpIface,
                        CG_DL1,
+                       cgDataRate,
+                       cgFps,
                        dlPortCgStart,
                        transportProtocol,
                        remoteHostContainer,

@@ -1765,7 +1765,7 @@ NrSpectrumPhy::MaybeCcaBusy()
         {
             m_busyTimeEnds = Simulator::Now() + delayUntilCcaEnd;
 
-            if (m_checkIfIsIdleEvent.IsRunning())
+            if (m_checkIfIsIdleEvent.IsPending())
             {
                 m_checkIfIsIdleEvent.Cancel();
             }
@@ -1782,7 +1782,7 @@ NrSpectrumPhy::MaybeCcaBusy()
     }
     else
     {
-        NS_ABORT_MSG_IF(m_checkIfIsIdleEvent.IsRunning(),
+        NS_ABORT_MSG_IF(m_checkIfIsIdleEvent.IsPending(),
                         "Unexpected state: returning to IDLE while there is an event "
                         "running that should switch from CCA_BUSY to IDLE ?!");
         NS_LOG_DEBUG("Channel detected IDLE after being in: " << m_state << " state.");

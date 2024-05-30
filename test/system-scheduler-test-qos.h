@@ -113,7 +113,7 @@ class NrSystemTestSchedulerQosSuite : public TestSuite
 };
 
 NrSystemTestSchedulerQosSuite::NrSystemTestSchedulerQosSuite()
-    : TestSuite("nr-system-test-schedulers-qos", SYSTEM)
+    : TestSuite("nr-system-test-schedulers-qos", Type::SYSTEM)
 {
     std::list<std::string> subdivision = {"Tdma", "Ofdma"};
     std::string type = {"Qos"};
@@ -149,7 +149,7 @@ NrSystemTestSchedulerQosSuite::NrSystemTestSchedulerQosSuite()
                                                                qciP2,
                                                                priorityTrafficScenario,
                                                                schedName.str()),
-                                    TestCase::QUICK);
+                                    Duration::QUICK);
                     }
                 }
             }

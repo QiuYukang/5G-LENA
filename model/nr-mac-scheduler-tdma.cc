@@ -12,8 +12,6 @@
 
 #include "nr-mac-scheduler-tdma.h"
 
-#include "nr-mac-scheduler-ue-info-pf.h"
-
 #include <ns3/log.h>
 
 #include <algorithm>

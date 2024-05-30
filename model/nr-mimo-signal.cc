@@ -6,8 +6,6 @@
 
 #include "nr-mimo-signal.h"
 
-#include <numeric>
-
 namespace ns3
 {
 

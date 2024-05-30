@@ -6,14 +6,9 @@
 
 #include "ideal-beamforming-algorithm.h"
 
-#include "beam-manager.h"
-#include "nr-gnb-phy.h"
 #include "nr-spectrum-phy.h"
-#include "nr-ue-phy.h"
 
-#include <ns3/angles.h>
 #include <ns3/double.h>
-#include <ns3/mobility-module.h>
 #include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/node.h>
 #include <ns3/nr-spectrum-value-helper.h>
@@ -175,11 +170,11 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                         << power << "txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector "
                         << (M_PI * static_cast<double>(txSector) / static_cast<double>(txNumRows) -
                             0.5 * M_PI) /
-                               (M_PI)*180
+                               M_PI * 180
                         << " rx sector "
                         << (M_PI * static_cast<double>(rxSector) / static_cast<double>(rxNumRows) -
                             0.5 * M_PI) /
-                               (M_PI)*180);
+                               M_PI * 180);
 
                     if (max < power)
                     {
@@ -207,10 +202,10 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
         << " and UE with node id: " << ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
         << " are txTheta " << maxTxTheta << " rxTheta " << maxRxTheta << " tx sector "
         << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(txNumRows) - 0.5 * M_PI) /
-               (M_PI)*180
+               M_PI * 180
         << " rx sector "
         << (M_PI * static_cast<double>(maxRxSector) / static_cast<double>(rxNumRows) - 0.5 * M_PI) /
-               (M_PI)*180);
+               M_PI * 180);
 
     NS_ASSERT(maxTxW.GetSize() && maxRxW.GetSize());
 
@@ -465,7 +460,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
                          << power << "txTheta " << txTheta << " tx sector "
                          << (M_PI * static_cast<double>(txSector) / static_cast<double>(txNumRows) -
                              0.5 * M_PI) /
-                                (M_PI)*180);
+                                M_PI * 180);
 
             if (max < power)
             {
@@ -486,7 +481,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
         << " and UE with node id: " << ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
         << " are txTheta " << maxTxTheta << " tx sector "
         << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(txNumRows) - 0.5 * M_PI) /
-               (M_PI)*180);
+               M_PI * 180);
 
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
 }

@@ -171,4 +171,12 @@ TrafficGeneratorNgmnFtpMulti::DoInitialize()
     TrafficGenerator::DoInitialize();
 }
 
+int64_t
+TrafficGeneratorNgmnFtpMulti::AssignStreams(int64_t stream)
+{
+    m_readingTime->SetStream(stream);
+    m_fileSize->SetStream(stream + 1);
+    return 2;
+}
+
 } // Namespace ns3

@@ -162,7 +162,7 @@ TrafficGenerator::SendPacketBurst()
 
         // If the event is running cancel it since we call directly the first packet of the packet
         // burst
-        if (m_eventIdSendNextPacket.IsRunning())
+        if (m_eventIdSendNextPacket.IsPending())
         {
             m_eventIdSendNextPacket.Cancel();
             NS_LOG_WARN("Canceling next packet send");
@@ -291,6 +291,10 @@ TrafficGenerator::SendNextPacket()
     }
     else
     {
+        NS_ABORT_MSG_IF(
+            m_tid == UdpSocketFactory::GetTypeId(),
+            "When using UDP socket the packet size cannot be greater than 65535, reconfigure your "
+            "application to generate packets up to this permitted size.");
         // it may happen that the buffer is full
         NS_LOG_WARN("Unable to send packet; actual " << actual << " size " << toSend
                                                      << "; caching for later attempt");
@@ -357,7 +361,7 @@ TrafficGenerator::ConnectionSucceeded(Ptr<Socket> socket)
     m_connected = true;
 
     // Only if the event is not running scheule it
-    if (!m_eventIdSendNextPacket.IsRunning() && !m_waitForNextPacketBurst)
+    if (!m_eventIdSendNextPacket.IsPending() && !m_waitForNextPacketBurst)
     {
         Time nextPacketTime = GetNextPacketTime();
         m_eventIdSendNextPacket =
@@ -400,7 +404,7 @@ TrafficGenerator::SendNextPacketIfConnected(Ptr<Socket>, uint32_t)
             NS_LOG_LOGIC("TrafficGenerator SendNextPacketIfConnected callback triggers new "
                          "SendNextPacket call");
             // Only if the event is not running scheule it
-            if (!m_eventIdSendNextPacket.IsRunning() && !m_waitForNextPacketBurst)
+            if (!m_eventIdSendNextPacket.IsPending() && !m_waitForNextPacketBurst)
             {
                 Time nextPacketTime = GetNextPacketTime();
                 m_eventIdSendNextPacket =
@@ -432,6 +436,12 @@ Address
 TrafficGenerator::GetPeer() const
 {
     return m_peer;
+}
+
+int64_t
+TrafficGenerator::AssignStreams(int64_t stream)
+{
+    return 0;
 }
 
 } // Namespace ns3

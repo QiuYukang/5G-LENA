@@ -193,9 +193,9 @@ class PowerAllocationTestSuite : public TestSuite
 };
 
 PowerAllocationTestSuite::PowerAllocationTestSuite()
-    : TestSuite("nr-power-allocation", SYSTEM)
+    : TestSuite("nr-power-allocation", Type::SYSTEM)
 {
-    AddTestCase(new PowerAllocationTestCase("nr-power-allocation"), TestDuration::QUICK);
+    AddTestCase(new PowerAllocationTestCase("nr-power-allocation"), Duration::QUICK);
 }
 
 // Allocate an instance of this TestSuite

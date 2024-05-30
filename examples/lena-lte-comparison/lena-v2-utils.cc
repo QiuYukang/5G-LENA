@@ -11,10 +11,12 @@
 #include "rb-output-stats.h"
 #include "slot-output-stats.h"
 
-#include "ns3/log.h"
 #include <ns3/antenna-module.h>
+#include <ns3/config.h>
 #include <ns3/enum.h>
+#include <ns3/log.h>
 #include <ns3/nr-spectrum-value-helper.h>
+#include <ns3/pointer.h>
 
 NS_LOG_COMPONENT_DEFINE("LenaV2Utils");
 
@@ -645,24 +647,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     // BWP.
     if (radioNetwork == "LTE")
     {
-        if (bandwidthMHz == 20)
+        switch (bandwidthMHz)
         {
+        case 20:
+        case 15:
             nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(4));
-        }
-        else if (bandwidthMHz == 15)
-        {
-            nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(4));
-        }
-        else if (bandwidthMHz == 10)
-        {
+            break;
+        case 10:
             nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(3));
-        }
-        else if (bandwidthMHz == 5)
-        {
+            break;
+        case 5:
             nrHelper->SetGnbMacAttribute("NumRbPerRbg", UintegerValue(2));
-        }
-        else
-        {
+            break;
+        default:
             NS_ABORT_MSG("Currently, only supported bandwidths are 5, 10, 15, and 20MHz, you chose "
                          << bandwidthMHz);
         }

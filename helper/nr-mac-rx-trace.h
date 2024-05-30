@@ -8,7 +8,6 @@
 #define SRC_NR_HELPER_NR_MAC_RX_TRACE_H_
 
 #include <ns3/nr-control-messages.h>
-#include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-phy-mac-common.h>
 #include <ns3/object.h>
 #include <ns3/spectrum-value.h>

@@ -7,6 +7,7 @@
 #include "nr-pm-search-full.h"
 
 #include <ns3/boolean.h>
+#include <ns3/simulator.h>
 #include <ns3/uinteger.h>
 
 #include <numeric>

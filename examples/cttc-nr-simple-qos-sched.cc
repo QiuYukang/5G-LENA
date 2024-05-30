@@ -36,7 +36,6 @@ $ ./ns3 run "cttc-nr-simple-qos-sched --PrintHelp"
 #include "ns3/internet-apps-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/network-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 

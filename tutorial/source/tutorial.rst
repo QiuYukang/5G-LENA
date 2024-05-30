@@ -255,7 +255,7 @@ References
 .. _Tutorial: https://www.nsnam.org/docs/tutorial/html/
 .. _manual: https://cttc-lena.gitlab.io/nr/nrmodule.pdf
 .. _cttc-nr-demo: https://gitlab.com/cttc-lena/nr/-/blob/master/examples/cttc-nr-demo.cc
-.. _Getting Started page: https://cttc-lena.gitlab.io/nr/html/getting-started.html
+.. _Getting Started page: https://cttc-lena.gitlab.io/nr/html/index.html#getting-started
 .. _NR Module Manual: https://cttc-lena.gitlab.io/nr/nrmodule.pdf
 .. _ns-3 doxygen page on QCI: https://www.nsnam.org/doxygen/d6/dcb/classns3_1_1_eps_bearer.html#afcdd240423034af5459b51c96d5d9489
 

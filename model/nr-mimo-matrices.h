@@ -8,7 +8,6 @@
 #define NR_MIMO_MATRICES_H
 
 #include <ns3/matrix-array.h>
-#include <ns3/ptr.h>
 
 namespace ns3
 {

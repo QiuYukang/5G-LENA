@@ -1180,7 +1180,7 @@ main(int argc, char* argv[])
     }
     lowLatTft->Add(dlpfLowLat);
 
-    uint32_t lambdaPerCell[gridScenario.GetNumCells()];
+    std::vector<uint32_t> lambdaPerCell(gridScenario.GetNumCells());
 
     if (trafficTypeConf == UDP_CBR)
     {
@@ -1939,7 +1939,7 @@ main(int argc, char* argv[])
 
     std::ofstream outFile;
     std::string filename = outputDir + "/" + simTag;
-    double delayValues[stats.size()];
+    std::vector<double> delayValues(stats.size());
     uint64_t cont = 0;
 
     outFile.open(filename.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -2008,7 +2008,7 @@ main(int argc, char* argv[])
         }
         // outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
-    std::sort(delayValues, delayValues + stats.size());
+    std::sort(delayValues.begin(), delayValues.end());
     // for (uint32_t i = 0; i < stats.size(); i++)
     //   {
     //     std::cout << delayValues[i] << " ";

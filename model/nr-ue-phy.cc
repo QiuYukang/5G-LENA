@@ -21,6 +21,7 @@
 
 #include <ns3/boolean.h>
 #include <ns3/double.h>
+#include <ns3/enum.h>
 #include <ns3/log.h>
 #include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/node.h>
@@ -28,13 +29,15 @@
 #include <ns3/object-vector.h>
 #include <ns3/pointer.h>
 #include <ns3/simulator.h>
-#include <ns3/uinteger.h>
 
 #include <algorithm>
 #include <cfloat>
 
 namespace ns3
 {
+
+const Time NR_DEFAULT_PMI_INTERVAL_WB{MilliSeconds(10)}; // Wideband PMI update interval
+const Time NR_DEFAULT_PMI_INTERVAL_SB{MilliSeconds(2)};  // Subband PMI update interval
 
 NS_LOG_COMPONENT_DEFINE("NrUePhy");
 NS_OBJECT_ENSURE_REGISTERED(NrUePhy);

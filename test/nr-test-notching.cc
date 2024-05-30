@@ -149,17 +149,13 @@ TestNotchingPhySapProvider::GetBeamId(uint8_t rnti) const
     {
         for (uint32_t u = 0; u < m_sapNumOfBeams; u++)
         {
-            if (rntiCnt == rnti && beam == 0)
+            if (rnti == 0 || (rntiCnt == rnti && beam == 0))
             {
                 beamId = BeamId(0, 0.0);
             }
             else if (rntiCnt == rnti && beam == 1)
             {
                 beamId = BeamId(1, 120.0);
-            }
-            else if (rnti == 0)
-            {
-                beamId = BeamId(0, 0.0);
             }
             rntiCnt++;
         }
@@ -426,7 +422,7 @@ class NrNotchingTestSuite : public TestSuite
 {
   public:
     NrNotchingTestSuite()
-        : TestSuite("nr-test-notching", UNIT)
+        : TestSuite("nr-test-notching", Type::UNIT)
     {
         // We simulate BW of 10 MHz so the size of the mask is 53 RBGs
         // considering that 1 RBG contains 1 RB
@@ -463,13 +459,13 @@ class NrNotchingTestSuite : public TestSuite
                                                            schedName.str(),
                                                            uesPerBeam,
                                                            beam),
-                                    QUICK);
+                                    Duration::QUICK);
                         AddTestCase(new NrNotchingTestCase(ss.str(),
                                                            notchedMask2,
                                                            schedName.str(),
                                                            uesPerBeam,
                                                            beam),
-                                    QUICK);
+                                    Duration::QUICK);
                     }
                 }
             }

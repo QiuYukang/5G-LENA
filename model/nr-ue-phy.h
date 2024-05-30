@@ -27,8 +27,8 @@
 namespace ns3
 {
 
-const Time NR_DEFAULT_PMI_INTERVAL_WB{MilliSeconds(10)}; // Wideband PMI update interval
-const Time NR_DEFAULT_PMI_INTERVAL_SB{MilliSeconds(2)};  // Subband PMI update interval
+extern const Time NR_DEFAULT_PMI_INTERVAL_WB; // Wideband PMI update interval
+extern const Time NR_DEFAULT_PMI_INTERVAL_SB; // Subband PMI update interval
 
 class NrChAccessManager;
 class BeamManager;

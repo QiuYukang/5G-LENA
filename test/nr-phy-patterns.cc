@@ -88,11 +88,7 @@ TestGnbMac::TestGnbMac(const std::string& pattern)
                                       // duplicated slots will not be counted
             break;
         case LteNrTddSlotType::DL:
-            m_totalSlotToCreate += 1;
-            break;
         case LteNrTddSlotType::UL:
-            m_totalSlotToCreate += 1;
-            break;
         case LteNrTddSlotType::S:
             m_totalSlotToCreate += 1;
             break;
@@ -284,38 +280,38 @@ class NrLtePatternsTestSuite : public TestSuite
 {
   public:
     NrLtePatternsTestSuite()
-        : TestSuite("nr-phy-patterns", UNIT)
+        : TestSuite("nr-phy-patterns", Type::UNIT)
     {
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|UL|DL|DL|S|UL|UL|DL|", "LTE TDD Pattern 1 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|DL|DL|DL|S|UL|DL|DL|", "LTE TDD Pattern 2 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|UL|UL|DL|DL|DL|DL|DL|", "LTE TDD Pattern 3 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|UL|DL|DL|DL|DL|DL|DL|", "LTE TDD Pattern 4 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|DL|DL|DL|DL|DL|DL|DL|", "LTE TDD Pattern 5 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|UL|UL|DL|S|UL|UL|DL|", "LTE TDD Pattern 6 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(
             new LtePhyPatternTestCase("DL|S|UL|UL|UL|DL|S|UL|UL|UL|", "LTE TDD Pattern 0 test"),
-            QUICK);
+            Duration::QUICK);
 
         AddTestCase(new LtePhyPatternTestCase("F|F|F|F|F|F|F|F|F|F|", "LTE TDD Pattern NR test"),
-                    QUICK);
+                    Duration::QUICK);
     }
 };
 

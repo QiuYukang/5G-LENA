@@ -133,9 +133,9 @@ class NrLteCcBwpTestSuite : public TestSuite
 {
   public:
     NrLteCcBwpTestSuite()
-        : TestSuite("nr-lte-cc-bwp-configuration", UNIT)
+        : TestSuite("nr-lte-cc-bwp-configuration", Type::UNIT)
     {
-        AddTestCase(new CcBwpTestCase("CC and BWP test"), QUICK);
+        AddTestCase(new CcBwpTestCase("CC and BWP test"), Duration::QUICK);
     }
 };
 

@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <ns3/nr-gnb-phy.h>
-#include <ns3/object-factory.h>
 #include <ns3/test.h>
 
 /**
@@ -1541,9 +1540,9 @@ class NrLtePatternTestSuite : public TestSuite
 {
   public:
     NrLtePatternTestSuite()
-        : TestSuite("nr-lte-pattern-generation", UNIT)
+        : TestSuite("nr-lte-pattern-generation", Type::UNIT)
     {
-        AddTestCase(new LtePatternTestCase("LTE TDD Pattern test"), QUICK);
+        AddTestCase(new LtePatternTestCase("LTE TDD Pattern test"), Duration::QUICK);
     }
 };
 

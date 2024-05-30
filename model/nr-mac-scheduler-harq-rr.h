@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "nr-amc.h"
 #include "nr-mac-scheduler-ns3.h"
 #include "nr-mac-scheduler-ue-info.h"
 #include "nr-phy-mac-common.h"

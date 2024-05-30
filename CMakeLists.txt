@@ -243,7 +243,6 @@ set(header_files
     model/beam-id.h
     model/beamforming-vector.h
     model/beam-manager.h
-    model/beamforming-algorithm.h
     model/ideal-beamforming-algorithm.h
     model/realistic-beamforming-algorithm.h
     model/sfnsf.h
@@ -339,6 +338,9 @@ if(${ENABLE_EIGEN})
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
   )
 else()
+  message(
+    WARNING "nr MIMO features require the eigen3 library, but it was not found"
+  )
   target_sources(
     libnr
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"

@@ -9,10 +9,7 @@
 #include "nr-phy-mac-common.h"
 
 #include <ns3/attribute-accessor-helper.h>
-#include <ns3/double.h>
 #include <ns3/log.h>
-#include <ns3/string.h>
-#include <ns3/uinteger.h>
 
 #include <algorithm>
 

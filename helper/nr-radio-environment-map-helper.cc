@@ -10,11 +10,10 @@
 
 #include <ns3/abort.h>
 #include <ns3/beamforming-vector.h>
-#include <ns3/boolean.h>
 #include <ns3/buildings-module.h>
 #include <ns3/config.h>
 #include <ns3/double.h>
-#include <ns3/integer.h>
+#include <ns3/enum.h>
 #include <ns3/log.h>
 #include <ns3/mobility-model.h>
 #include <ns3/node.h>
@@ -27,7 +26,6 @@
 #include <ns3/string.h>
 #include <ns3/uinteger.h>
 
-#include <ctime>
 #include <fstream>
 #include <limits>
 

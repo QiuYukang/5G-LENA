@@ -7,19 +7,13 @@
 #ifndef NR_INTERFERENCE_H
 #define NR_INTERFERENCE_H
 
-#include "nr-spectrum-signal-parameters.h"
-
 #include <ns3/lte-interference.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
-#include <ns3/packet.h>
 #include <ns3/spectrum-signal-parameters.h>
 #include <ns3/spectrum-value.h>
-#include <ns3/trace-source-accessor.h>
 #include <ns3/traced-callback.h>
 #include <ns3/vector.h>
-
-#include <string.h>
 
 namespace ns3
 {

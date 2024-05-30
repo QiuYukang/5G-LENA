@@ -12,7 +12,6 @@
 #include <ns3/ptr.h>
 
 #include <map>
-#include <stdint.h>
 
 namespace ns3
 {

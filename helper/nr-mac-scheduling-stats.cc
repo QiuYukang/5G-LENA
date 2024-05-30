@@ -18,15 +18,23 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulingStats");
 NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulingStats);
 
 NrMacSchedulingStats::NrMacSchedulingStats()
-    : m_dlFirstWrite(true),
-      m_ulFirstWrite(true)
 {
     NS_LOG_FUNCTION(this);
+    SetDlOutputFilename(GetDlOutputFilename());
+    SetUlOutputFilename(GetDlOutputFilename());
 }
 
 NrMacSchedulingStats::~NrMacSchedulingStats()
 {
     NS_LOG_FUNCTION(this);
+    if (outDlFile.is_open())
+    {
+        outDlFile.close();
+    }
+    if (outUlFile.is_open())
+    {
+        outUlFile.close();
+    }
 }
 
 TypeId
@@ -54,6 +62,21 @@ void
 NrMacSchedulingStats::SetUlOutputFilename(std::string outputFilename)
 {
     NrStatsCalculator::SetUlOutputFilename(outputFilename);
+    if (outUlFile.is_open())
+    {
+        outUlFile.close();
+    }
+    outUlFile.open(GetUlOutputFilename().c_str());
+    if (!outUlFile.is_open())
+    {
+        NS_LOG_ERROR("Can't open file " << GetUlOutputFilename().c_str());
+        return;
+    }
+    outUlFile << "% "
+                 "time(s)"
+                 "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\thar"
+                 "qId\tndi\trv\tmcs\ttbSize";
+    outUlFile << std::endl;
 }
 
 std::string
@@ -66,6 +89,21 @@ void
 NrMacSchedulingStats::SetDlOutputFilename(std::string outputFilename)
 {
     NrStatsCalculator::SetDlOutputFilename(outputFilename);
+    if (outDlFile.is_open())
+    {
+        outDlFile.close();
+    }
+    outDlFile.open(GetDlOutputFilename().c_str());
+    if (!outDlFile.is_open())
+    {
+        NS_LOG_ERROR("Can't open file " << GetDlOutputFilename().c_str());
+        return;
+    }
+    outDlFile << "% "
+                 "time(s)"
+                 "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\thar"
+                 "qId\tndi\trv\tmcs\ttbSize";
+    outDlFile << std::endl;
 }
 
 std::string
@@ -83,48 +121,21 @@ NrMacSchedulingStats::DlScheduling(uint16_t cellId,
                          << traceInfo.m_rnti << (uint32_t)traceInfo.m_mcs << traceInfo.m_tbSize);
     NS_LOG_INFO("Write DL Mac Stats in " << GetDlOutputFilename().c_str());
 
-    std::ofstream outFile;
-    if (m_dlFirstWrite)
-    {
-        outFile.open(GetDlOutputFilename().c_str());
-        if (!outFile.is_open())
-        {
-            NS_LOG_ERROR("Can't open file " << GetDlOutputFilename().c_str());
-            return;
-        }
-        m_dlFirstWrite = false;
-        outFile << "% "
-                   "time(s)"
-                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\thar"
-                   "qId\tndi\trv\tmcs\ttbSize";
-        outFile << std::endl;
-    }
-    else
-    {
-        outFile.open(GetDlOutputFilename().c_str(), std::ios_base::app);
-        if (!outFile.is_open())
-        {
-            NS_LOG_ERROR("Can't open file " << GetDlOutputFilename().c_str());
-            return;
-        }
-    }
-
-    outFile << Simulator::Now().GetSeconds() << "\t";
-    outFile << (uint32_t)cellId << "\t";
-    outFile << (uint32_t)traceInfo.m_bwpId << "\t";
-    outFile << imsi << "\t";
-    outFile << traceInfo.m_rnti << "\t";
-    outFile << traceInfo.m_frameNum << "\t";
-    outFile << (uint32_t)traceInfo.m_subframeNum << "\t";
-    outFile << traceInfo.m_slotNum << "\t";
-    outFile << (uint32_t)traceInfo.m_symStart << "\t";
-    outFile << (uint32_t)traceInfo.m_numSym << "\t";
-    outFile << (uint32_t)traceInfo.m_harqId << "\t";
-    outFile << (uint32_t)traceInfo.m_ndi << "\t";
-    outFile << (uint32_t)traceInfo.m_rv << "\t";
-    outFile << (uint32_t)traceInfo.m_mcs << "\t";
-    outFile << traceInfo.m_tbSize << std::endl;
-    outFile.close();
+    outDlFile << Simulator::Now().GetSeconds() << "\t";
+    outDlFile << (uint32_t)cellId << "\t";
+    outDlFile << (uint32_t)traceInfo.m_bwpId << "\t";
+    outDlFile << imsi << "\t";
+    outDlFile << traceInfo.m_rnti << "\t";
+    outDlFile << traceInfo.m_frameNum << "\t";
+    outDlFile << (uint32_t)traceInfo.m_subframeNum << "\t";
+    outDlFile << traceInfo.m_slotNum << "\t";
+    outDlFile << (uint32_t)traceInfo.m_symStart << "\t";
+    outDlFile << (uint32_t)traceInfo.m_numSym << "\t";
+    outDlFile << (uint32_t)traceInfo.m_harqId << "\t";
+    outDlFile << (uint32_t)traceInfo.m_ndi << "\t";
+    outDlFile << (uint32_t)traceInfo.m_rv << "\t";
+    outDlFile << (uint32_t)traceInfo.m_mcs << "\t";
+    outDlFile << traceInfo.m_tbSize << std::endl;
 }
 
 void
@@ -136,48 +147,21 @@ NrMacSchedulingStats::UlScheduling(uint16_t cellId,
                          << traceInfo.m_rnti << (uint32_t)traceInfo.m_mcs << traceInfo.m_tbSize);
     NS_LOG_INFO("Write UL Mac Stats in " << GetUlOutputFilename().c_str());
 
-    std::ofstream outFile;
-    if (m_ulFirstWrite)
-    {
-        outFile.open(GetUlOutputFilename().c_str());
-        if (!outFile.is_open())
-        {
-            NS_LOG_ERROR("Can't open file " << GetUlOutputFilename().c_str());
-            return;
-        }
-        m_ulFirstWrite = false;
-        outFile << "% "
-                   "time(s)"
-                   "\tcellId\tbwpId\tIMSI\tRNTI\tframe\tsframe\tslot\tsymStart\tnumSym\thar"
-                   "qId\tndi\trv\tmcs\ttbSize";
-        outFile << std::endl;
-    }
-    else
-    {
-        outFile.open(GetUlOutputFilename().c_str(), std::ios_base::app);
-        if (!outFile.is_open())
-        {
-            NS_LOG_ERROR("Can't open file " << GetUlOutputFilename().c_str());
-            return;
-        }
-    }
-
-    outFile << Simulator::Now().GetSeconds() << "\t";
-    outFile << (uint32_t)cellId << "\t";
-    outFile << (uint32_t)traceInfo.m_bwpId << "\t";
-    outFile << imsi << "\t";
-    outFile << traceInfo.m_rnti << "\t";
-    outFile << traceInfo.m_frameNum << "\t";
-    outFile << (uint32_t)traceInfo.m_subframeNum << "\t";
-    outFile << traceInfo.m_slotNum << "\t";
-    outFile << (uint32_t)traceInfo.m_symStart << "\t";
-    outFile << (uint32_t)traceInfo.m_numSym << "\t";
-    outFile << (uint32_t)traceInfo.m_harqId << "\t";
-    outFile << (uint32_t)traceInfo.m_ndi << "\t";
-    outFile << (uint32_t)traceInfo.m_rv << "\t";
-    outFile << (uint32_t)traceInfo.m_mcs << "\t";
-    outFile << traceInfo.m_tbSize << std::endl;
-    outFile.close();
+    outUlFile << Simulator::Now().GetSeconds() << "\t";
+    outUlFile << (uint32_t)cellId << "\t";
+    outUlFile << (uint32_t)traceInfo.m_bwpId << "\t";
+    outUlFile << imsi << "\t";
+    outUlFile << traceInfo.m_rnti << "\t";
+    outUlFile << traceInfo.m_frameNum << "\t";
+    outUlFile << (uint32_t)traceInfo.m_subframeNum << "\t";
+    outUlFile << traceInfo.m_slotNum << "\t";
+    outUlFile << (uint32_t)traceInfo.m_symStart << "\t";
+    outUlFile << (uint32_t)traceInfo.m_numSym << "\t";
+    outUlFile << (uint32_t)traceInfo.m_harqId << "\t";
+    outUlFile << (uint32_t)traceInfo.m_ndi << "\t";
+    outUlFile << (uint32_t)traceInfo.m_rv << "\t";
+    outUlFile << (uint32_t)traceInfo.m_mcs << "\t";
+    outUlFile << traceInfo.m_tbSize << std::endl;
 }
 
 void

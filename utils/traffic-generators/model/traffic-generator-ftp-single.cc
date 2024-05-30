@@ -115,4 +115,10 @@ TrafficGeneratorFtpSingle::DoInitialize()
     TrafficGenerator::DoInitialize();
 }
 
+int64_t
+TrafficGeneratorFtpSingle::AssignStreams(int64_t stream)
+{
+    return 0;
+}
+
 } // Namespace ns3

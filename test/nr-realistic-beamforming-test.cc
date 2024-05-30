@@ -5,11 +5,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include <ns3/antenna-module.h>
-#include <ns3/beamforming-vector.h>
 #include <ns3/core-module.h>
 #include <ns3/mobility-module.h>
 #include <ns3/nr-module.h>
-#include <ns3/simple-net-device.h>
 #include <ns3/spectrum-model.h>
 #include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
@@ -50,28 +48,25 @@ class NrRealisticBeamformingTestSuite : public TestSuite
 class NrRealisticBeamformingTestCase : public TestCase
 {
   public:
-    NrRealisticBeamformingTestCase(std::string name, enum TestDuration duration);
+    NrRealisticBeamformingTestCase(std::string name, Duration duration);
     ~NrRealisticBeamformingTestCase() override;
 
   private:
     void DoRun() override;
 
-    enum TestDuration m_duration
-    {
-        TestCase::QUICK
-    }; //!< the test execution mode type
+    Duration m_testDuration; //!< the test execution mode type
 };
 
 /**
  * TestSuite
  */
 NrRealisticBeamformingTestSuite::NrRealisticBeamformingTestSuite()
-    : TestSuite("nr-realistic-beamforming-test", SYSTEM)
+    : TestSuite("nr-realistic-beamforming-test", Type::SYSTEM)
 {
     NS_LOG_INFO("Creating NrRealisticBeamformingTestSuite");
 
-    enum TestDuration durationQuick = TestCase::QUICK;
-    enum TestDuration durationExtensive = TestCase::EXTENSIVE;
+    auto durationQuick = Duration::QUICK;
+    auto durationExtensive = Duration::EXTENSIVE;
 
     AddTestCase(
         new NrRealisticBeamformingTestCase("RealisticBeamforming basic test case", durationQuick),
@@ -85,11 +80,10 @@ NrRealisticBeamformingTestSuite::NrRealisticBeamformingTestSuite()
  * TestCase
  */
 
-NrRealisticBeamformingTestCase::NrRealisticBeamformingTestCase(std::string name,
-                                                               enum TestDuration duration)
+NrRealisticBeamformingTestCase::NrRealisticBeamformingTestCase(std::string name, Duration duration)
     : TestCase(name)
 {
-    m_duration = duration;
+    m_testDuration = duration;
 }
 
 NrRealisticBeamformingTestCase::~NrRealisticBeamformingTestCase()
@@ -109,15 +103,16 @@ NrRealisticBeamformingTestCase::DoRun()
     uint16_t highSinrCounter = 0;
     uint16_t lowSinrCounter = 0;
 
-    std::list<uint16_t> rngList = (m_duration == TestCase::EXTENSIVE) ? std::list<uint16_t>({2, 3})
-                                                                      : std::list<uint16_t>({1});
+    std::list<uint16_t> rngList = (m_testDuration == Duration::EXTENSIVE)
+                                      ? std::list<uint16_t>({2, 3})
+                                      : std::list<uint16_t>({1});
 
     std::list<Vector> uePositions =
-        (m_duration == TestCase::EXTENSIVE)
+        (m_testDuration == Duration::EXTENSIVE)
             ? uePositionsExtensive
             : std::list<Vector>({Vector(10, 10, 1.5), Vector(-10, 10, 1.5)});
 
-    std::list<uint16_t> antennaConfList = (m_duration == TestCase::EXTENSIVE)
+    std::list<uint16_t> antennaConfList = (m_testDuration == Duration::EXTENSIVE)
                                               ? std::list<uint16_t>({3, 4})
                                               : std::list<uint16_t>({2});
 
@@ -279,7 +274,7 @@ NrRealisticBeamformingTestCase::DoRun()
     }
 
     double tolerance = 0.2;
-    if (m_duration == TestCase::EXTENSIVE)
+    if (m_testDuration == Duration::EXTENSIVE)
     {
         tolerance = 0.2;
     }

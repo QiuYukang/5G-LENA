@@ -18,6 +18,7 @@
 #include <ns3/lte-enb-component-carrier-manager.h>
 #include <ns3/lte-enb-rrc.h>
 #include <ns3/object-map.h>
+#include <ns3/pointer.h>
 
 namespace ns3
 {

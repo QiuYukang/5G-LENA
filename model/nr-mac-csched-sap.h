@@ -11,7 +11,6 @@
 
 #include <ns3/ff-mac-common.h>
 
-#include <stdint.h>
 #include <vector>
 
 namespace ns3
