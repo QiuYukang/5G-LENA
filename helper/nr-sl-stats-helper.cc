@@ -10,6 +10,7 @@
 #include <ns3/inet-socket-address.h>
 #include <ns3/inet6-socket-address.h>
 #include <ns3/rng-seed-manager.h>
+#include <ns3/simulator.h>
 
 namespace ns3
 {
