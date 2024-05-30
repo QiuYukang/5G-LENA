@@ -147,11 +147,11 @@ NrSlUeMacHarq::RenewHarqProcessIdTimer(uint8_t harqId, Time timeout)
     if (!m_pktBuffer.at(harqId).allocated)
     {
         NS_LOG_INFO("HARQ process ID " << +harqId << " is not allocated; not renewing timer");
-        NS_ASSERT_MSG(m_pktBuffer.at(harqId).timer.IsRunning(),
+        NS_ASSERT_MSG(m_pktBuffer.at(harqId).timer.IsPending(),
                       "Timer should not be running on a deallocated process");
         return false;
     }
-    if (m_pktBuffer.at(harqId).timer.IsRunning())
+    if (m_pktBuffer.at(harqId).timer.IsPending())
     {
         m_pktBuffer.at(harqId).timer.Cancel();
     }
@@ -307,7 +307,7 @@ NrSlUeMacHarq::ResetHarqBuffer(uint8_t harqId)
 {
     NS_LOG_FUNCTION(this << +harqId);
     FlushHarqBuffer(harqId);
-    if (m_pktBuffer.at(harqId).timer.IsRunning())
+    if (m_pktBuffer.at(harqId).timer.IsPending())
     {
         m_pktBuffer.at(harqId).timer.Cancel();
     }
