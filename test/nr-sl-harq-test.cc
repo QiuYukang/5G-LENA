@@ -1666,7 +1666,7 @@ class TestSidelinkHarqSuite : public TestSuite
 {
   public:
     TestSidelinkHarqSuite()
-        : TestSuite("nr-test-sidelink-harq", UNIT)
+        : TestSuite("nr-test-sidelink-harq", Type::UNIT)
     {
         // Step through basic parameter combinations from sidelink-harq-example.cc
         // No packet losses in this case
@@ -2189,7 +2189,7 @@ class TestSidelinkHarqSuite : public TestSuite
         AddTestCase(testCase);
 
         // One final specialized test of PSFCH assignment to SL slots
-        AddTestCase(new TestSidelinkHarqHasPsfch("PSFCH assignment to SL slots"), QUICK);
+        AddTestCase(new TestSidelinkHarqHasPsfch("PSFCH assignment to SL slots"), Duration::QUICK);
     }
 };
 

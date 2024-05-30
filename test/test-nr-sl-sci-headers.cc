@@ -19,7 +19,7 @@ NS_LOG_COMPONENT_DEFINE("TestNrSlSciHeaders");
  * Test Suite
  */
 NrSlSciHeadersTestSuite::NrSlSciHeadersTestSuite()
-    : TestSuite("nr-sl-sci-headers", UNIT)
+    : TestSuite("nr-sl-sci-headers", Type::UNIT)
 {
     // Test only including the mandatory fields
     NrSlSciF1aHeader sciF1a;

@@ -536,15 +536,16 @@ class NrSlSensingTestSuite : public TestSuite
 {
   public:
     NrSlSensingTestSuite()
-        : TestSuite("nr-sl-sensing", SYSTEM)
+        : TestSuite("nr-sl-sensing", Type::SYSTEM)
     {
         AddTestCase(new NrSlSensingTestCase(
                         "Check algorithm iterating steps 4-7 when one of two subchannels occupied"),
-                    QUICK);
+                    Duration::QUICK);
         AddTestCase(
             new NrSlSensingTransmitHistoryTest("Check exclusions due to past transmit history"),
-            QUICK);
-        AddTestCase(new NrSlRemoveOldSensingDataTest("Check RemoveOldSensingData"), QUICK);
+            Duration::QUICK);
+        AddTestCase(new NrSlRemoveOldSensingDataTest("Check RemoveOldSensingData"),
+                    Duration::QUICK);
     }
 };
 
