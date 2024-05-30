@@ -29,7 +29,6 @@ NrSlUeMacSchedulerLC::NrSlUeMacSchedulerLC(
     m_dynamic = conf.dynamic;
     m_rri = conf.rri;
     m_castType = conf.castType;
-    m_t2 = conf.t2;
 }
 
 int
@@ -212,13 +211,6 @@ NrSlUeMacSchedulerLCG::GetLcPdb(uint8_t lcId) const
 {
     NS_ASSERT(Contains(lcId));
     return m_lcMap.at(lcId)->m_pdb;
-}
-
-Time
-NrSlUeMacSchedulerLCG::GetLcT2(uint8_t lcId) const
-{
-    NS_ASSERT(Contains(lcId));
-    return m_lcMap.at(lcId)->m_t2;
 }
 
 void

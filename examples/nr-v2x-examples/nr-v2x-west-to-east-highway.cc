@@ -456,8 +456,7 @@ main(int argc, char* argv[])
     bool enableOneTxPerLane = true;
     bool logging = false;
     bool harqEnabled = true;
-    Time delayBudget = MilliSeconds(20);
-    Time t2 = MicroSeconds(8250); // 33 slots with numerology 2
+    Time delayBudget = Seconds(0); // Use T2 configuration
 
     // Traffic parameters (that we will use inside this script:)
     bool useIPv6 = false; // default IPV4
@@ -486,6 +485,7 @@ main(int argc, char* argv[])
     uint16_t reservationPeriod = 100; // in ms
     bool enableSensing = false;
     uint16_t t1 = 2;
+    uint16_t t2 = 33;
     int slThresPsschRsrp = -128;
     bool enableChannelRandomness = false;
     uint16_t channelUpdatePeriod = 500; // ms
@@ -573,7 +573,7 @@ main(int argc, char* argv[])
                  "The start of the selection window in physical slots, "
                  "accounting for physical layer processing delay",
                  t1);
-    cmd.AddValue("t2", "The end of the selection window in time", t2);
+    cmd.AddValue("t2", "The end of the selection window in physical slots", t2);
     cmd.AddValue("slThresPsschRsrp",
                  "A threshold in dBm used for sensing based UE autonomous resource selection",
                  slThresPsschRsrp);
@@ -734,6 +734,7 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(enableSensing));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(static_cast<uint8_t>(t1)));
+    nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
     nrHelper->SetUeMacAttribute("SlThresPsschRsrp", IntegerValue(slThresPsschRsrp));
 
@@ -1004,7 +1005,6 @@ main(int argc, char* argv[])
     slInfo.m_dynamic = false;
     slInfo.m_pdb = delayBudget;
     slInfo.m_harqEnabled = harqEnabled;
-    slInfo.m_t2 = t2;
     if (!useIPv6)
     {
         Ipv4InterfaceContainer ueIpIface;

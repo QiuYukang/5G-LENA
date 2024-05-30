@@ -73,6 +73,12 @@ NrSlUeMac::GetTypeId()
                           UintegerValue(2),
                           MakeUintegerAccessor(&NrSlUeMac::SetT1, &NrSlUeMac::GetT1),
                           MakeUintegerChecker<uint8_t>())
+            .AddAttribute("T2",
+                          "The end of the selection window in physical slots; the "
+                          "value used is min(T2, packet delay budget) if PDB is set",
+                          UintegerValue(33),
+                          MakeUintegerAccessor(&NrSlUeMac::m_t2),
+                          MakeUintegerChecker<uint16_t>())
             .AddAttribute(
                 "ActivePoolId",
                 "The pool id of the active pool used for TX and RX",
@@ -299,8 +305,9 @@ NrSlUeMac::TimeToSlots(const SfnSf& sfn, Time timeVal) const
 {
     NS_ASSERT_MSG(timeVal.GetMilliSeconds() <= 4000,
                   "Overflow check failed on input time " << timeVal.As(Time::MS));
-    uint32_t t2 = static_cast<uint16_t>((timeVal.GetMicroSeconds() << sfn.GetNumerology()) / 1000);
-    return t2;
+    uint16_t timeInSlots =
+        static_cast<uint16_t>((timeVal.GetMicroSeconds() << sfn.GetNumerology()) / 1000);
+    return timeInSlots;
 }
 
 std::list<SlResourceInfo>
@@ -318,42 +325,40 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
     NS_LOG_FUNCTION(this << sfn.GetFrame() << +sfn.GetSubframe() << sfn.GetSlot() << params
                          << txPool << slotPeriod << imsi << +bwpId << poolId << +totalSubCh);
 
-    // If the SidelinkInfo LC config indicated a value for T2, check that
-    // the value falls between T2min <= T2 <= Packet Delay Budget
-    // and adjust accordingly if out of range.
-    // If no value is provided, set T2 to Packet Delay Budget
-    NS_ABORT_MSG_UNLESS(params.m_packetDelayBudget != Seconds(0) || params.m_t2 != Seconds(0),
-                        "Error: either T2 or packet delay budget must be set in SidelinkInfo");
-    uint16_t t2 = TimeToSlots(sfn, params.m_t2);
-    uint16_t t2DelayBudget = TimeToSlots(sfn, params.m_packetDelayBudget);
-    uint16_t t2Min = txPool->GetT2Min(bwpId, poolId, sfn.GetNumerology());
-    if (t2 && (t2 > t2DelayBudget && t2DelayBudget >= t2Min))
+    // Following TS 38.214 and R1-2003807:
+    // - if packet delay budget is unset (has value 0), use NrSlUeMac::T2
+    //   - T2 >= T2min, a value set in the resource pool depending on numerology
+    // - else if packet delay budget set, use min(packet delay budget, NrSlUeMac::T2)
+    uint16_t t2;
+    if (!params.m_packetDelayBudget.IsZero())
     {
-        NS_LOG_DEBUG("Lowering configured T2 " << t2 << " to packet delay budget "
-                                               << t2DelayBudget);
-        t2 = t2DelayBudget;
-    }
-    else if (t2 && (t2 < t2Min))
-    {
-        NS_LOG_DEBUG("Raising configured T2 " << t2 << " to T2min " << t2Min);
-        t2 = t2Min;
-    }
-    else if (t2)
-    {
-        NS_LOG_DEBUG("Using configured T2 " << t2);
-    }
-    else
-    {
-        // T2 was not configured-- set to the maximum of T2min and packet delay budget
-        if (t2Min <= t2DelayBudget)
+        // Packet delay budget is known, so use it
+        uint16_t t2pdb = TimeToSlots(sfn, params.m_packetDelayBudget);
+        if (t2pdb > m_t2)
         {
-            NS_LOG_DEBUG("Setting T2 to packet delay budget: " << t2DelayBudget);
-            t2 = t2DelayBudget;
+            NS_LOG_DEBUG("Using T2 value from attribute "
+                         << m_t2 << " less than packet delay budget " << t2pdb);
+            t2 = m_t2;
         }
         else
         {
-            NS_LOG_DEBUG("Setting T2 to T2min: " << t2Min);
-            t2 = t2Min;
+            NS_LOG_DEBUG("Using T2 value from packet delay budget: " << t2pdb);
+            t2 = t2pdb;
+        }
+    }
+    else
+    {
+        // Packet delay budget is not known, so use max(NrSlUeMac::T2, T2min)
+        uint16_t t2min = txPool->GetT2Min(bwpId, poolId, sfn.GetNumerology());
+        if (m_t2 < t2min)
+        {
+            NS_LOG_DEBUG("Using T2min value " << t2min);
+            t2 = t2min;
+        }
+        else
+        {
+            NS_LOG_DEBUG("Using T2 value from attribute " << m_t2);
+            t2 = m_t2;
         }
     }
     NS_ABORT_MSG_UNLESS(CheckT1WithinTproc1(sfn, m_t1),
@@ -1676,14 +1681,12 @@ NrSlUeMac::NrSlTransmissionParams::NrSlTransmissionParams(uint8_t prio,
                                                           Time pdb,
                                                           uint16_t lSubch,
                                                           Time pRsvpTx,
-                                                          uint16_t cResel,
-                                                          Time t2)
+                                                          uint16_t cResel)
     : m_priority(prio),
       m_packetDelayBudget(pdb),
       m_lSubch(lSubch),
       m_pRsvpTx(pRsvpTx),
-      m_cResel(cResel),
-      m_t2(t2)
+      m_cResel(cResel)
 {
 }
 
@@ -1843,7 +1846,7 @@ operator<<(std::ostream& os, const NrSlUeMac::NrSlTransmissionParams& p)
 {
     os << "Prio: " << +p.m_priority << ", PDB: " << p.m_packetDelayBudget.As(Time::MS)
        << ", subchannels: " << p.m_lSubch << ", RRI: " << p.m_pRsvpTx.As(Time::MS)
-       << ", Cresel: " << p.m_cResel << ", T2: " << p.m_t2.As(Time::MS);
+       << ", Cresel: " << p.m_cResel;
     return os;
 }
 

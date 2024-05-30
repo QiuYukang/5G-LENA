@@ -785,8 +785,7 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
                                                  lcgMap.begin()->second->GetLcPdb(lcIdOfRef),
                                                  lSubch,
                                                  lcgMap.begin()->second->GetLcRri(lcIdOfRef),
-                                                 m_cResel,
-                                                 lcgMap.begin()->second->GetLcT2(lcIdOfRef)};
+                                                 m_cResel};
         // GetCandidateResources() will return the set S_A defined in
         // sec. 8.1.4 of TS 38.214.  The scheduler is responsible for
         // further filtering out any candidates that overlap with already

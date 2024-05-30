@@ -235,8 +235,7 @@ main(int argc, char* argv[])
     uint32_t udpPacketSizeBe = 200;
     double dataRateBe = 16; // 16 kilobits per second
     bool harqEnabled = true;
-    Time delayBudget = MilliSeconds(20);
-    Time t2 = MicroSeconds(8250); // 33 slots with numerology 2
+    Time delayBudget = Seconds(0); // Use T2 as selection window edge
 
     // Simulation parameters.
     Time simTime = Seconds(10);
@@ -465,6 +464,7 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
+    nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
 
     uint8_t bwpIdForGbrMcptt = 0;
@@ -690,7 +690,6 @@ main(int argc, char* argv[])
     slInfo.m_rri = MilliSeconds(100);
     slInfo.m_pdb = delayBudget;
     slInfo.m_harqEnabled = harqEnabled;
-    slInfo.m_t2 = t2;
 
     if (!useIPv6)
     {

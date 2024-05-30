@@ -269,7 +269,8 @@ main(int argc, char* argv[])
     bool prioToSps = false;
     bool harqEnabled = true;
     uint16_t psfchPeriod = 4;
-    Time t2 = MicroSeconds(8250); // 33 slots with numerology 2
+    // If packet delay budget is zero, model will use T2 as selection window edge
+    Time pdb = Seconds(0);
 
     // Simulation parameters.
     Time trafficTime = Seconds(2.0);
@@ -395,6 +396,7 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
+    nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
 
     uint8_t bwpIdForGbrMcptt = 0;
@@ -559,13 +561,13 @@ main(int argc, char* argv[])
 
     SidelinkInfo slInfo1;
     slInfo1.m_harqEnabled = harqEnabled;
-    slInfo1.m_t2 = t2;
+    slInfo1.m_pdb = pdb;
     SidelinkInfo slInfo2;
     slInfo2.m_harqEnabled = harqEnabled;
-    slInfo2.m_t2 = t2;
+    slInfo2.m_pdb = pdb;
     SidelinkInfo slInfo3;
     slInfo3.m_harqEnabled = harqEnabled;
-    slInfo3.m_t2 = t2;
+    slInfo3.m_pdb = pdb;
 
     // Assign the three traffic profile parameter values depending on the configuration
     switch (schedTypeConfig)

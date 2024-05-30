@@ -266,6 +266,7 @@ NrSlSensingTestCase::DoRun()
     // Set attributes used by the sensing code
     nrSlUeMac->SetAttribute("EnableSensing", BooleanValue(true));
     nrSlUeMac->SetAttribute("T1", UintegerValue(2));
+    nrSlUeMac->SetAttribute("T2", UintegerValue(33));
     nrSlUeMac->SetAttribute("ResourcePercentage", UintegerValue(20));
     nrSlUeMac->SetAttribute("SlThresPsschRsrp", IntegerValue(-128));
     nrSlUeMac->TraceConnectWithoutContext("SensingAlgorithm", MakeCallback(&TraceSensingAlgorithm));
@@ -307,16 +308,10 @@ NrSlSensingTestCase::DoRun()
     NS_LOG_DEBUG("Set requested subchannel width to 1");
     uint16_t lSubch = 1; // Number of subchannels to use
     // The following parameters don't matter here, but are needed for the constructor
-    Time packetDelayBudget = MilliSeconds(20);
+    Time packetDelayBudget = Seconds(0); // Use T2 instead
     Time pRsvpTx = MilliSeconds(100);
     uint16_t cResel = 5;
-    Time t2 = MicroSeconds(8250); // 33 slots
-    NrSlUeMac::NrSlTransmissionParams params{priority,
-                                             packetDelayBudget,
-                                             lSubch,
-                                             pRsvpTx,
-                                             cResel,
-                                             t2};
+    NrSlUeMac::NrSlTransmissionParams params{priority, packetDelayBudget, lSubch, pRsvpTx, cResel};
     std::list<SlResourceInfo> availableReso;
     availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
                                                             params,
@@ -339,12 +334,7 @@ NrSlSensingTestCase::DoRun()
     NS_LOG_DEBUG("Set requested subchannel width to 2");
     // Resetting the subchannel width to 2 should cause 15 resources of two subchannel width
     lSubch = 2;
-    NrSlUeMac::NrSlTransmissionParams params2{priority,
-                                              packetDelayBudget,
-                                              lSubch,
-                                              pRsvpTx,
-                                              cResel,
-                                              t2};
+    NrSlUeMac::NrSlTransmissionParams params2{priority, packetDelayBudget, lSubch, pRsvpTx, cResel};
     availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
                                                             params2,
                                                             CreateNrSlCommResourcePool(totalSubCh),
@@ -437,6 +427,7 @@ NrSlSensingTransmitHistoryTest::DoRun()
     // Set attributes used by the sensing code
     nrSlUeMac->SetAttribute("EnableSensing", BooleanValue(true));
     nrSlUeMac->SetAttribute("T1", UintegerValue(2));
+    nrSlUeMac->SetAttribute("T2", UintegerValue(33));
     nrSlUeMac->SetAttribute("ResourcePercentage", UintegerValue(20));
     nrSlUeMac->SetAttribute("SlThresPsschRsrp", IntegerValue(-128));
     nrSlUeMac->TraceConnectWithoutContext("SensingAlgorithm", MakeCallback(&TraceSensingAlgorithm));
@@ -464,17 +455,11 @@ NrSlSensingTransmitHistoryTest::DoRun()
     // Call the sensing algorithm and inspect the list of slots that result.
     uint16_t lSubch = 1; // Number of subchannels to use
     // The following parameters don't matter here, but are needed for the constructor
-    Time packetDelayBudget = MilliSeconds(20);
+    Time packetDelayBudget = Seconds(0); // Use T2 instead
     Time pRsvpTx = MilliSeconds(100);
     uint16_t cResel = 5;
     uint8_t priority = 0;
-    Time t2 = MicroSeconds(8250); // 33 slots
-    NrSlUeMac::NrSlTransmissionParams params{priority,
-                                             packetDelayBudget,
-                                             lSubch,
-                                             pRsvpTx,
-                                             cResel,
-                                             t2};
+    NrSlUeMac::NrSlTransmissionParams params{priority, packetDelayBudget, lSubch, pRsvpTx, cResel};
     std::list<SlResourceInfo> availableReso;
     availableReso = nrSlUeMac->GetCandidateResourcesPrivate(currentSfn,
                                                             params,

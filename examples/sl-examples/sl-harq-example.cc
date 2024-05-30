@@ -170,6 +170,7 @@ main(int argc, char* argv[])
     uint16_t numerologyBwpSl = 2;
     uint16_t slSubchannelSize = 50; // PRBs
     uint16_t t1 = 2;
+    uint16_t t2 = 33;
     uint16_t interUeDistance = 20; // meters
     bool logging = false;
     uint32_t numPackets = 100;
@@ -182,8 +183,7 @@ main(int argc, char* argv[])
     // Other constants
     // Sidelink bearers activation time
     Time slBearersActivationTime = Seconds(1.9);
-    Time delayBudget = MilliSeconds(20);
-    Time t2 = MicroSeconds(8250); // 33 slots with numerology 2
+    Time delayBudget = Seconds(0); // Use T2 to configure selection window edge
 
     // NR parameters and constants
     double centralFrequencyBandSl = 5.89e9; // band n47  TDD //Here band is analogous to channel
@@ -202,6 +202,7 @@ main(int argc, char* argv[])
                  "The start of the selection window in physical slots, "
                  "accounting for physical layer processing delay",
                  t1);
+    cmd.AddValue("t2", "The end of the selection window in physical slots", t2);
     cmd.AddValue("interUeDistance",
                  "The distance in meters between UEs in the topology",
                  interUeDistance);
@@ -395,6 +396,7 @@ main(int argc, char* argv[])
     nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
     nrHelper->SetUeMacAttribute("T1", UintegerValue(t1));
+    nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
 
     uint8_t bwpIdForGbrMcptt = 0;
@@ -631,7 +633,6 @@ main(int argc, char* argv[])
     slInfo.m_pdb = delayBudget;
     slInfo.m_dstL2Id = dstL2Id;
     slInfo.m_rri = MilliSeconds(100);
-    slInfo.m_t2 = t2;
     if (!useIPv6)
     {
         Ipv4InterfaceContainer ueIpIface;

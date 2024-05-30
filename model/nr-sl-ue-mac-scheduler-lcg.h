@@ -82,7 +82,6 @@ class NrSlUeMacSchedulerLC
     Time m_pdb{0};             //!< Packet Delay Budget
     bool m_dynamic{false};     //!< true if LC scheduling is dynamic, false if it is SPS
     Time m_rri{0};             //!< Resource Reservation Interval
-    Time m_t2{0};              //!< T2 value for selection window
     SidelinkInfo::CastType m_castType{SidelinkInfo::CastType::Invalid}; //!< Cast type
 };
 

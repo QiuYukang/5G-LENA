@@ -98,14 +98,12 @@ class NrSlUeMac : public NrUeMac
                                Time pdb,
                                uint16_t lSubch,
                                Time pRsvpTx,
-                               uint16_t cResel,
-                               Time t2 = Seconds(0));
+                               uint16_t cResel);
         uint8_t m_priority{0};                //!< L1 priority prio_TX
         Time m_packetDelayBudget{Seconds(0)}; //!< remaining packet delay budget
         uint16_t m_lSubch{0};                 //!< L_subCH; number of subchannels to be used
         Time m_pRsvpTx{0};                    //!< resource reservation interval
         uint16_t m_cResel{0};                 //!< C_resel counter
-        Time m_t2{0};                         //!< T2 selection window value
     };
 
     /**
@@ -815,10 +813,9 @@ class NrSlUeMac : public NrUeMac
     uint8_t m_minTimeGapProcessing{
         std::numeric_limits<uint8_t>::max()}; //!< Minimum time for PSFCH processing
     uint8_t m_tproc0{0};                      //!< t_proc0 in slots
-    uint8_t m_t1{0}; //!< The offset in number of slots between the slot in which the resource
-                     //!< selection is triggered and the start of the selection window
-    uint16_t m_t2{
-        0}; //!< The offset in number of slots between T1 and the end of the selection window
+    uint8_t m_t1{0};  //!< The offset in number of slots between the slot in which the resource
+                      //!< selection is triggered and the start of the selection window
+    uint16_t m_t2{0}; //!< The configured value of T2 (end of selection window)
     std::map<SidelinkLcIdentifier, NrSlMacSapProvider::NrSlReportBufferStatusParameters>
         m_nrSlBsrReceived;                                   ///< NR Sidelink BSR received from RLC
     uint16_t m_poolId{std::numeric_limits<uint16_t>::max()}; //!< Sidelink active pool id
