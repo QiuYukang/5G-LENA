@@ -26,7 +26,7 @@ A related file is the RELEASE_NOTES.md file in the top level directory.
 This file complements RELEASE_NOTES.md by focusing on API and behavioral
 changes that users upgrading from one release to the next may encounter.
 RELEASE_NOTES attempts to comprehensively list all of the changes
-that were made.  There is generally some overlap in the information
+that were made. There is generally some overlap in the information
 contained in RELEASE_NOTES.md and this file.
 
 The goal is that users who encounter a problem when trying to use older
@@ -58,6 +58,31 @@ us a note on ns-developers mailing list.
 ### Changed behavior:
 - In the OFDMA access mode, allocate, at least, the number of RBs necessary
   to transmit the minimum TBS.
+
+---
+
+## Changes from NR-v3.2 to v3.3
+
+### New API:
+
+- A new class ``NrFhControl`` is added that implements the Fronthaul Control that
+  allows the simulation of a limited-capacity fronthaul (FH) link. This class interacts
+  with the PHY and MAC layers through the ``NrFhPhySapProvider``, ``NrFhPhySapUser``,
+  ``NrFhSchedSapProvider`` and ``NrFhSchedSapUser`` SAPs.
+
+### Changes to existing API:
+
+- The ``NrHelper`` is extended to include the function ``EnableFhControl`` to enable
+  the Fronthaul Control. Moreover, attributes of the Fronthaul Control can be set
+  through the ``SetFhControlAttribute`` function.
+
+- The ``NrMacSchedulerNs3``, ``NrMacSchedulerOfdma``, ``NrMacSchedulerHarqRR`` and
+  ``NrGnbPhy`` are extended to support various Fronthaul Control mechanisms for
+  discarding data or limiting allocations.
+
+### Changed behavior:
+
+- None
 
 ---
 

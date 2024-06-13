@@ -151,6 +151,7 @@ for each nr release.
 
 | nr version     | ns-3 version | Build system  | Release date       |
 | :------------: | :-----------:| :-----------: |--------------------|
+| 5g-lena-v3.3.y | ns-3.42      | cmake         | October TBC, 2024  |
 | 5g-lena-v3.2.y | ns-3.42      | cmake         | September 25, 2024 |
 | 5g-lena-v3.1.y | ns-3.42      | cmake         | July 19, 2024      |
 | 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |
@@ -197,7 +198,7 @@ Download then checkout the compatible version of nr:
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 cd nr
-git checkout -b 5g-lena-v3.1.y origin/5g-lena-v3.1.y
+git checkout -b 5g-lena-v3.3.y origin/5g-lena-v3.3.y
 ```
 
 Notice that since these are two independent git repositories, when you run
@@ -282,13 +283,17 @@ git pull
 
 ## Documentation
 
-We maintain two sources of documentation:
+We maintain three sources of documentation:
 
 1. [The user manual](https://cttc-lena.gitlab.io/nr/nrmodule.pdf) describes the models and their assumptions; as
 we developed the module while the 3GPP standard was not fully available, some parts
 are not modeling precisely the procedures as indicated by the standard.
 
-2. [The Doxygen](https://cttc-lena.gitlab.io/nr/html/), you will find details about design
+2. [The user tutorial](https://cttc-lena.gitlab.io/nr/cttc-nr-demo-tutorial.pdf) describes the internal
+functionality of the NR RAN by providing a detailed, layer-by-layer insights on the packet lifecycle as
+they traverse the RAN.
+
+3. [The Doxygen](https://cttc-lena.gitlab.io/nr/html/), you will find details about design
 and user usage of any class of the module, as well as description and
 images for the examples and the tests.
 

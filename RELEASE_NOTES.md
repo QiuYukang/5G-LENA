@@ -17,15 +17,15 @@ API and behavior across releases.
 
 
 Release NR-v3.3
----------------
+----------------
 
 Availability
 ------------
-In development
+Available since October TBC, 2024
 
 Cite this version
 -----------------
-DOI: TBD
+DOI: TBC
 
 Supported platforms
 -------------------
@@ -40,6 +40,22 @@ This release will be compatible with ns-3.4x.
 
 Important news
 --------------
+- This release includes Fronthaul Control mechanisms, that allow
+  to simulate a limited-capacity fronthaul (FH) link based on the
+  Fronthaul Capacity (m_fhCapacity) set by the user in the example
+  script, and to apply FH Control methods (m_fhControlMethod) in order
+  to restrict user allocations, if these they do not fit in the
+  available FH capacity. O-RAN 7.2x functional split is assumed.
+  The methods supported are the Dropping, Postponing, Optimize MCS
+  and Optimize RBs, however it can be easily extended to apply
+  additional methods. The Fronthaul Control takes decisions based
+  on the model applied, the available fronthaul capacity, the applied
+  modulation compression and the number of active UEs in each cell
+  (either with new or HARQ data). This last information is updated
+  after each scheduling process is finalized, through the MAC layer.
+  The interaction of the Fronthaul Control with the MAC and high-PHY
+  layers takes place through a set of SAP interfaces that allow the
+  bidirectional exchange of information.
 
 - Remember to follow the instructions from the README.md file, i.e., to checkout
   the correct release branch of both ns-3 and the NR module. The information about
@@ -48,9 +64,14 @@ Important news
 
 New user-visible features
 -------------------------
+- Fronthaul Control mechanisms are available in the NR module.
+  The ``cttc-nr-fh-xr`` example shows how to use and configure the
+  Fronthaul Control in a scenario employing XR, CG and VoIP traffic.
+  For a more detailed description see the NR manual and Doxygen.
 
 Bugs fixed
 ----------
+None.
 
 Known issues
 ------------

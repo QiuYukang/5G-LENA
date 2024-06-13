@@ -1848,6 +1848,40 @@ We have created a general C++ base class called TrafficGenerator to support many
 
 The 3GPP traffic models have been parameterized and combined to model different single or multi-stream XR applications, as defined in [TR38838]_. A simulation helper allows to combine various data flows (or streams) into a single PDU session for XR inside a network device.
 
+Fronthaul Control
+*****************
+Fronthaul Control is implemented in the ``NrFhControl`` class. It allows to simulate a
+limited-capacity fronthaul (FH) link in the downlink direction based on the FhCapacity
+set by the user, and to apply FH control methods in order to restrict user allocations,
+if they do not fit in the available FH capacity. Functional split 7.2x is assumed.
+
+When the Fronthaul Control is activated, an instance of the NrFhControl is created per
+cell. Notice, that if a cell is configured with more than 1 BWPs, the available fronthaul
+capacity will be shared among the active BWPs.
+
+NrFhControl gets as inputs the available fronthaul capacity, the limit model to be applied
+(i.e., Dropping, Postponing, OptimizeMcs and OptimizeRBs) that will restrict user allocations,
+and the dynamic overhead to implement modulation compression.
+
+The ``NrHelper`` is responsible for the creation of the ``NrFhControl`` instance, while a set
+of SAPs (``NrFhSchedSapProvider``, ``NrFhSchedSapUser``, ``NrFhPhySapProvider``, ``NrFhPhySapUser``)
+have been implemented to allow bidirectional exchange of information with the MAC scheduler and the
+PHY layer. Based on these interactions (and the fronthaul control method applied), they will
+limit allocations in case it is instructed by the Fronthaul Control.
+
+The ``NrFhControl``  keeps track of the active UEs with new data in their RLC queues and the active
+UEs with HARQ data, through the collection of information from the MAC layer. Once a BSR is received,
+the MAC calls the NrFhControl, (through the ``NrFhSchedSapProvider`` interface), to store the UE
+(for which the BSR has been received) in a map containing the active UEs along with the amount of bytes
+of each of the UEs. For the case of active HARQ UEs, once the scheduling process is initiated, the MAC
+calculates the active HARQ UEs and communicates this list to the NrFhControl. Finally, when the scheduling
+process is finalized, the MAC calls the NrFhControl to update the map of the active UEs and the bytes
+stored based on the performed scheduling decisions.
+
+For more details with respect to the theoretical background, the fronthaul control methods and the
+evaluation of the impact that the fronthaul limitations can have on the end-to-end throughput and delay
+please refer to the paper [ComNetFhControl]_.
+
 
 NR-U extension
 **************
@@ -2382,6 +2416,19 @@ the QCI of which can be set as desired.
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-nr-multi-flow-qos-sched_8cc.html.
 
+cttc-nr-fh-xr
+=============
+
+The program ``examples/cttc-nr-fh-xr`` is an example that allows to perform
+evaluations with respect to the impact that fronthaul capacity limitations
+can have on scenarios with delay-critical XR traffic. The main purpose is to
+give to the user a tool that will allow him to test various fronthaul control
+methods and various fronthaul link capacities and study the impact on the
+end-to-end throughput and delay.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/cttc-nr-fh-xr_8cc.html.
+
 .. _Validation:
 
 Validation
@@ -2687,3 +2734,5 @@ Open issues and future work
 .. [interf-whitening] "Whitening transformation": https://en.wikipedia.org/wiki/Whitening_transformation
 
 .. [eigen3] Eigen library: https://eigen.tuxfamily.org/
+
+.. [ComNetFhControl] Katerina Koutlia, Sandra Lagén, "On the impact of Open RAN Fronthaul Control in scenarios with XR Traffic", Computer Networks, Volume 253, August 2024.
