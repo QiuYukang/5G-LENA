@@ -211,20 +211,25 @@ class NrFhSchedSapProvider;
  * Please refer to the method documentation for more detailed information
  * about the scheduling process of new data.
  *
- * An interesting operation which is not enforced in the current scheduler
- * version is how to distribute the assigned bytes to the different LC of
- * a UE. Now it is implemented the RR assignment, but it can be modified
- * (method AssignBytesToLC()).
+ * The scheduler distributes the assigned bytes among the different LCs of
+ * a UE based on the chosen algorithm for LC bytes assignment. Currently two
+ * algorithms are implemented. The default algorithm that assigns bytes to
+ * LCs in RR fashion and an algorithm that shares bytes among the active LCs
+ * by taking into account the resource type and the e_rabGuaranteedBitRate of
+ * a flow. These two algorithm implementations can be found in the
+ * NrMacSchedulerLcRR and NrMacSchedulerLcQos classes.
  *
  * The available schedulers are TDMA and OFDMA version of the Round Robin,
- * Proportional Fair, and Maximum Rate.
+ * Proportional Fair, Maximum Rate, and QoS MAC scheduler.
  *
  * \see NrMacSchedulerOfdmaPF
  * \see NrMacSchedulerOfdmaRR
  * \see NrMacSchedulerOfdmaMR
+ * \see NrMacSchedulerOfdmaQos
  * \see NrMacSchedulerTdmaPF
  * \see NrMacSchedulerTdmaRR
  * \see NrMacSchedulerTdmaMR
+ * \see NrMacSchedulerTdmaQos
  */
 class NrMacSchedulerNs3 : public NrMacScheduler
 {
