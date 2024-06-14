@@ -34,60 +34,13 @@ ML/AI based network management, with a focus on the following research lines:
 - Deriving 3GPP/IEEE technologies coexistence and spectrum sharing strategies
 - Designing radio resource, interference, and spectrum management techniques.
 
-## Collaborations
+## About NR V2X
 
 The implementation of NR V2X is divided between ns-3 LTE (RLC and above) and
 5G-LENA NR (MAC and PHY) modules, and it is contained in separate branches.
 Therefore, to be able to use this code one has to use CTTC customized LTE module
 of ns-3, and a specific branch in the nr module.
 
-### 1. Download ns-3 with extensions for V2X:
-
-```
-git clone https://gitlab.com/cttc-lena/ns-3-dev.git
-cd ns-3-dev
-git checkout -b v2x-lte-dev origin/v2x-lte-dev
-```
-
-### 2. Switch to the recommended ns-3 release branch that includes V2X extensions:
-
-Switch to ns-3 branch with V2X extensions:
-
-```
-cd ../..
-$ git checkout -b v2x-lte-dev origin/v2x-lte-dev
-```
-
-### 3. Download nr with extensions for V2X:
-
-```
-cd contrib
-git clone https://gitlab.com/cttc-lena/nr.git
-```
-
-### 4. Switch to the latest NR release branch with V2X extensions:
-
-Checkout the latest NR release branch (usually the branch with the highest version
-number, to list git V2X release branches run `git branch -r --list *v2x-v*`).
-For example, if `5g-lena-v2x-v0.4.y` is the latest release branch you can check it out
-in the following way:
-
-```
-cd nr
-git checkout 5g-lena-v2x-v0.4.y
-```
-
-### 5. Check out compatible ns-3 V2X tag
-
-To check out the correct tag, consult the following table:
-
-| NR V2X git branch| ns-3 V2X git tag| Build system| ns-3 version|
-| ------ | ------ | ------ | ------ |
-| 5g-lena-v2x-v0.1.y | ns-3-dev-v2x-v0.1 | waf | ns-3.35 |
-| 5g-lena-v2x-v0.2.y | ns-3-dev-v2x-v0.2 | cmake | ns-3.36 |
-| 5g-lena-v2x-v0.3.y | ns-3-dev-v2x-v0.3 | cmake | ns-3.40 |
-| 5g-lena-v2x-v0.4.y | ns-3-dev-v2x-v0.4 | cmake | ns-3.41 |
-=======
 ## ns-3 + nr prerequisites
 
 ### ns-3 prerequisites:
@@ -120,79 +73,79 @@ Notice that ns-3 and nr prerequisites are required to use all nr features.
 Otherwise, you will get a warning at configuration time
 and/or an error message during compilation or execution.
 
-## ns-3 + nr installation
+## Using the NR V2X development version
 
-Check in the [nr RELEASE_NOTES.md Supported platforms](https://gitlab.com/cttc-lena/nr/-/blob/master/RELEASE_NOTES.md#supported-platforms) which is the
-recommended ns-3 release for each nr release.
-
-For a quicker reference we provide a table with the supported versions of ns-3-dev
-for each nr release.
-
-| nr version     | ns-3 version | Build system  | Release date       |
-| :------------: | :-----------:| :-----------: |--------------------|
-| 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |
-| 5g-lena-v2.6.y | ns-3.40      | cmake         | November 30, 2023  |
-| 5g-lena-v2.5.y | ns-3.39      | cmake         | July 26, 2023      |
-| 5g-lena-v2.4.y | ns-3.38      | cmake         | April 5, 2023      |
-| 5g-lena-v2.3.y | ns-3.37      | cmake         | November 23, 2022  |
-| 5g-lena-v2.2.y | ns-3.36.1    | cmake         | June 03, 2022      |
-| 5g-lena-v2.1.y | ns-3.36      | cmake         | May 06, 2022       |
-| 5g-lena-v2.0.y | ns-3.36      | cmake         | April 21, 2022     |
-| 5g-lena-v1.3.y | ns-3.35      | waf           | April 7, 2022      |
-| 5g-lena-v1.2.y | ns-3-dev     | waf           | June 4, 2021       |
-| 5g-lena-v1.1.y | ns-3-dev     | waf           | March 2, 2021      |
-| 5g-lena-v1.0.y | ns-3-dev     | waf           | September 16, 2020 |
-| 5g-lena-v0.4.y | ns-3-dev     | waf           | February 13 2020   |
-| 5g-lena-v0.3.y | ns-3-dev     | waf           | August 27 2019     |
-| 5g-lena-v0.2.y | ns-3-dev     | waf           | February 1 2019    |
-
-###  Download ns-3:
-
-Download then checkout the compatible version of ns-3:
+### 1. Download ns-3 with extensions for V2X:
 
 ```
-git clone https://gitlab.com/nsnam/ns-3-dev.git
+git clone https://gitlab.com/cttc-lena/ns-3-dev.git
+```
+
+### 2.  Switch to the ns-3 development branch with V2X extensions:
+
+```
 cd ns-3-dev
-git checkout -b ns-3.41 ns-3.41
+$ git checkout -b v2x-lte-dev origin/v2x-lte-dev
 ```
 
-To make sure everything is working properly, run the ns-3 tests:
-
-```
-$ ./ns3 configure --enable-examples --enable-tests
-$ ./test.py
-```
-
-A success for both previous commands indicates an overall success, and you are
-ready to install the nr module.
-
-### Download the nr module:
-
-Download then checkout the compatible version of nr:
+### 3. Download nr with extensions for V2X:
 
 ```
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
+```
+
+### 4. Switch to the development branch with V2X extensions:
+
+```
 cd nr
-git checkout -b 5g-lena-v3.0.y origin/5g-lena-v3.0.y
+git checkout -b nr-v2x-dev origin/nr-v2x-dev
 ```
 
-Notice that since these are two independent git repositories, when you run
-`git status` inside of the ns-3, you will notice that the contrib/nr
-directory will be listed as "Untracked files". This is normal.
+## Using the NR V2X development version
 
-For example, for NR release branch called 5g-lena-v2x-v0.4.y, the compatible ns-3 release tag is ns-3-dev-v2x-v0.4.
-(To see the list of available ns-3 v2x release tags you can run: `git tag -l "*v2x*"`)
+Alternatively, one can use a released version.  In the same way
+as the development version, the selected ns-3 branch release must
+be paired with the same released version of nr's v2x branch.
 
-To check out the git tag run:
+To check out the correct tags, consult the following table:
+
+| NR V2X git branch | ns-3 V2X git tag  | Build system| ns-3 version|
+| ----------------- | ----------------- | ----------- | ----------- |
+| v2x-v1.0          | ns-3-dev-v2x-v1.0 | cmake       | ns-3.42     |
+| v2x-v0.4          | ns-3-dev-v2x-v0.4 | cmake       | ns-3.41     |
+| v2x-v0.3          | ns-3-dev-v2x-v0.3 | cmake       | ns-3.40     |
+| v2x-v0.2          | ns-3-dev-v2x-v0.2 | cmake       | ns-3.36     |
+| v2x-v0.1          | ns-3-dev-v2x-v0.1 | waf         | ns-3.35     |
+
+### 1. Download ns-3 with extensions for V2X:
 
 ```
-git checkout ns-3-dev-v2x-v0.4
+git clone https://gitlab.com/cttc-lena/ns-3-dev.git
 ```
 
-Git will now warn you that you are in a 'detached HEAD' state. Don't worry that is OK.
+### 2.  Switch to the ns-3 development branch with V2X extensions:
 
-### 6. Test ns-3 + nr installation:
+```
+cd ns-3-dev
+git checkout tags/ns-3-dev-v2x-v1.0 -b ns-3-dev-v2x-v1.0-branch
+```
+
+### 3. Download nr with extensions for V2X:
+
+```
+cd contrib
+git clone https://gitlab.com/cttc-lena/nr.git
+```
+
+### 4. Switch to the development branch with V2X extensions:
+
+```
+cd nr
+git checkout tags/v2x-v1.0 -b v2x-v1.0-branch
+```
+
+### 5. Test ns-3 + nr installation:
 
 Let's configure the ns-3 + NR project with V2X extensions:
 
@@ -224,54 +177,25 @@ built modules. If that is the case, _Welcome to the NR V2X world !_
 
 ## Run examples:
 
-Note that some of the examples may be missing if
-the dependencies listed in [nr Prerequisites](#prerequisites)
-section haven't been installed.
-
-Also, the nr target listed below is the module library for nr,
-so it **cannot** be used with `./ns3 run`, and only `./ns3 build nr`.
-```
-$ ./ns3 show targets | grep nr
-nix-vector-routing            nr
-cttc-lte-ca-demo              cttc-nr-3gpp-calibration-user
-cttc-nr-cc-bwp-demo           cttc-nr-demo
-cttc-nr-mimo-demo             cttc-nr-multi-flow-qos-sched
-cttc-nr-notching              cttc-nr-simple-qos-sched
-cttc-nr-traffic-3gpp-xr       cttc-nr-traffic-ngmn-mixed
-```
-
-Now, you can run one of these examples
-(see the nr/examples folder for their source code):
+There are only two provided V2X examples, which can be run as follows:
+cttc-nr-traffic-ngmn-mixed    cttc-nr-v2x-demo-simple       
+nr-v2x-west-to-east-highway   ns2-mobility-trace  
 
 ```
-$ ./ns3 run cttc-nr-demo
+$ ./ns3 run cttc-nr-v2x-demo-simple
+$ ./ns3 run nr-v2x-west-to-east-highway
 ```
 
-The `cttc-nr-demo` example has a complete tutorial explaining the
-example in details available [here](https://cttc-lena.gitlab.io/nr/cttc-nr-demo-tutorial.pdf).
+The `cttc-nr-v2x-demo-simple` example derives from the `cttc-nr-demo` downlink example
+documented [here](https://cttc-lena.gitlab.io/nr/cttc-nr-demo-tutorial.pdf).
+
+However, the configuration is a bit more involved than what can be observed in the downlink
+tutorial program.
 
 Note: when writing or modifying examples, be aware that
 our code is stored under the ns3 namespace. You will either
 need to use such namespace or add the prefix "ns3::" for
 classes, structs and enums.
-
-## Upgrading 5G-LENA {#upgrade}
-
-We assume that your work lives in a separate branch, and that the 'master'
-branch of the nr repository is left untouched as the first time you downloaded
-it. If it is not the case, then please move all your work in a separate branch.
-
-To run `cttc-nr-v2x-demo-simple.cc` example from the nr/examples folder run:
-
-```
-./ns3 run "cttc-nr-v2x-demo-simple"
-```
-
-To run `nr-v2x-west-to-east-highway.cc` example from nr/examples folder run:
-
-```
-./ns3 run "nr-v2x-west-to-east-highway"
-```
 
 ## Upgrading 5G-LENA
 
@@ -334,25 +258,6 @@ integrate it so that the work you have done does not become outdated
 and then impossible to merge;
 - The more we are, the better we can do!
 
-## Features
-
-To see the features, please go to the [official webpage](https://5g-lena.cttc.es/features/).
-
-## Papers
-
-An updated list of published papers that are based on the outcome of this
-module is available
-[here](https://5g-lena.cttc.es/papers/).
-
-## About
-
-The [OpenSim](https://www.cttc.cat/open-simulations-opensim/) research group in CTTC is a group of highly skilled researchers, with expertise in the area of cellular networks, O-RAN, radio resource management, ML/AI based network management, with a focus on the following research lines:
-
-- Developing models, algorithms, and architectures for next-generation virtualized open radio access networks
-- Designing, implementing, validating, and evaluating 5G and beyond extensions in ns-3, including licensed/unlicensed/shared-based access and vehicular communications
-- Deriving 3GPP/IEEE technologies coexistence and spectrum sharing strategies
-- Designing radio resource, interference, and spectrum management techniques.
-
 ## Collaborations
 
 Contact us if you think that we could collaborate! We are interested in research projects with companies or other research institutions. Our [OpenSim](https://www.cttc.cat/open-simulations-opensim/) research group has gained a vast experience in industrial research projects through many successful projects with some of the top companies in the telecom industry. We also organize secondments for excellent and motivated MSc/PhD students. We can organize tutorials for the academy or industry.
@@ -373,5 +278,5 @@ Inspired by [mmWave module by NYU/UniPD](https://github.com/nyuwireless-unipd/ns
 
 ## License ##
 
-This software is licensed under the terms of the GNU GPLv2, as like as ns-3.
-See the LICENSE file for more details.
+This software is licensed under the terms of the [GNU GPLv2-only](https://spdx.org/licenses/GPL-2.0-only),
+which matches that of ns-3.  See the LICENSE file for more details.
