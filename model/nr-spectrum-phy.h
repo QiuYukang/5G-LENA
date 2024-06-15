@@ -13,6 +13,7 @@
 #include "nr-spectrum-signal-parameters.h"
 
 #include <ns3/lte-chunk-processor.h>
+#include <ns3/matrix-based-channel-model.h>
 #include <ns3/net-device.h>
 #include <ns3/random-variable-stream.h>
 #include <ns3/spectrum-channel.h>
@@ -557,6 +558,15 @@ class NrSpectrumPhy : public SpectrumPhy
      * \returns an indicator whether the ctrlListMessage contains only SRS message
      */
     bool IsOnlySrs(const std::list<Ptr<NrControlMessage>>& ctrlMsgList);
+
+    /**
+     * \brief Function that is called when the rx signal does not contain an expected channel
+     * matrix.
+     * \param params the signal parameters which contains the spectrum channel matrix
+     * \returns the channel matrix
+     */
+    Ptr<MatrixBasedChannelModel::Complex3DVector> CreateSpectrumChannelMatrix(
+        const Ptr<SpectrumSignalParameters> params) const;
 
     /**
      * \brief Checks whether transport blocks were correctly received or were corrupted.

@@ -16,6 +16,7 @@
 #include "ns3/uniform-planar-array.h"
 #include <ns3/boolean.h>
 #include <ns3/double.h>
+#include <ns3/matrix-based-channel-model.h>
 #include <ns3/trace-source-accessor.h>
 
 namespace ns3
@@ -401,6 +402,42 @@ NrSpectrumPhy::GetTxPowerSpectralDensity()
     return m_txPsd;
 }
 
+Ptr<MatrixBasedChannelModel::Complex3DVector>
+NrSpectrumPhy::CreateSpectrumChannelMatrix(const Ptr<SpectrumSignalParameters> params) const
+{
+    auto rxPsd = params->psd;
+    uint32_t nRb = rxPsd->GetValuesN();
+    auto txAntenna = DynamicCast<PhasedArrayModel>(params->txPhy->GetAntenna());
+    auto rxAntenna = DynamicCast<PhasedArrayModel>(GetAntenna());
+    NS_ABORT_MSG_UNLESS(txAntenna && rxAntenna, "Only phased antenna array models are supported.");
+
+    auto txAntennaPorts = txAntenna->GetNumPorts();
+    auto rxAntennaPorts = rxAntenna->GetNumPorts();
+    NS_ASSERT_MSG(txAntennaPorts == 1 && rxAntennaPorts == 1,
+                  "The conversion only fits to a single antenna port in Tx and Rx");
+    Ptr<MatrixBasedChannelModel::Complex3DVector> channelSpct =
+        Create<MatrixBasedChannelModel::Complex3DVector>(rxAntennaPorts, txAntennaPorts, nRb);
+    auto vit = params->psd->ValuesBegin();
+    size_t iRb = 0;
+    while (vit != params->psd->ValuesEnd())
+    {
+        if (*vit != 0.0)
+        {
+            auto sqrtvit = sqrt(*vit);
+            for (size_t u = 0; u < 1; u++)
+            {
+                for (size_t s = 0; s < 1; s++)
+                {
+                    channelSpct->Elem(u, s, iRb) = sqrtvit;
+                }
+            }
+        }
+        vit++;
+        iRb++;
+    }
+    return channelSpct;
+}
+
 void
 NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
 {
@@ -408,6 +445,13 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     Ptr<const SpectrumValue> rxPsd = params->psd;
     Time duration = params->duration;
     NS_LOG_INFO("Start receiving signal: " << rxPsd << " duration= " << duration);
+
+    // phased-array mimo expects a channel
+    if (!params->spectrumChannelMatrix &&
+        GetSpectrumChannel()->GetPhasedArraySpectrumPropagationLossModel())
+    {
+        params->spectrumChannelMatrix = CreateSpectrumChannelMatrix(params);
+    }
 
     // pass it to interference calculations regardless of the type (nr or non-nr)
     m_interferenceData->AddSignalMimo(params, duration);
