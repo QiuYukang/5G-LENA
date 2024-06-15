@@ -73,7 +73,7 @@ Notice that ns-3 and nr prerequisites are required to use all nr features.
 Otherwise, you will get a warning at configuration time
 and/or an error message during compilation or execution.
 
-## Using the NR V2X development version
+## Downloading the NR V2X development version
 
 ### 1. Download ns-3 with extensions for V2X:
 
@@ -102,7 +102,7 @@ cd nr
 git checkout -b nr-v2x-dev origin/nr-v2x-dev
 ```
 
-## Using the NR V2X development version
+## Downloading an NR V2X release
 
 Alternatively, one can use a released version.  In the same way
 as the development version, the selected ns-3 branch release must
@@ -124,7 +124,9 @@ To check out the correct tags, consult the following table:
 git clone https://gitlab.com/cttc-lena/ns-3-dev.git
 ```
 
-### 2.  Switch to the ns-3 development branch with V2X extensions:
+### 2.  Switch to the desired ns-3 release branch with V2X extensions:
+
+See above table; this will be of the form "ns3-dev-v2x-v#.#"
 
 ```
 cd ns-3-dev
@@ -138,14 +140,16 @@ cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 ```
 
-### 4. Switch to the development branch with V2X extensions:
+### 4. Switch to the desired release branch with V2X extensions:
+
+See above table; this will be of the form "v2x-v#.#" and must match the version in 2) above.
 
 ```
 cd nr
 git checkout tags/v2x-v1.0 -b v2x-v1.0-branch
 ```
 
-### 5. Test ns-3 + nr installation:
+## Configuring and building NR V2X extensions
 
 Let's configure the ns-3 + NR project with V2X extensions:
 
@@ -175,7 +179,7 @@ To compile the ns-3 with nr you can run the following command:
 If the NR module is recognized correctly, you should see "nr" in the list of
 built modules. If that is the case, _Welcome to the NR V2X world !_
 
-## Run examples:
+## Run NR V2X examples:
 
 There are only two provided V2X examples, which can be run as follows:
 cttc-nr-traffic-ngmn-mixed    cttc-nr-v2x-demo-simple       
