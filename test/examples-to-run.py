@@ -205,6 +205,36 @@ cpp_examples = [
         "True",
         "True",
     ),
+    (
+        "cttc-nr-mimo-demo --bandwidth=2.5e6",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=2.5e6 --subbandSize=1 --downsamplingTechnique=FirstPRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=5e6 --subbandSize=4 --downsamplingTechnique=FirstPRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=10e6 --subbandSize=8 --downsamplingTechnique=FirstPRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=20e6 --subbandSize=16 --downsamplingTechnique=AveragePRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=40e6 --subbandSize=32 --downsamplingTechnique=AveragePRB",
+        "True",
+        "True",
+    ),
 ]
 
 # A list of Python examples to run in order to ensure that they remain
