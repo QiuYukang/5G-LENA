@@ -149,4 +149,39 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
     return antennaWeights;
 }
 
+PhasedArrayModel::ComplexVector
+CreateKroneckerBfv(const Ptr<const UniformPlanarArray>& antenna, double rowAngle, double colAngle)
+{
+    // retrieve the number of antenna elements to create bf vector
+    PhasedArrayModel::ComplexVector bfVector(antenna->GetNumElems());
+    auto vPhasePerEl =
+        -2.0 * M_PI * antenna->GetAntennaVerticalSpacing() * cos(rowAngle * M_PI / 180.0);
+    auto hPhasePerEl =
+        -2.0 * M_PI * antenna->GetAntennaHorizontalSpacing() * cos(colAngle * M_PI / 180.0);
+
+    auto numAnalogBeamElements = antenna->GetVElemsPerPort() * antenna->GetHElemsPerPort();
+
+    // normalize because the total power is divided equally among the analog beams elements
+    auto normalizer = 1.0 / sqrt(numAnalogBeamElements);
+
+    auto numCols = antenna->GetNumColumns();
+    auto numRows = antenna->GetNumRows();
+
+    // compute the antenna weights (bfvector)
+    for (auto elIdx = size_t{0}; elIdx < antenna->GetNumElems(); elIdx++)
+    {
+        auto colIdx = elIdx % numCols;
+        auto rowIdx = elIdx / numCols;
+        auto isSkippedCol = (colIdx >= antenna->GetHElemsPerPort());
+        auto isSkippedRow = (rowIdx >= antenna->GetVElemsPerPort());
+        if (isSkippedCol || isSkippedRow || (elIdx >= numRows * numCols))
+        {
+            bfVector[elIdx] = 0.0;
+            continue;
+        }
+        auto combPhase = rowIdx * vPhasePerEl + colIdx * hPhasePerEl;
+        bfVector[elIdx] = normalizer * std::complex<double>(cos(combPhase), sin(combPhase));
+    }
+    return bfVector;
+}
 } // namespace ns3

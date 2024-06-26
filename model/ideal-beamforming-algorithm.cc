@@ -24,6 +24,8 @@ NS_OBJECT_ENSURE_REGISTERED(DirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(QuasiOmniDirectPathBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(DirectPathQuasiOmniBeamforming);
 NS_OBJECT_ENSURE_REGISTERED(OptimalCovMatrixBeamforming);
+NS_OBJECT_ENSURE_REGISTERED(KroneckerBeamforming);
+NS_OBJECT_ENSURE_REGISTERED(KroneckerQuasiOmniBeamforming);
 
 TypeId
 IdealBeamformingAlgorithm::GetTypeId()
@@ -611,4 +613,240 @@ OptimalCovMatrixBeamforming::GetBeamformingVectors(
     return BeamformingVectorPair();
 }
 
+TypeId
+KroneckerBeamforming::GetTypeId()
+{
+    static TypeId tid = TypeId("ns3::KroneckerBeamforming")
+                            .SetParent<IdealBeamformingAlgorithm>()
+                            .AddConstructor<KroneckerBeamforming>();
+    return tid;
+}
+
+void
+KroneckerBeamforming::SetColRxBeamAngles(std::vector<double> colAngles)
+{
+    m_colRxBeamAngles = colAngles;
+}
+
+void
+KroneckerBeamforming::SetColTxBeamAngles(std::vector<double> colAngles)
+{
+    m_colTxBeamAngles = colAngles;
+}
+
+void
+KroneckerBeamforming::SetRowRxBeamAngles(std::vector<double> rowAngles)
+{
+    m_rowRxBeamAngles = rowAngles;
+}
+
+void
+KroneckerBeamforming::SetRowTxBeamAngles(std::vector<double> rowAngles)
+{
+    m_rowTxBeamAngles = rowAngles;
+}
+
+std::vector<double>
+KroneckerBeamforming::GetColRxBeamAngles() const
+{
+    return m_colRxBeamAngles;
+}
+
+std::vector<double>
+KroneckerBeamforming::GetColTxBeamAngles() const
+{
+    return m_colTxBeamAngles;
+}
+
+std::vector<double>
+KroneckerBeamforming::GetRowRxBeamAngles() const
+{
+    return m_rowRxBeamAngles;
+}
+
+std::vector<double>
+KroneckerBeamforming::GetRowTxBeamAngles() const
+{
+    return m_rowTxBeamAngles;
+}
+
+BeamformingVectorPair
+KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                            const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
+{
+    NS_ABORT_MSG_IF(gnbSpectrumPhy == nullptr || ueSpectrumPhy == nullptr,
+                    "Something went wrong, gnb or UE PHY layer not set.");
+
+    Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel();
+    Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel();
+
+    Ptr<const PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel =
+        gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
+    Ptr<const PhasedArraySpectrumPropagationLossModel> ueThreeGppSpectrumPropModel =
+        ueSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
+    NS_ASSERT_MSG(gnbThreeGppSpectrumPropModel == ueThreeGppSpectrumPropModel,
+                  "Devices should be connected on the same spectrum channel");
+
+    std::vector<int> activeRbs;
+    for (size_t rbId = 0; rbId < gnbSpectrumPhy->GetRxSpectrumModel()->GetNumBands(); rbId++)
+    {
+        activeRbs.push_back(rbId);
+    }
+    Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
+        0.0,
+        activeRbs,
+        gnbSpectrumPhy->GetRxSpectrumModel(),
+        NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+    Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
+
+    double maxPower = 0;
+    BeamformingVector gnbBfv;
+    BeamformingVector ueBfv;
+    // configure gNB and ue beamforming vectors to be Kronecker
+    for (size_t k = 0; k < m_colTxBeamAngles.size(); k++)
+    {
+        for (size_t m = 0; m < m_rowTxBeamAngles.size(); m++)
+        {
+            for (size_t i = 0; i < m_colRxBeamAngles.size(); i++)
+            {
+                for (size_t j = 0; j < m_rowRxBeamAngles.size(); j++)
+                {
+                    auto bfUe = CreateKroneckerBfv(
+                        ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                        m_rowTxBeamAngles[m],
+                        m_colTxBeamAngles[k]);
+                    ueSpectrumPhy->GetAntenna()
+                        ->GetObject<UniformPlanarArray>()
+                        ->SetBeamformingVector(bfUe);
+                    auto bf = CreateKroneckerBfv(
+                        gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                        m_rowRxBeamAngles[j],
+                        m_colRxBeamAngles[i]);
+                    gnbSpectrumPhy->GetAntenna()
+                        ->GetObject<UniformPlanarArray>()
+                        ->SetBeamformingVector(bf);
+                    fakeParams->psd = Copy<SpectrumValue>(fakePsd);
+                    auto rxParams = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
+                        fakeParams,
+                        gnbSpectrumPhy->GetMobility(),
+                        ueSpectrumPhy->GetMobility(),
+                        gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                        ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>());
+
+                    size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
+                    double power = Sum(*(rxParams->psd)) / nbands;
+                    if (power > maxPower)
+                    {
+                        maxPower = power;
+                        gnbBfv = {bf, BeamId::GetEmptyBeamId()};
+                        ueBfv = {bfUe, BeamId::GetEmptyBeamId()};
+                    }
+                }
+            }
+        }
+    }
+    return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
+}
+
+TypeId
+KroneckerQuasiOmniBeamforming::GetTypeId()
+{
+    static TypeId tid = TypeId("ns3::KroneckerQuasiOmniBeamforming")
+                            .SetParent<IdealBeamformingAlgorithm>()
+                            .AddConstructor<KroneckerQuasiOmniBeamforming>();
+    return tid;
+}
+
+void
+KroneckerQuasiOmniBeamforming::SetColBeamAngles(std::vector<double> colAngles)
+{
+    m_colBeamAngles = colAngles;
+}
+
+void
+KroneckerQuasiOmniBeamforming::SetRowBeamAngles(std::vector<double> rowAngles)
+{
+    m_rowBeamAngles = rowAngles;
+}
+
+std::vector<double>
+KroneckerQuasiOmniBeamforming::GetColBeamAngles() const
+{
+    return m_colBeamAngles;
+}
+
+std::vector<double>
+KroneckerQuasiOmniBeamforming::GetRowBeamAngles() const
+{
+    return m_rowBeamAngles;
+}
+
+BeamformingVectorPair
+KroneckerQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+                                                     const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const
+{
+    NS_ABORT_MSG_IF(gnbSpectrumPhy == nullptr || ueSpectrumPhy == nullptr,
+                    "Something went wrong, gnb or UE PHY layer not set.");
+
+    Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel();
+    Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel();
+
+    Ptr<const PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel =
+        gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
+    Ptr<const PhasedArraySpectrumPropagationLossModel> ueThreeGppSpectrumPropModel =
+        ueSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
+    NS_ASSERT_MSG(gnbThreeGppSpectrumPropModel == ueThreeGppSpectrumPropModel,
+                  "Devices should be connected on the same spectrum channel");
+
+    std::vector<int> activeRbs;
+    for (size_t rbId = 0; rbId < gnbSpectrumPhy->GetRxSpectrumModel()->GetNumBands(); rbId++)
+    {
+        activeRbs.push_back(rbId);
+    }
+    Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
+        0.0,
+        activeRbs,
+        gnbSpectrumPhy->GetRxSpectrumModel(),
+        NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW);
+
+    // configure ue beamforming vector to be quasi
+    Ptr<const UniformPlanarArray> ueAntenna =
+        ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
+    PhasedArrayModel::ComplexVector uebfV = CreateQuasiOmniBfv(ueAntenna);
+    BeamformingVector ueBfv = {uebfV, OMNI_BEAM_ID};
+    ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetBeamformingVector(uebfV);
+
+    // configure gNB beamforming vector to be Kronecer
+    Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
+    double maxPower = 0;
+    BeamformingVector gnbBfv;
+
+    for (size_t i = 0; i < m_colBeamAngles.size(); i++)
+    {
+        for (size_t j = 0; j < m_rowBeamAngles.size(); j++)
+        {
+            auto bf =
+                CreateKroneckerBfv(gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                                   m_rowBeamAngles[j],
+                                   m_colBeamAngles[i]);
+            gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetBeamformingVector(bf);
+            fakeParams->psd = Copy<SpectrumValue>(fakePsd);
+            auto rxParams = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
+                fakeParams,
+                gnbSpectrumPhy->GetMobility(),
+                ueSpectrumPhy->GetMobility(),
+                gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>());
+
+            size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
+            double power = Sum(*(rxParams->psd)) / nbands;
+            if (power > maxPower)
+            {
+                maxPower = power;
+                gnbBfv = {bf, BeamId::GetEmptyBeamId()};
+            }
+        }
+    }
+    return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
+}
 } // namespace ns3

@@ -308,7 +308,9 @@ main(int argc, char* argv[])
                  "ns3::CellScanQuasiOmniBeamforming,"
                  "ns3::DirectPathBeamforming,"
                  "ns3::QuasiOmniDirectPathBeamforming,"
-                 "ns3::DirectPathQuasiOmniBeamforming",
+                 "ns3::DirectPathQuasiOmniBeamforming,"
+                 "ns3::KronBeamforming,"
+                 "ns3::KronQuasiOmniBeamforming",
                  beamformingMethod);
     cmd.AddValue("losCondition",
                  "Default - for 3GPP channel condition model,"

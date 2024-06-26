@@ -71,7 +71,16 @@ PhasedArrayModel::ComplexVector CreateDirectionalBfvAz(const Ptr<const UniformPl
 PhasedArrayModel::ComplexVector CreateDirectPathBfv(const Ptr<MobilityModel>& a,
                                                     const Ptr<MobilityModel>& b,
                                                     const Ptr<const UniformPlanarArray>& antenna);
-
+/**
+ * \brief Creates a beamforming vector using Kronecker method for a given azimuth and zenith
+ * \param [in] antenna Antenna array for which will be created the beamforming vector
+ * \param [in] rowAngle row angle to be used
+ * \param [in] colAngle column angle to be used
+ * \return the beamforming vector
+ */
+PhasedArrayModel::ComplexVector CreateKroneckerBfv(const Ptr<const UniformPlanarArray>& antenna,
+                                                   double rowAngle,
+                                                   double colAngle);
 } // namespace ns3
 
 #endif /* SRC_NR_MODEL_BEAMFORMING_VECTOR_H_ */

@@ -289,5 +289,144 @@ class OptimalCovMatrixBeamforming : public IdealBeamformingAlgorithm
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 };
 
+/**
+ * \ingroup gnb-phy
+ * \brief The KroneckerBeamforming class
+ */
+class KroneckerBeamforming : public IdealBeamformingAlgorithm
+{
+  public:
+    /**
+     * \brief Get the type id
+     * \return the type id of the class
+     */
+    static TypeId GetTypeId();
+
+    /**
+     * \return Gets value of BeamColAngles of Rx attribute
+     */
+    std::vector<double> GetColRxBeamAngles() const;
+
+    /**
+     * \return Gets value of BeamColAngles of Tx attribute
+     */
+    std::vector<double> GetColTxBeamAngles() const;
+
+    /**
+     * \return Gets value of BeamRowAngles of Rx attribute
+     */
+    std::vector<double> GetRowRxBeamAngles() const;
+
+    /**
+     * \return Gets value of BeamRowAngles of Tx attribute
+     */
+    std::vector<double> GetRowTxBeamAngles() const;
+
+    /**
+     * \brief Sets the value of BeamColAngles of Rx attribute
+     */
+    void SetColRxBeamAngles(std::vector<double> colAngles);
+
+    /**
+     * \brief Sets the value of BeamColAngles of Tx attribute
+     */
+    void SetColTxBeamAngles(std::vector<double> colAngles);
+
+    /**
+     * \brief Sets the value of BeamRowAngles of Rx attribute
+     */
+    void SetRowRxBeamAngles(std::vector<double> rowAngles);
+
+    /**
+     * \brief Sets the value of BeamRowAngles of Tx attribute
+     */
+    void SetRowTxBeamAngles(std::vector<double> rowAngles);
+
+    /**
+     * \brief constructor
+     */
+    KroneckerBeamforming() = default;
+
+    /**
+     * \brief destructor
+     */
+    ~KroneckerBeamforming() override = default;
+
+    /**
+     * \brief Function that generates the beamforming vectors for a pair of
+     * communicating devices by using kronecker method for both gNB and UE device
+     * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+     * \param [in] ueSpectrumPhy the spectrum phy of the UE device
+     * \return the beamforming vector pair of the gNB and the UE
+     */
+    BeamformingVectorPair GetBeamformingVectors(
+        const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
+
+  private:
+    std::vector<double> m_colRxBeamAngles{0, 90};
+    std::vector<double> m_colTxBeamAngles{0, 90};
+    std::vector<double> m_rowRxBeamAngles{0, 90};
+    std::vector<double> m_rowTxBeamAngles{0, 90};
+};
+
+/**
+ * \ingroup gnb-phy
+ * \brief The KronQuasiBeamforming class
+ */
+class KroneckerQuasiOmniBeamforming : public IdealBeamformingAlgorithm
+{
+  public:
+    /**
+     * \brief Get the type id
+     * \return the type id of the class
+     */
+    static TypeId GetTypeId();
+
+    /**
+     * \return Gets value of BeamColAngles attribute
+     */
+    std::vector<double> GetColBeamAngles() const;
+
+    /**
+     * \return Gets value of BeamRowAngles attribute
+     */
+    std::vector<double> GetRowBeamAngles() const;
+
+    /**
+     * \brief Sets the value of BeamColAngles attribute
+     */
+    void SetColBeamAngles(std::vector<double> colAngles);
+
+    /**
+     * \brief Sets the value of BeamRowAngles attribute
+     */
+    void SetRowBeamAngles(std::vector<double> rowAngles);
+
+    /**
+     * \brief constructor
+     */
+    KroneckerQuasiOmniBeamforming() = default;
+
+    /**
+     * \brief destructor
+     */
+    ~KroneckerQuasiOmniBeamforming() override = default;
+
+    /**
+     * \brief Function that generates the beamforming vectors for a pair of
+     * communicating devices by using kronecker method for gNB and Quasi for the UE
+     * \param [in] gnbSpectrumPhy the spectrum phy of the gNB
+     * \param [in] ueSpectrumPhy the spectrum phy of the UE device
+     * \return the beamforming vector pair of the gNB and the UE
+     */
+    BeamformingVectorPair GetBeamformingVectors(
+        const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
+        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
+
+  private:
+    std::vector<double> m_colBeamAngles{0, 90};
+    std::vector<double> m_rowBeamAngles{0, 90};
+};
 } // namespace ns3
 #endif

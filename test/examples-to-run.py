@@ -215,6 +215,16 @@ cpp_examples = [
         "True",
     ),
     (
+        "cttc-nr-mimo-demo --bandwidth=2.5e6 --subbandSize=1 --beamformingMethod=ns3::KroneckerBeamforming",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --bandwidth=2.5e6 --subbandSize=1 --beamformingMethod=ns3::KroneckerQuasiOmniBeamforming",
+        "True",
+        "True",
+    ),
+    (
         "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=2.5e6 --subbandSize=1 --downsamplingTechnique=FirstPRB",
         "True",
         "True",
