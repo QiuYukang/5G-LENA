@@ -1141,9 +1141,9 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                     std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt =
                         rntiIt->second.find(j.m_lcid);
                     NS_ASSERT_MSG(lcidIt != rntiIt->second.end(),
-                                  "could not find LCID" << j.m_lcid);
+                                  "could not find LCID" << std::to_string(j.m_lcid));
                     NS_LOG_INFO("Notifying RLC of TX opportunity for HARQ Process ID "
-                                << (unsigned int)harqId << " LC ID " << +j.m_lcid
+                                << (unsigned int)harqId << " LC ID " << std::to_string(+j.m_lcid)
                                 << (unsigned int)j.m_size);
 
                     (*lcidIt).second->NotifyTxOpportunity(
