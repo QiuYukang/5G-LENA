@@ -919,6 +919,12 @@ class NrHelper : public Object
                          Ptr<NetDevice> sourceGnbDev,
                          uint16_t targetCellId);
 
+    /**
+     * Install NrCsiRsFilter onto the specified spectrum channel
+     * \param channel the spectrum channel instance on which will be installed the filter
+     */
+    void AddNrCsiRsFilter(Ptr<SpectrumChannel> channel);
+
   private:
     bool m_enableMimoFeedback{false}; ///< Let UE compute MIMO feedback with PMI and RI
     ObjectFactory m_pmSearchFactory;  ///< Factory for precoding matrix search algorithm

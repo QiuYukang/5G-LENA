@@ -25,6 +25,7 @@
 #include <ns3/nr-epc-gnb-application.h>
 #include <ns3/nr-epc-ue-nas.h>
 #include <ns3/nr-epc-x2.h>
+#include <ns3/nr-csi-rs-filter.h>
 #include <ns3/nr-fh-control.h>
 #include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-gnb-net-device.h>
@@ -1901,6 +1902,32 @@ NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
     if (searchTypeId == NrPmSearchFull::GetTypeId())
     {
         SetPmSearchAttribute("CodebookType", TypeIdValue(TypeId::LookupByName(mp.fullSearchCb)));
+    }
+}
+
+void
+NrHelper::AddNrCsiRsFilter(Ptr<SpectrumChannel> channel)
+{
+    Ptr<const SpectrumTransmitFilter> p = channel->GetSpectrumTransmitFilter();
+    bool found = false;
+    while (p && !found)
+    {
+        if (DynamicCast<const NrCsiRsFilter>(p))
+        {
+            NS_LOG_DEBUG("Found existing NrCsiRsFilter for spectrum channel " << channel);
+            found = true;
+        }
+        else
+        {
+            NS_LOG_DEBUG("Found different SpectrumTransmitFilter for channel " << channel);
+            p = p->GetNext();
+        }
+    }
+    if (!found)
+    {
+        Ptr<NrCsiRsFilter> pCsiRsFilter = CreateObject<NrCsiRsFilter>();
+        channel->AddSpectrumTransmitFilter(pCsiRsFilter);
+        NS_LOG_DEBUG("Adding NrCsiRsFilter to channel " << channel);
     }
 }
 

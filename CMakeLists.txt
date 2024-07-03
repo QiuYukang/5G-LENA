@@ -139,6 +139,7 @@ set(source_files
     model/nr-mimo-chunk-processor.cc
     model/nr-mimo-matrices.cc
     model/nr-mimo-signal.cc
+    model/nr-csi-rs-filter.cc
     model/nr-net-device.cc
     model/nr-no-op-component-carrier-manager.cc
     model/nr-no-op-handover-algorithm.cc
@@ -337,6 +338,7 @@ set(header_files
     model/nr-mimo-chunk-processor.h
     model/nr-mimo-matrices.h
     model/nr-mimo-signal.h
+    model/nr-csi-rs-filter.h
     model/nr-net-device.h
     model/nr-no-op-component-carrier-manager.h
     model/nr-no-op-handover-algorithm.h
