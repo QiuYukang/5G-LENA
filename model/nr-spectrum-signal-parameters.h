@@ -104,6 +104,35 @@ struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
     uint16_t cellId;                              //!< cell id
 };
 
+/**
+ * \ingroup gnb-phy
+ * \ingroup ue-phy
+ *
+ * \brief DL CSI-RS signal representation
+ *
+ * This struct provides the CSI-RS signal representation.
+ */
+struct NrSpectrumSignalParametersCsiRs : public SpectrumSignalParameters
+{
+    // inherited from SpectrumSignalParameters
+    Ptr<SpectrumSignalParameters> Copy() const override;
+
+    /**
+     * \brief NrSpectrumSignalParametersCsiRs
+     */
+    NrSpectrumSignalParametersCsiRs();
+
+    /**
+     * \brief NrSpectrumSignalParametersCsiRs copy constructor
+     * \param p the object from which we have to copy from
+     */
+    NrSpectrumSignalParametersCsiRs(const NrSpectrumSignalParametersCsiRs& p);
+
+    uint16_t cellId; //!< cell id
+    uint16_t rnti;   //!< RNTI
+    uint16_t beamId; //!< the beam ID to report to gNB
+};
+
 } // namespace ns3
 
 #endif /* NR_SPECTRUM_SIGNAL_PARAMETERS_H */

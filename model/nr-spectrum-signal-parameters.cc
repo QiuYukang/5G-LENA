@@ -110,4 +110,27 @@ NrSpectrumSignalParametersUlCtrlFrame::Copy() const
     return lssp;
 }
 
+NrSpectrumSignalParametersCsiRs::NrSpectrumSignalParametersCsiRs()
+{
+    NS_LOG_FUNCTION(this);
+}
+
+NrSpectrumSignalParametersCsiRs::NrSpectrumSignalParametersCsiRs(
+    const NrSpectrumSignalParametersCsiRs& p)
+    : SpectrumSignalParameters(p)
+{
+    NS_LOG_FUNCTION(this << &p);
+    cellId = p.cellId;
+    rnti = p.rnti;
+    beamId = p.beamId;
+}
+
+Ptr<SpectrumSignalParameters>
+NrSpectrumSignalParametersCsiRs::Copy() const
+{
+    NS_LOG_FUNCTION(this);
+    Ptr<NrSpectrumSignalParametersCsiRs> lssp(new NrSpectrumSignalParametersCsiRs(*this), false);
+    return lssp;
+}
+
 } // namespace ns3
