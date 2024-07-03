@@ -388,8 +388,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     nrHelper->SetUeMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
     nrHelper->SetGnbMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
 
-    nrHelper->SetUePhyAttribute("UseFixedRi", BooleanValue(useFixedRi));
-
     /*
      * Create the necessary operation bands.
      *
