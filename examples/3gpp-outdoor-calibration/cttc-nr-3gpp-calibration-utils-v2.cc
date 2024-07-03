@@ -875,9 +875,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         auto uePhySecond{uePhyFirst};
 
         ObjectVectorValue ueSpectrumPhysFirstBwp;
-        Ptr<NrSpectrumPhy> nrSpectrumPhy;
-        uePhyFirst->GetAttribute("NrSpectrumPhyList", ueSpectrumPhysFirstBwp);
-        nrSpectrumPhy = ueSpectrumPhysFirstBwp.Get(0)->GetObject<NrSpectrumPhy>();
+        Ptr<NrSpectrumPhy> nrSpectrumPhy = uePhyFirst->GetSpectrumPhy();
         nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
             "PolSlantAngle",
             DoubleValue(ueFirstSubArray));
