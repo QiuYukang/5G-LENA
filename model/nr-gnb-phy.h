@@ -90,8 +90,18 @@ class NrGnbPhy : public NrPhy
 {
     friend class MemberNrGnbCphySapProvider<NrGnbPhy>;
     friend class NrMemberPhySapProvider;
+    friend class NrHelper;
 
   public:
+    /**
+     * \brief CSI-RS model to be used
+     */
+    enum CsiRsModel
+    {
+        CSI_RS_PER_UE,  //!< CSI-RS per UE periodically
+        CSI_RS_PER_BEAM //!< CSI-RS per beam periodically
+    };
+
     /**
      * \brief Get Type id
      * \return the type id of the NrGnbPhy
@@ -233,6 +243,12 @@ class NrGnbPhy : public NrPhy
     bool RegisterUe(uint64_t imsi, const Ptr<NrUeNetDevice>& ueDevice);
 
     /**
+     * Assign CSI-RS offset of a user
+     * \param ueDevice the user device for which will be assign an offset value
+     */
+    void AssignCsiRsOffset(const Ptr<NrUeNetDevice>& ueDevice);
+
+    /**
      * \brief Receive a PHY data packet
      *
      * Connected by the helper to a callback of the spectrum.
@@ -302,6 +318,29 @@ class NrGnbPhy : public NrPhy
      * \return the installed pattern
      */
     std::string GetPattern() const;
+
+    /**
+     * \brief Set the CSI-RS model
+     * \param csiRsModel to be used
+     */
+    void SetCsiRsModel(enum CsiRsModel csiRsModel);
+
+    /**
+     * \brief Gets the CSI-RS model in use
+     */
+    enum CsiRsModel GetCsiRsModel() const;
+
+    /**
+     * Set CSI-RS periodicity
+     * \param csiRsPeriodicity the periodicity to be set for CSI-RS
+     */
+    void SetCsiRsPeriodicity(uint16_t csiRsPeriodicity);
+
+    /**
+     * \brief Retrieve CSI-RS periodicity
+     * \return the configured CSI-RS periodicity
+     */
+    uint16_t GetCsiRsPeriodicity() const;
 
     /**
      * \brief Set this PHY as primary
@@ -427,6 +466,11 @@ class NrGnbPhy : public NrPhy
 
   private:
     /**
+     * \brief Whether to enable CSI-RS, called from the NrHelper during the creation of the gNB,
+     * in function CreateGnbPhy if CSI-RS flag is being set in the NrHelper configuration
+     */
+    void EnableCsiRs();
+    /**
      * \brief Set the current slot pattern (better to call it only once..)
      * \param pattern the pattern
      *
@@ -526,6 +570,29 @@ class NrGnbPhy : public NrPhy
      * \brief Channel access lost, the grant has expired or the LBT denied the access
      */
     void ChannelAccessLost();
+
+    /**
+     * \brief Function that checks whether it is time to transmit CSI-RS
+     * according to the configured model and configured periodicity
+     *\param currentOffset current CSI-RS offset
+     * \return a boolean indicator that tells whether it is time to transmit the CSI-RS
+     */
+    bool TimeToTransmitCsiRs(uint16_t currentOffset) const;
+
+    /**
+     * \brief Transmit CSI-RS towards a specific UE
+     * \param ueDev the UE towards which CSI-RS is being transmitted
+     */
+    void TransmitCsiRsPerUe(Ptr<NrUeNetDevice> ueDev);
+
+    /**
+     * Schedules CSI-RS transmission events
+     * \param varTtti the duration of CTRL varTti that will be used for transmitting
+     * the CSI-RS signals
+     * \param currentOffset current CSI-RS offset
+     * \return the duration of the CTRL varTti that is left after transmitting all CSI-RS signals
+     */
+    Time ScheduleCsiRs(Time varTti, uint16_t currentOffset);
 
     /**
      * \brief Transmit DL CTRL and return the time at which the transmission will end
@@ -831,6 +898,11 @@ class NrGnbPhy : public NrPhy
 
     SfnSf m_currentSlot;     //!< The current slot number
     bool m_isPrimary{false}; //!< Is this PHY a primary phy?
+
+    bool m_enableCsiRs{false}; //!< Whether to enable or disable CSI-RS signalling
+    CsiRsModel m_csiRsModel{CsiRsModel::CSI_RS_PER_UE}; //!< The CSI-RS model to be used
+    uint16_t m_csiRsPeriodicity{10};                    //!< Default CSI-RS periodicity
+    std::map<uint16_t, std::set<Ptr<NrUeNetDevice>>> m_csiRsOffsetToUes; //!< Offset to UE map
 
     Time m_lastBfChange; //!< Saves the timestamp when the beamforming vector changes.
 };

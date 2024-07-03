@@ -212,7 +212,17 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartRx(Ptr<SpectrumSignalParameters> params) override;
 
+    /**
+     * Set RNTI of this spectrum phy
+     * \param rnti RNTI to be set
+     */
     void SetRnti(uint16_t rnti);
+
+    /**
+     * Retrieve RNTI of this spectrum phy
+     * \return RNTI
+     */
+    uint16_t GetRnti() const;
 
     // Attributes setters
     /**
@@ -280,6 +290,14 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartTxDlControlFrames(const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
                                 const Time& duration); // control frames from Gnb to ue
+
+    /**
+     * Start transmission of CSI-RS
+     * \param rnti the rnti of the user towards which is directed the CSI-RS
+     * \param beamId the ID of the beam that is used to transmit this CSI-RS
+     */
+    void StartTxCsiRs(uint16_t rnti, uint16_t beamId);
+
     /**
      * \brief Start transmission of UL CTRL
      * \param ctrlMsgList the list of control messages to be transmitted in UL
@@ -454,6 +472,10 @@ class NrSpectrumPhy : public SpectrumPhy
     /// each different receive signal (for example for each UL reception of a signal from a
     /// different UE) and at each time instant where the interference changes.
     void UpdateMimoSinrPerceived(const std::vector<MimoSinrChunk>& sinr);
+    /**
+     * \return true if this class is inside an enb/gnb
+     */
+    bool IsGnb() const;
 
   protected:
     /**
@@ -487,10 +509,6 @@ class NrSpectrumPhy : public SpectrumPhy
      * one CTRL message which should be of type SRS
      */
     void StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
-    /**
-     * \return true if this class is inside an Gnb/gnb
-     */
-    bool IsGnb() const;
     /**
      * \brief Update the state of the spectrum phy. The states are:
      *  IDLE, TX, RX_DATA, RX_DL_CTRL, RX_UL_CTRL, CCA_BUSY.

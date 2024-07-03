@@ -17,7 +17,6 @@
 #include "nr-ue-net-device.h"
 #include "nr-ue-phy.h"
 
-#include <ns3/boolean.h>
 #include <ns3/double.h>
 #include <ns3/enum.h>
 #include <ns3/log.h>
@@ -63,6 +62,12 @@ NrGnbPhy::DoDispose()
     m_nrFhPhySapUser = nullptr;
     m_nrFhPhySapProvider = nullptr;
     NrPhy::DoDispose();
+}
+
+void
+NrGnbPhy::EnableCsiRs()
+{
+    m_enableCsiRs = true;
 }
 
 TypeId
@@ -164,6 +169,26 @@ NrGnbPhy::GetTypeId()
                           StringValue("F|F|F|F|F|F|F|F|F|F|"),
                           MakeStringAccessor(&NrGnbPhy::SetPattern, &NrGnbPhy::GetPattern),
                           MakeStringChecker())
+            .AddAttribute(
+                "CsiRsModel",
+                "Defines the type of the CSI-RS model to use. Currently the user can select "
+                "either: CsiRsPerUe or CsiRsPerBeam. CsiRsPerUe means that CSI-RS signals will be "
+                "transmitted towards a specific "
+                "UE periodically. CsiRsPerBeam means that the CSI-RS will be transmitted using a "
+                "predefined set of beams.",
+                EnumValue(NrGnbPhy::CSI_RS_PER_UE),
+                MakeEnumAccessor<NrGnbPhy::CsiRsModel>(&NrGnbPhy::SetCsiRsModel,
+                                                       &NrGnbPhy::GetCsiRsModel),
+                MakeEnumChecker(NrGnbPhy::CSI_RS_PER_UE,
+                                "CsiRsPerUe",
+                                NrGnbPhy::CSI_RS_PER_BEAM,
+                                "CsiRsPerBeam"))
+            .AddAttribute("CsiRsPeriodicity",
+                          "Default CSI periodicity in the number of slots",
+                          UintegerValue(10),
+                          MakeUintegerAccessor(&NrGnbPhy::SetCsiRsPeriodicity,
+                                               &NrGnbPhy::GetCsiRsPeriodicity),
+                          MakeUintegerChecker<uint16_t>())
             .AddTraceSource("SlotDataStats",
                             "Data statistics for the current slot: SfnSf, active UE, used RE, "
                             "used symbols, available RBs, available symbols, bwp ID, cell ID",
@@ -1011,7 +1036,6 @@ NrGnbPhy::DoStartSlot()
                                    // We can have messages before we weren't able to tx them before.
 
     uint64_t currentSlotN = m_currentSlot.Normalize() % m_tddPattern.size();
-    ;
 
     NS_LOG_DEBUG("Start Slot " << m_currentSlot << " of type " << m_tddPattern[currentSlotN]);
 
@@ -1276,6 +1300,15 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     // TX control period
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
+    if (m_enableCsiRs)
+    {
+        // Check whether it is time to transmit CSI-RS
+        uint16_t currentCsiRsOffset = m_currentSlot.Normalize() % m_csiRsPeriodicity;
+        if (TimeToTransmitCsiRs(currentCsiRsOffset))
+        {
+            varTtiPeriod = ScheduleCsiRs(varTtiPeriod, currentCsiRsOffset);
+        }
+    }
     // The function that is filling m_ctrlMsgs is NrPhy::encodeCtrlMsgs
     if (!m_ctrlMsgs.empty())
     {
@@ -1285,7 +1318,6 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
                      << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
                      << Simulator::Now() << " end "
                      << Simulator::Now() + varTtiPeriod - NanoSeconds(1.0));
-
         for (auto& m_ctrlMsg : m_ctrlMsgs)
         {
             Ptr<NrControlMessage> msg = m_ctrlMsg;
@@ -1301,6 +1333,58 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     }
 
     return varTtiPeriod;
+}
+
+bool
+NrGnbPhy::TimeToTransmitCsiRs(uint16_t currentOffset) const
+{
+    if (!m_csiRsOffsetToUes.contains(currentOffset))
+    {
+        return false;
+    }
+    else
+    {
+        return !m_csiRsOffsetToUes.at(currentOffset).empty();
+    }
+}
+
+void
+NrGnbPhy::TransmitCsiRsPerUe(Ptr<NrUeNetDevice> ueDev)
+{
+    NS_LOG_FUNCTION(this);
+    ChangeBeamformingVector(ueDev);
+    uint64_t rnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
+
+    NS_LOG_DEBUG("Transmitting CSI-RS towards UE with IMSI : " << ueDev->GetImsi() << " at slot:"
+                                                               << +m_currentSlot.Normalize());
+    m_spectrumPhy->StartTxCsiRs(rnti, 0);
+}
+
+Time
+NrGnbPhy::ScheduleCsiRs(Time ctrlVarTti, uint16_t currentOffset)
+{
+    NS_ASSERT_MSG(!m_spectrumPhy->IsTransmitting(),
+                  "Should have finished transmission of CTRL already.");
+
+    if (m_csiRsModel == CSI_RS_PER_UE)
+    {
+        // CSI-RS is the duration of 1 nanosecond plus we want a
+        // 1 nanosecond pause between the independent CSI-RS transmissions
+        ctrlVarTti -= m_deviceMap.size() * NanoSeconds(2);
+
+        uint16_t ueCounter = 0;
+        for (auto& i : m_csiRsOffsetToUes.at(currentOffset))
+        {
+            Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
+            Simulator::Schedule(ctrlVarTti + NanoSeconds(2.0) * ueCounter,
+                                &NrGnbPhy::TransmitCsiRsPerUe,
+                                this,
+                                ueDev);
+
+            ueCounter++;
+        }
+    }
+    return ctrlVarTti;
 }
 
 Time
@@ -1677,6 +1761,51 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
     }
 }
 
+void
+NrGnbPhy::AssignCsiRsOffset(const Ptr<NrUeNetDevice>& ueDevice)
+{
+    NS_LOG_FUNCTION(this);
+
+    if (m_csiRsOffsetToUes.empty())
+    {
+        NS_ABORT_MSG_UNLESS(m_csiRsPeriodicity % m_tddPattern.size() == 0,
+                            "CSI-RS periodicity should be a multiply of TDD pattern size");
+        // how many patterns falls into the CSI periodicity
+        uint8_t repetitions = m_csiRsPeriodicity / m_tddPattern.size();
+
+        for (uint8_t round = 0; round < repetitions; ++round)
+        {
+            // count available slots for the CSI-RS
+            for (size_t index = 0; index < m_tddPattern.size(); index++)
+            {
+                if (m_tddPattern[index] != LteNrTddSlotType::UL)
+                {
+                    m_csiRsOffsetToUes[m_tddPattern.size() * round + index] =
+                        std::set<Ptr<NrUeNetDevice>>();
+                }
+            }
+        }
+    }
+
+    size_t lastAssignedOffset = m_csiRsOffsetToUes.begin()->second.size();
+
+    // searching for the next available offset value
+    for (auto& i : m_csiRsOffsetToUes)
+    {
+        if (i.second.size() < lastAssignedOffset)
+        {
+            i.second.emplace(ueDevice);
+            NS_LOG_DEBUG("Assigning CSI-RS offset for UE with IMSI: " << ueDevice->GetImsi());
+            return;
+        }
+        lastAssignedOffset = i.second.size();
+    }
+    // we are here because all the offset have the same number of users assigned so
+    // the new user starts from the first offset value
+    NS_LOG_DEBUG("Assigning CSI-RS offset for UE with IMSI: " << ueDevice->GetImsi());
+    m_csiRsOffsetToUes.begin()->second.emplace(ueDevice);
+}
+
 bool
 NrGnbPhy::RegisterUe(uint64_t imsi, const Ptr<NrUeNetDevice>& ueDevice)
 {
@@ -1688,6 +1817,11 @@ NrGnbPhy::RegisterUe(uint64_t imsi, const Ptr<NrUeNetDevice>& ueDevice)
     {
         m_ueAttached.insert(imsi);
         m_deviceMap.push_back(ueDevice);
+
+        if (m_enableCsiRs && HasDlSlot(m_tddPattern))
+        {
+            AssignCsiRsOffset(ueDevice);
+        }
         return (true);
     }
     else
@@ -1722,12 +1856,13 @@ NrGnbPhy::GenerateDataCqiReport(const SpectrumValue& sinr)
         // convert from double to fixed point notaltion Sxxxxxxxxxxx.xxx
         //   int16_t sinrFp = nr::FfConverter::double2fpS11dot3 (sinrdb);
         ulcqi.m_ulCqi.m_sinr.push_back(
-            *it); // will be processed by NrMacSchedulerCQIManagement::UlSBCQIReported, it will look
-                  // into a map of assignment
+            *it); // will be processed by NrMacSchedulerCQIManagement::UlSBCQIReported, it will
+                  // look into a map of assignment
     }
 
-    // here we use the start symbol index of the var tti in place of the var tti index because the
-    // absolute UL var tti index is not known to the scheduler when m_allocationMap gets populated
+    // here we use the start symbol index of the var tti in place of the var tti index because
+    // the absolute UL var tti index is not known to the scheduler when m_allocationMap gets
+    // populated
     ulcqi.m_sfnSf = m_currentSlot;
     ulcqi.m_symStart = m_currSymStart;
     SpectrumValue newSinr = sinr;
@@ -1928,6 +2063,30 @@ NrGnbPhy::SetPrimary()
 {
     NS_LOG_FUNCTION(this);
     m_isPrimary = true;
+}
+
+void
+NrGnbPhy::SetCsiRsModel(enum NrGnbPhy::CsiRsModel csiRsModel)
+{
+    m_csiRsModel = csiRsModel;
+}
+
+enum NrGnbPhy::CsiRsModel
+NrGnbPhy::GetCsiRsModel() const
+{
+    return m_csiRsModel;
+}
+
+void
+NrGnbPhy::SetCsiRsPeriodicity(uint16_t csiRsPeriodicity)
+{
+    m_csiRsPeriodicity = csiRsPeriodicity;
+}
+
+uint16_t
+NrGnbPhy::GetCsiRsPeriodicity() const
+{
+    return m_csiRsPeriodicity;
 }
 
 void

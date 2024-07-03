@@ -340,6 +340,12 @@ NrSpectrumPhy::SetRnti(uint16_t rnti)
     m_hasRnti = true;
 }
 
+uint16_t
+NrSpectrumPhy::GetRnti() const
+{
+    return m_rnti;
+}
+
 void
 NrSpectrumPhy::SetCcaMode1Threshold(double thresholdDBm)
 {
@@ -733,6 +739,55 @@ NrSpectrumPhy::StartTxDlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
 
         Simulator::Schedule(duration, &NrSpectrumPhy::EndTx, this);
         m_activeTransmissions++;
+    }
+    }
+}
+
+void
+NrSpectrumPhy::StartTxCsiRs(uint16_t rnti, uint16_t beamId)
+{
+    NS_LOG_LOGIC(this << " state: " << m_state);
+
+    // we simulate 1ns signals for CSi-RS, the real overhead is
+    // correctly calculated in the TB size
+    Time duration = NanoSeconds(1);
+
+    switch (m_state)
+    {
+    case RX_DATA:
+        /* no break */
+    case RX_DL_CTRL:
+        /* no break */
+    case RX_UL_CTRL:
+        /* no break*/
+    case RX_UL_SRS:
+        NS_FATAL_ERROR("Cannot TX while RX.");
+        break;
+    case TX:
+        NS_FATAL_ERROR("Cannot TX while already TX.");
+        break;
+    case CCA_BUSY:
+        NS_LOG_WARN("Start transmitting CSI-RS while in CCA_BUSY state.");
+        /* no break */
+    case IDLE: {
+        NS_ASSERT(m_txPsd);
+        Ptr<NrSpectrumSignalParametersCsiRs> csiRs = Create<NrSpectrumSignalParametersCsiRs>();
+        csiRs->duration = duration;
+        csiRs->txPhy = GetObject<SpectrumPhy>();
+        csiRs->psd = m_txPsd;
+        csiRs->cellId = GetCellId();
+        csiRs->rnti = rnti;
+        csiRs->beamId = beamId;
+
+        if (m_channel)
+        {
+            NS_LOG_UNCOND("Transmitting CSI-RS at: " << Simulator::Now().GetNanoSeconds());
+            m_channel->StartTx(csiRs);
+        }
+        else
+        {
+            NS_LOG_WARN("Working without channel (i.e., under test)");
+        }
     }
     }
 }
@@ -1177,7 +1232,8 @@ NrSpectrumPhy::StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& para
         // at the gNB we can receive only one SRS at a time, and the only allowed states before
         // starting it are IDLE or BUSY
         m_interferenceSrs->StartRxMimo(params);
-        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be empty
+        // first transmission, i.e., we're IDLE and we start RX, CTRL message list should be
+        // empty
         NS_ASSERT(m_rxControlMessageList.empty());
         m_firstRxStart = Simulator::Now();
         m_firstRxDuration = params->duration;
@@ -1239,8 +1295,8 @@ NrSpectrumPhy::EndTx()
 {
     NS_LOG_FUNCTION(this);
 
-    // In case of OFDMA DL, this function will be called multiple times, after each transmission to
-    // a different UE. In the first call to this function, m_state is changed to IDLE.
+    // In case of OFDMA DL, this function will be called multiple times, after each transmission
+    // to a different UE. In the first call to this function, m_state is changed to IDLE.
     NS_ASSERT_MSG(m_state == TX, "In EndTx() but state is not TX; state: " << m_state);
     NS_LOG_DEBUG("Number of active transmissions (before decrement): " << m_activeTransmissions);
     NS_ASSERT_MSG(m_activeTransmissions, "Ending Tx but no active transmissions");
@@ -1264,9 +1320,9 @@ NrSpectrumPhy::EndTx()
 std::vector<MimoSinrChunk>
 NrSpectrumPhy::GetMimoSinrForRnti(uint16_t rnti, uint8_t rank)
 {
-    // Filter chunks by RNTI of the expected TB. For DL, this step selects only the RX signals that
-    // were sent towards this UE. For UL, it selects only signals that were sent from the UE that is
-    // currently being decoded.
+    // Filter chunks by RNTI of the expected TB. For DL, this step selects only the RX signals
+    // that were sent towards this UE. For UL, it selects only signals that were sent from the
+    // UE that is currently being decoded.
     std::vector<MimoSinrChunk> res;
     for (const auto& chunk : m_mimoSinrPerceived)
     {
