@@ -53,10 +53,13 @@ We can organize tutorials for the academy or industry.
 In alphabetical order:
 
 - Zoraze Ali
+- Amir Ashtari
 - Biljana Bojovic
+- Gabriel Ferreira
 - Lorenza Giupponi
 - Katerina Koutlia
 - Sandra Lagen
+- Ana Larranaga
 - Natale Patriciello
 
 Inspired by [mmWave module by NYU/UniPD](https://github.com/nyuwireless-unipd/ns3-mmwave)
@@ -148,6 +151,7 @@ for each nr release.
 
 | nr version     | ns-3 version | Build system  | Release date       |
 | :------------: | :-----------:| :-----------: |--------------------|
+| 5g-lena-v3.1.y | ns-3.42      | cmake         | July 19, 2024      |
 | 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |
 | 5g-lena-v2.6.y | ns-3.40      | cmake         | November 30, 2023  |
 | 5g-lena-v2.5.y | ns-3.39      | cmake         | July 26, 2023      |
@@ -171,7 +175,7 @@ Download then checkout the compatible version of ns-3:
 ```
 git clone https://gitlab.com/nsnam/ns-3-dev.git
 cd ns-3-dev
-git checkout -b ns-3.41 ns-3.41
+git checkout -b ns-3.42 ns-3.42
 ```
 
 To make sure everything is working properly, run the ns-3 tests:
@@ -192,7 +196,7 @@ Download then checkout the compatible version of nr:
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 cd nr
-git checkout -b 5g-lena-v3.0.y origin/5g-lena-v3.0.y
+git checkout -b 5g-lena-v3.1.y origin/5g-lena-v3.1.y
 ```
 
 Notice that since these are two independent git repositories, when you run
