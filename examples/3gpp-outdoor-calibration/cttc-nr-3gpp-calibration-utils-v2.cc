@@ -904,18 +904,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
             uePhySecond->SetUplinkPowerControl(uePhyFirst->GetUplinkPowerControl());
 
             ObjectVectorValue ueSpectrumPhysSecondBwp;
-            uePhySecond->GetAttribute("NrSpectrumPhyList", ueSpectrumPhysSecondBwp);
-            nrSpectrumPhy = ueSpectrumPhysSecondBwp.Get(0)->GetObject<NrSpectrumPhy>();
+            nrSpectrumPhy = uePhySecond->GetSpectrumPhy();
             nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
                 "PolSlantAngle",
                 DoubleValue(ueFirstSubArray));
-            if (ueSpectrumPhysSecondBwp.GetN() == 2)
-            {
-                nrSpectrumPhy = ueSpectrumPhysSecondBwp.Get(1)->GetObject<NrSpectrumPhy>();
-                nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-                    "PolSlantAngle",
-                    DoubleValue(ueSecondSubArray));
-            }
         }
         uePhyFirst->TraceConnectWithoutContext("DlDataSinr",
                                                MakeBoundCallback(&ReportSinrNr, sinrStats));
