@@ -180,6 +180,31 @@ cpp_examples = [
     ("cttc-nr-traffic-ngmn-mixed", "True", "True"),
     ("cttc-nr-traffic-3gpp-xr", "True", "True"),
     ("traffic-generator-example", "True", "True"),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali1 --technology=NR --nrConfigurationScenario=DenseA --operationMode=TDD --numRings=0 --crossPolarizedGnb=false --polSlantAngleGnb1=45 --polSlantAngleUe1=0.0 --ueBearingAngle=0 --appGenerationTime=0.5 --enableFading=true --enableShadowing=true --bfMethod=Omni --attachToClosest=1 --freqScenario=1 --trafficScenario=0",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali2 --technology=NR --nrConfigurationScenario=DenseA --operationMode=FDD --numRings=0 --crossPolarizedGnb=false --polSlantAngleGnb1=45 --polSlantAngleUe1=0.0 --ueBearingAngle=0 --appGenerationTime=0.5 --enableFading=true --enableShadowing=true --bfMethod=CellScan --attachToClosest=1 --freqScenario=1 --trafficScenario=1",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali3 --technology=NR --nrConfigurationScenario=RuralA --operationMode=FDD --numRings=0 --crossPolarizedGnb=true --appGenerationTime=0.1 --enableFading=false --enableShadowing=false --bfMethod=CellScan --freqScenario=0 --trafficScenario=2",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali4 --technology=LTE --errorModelType=ns3::LenaErrorModel --nrConfigurationScenario=DenseA --numRings=0 --operationMode=TDD --crossPolarizedGnb=false --polSlantAngleGnb1=45 --polSlantAngleUe1=0.0 --ueBearingAngle=0 --appGenerationTime=0.5 --enableFading=true --enableShadowing=true --bfMethod=CellScan --attachToClosest=1 --freqScenario=1 --trafficScenario=3",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali5 --simulator=LENA --technology=LTE --errorModelType=LteMiErrorModel --nrConfigurationScenario=RuralA --numRings=0 --operationMode=FDD --crossPolarizedGnb=true --appGenerationTime=0.1 --enableFading=false --enableShadowing=false --bfMethod=CellScan --freqScenario=0 --trafficScenario=4",
+        "True",
+        "True",
+    ),
 ]
 
 # A list of Python examples to run in order to ensure that they remain
