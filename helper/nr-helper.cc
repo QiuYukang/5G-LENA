@@ -1815,7 +1815,7 @@ NrHelper::EnableDlCtrlPathlossTraces(NetDeviceContainer& ueDevs)
         }
     }
 
-    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/"
+    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhy/"
                     "DlCtrlPathloss",
                     MakeBoundCallback(&NrPhyRxTrace::ReportDlCtrlPathloss, m_phyStats));
 }
@@ -1842,7 +1842,7 @@ NrHelper::EnableDlDataPathlossTraces(NetDeviceContainer& ueDevs)
         }
     }
 
-    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/"
+    Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhy/"
                     "DlDataPathloss",
                     MakeBoundCallback(&NrPhyRxTrace::ReportDlDataPathloss, m_phyStats));
 }
