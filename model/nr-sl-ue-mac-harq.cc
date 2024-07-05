@@ -241,11 +241,9 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
             }
             else
             {
-                m_idBuffer.push_back(harqInfo.m_harqProcessId);
+                DeallocateHarqProcessId(harqInfo.m_harqProcessId);
                 NS_LOG_INFO("Deallocating ID " << +harqInfo.m_harqProcessId << " remaining "
                                                << m_idBuffer.size());
-                m_deallocateTrace(harqInfo.m_harqProcessId, m_idBuffer.size());
-                ResetHarqBuffer(harqInfo.m_harqProcessId);
             }
         }
     }
