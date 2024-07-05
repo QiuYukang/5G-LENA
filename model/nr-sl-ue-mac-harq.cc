@@ -287,19 +287,8 @@ NrSlUeMacHarq::HarqProcessTimerExpiry(uint8_t harqId)
 {
     NS_LOG_FUNCTION(this << +harqId);
     NS_LOG_INFO("HARQ process ID " << +harqId << " timed out");
+    DeallocateHarqProcessId(harqId);
     m_timeoutTrace(harqId);
-    // If this was a dynamic grant, deallocate the HARQ process ID and Reset
-    if (m_pktBuffer.at(harqId).multiplePdu)
-    {
-        FlushHarqBuffer(harqId);
-    }
-    else
-    {
-        m_idBuffer.push_back(harqId);
-        NS_LOG_INFO("Deallocating ID " << +harqId << " remaining " << m_idBuffer.size());
-        m_deallocateTrace(harqId, m_idBuffer.size());
-        ResetHarqBuffer(harqId);
-    }
 }
 
 void
