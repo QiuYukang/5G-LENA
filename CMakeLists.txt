@@ -2,7 +2,21 @@
 #
 # SPDX-License-Identifier: GPL-2.0-only
 
+if(${ENABLE_EIGEN})
+  set(eigen_sources
+      model/nr-mimo-matrices-eigen.cc
+  )
+else()
+  message(
+    WARNING "nr MIMO features require the eigen3 library, but it was not found"
+  )
+  set(eigen_sources
+      model/nr-mimo-matrices-no-eigen.cc
+  )
+endif()
+
 set(source_files
+    ${eigen_sources}
     helper/nr-helper.cc
     helper/nr-phy-rx-trace.cc
     helper/nr-mac-rx-trace.cc
@@ -284,18 +298,3 @@ build_lib(
     ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )
-
-if(${ENABLE_EIGEN})
-  target_sources(
-    libnr
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
-  )
-else()
-  message(
-    WARNING "nr MIMO features require the eigen3 library, but it was not found"
-  )
-  target_sources(
-    libnr
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
-  )
-endif()
