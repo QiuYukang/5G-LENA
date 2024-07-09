@@ -642,6 +642,12 @@ class NrSpectrumPhy : public SpectrumPhy
 
         TransportBlockInfo() = delete;
 
+        /**
+         * \brief Update minimum and average SINR of the transport block based on perceived SINR
+         * \param perceivedSinr SpectrumValue with perceived SINR
+         */
+        void UpdatePerceivedSinr(const SpectrumValue& perceivedSinr);
+
         ExpectedTb m_expected;     //!< Expected data from the PHY. Filled by AddExpectedTb
         bool m_isCorrupted{false}; //!< True if the ErrorModel indicates that the TB is corrupted.
                                    //    Filled at the end of data rx/tx

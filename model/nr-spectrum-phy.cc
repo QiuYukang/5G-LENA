@@ -1276,6 +1276,27 @@ NrSpectrumPhy::GetMimoSinrForRnti(uint16_t rnti, uint8_t rank)
 }
 
 void
+NrSpectrumPhy::TransportBlockInfo::UpdatePerceivedSinr(const SpectrumValue& perceivedSinr)
+{
+    m_sinrAvg = 0.0;
+    m_sinrMin = 99999999999;
+    for (const auto& rbIndex : m_expected.m_rbBitmap)
+    {
+        m_sinrAvg += perceivedSinr.ValuesAt(rbIndex);
+        if (perceivedSinr.ValuesAt(rbIndex) < m_sinrMin)
+        {
+            m_sinrMin = perceivedSinr.ValuesAt(rbIndex);
+        }
+    }
+
+    m_sinrAvg = m_sinrAvg / m_expected.m_rbBitmap.size();
+
+    NS_LOG_INFO("Finishing RX, sinrAvg=" << m_sinrAvg << " sinrMin=" << m_sinrMin
+                                         << " SinrAvg (dB) "
+                                         << 10 * log(m_sinrAvg) / log(10));
+}
+
+void
 NrSpectrumPhy::EndRxData()
 {
     NS_LOG_FUNCTION(this);
@@ -1290,22 +1311,8 @@ NrSpectrumPhy::EndRxData()
     {
         auto rnti = tbIt.first;
         auto& tbInfo = tbIt.second;
-        tbInfo.m_sinrAvg = 0.0;
-        tbInfo.m_sinrMin = 99999999999;
-        for (const auto& rbIndex : tbInfo.m_expected.m_rbBitmap)
-        {
-            tbInfo.m_sinrAvg += m_sinrPerceived.ValuesAt(rbIndex);
-            if (m_sinrPerceived.ValuesAt(rbIndex) < tbInfo.m_sinrMin)
-            {
-                tbInfo.m_sinrMin = m_sinrPerceived.ValuesAt(rbIndex);
-            }
-        }
 
-        tbInfo.m_sinrAvg = tbInfo.m_sinrAvg / tbInfo.m_expected.m_rbBitmap.size();
-
-        NS_LOG_INFO("Finishing RX, sinrAvg=" << tbInfo.m_sinrAvg << " sinrMin=" << tbInfo.m_sinrMin
-                                             << " SinrAvg (dB) "
-                                             << 10 * log(tbInfo.m_sinrAvg) / log(10));
+        tbInfo.UpdatePerceivedSinr(m_sinrPerceived);
 
         if ((!m_dataErrorModelEnabled) || (m_rxPacketBurstList.empty()))
         {
