@@ -1292,21 +1292,12 @@ NrSpectrumPhy::TransportBlockInfo::UpdatePerceivedSinr(const SpectrumValue& perc
     m_sinrAvg = m_sinrAvg / m_expected.m_rbBitmap.size();
 
     NS_LOG_INFO("Finishing RX, sinrAvg=" << m_sinrAvg << " sinrMin=" << m_sinrMin
-                                         << " SinrAvg (dB) "
-                                         << 10 * log(m_sinrAvg) / log(10));
+                                         << " SinrAvg (dB) " << 10 * log(m_sinrAvg) / log(10));
 }
 
 void
-NrSpectrumPhy::EndRxData()
+NrSpectrumPhy::CheckTransportBlockCorruptionStatus()
 {
-    NS_LOG_FUNCTION(this);
-    m_interferenceData->EndRx();
-
-    Ptr<NrGnbNetDevice> enbRx = DynamicCast<NrGnbNetDevice>(GetDevice());
-    Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice>(GetDevice());
-
-    NS_ASSERT(m_state == RX_DATA);
-
     for (auto& tbIt : m_transportBlocks)
     {
         auto rnti = tbIt.first;
@@ -1379,6 +1370,20 @@ NrSpectrumPhy::EndRxData()
                         << tbInfo.m_outputOfEM->m_tbler << " corrupted " << tbInfo.m_isCorrupted);
         }
     }
+}
+
+void
+NrSpectrumPhy::EndRxData()
+{
+    NS_LOG_FUNCTION(this);
+    m_interferenceData->EndRx();
+
+    Ptr<NrGnbNetDevice> enbRx = DynamicCast<NrGnbNetDevice>(GetDevice());
+    Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice>(GetDevice());
+
+    NS_ASSERT(m_state == RX_DATA);
+
+    CheckTransportBlockCorruptionStatus();
 
     GetSecond GetTBInfo;
     GetFirst GetRnti;

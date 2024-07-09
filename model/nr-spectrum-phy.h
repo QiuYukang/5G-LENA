@@ -583,6 +583,11 @@ class NrSpectrumPhy : public SpectrumPhy
     bool IsOnlySrs(const std::list<Ptr<NrControlMessage>>& ctrlMsgList);
 
     /**
+     * \brief Checks whether transport blocks were correctly received or were corrupted.
+     */
+    void CheckTransportBlockCorruptionStatus();
+
+    /**
      * \brief Information about the expected transport block at a certain point in the slot
      *
      * Information passed by the PHY through a call to AddExpectedTb
