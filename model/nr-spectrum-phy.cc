@@ -1286,28 +1286,26 @@ NrSpectrumPhy::EndRxData()
 
     NS_ASSERT(m_state == RX_DATA);
 
-    GetSecond GetTBInfo;
-    GetFirst GetRnti;
-
     for (auto& tbIt : m_transportBlocks)
     {
-        GetTBInfo(tbIt).m_sinrAvg = 0.0;
-        GetTBInfo(tbIt).m_sinrMin = 99999999999;
-        for (const auto& rbIndex : GetTBInfo(tbIt).m_expected.m_rbBitmap)
+        auto rnti = tbIt.first;
+        auto& tbInfo = tbIt.second;
+        tbInfo.m_sinrAvg = 0.0;
+        tbInfo.m_sinrMin = 99999999999;
+        for (const auto& rbIndex : tbInfo.m_expected.m_rbBitmap)
         {
-            GetTBInfo(tbIt).m_sinrAvg += m_sinrPerceived.ValuesAt(rbIndex);
-            if (m_sinrPerceived.ValuesAt(rbIndex) < GetTBInfo(tbIt).m_sinrMin)
+            tbInfo.m_sinrAvg += m_sinrPerceived.ValuesAt(rbIndex);
+            if (m_sinrPerceived.ValuesAt(rbIndex) < tbInfo.m_sinrMin)
             {
-                GetTBInfo(tbIt).m_sinrMin = m_sinrPerceived.ValuesAt(rbIndex);
+                tbInfo.m_sinrMin = m_sinrPerceived.ValuesAt(rbIndex);
             }
         }
 
-        GetTBInfo(tbIt).m_sinrAvg =
-            GetTBInfo(tbIt).m_sinrAvg / GetTBInfo(tbIt).m_expected.m_rbBitmap.size();
+        tbInfo.m_sinrAvg = tbInfo.m_sinrAvg / tbInfo.m_expected.m_rbBitmap.size();
 
-        NS_LOG_INFO("Finishing RX, sinrAvg=" << GetTBInfo(tbIt).m_sinrAvg << " sinrMin="
-                                             << GetTBInfo(tbIt).m_sinrMin << " SinrAvg (dB) "
-                                             << 10 * log(GetTBInfo(tbIt).m_sinrAvg) / log(10));
+        NS_LOG_INFO("Finishing RX, sinrAvg=" << tbInfo.m_sinrAvg << " sinrMin=" << tbInfo.m_sinrMin
+                                             << " SinrAvg (dB) "
+                                             << 10 * log(tbInfo.m_sinrAvg) / log(10));
 
         if ((!m_dataErrorModelEnabled) || (m_rxPacketBurstList.empty()))
         {
@@ -1315,9 +1313,9 @@ NrSpectrumPhy::EndRxData()
         }
 
         const NrErrorModel::NrErrorModelHistory& harqInfoList =
-            m_harqPhyModule->GetHarqProcessInfoDlUl(GetTBInfo(tbIt).m_expected.m_isDownlink,
-                                                GetRnti(tbIt),
-                                                GetTBInfo(tbIt).m_expected.m_harqProcessId);
+            m_harqPhyModule->GetHarqProcessInfoDlUl(tbInfo.m_expected.m_isDownlink,
+                                                    rnti,
+                                                    tbInfo.m_expected.m_harqProcessId);
 
         NS_ABORT_MSG_IF(!m_errorModelType.IsChildOf(NrErrorModel::GetTypeId()),
                         "The error model must be a child of NrErrorModel");
@@ -1336,48 +1334,47 @@ NrSpectrumPhy::EndRxData()
         if (!m_mimoSinrPerceived.empty())
         {
             // The received signal information supports MIMO
-            const auto& expectedTb = GetTBInfo(tbIt).m_expected;
+            const auto& expectedTb = tbInfo.m_expected;
             auto sinrChunks = GetMimoSinrForRnti(expectedTb.m_rnti, expectedTb.m_rank);
             NS_ASSERT(!sinrChunks.empty());
 
-            GetTBInfo(tbIt).m_outputOfEM =
-                m_errorModel->GetTbDecodificationStatsMimo(sinrChunks,
-                                                           expectedTb.m_rbBitmap,
-                                                           expectedTb.m_tbSize,
-                                                           expectedTb.m_mcs,
-                                                           expectedTb.m_rank,
-                                                           harqInfoList);
+            tbInfo.m_outputOfEM = m_errorModel->GetTbDecodificationStatsMimo(sinrChunks,
+                                                                             expectedTb.m_rbBitmap,
+                                                                             expectedTb.m_tbSize,
+                                                                             expectedTb.m_mcs,
+                                                                             expectedTb.m_rank,
+                                                                             harqInfoList);
         }
         else
         {
             // SISO code, required only when there is no NrMimoChunkProcessor
             // TODO: change nr-uplink-power-control-test to create a 3gpp channel, and remove this
             // code
-            GetTBInfo(tbIt).m_outputOfEM =
+            tbInfo.m_outputOfEM =
                 m_errorModel->GetTbDecodificationStats(m_sinrPerceived,
-                                                       GetTBInfo(tbIt).m_expected.m_rbBitmap,
-                                                       GetTBInfo(tbIt).m_expected.m_tbSize,
-                                                       GetTBInfo(tbIt).m_expected.m_mcs,
+                                                       tbInfo.m_expected.m_rbBitmap,
+                                                       tbInfo.m_expected.m_tbSize,
+                                                       tbInfo.m_expected.m_mcs,
                                                        harqInfoList);
         }
 
-        GetTBInfo(tbIt).m_isCorrupted =
-            m_random->GetValue() <= GetTBInfo(tbIt).m_outputOfEM->m_tbler;
+        tbInfo.m_isCorrupted = m_random->GetValue() <= tbInfo.m_outputOfEM->m_tbler;
 
-        if (GetTBInfo(tbIt).m_isCorrupted)
+        if (tbInfo.m_isCorrupted)
         {
-            NS_LOG_INFO("RNTI " << GetRnti(tbIt) << " processId "
-                                << +GetTBInfo(tbIt).m_expected.m_harqProcessId << " size "
-                                << GetTBInfo(tbIt).m_expected.m_tbSize << " mcs "
-                                << (uint32_t)GetTBInfo(tbIt).m_expected.m_mcs << "rank"
-                                << +GetTBInfo(tbIt).m_expected.m_rank << " bitmap "
-                                << GetTBInfo(tbIt).m_expected.m_rbBitmap.size()
-                                << " rv from MAC: " << +GetTBInfo(tbIt).m_expected.m_rv
-                                << " elements in the history: " << harqInfoList.size() << " TBLER "
-                                << GetTBInfo(tbIt).m_outputOfEM->m_tbler << " corrupted "
-                                << GetTBInfo(tbIt).m_isCorrupted);
+            NS_LOG_INFO(
+                "RNTI " << rnti << " processId " << +tbInfo.m_expected.m_harqProcessId << " size "
+                        << tbInfo.m_expected.m_tbSize << " mcs "
+                        << (uint32_t)tbInfo.m_expected.m_mcs << "rank" << +tbInfo.m_expected.m_rank
+                        << " bitmap " << tbInfo.m_expected.m_rbBitmap.size()
+                        << " rv from MAC: " << +tbInfo.m_expected.m_rv
+                        << " elements in the history: " << harqInfoList.size() << " TBLER "
+                        << tbInfo.m_outputOfEM->m_tbler << " corrupted " << tbInfo.m_isCorrupted);
         }
     }
+
+    GetSecond GetTBInfo;
+    GetFirst GetRnti;
 
     std::map<uint16_t, DlHarqInfo> harqDlInfoMap;
     for (auto packetBurst : m_rxPacketBurstList)
