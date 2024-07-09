@@ -588,6 +588,14 @@ class NrSpectrumPhy : public SpectrumPhy
     void CheckTransportBlockCorruptionStatus();
 
     /**
+     * \brief Process received packets bursts
+     *
+     * Packets are received in case the transport block is not corrupted, being forwarded
+     * to the NrPhy. Traces are collected. Harq feedback is then sent.
+     */
+    void ProcessReceivedPacketBurst();
+
+    /**
      * \brief Information about the expected transport block at a certain point in the slot
      *
      * Information passed by the PHY through a call to AddExpectedTb

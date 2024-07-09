@@ -1452,18 +1452,10 @@ NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, NrSpectrumPhy::TransportBlockIn
 }
 
 void
-NrSpectrumPhy::EndRxData()
+NrSpectrumPhy::ProcessReceivedPacketBurst()
 {
-    NS_LOG_FUNCTION(this);
-    m_interferenceData->EndRx();
-
     Ptr<NrGnbNetDevice> enbRx = DynamicCast<NrGnbNetDevice>(GetDevice());
     Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice>(GetDevice());
-
-    NS_ASSERT(m_state == RX_DATA);
-
-    CheckTransportBlockCorruptionStatus();
-
     std::map<uint16_t, DlHarqInfo> harqDlInfoMap;
     for (auto packetBurst : m_rxPacketBurstList)
     {
@@ -1551,9 +1543,23 @@ NrSpectrumPhy::EndRxData()
             }
         }
     }
+}
+
+void
+NrSpectrumPhy::EndRxData()
+{
+    NS_LOG_FUNCTION(this);
+    m_interferenceData->EndRx();
+
+    NS_ASSERT(m_state == RX_DATA);
+
+    // check if transport blocks are corrupted
+    CheckTransportBlockCorruptionStatus();
+
+    // trace packet bursts, then receive non-corrupted and send harq feedback
+    ProcessReceivedPacketBurst();
 
     // forward control messages of this frame to NrPhy
-
     if (!m_rxControlMessageList.empty() && m_phyRxCtrlEndOkCallback)
     {
         m_phyRxCtrlEndOkCallback(m_rxControlMessageList, GetBwpId());
