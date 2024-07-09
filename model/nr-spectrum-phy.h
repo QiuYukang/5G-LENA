@@ -663,6 +663,21 @@ class NrSpectrumPhy : public SpectrumPhy
         double m_sinrMin{0.0}; //!< MIN SINR (only between the RB used to transmit the TB)
     };
 
+    /**
+     * \brief Send uplink HARQ feedback
+     * \param rnti UE RNTI
+     * \param tbInfo TransportBlockInfo of corresponding packet burst
+     */
+    void SendUlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo);
+
+    /**
+     * \brief Send downlink HARQ feedback
+     * \param rnti UE RNTI
+     * \param tbInfo TransportBlockInfo of corresponding packet burst
+     * \returns DlHarqInfo structure for bookkeeping
+     */
+    DlHarqInfo SendDlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo);
+
     // attributes
     TypeId m_errorModelType{
         Object::GetTypeId()}; //!< Error model type by default is NrLteMiErrorModel

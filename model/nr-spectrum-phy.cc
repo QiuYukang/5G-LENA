@@ -1373,6 +1373,85 @@ NrSpectrumPhy::CheckTransportBlockCorruptionStatus()
 }
 
 void
+NrSpectrumPhy::SendUlHarqFeedback(uint16_t rnti, NrSpectrumPhy::TransportBlockInfo& tbInfo)
+{
+    // Generate the feedback
+    UlHarqInfo harqUlInfo;
+    harqUlInfo.m_rnti = rnti;
+    harqUlInfo.m_tpc = 0;
+    harqUlInfo.m_harqProcessId = tbInfo.m_expected.m_harqProcessId;
+    harqUlInfo.m_numRetx = tbInfo.m_expected.m_rv;
+    if (tbInfo.m_isCorrupted)
+    {
+        harqUlInfo.m_receptionStatus = UlHarqInfo::NotOk;
+    }
+    else
+    {
+        harqUlInfo.m_receptionStatus = UlHarqInfo::Ok;
+    }
+
+    // Send the feedback
+    if (!m_phyUlHarqFeedbackCallback.IsNull())
+    {
+        m_phyUlHarqFeedbackCallback(harqUlInfo);
+    }
+
+    // Arrange the history
+    if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
+    {
+        m_harqPhyModule->ResetUlHarqProcessStatus(rnti, tbInfo.m_expected.m_harqProcessId);
+    }
+    else
+    {
+        m_harqPhyModule->UpdateUlHarqProcessStatus(rnti,
+                                                   tbInfo.m_expected.m_harqProcessId,
+                                                   tbInfo.m_outputOfEM);
+    }
+}
+
+DlHarqInfo
+NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, NrSpectrumPhy::TransportBlockInfo& tbInfo)
+{
+    // Generate the feedback
+    DlHarqInfo harqDlInfo;
+    harqDlInfo.m_rnti = rnti;
+    harqDlInfo.m_harqProcessId = tbInfo.m_expected.m_harqProcessId;
+    harqDlInfo.m_numRetx = tbInfo.m_expected.m_rv;
+    harqDlInfo.m_bwpIndex = GetBwpId();
+    if (tbInfo.m_isCorrupted)
+    {
+        harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
+    }
+    else
+    {
+        harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
+    }
+
+    // Send the feedback
+    if (!m_phyDlHarqFeedbackCallback.IsNull())
+    {
+        m_phyDlHarqFeedbackCallback(harqDlInfo);
+    }
+
+    // Arrange the history
+    if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
+    {
+        NS_LOG_DEBUG("Reset Dl process: " << +tbInfo.m_expected.m_harqProcessId << " for RNTI "
+                                          << rnti);
+        m_harqPhyModule->ResetDlHarqProcessStatus(rnti, tbInfo.m_expected.m_harqProcessId);
+    }
+    else
+    {
+        NS_LOG_DEBUG("Update Dl process: " << +tbInfo.m_expected.m_harqProcessId << " for RNTI "
+                                           << rnti);
+        m_harqPhyModule->UpdateDlHarqProcessStatus(rnti,
+                                                   tbInfo.m_expected.m_harqProcessId,
+                                                   tbInfo.m_outputOfEM);
+    }
+    return harqDlInfo;
+}
+
+void
 NrSpectrumPhy::EndRxData()
 {
     NS_LOG_FUNCTION(this);
@@ -1400,17 +1479,16 @@ NrSpectrumPhy::EndRxData()
             {
                 NS_FATAL_ERROR("No radio bearer tag found");
             }
-
             uint16_t rnti = bearerTag.GetRnti();
 
             auto itTb = m_transportBlocks.find(rnti);
-
             if (itTb == m_transportBlocks.end())
             {
                 // Packet for other device...
                 continue;
             }
             auto& tbInfo = itTb->second;
+
             if (!tbInfo.m_isCorrupted)
             {
                 m_phyRxDataEndOkCallback(packet);
@@ -1431,24 +1509,17 @@ NrSpectrumPhy::EndRxData()
             traceParams.m_rv = tbInfo.m_expected.m_rv;
             traceParams.m_sinr = tbInfo.m_sinrAvg;
             traceParams.m_sinrMin = tbInfo.m_sinrMin;
-            if (m_dataErrorModelEnabled)
-            {
-                traceParams.m_tbler = tbInfo.m_outputOfEM->m_tbler;
-                traceParams.m_corrupt = tbInfo.m_isCorrupted;
-            }
-            else
-            {
-                // when error model is disabled a received TB has no
-                // error, thus, TBLER would be 0 and it would be
-                // considered as not corrupt.
-                traceParams.m_tbler = 0;
-                traceParams.m_corrupt = false;
-            }
             traceParams.m_symStart = tbInfo.m_expected.m_symStart;
             traceParams.m_numSym = tbInfo.m_expected.m_numSym;
             traceParams.m_bwpId = GetBwpId();
             traceParams.m_rbAssignedNum =
                 static_cast<uint32_t>(tbInfo.m_expected.m_rbBitmap.size());
+
+            // when error model is disabled a received TB has no
+            // error, thus, TBLER would be 0 and it would be
+            // considered as not corrupt.
+            traceParams.m_tbler = m_dataErrorModelEnabled ? tbInfo.m_outputOfEM->m_tbler : 0;
+            traceParams.m_corrupt = m_dataErrorModelEnabled && tbInfo.m_isCorrupted;
 
             if (enbRx)
             {
@@ -1467,90 +1538,17 @@ NrSpectrumPhy::EndRxData()
             if (!tbInfo.m_harqFeedbackSent)
             {
                 tbInfo.m_harqFeedbackSent = true;
-                if (!tbInfo.m_expected.m_isDownlink) // UPLINK TB
+                if (tbInfo.m_expected.m_isDownlink) // UPLINK TB
                 {
-                    // Generate the feedback
-                    UlHarqInfo harqUlInfo;
-                    harqUlInfo.m_rnti = rnti;
-                    harqUlInfo.m_tpc = 0;
-                    harqUlInfo.m_harqProcessId = tbInfo.m_expected.m_harqProcessId;
-                    harqUlInfo.m_numRetx = tbInfo.m_expected.m_rv;
-                    if (tbInfo.m_isCorrupted)
-                    {
-                        harqUlInfo.m_receptionStatus = UlHarqInfo::NotOk;
-                    }
-                    else
-                    {
-                        harqUlInfo.m_receptionStatus = UlHarqInfo::Ok;
-                    }
-
-                    // Send the feedback
-                    if (!m_phyUlHarqFeedbackCallback.IsNull())
-                    {
-                        m_phyUlHarqFeedbackCallback(harqUlInfo);
-                    }
-
-                    // Arrange the history
-                    if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
-                    {
-                        m_harqPhyModule->ResetUlHarqProcessStatus(
-                            rnti,
-                            tbInfo.m_expected.m_harqProcessId);
-                    }
-                    else
-                    {
-                        m_harqPhyModule->UpdateUlHarqProcessStatus(
-                            rnti,
-                            tbInfo.m_expected.m_harqProcessId,
-                            tbInfo.m_outputOfEM);
-                    }
+                    NS_ASSERT(harqDlInfoMap.find(rnti) == harqDlInfoMap.end());
+                    auto harqDlInfo = SendDlHarqFeedback(rnti, tbInfo);
+                    harqDlInfoMap.insert(std::make_pair(rnti, harqDlInfo));
                 }
                 else
                 {
-                    // Generate the feedback
-                    DlHarqInfo harqDlInfo;
-                    harqDlInfo.m_rnti = rnti;
-                    harqDlInfo.m_harqProcessId = tbInfo.m_expected.m_harqProcessId;
-                    harqDlInfo.m_numRetx = tbInfo.m_expected.m_rv;
-                    harqDlInfo.m_bwpIndex = GetBwpId();
-                    if (tbInfo.m_isCorrupted)
-                    {
-                        harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
-                    }
-                    else
-                    {
-                        harqDlInfo.m_harqStatus = DlHarqInfo::ACK;
-                    }
-
-                    NS_ASSERT(harqDlInfoMap.find(rnti) == harqDlInfoMap.end());
-                    harqDlInfoMap.insert(std::make_pair(rnti, harqDlInfo));
-
-                    // Send the feedback
-                    if (!m_phyDlHarqFeedbackCallback.IsNull())
-                    {
-                        m_phyDlHarqFeedbackCallback(harqDlInfo);
-                    }
-
-                    // Arrange the history
-                    if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
-                    {
-                        NS_LOG_DEBUG("Reset Dl process: " << +tbInfo.m_expected.m_harqProcessId
-                                                          << " for RNTI " << rnti);
-                        m_harqPhyModule->ResetDlHarqProcessStatus(
-                            rnti,
-                            tbInfo.m_expected.m_harqProcessId);
-                    }
-                    else
-                    {
-                        NS_LOG_DEBUG("Update Dl process: " << +tbInfo.m_expected.m_harqProcessId
-                                                           << " for RNTI " << rnti);
-                        m_harqPhyModule->UpdateDlHarqProcessStatus(
-                            rnti,
-                            tbInfo.m_expected.m_harqProcessId,
-                            tbInfo.m_outputOfEM);
-                    }
-                } // end if (itTb->second.downlink) HARQ
-            }     // end if (!itTb->second.harqFeedbackSent)
+                    SendUlHarqFeedback(rnti, tbInfo);
+                }
+            }
         }
     }
 
