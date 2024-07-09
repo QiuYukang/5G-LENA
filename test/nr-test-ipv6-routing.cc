@@ -265,8 +265,7 @@ NrIpv6RoutingTestCase::DoRun()
     internet.Install(ueNodes);
 
     // Create bandwidth part
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
 
     // Install NR Devices to the nodes
     NetDeviceContainer nrGnbDevs = nrHelper->InstallGnbDevice(gnbNodes, bandwidthAndBWPPair.second);

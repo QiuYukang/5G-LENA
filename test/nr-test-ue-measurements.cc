@@ -298,8 +298,7 @@ NrUeMeasurementsTestCase::DoRun()
     mobility.SetPositionAllocator(positionAlloc);
     mobility.Install(allNodes);
 
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
     // Create Devices and install them in the Nodes (gNB and UE)
     NetDeviceContainer nrDevs;
     NetDeviceContainer ueDevs1;
@@ -785,8 +784,7 @@ NrUeMeasurementsPiecewiseTestCase1::DoRun()
     // Disable layer-3 filtering
     Config::SetDefault("ns3::NrGnbRrc::RsrpFilterCoefficient", UintegerValue(0));
 
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
     // Create Devices and install them in the Nodes (gNB and UE)
     NetDeviceContainer nrDevs;
     NetDeviceContainer ueDevs;
@@ -1489,8 +1487,7 @@ NrUeMeasurementsPiecewiseTestCase2::DoRun()
 
     // Disable layer-3 filtering
     Config::SetDefault("ns3::NrGnbRrc::RsrpFilterCoefficient", UintegerValue(0));
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
     // Create Devices and install them in the Nodes (gNB and UE)
     NetDeviceContainer nrDevs;
     NetDeviceContainer ueDevs;
@@ -1811,8 +1808,7 @@ NrUeMeasurementsPiecewiseTestCase3::DoRun()
 
     // Disable layer-3 filtering
     Config::SetDefault("ns3::NrGnbRrc::RsrpFilterCoefficient", UintegerValue(0));
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
     // Create Devices and install them in the Nodes (eNB and UE)
     NetDeviceContainer nrDevs;
     NetDeviceContainer ueDevs;
@@ -2403,8 +2399,7 @@ NrUeMeasurementsHandoverTestCase::DoRun()
     Config::SetDefault("ns3::NrGnbRrc::RsrpFilterCoefficient", UintegerValue(4));
 
     // Disable control channel error model
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
     // Create Devices and install them in the Nodes (eNB and UE)
     NetDeviceContainer nrDevs;
     NetDeviceContainer ueDevs;

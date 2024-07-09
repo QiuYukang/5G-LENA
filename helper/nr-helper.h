@@ -365,29 +365,6 @@ class NrHelper : public Object
     bool GetSnrTest() const;
 
     /**
-     * \brief Flags for OperationBand initialization.
-     */
-    enum OperationBandFlags : uint8_t
-    {
-        INIT_PROPAGATION = 0x01, //!< Initialize the propagation loss model
-        INIT_FADING = 0x02,      //!< Initialize the fading model
-        INIT_CHANNEL = 0x04      //!< Initialize the channel model
-    };
-
-    /**
-     * \brief Initialize the bandwidth parts by creating and configuring the channel
-     * models, if they are not already initialized.
-     *
-     * If the models are already set (i.e., the pointers are not null) the helper
-     * will not touch anything.
-     *
-     * \param band the band representation
-     * \param flags the flags for the initialization. Default to initialize everything
-     */
-    void InitializeOperationBand(OperationBandInfo* band,
-                                 uint8_t flags = INIT_PROPAGATION | INIT_FADING | INIT_CHANNEL);
-
-    /**
      * Activate a dedicated EPS bearer on a given set of UE devices.
      *
      * \param ueDevices the set of UE devices
@@ -599,12 +576,6 @@ class NrHelper : public Object
      */
     void SetUeBwpManagerAlgorithmTypeId(const TypeId& typeId);
 
-    /*
-     * \brief Sets the TypeId of the PhasedArraySpectrumPropagationLossModel to be used
-     * \param typeId Type of the object
-     */
-    void SetPhasedArraySpectrumPropagationLossModelTypeId(const TypeId& typeId);
-
     /**
      * \brief Set an attribute for the GNB BWP Manager, before it is created.
      *
@@ -612,31 +583,6 @@ class NrHelper : public Object
      * \param v the value of the attribute
      */
     void SetUeBwpManagerAlgorithmAttribute(const std::string& n, const AttributeValue& v);
-
-    /**
-     * \brief Set an attribute for the PhasedArraySpectrumPropagationLossModel before it is created.
-     *
-     * \param n the name of the attribute
-     * \param v the value of the attribute
-     */
-    void SetPhasedArraySpectrumPropagationLossModelAttribute(const std::string& n,
-                                                             const AttributeValue& v);
-
-    /**
-     * Set an attribute for the Channel Condition model, before it is created.
-     *
-     * \param n the name of the attribute
-     * \param v the value of the attribute
-     */
-    void SetChannelConditionModelAttribute(const std::string& n, const AttributeValue& v);
-
-    /**
-     * Set an attribute for the pathloss model, before it is created.
-     *
-     * \param n the name of the attribute
-     * \param v the value of the attribute
-     */
-    void SetPathlossAttribute(const std::string& n, const AttributeValue& v);
 
     /**
      * Set an attribute for the GNB DL AMC, before it is created.
@@ -935,9 +881,15 @@ class NrHelper : public Object
 
     /// \brief Create BandwidthParts from a vector of band configurations
     /// \param bandConfs the vector with operation band configurations
+    /// \param scenario the scenario to be used to create the bandwidth parts
+    /// \param channelCondition the channel condition to be used to create the bandwidth parts
+    /// \param channelModel the channel model to be used to create the bandwidth parts
     /// \return a pair with total bandwidth and vector of bandwidth parts
     std::pair<double, BandwidthPartInfoPtrVector> CreateBandwidthParts(
-        std::vector<CcBwpCreator::SimpleOperationBandConf> bandConfs);
+        std::vector<CcBwpCreator::SimpleOperationBandConf> bandConfs,
+        const std::string& scenario = "RMa",
+        const std::string& channelCondition = "Default",
+        const std::string& channelModel = "ThreeGpp");
 
     /**
      * \brief Update netdevice configuration of one or more UEs and/or gNBs
@@ -996,7 +948,7 @@ class NrHelper : public Object
                                         uint8_t bearerId);
 
     Ptr<NrGnbPhy> CreateGnbPhy(const Ptr<Node>& n,
-                               const std::unique_ptr<BandwidthPartInfo>& bwp,
+                               const BandwidthPartInfoPtr& bwp,
                                const Ptr<NrGnbNetDevice>& dev,
                                const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback);
     Ptr<NrMacScheduler> CreateGnbSched();
@@ -1005,7 +957,7 @@ class NrHelper : public Object
 
     Ptr<NrUeMac> CreateUeMac() const;
     Ptr<NrUePhy> CreateUePhy(const Ptr<Node>& n,
-                             const std::unique_ptr<BandwidthPartInfo>& bwp,
+                             const BandwidthPartInfoPtr& bwp,
                              const Ptr<NrUeNetDevice>& dev,
                              const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback& dlHarqCallback,
                              const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback);

@@ -215,8 +215,7 @@ NrRadioLinkFailureTestCase::DoRun()
     Config::SetDefault("ns3::NrUePowerControl::AccumulationEnabled", BooleanValue(true));
 
     //----frequency related----
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{1.93e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{1.93e9, 5e6, 1}}, "UMa");
 
     //----others----
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaPF"));

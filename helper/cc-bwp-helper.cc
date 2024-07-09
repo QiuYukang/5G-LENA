@@ -6,8 +6,6 @@
 
 #include <ns3/log.h>
 #include <ns3/spectrum-channel.h>
-#include <ns3/three-gpp-propagation-loss-model.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 
 #include <fstream>
 #include <memory>
@@ -101,6 +99,18 @@ OperationBandInfo::GetBwpAt(uint32_t ccId, uint32_t bwpId) const
     return m_cc.at(ccId)->m_bwp.at(bwpId);
 }
 
+void
+BandwidthPartInfo::SetChannel(Ptr<SpectrumChannel> channel)
+{
+    m_channel = channel;
+}
+
+Ptr<SpectrumChannel>
+BandwidthPartInfo::GetChannel() const
+{
+    return m_channel;
+}
+
 BandwidthPartInfoPtrVector
 OperationBandInfo::GetBwps() const
 {
@@ -140,7 +150,7 @@ CcBwpCreator::InitializeCc(std::unique_ptr<ComponentCarrierInfo>& cc,
 }
 
 void
-CcBwpCreator::InitializeBwp(std::unique_ptr<BandwidthPartInfo>& bwp,
+CcBwpCreator::InitializeBwp(BandwidthPartInfoPtr& bwp,
                             double bwOfBwp,
                             double lowerFreq,
                             uint8_t bwpPosition,
@@ -162,8 +172,7 @@ CcBwpCreator::CreateCc(double ccBandwidth,
                        double lowerFreq,
                        uint8_t ccPosition,
                        uint8_t ccId,
-                       uint8_t bwpNumber,
-                       BandwidthPartInfo::Scenario scenario)
+                       uint8_t bwpNumber)
 {
     // Create a CC with a single BWP
     std::unique_ptr<ComponentCarrierInfo> cc(new ComponentCarrierInfo());
@@ -175,7 +184,6 @@ CcBwpCreator::CreateCc(double ccBandwidth,
     {
         std::unique_ptr<BandwidthPartInfo> bwp(new BandwidthPartInfo());
         InitializeBwp(bwp, bwpBandwidth, cc->m_lowerFrequency, i, m_bandwidthPartCounter++);
-        bwp->m_scenario = scenario;
         bool ret = cc->AddBwp(std::move(bwp));
         NS_ASSERT(ret);
     }
@@ -218,8 +226,7 @@ CcBwpCreator::CreateOperationBandContiguousCc(const SimpleOperationBandConf& con
                                        band.m_lowerFrequency,
                                        ccPosition,
                                        m_componentCarrierCounter++,
-                                       conf.m_numBwp,
-                                       conf.m_scenario));
+                                       conf.m_numBwp));
         NS_ASSERT(ret);
     }
 
@@ -241,8 +248,7 @@ CcBwpCreator::CreateOperationBandNonContiguousCc(
                             band.m_lowerFrequency,
                             0,
                             m_componentCarrierCounter++,
-                            conf.m_numBwp,
-                            conf.m_scenario));
+                            conf.m_numBwp));
     }
 
     return band;
@@ -446,51 +452,6 @@ CcBwpCreator::PlotFrequencyBand(std::ofstream& outFile,
 
     outFile << "set label " << index << " at " << xmin << "," << (ymin + ymax) / 2 << " LABEL"
             << index << std::endl;
-}
-
-BandwidthPartInfo::BandwidthPartInfo(uint8_t bwpId,
-                                     double centralFrequency,
-                                     double channelBandwidth,
-                                     enum Scenario scenario)
-    : m_bwpId(bwpId),
-      m_centralFrequency(centralFrequency),
-      m_channelBandwidth(channelBandwidth),
-      m_scenario(scenario)
-{
-    NS_ASSERT_MSG(centralFrequency > channelBandwidth / 2,
-                  "Configuration error with channel bandwidth");
-    m_lowerFrequency = centralFrequency - channelBandwidth / 2;
-    m_higherFrequency = centralFrequency + channelBandwidth / 2;
-}
-
-std::string
-BandwidthPartInfo::GetScenario() const
-{
-    NS_LOG_FUNCTION(this);
-    static std::unordered_map<Scenario, std::string, std::hash<int>> lookupTable{
-        {RMa, "RMa"},
-        {RMa_LoS, "RMa"},
-        {RMa_nLoS, "RMa"},
-        {UMa, "UMa"},
-        {UMa_LoS, "UMa"},
-        {UMa_nLoS, "UMa"},
-        {UMi_StreetCanyon, "UMi-StreetCanyon"},
-        {UMi_StreetCanyon_LoS, "UMi-StreetCanyon"},
-        {UMi_StreetCanyon_nLoS, "UMi-StreetCanyon"},
-        {InH_OfficeOpen, "InH-OfficeOpen"},
-        {InH_OfficeOpen_LoS, "InH-OfficeOpen"},
-        {InH_OfficeOpen_nLoS, "InH-OfficeOpen"},
-        {InH_OfficeMixed, "InH-OfficeMixed"},
-        {InH_OfficeMixed_LoS, "InH-OfficeMixed"},
-        {InH_OfficeMixed_nLoS, "InH-OfficeMixed"},
-        {UMa_Buildings, "UMa"},
-        {UMi_Buildings, "UMi-StreetCanyon"},
-        {V2V_Highway, "V2V-Highway"},
-        {V2V_Urban, "V2V-Urban"},
-        {Custom, "Custom"},
-    };
-
-    return lookupTable[m_scenario];
 }
 
 std::ostream&

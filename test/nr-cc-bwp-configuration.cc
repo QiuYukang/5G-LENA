@@ -174,13 +174,11 @@ CcBwpTestCase::DoRun()
 
     CcBwpCreator::SimpleOperationBandConf bandConf1(centralFrequency1,
                                                     bandwidth1,
-                                                    numCcPerBand1 * static_cast<uint8_t>(mode1),
-                                                    BandwidthPartInfo::UMi_StreetCanyon);
+                                                    numCcPerBand1 * static_cast<uint8_t>(mode1));
 
     CcBwpCreator::SimpleOperationBandConf bandConf2(centralFrequency2,
                                                     bandwidth2,
-                                                    numCcPerBand2 * static_cast<uint8_t>(mode2),
-                                                    BandwidthPartInfo::UMi_StreetCanyon);
+                                                    numCcPerBand2 * static_cast<uint8_t>(mode2));
 
     OperationBandInfo band1 = creator.CreateOperationBandContiguousCc(bandConf1);
     OperationBandInfo band2 = creator.CreateOperationBandContiguousCc(bandConf2);
@@ -202,8 +200,7 @@ CcBwpTestCase::TestBandConfiguration(double centralFrequency,
 
     CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
                                                    bandwidth,
-                                                   numBandCcs * static_cast<uint8_t>(mode),
-                                                   BandwidthPartInfo::UMi_StreetCanyon);
+                                                   numBandCcs * static_cast<uint8_t>(mode));
 
     OperationBandInfo band = creator.CreateOperationBandContiguousCc(bandConf);
 

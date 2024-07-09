@@ -214,6 +214,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
      * - IdealBeamformingHelper, which takes care of the beamforming part
      * - NrHelper, which takes care of creating and connecting the various
      * part of the NR stack
+     * - NrChannelHelper, which takes care of the spectrum channel
      */
 
     nrHelper = CreateObject<NrHelper>();
@@ -234,37 +235,18 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
 
     double txPowerBs = 0.0;
 
-    BandwidthPartInfo::Scenario scene;
     if (scenario == "UMi")
     {
         txPowerBs = 30;
-        scene = BandwidthPartInfo::UMi_StreetCanyon_LoS;
     }
-    else if (scenario == "UMa")
+    else if (scenario == "UMa" || scenario == "RMa")
     {
         txPowerBs = 43;
-        scene = BandwidthPartInfo::UMa_LoS;
-    }
-    else if (scenario == "RMa")
-    {
-        txPowerBs = 43;
-        scene = BandwidthPartInfo::RMa_LoS;
     }
     else
     {
         NS_ABORT_MSG("Unsupported scenario " << scenario << ". Supported values: UMi, UMa, RMa");
     }
-
-    /*
-     * Attributes of ThreeGppChannelModel still cannot be set in our way.
-     * TODO: Coordinate with Tommaso
-     */
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-
-    // Disable shadowing in calibration, and enable it in non-calibration mode
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(!calibration));
-
     // Noise figure for the UE
     nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(9.0));
     nrHelper->SetUePhyAttribute("EnableUplinkPowerControl", BooleanValue(enableUlPc));
@@ -400,39 +382,27 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                          << (int)numCcPerBand << ", " << (int)numBwp);
 
         NS_LOG_LOGIC("bandConf0: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter, bandwidthBand, numCcPerBand);
         bandConf0.m_numBwp = numBwp;
         bandCenter += bandwidthBand;
 
         NS_LOG_LOGIC("bandConf1: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf1(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf1(bandCenter, bandwidthBand, numCcPerBand);
         bandConf1.m_numBwp = numBwp;
         bandCenter += bandwidthBand;
 
         NS_LOG_LOGIC("bandConf2: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf2(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf2(bandCenter, bandwidthBand, numCcPerBand);
         bandConf2.m_numBwp = numBwp;
 
         // Create, then configure
         CcBwpCreator ccBwpCreator;
         band0 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf0);
         band0.m_bandId = 0;
-
         band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
         band1.m_bandId = 1;
-
         band2 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf2);
         band2.m_bandId = 2;
-
         bandCenter = band0Start + bandwidthBwp / 2.0;
 
         NS_LOG_LOGIC("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
@@ -497,10 +467,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                      << (int)numBwp);
 
         NS_LOG_LOGIC("bandConf0: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter, bandwidthBand, numCcPerBand);
         bandConf0.m_numBwp = numBwp;
         bandCenter += bandwidthBand;
 
@@ -531,16 +498,23 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                   << " and operationMode = " << operationMode << std::endl;
         exit(1);
     }
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories(scenario, "Default", "ThreeGpp");
+    // Set attributes for all the channels
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(!calibration));
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
 
-    auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
     // Omit fading from calibration mode
     if (!calibration)
     {
-        bandMask |= NrHelper::INIT_FADING;
+        channelHelper->AssignChannelsToBands({band0, band1, band2},
+                                             NrChannelHelper::INIT_PROPAGATION);
     }
-    nrHelper->InitializeOperationBand(&band0, bandMask);
-    nrHelper->InitializeOperationBand(&band1, bandMask);
-    nrHelper->InitializeOperationBand(&band2, bandMask);
+    else
+    {
+        channelHelper->AssignChannelsToBands({band0, band1, band2});
+    }
 
     BandwidthPartInfoPtrVector sector1Bwps;
     BandwidthPartInfoPtrVector sector2Bwps;

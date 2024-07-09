@@ -203,6 +203,13 @@ NrTestNumerologyDelayCase1::DoRun()
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set the spectrum channel with UMi scenario and some attributes
+    channelHelper->ConfigureFactories("UMi");
+    // Set spectrum attributes
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
 
     // Beamforming method
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
@@ -215,16 +222,9 @@ NrTestNumerologyDelayCase1::DoRun()
     CcBwpCreator ccBwpCreator;
     const uint8_t numCcPerBand = 1;
 
-    CcBwpCreator::SimpleOperationBandConf bandConf1(28e9,
-                                                    400e6,
-                                                    numCcPerBand,
-                                                    BandwidthPartInfo::UMi_StreetCanyon);
+    CcBwpCreator::SimpleOperationBandConf bandConf1(28e9, 400e6, numCcPerBand);
     OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
-
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
+    channelHelper->AssignChannelsToBands({band1});
     nrHelper->SetSchedulerAttribute("FixedMcsDl", BooleanValue(true));
     nrHelper->SetSchedulerAttribute("StartingMcsDl", UintegerValue(1));
 
@@ -256,7 +256,6 @@ NrTestNumerologyDelayCase1::DoRun()
         "AmcModel",
         EnumValue(NrAmc::ErrorModel)); // NrAmc::ShannonModel or NrAmc::ErrorModel
 
-    nrHelper->InitializeOperationBand(&band1);
     allBwps = CcBwpCreator::GetAllBwps({band1});
 
     NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gNbNode, allBwps);

@@ -262,9 +262,12 @@ main(int argc, char* argv[])
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
 
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
+    // Configure the factories with UMi scenario, LOS channel condition and 3GPP channel model
+    channelHelper->ConfigureFactories("UMi", "LOS", "ThreeGpp");
 
     /*
      * Setup the configuration of the spectrum. There is a contiguous and a non-contiguous
@@ -305,8 +308,7 @@ main(int argc, char* argv[])
         // Create the configuration for the CcBwpHelper
         CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequencyBand,
                                                        bandwidthBand,
-                                                       numContiguousCcs,
-                                                       BandwidthPartInfo::UMi_StreetCanyon_LoS);
+                                                       numContiguousCcs);
 
         bandConf.m_numBwp = 1; // 1 BWP per CC
 
@@ -381,8 +383,10 @@ main(int argc, char* argv[])
       }*/
 
     // NS_ABORT_MSG_IF (ccId < 1,"No CC created");
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    // Set the path loss configuration
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    // Set and create the channel to be used in this band
+    channelHelper->AssignChannelsToBands({band});
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaRR"));
     // Beamforming method
@@ -398,8 +402,6 @@ main(int argc, char* argv[])
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                              TypeIdValue(DirectPathBeamforming::GetTypeId()));
     }
-
-    nrHelper->InitializeOperationBand(&band);
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     double x = pow(10, totalTxPower / 10);

@@ -175,15 +175,16 @@ main(int argc, char* argv[])
 
     // setup the nr simulation
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set channel using UMa scenario and LOS channel condition
+    channelHelper->ConfigureFactories("UMa", "LOS", "ThreeGpp");
     // simple band configuration and initialize
     CcBwpCreator ccBwpCreator;
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   1,
-                                                   BandwidthPartInfo::UMa_LoS);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, 1);
 
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-    nrHelper->InitializeOperationBand(&band);
+    // Set and create channel to this band
+    channelHelper->AssignChannelsToBands({band});
     BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps({band});
 
     nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPower));

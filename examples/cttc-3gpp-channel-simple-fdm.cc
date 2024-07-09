@@ -190,10 +190,14 @@ main(int argc, char* argv[])
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
 
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
-
+    // Set the spectrum channel using UMi scenario, default channel condition and 3GPP channel model
+    channelHelper->ConfigureFactories("UMi", "Default", "ThreeGpp");
+    // Disable shadowing
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     // Create one operational band containing one CC with 2 bandwidth parts
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
@@ -202,16 +206,13 @@ main(int argc, char* argv[])
     // Create the configuration for the CcBwpHelper
     CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequencyBand,
                                                    bandwidthBand,
-                                                   numCcPerBand,
-                                                   BandwidthPartInfo::UMi_StreetCanyon_LoS);
+                                                   numCcPerBand);
     bandConf.m_numBwp = 2; // two BWPs per CC
 
     // By using the configuration created, it is time to make the operation band
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    nrHelper->InitializeOperationBand(&band);
+    // Set and create channel for this band
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Beamforming method

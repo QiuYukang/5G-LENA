@@ -283,45 +283,13 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
 
     double txPowerBs = 0.0;
 
-    BandwidthPartInfo::Scenario scene = BandwidthPartInfo::UMa;
-
-    if (scenario == "UMa")
-    {
-        scene = BandwidthPartInfo::UMa;
-    }
-    else if (scenario == "RMa")
-    {
-        scene = BandwidthPartInfo::RMa;
-    }
-    else if (scenario == "UMi-StreetCanyon")
-    {
-        scene = BandwidthPartInfo::UMi_StreetCanyon;
-    }
-    else
-    {
-        NS_ABORT_MSG("Unsupported scenario " << scenario
-                                             << ". Supported values: UMa, RMa, UMi_StreetCanyon");
-    }
-
+    NS_ABORT_MSG_UNLESS(scenario == "UMa" || scenario == "RMa" || scenario == "UMi",
+                        "Unsupported scenario " << scenario << ". Supported values: UMa, RMa, UMi");
     txPowerBs = gnbTxPower;
     std::cout << "Scenario: " << scenario << "gnbTxPower: " << txPowerBs << std::endl;
 
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
-    nrHelper->SetPhasedArraySpectrumPropagationLossModelTypeId(
-        DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId());
-    nrHelper->SetPhasedArraySpectrumPropagationLossModelAttribute("MaxDistance",
-                                                                  DoubleValue(2 * isd));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(100)));
-    nrHelper->SetChannelConditionModelAttribute("LinkO2iConditionToAntennaHeight",
-                                                BooleanValue(linkO2iConditionToAntennaHeight));
-    nrHelper->SetChannelConditionModelAttribute("O2iThreshold", DoubleValue(o2iThreshold));
-    nrHelper->SetChannelConditionModelAttribute("O2iLowLossThreshold",
-                                                DoubleValue(o2iLowLossThreshold));
-
     std::cout << "o2iThreshold: " << o2iThreshold << std::endl;
     std::cout << "o2iLowLossThreshold: " << o2iLowLossThreshold << std::endl;
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
 
     // Noise figure for the gNB
     nrHelper->SetGnbPhyAttribute("NoiseFigure", DoubleValue(gnbNoiseFigure));
@@ -459,39 +427,27 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                          << (int)numCcPerBand << ", " << (int)numBwp);
 
         NS_LOG_LOGIC("bandConf0: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter, bandwidthBand, numCcPerBand);
         bandConf0.m_numBwp = numBwp;
         bandCenter += bandwidthBand;
 
         NS_LOG_LOGIC("bandConf1: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf1(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf1(bandCenter, bandwidthBand, numCcPerBand);
         bandConf1.m_numBwp = numBwp;
         bandCenter += bandwidthBand;
 
         NS_LOG_LOGIC("bandConf2: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf2(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf2(bandCenter, bandwidthBand, numCcPerBand);
         bandConf2.m_numBwp = numBwp;
 
         // Create, then configure
         CcBwpCreator ccBwpCreator;
         band0 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf0);
         band0.m_bandId = 0;
-
         band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
         band1.m_bandId = 1;
-
         band2 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf2);
         band2.m_bandId = 2;
-
         bandCenter = band0Start + bandwidthBwp / 2.0;
 
         NS_LOG_LOGIC("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
@@ -542,10 +498,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                      << (int)numBwp);
 
         NS_LOG_LOGIC("bandConf0: " << bandCenter << " " << bandwidthBand);
-        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter,
-                                                        bandwidthBand,
-                                                        numCcPerBand,
-                                                        scene);
+        CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter, bandwidthBand, numCcPerBand);
         bandConf0.m_numBwp = numBwp;
         bandCenter += bandwidthBand;
 
@@ -553,7 +506,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         CcBwpCreator ccBwpCreator;
         band0 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf0);
         band0.m_bandId = 0;
-
         bandCenter = band0Start + bandwidthBwp / 2.0;
 
         NS_LOG_LOGIC("band0[0][0]: " << bandCenter << " " << bandwidthBwp);
@@ -576,17 +528,95 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                   << " and operationMode = " << operationMode << std::endl;
         exit(1);
     }
-
-    auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
-    // Omit fading from calibration mode
-    if (enableFading)
+    // Create the NrChannelHelper, which takes care of the spectrum channel
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Configure the spectrum channel with the scenario
+    channelHelper->ConfigureFactories(scenario, "Default");
+    // Set the channel condition attributes
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(100)));
+    channelHelper->SetChannelConditionModelAttribute("LinkO2iConditionToAntennaHeight",
+                                                     BooleanValue(linkO2iConditionToAntennaHeight));
+    channelHelper->SetChannelConditionModelAttribute("O2iThreshold", DoubleValue(o2iThreshold));
+    channelHelper->SetChannelConditionModelAttribute("O2iLowLossThreshold",
+                                                     DoubleValue(o2iLowLossThreshold));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
+    // Configure Distance-based spectrum manually because it is not possible to set it via
+    // NrChannelHelper
+    ObjectFactory distanceBasedChannelFactory;
+    distanceBasedChannelFactory.SetTypeId(
+        DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId());
+    distanceBasedChannelFactory.Set("MaxDistance", DoubleValue(2 * isd));
+    for (size_t i = 0; i < band0.GetBwps().size(); i++)
     {
-        bandMask |= NrHelper::INIT_FADING;
+        auto distanceBased3gpp =
+            distanceBasedChannelFactory.Create<DistanceBasedThreeGppSpectrumPropagationLossModel>();
+        distanceBased3gpp->SetChannelModelAttribute(
+            "Frequency",
+            DoubleValue(band0.GetBwpAt(0, i)->m_centralFrequency));
+        distanceBased3gpp->SetChannelModelAttribute("Scenario", StringValue(scenario));
+        auto specChannelBand0 = channelHelper->CreateChannel(NrChannelHelper::INIT_PROPAGATION);
+        // Create the channel considering only the propagation loss. Create the fading in
+        // case of non-calibration
+        if (enableFading)
+        {
+            PointerValue channelConditionModel0;
+            specChannelBand0->GetPropagationLossModel()->GetAttribute("ChannelConditionModel",
+                                                                      channelConditionModel0);
+            distanceBased3gpp->SetChannelModelAttribute(
+                "ChannelConditionModel",
+                PointerValue(channelConditionModel0.Get<ChannelConditionModel>()));
+            specChannelBand0->AddPhasedArraySpectrumPropagationLossModel(distanceBased3gpp);
+        }
+        band0.GetBwpAt(0, i)->SetChannel(specChannelBand0);
     }
-    nrHelper->InitializeOperationBand(&band0, bandMask);
-    nrHelper->InitializeOperationBand(&band1, bandMask);
-    nrHelper->InitializeOperationBand(&band2, bandMask);
-
+    for (size_t i = 0; i < band1.GetBwps().size(); i++)
+    {
+        auto distanceBased3gpp =
+            distanceBasedChannelFactory.Create<DistanceBasedThreeGppSpectrumPropagationLossModel>();
+        distanceBased3gpp->SetChannelModelAttribute(
+            "Frequency",
+            DoubleValue(band1.GetBwpAt(0, i)->m_centralFrequency));
+        distanceBased3gpp->SetChannelModelAttribute("Scenario", StringValue(scenario));
+        auto specChannelBand1 = channelHelper->CreateChannel(NrChannelHelper::INIT_PROPAGATION);
+        // Create the channel considering only the propagation loss. Create the fading in
+        // case of non-calibration
+        if (enableFading)
+        {
+            PointerValue channelConditionModel1;
+            specChannelBand1->GetPropagationLossModel()->GetAttribute("ChannelConditionModel",
+                                                                      channelConditionModel1);
+            distanceBased3gpp->SetChannelModelAttribute(
+                "ChannelConditionModel",
+                PointerValue(channelConditionModel1.Get<ChannelConditionModel>()));
+            specChannelBand1->AddPhasedArraySpectrumPropagationLossModel(distanceBased3gpp);
+        }
+        band1.GetBwpAt(0, i)->SetChannel(specChannelBand1);
+    }
+    for (size_t i = 0; i < band2.GetBwps().size(); i++)
+    {
+        auto distanceBased3gpp =
+            distanceBasedChannelFactory.Create<DistanceBasedThreeGppSpectrumPropagationLossModel>();
+        distanceBased3gpp->SetAttribute("MaxDistance", DoubleValue(2 * isd));
+        distanceBased3gpp->SetChannelModelAttribute("Scenario", StringValue(scenario));
+        distanceBased3gpp->SetChannelModelAttribute(
+            "Frequency",
+            DoubleValue(band2.GetBwpAt(0, i)->m_centralFrequency));
+        auto specChannelBand2 = channelHelper->CreateChannel(NrChannelHelper::INIT_PROPAGATION);
+        // Create the channel considering only the propagation loss. Create the fading in
+        // case of non-calibration
+        if (enableFading)
+        {
+            PointerValue channelConditionModel2;
+            specChannelBand2->GetPropagationLossModel()->GetAttribute("ChannelConditionModel",
+                                                                      channelConditionModel2);
+            distanceBased3gpp->SetChannelModelAttribute(
+                "ChannelConditionModel",
+                PointerValue(channelConditionModel2.Get<ChannelConditionModel>()));
+            specChannelBand2->AddPhasedArraySpectrumPropagationLossModel(distanceBased3gpp);
+        }
+        band2.GetBwpAt(0, i)->SetChannel(specChannelBand2);
+    }
     BandwidthPartInfoPtrVector sector1Bwps;
     BandwidthPartInfoPtrVector sector2Bwps;
     BandwidthPartInfoPtrVector sector3Bwps;

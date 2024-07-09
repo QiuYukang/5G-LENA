@@ -259,11 +259,7 @@ main(int argc, char* argv[])
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(epcHelper);
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
 
     // Set the scheduler type
     std::stringstream scheduler;
@@ -336,8 +332,15 @@ main(int argc, char* argv[])
     CcBwpCreator ccBwpCreator;
     OperationBandInfo band;
     const uint8_t numOfCcs = 1;
+    // Create channel API
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories("UMi", "Default", "ThreeGpp");
+    auto bandMask = NrChannelHelper::INIT_PROPAGATION;
 
-    auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
+    // Set attributes for the channel
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
 
     /*
      * The configured spectrum division for TDD is:
@@ -349,16 +352,13 @@ main(int argc, char* argv[])
 
     // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
     // a single BWP per CC
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numOfCcs,
-                                                   BandwidthPartInfo::UMi_StreetCanyon);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, numOfCcs);
 
     bandConf.m_numBwp = 1;
     // By using the configuration created, it is time to make the operation band
     band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    nrHelper->InitializeOperationBand(&band, bandMask);
+    // Assign the channel to the bands
+    channelHelper->AssignChannelsToBands({band}, bandMask);
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     double x = pow(10, totalTxPower / 10);

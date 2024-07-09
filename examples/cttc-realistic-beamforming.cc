@@ -73,11 +73,12 @@ using namespace ns3;
  *    --gnbAntenna=3gpp
  *    --ueAntenna=3gpp
  *    --uePower=10
- *    --scenario=Uma
+ *    --scenario=UMa
  *    --simTag=-sim-campaign-algReal-rng1-mu0-gNb3gpp-ue3gpp
  *    --resultsDir=/tmp/results/realistic-beamforming/
  *    --dbName=realistic_beamforming.db
- *    --tableName=results'
+ *    --tableName=results
+ *    --condition=Default'
  *
  * To check all the parameters that are available you can always use:
  *
@@ -122,10 +123,11 @@ class CttcRealisticBeamforming
      * @param numerology The numerology
      * @param gnbAntenna antenna model to be used by gNB device, can be Iso or directional 3gpp
      * @param ueAntenna antenna model to be used by UE device, can be Iso directional 3gpp
-     * @param scenario deployment scenario, can be Uma, Umi, Inh, Rma
+     * @param scenario deployment scenario, can be UMa, UMi, InH-OfficeOpen, RMa
      * @param uePower uePower
      * @param resultsDirPath results directory path
      * @param tag A tag that contains some simulation run specific values in order
+     * @param condition The channel condition of the simulation
      * to be able to distinguish the results file for different runs for different
      * parameters configuration
      */
@@ -143,7 +145,8 @@ class CttcRealisticBeamforming
                    std::string resultsDirPath,
                    std::string tag,
                    std::string dbName,
-                   std::string tableName);
+                   std::string tableName,
+                   std::string condition);
 
     /**
      * \brief Function that will actually configure all the simulation parameters,
@@ -241,12 +244,12 @@ class CttcRealisticBeamforming
     uint16_t m_numerology{0};
     std::string m_gnbAntennaModel{"Iso"};
     std::string m_ueAntennaModel{"Iso"};
-    std::string m_scenario{"Uma"};
+    std::string m_scenario{"UMa"};
+    std::string m_condition{"Default"};
     std::string m_resultsDirPath{""};
     std::string m_tag{""};
     double m_gNbHeight{25};
     double m_gNbTxPower{35};
-    BandwidthPartInfo::Scenario m_deployScenario{BandwidthPartInfo::UMa};
     double m_ueTxPower{23};
 
     // simulation parameters that are not expected to be changed often by the user
@@ -637,7 +640,8 @@ CttcRealisticBeamforming::Configure(double deltaX,
                                     std::string resultsDirPath,
                                     std::string tag,
                                     std::string dbName,
-                                    std::string tableName)
+                                    std::string tableName,
+                                    std::string condition)
 
 {
     NS_LOG_FUNCTION(this);
@@ -654,79 +658,27 @@ CttcRealisticBeamforming::Configure(double deltaX,
     m_ueTxPower = uePower;
     m_resultsDirPath = resultsDirPath;
     m_tag = tag;
-
-    if (scenario == "Uma") // parameters based on TR 38.901 full calibration for RMa, UMa, UMi and
-                           // InH_OfficeOpen, 30GHz band
+    m_condition = condition;
+    if (scenario == "UMa") // parameters based on TR 38.901 full calibration for RMa, UMa, UMi and
+                           // InH-OfficeOpen, 30GHz band
     {
         m_gNbHeight = 25;  // gNB antenna height
         m_gNbTxPower = 35; // gNB transmit power
-        m_deployScenario = BandwidthPartInfo::UMa;
     }
-    else if (scenario == "UmaLos")
-    {
-        m_gNbHeight = 25;
-        m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::UMa_LoS;
-    }
-    else if (scenario == "UmaNlos")
-    {
-        m_gNbHeight = 25;
-        m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::UMa_nLoS;
-    }
-    else if (scenario == "Rma")
+    else if (scenario == "RMa")
     {
         m_gNbHeight = 35;
         m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::RMa;
     }
-    else if (scenario == "RmaLos")
-    {
-        m_gNbHeight = 35;
-        m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::RMa_LoS;
-    }
-    else if (scenario == "RmaNlos")
-    {
-        m_gNbHeight = 35;
-        m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::RMa_nLoS;
-    }
-    else if (scenario == "Umi")
+    else if (scenario == "UMi")
     {
         m_gNbHeight = 10;
         m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::UMi_StreetCanyon;
     }
-    else if (scenario == "UmiLos")
-    {
-        m_gNbHeight = 10;
-        m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::UMi_StreetCanyon_LoS;
-    }
-    else if (scenario == "UmiNlos")
-    {
-        m_gNbHeight = 10;
-        m_gNbTxPower = 35;
-        m_deployScenario = BandwidthPartInfo::UMi_StreetCanyon_nLoS;
-    }
-    else if (scenario == "Inh")
+    else if (scenario == "InH-OfficeOpen")
     {
         m_gNbHeight = 3;
         m_gNbTxPower = 24;
-        m_deployScenario = BandwidthPartInfo::InH_OfficeOpen;
-    }
-    else if (scenario == "InhLos")
-    {
-        m_gNbHeight = 3;
-        m_gNbTxPower = 24;
-        m_deployScenario = BandwidthPartInfo::InH_OfficeOpen_LoS;
-    }
-    else if (scenario == "InhNlos")
-    {
-        m_gNbHeight = 3;
-        m_gNbTxPower = 24;
-        m_deployScenario = BandwidthPartInfo::InH_OfficeOpen_nLoS;
     }
     else
     {
@@ -765,7 +717,6 @@ CttcRealisticBeamforming::RunSimulation()
 
     // Initialize beamforming
     Ptr<BeamformingHelperBase> beamformingHelper;
-
     if (m_beamforming == CttcRealisticBeamforming::IDEAL)
     {
         beamformingHelper = CreateObject<IdealBeamformingHelper>();
@@ -803,13 +754,14 @@ CttcRealisticBeamforming::RunSimulation()
     CcBwpCreator ccBwpCreator;
     // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates a single BWP
     // per CC
-    CcBwpCreator::SimpleOperationBandConf bandConf(m_centralFrequency,
-                                                   m_bandwidth,
-                                                   m_numCcPerBand,
-                                                   m_deployScenario);
+    CcBwpCreator::SimpleOperationBandConf bandConf(m_centralFrequency, m_bandwidth, m_numCcPerBand);
     // By using the configuration created, make the operation band
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-    nrHelper->InitializeOperationBand(&band);
+    // Initialize spectrum channel
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories(m_scenario, m_condition);
+    // Create and set the channel
+    channelHelper->AssignChannelsToBands({band});
     BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Configure antenna of gNb
@@ -950,8 +902,8 @@ main(int argc, char* argv[])
     std::string gnbAntenna = "Iso";
     std::string ueAntenna = "Iso";
     double ueTxPower = 1;
-    std::string scenario = "Uma";
-
+    std::string scenario = "UMa";
+    std::string condition = "Default";
     // parameters for saving the output
     std::string resultsDir = ".";
     std::string simTag = "";
@@ -987,7 +939,8 @@ main(int argc, char* argv[])
     cmd.AddValue("numerology", "Numerology to be used.", numerology);
     cmd.AddValue("gnbAntenna", "Configure antenna elements at gNb: Iso or 3gpp", gnbAntenna);
     cmd.AddValue("ueAntenna", "Configure antenna elements at UE: Iso or 3gpp", ueAntenna);
-    cmd.AddValue("scenario", "Deployment scenario: Uma, Umi, Inh", scenario);
+    cmd.AddValue("scenario", "Deployment scenario: UMa, UMi, InH-OfficeOpen", scenario);
+    cmd.AddValue("condition", "The channel condition: Default, NLOS or LOS", condition);
     cmd.AddValue("uePower", "Tx power to be used by the UE [dBm].", ueTxPower);
     // output command line parameters
     cmd.AddValue("resultsDir", "Directory where to store the simulation results.", resultsDir);
@@ -1040,7 +993,8 @@ main(int argc, char* argv[])
                                         resultsDir,
                                         simTag,
                                         dbName,
-                                        tableName);
+                                        tableName,
+                                        condition);
     simpleBeamformingScenario.PrepareDatabase();
     simpleBeamformingScenario.PrepareOutputFiles();
     simpleBeamformingScenario.RunSimulation();

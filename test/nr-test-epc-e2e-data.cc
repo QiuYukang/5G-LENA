@@ -137,8 +137,7 @@ NrEpcE2eDataTestCase::DoRun()
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     nrHelper->SetEpcHelper(nrEpcHelper);
 
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
 
     // allow jumbo frames on the S1-U link
     nrEpcHelper->SetAttribute("S1uLinkMtu", UintegerValue(30000));

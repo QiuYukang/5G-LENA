@@ -284,8 +284,7 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
     // normal code
     m_nrHelper = CreateObject<NrHelper>();
     m_nrHelper->SetAttribute("UseIdealRrc", BooleanValue(m_useIdealRrc));
-    auto bandwidthAndBWPPair =
-        m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
 
     NodeContainer gnbNodes;
     NodeContainer ueNodes;
@@ -655,8 +654,7 @@ NrRrcConnectionEstablishmentErrorTestCase::DoRun()
     m_nrHelper = CreateObject<NrHelper>();
     m_nrHelper->SetAttribute("UseIdealRrc", BooleanValue(m_useIdealRrc));
 
-    auto bandwidthAndBWPPair =
-        m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
 
     NodeContainer gnbNodes;
     NodeContainer ueNodes;

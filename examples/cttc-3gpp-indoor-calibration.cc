@@ -394,19 +394,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // UE antenna height is 1.5 meters
     double ueHeight = 1.5;
 
-    BandwidthPartInfo::Scenario scenario;
-    if (indoorScenario == "InH-OfficeMixed")
-    {
-        scenario = BandwidthPartInfo::InH_OfficeMixed;
-    }
-    else if (indoorScenario == "InH-OfficeOpen")
-    {
-        scenario = BandwidthPartInfo::InH_OfficeOpen;
-    }
-    else
-    {
-        NS_ABORT_MSG("Unsupported scenario");
-    }
+    NS_ABORT_MSG_UNLESS(indoorScenario == "InH-OfficeOpen" || indoorScenario == "InH-OfficeMixed",
+                        "The scenario is not supported");
 
     // if simulation tag is not provided create one
     if (tag.empty())
@@ -569,9 +558,11 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
 
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
+    channelHelper->ConfigureFactories(indoorScenario, "Default", "ThreeGpp");
 
     /*
      * Spectrum division. We create one operational band, containing one
@@ -594,13 +585,12 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // a single BWP per CC
     CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequencyBand,
                                                    bandwidthBand,
-                                                   numCcPerBand,
-                                                   scenario);
+                                                   numCcPerBand);
 
     // By using the configuration created, make the operation band
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    nrHelper->InitializeOperationBand(&band);
+    // Set and create the channel for the band
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Disable channel matrix update to speed up the simulation execution

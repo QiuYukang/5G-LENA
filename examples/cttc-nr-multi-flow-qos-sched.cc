@@ -216,11 +216,7 @@ main(int argc, char* argv[])
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
 
     std::stringstream scheduler;
     std::string subType;
@@ -270,8 +266,6 @@ main(int argc, char* argv[])
     OperationBandInfo band;
     const uint8_t numOfCcs = 1;
 
-    auto bandMask = NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL;
-
     /*
      * The configured spectrum division for TDD is:
      *
@@ -282,17 +276,19 @@ main(int argc, char* argv[])
 
     // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
     // a single BWP per CC
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numOfCcs,
-                                                   BandwidthPartInfo::UMi_StreetCanyon_LoS);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, numOfCcs);
 
     bandConf.m_numBwp = 1;
     // By using the configuration created, it is time to make the operation band
     band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    nrHelper->InitializeOperationBand(&band, bandMask);
-    // nrHelper->InitializeOperationBand(&band);
+    // Create the channel helper for the spectrum configuration
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set the spectrum channel
+    channelHelper->ConfigureFactories("UMi", "LOS", "ThreeGpp");
+    // Set shadowing and update period
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    // Set and create the channel for the band with only the propagation model
+    channelHelper->AssignChannelsToBands({band}, NrChannelHelper::INIT_PROPAGATION);
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     double x = pow(10, totalTxPower / 10);

@@ -41,8 +41,6 @@ static const uint8_t MAX_CC_INTER_BAND =
  * have to indicate the central frequency and the higher/lower frequency, as
  * well as the entire bandwidth plus the modeling.
  *
- * The pointers to the channels, if left empty, will be initialized by
- * NrHelper::InitializeOperationBand().
  */
 struct BandwidthPartInfo
 {
@@ -52,83 +50,23 @@ struct BandwidthPartInfo
     double m_higherFrequency{0.0};  //!< BWP higher frequency
     double m_channelBandwidth{0.0}; //!< BWP bandwidth
 
-    /**
-     * \brief Different types for the propagation loss model of this bandwidth part
-     */
-    enum Scenario
-    {
-        RMa,                   //!< RMa
-        RMa_LoS,               //!< RMa where all the nodes will be in Line-of-Sight
-        RMa_nLoS,              //!< RMA where all the nodes will not be in Line-of-Sight
-        UMa_LoS,               //!< UMa where all the nodes will be in Line-of-Sight
-        UMa_nLoS,              //!< UMa where all the nodes will not be in Line-of-Sight
-        UMa,                   //!< UMa
-        UMi_StreetCanyon,      //!< UMi_StreetCanyon
-        UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sight
-        UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in
-                               //!< Line-of-Sight
-        InH_OfficeOpen,        //!< InH_OfficeOpen
-        InH_OfficeOpen_LoS,    //!< indoor office where all the nodes will be in Line-of-Sight
-        InH_OfficeOpen_nLoS,   //!< indoor office where all the nodes will not be in Line-of-Sight
-        InH_OfficeMixed,       //!< InH_OfficeMixed
-        InH_OfficeMixed_LoS,   //!< indoor office where all the nodes will be in Line-of-Sight
-        InH_OfficeMixed_nLoS,  //!< indoor office where all the nodes will not be in Line-of-Sight
-        UMa_Buildings,         //!< UMa with buildings
-        UMi_Buildings,         //!< UMi_StreetCanyon with buildings
-        V2V_Highway,           //!< V2V_Highway
-        V2V_Urban,             //!< V2V_Urban
-        Custom                 //!< User-defined custom scenario
-    } m_scenario{RMa};
-
-    /**
-     * \brief Retrieve a string version of the scenario
-     * \return the string-fied version of the scenario
-     */
-    std::string GetScenario() const;
-
     BandwidthPartInfo() = default;
-    /**
-     * Parameterized constructor, for directly defining BandwidthPartInfo outside of CcBwpCreator
-     *
-     * Use this constructor if you want to customize the propagation models outside of the
-     * ThreeGppPropagationModel framework (e.g., s simple Friis loss model with no shadowing
-     * or other fading models).
-     * After calling this constructor, the user is responsible for setting the m_channel pointer
-     * after adding any desired loss and delay models to it; the m_propagation and m_3GppChannel
-     * pointers may be left null.
-     *
-     * \param bwpId Bandwidth Part ID
-     * \param centralFrequency Central frequency in Hz
-     * \param channelBandwidth Channel bandwidth in Hz
-     * \param scenario The 3GPP scenario (if applicable).  If unset, will default to 'Custom'.
-     *
-     * If a 3GPP scenario is desired, the CcBwpCreator should probably be used to initialize
-     * the 3GPP propagation modesl properly; this constructor is more aimed at providing an
-     * option to configure a non-3GPP model.
-     *
-     * An example usage of this constructor to set up a Friis propagation loss model is:
-     * \code
-     *   std::vector<std::reference_wrapper<std::unique_ptr<BandwidthPartInfo> > > bwps;
-     *   std::unique_ptr<BandwidthPartInfo> bwpi (new BandwidthPartInfo (bwpId, centralFrequency,
-     * bandwidth)); auto spectrumChannel = CreateObject<MultiModelSpectrumChannel> (); auto
-     * propagationLoss = CreateObject<FriisPropagationLossModel> ();
-     *   propagationLoss->SetAttributeFailSafe ("Frequency", DoubleValue (centralFrequencyBand1));
-     *   spectrumChannel->AddPropagationLossModel (propagationLoss);
-     *   bwpi->m_channel = spectrumChannel;
-     *   bwps.push_back(bwpi);
-     * \endcode
-     */
-    BandwidthPartInfo(uint8_t bwpId,
-                      double centralFrequency,
-                      double channelBandwidth,
-                      enum Scenario scenario = BandwidthPartInfo::Custom);
 
+    /**
+     * \brief Set the spectrum channel for the BWP
+     * \param channel The spectrum channel to be set for the BWP
+     */
+    void SetChannel(Ptr<SpectrumChannel> channel);
+
+    /**
+     * \brief Get the spectrum channel associated with the BWP
+     * \return The spectrum channel associated with the BWP
+     */
+    Ptr<SpectrumChannel> GetChannel() const;
+
+  private:
     Ptr<SpectrumChannel>
         m_channel; //!< Channel for the Bwp. Leave it nullptr to let the helper fill it
-    Ptr<PropagationLossModel>
-        m_propagation; //!< Propagation model. Leave it nullptr to let the helper fill it
-    Ptr<PhasedArraySpectrumPropagationLossModel>
-        m_3gppChannel; //!< Nr Channel. Leave it nullptr to let the helper fill it
 };
 
 /**
@@ -240,8 +178,7 @@ class CcBwpCreator
      * For instance, here is the simple configuration for a single operation band
      * at 28 GHz and 100 MHz of width:
      *
-     * `CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, 1,
-     * BandwidthPartInfo::UMi_StreetCanyon);`
+     * `CcBwpCreator::SimpleOperationBandConf bandConf1 (28e9, 100e6, 1)`
      *
      * The possible values of the scenario are depicted in BandwidthPartInfo
      * documentation.
@@ -253,16 +190,13 @@ class CcBwpCreator
          * \param centralFreq Central Frequency
          * \param channelBw Bandwidth
          * \param numCc number of component carriers in this operation band
-         * \param scenario which 3gpp scenario path loss model will be installed for this band
          */
         SimpleOperationBandConf(double centralFreq = 28e9,
                                 double channelBw = 400e6,
-                                uint8_t numCc = 1,
-                                BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa)
+                                uint8_t numCc = 1)
             : m_centralFrequency(centralFreq),
               m_channelBandwidth(channelBw),
-              m_numCc(numCc),
-              m_scenario(scenario)
+              m_numCc(numCc)
         {
         }
 
@@ -270,7 +204,6 @@ class CcBwpCreator
         double m_channelBandwidth{400e6}; //!< Total Bandwidth of the operation band
         uint8_t m_numCc{1};               //!< Number of CC in this OpBand
         uint8_t m_numBwp{1};              //!< Number of BWP per CC
-        BandwidthPartInfo::Scenario m_scenario{BandwidthPartInfo::RMa}; //!< Scenario
     };
 
     /**
@@ -325,7 +258,7 @@ class CcBwpCreator
                       double lowerFreq,
                       uint8_t ccPosition,
                       uint8_t ccId) const;
-    void InitializeBwp(std::unique_ptr<BandwidthPartInfo>& bwp,
+    void InitializeBwp(BandwidthPartInfoPtr& bwp,
                        double bwOfBwp,
                        double lowerFreq,
                        uint8_t bwpPosition,
@@ -334,9 +267,7 @@ class CcBwpCreator
                                                    double lowerFreq,
                                                    uint8_t ccPosition,
                                                    uint8_t ccId,
-                                                   uint8_t bwpNumber,
-                                                   BandwidthPartInfo::Scenario scenario);
-
+                                                   uint8_t bwpNumber);
     /**
      * \brief Plots a 2D rectangle defined by the input points and places a label
      *

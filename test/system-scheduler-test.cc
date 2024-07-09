@@ -155,6 +155,12 @@ SystemSchedulerTest::DoRun()
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
 
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set the spectrum channel
+    channelHelper->ConfigureFactories("UMi", "LOS");
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    // Shadowing
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     // set the number of antenna elements of UE
     nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(2));
     nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(4));
@@ -199,27 +205,12 @@ SystemSchedulerTest::DoRun()
     double centralFrequency = 28e9;
     double bandwidth = m_bw1;
     const uint8_t numCcPerBand = 1;
-    BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::UMi_StreetCanyon_LoS;
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenario);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, numCcPerBand);
 
     // By using the configuration created, it is time to make the operation bands
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-
-    // Shadowing
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    /*
-     * Initialize channel and pathloss, plus other things inside band1. If needed,
-     * the band configuration can be done manually, but we leave it for more
-     * sophisticated examples. For the moment, this method will take care
-     * of all the spectrum initialization needs.
-     */
-    nrHelper->InitializeOperationBand(&band);
+    // Set and create the channel for the band
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     uint32_t bwpIdForLowLat = 0;

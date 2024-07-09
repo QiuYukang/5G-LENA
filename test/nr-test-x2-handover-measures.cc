@@ -328,8 +328,7 @@ NrX2HandoverMeasuresTestCase::DoRun()
             Vector(speed, 0, 0));
     }
 
-    auto bandwidthAndBWPPair =
-        m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
 
     NetDeviceContainer gnbDevices;
     gnbDevices = m_nrHelper->InstallGnbDevice(gnbNodes, bandwidthAndBWPPair.second);

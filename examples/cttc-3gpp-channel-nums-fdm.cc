@@ -136,14 +136,19 @@ main(int argc, char* argv[])
     /*
      * TODO: Add a print, or a plot, that shows the scenario.
      */
-
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
 
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
+    // Create the spectrum channel
+    channelHelper->ConfigureFactories("UMi", "Default", "ThreeGpp");
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
 
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
@@ -151,18 +156,19 @@ main(int argc, char* argv[])
 
     CcBwpCreator::SimpleOperationBandConf bandConfTdd(centralFrequencyBand1,
                                                       bandwidthBand1,
-                                                      numCcPerBand,
-                                                      BandwidthPartInfo::UMi_StreetCanyon);
+                                                      numCcPerBand);
+
     CcBwpCreator::SimpleOperationBandConf bandConfFdd(centralFrequencyBand2,
                                                       bandwidthBand2,
-                                                      numCcPerBand,
-                                                      BandwidthPartInfo::UMi_StreetCanyon);
+                                                      numCcPerBand);
 
     bandConfFdd.m_numBwp = 2; // Here, bandFdd will have 2 BWPs
 
     // By using the configuration created, it is time to make the operation bands
     OperationBandInfo bandTdd = ccBwpCreator.CreateOperationBandContiguousCc(bandConfTdd);
     OperationBandInfo bandFdd = ccBwpCreator.CreateOperationBandContiguousCc(bandConfFdd);
+    // Create the same spectrum channel for both bands with different frequencies
+    channelHelper->AssignChannelsToBands({bandTdd, bandFdd});
 
     /*
      * The configured spectrum division is:
@@ -172,19 +178,7 @@ main(int argc, char* argv[])
      *
      * We will configure BWP0 as TDD, BWP1 as FDD-DL, BWP2 as FDD-UL.
      */
-
-    /*
-     * Attributes of ThreeGppChannelModel still cannot be set in our way.
-     * TODO: Coordinate with Tommaso
-     */
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    nrHelper->InitializeOperationBand(&bandTdd);
-    nrHelper->InitializeOperationBand(&bandFdd);
     allBwps = CcBwpCreator::GetAllBwps({bandTdd, bandFdd});
-
     // Beamforming method
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(DirectPathBeamforming::GetTypeId()));

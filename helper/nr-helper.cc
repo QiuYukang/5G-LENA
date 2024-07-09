@@ -5,6 +5,7 @@
 #include "nr-helper.h"
 
 #include "nr-bearer-stats-calculator.h"
+#include "nr-channel-helper.h"
 #include "nr-epc-helper.h"
 #include "nr-mac-rx-trace.h"
 #include "nr-phy-rx-trace.h"
@@ -133,254 +134,26 @@ NrHelper::GetTypeId()
     return tid;
 }
 
-typedef std::function<void(ObjectFactory*, ObjectFactory*)> InitPathLossFn;
-
-static void
-InitRma(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppRmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(ThreeGppRmaChannelConditionModel::GetTypeId());
-}
-
-static void
-InitRma_LoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppRmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(AlwaysLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitRma_nLoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppRmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(NeverLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUma(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(ThreeGppUmaChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUma_LoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(AlwaysLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUma_nLoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(NeverLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUmi(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(
-        ThreeGppUmiStreetCanyonChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUmi_LoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(AlwaysLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUmi_nLoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(NeverLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitIndoorOpen(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppIndoorOfficePropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(
-        ThreeGppIndoorOpenOfficeChannelConditionModel::GetTypeId());
-}
-
-static void
-InitIndoorOpen_LoS(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppIndoorOfficePropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(AlwaysLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitIndoorOpen_nLoS(ObjectFactory* pathlossModelFactory,
-                    ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppIndoorOfficePropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(NeverLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitIndoorMixed(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppIndoorOfficePropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(
-        ThreeGppIndoorMixedOfficeChannelConditionModel::GetTypeId());
-}
-
-static void
-InitIndoorMixed_LoS(ObjectFactory* pathlossModelFactory,
-                    ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppIndoorOfficePropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(AlwaysLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitIndoorMixed_nLoS(ObjectFactory* pathlossModelFactory,
-                     ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppIndoorOfficePropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(NeverLosChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUmaBuildings(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmaPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(BuildingsChannelConditionModel::GetTypeId());
-}
-
-static void
-InitUmiBuildings(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppUmiStreetCanyonPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(BuildingsChannelConditionModel::GetTypeId());
-}
-
-static void
-InitV2VHighway(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppV2vHighwayPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(ThreeGppV2vHighwayChannelConditionModel::GetTypeId());
-}
-
-static void
-InitV2VUrban(ObjectFactory* pathlossModelFactory, ObjectFactory* channelConditionModelFactory)
-{
-    pathlossModelFactory->SetTypeId(ThreeGppV2vUrbanPropagationLossModel::GetTypeId());
-    channelConditionModelFactory->SetTypeId(ThreeGppV2vUrbanChannelConditionModel::GetTypeId());
-}
-
-void
-NrHelper::InitializeOperationBand(OperationBandInfo* band, uint8_t flags)
-{
-    NS_LOG_FUNCTION(this);
-
-    static std::unordered_map<BandwidthPartInfo::Scenario, InitPathLossFn, std::hash<int>>
-        initLookupTable{
-            {BandwidthPartInfo::RMa,
-             std::bind(&InitRma, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::RMa_LoS,
-             std::bind(&InitRma_LoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::RMa_nLoS,
-             std::bind(&InitRma_nLoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMa,
-             std::bind(&InitUma, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMa_LoS,
-             std::bind(&InitUma_LoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMa_nLoS,
-             std::bind(&InitUma_nLoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMi_StreetCanyon,
-             std::bind(&InitUmi, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMi_StreetCanyon_LoS,
-             std::bind(&InitUmi_LoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMi_StreetCanyon_nLoS,
-             std::bind(&InitUmi_nLoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::InH_OfficeOpen,
-             std::bind(&InitIndoorOpen, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::InH_OfficeOpen_LoS,
-             std::bind(&InitIndoorOpen_LoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::InH_OfficeOpen_nLoS,
-             std::bind(&InitIndoorOpen_nLoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::InH_OfficeMixed,
-             std::bind(&InitIndoorMixed, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::InH_OfficeMixed_LoS,
-             std::bind(&InitIndoorMixed_LoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::InH_OfficeMixed_nLoS,
-             std::bind(&InitIndoorMixed_nLoS, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMa_Buildings,
-             std::bind(&InitUmaBuildings, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::UMi_Buildings,
-             std::bind(&InitUmiBuildings, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::V2V_Highway,
-             std::bind(&InitV2VHighway, std::placeholders::_1, std::placeholders::_2)},
-            {BandwidthPartInfo::V2V_Urban,
-             std::bind(&InitV2VUrban, std::placeholders::_1, std::placeholders::_2)},
-        };
-
-    // Iterate over all CCs, and instantiate the channel and propagation model
-    for (const auto& cc : band->m_cc)
-    {
-        for (const auto& bwp : cc->m_bwp)
-        {
-            // Initialize the type ID of the factories by calling the relevant
-            // static function defined above and stored inside the lookup table
-            initLookupTable.at(bwp->m_scenario)(&m_pathlossModelFactory,
-                                                &m_channelConditionModelFactory);
-
-            auto channelConditionModel =
-                m_channelConditionModelFactory.Create<ChannelConditionModel>();
-
-            if (bwp->m_propagation == nullptr && flags & INIT_PROPAGATION)
-            {
-                bwp->m_propagation = m_pathlossModelFactory.Create<ThreeGppPropagationLossModel>();
-                bwp->m_propagation->SetAttributeFailSafe("Frequency",
-                                                         DoubleValue(bwp->m_centralFrequency));
-                DynamicCast<ThreeGppPropagationLossModel>(bwp->m_propagation)
-                    ->SetChannelConditionModel(channelConditionModel);
-            }
-
-            if (bwp->m_3gppChannel == nullptr && flags & INIT_FADING)
-            {
-                bwp->m_3gppChannel =
-                    m_spectrumPropagationFactory.Create<ThreeGppSpectrumPropagationLossModel>();
-                DynamicCast<ThreeGppSpectrumPropagationLossModel>(bwp->m_3gppChannel)
-                    ->SetChannelModelAttribute("Frequency", DoubleValue(bwp->m_centralFrequency));
-                DynamicCast<ThreeGppSpectrumPropagationLossModel>(bwp->m_3gppChannel)
-                    ->SetChannelModelAttribute("Scenario", StringValue(bwp->GetScenario()));
-                DynamicCast<ThreeGppSpectrumPropagationLossModel>(bwp->m_3gppChannel)
-                    ->SetChannelModelAttribute("ChannelConditionModel",
-                                               PointerValue(channelConditionModel));
-            }
-
-            if (bwp->m_channel == nullptr && flags & INIT_CHANNEL)
-            {
-                bwp->m_channel = m_channelFactory.Create<SpectrumChannel>();
-                bwp->m_channel->AddPropagationLossModel(bwp->m_propagation);
-                bwp->m_channel->AddPhasedArraySpectrumPropagationLossModel(bwp->m_3gppChannel);
-            }
-        }
-    }
-}
-
 std::pair<double, BandwidthPartInfoPtrVector>
-NrHelper::CreateBandwidthParts(std::vector<CcBwpCreator::SimpleOperationBandConf> bandConfs)
+NrHelper::CreateBandwidthParts(std::vector<CcBwpCreator::SimpleOperationBandConf> bandConfs,
+                               const std::string& scenario,
+                               const std::string& channelCondition,
+                               const std::string& channelModel)
 {
     CcBwpCreator ccBwpCreator;
     double totalBandwidth = 0.0;
+    auto channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories(scenario, channelCondition, channelModel);
     for (auto& bandConf : bandConfs)
     {
         m_bands.push_back(ccBwpCreator.CreateOperationBandContiguousCc(bandConf));
-        InitializeOperationBand(&m_bands.back());
         totalBandwidth += bandConf.m_channelBandwidth;
     }
     std::vector<std::reference_wrapper<OperationBandInfo>> bandsRefs(m_bands.rbegin(),
                                                                      m_bands.rbegin() +
                                                                          bandConfs.size());
 
+    channelHelper->AssignChannelsToBands(bandsRefs);
     return std::make_pair(totalBandwidth, CcBwpCreator::GetAllBwps(bandsRefs));
 }
 
@@ -564,7 +337,7 @@ NrHelper::CreateUeMac() const
 
 Ptr<NrUePhy>
 NrHelper::CreateUePhy(const Ptr<Node>& n,
-                      const std::unique_ptr<BandwidthPartInfo>& bwp,
+                      const BandwidthPartInfoPtr& bwp,
                       const Ptr<NrUeNetDevice>& dev,
                       const NrSpectrumPhy::NrPhyDlHarqFeedbackCallback& dlHarqCallback,
                       const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyRxCtrlCallback)
@@ -573,7 +346,7 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
 
     Ptr<NrUePhy> phy = m_uePhyFactory.Create<NrUePhy>();
 
-    NS_ASSERT(bwp->m_channel != nullptr);
+    NS_ASSERT(bwp->GetChannel() != nullptr);
 
     phy->InstallCentralFrequency(bwp->m_centralFrequency);
 
@@ -601,7 +374,7 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     channelPhy->SetIsGnb(false);
     channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
 
-    auto antenna = m_ueAntennaFactory.Create(); // Create antenna per panel
+    auto antenna = m_ueAntennaFactory.Create(); // Create antenna object
     channelPhy->SetAntenna(antenna);
 
     cam->SetNrSpectrumPhy(channelPhy); // connect CAM
@@ -611,13 +384,14 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     channelPhy->AddDataSinrChunkProcessor(pData);
 
     Ptr<NrMimoChunkProcessor> pDataMimo{nullptr};
-    if (bwp->m_3gppChannel)
+    auto phasedChannel = bwp->GetChannel()->GetPhasedArraySpectrumPropagationLossModel();
+    if (phasedChannel)
     {
         pDataMimo = Create<NrMimoChunkProcessor>();
         pDataMimo->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateMimoSinrPerceived, channelPhy));
         channelPhy->AddDataMimoChunkProcessor(pDataMimo);
     }
-    if (bwp->m_3gppChannel && m_enableMimoFeedback)
+    if (phasedChannel && m_enableMimoFeedback)
     {
         // Report DL CQI, PMI, RI (channel quality, MIMO precoding matrix and rank indicators)
         pDataMimo->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReportMimo, phy));
@@ -636,7 +410,7 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     pSinr->AddCallback(MakeCallback(&NrSpectrumPhy::ReportDlCtrlSinr, channelPhy));
     channelPhy->AddDlCtrlSinrChunkProcessor(pSinr);
 
-    channelPhy->SetChannel(bwp->m_channel);
+    channelPhy->SetChannel(bwp->GetChannel());
     channelPhy->InstallPhy(phy);
     channelPhy->SetMobility(mm);
     channelPhy->SetPhyRxDataEndOkCallback(MakeCallback(&NrUePhy::PhyDataPacketReceived, phy));
@@ -792,7 +566,7 @@ NrHelper::InstallSingleUeDevice(
 
 Ptr<NrGnbPhy>
 NrHelper::CreateGnbPhy(const Ptr<Node>& n,
-                       const std::unique_ptr<BandwidthPartInfo>& bwp,
+                       const BandwidthPartInfoPtr& bwp,
                        const Ptr<NrGnbNetDevice>& dev,
                        const NrSpectrumPhy::NrPhyRxCtrlEndOkCallback& phyEndCtrlCallback)
 {
@@ -826,7 +600,7 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
     channelPhy->SetIsGnb(true);
     channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
     channelPhy->SetChannel(
-        bwp->m_channel); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel
+        bwp->GetChannel()); // each NrSpectrumPhy needs to have a pointer to the SpectrumChannel
     // object of the corresponding spectrum part
     channelPhy->InstallPhy(phy); // each NrSpectrumPhy should have a pointer to its NrPhy
 
@@ -846,7 +620,8 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         pSrs->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSrsSinrPerceived,
                                        channelPhy)); // connect SRS chunk processor that will
                                                      // call UpdateSrsSinrPerceived function
-        if (bwp->m_3gppChannel)
+        auto phasedChannel = bwp->GetChannel()->GetPhasedArraySpectrumPropagationLossModel();
+        if (phasedChannel)
         {
             auto pDataMimo = Create<NrMimoChunkProcessor>();
             pDataMimo->AddCallback(
@@ -1466,39 +1241,10 @@ NrHelper::SetUeBwpManagerAlgorithmTypeId(const TypeId& typeId)
 }
 
 void
-NrHelper::SetPhasedArraySpectrumPropagationLossModelTypeId(const TypeId& typeId)
-{
-    NS_LOG_FUNCTION(this);
-    m_spectrumPropagationFactory.SetTypeId(typeId);
-}
-
-void
 NrHelper::SetUeBwpManagerAlgorithmAttribute(const std::string& n, const AttributeValue& v)
 {
     NS_LOG_FUNCTION(this);
     m_ueBwpManagerAlgoFactory.Set(n, v);
-}
-
-void
-NrHelper::SetPhasedArraySpectrumPropagationLossModelAttribute(const std::string& n,
-                                                              const AttributeValue& v)
-{
-    NS_LOG_FUNCTION(this);
-    m_spectrumPropagationFactory.Set(n, v);
-}
-
-void
-NrHelper::SetChannelConditionModelAttribute(const std::string& n, const AttributeValue& v)
-{
-    NS_LOG_FUNCTION(this);
-    m_channelConditionModelFactory.Set(n, v);
-}
-
-void
-NrHelper::SetPathlossAttribute(const std::string& n, const AttributeValue& v)
-{
-    NS_LOG_FUNCTION(this);
-    m_pathlossModelFactory.Set(n, v);
 }
 
 void

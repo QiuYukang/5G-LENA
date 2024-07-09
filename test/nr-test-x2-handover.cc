@@ -268,10 +268,8 @@ NrX2HandoverTestCase::DoRun()
     mobility.Install(gnbNodes);
     mobility.Install(ueNodes);
 
-    auto bandwidthAndBWPPair =
-        m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
-    auto bandwidthAndBWPPair2 =
-        m_nrHelper->CreateBandwidthParts({{2.9e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = m_nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
+    auto bandwidthAndBWPPair2 = m_nrHelper->CreateBandwidthParts({{2.9e9, 5e6, 1}}, "UMa");
     NetDeviceContainer gnbDevices;
     gnbDevices.Add(m_nrHelper->InstallGnbDevice(gnbNodes.Get(0), bandwidthAndBWPPair.second));
     gnbDevices.Add(m_nrHelper->InstallGnbDevice(gnbNodes.Get(1), bandwidthAndBWPPair2.second));

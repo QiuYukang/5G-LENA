@@ -242,7 +242,7 @@ NrUplinkPowerControlTestCase::DoRun()
     double hUT = 1.5;                         // user antenna height in meters
     double gNBTxPower = 30;                   // gNb tx power
     double ueTxPower = 10;                    // ue tx power
-    enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::InH_OfficeMixed_LoS;
+    std::string condition = "LOS";
     uint16_t numerology = 0;   // numerology to be used
     uint16_t numCcPerBand = 1; // number of component carrier in the assigned band
     Time udpAppStartTime = MilliSeconds(50);
@@ -265,6 +265,11 @@ NrUplinkPowerControlTestCase::DoRun()
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Configure the spectrum channel
+    channelHelper->ConfigureFactories(scenario, condition, "ThreeGpp");
+    // Disable shadowing
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
 
@@ -294,14 +299,11 @@ NrUplinkPowerControlTestCase::DoRun()
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(ueTxPower));
     nrHelper->SetUePhyAttribute("EnableUplinkPowerControl", BooleanValue(true));
 
-    CcBwpCreator::SimpleOperationBandConf bandConf(frequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenarioEnum);
+    CcBwpCreator::SimpleOperationBandConf bandConf(frequency, bandwidth, numCcPerBand);
     CcBwpCreator ccBwpCreator;
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-    // Initialize channel and pathloss, plus other things inside band.
-    nrHelper->InitializeOperationBand(&band, NrHelper::INIT_PROPAGATION | NrHelper::INIT_CHANNEL);
+    channelHelper->AssignChannelsToBands({band}, NrChannelHelper::INIT_PROPAGATION);
+
     BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Configure ideal beamforming method
@@ -319,7 +321,6 @@ NrUplinkPowerControlTestCase::DoRun()
     nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(1));
     nrHelper->SetGnbAntennaAttribute("AntennaElement",
                                      PointerValue(CreateObject<IsotropicAntennaModel>()));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
 
     gnbDevs = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, allBwps);

@@ -250,6 +250,7 @@ main(int argc, char* argv[])
      * - IdealBeamformingHelper, which takes care of the beamforming part
      * - NrHelper, which takes care of creating and connecting the various
      * part of the NR stack
+     * - NrChannelHelper, which takes care of the spectrum channel
      */
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
@@ -274,15 +275,14 @@ main(int argc, char* argv[])
     // a single BWP per CC
     CcBwpCreator::SimpleOperationBandConf bandConf1(centralFrequencyBand1,
                                                     bandwidthBand1,
-                                                    numCcPerBand,
-                                                    BandwidthPartInfo::UMi_StreetCanyon);
+                                                    numCcPerBand);
+
+    // Create the band and install the channel into it
+    OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
+    // Set the channel for the band
     CcBwpCreator::SimpleOperationBandConf bandConf2(centralFrequencyBand2,
                                                     bandwidthBand2,
-                                                    numCcPerBand,
-                                                    BandwidthPartInfo::UMi_StreetCanyon);
-
-    // By using the configuration created, it is time to make the operation bands
-    OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
+                                                    numCcPerBand);
     OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf2);
 
     /*
@@ -293,40 +293,37 @@ main(int argc, char* argv[])
      */
 
     /*
-     * Attributes of ThreeGppChannelModel still cannot be set in our way.
-     * TODO: Coordinate with Tommaso
-     */
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    /*
-     * Initialize channel and pathloss, plus other things inside band1. If needed,
-     * the band configuration can be done manually, but we leave it for more
-     * sophisticated examples. For the moment, this method will take care
-     * of all the spectrum initialization needs.
-     */
-    nrHelper->InitializeOperationBand(&band1);
-
-    /*
      * Start to account for the bandwidth used by the example, as well as
      * the total power that has to be divided among the BWPs.
      */
     double x = pow(10, totalTxPower / 10);
     double totalBandwidth = bandwidthBand1;
+    /**
+     * The channel is configured by this helper using a combination of the scenario, the channel
+     * condition model, and the fading model.
+     */
 
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories("UMi", "Default", "ThreeGpp");
+    /**
+     * Use channelHelper API to define the attributes for the channel model (condition, pathloss and
+     * spectrum)
+     */
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     /*
-     * if not single band simulation, initialize and setup power in the second band
+     * if not single band simulation, initialize and setup power in the second band.
+     * Install channel and pathloss, plus other things inside single or both bands.
      */
     if (doubleOperationalBand)
     {
-        // Initialize channel and pathloss, plus other things inside band2
-        nrHelper->InitializeOperationBand(&band2);
+        channelHelper->AssignChannelsToBands({band1, band2});
         totalBandwidth += bandwidthBand2;
         allBwps = CcBwpCreator::GetAllBwps({band1, band2});
     }
     else
     {
+        channelHelper->AssignChannelsToBands({band1});
         allBwps = CcBwpCreator::GetAllBwps({band1});
     }
 

@@ -127,6 +127,9 @@ NrRealisticBeamformingTestCase::DoRun()
                     totalCounter++;
 
                     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+                    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+                    channelHelper->ConfigureFactories("UMa", "LOS");
+                    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
                     // Create Nodes: eNodeB and UE
                     NodeContainer gnbNodes;
                     NodeContainer ueNodes;
@@ -148,16 +151,13 @@ NrRealisticBeamformingTestCase::DoRun()
                     // Create Devices and install them in the Nodes (gNB and UE)
                     NetDeviceContainer gnbDevs;
                     NetDeviceContainer ueDevs;
-                    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
 
-                    CcBwpCreator::SimpleOperationBandConf bandConf(29e9,
-                                                                   100e6,
-                                                                   1,
-                                                                   BandwidthPartInfo::UMa_LoS);
+                    CcBwpCreator::SimpleOperationBandConf bandConf(29e9, 100e6, 1);
                     CcBwpCreator ccBwpCreator;
                     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
                     // Initialize channel and pathloss, plus other things inside band.
-                    nrHelper->InitializeOperationBand(&band);
+                    channelHelper->AssignChannelsToBands({band});
+
                     BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps({band});
 
                     // Antennas for the gNbs

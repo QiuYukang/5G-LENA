@@ -174,8 +174,7 @@ NrDeactivateBearerTestCase::DoRun()
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(ueNodes);
 
-    auto bandwidthAndBWPPair =
-        nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1, BandwidthPartInfo::UMa}});
+    auto bandwidthAndBWPPair = nrHelper->CreateBandwidthParts({{2.8e9, 5e6, 1}}, "UMa");
     // Create Devices and install them in the Nodes (gNB and UE)
     NetDeviceContainer gnbDevs;
     NetDeviceContainer ueDevs;

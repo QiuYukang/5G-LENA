@@ -106,7 +106,8 @@ main(int argc, char* argv[])
      *
      */
 
-    uint16_t losCondition = 0;
+    // Default channel condition
+    std::string losCondition = "Default";
 
     // Where the example stores the output files.
     std::string simTag = "default";
@@ -203,9 +204,9 @@ main(int argc, char* argv[])
                  "ns3::DirectPathQuasiOmniBeamforming",
                  beamformingMethod);
     cmd.AddValue("losCondition",
-                 "0 - for 3GPP channel condition model,"
-                 "1 - for always LOS channel condition model,"
-                 "2 - for always NLOS channel condition model",
+                 "Default - for 3GPP channel condition model,"
+                 "LOS - for always LOS channel condition model,"
+                 "NLOS - for always NLOS channel condition model",
                  losCondition);
     cmd.AddValue("simTag",
                  "tag to be appended to output filenames to distinguish simulation campaigns",
@@ -223,7 +224,6 @@ main(int argc, char* argv[])
     apGnb.polSlantAngle = polSlantAngleGnb * (M_PI / 180);
 
     NS_ABORT_IF(centralFrequency < 0.5e9 && centralFrequency > 100e9);
-    NS_ABORT_UNLESS(losCondition < 3);
 
     if (logging)
     {
@@ -285,8 +285,10 @@ main(int argc, char* argv[])
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
+
     /**
      * Prepare spectrum. Prepare one operational band, containing
      * one component carrier, and a single bandwidth part
@@ -299,23 +301,22 @@ main(int argc, char* argv[])
      * ------------BWP1---------------
      */
 
-    BandwidthPartInfo::Scenario scenario =
-        BandwidthPartInfo::Scenario(BandwidthPartInfo::UMi_StreetCanyon + losCondition);
-
     CcBwpCreator ccBwpCreator;
     const uint8_t numCcPerBand = 1;
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenario);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, numCcPerBand);
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
+    // Create the channel helper
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set the channel using the scenario and user input
+    channelHelper->ConfigureFactories("UMi", losCondition, "ThreeGpp");
+    // Set the channel update period and shadowing
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod",
+                                                     TimeValue(MilliSeconds(updatePeriodMs)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    // Create and set the channel with the band
+    channelHelper->AssignChannelsToBands({band});
 
-    /**
-     * Configure NrHelper, prepare most of the parameters that will be used in the simulation.
-     */
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod",
-                                                TimeValue(MilliSeconds(updatePeriodMs)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    // Configure NrHelper, prepare most of the parameters that will be used in the simulation.
     nrHelper->SetDlErrorModel(errorModel);
     nrHelper->SetUlErrorModel(errorModel);
     nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
@@ -354,10 +355,6 @@ main(int argc, char* argv[])
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
     // UE routing between bearer type and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
-    /**
-     * Initialize channel and pathloss, plus other things inside band.
-     */
-    nrHelper->InitializeOperationBand(&band);
     BandwidthPartInfoPtrVector allBwps;
     allBwps = CcBwpCreator::GetAllBwps({band});
 

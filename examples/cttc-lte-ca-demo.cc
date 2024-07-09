@@ -251,11 +251,8 @@ main(int argc, char* argv[])
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
-
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
     if (cellScan)
     {
@@ -434,10 +431,11 @@ main(int argc, char* argv[])
 
     band38.AddCc(std::move(cc1));
     band38.AddCc(std::move(cc2));
-
-    nrHelper->InitializeOperationBand(&band40);
-    nrHelper->InitializeOperationBand(&band38);
-
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // use the default spectrum channel {RMa, Default, ThreeGpp}
+    channelHelper->ConfigureFactories("RMa", "Default", "ThreeGpp");
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    channelHelper->AssignChannelsToBands({band40, band38});
     allBwps = CcBwpCreator::GetAllBwps({band38, band40});
 
     // Antennas for all the UEs

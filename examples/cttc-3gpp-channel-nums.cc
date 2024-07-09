@@ -119,6 +119,8 @@ main(int argc, char* argv[])
 
     // setup the nr simulation
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+    // Setup the channel helper
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
 
     /*
      * Spectrum division. We create one operation band with one component carrier
@@ -128,30 +130,26 @@ main(int argc, char* argv[])
      */
     CcBwpCreator ccBwpCreator;
     const uint8_t numCcPerBand = 1; // in this example, both bands have a single CC
-    BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::RMa_LoS;
+    std::string scenario = "RMa";
+    std::string condition = "LOS";
     if (ueNumPergNb > 1)
     {
-        scenario = BandwidthPartInfo::InH_OfficeOpen;
+        scenario = "InH-OfficeOpen";
     }
 
+    // Create the spectrum channel using the desired scenario and condition
+    channelHelper->ConfigureFactories(scenario, condition, "ThreeGpp");
+    // Set configurations for the channel model
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     // Create the configuration for the CcBwpHelper. SimpleOperationBandConf creates
     // a single BWP per CC
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenario);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, numCcPerBand);
 
     // By using the configuration created, it is time to make the operation bands
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    /*
-     * Initialize channel and pathloss, plus other things inside band1. If needed,
-     * the band configuration can be done manually, but we leave it for more
-     * sophisticated examples. For the moment, this method will take care
-     * of all the spectrum initialization needs.
-     */
-    nrHelper->InitializeOperationBand(&band);
-
+    // Set and create the channel model to the band
+    channelHelper->AssignChannelsToBands({band});
     BandwidthPartInfoPtrVector allBwps = CcBwpCreator::GetAllBwps({band});
 
     /*
@@ -191,10 +189,6 @@ main(int argc, char* argv[])
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(DirectPathBeamforming::GetTypeId()));
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    //  nrHelper->SetChannelConditionModelAttribute ("UpdatePeriod", TimeValue (MilliSeconds (0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
 
     // Error Model: UE and GNB with same spectrum error model.
     nrHelper->SetUlErrorModel("ns3::NrEesmIrT1");

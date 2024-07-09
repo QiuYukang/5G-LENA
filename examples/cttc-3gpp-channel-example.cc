@@ -46,11 +46,10 @@ main(int argc, char* argv[])
     double hBS;          // base station antenna height in meters
     double hUT;          // user antenna height in meters
     double txPower = 40; // txPower
-    enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("scenario",
-                 "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', "
+                 "The scenario for the simulation. Choose among 'RMa', 'UMa', 'UMi', "
                  "'InH-OfficeMixed', 'InH-OfficeOpen'.",
                  scenario);
     cmd.AddValue("frequency", "The central carrier frequency in Hz.", frequency);
@@ -86,35 +85,25 @@ main(int argc, char* argv[])
     {
         hBS = 35;
         hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::RMa;
     }
     else if (scenario == "UMa")
     {
         hBS = 25;
         hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::UMa;
     }
     else if (scenario == "UMi-StreetCanyon")
     {
         hBS = 10;
         hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-    else if (scenario == "InH-OfficeMixed")
+    else if (scenario == "InH-OfficeMixed" || scenario == "InH-OfficeOpen")
     {
         hBS = 3;
         hUT = 1;
-        scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
-    }
-    else if (scenario == "InH-OfficeOpen")
-    {
-        hBS = 3;
-        hUT = 1;
-        scenarioEnum = BandwidthPartInfo::InH_OfficeOpen;
     }
     else
     {
-        NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', 'UMi-StreetCanyon', "
+        NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', 'UMi', "
                      "'InH-OfficeMixed', and 'InH-OfficeOpen'.");
     }
 
@@ -171,6 +160,7 @@ main(int argc, char* argv[])
     /*
      * Spectrum configuration. We create a single operational band and configure the scenario.
      */
+
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
     const uint8_t numCcPerBand = 1; // in this example we have a single band, and that band is
@@ -185,13 +175,16 @@ main(int argc, char* argv[])
      * |---------------CC-----------------|
      * |---------------BWP----------------|
      */
-    CcBwpCreator::SimpleOperationBandConf bandConf(frequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenarioEnum);
+    CcBwpCreator::SimpleOperationBandConf bandConf(frequency, bandwidth, numCcPerBand);
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-    // Initialize channel and pathloss, plus other things inside band.
-    nrHelper->InitializeOperationBand(&band);
+    // Create the channel helper
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set and configure the channel to the current band
+    channelHelper->ConfigureFactories(
+        scenario,
+        "Default",
+        "ThreeGpp"); // Configure the spectrum channel with the scenario
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Configure ideal beamforming method

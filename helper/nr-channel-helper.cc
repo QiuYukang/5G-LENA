@@ -363,7 +363,7 @@ NrChannelHelper::AssignChannelsToBands(
                     propagationLoss->SetAttributeFailSafe("Frequency",
                                                           DoubleValue(bwp->m_centralFrequency));
                 }
-                bwp->m_channel = spectrumChannel;
+                bwp->SetChannel(spectrumChannel);
             }
         }
     }

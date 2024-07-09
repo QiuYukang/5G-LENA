@@ -304,6 +304,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
      * - IdealBeamformingHelper, which takes care of the beamforming part
      * - NrHelper, which takes care of creating and connecting the various
      * part of the NR stack
+     * - NrChannelHelper, which takes care of the spectrum channel
      */
 
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
@@ -315,7 +316,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     Ptr<NrPointToPointEpcHelper> nrEpcHelper =
         DynamicCast<NrPointToPointEpcHelper>(baseNrEpcHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
-
     /*
      * Spectrum division. We create one operational band containing three
      * component carriers, and each CC containing a single bandwidth part
@@ -333,28 +333,8 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     double centralFrequencyBand = ranHelper.GetCentralFrequency();
     double bandwidthBand = ranHelper.GetBandwidth();
     const uint8_t numCcPerBand = 1; // In this example, each cell will have one CC with one BWP
-    BandwidthPartInfo::Scenario scene;
-    if (scenario == "UMi")
-    {
-        scene = BandwidthPartInfo::UMi_StreetCanyon;
-    }
-    else if (scenario == "UMa")
-    {
-        scene = BandwidthPartInfo::UMa;
-    }
-    else
-    {
-        NS_ABORT_MSG("Unsupported scenario");
-    }
 
-    /*
-     * Attributes of ThreeGppChannelModel still cannot be set in our way.
-     * TODO: Coordinate with Tommaso
-     */
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
-                       TimeValue(MilliSeconds(0))); // 100ms
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    NS_ABORT_MSG_UNLESS(scenario == "UMa" || scenario == "UMi", "Unsupported scenario");
 
     // Error Model: UE and GNB with same spectrum error model.
     nrHelper->SetUlErrorModel(errorModel);
@@ -400,34 +380,32 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
 
     CcBwpCreator::SimpleOperationBandConf bandConf1(centralFrequencyBand1,
                                                     bandwidthBand1,
-                                                    numCcPerBand,
-                                                    scene);
+                                                    numCcPerBand);
     bandConf1.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
     CcBwpCreator::SimpleOperationBandConf bandConf2(centralFrequencyBand2,
                                                     bandwidthBand2,
-                                                    numCcPerBand,
-                                                    scene);
+                                                    numCcPerBand);
     bandConf2.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
     CcBwpCreator::SimpleOperationBandConf bandConf3(centralFrequencyBand3,
                                                     bandwidthBand3,
-                                                    numCcPerBand,
-                                                    scene);
+                                                    numCcPerBand);
     bandConf3.m_numBwp = numBwpPerCc; // FDD will have 2 BWPs per CC
 
     // By using the configuration created, it is time to make the operation bands
     OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
     OperationBandInfo band2 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf2);
     OperationBandInfo band3 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf3);
-
-    /*
-     * Initialize channel and pathloss, plus other things inside band1. If needed,
-     * the band configuration can be done manually, but we leave it for more
-     * sophisticated examples. For the moment, this method will take care
-     * of all the spectrum initialization needs.
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories(scenario);
+    // Set the attributes for the channel model
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    /**
+     * Set the channel model for the bands. The channel model is the same for all the bands.
+     * Initialize both fading and propagation
      */
-    nrHelper->InitializeOperationBand(&band1);
-    nrHelper->InitializeOperationBand(&band2);
-    nrHelper->InitializeOperationBand(&band3);
+    channelHelper->AssignChannelsToBands({band1, band2, band3});
     allBwps = CcBwpCreator::GetAllBwps({band1, band2, band3});
     bwps1 = CcBwpCreator::GetAllBwps({band1});
     bwps2 = CcBwpCreator::GetAllBwps({band2});

@@ -73,8 +73,7 @@ main(int argc, char* argv[])
     std::string scenario = "UMa"; // scenario
     std::string beamforming =
         "dir-dir"; // beamforming at gNB and UE, the first is gNB and the second is UE
-    enum BandwidthPartInfo::Scenario scenarioEnum = BandwidthPartInfo::UMa;
-
+    std::string condition = "Default";
     uint16_t gNbNum = 1;
     uint16_t ueNumPergNb = 1;
     std::string deploymentScenario = "SingleGnb";
@@ -110,7 +109,6 @@ main(int argc, char* argv[])
     bool enableTraces = false;
 
     // building parameters in case of buildings addition
-    bool enableBuildings = false; // Depends on the scenario (no input parameter)
     uint32_t numOfBuildings = 1;
     uint32_t apartmentsX = 2;
     uint32_t nFloors = 1;
@@ -140,9 +138,12 @@ main(int argc, char* argv[])
                  simTag);
     cmd.AddValue("scenario",
                  "The scenario for the simulation. Choose among 'RMa', 'UMa', "
-                 "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen'"
+                 "'UMi', 'InH-OfficeMixed', 'InH-OfficeOpen'"
                  "'UMa-Buildings', 'UMi-Buildings'.",
                  scenario);
+    cmd.AddValue("condition",
+                 "The channel condition model used in the simulation: ThreeGpp or Buildings",
+                 condition);
     cmd.AddValue("gNbNum", "The number of gNbs in multiple-ue topology", gNbNum);
     cmd.AddValue("ueNumPergNb", "The number of UE per gNb in multiple-ue topology", ueNumPergNb);
     cmd.AddValue("gNB1x", "gNb 1 x position", gNB1x);
@@ -228,53 +229,32 @@ main(int argc, char* argv[])
     {
         hBS = 35;
         hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::RMa;
     }
     else if (scenario == "UMa")
     {
         // hBS = 25;
         hBS = 1.5;
         hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::UMa;
     }
-    else if (scenario == "UMa-Buildings")
-    {
-        hBS = 1.5; // 25
-        hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::UMa_Buildings;
-        enableBuildings = true;
-    }
-    else if (scenario == "UMi-StreetCanyon")
+    else if (scenario == "UMi")
     {
         hBS = 10;
         hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::UMi_StreetCanyon;
     }
-    else if (scenario == "UMi-Buildings")
-    {
-        hBS = 10;
-        hUT = 1.5;
-        scenarioEnum = BandwidthPartInfo::UMi_Buildings;
-        enableBuildings = true;
-    }
-    else if (scenario == "InH-OfficeMixed")
+    else if (scenario == "InH-OfficeMixed" || scenario == "InH-OfficeOpen")
     {
         hBS = 3;
         hUT = 1;
-        scenarioEnum = BandwidthPartInfo::InH_OfficeMixed;
-    }
-    else if (scenario == "InH-OfficeOpen")
-    {
-        hBS = 3;
-        hUT = 1;
-        scenarioEnum = BandwidthPartInfo::InH_OfficeOpen;
     }
     else
     {
         NS_ABORT_MSG("Scenario not supported. Choose among 'RMa', 'UMa', "
-                     "'UMi-StreetCanyon', 'InH-OfficeMixed', 'InH-OfficeOpen',"
-                     "'UMa-Buildings', and 'UMi-Buildings'.");
+                     "'UMi', 'InH-OfficeMixed', and 'InH-OfficeOpen'");
     }
+
+    NS_ABORT_MSG_IF((scenario == "InH-OfficeMixed" || scenario == "InH-OfficeOpen") &&
+                        condition == "Buildings",
+                    "Scenario " << scenario << " does not support condition Buildings");
 
     if (deploymentScenario == "SingleGnb")
     {
@@ -342,7 +322,7 @@ main(int argc, char* argv[])
         ueNodes.Get(3)->GetObject<MobilityModel>()->SetPosition(Vector(ue2x + offset, ue2y, hUT));
     }
 
-    if (enableBuildings)
+    if (condition == "Buildings")
     {
         Ptr<GridBuildingAllocator> gridBuildingAllocator;
         gridBuildingAllocator = CreateObject<GridBuildingAllocator>();
@@ -385,18 +365,17 @@ main(int argc, char* argv[])
     CcBwpCreator ccBwpCreator;
     const uint8_t numCcPerBand = 1;
 
-    CcBwpCreator::SimpleOperationBandConf bandConf(frequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenarioEnum);
+    CcBwpCreator::SimpleOperationBandConf bandConf(frequency, bandwidth, numCcPerBand);
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    // Initialize channel and pathloss, plus other things inside band.
+    // Create the channel helper object and configure the factories
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    channelHelper->ConfigureFactories(scenario, condition);
+    // Set attributes to the channel
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    nrHelper->InitializeOperationBand(&band);
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    // Set and create the channel to the current band
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Configure beamforming method

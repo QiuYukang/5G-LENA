@@ -198,7 +198,6 @@ TestAntenna3gppModelConf::DoRun()
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
-
     // Put the pointers inside nrHelper
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(CellScanBeamforming::GetTypeId()));
@@ -256,41 +255,17 @@ TestAntenna3gppModelConf::DoRun()
     double centralFrequency = 28e9;
     double bandwidth = 20e6;
     const uint8_t numCcPerBand = 1;
-    BandwidthPartInfo::Scenario scenario;
-    // set LOS,NLOS condition
-    if (m_losCondition == "l")
-    {
-        scenario = BandwidthPartInfo::UMi_StreetCanyon_LoS;
-    }
-    else if (m_losCondition == "n")
-    {
-        scenario = BandwidthPartInfo::UMi_StreetCanyon_nLoS;
-    }
-    else
-    {
-        scenario = BandwidthPartInfo::UMi_StreetCanyon;
-    }
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency,
-                                                   bandwidth,
-                                                   numCcPerBand,
-                                                   scenario);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequency, bandwidth, numCcPerBand);
 
     // By using the configuration created, it is time to make the operation bands
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set the spectrum channel using
+    channelHelper->ConfigureFactories("UMi", m_losCondition);
     // Shadowing
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    /*
-     * Initialize channel and pathloss, plus other things inside band1. If needed,
-     * the band configuration can be done manually, but we leave it for more
-     * sophisticated examples. For the moment, this method will take care
-     * of all the spectrum initialization needs.
-     */
-    nrHelper->InitializeOperationBand(&band);
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
-
-    //  nrHelper->Initialize();
 
     uint32_t bwpIdForLowLat = 0;
     // gNb routing between Bearer and bandwidh part
@@ -433,7 +408,7 @@ Antenna3gppModelConfTestSuite::Antenna3gppModelConfTestSuite()
 
     std::list<uint8_t> ueNoOfAntennas = {16};
 
-    std::list<std::string> losConditions = {"l"};
+    std::list<std::string> losConditions = {"LOS"};
 
     //  std::list<TypeId> gNbantennaArrayModelTypes = {AntennaArrayModel::GetTypeId(),
     //  AntennaArray3gppModel::GetTypeId ()};

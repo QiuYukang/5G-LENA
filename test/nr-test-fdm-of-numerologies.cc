@@ -119,7 +119,11 @@ NrTestFdmOfNumerologiesCase1::DoRun()
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
-
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Set the spectrum channel with the UMi scenario and always LOS condition
+    channelHelper->ConfigureFactories("UMi", "LOS");
+    // Set shadowing disabled
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
 
@@ -142,20 +146,12 @@ NrTestFdmOfNumerologiesCase1::DoRun()
 
     const uint8_t numCcPerBand = 2;
 
-    CcBwpCreator::SimpleOperationBandConf bandConf1(28e9,
-                                                    totalBandwidth,
-                                                    numCcPerBand,
-                                                    BandwidthPartInfo::UMi_StreetCanyon_LoS);
+    CcBwpCreator::SimpleOperationBandConf bandConf1(28e9, totalBandwidth, numCcPerBand);
     OperationBandInfo band1 = ccBwpCreator.CreateOperationBandContiguousCc(bandConf1);
-
+    channelHelper->AssignChannelsToBands({band1});
     // Set BW of each BWP
     band1.m_cc[0]->m_bwp[0]->m_channelBandwidth = m_bw1;
     band1.m_cc[1]->m_bwp[0]->m_channelBandwidth = m_bw2;
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-
-    nrHelper->InitializeOperationBand(&band1);
-
     allBwps = CcBwpCreator::GetAllBwps({band1});
 
     // gNb routing between Bearer and bandwidh part

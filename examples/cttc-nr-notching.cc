@@ -315,11 +315,9 @@ main(int argc, char* argv[])
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
-
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
-
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
     if (enableOfdma)
     {
@@ -366,17 +364,17 @@ main(int argc, char* argv[])
     }
 
     // Create the configuration for the CcBwpHelper
-    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequencyBand,
-                                                   bandwidth,
-                                                   numOfCcs,
-                                                   BandwidthPartInfo::UMi_StreetCanyon_LoS);
+    CcBwpCreator::SimpleOperationBandConf bandConf(centralFrequencyBand, bandwidth, numOfCcs);
 
     bandConf.m_numBwp = operationMode == "FDD" ? 2 : 1; // FDD will have 2 BWPs per CC
 
     // By using the configuration created, it is time to make the operation band
     band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    nrHelper->InitializeOperationBand(&band);
+    // Set the channel to use UMi scenario, LOS channel condition and 3GPP channel model
+    channelHelper->ConfigureFactories("UMi", "LOS", "ThreeGpp");
+    // Disable shadowing
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     double x = pow(10, totalTxPower / 10);

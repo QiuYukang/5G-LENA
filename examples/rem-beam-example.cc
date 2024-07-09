@@ -105,6 +105,7 @@ main(int argc, char* argv[])
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(DirectPathQuasiOmniBeamforming::GetTypeId()));
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
+
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
 
@@ -121,12 +122,13 @@ main(int argc, char* argv[])
 
     CcBwpCreator::SimpleOperationBandConf bandConf(2e9, 20e6, numCcPerBand);
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
-
-    // Initialize channel and pathloss, plus other things inside band.
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-    nrHelper->InitializeOperationBand(&band);
+    Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
+    // Use the default spectrum channel: RMa - Default - ThreeGpp
+    channelHelper->ConfigureFactories();
+    // Set attributes to the spectrum channel and set it to the band.
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    channelHelper->AssignChannelsToBands({band});
     singleBwp = CcBwpCreator::GetAllBwps({band});
 
     // Antennas for the UEs
