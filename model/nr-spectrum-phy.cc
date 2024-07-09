@@ -1385,9 +1385,6 @@ NrSpectrumPhy::EndRxData()
 
     CheckTransportBlockCorruptionStatus();
 
-    GetSecond GetTBInfo;
-    GetFirst GetRnti;
-
     std::map<uint16_t, DlHarqInfo> harqDlInfoMap;
     for (auto packetBurst : m_rxPacketBurstList)
     {
@@ -1413,7 +1410,8 @@ NrSpectrumPhy::EndRxData()
                 // Packet for other device...
                 continue;
             }
-            if (!GetTBInfo(*itTb).m_isCorrupted)
+            auto& tbInfo = itTb->second;
+            if (!tbInfo.m_isCorrupted)
             {
                 m_phyRxDataEndOkCallback(packet);
             }
@@ -1423,20 +1421,20 @@ NrSpectrumPhy::EndRxData()
             }
 
             RxPacketTraceParams traceParams;
-            traceParams.m_tbSize = GetTBInfo(*itTb).m_expected.m_tbSize;
-            traceParams.m_frameNum = GetTBInfo(*itTb).m_expected.m_sfn.GetFrame();
-            traceParams.m_subframeNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSubframe();
-            traceParams.m_slotNum = GetTBInfo(*itTb).m_expected.m_sfn.GetSlot();
+            traceParams.m_tbSize = tbInfo.m_expected.m_tbSize;
+            traceParams.m_frameNum = tbInfo.m_expected.m_sfn.GetFrame();
+            traceParams.m_subframeNum = tbInfo.m_expected.m_sfn.GetSubframe();
+            traceParams.m_slotNum = tbInfo.m_expected.m_sfn.GetSlot();
             traceParams.m_rnti = rnti;
-            traceParams.m_mcs = GetTBInfo(*itTb).m_expected.m_mcs;
-            traceParams.m_rank = GetTBInfo(*itTb).m_expected.m_rank;
-            traceParams.m_rv = GetTBInfo(*itTb).m_expected.m_rv;
-            traceParams.m_sinr = GetTBInfo(*itTb).m_sinrAvg;
-            traceParams.m_sinrMin = GetTBInfo(*itTb).m_sinrMin;
+            traceParams.m_mcs = tbInfo.m_expected.m_mcs;
+            traceParams.m_rank = tbInfo.m_expected.m_rank;
+            traceParams.m_rv = tbInfo.m_expected.m_rv;
+            traceParams.m_sinr = tbInfo.m_sinrAvg;
+            traceParams.m_sinrMin = tbInfo.m_sinrMin;
             if (m_dataErrorModelEnabled)
             {
-                traceParams.m_tbler = GetTBInfo(*itTb).m_outputOfEM->m_tbler;
-                traceParams.m_corrupt = GetTBInfo(*itTb).m_isCorrupted;
+                traceParams.m_tbler = tbInfo.m_outputOfEM->m_tbler;
+                traceParams.m_corrupt = tbInfo.m_isCorrupted;
             }
             else
             {
@@ -1446,11 +1444,11 @@ NrSpectrumPhy::EndRxData()
                 traceParams.m_tbler = 0;
                 traceParams.m_corrupt = false;
             }
-            traceParams.m_symStart = GetTBInfo(*itTb).m_expected.m_symStart;
-            traceParams.m_numSym = GetTBInfo(*itTb).m_expected.m_numSym;
+            traceParams.m_symStart = tbInfo.m_expected.m_symStart;
+            traceParams.m_numSym = tbInfo.m_expected.m_numSym;
             traceParams.m_bwpId = GetBwpId();
             traceParams.m_rbAssignedNum =
-                static_cast<uint32_t>(GetTBInfo(*itTb).m_expected.m_rbBitmap.size());
+                static_cast<uint32_t>(tbInfo.m_expected.m_rbBitmap.size());
 
             if (enbRx)
             {
@@ -1466,18 +1464,18 @@ NrSpectrumPhy::EndRxData()
             }
 
             // send HARQ feedback (if not already done for this TB)
-            if (!GetTBInfo(*itTb).m_harqFeedbackSent)
+            if (!tbInfo.m_harqFeedbackSent)
             {
-                GetTBInfo(*itTb).m_harqFeedbackSent = true;
-                if (!GetTBInfo(*itTb).m_expected.m_isDownlink) // UPLINK TB
+                tbInfo.m_harqFeedbackSent = true;
+                if (!tbInfo.m_expected.m_isDownlink) // UPLINK TB
                 {
                     // Generate the feedback
                     UlHarqInfo harqUlInfo;
                     harqUlInfo.m_rnti = rnti;
                     harqUlInfo.m_tpc = 0;
-                    harqUlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
-                    harqUlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
-                    if (GetTBInfo(*itTb).m_isCorrupted)
+                    harqUlInfo.m_harqProcessId = tbInfo.m_expected.m_harqProcessId;
+                    harqUlInfo.m_numRetx = tbInfo.m_expected.m_rv;
+                    if (tbInfo.m_isCorrupted)
                     {
                         harqUlInfo.m_receptionStatus = UlHarqInfo::NotOk;
                     }
@@ -1493,18 +1491,18 @@ NrSpectrumPhy::EndRxData()
                     }
 
                     // Arrange the history
-                    if (!GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)
+                    if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
                     {
                         m_harqPhyModule->ResetUlHarqProcessStatus(
                             rnti,
-                            GetTBInfo(*itTb).m_expected.m_harqProcessId);
+                            tbInfo.m_expected.m_harqProcessId);
                     }
                     else
                     {
                         m_harqPhyModule->UpdateUlHarqProcessStatus(
                             rnti,
-                            GetTBInfo(*itTb).m_expected.m_harqProcessId,
-                            GetTBInfo(*itTb).m_outputOfEM);
+                            tbInfo.m_expected.m_harqProcessId,
+                            tbInfo.m_outputOfEM);
                     }
                 }
                 else
@@ -1512,10 +1510,10 @@ NrSpectrumPhy::EndRxData()
                     // Generate the feedback
                     DlHarqInfo harqDlInfo;
                     harqDlInfo.m_rnti = rnti;
-                    harqDlInfo.m_harqProcessId = GetTBInfo(*itTb).m_expected.m_harqProcessId;
-                    harqDlInfo.m_numRetx = GetTBInfo(*itTb).m_expected.m_rv;
+                    harqDlInfo.m_harqProcessId = tbInfo.m_expected.m_harqProcessId;
+                    harqDlInfo.m_numRetx = tbInfo.m_expected.m_rv;
                     harqDlInfo.m_bwpIndex = GetBwpId();
-                    if (GetTBInfo(*itTb).m_isCorrupted)
+                    if (tbInfo.m_isCorrupted)
                     {
                         harqDlInfo.m_harqStatus = DlHarqInfo::NACK;
                     }
@@ -1534,24 +1532,22 @@ NrSpectrumPhy::EndRxData()
                     }
 
                     // Arrange the history
-                    if (!GetTBInfo(*itTb).m_isCorrupted || GetTBInfo(*itTb).m_expected.m_rv == 3)
+                    if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
                     {
-                        NS_LOG_DEBUG("Reset Dl process: "
-                                     << +GetTBInfo(*itTb).m_expected.m_harqProcessId << " for RNTI "
-                                     << rnti);
+                        NS_LOG_DEBUG("Reset Dl process: " << +tbInfo.m_expected.m_harqProcessId
+                                                          << " for RNTI " << rnti);
                         m_harqPhyModule->ResetDlHarqProcessStatus(
                             rnti,
-                            GetTBInfo(*itTb).m_expected.m_harqProcessId);
+                            tbInfo.m_expected.m_harqProcessId);
                     }
                     else
                     {
-                        NS_LOG_DEBUG("Update Dl process: "
-                                     << +GetTBInfo(*itTb).m_expected.m_harqProcessId << " for RNTI "
-                                     << rnti);
+                        NS_LOG_DEBUG("Update Dl process: " << +tbInfo.m_expected.m_harqProcessId
+                                                           << " for RNTI " << rnti);
                         m_harqPhyModule->UpdateDlHarqProcessStatus(
                             rnti,
-                            GetTBInfo(*itTb).m_expected.m_harqProcessId,
-                            GetTBInfo(*itTb).m_outputOfEM);
+                            tbInfo.m_expected.m_harqProcessId,
+                            tbInfo.m_outputOfEM);
                     }
                 } // end if (itTb->second.downlink) HARQ
             }     // end if (!itTb->second.harqFeedbackSent)
