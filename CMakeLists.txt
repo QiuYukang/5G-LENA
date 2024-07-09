@@ -41,6 +41,7 @@ set(source_files
     helper/realistic-beamforming-helper.cc
     helper/scenario-parameters.cc
     helper/three-gpp-ftp-m1-helper.cc
+    helper/nr-channel-helper.cc
     model/bandwidth-part-gnb.cc
     model/bandwidth-part-ue.cc
     model/beam-id.cc
@@ -220,6 +221,7 @@ set(header_files
     helper/realistic-beamforming-helper.h
     helper/scenario-parameters.h
     helper/three-gpp-ftp-m1-helper.h
+    helper/nr-channel-helper.h
     model/bandwidth-part-gnb.h
     model/bandwidth-part-ue.h
     model/beam-id.h
@@ -446,6 +448,7 @@ set(test_sources
     test/nr-test-ipv6-routing.cc
     test/nr-test-epc-e2e-data.cc
     test/nr-test-deactivate-bearer.cc
+    test/nr-channel-setup-test.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \

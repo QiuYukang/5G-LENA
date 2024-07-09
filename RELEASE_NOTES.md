@@ -15,6 +15,59 @@ http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
+Release NR-v3.4
+---------------
+
+Availability
+------------
+
+Cite this version
+-----------------
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-16.
+- Ubuntu 20.04 with g++10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+- Ubuntu 23.04 with g++13.
+- Ubuntu 23.10 (Mantic Minotaur) with clang-16.
+
+This release will be compatible with ns-3.4x.
+
+Important news
+--------------
+- We introduced a new helper, `NrChannelHelper`, which provides a simple interface for configuring spectrum channels with various channel models, including NYUSIM, Fluctuating Two-Ray (FTR), and 3GPP.
+
+- A new example, `gsoc-nr-channel-models.cc`, demonstrates how to configure different spectrum channels for end-to-end simulations. These channels can be 'legacy' (e.g., Friis) or not (e.g., NYUSIM, 3GPP, FTR).
+
+- A new test file, `nr-channel-setup-test.cc`, tests if the NrChannelHelper API can correctly create a specified
+channel, which will be created using well-defined combinations of scenarios, channel models, and channel conditions.
+
+- The ns-3 implementation of NYUSIM channel model is added as a feature of the NR module. The original files are installed in utils directory,
+with some version updates. Acknowledgments to Hitesh Poddar (NYU WIRELESS) and Tomoki Yoshimura (Sharp Laboratories of America),
+authors of the NYUSIM channel model code implementation in ns-3. (Original code: https://github.com/hiteshPoddar/NYUSIM_in_ns3/tree/main)
+
+- A method has been implemented to ensure that non-SU-MIMO channel models can also be utilized. This is achieved by converting the receiver's PSD (Power Spectral Density) into a spectrum channel matrix used in the module's features.
+
+- Remember to follow the instructions from the README.md file, i.e., to checkout
+  the correct release branch of both ns-3 and the NR module. The information about
+  compatibility with the corresponding ns-3 release branch is stated in the
+  `README.md` file.
+
+New user-visible features
+-------------------------
+In the new version of the module, we have created a simple interface for configuring spectrum channels for use in simulations. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels.
+
+Bugs fixed
+----------
+
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
 
 Release NR-v3.3
 ----------------

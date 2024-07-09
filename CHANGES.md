@@ -50,6 +50,20 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v3.3 to v3.4
+
+### New API:
+
+We introduced a new helper class, `NrChannelHelper`, simplifying the implementation, configuration, and assignment of different spectrum channels with various channel models to create bands. This class extends our module to support NYUSIM, Fluctuating Two-Ray, and 3GPP channel models.
+
+### Changes to existing API:
+
+The existing scenario configuration was removed from band creation. Additionally, band initialization and channel attribute setting methods were removed from `NrHelper`.
+
+### Changed behavior:
+
+---
+
 ## Changes from NR-v3.2 to v3.3
 
 ### New API:

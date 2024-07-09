@@ -1879,6 +1879,60 @@ independent REM calculations. Moreover, the calculations are the average of
 N iterations (specified by the user) in order to consider the randomness of
 the channel.
 
+NR Channel Helper
+*****************
+
+This class consolidates the configuration of channel models in 5G-LENA.
+It also prevents unaware users from inadvertently mixing incompatible channel conditions, scenarios and models.
+Currently, the class supports the NYUSIM and Fluctuating Two-Ray (FTR) models and the previously supported 3GPP channel model and their scenarios and conditions.
+Moreover, the class allows for potential extensions to support legacy models already present in ns-3 (e.g., Friis, Constant), for faster but less realistic channel models.
+
+
+**Scenarios:**
+- Rural Macro (RMa)
+- Urban Macro (UMa)
+- Indoor Hotspot in an open plan office scenario (InH-OfficeOpen)
+- Indoor Hotspot in a mixed plan office scenario (InH-OfficeMixed)
+- Vehicle-to-vehicle in a highway scenario (V2V-Highway)
+- Vehicle-to-vehicle in an urban scenario (V2V-Urban)
+- Urban Micro (UMi)
+- Indoor Hotspot (InH)
+- Indoor Factory (InF)
+- Non-Terrestrial Network in a dense urban scenario (NTN-DenseUrban)
+- Non-Terrestrial Network in an urban scenario (NTN-Urban)
+- Non-Terrestrial Network in a suburban scenario (NTN-Suburban)
+- Non-Terrestrial Network in a rural scenario (NTN-Rural)
+- Custom user-scenario
+
+**Conditions:**
+- Always line-of-sight (LOS)
+- Never line-of-sight (NLOS)
+- Buildings
+- Default
+
+**Channel Models:**
+- ThreeGpp
+- TwoRay
+- NYU
+
+**NOTE:** The 'Default' channel condition model is defined by the scenario,
+which means that the channel condition will be evaluated based on the
+scenario selected by the user (e.g., Urban Macro → 'ThreeGppUmaChannelConditionModel').
+
+This class ensures that the user selects only supported and calibrated combinations.
+In other words, the simulation will be immediately aborted if a user attempts to choose
+a NYUSIM scenario and the 3GPP channel. These supported combinations only consider the scenario
+and channel model defined by the user, as all channel models within the scope of this class support
+all possible user-select channel conditions. Additionally, it is essential to note that
+since the FTR model also uses the propagation loss and channel conditions from the 3GPP model,
+the valid combinations for 3GPP will also apply to the FTR model. The simulation will only be
+aborted if the chosen scenario has not yet been calibrated for the FTR model.
+
+The ``NrChannelHelper`` also facilitates the automatic creation of spectrum channel objects and assigns
+multiple identical channels to the BWPs created by the user, respecting their BWPs central frequency assignments.
+The chosen combination must first be configured, which will then be applied to the object factories.
+Moreover, users also have the option to configure the objects manually, subsequently create the spectrum channels,
+and assign them to the desired BWPs manually.
 
 NGMN mixed and 3GPP XR traffic models
 *************************************
@@ -2472,6 +2526,15 @@ the QCI of which can be set as desired.
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-nr-multi-flow-qos-sched_8cc.html.
 
+gsoc-nr-channel-models.cc
+===========================
+
+The program ``examples/gsoc-nr-channel-models`` demonstrates how to automatically
+or manually configure spectrum channels for end-to-end simulation. Users
+can choose between Friis or phased-array channel models configured by the ``NrChannelHelper``.
+The example features a topology with a single remote host generating UDP traffic.
+Additionally, this example collects traffic and path loss traces.
+
 cttc-nr-fh-xr
 =============
 
@@ -2680,6 +2743,13 @@ the test will fail.
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-phy-patterns_8cc.html
 
+
+Test for channel creation via NrChannelHelper API
+=================================================
+
+Test case called ``nr-channel-setup-test``, a new API for channel configuration and creation, has been developed,
+this test was created to validate this process. The test ensures the correct creation of channels and will fail
+if any combination of channel, scenario, or channel conditions is not properly instantiated.
 
 Test for spectrum phy
 =====================

@@ -601,8 +601,7 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     channelPhy->SetIsGnb(false);
     channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
 
-    Ptr<UniformPlanarArray> antenna =
-        m_ueAntennaFactory.Create<UniformPlanarArray>(); // Create antenna per panel
+    auto antenna = m_ueAntennaFactory.Create(); // Create antenna per panel
     channelPhy->SetAntenna(antenna);
 
     cam->SetNrSpectrumPhy(channelPhy); // connect CAM
@@ -643,10 +642,14 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     channelPhy->SetPhyRxDataEndOkCallback(MakeCallback(&NrUePhy::PhyDataPacketReceived, phy));
     channelPhy->SetPhyRxCtrlEndOkCallback(phyRxCtrlCallback);
     channelPhy->SetPhyRxPssCallback(MakeCallback(&NrUePhy::ReceivePss, phy));
-
-    Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
-    beamManager->Configure(antenna);
-    channelPhy->SetBeamManager(beamManager);
+    // Check if the antenna is a uniform planar array type
+    auto uniformPlanarArray = DynamicCast<UniformPlanarArray>(antenna);
+    if (uniformPlanarArray)
+    {
+        Ptr<BeamManager> beamManager = m_ueBeamManagerFactory.Create<BeamManager>();
+        beamManager->Configure(uniformPlanarArray);
+        channelPhy->SetBeamManager(beamManager);
+    }
     phy->InstallSpectrumPhy(channelPhy);
     return phy;
 }
@@ -814,7 +817,7 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         "MobilityModel needs to be set on node before calling NrHelper::InstallGnbDevice ()");
 
     Ptr<NrSpectrumPhy> channelPhy = m_gnbSpectrumFactory.Create<NrSpectrumPhy>();
-    Ptr<UniformPlanarArray> antenna = m_gnbAntennaFactory.Create<UniformPlanarArray>();
+    auto antenna = m_gnbAntennaFactory.Create();
     channelPhy->SetAntenna(antenna);
     cam->SetNrSpectrumPhy(channelPhy);
 
@@ -860,10 +863,14 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
                                                                // callback
     channelPhy->SetPhyUlHarqFeedbackCallback(
         MakeCallback(&NrGnbPhy::ReportUlHarqFeedback, phy)); // PhyUlHarqFeedback callback
-
-    Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
-    beamManager->Configure(antenna);
-    channelPhy->SetBeamManager(beamManager);
+    // Check if the antenna is a uniform planar array type
+    auto uniformPlanarArray = DynamicCast<UniformPlanarArray>(antenna);
+    if (uniformPlanarArray)
+    {
+        Ptr<BeamManager> beamManager = m_gnbBeamManagerFactory.Create<BeamManager>();
+        beamManager->Configure(uniformPlanarArray);
+        channelPhy->SetBeamManager(beamManager);
+    }
     phy->InstallSpectrumPhy(channelPhy); // finally let know phy that there is this spectrum phy
 
     return phy;
@@ -1414,6 +1421,20 @@ NrHelper::SetGnbAntennaAttribute(const std::string& n, const AttributeValue& v)
 {
     NS_LOG_FUNCTION(this);
     m_gnbAntennaFactory.Set(n, v);
+}
+
+void
+NrHelper::SetUeAntennaTypeId(const std::string& typeId)
+{
+    NS_LOG_FUNCTION(this);
+    m_ueAntennaFactory.SetTypeId(typeId);
+}
+
+void
+NrHelper::SetGnbAntennaTypeId(const std::string& typeId)
+{
+    NS_LOG_FUNCTION(this);
+    m_gnbAntennaFactory.SetTypeId(typeId);
 }
 
 void

@@ -590,7 +590,7 @@ NrGnbPhy::GetBeamId(uint16_t rnti) const
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
 
-        if (ueRnti == rnti)
+        if (ueRnti == rnti && DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
         {
             NS_ASSERT(m_spectrumPhy->GetBeamManager());
             return m_spectrumPhy->GetBeamManager()->GetBeamId(i);
@@ -1388,7 +1388,11 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
             // Even if we change the beamforming vector, we hope that the scheduler
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
-            ChangeBeamformingVector(i); // assume the control signal is omni
+            // Beamforming vector should be available only when the node has a UPA antenna device
+            if (DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
+            {
+                ChangeBeamformingVector(i); // assume the control signal is omni
+            }
             found = true;
             break;
         }
@@ -1444,7 +1448,11 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
             // Even if we change the beamforming vector, we hope that the scheduler
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
-            ChangeBeamformingVector(i); // assume the control signal is omni
+            // Beamforming vector should be available only when the node has a UPA antenna device
+            if (DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
+            {
+                ChangeBeamformingVector(i); // assume the control signal is omni
+            }
             found = true;
             break;
         }
@@ -1470,7 +1478,10 @@ void
 NrGnbPhy::StartVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
 {
     NS_LOG_FUNCTION(this);
-    ChangeToQuasiOmniBeamformingVector(); // assume the control signal is omni
+    if (DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
+    {
+        ChangeToQuasiOmniBeamformingVector(); // assume the control signal is omni
+    }
     m_currSymStart = dci->m_symStart;
 
     Time varTtiPeriod;
@@ -1564,7 +1575,11 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
             uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(GetBwpId())))->GetRnti();
             if (dci->m_rnti == ueRnti)
             {
-                ChangeBeamformingVector(i);
+                if (DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
+                {
+                    ChangeBeamformingVector(i);
+                }
+
                 found = true;
                 break;
             }

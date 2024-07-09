@@ -444,6 +444,18 @@ class NrHelper : public Object
     void SetGnbMacAttribute(const std::string& n, const AttributeValue& v);
 
     /**
+     * \brief Set a different TypeId for the UE antenna device
+     * \param typeId the antenna TypeId
+     */
+    void SetUeAntennaTypeId(const std::string&);
+
+    /**
+     * \brief Set a different TypeId for the GNB antenna device
+     * \param typeId the antenna TypeId
+     */
+    void SetGnbAntennaTypeId(const std::string&);
+
+    /**
      * \brief Set an attribute for the GNB spectrum, before it is created.
      *
      * \param n the name of the attribute

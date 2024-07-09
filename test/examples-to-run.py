@@ -255,6 +255,8 @@ cpp_examples = [
         "True",
     ),
     ("gsoc-nr-rl-based-sched", "True", "True"),
+    ("gsoc-nr-channel-models", "True", "True"),
+    ("gsoc-nr-channel-models --channelModel=Friis", "True", "True"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain

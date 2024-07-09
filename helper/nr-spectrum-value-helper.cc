@@ -66,8 +66,8 @@ NrSpectrumValueHelper::GetSpectrumModel(uint32_t numRbs,
     NS_LOG_FUNCTION(centerFrequency << numRbs << subcarrierSpacing);
 
     NS_ABORT_MSG_IF(numRbs == 0, "Total bandwidth cannot be 0 RBs");
-    NS_ABORT_MSG_IF(centerFrequency < 0.5e9 || centerFrequency > 100e9,
-                    "Central frequency should be in range from 0.5GHz to 100GHz");
+    NS_ABORT_MSG_IF(centerFrequency < 0.5e9 || centerFrequency > 150e9,
+                    "Central frequency should be in range from 0.5GHz to 150GHz");
     NS_ABORT_MSG_IF(subcarrierSpacing != 15000 && subcarrierSpacing != 30000 &&
                         subcarrierSpacing != 60000 && subcarrierSpacing != 120000 &&
                         subcarrierSpacing != 240000 && subcarrierSpacing != 480000,
