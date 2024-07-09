@@ -1314,25 +1314,10 @@ NrSpectrumPhy::EndRxData()
             continue;
         }
 
-        std::function<const NrErrorModel::NrErrorModelHistory&(uint16_t, uint8_t)> RetrieveHistory;
-
-        if (GetTBInfo(tbIt).m_expected.m_isDownlink)
-        {
-            RetrieveHistory = std::bind(&NrHarqPhy::GetHarqProcessInfoDl,
-                                        m_harqPhyModule,
-                                        std::placeholders::_1,
-                                        std::placeholders::_2);
-        }
-        else
-        {
-            RetrieveHistory = std::bind(&NrHarqPhy::GetHarqProcessInfoUl,
-                                        m_harqPhyModule,
-                                        std::placeholders::_1,
-                                        std::placeholders::_2);
-        }
-
         const NrErrorModel::NrErrorModelHistory& harqInfoList =
-            RetrieveHistory(GetRnti(tbIt), GetTBInfo(tbIt).m_expected.m_harqProcessId);
+            m_harqPhyModule->GetHarqProcessInfoDlUl(GetTBInfo(tbIt).m_expected.m_isDownlink,
+                                                GetRnti(tbIt),
+                                                GetTBInfo(tbIt).m_expected.m_harqProcessId);
 
         NS_ABORT_MSG_IF(!m_errorModelType.IsChildOf(NrErrorModel::GetTypeId()),
                         "The error model must be a child of NrErrorModel");
