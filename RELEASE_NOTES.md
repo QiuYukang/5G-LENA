@@ -16,6 +16,49 @@ Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
 
+Release NR-v3.1
+----------------
+
+Availability
+------------
+Available since July 12, 2024
+
+Cite this version
+-----------------
+DOI:
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-16.
+- Ubuntu 20.04 with g++-9 and 10, and clang-10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+- Ubuntu 23.04 with g++13.
+- Ubuntu 23.10 (Mantic Minotaur) with clang-16.
+
+This release is compatible with ns-3.42.
+
+Important news
+--------------
+-
+
+New user-visible features
+-------------------------
+- SU-MIMO model is extended to support Type-I Single-Panel Codebook defined by
+3GPP in TS 38.214, Rel.15, Sec. 5.2.2.2.1. This codebook implementation supports
+codebook mode 1, up to 32 ports and 4 streams per user. The class that provides
+this implementation is ``NrCbTypeOneSp``.
+
+Bugs fixed
+----------
+
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
+
 
 Release NR-v3.0
 ----------------
