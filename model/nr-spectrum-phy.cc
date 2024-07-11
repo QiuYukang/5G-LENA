@@ -102,6 +102,8 @@ NrSpectrumPhy::DoDispose()
     m_interferenceCtrl = nullptr;
     m_mobility = nullptr;
     m_phy = nullptr;
+    m_rxSpectrumModel = nullptr;
+    m_txPsd = nullptr;
 
     m_phyRxDataEndOkCallback = MakeNullCallback<void, const Ptr<Packet>&>();
     m_phyDlHarqFeedbackCallback = MakeNullCallback<void, const DlHarqInfo&>();
