@@ -31,6 +31,16 @@ RealisticBeamformingHelper::GetTypeId()
 }
 
 void
+RealisticBeamformingHelper::DoDispose()
+{
+    for (auto& it : m_spectrumPhyPairToAlgorithm)
+    {
+        it.second->Dispose();
+    }
+    m_spectrumPhyPairToAlgorithm.clear();
+}
+
+void
 RealisticBeamformingHelper::AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
                                                const Ptr<NrUeNetDevice>& ueDev)
 {

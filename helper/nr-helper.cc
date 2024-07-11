@@ -96,6 +96,11 @@ NrHelper::NrHelper()
 NrHelper::~NrHelper()
 {
     NS_LOG_FUNCTION(this);
+    if (m_beamformingHelper)
+    {
+        m_beamformingHelper->Dispose();
+    }
+    m_beamformingHelper = nullptr;
 }
 
 TypeId
