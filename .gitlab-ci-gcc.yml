@@ -36,31 +36,6 @@
       qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
       ssh
 
-# GCC 9
-weekly-build-gcc-9-debug:
-  extends: .weekly-build-gcc-base
-  image: ubuntu:20.04
-  variables:
-    MODE: debug
-    COMPILER: g++-9
-    LIBGSL: libgsl23
-
-weekly-build-gcc-9-default:
-  extends: .weekly-build-gcc-base
-  image: ubuntu:20.04
-  variables:
-    MODE: default
-    COMPILER: g++-9
-    LIBGSL: libgsl23
-
-weekly-build-gcc-9-optimized:
-  extends: .weekly-build-gcc-base
-  image: ubuntu:20.04
-  variables:
-    MODE: optimized
-    COMPILER: g++-9
-    LIBGSL: libgsl23
-
 # GCC 10
 weekly-build-gcc-10-debug:
   extends: .weekly-build-gcc-base
