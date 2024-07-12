@@ -375,31 +375,9 @@ class NrSpectrumPhy : public SpectrumPhy
     Ptr<NrInterference> GetNrInterference() const;
     /**
      * \brief Instruct the Spectrum Model of a incoming transmission.
-     * \param rnti RNTI
-     * \param ndi New data indicator (0 for retx)
-     * \param size TB Size
-     * \param mcs MCS of the transmission
-     * \param rank MIMO rank
-     * \param rbMap Resource Block map (PHY-ready vector of SINR indices)
-     * \param harqId ID of the HARQ process in the MAC
-     * \param rv Redundancy Version: number of times the HARQ has been retransmitted
-     * \param downlink indicate if it is downling
-     * \param symStart Sym start
-     * \param numSym Num of symbols
-     * \param sfn SFN
+     * \param expectedTb Expected transport block
      */
-    void AddExpectedTb(uint16_t rnti,
-                       uint8_t ndi,
-                       uint32_t size,
-                       uint8_t mcs,
-                       uint8_t rank,
-                       const std::vector<int>& rbMap,
-                       uint8_t harqId,
-                       uint8_t rv,
-                       bool downlink,
-                       uint8_t symStart,
-                       uint8_t numSym,
-                       const SfnSf& sfn);
+    void AddExpectedTb(ExpectedTb expectedTb);
 
     /**
      * Assign a fixed random variable stream number to the random variables
@@ -594,82 +572,6 @@ class NrSpectrumPhy : public SpectrumPhy
      * to the NrPhy. Traces are collected. Harq feedback is then sent.
      */
     void ProcessReceivedPacketBurst();
-
-    /**
-     * \brief Information about the expected transport block at a certain point in the slot
-     *
-     * Information passed by the PHY through a call to AddExpectedTb
-     */
-    struct ExpectedTb
-    {
-        ExpectedTb(uint8_t ndi,
-                   uint32_t tbSize,
-                   uint8_t mcs,
-                   uint8_t rank,
-                   uint16_t rnti,
-                   const std::vector<int>& rbBitmap,
-                   uint8_t harqProcessId,
-                   uint8_t rv,
-                   bool isDownlink,
-                   uint8_t symStart,
-                   uint8_t numSym,
-                   const SfnSf& sfn)
-            : m_ndi(ndi),
-              m_tbSize(tbSize),
-              m_mcs(mcs),
-              m_rank(rank),
-              m_rnti(rnti),
-              m_rbBitmap(rbBitmap),
-              m_harqProcessId(harqProcessId),
-              m_rv(rv),
-              m_isDownlink(isDownlink),
-              m_symStart(symStart),
-              m_numSym(numSym),
-              m_sfn(sfn)
-        {
-        }
-
-        ExpectedTb() = delete;
-        ExpectedTb(const ExpectedTb& o) = default;
-
-        uint8_t m_ndi{0};            //!< New data indicator
-        uint32_t m_tbSize{0};        //!< TBSize
-        uint8_t m_mcs{0};            //!< MCS
-        uint8_t m_rank{1};           //!< MIMO rank
-        uint16_t m_rnti{0};          //!< RNTI
-        std::vector<int> m_rbBitmap; //!< RB Bitmap
-        uint8_t m_harqProcessId{0};  //!< HARQ process ID (MAC)
-        uint8_t m_rv{0};             //!< RV
-        bool m_isDownlink{false};    //!< is Downlink?
-        uint8_t m_symStart{0};       //!< Sym start
-        uint8_t m_numSym{0};         //!< Num sym
-        SfnSf m_sfn;                 //!< SFN
-    };
-
-    struct TransportBlockInfo
-    {
-        TransportBlockInfo(const ExpectedTb& expected)
-            : m_expected(expected)
-        {
-        }
-
-        TransportBlockInfo() = delete;
-
-        /**
-         * \brief Update minimum and average SINR of the transport block based on perceived SINR
-         * \param perceivedSinr SpectrumValue with perceived SINR
-         */
-        void UpdatePerceivedSinr(const SpectrumValue& perceivedSinr);
-
-        ExpectedTb m_expected;     //!< Expected data from the PHY. Filled by AddExpectedTb
-        bool m_isCorrupted{false}; //!< True if the ErrorModel indicates that the TB is corrupted.
-                                   //    Filled at the end of data rx/tx
-        bool m_harqFeedbackSent{false}; //!< Indicate if the feedback has been sent for an entire TB
-        Ptr<NrErrorModelOutput>
-            m_outputOfEM;      //!< Output of the Error Model (depends on the EM type)
-        double m_sinrAvg{0.0}; //!< AVG SINR (only for the RB used to transmit the TB)
-        double m_sinrMin{0.0}; //!< MIN SINR (only between the RB used to transmit the TB)
-    };
 
     /**
      * \brief Send uplink HARQ feedback

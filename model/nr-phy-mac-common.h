@@ -9,6 +9,7 @@
 #ifndef SRC_NR_MODEL_NR_PHY_MAC_COMMON_H
 #define SRC_NR_MODEL_NR_PHY_MAC_COMMON_H
 
+#include "nr-error-model.h"
 #include "sfnsf.h"
 
 #include <ns3/log.h>
@@ -468,10 +469,110 @@ struct GnbPhyPacketCountParameter
 
 /**
  * \ingroup utils
+ * \brief Information about the expected transport block at a certain point in the slot
+ *
+ * Information passed by the PHY through a call to AddExpectedTb
+ */
+struct ExpectedTb
+{
+    ExpectedTb(uint8_t ndi,
+               uint32_t tbSize,
+               uint8_t mcs,
+               uint8_t rank,
+               uint16_t rnti,
+               const std::vector<int>& rbBitmap,
+               uint8_t harqProcessId,
+               uint8_t rv,
+               bool isDownlink,
+               uint8_t symStart,
+               uint8_t numSym,
+               const SfnSf& sfn)
+        : m_ndi(ndi),
+          m_tbSize(tbSize),
+          m_mcs(mcs),
+          m_rank(rank),
+          m_rnti(rnti),
+          m_rbBitmap(rbBitmap),
+          m_harqProcessId(harqProcessId),
+          m_rv(rv),
+          m_isDownlink(isDownlink),
+          m_symStart(symStart),
+          m_numSym(numSym),
+          m_sfn(sfn)
+    {
+    }
+
+    ExpectedTb() = delete;
+    ExpectedTb(const ExpectedTb& o) = default;
+
+    uint8_t m_ndi{0};            //!< New data indicator
+    uint32_t m_tbSize{0};        //!< TBSize
+    uint8_t m_mcs{0};            //!< MCS
+    uint8_t m_rank{1};           //!< MIMO rank
+    uint16_t m_rnti{0};          //!< RNTI
+    std::vector<int> m_rbBitmap; //!< RB Bitmap
+    uint8_t m_harqProcessId{0};  //!< HARQ process ID (MAC)
+    uint8_t m_rv{0};             //!< RV
+    bool m_isDownlink{false};    //!< is Downlink?
+    uint8_t m_symStart{0};       //!< Sym start
+    uint8_t m_numSym{0};         //!< Num sym
+    SfnSf m_sfn;                 //!< SFN
+};
+
+struct TransportBlockInfo
+{
+    TransportBlockInfo(const ExpectedTb& expected)
+        : m_expected(expected)
+    {
+    }
+
+    TransportBlockInfo() = delete;
+
+    /**
+     * \brief Update minimum and average SINR of the transport block based on perceived SINR
+     * \param perceivedSinr SpectrumValue with perceived SINR
+     */
+    void UpdatePerceivedSinr(const SpectrumValue& perceivedSinr);
+
+    ExpectedTb m_expected;          //!< Expected data from the PHY. Filled by AddExpectedTb
+    bool m_isCorrupted{false};      //!< True if the ErrorModel indicates that the TB is corrupted.
+                                    //    Filled at the end of data rx/tx
+    bool m_harqFeedbackSent{false}; //!< Indicate if the feedback has been sent for an entire TB
+    Ptr<NrErrorModelOutput> m_outputOfEM; //!< Output of the Error Model (depends on the EM type)
+    double m_sinrAvg{0.0};                //!< AVG SINR (only for the RB used to transmit the TB)
+    double m_sinrMin{0.0}; //!< MIN SINR (only between the RB used to transmit the TB)
+};
+
+/**
+ * \ingroup utils
  * \brief The RxPacketTraceParams struct
  */
 struct RxPacketTraceParams
 {
+    RxPacketTraceParams(TransportBlockInfo tbInfo,
+                        bool errorModelEnabled,
+                        uint16_t rnti,
+                        uint16_t cellId,
+                        uint16_t bwpId,
+                        uint8_t cqi)
+        : m_cellId(cellId),
+          m_rnti(rnti),
+          m_frameNum(tbInfo.m_expected.m_sfn.GetFrame()),
+          m_subframeNum(tbInfo.m_expected.m_sfn.GetSubframe()),
+          m_slotNum(tbInfo.m_expected.m_sfn.GetSlot()),
+          m_symStart(tbInfo.m_expected.m_symStart),
+          m_numSym(tbInfo.m_expected.m_numSym),
+          m_tbSize(tbInfo.m_expected.m_tbSize),
+          m_mcs(tbInfo.m_expected.m_mcs),
+          m_rank(tbInfo.m_expected.m_rank),
+          m_rv(tbInfo.m_expected.m_rv),
+          m_sinr(tbInfo.m_sinrAvg),
+          m_sinrMin(tbInfo.m_sinrMin),
+          m_tbler(errorModelEnabled ? tbInfo.m_outputOfEM->m_tbler : 0),
+          m_corrupt(errorModelEnabled && tbInfo.m_isCorrupted),
+          m_bwpId(bwpId),
+          m_rbAssignedNum(static_cast<uint32_t>(tbInfo.m_expected.m_rbBitmap.size())),
+          m_cqi(cqi){};
     uint64_t m_cellId{0};
     uint16_t m_rnti{0};
     uint32_t m_frameNum{std::numeric_limits<uint32_t>::max()};

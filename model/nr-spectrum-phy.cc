@@ -870,50 +870,30 @@ NrSpectrumPhy::GetNrInterference() const
 }
 
 void
-NrSpectrumPhy::AddExpectedTb(uint16_t rnti,
-                             uint8_t ndi,
-                             uint32_t size,
-                             uint8_t mcs,
-                             uint8_t rank,
-                             const std::vector<int>& rbMap,
-                             uint8_t harqId,
-                             uint8_t rv,
-                             bool downlink,
-                             uint8_t symStart,
-                             uint8_t numSym,
-                             const SfnSf& sfn)
+NrSpectrumPhy::AddExpectedTb(ExpectedTb expectedTb)
 {
     NS_LOG_FUNCTION(this);
 
     if (!IsEnb())
     {
         NS_ASSERT_MSG(m_hasRnti, "Cannot send TB to a UE whose RNTI has not been set");
-        NS_ASSERT_MSG(m_rnti == rnti, "RNTI of the receiving UE must match the RNTI of the TB");
+        NS_ASSERT_MSG(m_rnti == expectedTb.m_rnti,
+                      "RNTI of the receiving UE must match the RNTI of the TB");
     }
 
-    auto it = m_transportBlocks.find(rnti);
+    auto it = m_transportBlocks.find(expectedTb.m_rnti);
     if (it != m_transportBlocks.end())
     {
         // might be a TB of an unreceived packet (due to high propagation losses)
         m_transportBlocks.erase(it);
     }
 
-    m_transportBlocks.emplace(rnti,
-                              TransportBlockInfo(ExpectedTb(ndi,
-                                                            size,
-                                                            mcs,
-                                                            rank,
-                                                            rnti,
-                                                            rbMap,
-                                                            harqId,
-                                                            rv,
-                                                            downlink,
-                                                            symStart,
-                                                            numSym,
-                                                            sfn)));
+    m_transportBlocks.emplace(expectedTb.m_rnti, expectedTb);
     NS_LOG_INFO("Add expected TB for rnti "
-                << rnti << " size=" << size << " mcs=" << static_cast<uint32_t>(mcs) << " symstart="
-                << static_cast<uint32_t>(symStart) << " numSym=" << static_cast<uint32_t>(numSym));
+                << expectedTb.m_rnti << " size=" << expectedTb.m_tbSize
+                << " mcs=" << static_cast<uint32_t>(expectedTb.m_mcs)
+                << " symstart=" << static_cast<uint32_t>(expectedTb.m_symStart)
+                << " numSym=" << static_cast<uint32_t>(expectedTb.m_numSym));
 }
 
 void
@@ -1276,7 +1256,7 @@ NrSpectrumPhy::GetMimoSinrForRnti(uint16_t rnti, uint8_t rank)
 }
 
 void
-NrSpectrumPhy::TransportBlockInfo::UpdatePerceivedSinr(const SpectrumValue& perceivedSinr)
+TransportBlockInfo::UpdatePerceivedSinr(const SpectrumValue& perceivedSinr)
 {
     m_sinrAvg = 0.0;
     m_sinrMin = 99999999999;
@@ -1373,7 +1353,7 @@ NrSpectrumPhy::CheckTransportBlockCorruptionStatus()
 }
 
 void
-NrSpectrumPhy::SendUlHarqFeedback(uint16_t rnti, NrSpectrumPhy::TransportBlockInfo& tbInfo)
+NrSpectrumPhy::SendUlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
 {
     // Generate the feedback
     UlHarqInfo harqUlInfo;
@@ -1410,7 +1390,7 @@ NrSpectrumPhy::SendUlHarqFeedback(uint16_t rnti, NrSpectrumPhy::TransportBlockIn
 }
 
 DlHarqInfo
-NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, NrSpectrumPhy::TransportBlockInfo& tbInfo)
+NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
 {
     // Generate the feedback
     DlHarqInfo harqDlInfo;
@@ -1490,39 +1470,26 @@ NrSpectrumPhy::ProcessReceivedPacketBurst()
                 NS_LOG_INFO("TB failed");
             }
 
-            RxPacketTraceParams traceParams;
-            traceParams.m_tbSize = tbInfo.m_expected.m_tbSize;
-            traceParams.m_frameNum = tbInfo.m_expected.m_sfn.GetFrame();
-            traceParams.m_subframeNum = tbInfo.m_expected.m_sfn.GetSubframe();
-            traceParams.m_slotNum = tbInfo.m_expected.m_sfn.GetSlot();
-            traceParams.m_rnti = rnti;
-            traceParams.m_mcs = tbInfo.m_expected.m_mcs;
-            traceParams.m_rank = tbInfo.m_expected.m_rank;
-            traceParams.m_rv = tbInfo.m_expected.m_rv;
-            traceParams.m_sinr = tbInfo.m_sinrAvg;
-            traceParams.m_sinrMin = tbInfo.m_sinrMin;
-            traceParams.m_symStart = tbInfo.m_expected.m_symStart;
-            traceParams.m_numSym = tbInfo.m_expected.m_numSym;
-            traceParams.m_bwpId = GetBwpId();
-            traceParams.m_rbAssignedNum =
-                static_cast<uint32_t>(tbInfo.m_expected.m_rbBitmap.size());
-
-            // when error model is disabled a received TB has no
-            // error, thus, TBLER would be 0 and it would be
-            // considered as not corrupt.
-            traceParams.m_tbler = m_dataErrorModelEnabled ? tbInfo.m_outputOfEM->m_tbler : 0;
-            traceParams.m_corrupt = m_dataErrorModelEnabled && tbInfo.m_isCorrupted;
-
             if (enbRx)
             {
-                traceParams.m_cellId = enbRx->GetCellId();
+                RxPacketTraceParams traceParams(tbInfo,
+                                                m_dataErrorModelEnabled,
+                                                rnti,
+                                                enbRx->GetCellId(),
+                                                GetBwpId(),
+                                                255);
                 m_rxPacketTraceEnb(traceParams);
             }
             else if (ueRx)
             {
-                traceParams.m_cellId = ueRx->GetTargetEnb()->GetCellId();
                 Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
-                traceParams.m_cqi = phy->ComputeCqi(m_sinrPerceived);
+                uint8_t cqi = phy->ComputeCqi(m_sinrPerceived);
+                RxPacketTraceParams traceParams(tbInfo,
+                                                m_dataErrorModelEnabled,
+                                                rnti,
+                                                ueRx->GetTargetEnb()->GetCellId(),
+                                                GetBwpId(),
+                                                cqi);
                 m_rxPacketTraceUe(traceParams);
             }
 
