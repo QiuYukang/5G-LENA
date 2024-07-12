@@ -204,8 +204,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                           uint16_t beamConfSector,
                                           double beamConfElevation,
                                           double isd,
-                                          bool ueBearingAngle,
-                                          bool useFixedRi)
+                                          bool ueBearingAngle)
 {
     /*
      * Create the radio network related parameters
