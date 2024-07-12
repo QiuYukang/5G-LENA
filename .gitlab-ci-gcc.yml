@@ -160,3 +160,11 @@ weekly-build-gcc-13-optimized:
     MODE: optimized
     COMPILER: g++-13
     LIBGSL: libgsl27
+
+weekly-build-gcc-13-optimized-sanitizers:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:23.04
+  variables:
+    MODE: optimized
+    COMPILER: g++-13
+    EXTRAS: --enable-sanitizers
