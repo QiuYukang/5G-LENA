@@ -192,6 +192,7 @@ NrSlUeMacHarq::AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Pac
         // to clear out the previous TB, so flush it here.
         NS_LOG_INFO("Flushing buffer for for dstL2Id " << dstL2Id << " LC ID " << +lcId
                                                        << " HARQ ID " << +harqId);
+        FlushHarqBuffer(harqId);
     }
     NS_LOG_INFO("Adding packet for dstL2Id " << dstL2Id << " LC ID " << +lcId << " HARQ ID "
                                              << +harqId);
