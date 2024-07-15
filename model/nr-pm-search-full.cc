@@ -24,7 +24,7 @@ NrPmSearchFull::GetTypeId()
     static TypeId tid = TypeId("ns3::NrPmSearchFull")
                             .SetParent<NrPmSearch>()
                             .AddConstructor<NrPmSearchFull>()
-                            .AddAttribute("NrPmSearchFull::CodebookType",
+                            .AddAttribute("CodebookType",
                                           "Codebook class to be used",
                                           TypeIdValue(NrCbTwoPort::GetTypeId()),
                                           MakeTypeIdAccessor(&NrPmSearchFull::SetCodebookTypeId),
