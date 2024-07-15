@@ -143,3 +143,5 @@ weekly-build-gcc-13-optimized-sanitizers:
     MODE: optimized
     COMPILER: g++-13
     EXTRAS: --enable-sanitizers
+  tags:
+    - CTTC
