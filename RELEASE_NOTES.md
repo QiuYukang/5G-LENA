@@ -31,7 +31,7 @@ Supported platforms
 -------------------
 This release has been tested on the following platforms:
 - Arch Linux with g++-13 and clang-16.
-- Ubuntu 20.04 with g++-9 and 10, and clang-10.
+- Ubuntu 20.04 with g++10.
 - Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
 - Ubuntu 23.04 with g++13.
 - Ubuntu 23.10 (Mantic Minotaur) with clang-16.

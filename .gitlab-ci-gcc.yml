@@ -8,7 +8,7 @@
 # "RELEASE", that has a value "weekly". Also, a variable "GCC" should be set
 # to True.
 
-# We support from 9 to the latest version. Check if everything builds fine
+# We support from 10 to the latest version. Check if everything builds fine
 # under debug, default, and optimized, on Linux.
 
 .weekly-build-gcc-base:
