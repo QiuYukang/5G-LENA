@@ -24,6 +24,7 @@ void
 NrCbTwoPort::Init()
 {
     m_nPorts = m_isDualPol ? (2 * m_n1 * m_n2) : (m_n1 * m_n2);
+    NS_ASSERT_MSG(m_nPorts >= 1, "This codebook requires at least 1 port");
     NS_ASSERT_MSG(m_nPorts <= 2, "This codebook supports at most 2 ports");
     NS_ASSERT_MSG(m_rank <= m_nPorts, "Number of MIMO layers cannot exceed the number of ports");
 

@@ -206,7 +206,7 @@ cpp_examples = [
         "True",
     ),
     (
-        "cttc-nr-mimo-demo --bandwidth=2.5e6",
+        "cttc-nr-mimo-demo --bandwidth=2.5e6 --subbandSize=1",
         "True",
         "True",
     ),

@@ -64,6 +64,7 @@ NrCbTypeOneSp::Init()
     NS_ASSERT_MSG(m_nPorts > 0, "Number of CSI-RS ports must not be 0");
     NS_ASSERT_MSG(m_isDualPol || (m_nPorts <= 2),
                   "For > 2 antenna ports, dual polarization is required");
+    NS_ASSERT_MSG(m_nPorts <= 32, "Number of CSI-RS ports must not be greater than 32");
 
     InitNumI11();
     InitNumI12();

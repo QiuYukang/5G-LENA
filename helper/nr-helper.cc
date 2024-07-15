@@ -1868,6 +1868,11 @@ NrHelper::SetPmSearchAttribute(const std::string& name, const AttributeValue& va
 void
 NrHelper::SetupGnbAntennas(const NrHelper::AntennaParams& ap)
 {
+    NS_ASSERT_MSG(((ap.nAntCols % ap.nHorizPorts) == 0),
+                  "The number of horizontal ports of gNB must divide number of element columns");
+    NS_ASSERT_MSG(((ap.nAntRows % ap.nVertPorts) == 0),
+                  "The number of vertical ports of gNB must divide number of element rows");
+
     auto antFactory = ObjectFactory{};
     antFactory.SetTypeId(ap.antennaElem);
     SetGnbAntennaAttribute("AntennaElement", PointerValue(antFactory.Create()));
@@ -1883,6 +1888,11 @@ NrHelper::SetupGnbAntennas(const NrHelper::AntennaParams& ap)
 void
 NrHelper::SetupUeAntennas(const NrHelper::AntennaParams& ap)
 {
+    NS_ASSERT_MSG(((ap.nAntCols % ap.nHorizPorts) == 0),
+                  "The number of horizontal ports of UE must divide number of element columns");
+    NS_ASSERT_MSG(((ap.nAntRows % ap.nVertPorts) == 0),
+                  "The number of vertical ports of UE must divide number of element rows");
+
     auto antFactory = ObjectFactory{};
     antFactory.SetTypeId(ap.antennaElem);
     SetUeAntennaAttribute("AntennaElement", PointerValue(antFactory.Create()));

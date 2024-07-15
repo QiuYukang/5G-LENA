@@ -48,7 +48,9 @@ NS_LOG_COMPONENT_DEFINE("CttcNrMimoDemo");
 int
 main(int argc, char* argv[])
 {
-    bool enableMimoFeedback = true;
+    Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
+    Config::SetDefault("ns3::NrPmSearch::SubbandSize", UintegerValue(16));
+
     NrHelper::AntennaParams apUe;
     NrHelper::AntennaParams apGnb;
     apUe.antennaElem = "ns3::ThreeGppAntennaModel";
@@ -104,10 +106,8 @@ main(int argc, char* argv[])
      *   UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in
      *
      */
-    uint8_t maxPortsSupported = UINT8_MAX;
 
     uint16_t losCondition = 0;
-    NrHelper::MimoPmiParams mimoPmiParams;
 
     // Where the example stores the output files.
     std::string simTag = "default";
@@ -118,22 +118,12 @@ main(int argc, char* argv[])
     /**
      * The main parameters for testing MIMO
      */
-    cmd.AddValue("enableMimoFeedback", "Enables MIMO feedback", enableMimoFeedback);
-    cmd.AddValue(
-        "pmSearchMethod",
-        "Precoding matrix search method, currently implemented only exhaustive search method"
-        "(ns3::NrPmSearchFull)",
-        mimoPmiParams.pmSearchMethod);
-    cmd.AddValue("fullSearchCb",
-                 "The codebook to be used for the full search. Currently only available code book "
-                 "is the two-port codebook in 3GPP TS 38.214 (ns3::NrCbTwoPort)",
-                 mimoPmiParams.fullSearchCb);
-    cmd.AddValue("rankLimit", "The maximum rank number to be used.", mimoPmiParams.rankLimit);
-    cmd.AddValue("subbandSize", "Number of PRBs in a subband.", mimoPmiParams.subbandSize);
-    cmd.AddValue("downsamplingTechnique",
-                 "Algorithm to downsample PRBs into subbands."
-                 "Available options are: FirstPRB, RandomPRB, AveragePRB",
-                 mimoPmiParams.downsamplingTechnique);
+    cmd.AddValue("enableMimoFeedback", "ns3::NrHelper::EnableMimoFeedback");
+    cmd.AddValue("pmSearchMethod", "ns3::NrHelper::PmSearchMethod");
+    cmd.AddValue("fullSearchCb", "ns3::NrPmSearchFull::CodebookType");
+    cmd.AddValue("rankLimit", "ns3::NrPmSearch::RankLimit");
+    cmd.AddValue("subbandSize", "ns3::NrPmSearch::SubbandSize");
+    cmd.AddValue("downsamplingTechnique", "ns3::NrPmSearch::DownsamplingTechnique");
     cmd.AddValue("numRowsGnb", "Number of antenna rows at the gNB", apGnb.nAntRows);
     cmd.AddValue("numRowsUe", "Number of antenna rows at the UE", apUe.nAntRows);
     cmd.AddValue("numColumnsGnb", "Number of antenna columns at the gNB", apGnb.nAntCols);
@@ -232,33 +222,6 @@ main(int argc, char* argv[])
     apGnb.bearingAngle = bearingAngleGnb * (M_PI / 180);
     apGnb.polSlantAngle = polSlantAngleGnb * (M_PI / 180);
 
-    if (TypeId::LookupByName(mimoPmiParams.fullSearchCb) == NrCbTwoPort::GetTypeId())
-    {
-        maxPortsSupported = 2;
-    }
-    NS_ASSERT_MSG(
-        (!apUe.isDualPolarized && apUe.nVertPorts * apUe.nHorizPorts <= maxPortsSupported) ||
-            (apUe.isDualPolarized && apUe.nVertPorts * apUe.nHorizPorts <= maxPortsSupported / 2),
-        "total 2 ports for UE is supported");
-
-    NS_ASSERT_MSG(
-        (!apGnb.isDualPolarized && apGnb.nVertPorts * apGnb.nHorizPorts <= maxPortsSupported) ||
-            (apGnb.isDualPolarized &&
-             apGnb.nVertPorts * apGnb.nHorizPorts <= maxPortsSupported / 2),
-        "total 2 ports for gNB is supported");
-
-    NS_ASSERT_MSG(((apGnb.nAntCols % apGnb.nHorizPorts) == 0),
-                  "The number of horizontal ports of gNB must divide number of columns");
-
-    NS_ASSERT_MSG(((apGnb.nAntRows % apGnb.nVertPorts) == 0),
-                  "The number of vertical ports of gNB must divide number of rows");
-
-    NS_ASSERT_MSG(((apUe.nAntCols % apUe.nHorizPorts) == 0),
-                  "The number of horizontal ports of UE must divide number of columns");
-
-    NS_ASSERT_MSG(((apUe.nAntRows % apUe.nVertPorts) == 0),
-                  "The number of vertical ports of UE must divide number of rows");
-    NS_ABORT_MSG_UNLESS(mimoPmiParams.rankLimit, "The rank limit cannot be 0.");
     NS_ABORT_IF(centralFrequency < 0.5e9 && centralFrequency > 100e9);
     NS_ABORT_UNLESS(losCondition < 3);
 
@@ -363,13 +326,6 @@ main(int argc, char* argv[])
     // Core latency
     epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
-    /**
-     * Enable MIMO feedback to allow the activation of multiple layers.
-     */
-    if (enableMimoFeedback)
-    {
-        nrHelper->SetupMimoPmi(mimoPmiParams);
-    }
     /**
      * Configure gNb antenna
      */
