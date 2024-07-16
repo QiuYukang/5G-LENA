@@ -98,6 +98,20 @@ class NrSlUeMacHarq : public Object
     std::optional<uint8_t> AllocateHarqProcessId(uint32_t dstL2Id, bool multiplePdu, Time timeout);
 
     /**
+     * A previously allocated HARQ Process ID can be updated with information
+     * about the maximum number of transmissions for the TB, whether HARQ
+     * feedback is enabled, and the maximum TB size.  This information can
+     * be used to make decisions about freeing resources and for consistency
+     * checking.
+     *
+     * \param harqId HARQ Process ID to update
+     * \param numTx Maximum number of transmissions of this TB
+     * \param harqEnabled Whether HARQ feedback is enabled for this process
+     * \param tbSize The maximum TB size
+     */
+    void UpdateHarqProcess(uint8_t harqId, uint32_t numTx, bool harqEnabled, uint32_t tbSize);
+
+    /**
      * \brief Deallocate a previously allocated HARQ process ID
      *
      * If the HARQ ID is no longer allocated (e.g., due to a previous
@@ -150,7 +164,7 @@ class NrSlUeMacHarq : public Object
      * \param harqId The HARQ ID
      * \return The packet burst (if found) or a nullptr if not found
      */
-    Ptr<PacketBurst> GetPacketBurst(uint32_t dstL2Id, uint8_t harqId) const;
+    Ptr<PacketBurst> GetPacketBurst(uint32_t dstL2Id, uint8_t harqId);
 
     /**
      * \brief Receive NR Sidelink Harq feedback
@@ -228,6 +242,10 @@ class NrSlUeMacHarq : public Object
         bool multiplePdu{false}; //!< Whether this process is for a multiple PDU grant
         EventId timer;           //!< Timer to expire process ID if not successfully ACKed
         bool allocated{false};   //!< Whether this process is allocated
+        bool harqEnabled{false}; //!< Whether this process has HARQ feedback
+        uint32_t numTx{0};       //!< Number of transmissions
+        uint32_t maxNumTx{0};    //!< Maximum number of transmissions
+        uint32_t tbSize{0};      //!< Maximum TB size in bytes
     };
 
     /**

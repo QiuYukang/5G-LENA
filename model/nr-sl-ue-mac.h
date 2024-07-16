@@ -8,7 +8,6 @@
 #define NR_SL_UE_MAC_H
 
 #include "nr-sl-phy-mac-common.h"
-#include "nr-sl-ue-mac-scheduler.h"
 #include "nr-sl-ue-phy-sap.h"
 #include "nr-ue-mac.h"
 

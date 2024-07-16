@@ -955,7 +955,11 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
             return;
         }
         grant.harqId = harqId.value();
-        grant.harqEnabled = harqEnabled;
+        // To this point, the 'harqEnabled' flag means that either blind or
+        // HARQ feedback transmissions are enabled.  However, the semantics
+        // of this flag for a published grant are that harqEnabled refers
+        // only to whether HARQ feedback is enabled
+        grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
         std::vector<GrantInfo> grantVector;
         grantVector.push_back(grant);
         NotifyGrantCreated(grant);
@@ -1035,7 +1039,11 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
                 return;
             }
             grant.harqId = harqId.value();
-            grant.harqEnabled = harqEnabled;
+            // To this point, the 'harqEnabled' flag means that either blind or
+            // HARQ feedback transmissions are enabled.  However, the semantics
+            // of this flag for a published grant are that harqEnabled refers
+            // only to whether HARQ feedback is enabled
+            grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
             itGrantInfo->second.push_back(grant);
             NotifyGrantCreated(grant);
             NS_LOG_INFO("New SPS grant created to existing destination "
@@ -1104,7 +1112,11 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
         }
         GrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
         grant.harqId = harqId.value();
-        grant.harqEnabled = harqEnabled;
+        // To this point, the 'harqEnabled' flag means that either blind or
+        // HARQ feedback transmissions are enabled.  However, the semantics
+        // of this flag for a published grant are that harqEnabled refers
+        // only to whether HARQ feedback is enabled
+        grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
         NotifyGrantCreated(grant);
         std::vector<GrantInfo> grantVector;
         grantVector.push_back(grant);
@@ -1164,7 +1176,11 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
             }
             GrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
             grant.harqId = harqId.value();
-            grant.harqEnabled = harqEnabled;
+            // To this point, the 'harqEnabled' flag means that either blind or
+            // HARQ feedback transmissions are enabled.  However, the semantics
+            // of this flag for a published grant are that harqEnabled refers
+            // only to whether HARQ feedback is enabled
+            grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
             NotifyGrantCreated(grant);
             itGrantInfo->second.push_back(grant);
             NS_LOG_INFO("New dynamic grant created to existing destination "

@@ -168,6 +168,13 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
         NS_LOG_DEBUG("Inserting new grant to " << dstL2Id);
         it->second.push_back(grant);
     }
+    // Notify the HARQ entity of the maximum number of transmissions granted
+    // for the TB, whether HARQ FB is enabled, and the TB size
+    m_nrSlHarq->UpdateHarqProcess(grant.harqId,
+                                  grant.slotAllocations.size(),
+                                  grant.harqEnabled,
+                                  grant.tbSize);
+
     // The grant has a set of SlGrantResource.  One of these slots will be for
     // new data and some for retransmissions.  For the new data slots, notify
     // the RLC layer of transmission opportunities.
@@ -1027,8 +1034,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                                                   << " slot = " << +currentSlot.sfn.GetSlot());
                 if (currentSlot.ndi)
                 {
-                    Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
-                    pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
+                    auto pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
                     if (pb->GetNPackets() > 0)
                     {
                         m_nrSlMacPduTxed = true;
@@ -1065,8 +1071,7 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     // buffer. I am not doing it at the moment as it might slow down
                     // the simulation.
                     itGrant->tbTxCounter++;
-                    Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
-                    pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
+                    auto pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
                     if (pb && pb->GetNPackets() > 0)
                     {
                         m_nrSlMacPduTxed = true;
@@ -1093,14 +1098,6 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     // Remove this grant from the queue before continuing to next grant
                     removeGrant = true;
                     NS_LOG_DEBUG("No slot allocations remain for grant to " << currentSlot.dstL2Id);
-                    // Blind retransmissions if HARQ enabled and PSFCH period == 0
-                    if (!itGrant->harqEnabled ||
-                        (itGrant->harqEnabled &&
-                         (m_slTxPool->GetPsfchPeriod(GetBwpId(), m_poolId) == 0)))
-                    {
-                        // No retransmissions remain of this TB
-                        m_nrSlHarq->FlushHarqBuffer(itGrant->harqId);
-                    }
                 }
                 itGrant->slotAllocations.erase(currentSlotIt);
                 if (!m_nrSlMacPduTxed)
