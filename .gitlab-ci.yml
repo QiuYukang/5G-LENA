@@ -10,6 +10,8 @@ stages:
   - deploy
 
 workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
@@ -56,6 +58,7 @@ workflow:
     paths:
       - $CCACHE_BASEDIR_VALUE/
   timeout: 9h
+  interruptible: true
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
     NS3_RELEASE_VERSION: "master" #"ns-3.41"
