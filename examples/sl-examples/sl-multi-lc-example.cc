@@ -154,6 +154,7 @@ uint32_t g_rxPktCounter = 0;            //!< Global variable to count RX packets
 uint32_t g_txPktCounter = 0;            //!< Global variable to count TX packets
 std::list<double> g_delays;             //!< Global list to store packet delays upon RX
 std::ofstream g_fileGrantCreated;       //!< File stream for saving scheduling output
+std::ofstream g_fileGrantPublished;     //!< File stream for saving scheduling output
 std::ostringstream g_firstGrantCreated; //!< String stream for saving first scheduling output
 bool g_firstGrant = true; //!< Flag to control writing first grant to g_firstGrantCreated
 
@@ -238,7 +239,7 @@ RxPacketTraceForDelay(Ptr<const Packet> p,
     NS_LOG_DEBUG(" RX: " << mapKey << delay);
 }
 
-// Forward declaration
+// Forward declarations
 void TraceGrantCreated(std::string context,
                        const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
                        uint16_t psfchPeriod);
@@ -247,6 +248,15 @@ void WriteGrantCreated(std::ostream& grantStream,
                        std::string context,
                        const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
                        uint16_t psfchPeriod);
+
+void TraceGrantPublished(std::string context,
+                         const struct NrSlUeMac::NrSlGrant& grant,
+                         uint16_t psfchPeriod);
+
+void WriteGrantPublished(std::ostream& grantStream,
+                         std::string context,
+                         const struct NrSlUeMac::NrSlGrant& grant,
+                         uint16_t psfchPeriod);
 
 uint32_t GetPacketSize(double dataRateKbps, Time rri);
 
@@ -831,17 +841,20 @@ main(int argc, char* argv[])
     /******************** END Application packet  tracing **********************/
 
     g_fileGrantCreated.open("sl-multi-lc-scheduling.dat", std::ofstream::out);
+    g_fileGrantPublished.open("sl-multi-lc-scheduling-published.dat", std::ofstream::out);
     auto ueDevice0 = ueNetDev.Get(0)->GetObject<NrUeNetDevice>();
     auto ueMac0 = ueDevice0->GetMac(0)->GetObject<NrSlUeMac>();
     PointerValue v;
     ueMac0->GetAttribute("NrSlUeMacScheduler", v);
     auto scheduler0 = v.Get<NrSlUeMacScheduler>()->GetObject<NrSlUeMacSchedulerFixedMcs>();
     scheduler0->TraceConnect("GrantCreated", "0", MakeCallback(&TraceGrantCreated));
+    scheduler0->TraceConnect("GrantPublished", "0", MakeCallback(&TraceGrantPublished));
 
     Simulator::Stop(finalSimTime);
     Simulator::Run();
 
     g_fileGrantCreated.close();
+    g_fileGrantPublished.close();
     std::cout << "schedTypeConfig = " << schedTypeConfig << "; dstL2IdConfig = " << dstL2IdConfig;
     std::cout << " priorityConfig = " << priorityConfig << "; rriConfig = " << rriConfig
               << std::endl;
@@ -889,6 +902,14 @@ TraceGrantCreated(std::string context,
 }
 
 void
+TraceGrantPublished(std::string context,
+                    const struct NrSlUeMac::NrSlGrant& grant,
+                    uint16_t psfchPeriod)
+{
+    WriteGrantPublished(g_fileGrantPublished, context, grant, psfchPeriod);
+}
+
+void
 WriteGrantCreated(std::ostream& grantStream,
                   std::string context,
                   const struct NrSlUeMacScheduler::GrantInfo& grantInfo,
@@ -897,7 +918,8 @@ WriteGrantCreated(std::ostream& grantStream,
     grantStream << Now().As(Time::S) << " " << context << " ";
     grantStream << (grantInfo.isDynamic ? "dynamic " : "sps ");
     grantStream << +grantInfo.harqId << " ";
-    grantStream << (grantInfo.harqEnabled ? "harq" : "no-harq");
+    grantStream << (grantInfo.harqEnabled ? "harq:" : "no-harq:");
+    grantStream << grantInfo.slotAllocations.size();
     if (!grantInfo.isDynamic)
     {
         grantStream << " " << +grantInfo.cReselCounter << " " << +grantInfo.slResoReselCounter
@@ -909,6 +931,36 @@ WriteGrantCreated(std::ostream& grantStream,
         grantStream << std::endl;
     }
     for (const auto& it : grantInfo.slotAllocations)
+    {
+        uint64_t slot = it.sfn.Normalize();
+        double slotDurationS = 0.001 / (1 << it.sfn.GetNumerology());
+        double slotTimeS = slot * slotDurationS;
+        grantStream << "    " << std::fixed << std::setprecision(6) << slotTimeS << " "
+                    << it.sfn.Normalize() << " ";
+        grantStream << it.slPsschSubChStart << ":" << it.slPsschSubChLength << " " << it.dstL2Id
+                    << " ";
+        grantStream << psfchPeriod << " " << it.txSci1A << " " << +it.slotNumInd;
+        for (const auto& it2 : it.slRlcPduInfo)
+        {
+            grantStream << " (LCID " << +it2.lcid << " size " << it2.size << ")";
+        }
+        grantStream << std::endl;
+    }
+}
+
+void
+WriteGrantPublished(std::ostream& grantStream,
+                    std::string context,
+                    const struct NrSlUeMac::NrSlGrant& grant,
+                    uint16_t psfchPeriod)
+{
+    grantStream << Now().As(Time::S) << " " << context << " ";
+    grantStream << +grant.harqId << " ";
+    grantStream << (grant.harqEnabled ? "harq " : "no-harq ");
+    grantStream << grant.slotAllocations.size() << " ";
+    grantStream << grant.rri.GetMilliSeconds() << "ms ";
+    grantStream << grant.tbSize << std::endl;
+    for (const auto& it : grant.slotAllocations)
     {
         uint64_t slot = it.sfn.Normalize();
         double slotDurationS = 0.001 / (1 << it.sfn.GetNumerology());

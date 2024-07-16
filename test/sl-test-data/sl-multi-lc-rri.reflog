@@ -4,7 +4,7 @@ Total Tx packets = 80
 Total Rx packets = 80
 Average packet delay = 1.78102 ms
 Output trace of first grant created:
-+2.05s 0 sps 0 harq 220 22 2 050
++2.05s 0 sps 0 harq:44 220 22 2 050
     2.052250 8209 0:1 254 4 1 2 (LCID 6 size 135)
     2.056500 8226 0:1 254 4 0 0 (LCID 6 size 135)
     2.102250 8409 0:1 254 4 1 2 (LCID 6 size 135)
