@@ -928,8 +928,11 @@ NrPhy::SetPscchMacPdu(Ptr<Packet> p)
     NS_LOG_FUNCTION(this);
     // Since we must send one SCI msg at a given time, initially the queue size must
     // be 1 with an empty packet burst
-    NS_ASSERT(m_nrSlPscchPacketBurstQueue.size() == 1 &&
-              m_nrSlPscchPacketBurstQueue.at(0)->GetNPackets() == 0);
+    NS_ASSERT_MSG(m_nrSlPscchPacketBurstQueue.size() == 1 &&
+                      m_nrSlPscchPacketBurstQueue.at(0)->GetNPackets() == 0,
+                  "Error in Pscch queue size and packet burst size (should be 1 and 0): "
+                      << m_nrSlPscchPacketBurstQueue.size() << " "
+                      << m_nrSlPscchPacketBurstQueue.at(0)->GetNPackets());
     m_nrSlPscchPacketBurstQueue.at(0)->AddPacket(p);
 }
 
