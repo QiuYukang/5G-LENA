@@ -1,5 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2007 INRIA
 // Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
@@ -1497,9 +1495,6 @@ main(int argc, char* argv[])
     // mode-line:  helpful when debugging introspected-doxygen.h
     if (!outputText)
     {
-        std::cout << "/* -*- Mode:C++; c-file-style:\"gnu\"; "
-                     "indent-tabs-mode:nil; -*- */\n"
-                  << std::endl;
         std::cout << "#include \"ns3/log.h\"" << std::endl;
     }
 

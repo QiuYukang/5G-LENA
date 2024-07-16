@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 #include "lena-lte-comparison.h"
 
 #include <ns3/command-line.h>

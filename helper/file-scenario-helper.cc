@@ -1,5 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2020 Lawrence Livermore National Laboratory
 //
 // SPDX-License-Identifier: GPL-2.0-only
