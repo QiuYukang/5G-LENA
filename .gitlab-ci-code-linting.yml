@@ -119,3 +119,18 @@ check-commit-message:
     - ./tools/check-commit-message/check-commit-message.py
   timeout: 1h
   allow_failure: true
+
+# Check for emacs line presence
+emacs-line:
+  stage: code-linting
+  image: ubuntu:latest
+  script:
+    - if ( egrep -rn --include="*.h" --include="*.cc" --include="*.c" --include="*.py" --include="*.rst" "c-file-style:|py-indent-offset:" ) ; then
+      echo "Found Emacs lines on the above C/C++, Python and RST files" ;
+      exit 1 ;
+      else
+      echo "No Emacs lines found on C/C++, Python and RST files" ;
+      exit 0 ;
+      fi
+  timeout: 1h
+  interruptible: true

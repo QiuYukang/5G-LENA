@@ -39,6 +39,7 @@ This release will be compatible with ns-3.4x.
 
 Important news
 --------------
+- We introduced a new CI job that checks for the existence of deprecated emacs line.
 
 - Remember to follow the instructions from the README.md file, i.e., to checkout
   the correct release branch of both ns-3 and the NR module. The information about
