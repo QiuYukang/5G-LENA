@@ -9,6 +9,7 @@
 
 #include "nr-amc.h"
 #include "nr-sl-phy-mac-common.h"
+#include "nr-sl-ue-mac.h"
 
 #include <ns3/nr-sl-mac-sap.h>
 #include <ns3/nr-sl-ue-cmac-sap.h>
@@ -17,8 +18,6 @@
 
 namespace ns3
 {
-
-class NrSlUeMac;
 
 /**
  * \ingroup scheduler
@@ -164,6 +163,14 @@ class NrSlUeMacScheduler : public Object
      */
     typedef void (*GrantCreatedTracedCallback)(const struct GrantInfo& grant, uint16_t psfchPeriod);
 
+    /**
+     * TracedCallback signature for report on grant publishing
+     * \param [in] grant grant information
+     * \param [in] psfchPeriod PSFCH period for the configured resource pool
+     */
+    typedef void (*GrantPublishedTracedCallback)(const struct NrSlUeMac::NrSlGrant& grant,
+                                                 uint16_t psfchPeriod);
+
   protected:
     void DoDispose() override;
 
@@ -172,6 +179,12 @@ class NrSlUeMacScheduler : public Object
      * \param grant Grant information
      */
     void NotifyGrantCreated(const struct GrantInfo& grant) const;
+
+    /**
+     * Trigger the 'GrantCreated' trace source
+     * \param grant Grant information
+     */
+    void NotifyGrantPublished(const struct NrSlUeMac::NrSlGrant& grant) const;
 
   private:
     // Implementation of SCHED API primitives for NR Sidelink
@@ -221,6 +234,9 @@ class NrSlUeMacScheduler : public Object
 
     TracedCallback<const struct GrantInfo&, uint16_t>
         m_grantCreatedTrace; //!< Trace source for grant creation
+
+    TracedCallback<const struct NrSlUeMac::NrSlGrant&, uint16_t>
+        m_grantPublishedTrace; //!< Trace source for grant publishing
 };
 
 } // namespace ns3

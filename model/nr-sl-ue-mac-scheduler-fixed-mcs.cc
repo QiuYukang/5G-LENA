@@ -1352,6 +1352,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
                 slotIt = itGrantVector->slotAllocations.begin();
             }
             GetMac()->SchedNrSlConfigInd(currentSlot.dstL2Id, grant);
+            NotifyGrantPublished(grant);
             NS_LOG_INFO("Publishing grant with " << grant.slotAllocations.size()
                                                  << " slots to destination " << currentSlot.dstL2Id
                                                  << " HARQ ID " << +grant.harqId);
@@ -1702,7 +1703,8 @@ NrSlUeMacSchedulerFixedMcs::SelectResourcesWithConstraint(std::list<SlResourceIn
     }
     // sort the list by SfnSf before returning
     newTxOpps.sort();
-    NS_LOG_DEBUG("Selected " << newTxOpps.size() << " slots from " << originalSize);
+    NS_LOG_INFO("Selected " << newTxOpps.size() << " resources from " << originalSize
+                            << " candidates and a maximum of " << +totalTx);
     return newTxOpps;
 }
 
