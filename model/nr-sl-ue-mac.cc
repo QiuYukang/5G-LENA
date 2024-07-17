@@ -165,8 +165,8 @@ NrSlUeMac::SchedNrSlConfigInd(uint32_t dstL2Id, const NrSlGrant& grant)
     }
     else
     {
-        NS_LOG_DEBUG("Inserting new grant to " << dstL2Id);
         it->second.push_back(grant);
+        NS_LOG_DEBUG("Inserting new grant to " << dstL2Id << "; new size " << it->second.size());
     }
     // Notify the HARQ entity of the maximum number of transmissions granted
     // for the TB, whether HARQ FB is enabled, and the TB size
@@ -1025,9 +1025,25 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 "Empty grant in m_slGrants when iterated in NrUeMac::DoNrSlSlotIndication, rnti: "
                     << GetRnti() << " harqId: " << +itGrant->harqId);
             auto currentSlotIt = itGrant->slotAllocations.begin();
+            if (currentSlotIt == itGrant->slotAllocations.end())
+            {
+                removeGrant = true;
+            }
+            else
+            {
+                // Find the first slot that is either at Now() or in the future
+                while (currentSlotIt->sfn < sfn)
+                {
+                    currentSlotIt++;
+                    if (currentSlotIt == itGrant->slotAllocations.end())
+                    {
+                        removeGrant = true;
+                    }
+                }
+            }
             SlGrantResource currentSlot = *currentSlotIt;
             // Rename use of currentSlot below with "nrSlSlotAlloc"
-            if (currentGrant.slotAllocations.begin()->sfn == sfn)
+            if (!removeGrant && currentGrant.slotAllocations.begin()->sfn == sfn)
             {
                 NS_LOG_INFO("Grant at : Frame = " << currentSlot.sfn.GetFrame()
                                                   << " SF = " << +currentSlot.sfn.GetSubframe()
@@ -1035,13 +1051,9 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 if (currentSlot.ndi)
                 {
                     auto pb = m_nrSlHarq->GetPacketBurst(currentSlot.dstL2Id, currentGrant.harqId);
-                    if (pb->GetNPackets() > 0)
+                    if (pb && pb->GetNPackets() > 0)
                     {
                         m_nrSlMacPduTxed = true;
-
-                        NS_ASSERT_MSG(pb->GetNPackets() > 0,
-                                      "Packet burst for HARQ id " << +currentGrant.harqId
-                                                                  << " is empty");
                         for (const auto& itPkt : pb->GetPackets())
                         {
                             NS_LOG_INFO("Sending PSSCH MAC PDU (1st Tx) dstL2Id: "
@@ -1075,9 +1087,6 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                     if (pb && pb->GetNPackets() > 0)
                     {
                         m_nrSlMacPduTxed = true;
-                        NS_ASSERT_MSG(pb->GetNPackets() > 0,
-                                      "Packet burst for HARQ id " << +currentGrant.harqId
-                                                                  << " is empty");
                         for (const auto& itPkt : pb->GetPackets())
                         {
                             NS_LOG_DEBUG("Sending PSSCH MAC PDU (Rtx) dstL2Id: "
