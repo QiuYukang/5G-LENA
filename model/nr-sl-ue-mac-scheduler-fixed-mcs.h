@@ -171,10 +171,12 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
     /**
      * \brief Removes resources which are already part of an existing unpublished grant.
      *
+     * \param sfn The current SfnSf
      * \param txOppr The list of available slots
      * \return The list of resources which are not used by any existing unpublished grant.
      */
-    std::list<SlResourceInfo> FilterTxOpportunities(std::list<SlResourceInfo> txOppr);
+    std::list<SlResourceInfo> FilterTxOpportunities(const SfnSf& sfn,
+                                                    std::list<SlResourceInfo> txOppr);
 
     /**
      * \brief Calculate a timeout value for the grant allocation.
@@ -515,7 +517,10 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
 
     uint8_t m_mcs{0}; //!< (fixed) value for MCS
 
-    std::map<uint32_t, std::vector<GrantInfo>> m_grantInfo;
+    std::map<uint32_t, std::vector<GrantInfo>>
+        m_grantInfo; //!< (unpublished) grants, indexed by dstL2Id
+
+    std::vector<SlGrantResource> m_publishedGrants; //!< published grants
 
     Ptr<UniformRandomVariable>
         m_ueSelectedUniformVariable; //!< uniform random variable used for NR Sidelink

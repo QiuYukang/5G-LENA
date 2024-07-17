@@ -790,8 +790,8 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
         // sec. 8.1.4 of TS 38.214.  The scheduler is responsible for
         // further filtering out any candidates that overlap with already
         // scheduled grants within the selection window.
-        std::list<SlResourceInfo> filteredReso;
-        filteredReso = FilterTxOpportunities(GetMac()->GetCandidateResources(sfn, params));
+        auto filteredReso =
+            FilterTxOpportunities(sfn, GetMac()->GetCandidateResources(sfn, params));
         if (filteredReso.size() == 0)
         {
             NS_LOG_DEBUG("Resources not found");
@@ -1234,6 +1234,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& 
                 NS_LOG_INFO("  SPS NDI scheduled at: Frame = "
                             << slAlloc.sfn.GetFrame() << " SF = " << +slAlloc.sfn.GetSubframe()
                             << " slot = " << +slAlloc.sfn.GetSlot()
+                            << " normalized = " << slAlloc.sfn.Normalize()
                             << " subchannels = " << slAlloc.slPsschSubChStart << ":"
                             << slAlloc.slPsschSubChStart + slAlloc.slPsschSubChLength - 1);
             }
@@ -1242,6 +1243,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& 
                 NS_LOG_INFO("  SPS rtx scheduled at: Frame = "
                             << slAlloc.sfn.GetFrame() << " SF = " << +slAlloc.sfn.GetSubframe()
                             << " slot = " << +slAlloc.sfn.GetSlot()
+                            << " normalized = " << slAlloc.sfn.Normalize()
                             << " subchannels = " << slAlloc.slPsschSubChStart << ":"
                             << slAlloc.slPsschSubChStart + slAlloc.slPsschSubChLength - 1);
             }
@@ -1276,17 +1278,17 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(
         {
             NS_LOG_INFO("  Dynamic NDI scheduled at: Frame = "
                         << slAlloc.sfn.GetFrame() << " SF = " << +slAlloc.sfn.GetSubframe()
-                        << " slot = " << +slAlloc.sfn.GetSlot()
-                        << " subchannels = " << slAlloc.slPsschSubChStart << ":"
-                        << slAlloc.slPsschSubChStart + slAlloc.slPsschSubChLength - 1);
+                        << " slot = " << +slAlloc.sfn.GetSlot() << " normalized = "
+                        << slAlloc.sfn.Normalize() << " subchannels = " << slAlloc.slPsschSubChStart
+                        << ":" << slAlloc.slPsschSubChStart + slAlloc.slPsschSubChLength - 1);
         }
         else
         {
             NS_LOG_INFO("  Dynamic rtx scheduled at: Frame = "
                         << slAlloc.sfn.GetFrame() << " SF = " << +slAlloc.sfn.GetSubframe()
-                        << " slot = " << +slAlloc.sfn.GetSlot()
-                        << " subchannels = " << slAlloc.slPsschSubChStart << ":"
-                        << slAlloc.slPsschSubChStart + slAlloc.slPsschSubChLength - 1);
+                        << " slot = " << +slAlloc.sfn.GetSlot() << " normalized = "
+                        << slAlloc.sfn.Normalize() << " subchannels = " << slAlloc.slPsschSubChStart
+                        << ":" << slAlloc.slPsschSubChStart + slAlloc.slPsschSubChLength - 1);
         }
         bool insertStatus = grant.slotAllocations.emplace(slAlloc).second;
         NS_ASSERT_MSG(insertStatus, "slot allocation already exist");
@@ -1340,6 +1342,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             grant.rri = itGrantVector->rri;
             grant.harqEnabled = itGrantVector->harqEnabled;
             // Add the NDI slot and retransmissions to the set of slot allocations
+            m_publishedGrants.emplace_back(currentSlot);
             grant.slotAllocations.emplace(currentSlot);
             itGrantVector->slotAllocations.erase(slotIt);
             // Add any retransmission slots and erase them
@@ -1347,6 +1350,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             while (slotIt != itGrantVector->slotAllocations.end() && slotIt->ndi == 0)
             {
                 SlGrantResource nextSlot = *slotIt;
+                m_publishedGrants.emplace_back(nextSlot);
                 grant.slotAllocations.emplace(nextSlot);
                 itGrantVector->slotAllocations.erase(slotIt);
                 slotIt = itGrantVector->slotAllocations.begin();
@@ -1400,16 +1404,64 @@ NrSlUeMacSchedulerFixedMcs::OverlappedResources(const SfnSf& firstSfn,
 }
 
 std::list<SlResourceInfo>
-NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<SlResourceInfo> txOppr)
+NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
+                                                  std::list<SlResourceInfo> txOppr)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << sfn.Normalize() << txOppr.size());
 
     if (txOppr.empty())
     {
         return txOppr;
     }
 
-    SlGrantResource dummyAlloc;
+    NS_LOG_DEBUG("Filtering txOppr list of size " << txOppr.size() << " resources");
+    auto itPublished = m_publishedGrants.begin();
+    while (itPublished != m_publishedGrants.end())
+    {
+        auto itTxOppr = txOppr.begin();
+        while (itTxOppr != txOppr.end())
+        {
+            if (m_allowMultipleDestinationsPerSlot)
+            {
+                if (OverlappedResources(itPublished->sfn,
+                                        itPublished->slPsschSubChStart,
+                                        itPublished->slPsschSubChLength,
+                                        itTxOppr->sfn,
+                                        itTxOppr->slSubchannelStart,
+                                        itTxOppr->slSubchannelLength))
+                {
+                    NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
+                    itTxOppr = txOppr.erase(itTxOppr);
+                }
+                else
+                {
+                    ++itTxOppr;
+                }
+            }
+            else
+            {
+                if (itPublished->sfn == itTxOppr->sfn)
+                {
+                    NS_LOG_INFO("Erasing candidate " << itTxOppr->sfn.Normalize());
+                    itTxOppr = txOppr.erase(itTxOppr);
+                }
+                else
+                {
+                    ++itTxOppr;
+                }
+            }
+        }
+        // Erase published records in the past
+        if (itPublished->sfn < sfn)
+        {
+            NS_LOG_INFO("Erasing published grant from " << itPublished->sfn.Normalize());
+            itPublished = m_publishedGrants.erase(itPublished);
+        }
+        else
+        {
+            ++itPublished;
+        }
+    }
     for (const auto& itDst : m_grantInfo)
     {
         for (auto itGrantVector = itDst.second.begin(); itGrantVector != itDst.second.end();
@@ -1431,6 +1483,7 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<SlResourceInfo> txOp
                                                 itTxOppr->slSubchannelStart,
                                                 itTxOppr->slSubchannelLength))
                         {
+                            NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
                             itTxOppr = txOppr.erase(itTxOppr);
                         }
                         else
@@ -1443,6 +1496,7 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(std::list<SlResourceInfo> txOp
                         // Disallow scheduling again on a previously scheduled slot
                         if (itGrantAlloc->sfn == itTxOppr->sfn)
                         {
+                            NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
                             itTxOppr = txOppr.erase(itTxOppr);
                         }
                         else
