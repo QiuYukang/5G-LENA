@@ -1361,7 +1361,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             NS_LOG_INFO("Publishing grant with " << grant.slotAllocations.size()
                                                  << " slots to destination " << currentSlot.dstL2Id
                                                  << " HARQ ID " << +grant.harqId);
-            if (itGrantVector->isDynamic)
+            if (itGrantVector->isDynamic || !itGrantVector->slotAllocations.size())
             {
                 itGrantVector = itGrantInfo->second.erase(itGrantVector);
             }
