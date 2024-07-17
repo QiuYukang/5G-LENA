@@ -939,10 +939,9 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
                                            Time rri)
 {
     NS_LOG_FUNCTION(this << sfn << harqEnabled << rri);
-    // itGrantInfo iterates a map of a vector of GrantInfo items
-    auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
-
-    if (itGrantInfo == m_grantInfo.end())
+    // m_grantInfo is a map with key dstL2Id and value std::vector<GrantInfo>
+    auto itVecGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
+    if (itVecGrantInfo == m_grantInfo.end())
     {
         NS_LOG_DEBUG("New destination " << slotAllocList.begin()->dstL2Id);
         GrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
@@ -963,7 +962,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
         std::vector<GrantInfo> grantVector;
         grantVector.push_back(grant);
         NotifyGrantCreated(grant);
-        itGrantInfo =
+        itVecGrantInfo =
             m_grantInfo.emplace(std::make_pair(slotAllocList.begin()->dstL2Id, grantVector)).first;
         NS_LOG_INFO("New SPS grant created to new destination "
                     << slotAllocList.begin()->dstL2Id << " with HARQ ID " << +grant.harqId
@@ -974,9 +973,11 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
         NS_LOG_DEBUG("Destination " << slotAllocList.begin()->dstL2Id << " found");
         // Destination exists
         bool grantFound = false;
-        auto itGrantVector = itGrantInfo->second.begin();
-        for (; itGrantVector != itGrantInfo->second.end(); ++itGrantVector)
+        auto itGrantVector = itVecGrantInfo->second.begin();
+        for (; itGrantVector != itVecGrantInfo->second.end(); ++itGrantVector)
         {
+            NS_ASSERT_MSG(itGrantVector->slotAllocations.size(),
+                          "No slots associated with grant to " << slotAllocList.begin()->dstL2Id);
             if (itGrantVector->rri == rri &&
                 itGrantVector->slotAllocations.begin()->slRlcPduInfo.size() ==
                     slotAllocList.begin()->slRlcPduInfo.size())
@@ -1044,7 +1045,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
             // of this flag for a published grant are that harqEnabled refers
             // only to whether HARQ feedback is enabled
             grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
-            itGrantInfo->second.push_back(grant);
+            itVecGrantInfo->second.push_back(grant);
             NotifyGrantCreated(grant);
             NS_LOG_INFO("New SPS grant created to existing destination "
                         << slotAllocList.begin()->dstL2Id << " with HARQ ID " << +grant.harqId
@@ -1300,10 +1301,10 @@ void
 NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
 {
     NS_LOG_FUNCTION(this << sfn.Normalize());
-    for (auto& itGrantInfo : m_grantInfo)
+    for (auto itGrantInfo = m_grantInfo.begin(); itGrantInfo != m_grantInfo.end(); itGrantInfo++)
     {
-        for (auto itGrantVector = itGrantInfo.second.begin();
-             itGrantVector != itGrantInfo.second.end();)
+        for (auto itGrantVector = itGrantInfo->second.begin();
+             itGrantVector != itGrantInfo->second.end();)
         {
             if (!itGrantVector->isDynamic && itGrantVector->slResoReselCounter == 0)
             {
@@ -1360,10 +1361,9 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             NS_LOG_INFO("Publishing grant with " << grant.slotAllocations.size()
                                                  << " slots to destination " << currentSlot.dstL2Id
                                                  << " HARQ ID " << +grant.harqId);
-
             if (itGrantVector->isDynamic)
             {
-                itGrantVector = itGrantInfo.second.erase(itGrantVector);
+                itGrantVector = itGrantInfo->second.erase(itGrantVector);
             }
             else
             {
