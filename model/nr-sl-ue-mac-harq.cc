@@ -318,6 +318,14 @@ NrSlUeMacHarq::GetPacketBurst(uint32_t dstL2Id, uint8_t harqId)
         NS_LOG_INFO("No packets to retrieve for dstL2Id " << dstL2Id << " HARQ ID " << +harqId);
         return nullptr;
     }
+    if (m_pktBuffer.at(harqId).numTx == m_pktBuffer.at(harqId).maxNumTx)
+    {
+        NS_LOG_INFO(
+            "Maximum number of transmissions has been reached for packet in buffer, for dstL2Id "
+            << dstL2Id << " HARQ ID " << +harqId);
+        Simulator::ScheduleNow(&NrSlUeMacHarq::FlushHarqBuffer, this, harqId);
+        return nullptr;
+    }
     m_pktBuffer.at(harqId).numTx++;
     NS_LOG_INFO("Packet burst retrieved for dstL2Id " << dstL2Id << " HARQ ID " << +harqId
                                                       << " numTx " << m_pktBuffer.at(harqId).numTx);
