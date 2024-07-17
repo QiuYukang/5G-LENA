@@ -305,11 +305,17 @@ Ptr<PacketBurst>
 NrSlUeMacHarq::GetPacketBurst(uint32_t dstL2Id, uint8_t harqId)
 {
     NS_LOG_FUNCTION(this << dstL2Id << +harqId);
+    NS_ASSERT_MSG(m_pktBuffer.at(harqId).pktBurst, "Error, no PacketBurst object");
     if (m_pktBuffer.at(harqId).dstL2Id != dstL2Id || !m_pktBuffer.at(harqId).allocated)
     {
         // This operation can fail to return a packet burst if retransmissions
         // have been completed on this HARQ Process ID
         NS_LOG_DEBUG("No packet to return");
+        return nullptr;
+    }
+    if (!m_pktBuffer.at(harqId).pktBurst->GetNPackets())
+    {
+        NS_LOG_INFO("No packets to retrieve for dstL2Id " << dstL2Id << " HARQ ID " << +harqId);
         return nullptr;
     }
     m_pktBuffer.at(harqId).numTx++;
@@ -324,8 +330,8 @@ NrSlUeMacHarq::GetPacketBurst(uint32_t dstL2Id, uint8_t harqId)
         if (m_pktBuffer.at(harqId).multiplePdu)
         {
             // Calling this method directly leads to an assert in NrSlUeMac
-            // because the list of slotAllocations goes to zero while within
-            // a loop, so append this event for this time but later
+            // because the pktBurst needs to be returned below before it is
+            // flushed, so append this event for this sim time, but later
             Simulator::ScheduleNow(&NrSlUeMacHarq::FlushHarqBuffer, this, harqId);
         }
         else
