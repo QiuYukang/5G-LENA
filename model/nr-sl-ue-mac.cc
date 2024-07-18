@@ -484,15 +484,13 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
     auto updatedHistory = transmitHistory;
 
     auto rvIt2 = updatedHistory.crbegin();
-    if (rvIt2 != updatedHistory.crend())
+    while ((rvIt2 != updatedHistory.crend()) &&
+           (sfn.Normalize() - rvIt2->Normalize() <= GetTproc0()))
     {
-        while (sfn.Normalize() - rvIt2->Normalize() <= GetTproc0())
-        {
-            NS_LOG_DEBUG("IMSI " << GetImsi() << " ignoring  at sfn " << sfn << " received at "
-                                 << *rvIt2);
-            updatedHistory.pop_back();
-            rvIt2 = updatedHistory.crbegin();
-        }
+        NS_LOG_DEBUG("IMSI " << GetImsi() << " ignoring  at sfn " << sfn << " received at "
+                             << *rvIt2);
+        updatedHistory.pop_back();
+        rvIt2 = updatedHistory.crbegin();
     }
 
     // step 5: filter candidateResources based on transmit history, if threshold
