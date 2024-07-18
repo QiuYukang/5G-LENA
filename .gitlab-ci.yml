@@ -39,7 +39,7 @@ workflow:
     - ccache -z
     - ./ns3 build
     - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
-        ./test.py --no-build;
+        ./test.py --no-build --verbose-failed;
       fi
     - ccache -s
     - ./ns3 clean
