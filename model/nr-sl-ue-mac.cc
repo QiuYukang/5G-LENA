@@ -234,6 +234,7 @@ NrSlUeMac::DoDispose()
     m_nrSlUeMacScheduler = nullptr;
     m_slTxPool = nullptr;
     m_slRxPool = nullptr;
+    NrUeMac::DoDispose();
 }
 
 int64_t
