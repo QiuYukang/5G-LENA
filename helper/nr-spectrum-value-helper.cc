@@ -6,6 +6,7 @@
 
 #include "nr-spectrum-value-helper.h"
 
+#include "ns3/simulator.h"
 #include <ns3/abort.h>
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
@@ -96,6 +97,7 @@ NrSpectrumValueHelper::GetSpectrumModel(uint32_t numRbs,
         // save this model to the map of spectrum models
         g_nrSpectrumModelMap.insert(
             std::pair<NrSpectrumModelId, Ptr<SpectrumModel>>(modelId, model));
+        Simulator::ScheduleDestroy(&NrSpectrumValueHelper::DeleteSpectrumValues);
         NS_LOG_INFO("Created SpectrumModel with frequency: "
                     << f << " NumRB: " << rbs.size() << " subcarrier spacing: " << subcarrierSpacing
                     << ", and global UID: " << model->GetUid());
@@ -190,6 +192,12 @@ NrSpectrumValueHelper::GetEffectiveBandwidth(double bandwidth, uint8_t numerolog
     NS_LOG_DEBUG("Total bandwidth: " << bandwidth << " effective bandwidth:"
                                      << numRbs * (scSpacing * SUBCARRIERS_PER_RB));
     return numRbs * (scSpacing * SUBCARRIERS_PER_RB);
+}
+
+void
+NrSpectrumValueHelper::DeleteSpectrumValues()
+{
+    g_nrSpectrumModelMap.clear();
 }
 
 } // namespace ns3

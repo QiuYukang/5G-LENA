@@ -96,7 +96,7 @@ NrRadioBearerTag::SetSize(uint32_t size)
 uint32_t
 NrRadioBearerTag::GetSerializedSize() const
 {
-    return 4;
+    return sizeof(m_rnti) + sizeof(m_lcid) + sizeof(m_layer) + sizeof(m_size);
 }
 
 void
@@ -114,6 +114,7 @@ NrRadioBearerTag::Deserialize(TagBuffer i)
     m_rnti = (uint16_t)i.ReadU16();
     m_lcid = (uint8_t)i.ReadU8();
     m_layer = (uint8_t)i.ReadU8();
+    m_size = (uint32_t)i.ReadU32();
 }
 
 uint16_t

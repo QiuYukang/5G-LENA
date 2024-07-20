@@ -95,6 +95,7 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
     void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 
   private:
+    void DoDispose() override;
     BeamformingVectorPair GetBeamformingVectors(
         const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;

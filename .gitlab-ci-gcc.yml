@@ -8,7 +8,7 @@
 # "RELEASE", that has a value "weekly". Also, a variable "GCC" should be set
 # to True.
 
-# We support from 9 to the latest version. Check if everything builds fine
+# We support from 10 to the latest version. Check if everything builds fine
 # under debug, default, and optimized, on Linux.
 
 .weekly-build-gcc-base:
@@ -35,31 +35,6 @@
       libeigen3-dev
       qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
       ssh
-
-# GCC 9
-weekly-build-gcc-9-debug:
-  extends: .weekly-build-gcc-base
-  image: ubuntu:20.04
-  variables:
-    MODE: debug
-    COMPILER: g++-9
-    LIBGSL: libgsl23
-
-weekly-build-gcc-9-default:
-  extends: .weekly-build-gcc-base
-  image: ubuntu:20.04
-  variables:
-    MODE: default
-    COMPILER: g++-9
-    LIBGSL: libgsl23
-
-weekly-build-gcc-9-optimized:
-  extends: .weekly-build-gcc-base
-  image: ubuntu:20.04
-  variables:
-    MODE: optimized
-    COMPILER: g++-9
-    LIBGSL: libgsl23
 
 # GCC 10
 weekly-build-gcc-10-debug:
@@ -160,3 +135,13 @@ weekly-build-gcc-13-optimized:
     MODE: optimized
     COMPILER: g++-13
     LIBGSL: libgsl27
+
+weekly-build-gcc-13-optimized-sanitizers:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:23.04
+  variables:
+    MODE: optimized
+    COMPILER: g++-13
+    EXTRAS: --enable-sanitizers
+  tags:
+    - CTTC

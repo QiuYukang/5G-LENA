@@ -231,10 +231,6 @@ main(int argc, char* argv[])
                  "when there are UEs with random antenna heights, so instead of "
                  "passing to REM a UE with random hUT, we pass one with 1.5m.",
                  params.useLastUeForRem);
-    cmd.AddValue("useFixedRi",
-                 "If true, UE will use a fixed configured RI value; otherwise, "
-                 "it will use an adaptive RI value based on the SINR of the streams",
-                 params.useFixedRi);
     cmd.AddValue("isd", "The Inter-Site Distance value.", params.isd);
     cmd.AddValue("bsHeight", "The antenna height of the BS.", params.bsHeight);
     cmd.AddValue("utHeight", "The antenna height of the UE.", params.utHeight);

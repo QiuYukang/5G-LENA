@@ -1308,18 +1308,18 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    m_spectrumPhy->AddExpectedTb(dci->m_rnti,
-                                 dci->m_ndi,
-                                 dci->m_tbSize,
-                                 dci->m_mcs,
-                                 dci->m_rank,
-                                 FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
-                                 dci->m_harqProcess,
-                                 dci->m_rv,
-                                 false,
-                                 dci->m_symStart,
-                                 dci->m_numSym,
-                                 m_currentSlot);
+    m_spectrumPhy->AddExpectedTb({dci->m_ndi,
+                                  dci->m_tbSize,
+                                  dci->m_mcs,
+                                  dci->m_rank,
+                                  dci->m_rnti,
+                                  FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
+                                  dci->m_harqProcess,
+                                  dci->m_rv,
+                                  false,
+                                  dci->m_symStart,
+                                  dci->m_numSym,
+                                  m_currentSlot});
 
     bool found = false;
     for (auto& i : m_deviceMap)

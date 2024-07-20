@@ -1126,14 +1126,14 @@ linear antenna arrays [TR38901]) and the introduction of antenna ports concept, 
 multiple antenna elements, multiple antenna elements are combined into one antenna port for digital processing (precoding),
 while analog processing (beamforming) is applied for the antenna elements within one antenna port.
 
-The MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to two streams per user, and 2 antenna ports)
-and beamforming (which applies for each of the streams). Multiple (up to two) streams are encoded in the same TB. PMI, RI and CQI
+The MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to four streams per user, and 32 antenna ports)
+and beamforming (which applies for each of the streams). Up to four streams are encoded in the same TB. PMI, RI and CQI
 are implemented and included as part of the CSI feedback. It follows the 3GPP codebook-based Type I model for precoding [TS38214]
 and assumes MMSE-IRC receiver. For precoding and rank selection, an exhaustive search is implemented. The number of streams is
 called the rank in the code, which affects the TBS and other performance characteristics. The inter-stream interference is correctly
-computed through matrix processing, and this is why the use of more of 2 streams requires the Eigen library to compute operations
+computed through matrix processing, and this is why the use of more than 2 streams requires the Eigen library to compute operations
 like matrix inverse, SVD, etc. As the SINR and interference computations are correctly modeled, following [Palomar2006]_, and multiple
-streams are fit in one TB, this allows using the SISO error model for MIMO error modeling, by vectorizing the 2D SINR (RBs, rank)
+streams are fit into one TB, this allows using the SISO error model for MIMO error modeling, by vectorizing the 2D SINR (RBs, rank)
 into 1D SINR (RBs x rank).
 
 In the following, we explain the design choices and implementation details to enable MIMO. This includes, 1) adding the "rank"
@@ -1233,15 +1233,17 @@ When a PMI update is requested, the optimal precoding matrices are updated using
 precoding matrices specified in a codebook that is compatible with 3GPP TS 38.214 Type-I. The procedure based on exhaustive search
 loops over all possible subband precoding matrices and computes the SINR that would be achieved by each precoding matrix,
 and selects the precoder resulting in the highest average SINR.
-Finally, the feedback message is created that includes the optimal rank, the corresponding optimal PMI and CQI.
+Finally, the feedback message is created that includes the optimal rank, the corresponding optimal precoding matrix and CQI.
 
 ``NrPmSearch`` is the base class and ``NrPmSearchFull`` is one possible specialization that finds PMI, RI and CQI. One could create
 another specialization of ``NrPmSearch`` that would implement a different algorithm to find PMI and RI values.
 
+The size of the subbands depends on the channel bandwidth, both in numbers of PRBs. It should be set accordingly to 3GPP
+TS 38.214 Table 5.2.1.4-2 via the attribute ``NrPmSearch::SubbandSize``.
+
 MIMO activation
 ###############
-``NrHelper`` is the class
-that is responsible of setting the ``NrPmSearch`` algorithm to ``NrUePhy`` instance, and the configuration of the corresponding parameters,
+``NrHelper`` is the class that is responsible of setting the ``NrPmSearch`` algorithm to ``NrUePhy`` instance, and the configuration of the corresponding parameters,
 such as the type of the search algorithm, the type of the codebook, and the rank limit. ``NrHelper`` also creates ``NrMimoChunkProcessor``
 and adds the necessary callbacks. These callbacks are:
 

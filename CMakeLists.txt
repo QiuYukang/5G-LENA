@@ -9,7 +9,21 @@ if(${ENABLE_EXAMPLES})
   )
 endif()
 
+if(${ENABLE_EIGEN})
+  set(eigen_sources
+      model/nr-mimo-matrices-eigen.cc
+  )
+else()
+  message(
+    WARNING "nr MIMO features require the eigen3 library, but it was not found"
+  )
+  set(eigen_sources
+      model/nr-mimo-matrices-no-eigen.cc
+  )
+endif()
+
 set(source_files
+    ${eigen_sources}
     helper/nr-helper.cc
     helper/nr-phy-rx-trace.cc
     helper/nr-mac-rx-trace.cc
@@ -137,6 +151,7 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-3gpp-generic-video.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
     model/nr-cb-two-port.cc
+    model/nr-cb-type-one-sp.cc
     model/nr-cb-type-one.cc
     model/nr-mimo-chunk-processor.cc
     model/nr-mimo-matrices.cc
@@ -279,6 +294,7 @@ set(header_files
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
     model/nr-cb-two-port.h
+    model/nr-cb-type-one-sp.h
     model/nr-cb-type-one.h
     model/nr-mimo-chunk-processor.h
     model/nr-mimo-matrices.h
@@ -331,18 +347,3 @@ build_lib(
     ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )
-
-if(${ENABLE_EIGEN})
-  target_sources(
-    libnr
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-eigen.cc"
-  )
-else()
-  message(
-    WARNING "nr MIMO features require the eigen3 library, but it was not found"
-  )
-  target_sources(
-    libnr
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/model/nr-mimo-matrices-no-eigen.cc"
-  )
-endif()

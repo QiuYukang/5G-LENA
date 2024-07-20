@@ -128,9 +128,9 @@ TestHarqTestCase::ValidateHarqForTwoRx()
     // std::cout << "sinrEff IR Rx1 = " << sinrEffIr << std::endl;
     NS_TEST_ASSERT_MSG_EQ_TOL(sinrEffIr,
                               m_refEffSinrPerRx.at(0),
-                              0.0001,
+                              0.001,
                               "Resulted effective SINR of IR for RX 1 should be equal to the test "
-                              "value with tol +-0.0001");
+                              "value with tol +-0.001");
 
     history = GetTbDecodStats(sinrRx2, history, "IR");
     outputIr = history.at(0);
@@ -140,9 +140,9 @@ TestHarqTestCase::ValidateHarqForTwoRx()
     // std::cout << "sinrEff IR Rx2 = " << sinrEffIr << std::endl;
     NS_TEST_ASSERT_MSG_EQ_TOL(sinrEffIr,
                               m_refEffSinrPerRx.at(1),
-                              0.0001,
+                              0.001,
                               "Resulted effective SINR of IR for RX 2 should be equal to the test "
-                              "value with tol +-0.0001");
+                              "value with tol +-0.001");
 
     history.clear();
     // Chase Combining
@@ -154,9 +154,9 @@ TestHarqTestCase::ValidateHarqForTwoRx()
     // std::cout << "sinrEff CC Rx1 = " << sinrEffCc << std::endl;
     NS_TEST_ASSERT_MSG_EQ_TOL(sinrEffCc,
                               m_refEffSinrPerRx.at(2),
-                              0.0001,
+                              0.001,
                               "Resulted effective SINR of CC for RX 1 should be equal to the test "
-                              "value with tol +-0.0001");
+                              "value with tol +-0.001");
 
     history = GetTbDecodStats(sinrRx2, history, "CC");
     outputCc = history.at(0);
@@ -166,9 +166,9 @@ TestHarqTestCase::ValidateHarqForTwoRx()
     // std::cout << "sinrEff CC Rx2 = " << sinrEffCc << std::endl;
     NS_TEST_ASSERT_MSG_EQ_TOL(sinrEffCc,
                               m_refEffSinrPerRx.at(3),
-                              0.0001,
+                              0.001,
                               "Resulted effective SINR of CC for RX 2 should be equal to the test "
-                              "value with tol +-0.0001");
+                              "value with tol +-0.001");
 }
 
 void

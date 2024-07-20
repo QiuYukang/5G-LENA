@@ -141,8 +141,6 @@ struct Parameters
     bool ueEnable3gppElement = false;
 
     bool checkUeMobility = false;
-
-    bool useFixedRi = true;
 };
 
 extern void Nr3gppCalibration(Parameters& params);

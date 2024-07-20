@@ -50,6 +50,24 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v3.0 to v3.1
+
+This release contains the upgrade of the supported ns-3 release, i.e., upgrade
+from ns-3.41 to ns-3.42.
+
+### New API:
+- SU-MIMO model is extended with a new class called ``NrCbTypeOneSp`` that
+provides the implementation of Type-I Single-Panel Codebook 3GPP TS 38.214,
+Rel. 15, Sec. 5.2.2.2.1 supporting up to 32 ports, rank 4, and codebook mode 1.
+
+### Changes to existing API:
+-
+
+### Changed behavior:
+-
+
+---
+
 ## Changes from NR-v2.6 to v3.0
 
 This release contains the upgrade of the supported ns-3 release, i.e., upgrade

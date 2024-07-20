@@ -204,8 +204,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                           uint16_t beamConfSector,
                                           double beamConfElevation,
                                           double isd,
-                                          bool ueBearingAngle,
-                                          bool useFixedRi)
+                                          bool ueBearingAngle)
 {
     /*
      * Create the radio network related parameters
@@ -387,8 +386,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
 
     nrHelper->SetUeMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
     nrHelper->SetGnbMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
-
-    nrHelper->SetUePhyAttribute("UseFixedRi", BooleanValue(useFixedRi));
 
     /*
      * Create the necessary operation bands.
@@ -877,9 +874,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         auto uePhySecond{uePhyFirst};
 
         ObjectVectorValue ueSpectrumPhysFirstBwp;
-        Ptr<NrSpectrumPhy> nrSpectrumPhy;
-        uePhyFirst->GetAttribute("NrSpectrumPhyList", ueSpectrumPhysFirstBwp);
-        nrSpectrumPhy = ueSpectrumPhysFirstBwp.Get(0)->GetObject<NrSpectrumPhy>();
+        Ptr<NrSpectrumPhy> nrSpectrumPhy = uePhyFirst->GetSpectrumPhy();
         nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
             "PolSlantAngle",
             DoubleValue(ueFirstSubArray));
@@ -908,18 +903,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
             uePhySecond->SetUplinkPowerControl(uePhyFirst->GetUplinkPowerControl());
 
             ObjectVectorValue ueSpectrumPhysSecondBwp;
-            uePhySecond->GetAttribute("NrSpectrumPhyList", ueSpectrumPhysSecondBwp);
-            nrSpectrumPhy = ueSpectrumPhysSecondBwp.Get(0)->GetObject<NrSpectrumPhy>();
+            nrSpectrumPhy = uePhySecond->GetSpectrumPhy();
             nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
                 "PolSlantAngle",
                 DoubleValue(ueFirstSubArray));
-            if (ueSpectrumPhysSecondBwp.GetN() == 2)
-            {
-                nrSpectrumPhy = ueSpectrumPhysSecondBwp.Get(1)->GetObject<NrSpectrumPhy>();
-                nrSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetAttribute(
-                    "PolSlantAngle",
-                    DoubleValue(ueSecondSubArray));
-            }
         }
         uePhyFirst->TraceConnectWithoutContext("DlDataSinr",
                                                MakeBoundCallback(&ReportSinrNr, sinrStats));

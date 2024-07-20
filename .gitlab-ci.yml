@@ -10,6 +10,8 @@ stages:
   - deploy
 
 workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
@@ -32,13 +34,12 @@ workflow:
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - git log -1
-    - CXX=$COMPILER CXXFLAGS="$FLAGS" ./ns3 configure -d $MODE -GNinja --enable-examples --enable-modules=nr --enable-tests --enable-asserts
+    - CXX=$COMPILER CXXFLAGS="$FLAGS" ./ns3 configure -d $MODE -GNinja --enable-examples --enable-tests --enable-asserts --filter-module-examples-and-tests="nr;lte" $EXTRAS
     - cmake --version
     - ccache -z
     - ./ns3 build
     - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
-        ./test.py --no-build --constrain example;
-        ./test.py --no-build --suite 'nr*';
+        ./test.py --no-build --verbose-failed;
       fi
     - ccache -s
     - ./ns3 clean
@@ -57,9 +58,10 @@ workflow:
     paths:
       - $CCACHE_BASEDIR_VALUE/
   timeout: 9h
+  interruptible: true
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
-    NS3_RELEASE_VERSION: "master" #"ns-3.41"
+    NS3_RELEASE_VERSION: "ns-3.42"
 
 # Defines the per-commit jobs. They are executed for any branch
 .base-per-commit-compile:

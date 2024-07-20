@@ -15,7 +15,84 @@ http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
+Release NR-v3.1
+----------------
 
+Availability
+------------
+Available since July 19, 2024
+
+Cite this version
+-----------------
+DOI: 10.5281/zenodo.12773723
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-16.
+- Ubuntu 20.04 with g++10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+- Ubuntu 23.04 with g++13.
+- Ubuntu 23.10 (Mantic Minotaur) with clang-16.
+
+This release is compatible with ns-3.42.
+
+Important news
+--------------
+- This release comes with a completely new PMI Type-I Single Panel codebook for MIMO.
+
+- Performance optimizations were included for faster simulations.
+
+- The code base is updated for C++ conformance and aligned with ns-3.42.
+
+- Many bugs were fixed. One of them is significant, however it is limited to NR-U users.
+  The interference events were counted incorrectly after a refactoring merged in nr-3.0.
+  This caused the NrSpectrumPhy to change state prematurely due to sensing the channel
+  as empty when there was a transmission with received power bigger than the threshold.
+
+- We introduced two new CI jobs. The first to improve uniformization of commit messages.
+  The second catches memory related bugs, allowing for us or contributors to fix them
+  before finding them on the wild, crashing simulations or generating bogus results.
+
+- Remember to follow the instructions from the README.md file, i.e., to checkout
+  the correct release branch of both ns-3 and the NR module. The information about
+  compatibility with the corresponding ns-3 release branch is stated in the
+  `README.md` file.
+
+New user-visible features
+-------------------------
+- A new MIMO Type-I Single Panel codebook is available in the NR module.
+  The ``NrCbTypeOneSp`` codebook allows the MIMO model introduced in
+  nr-3.0 to support up to 32 antenna ports and up to rank 4. See the
+  ``cttc-nr-mimo-demo.cc`` file for an example on how to configure 
+  the new codebook. More details are available at the nr-manual and Doxygen.
+
+- Sub-band downsampling/upsampling techniques were implemented, allowing
+  for much faster simulations using large antenna panels with many ports.
+
+Bugs fixed
+----------
+- (edd72f85) Fixed the number of rows when creating a dummy precoding matrix 
+- (2c98da82) Abort when size of packet isn't supported by UDP
+- (d827c1df) Detect overflow in active tx count
+- (a9c6af8b) Assigned random streams to fix traffic-generator-test
+- (1092d90d) Reverted changes to NrInterference accounting of events
+- (88973614) Fixed serialized size of NrRadioBearerTag
+- (884b811e) Extend 16-bit numbers to 32-bit, to prevent overflows in Cantor computation
+- (9b59d43c) Prevent memory leak by freeing up SpectrumValue globals at the end of the simulation
+- (1df0862b) Prevent memory leak by explicitly disposing Phys not aggregated to a Node
+- (3cddaa57) Removed the deprecated attribute 'UseFixedRi' leftovers
+- (9da24622) Removed the deprecated attribute 'NrSpectrumPhyList' leftovers
+- (6b182dca) Fix config paths used by DlCtrlPathloss/DlDataPathloss
+- (1e47feb1) Fix static and monolib build of nr
+- (0fda3f52) Use sqlite prepare statement to prevent leak
+- (0989a1eb) Fix NrSpectrumPhy disposal to include m_rxSpectrumModel and m_txPsd
+- (69a76a94) Fix RealisticBeamformingHelper disposal
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
 
 Release NR-v3.0
 ----------------

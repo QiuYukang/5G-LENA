@@ -11,6 +11,7 @@
 #include "nr-mimo-chunk-processor.h"
 #include "nr-mimo-signal.h"
 
+#include "ns3/random-variable-stream.h"
 #include <ns3/uinteger.h>
 
 namespace ns3
@@ -26,7 +27,7 @@ class NrPmSearch : public Object
     static TypeId GetTypeId();
 
     /// \brief Default constructor
-    NrPmSearch() = default;
+    NrPmSearch();
 
     /// \brief Set the AMC object to be used for MCS and TB size calculation
     /// \param amc the NrAmc object
@@ -71,6 +72,34 @@ class NrPmSearch : public Object
     virtual PmCqiInfo CreateCqiFeedbackMimo(const NrMimoSignal& rxSignalRb,
                                             PmiUpdate pmiUpdate) = 0;
 
+    /// \brief Downsample the input channel matrix into bins of at most m_subbandSize PRBs
+    /// \param channelMatrix matrix to downsample
+    /// \return downsampled matrix
+    virtual NrIntfNormChanMat SubbandDownsampling(const NrIntfNormChanMat& channelMatrix);
+
+    /// \brief Upsample the input per-subband precoding matrix into a per-PRB precoding matrix
+    /// \param precMat matrix to upsample
+    /// \return upsampled matrix
+    virtual NrIntfNormChanMat SubbandUpsampling(const NrIntfNormChanMat& precMat,
+                                                size_t numPrbs) const;
+
+    enum DownsamplingTechnique
+    {
+        FirstPRB,   ///< Downsample m_subbandSize samples to bands based on the first PRB
+        RandomPRB,  ///< Downsample m_subbandSize samples to bands based on a random PRB
+        AveragePRB, ///< Downsample m_subbandSize samples to bands based on the average of PRBs
+    };
+
+    /**
+     * Assign a fixed random variable stream number to the random variables
+     * used by this model.  Return the number of streams (possibly zero) that
+     * have been assigned.
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    int64_t AssignStreams(int64_t stream);
+
   protected:
     struct PrecMatParams : public SimpleRefCount<PrecMatParams>
     {
@@ -81,7 +110,10 @@ class NrPmSearch : public Object
                              ///< capacity / SINR / CQI / TB size) used to find optimal precoding
     };
 
-    size_t m_subbandSize{1}; ///< Size of each subband (in number of RBs)
+    size_t m_subbandSize{1};                            ///< Size of each subband (in number of RBs)
+    enum DownsamplingTechnique m_downsamplingTechnique; ///< Technique used to downsample PRBs
+    Ptr<UniformRandomVariable>
+        m_downsamplingUniRand; ///< Uniform variable stream used to downsample PRBs
 
     bool m_isGnbDualPol{false}; ///< True when gNB has a dual-polarized antenna array
     size_t m_nGnbHPorts{0};     ///< Number of horizontal ports in the gNB antenna array
@@ -93,6 +125,43 @@ class NrPmSearch : public Object
 
     uint8_t m_rankLimit{UINT8_MAX}; ///< Limit the UE's maximum supported rank
     std::vector<uint8_t> m_ranks{}; ///< The set of ranks for which to compute precoding matrices
+  private:
+    /**
+     * Calculate the number of subbands should be allocated for a given channel matrix and subband
+     * size.
+     *
+     * \param chanMat The input PRB-based channel matrix
+     */
+    size_t GetNumSubbands(const NrIntfNormChanMat& chanMat) const;
+
+    /**
+     * Calculate the SB value from the first PRB within a subband-size.
+     * Called by SubbandDownsampling().
+     *
+     * \param chanMat The input PRB-based channel matrix
+     * \param downsampledChanMat The output SB-based channel matrix
+     */
+    void GetSubbandDownsampleFirstPrb(const NrIntfNormChanMat& chanMat,
+                                      ComplexMatrixArray& downsampledChanMat) const;
+    /**
+     * Calculate the SB value from a random PRB within a subband-size.
+     * Called by SubbandDownsampling().
+     *
+     * \param chanMat The input PRB-based channel matrix
+     * \param downsampledChanMat The output SB-based channel matrix
+     * */
+    void GetSubbandDownsampleRandomPrb(const NrIntfNormChanMat& chanMat,
+                                       ComplexMatrixArray& downsampledChanMat) const;
+
+    /**
+     * Calculate the average SB value from PRBs within a subband-size.
+     * Called by SubbandDownsampling().
+     *
+     * \param chanMat The input PRB-based channel matrix
+     * \param downsampledChanMat The output SB-based channel matrix
+     * */
+    void GetSubbandDownsampleAveragePrb(const NrIntfNormChanMat& chanMat,
+                                        ComplexMatrixArray& downsampledChanMat) const;
 };
 
 } // namespace ns3

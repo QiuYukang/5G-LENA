@@ -80,7 +80,7 @@ class NrMacSchedulerSrs
      * \return a struct that contains the periodicity and the offset. If the struct
      * is not valid, an increase in periodicity is probably needed.
      *
-     * \see IncreatePeriodicity
+     * \see IncreasePeriodicity
      */
     virtual SrsPeriodicityAndOffset AddUe() = 0;
 

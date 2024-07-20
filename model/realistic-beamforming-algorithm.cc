@@ -50,8 +50,15 @@ RealisticBeamformingAlgorithm::AssignStreams(int64_t stream)
     return 1;
 }
 
-RealisticBeamformingAlgorithm::~RealisticBeamformingAlgorithm()
+void
+RealisticBeamformingAlgorithm::DoDispose()
 {
+    m_gnbDevice = nullptr;
+    m_ueDevice = nullptr;
+    m_gnbSpectrumPhy = nullptr;
+    m_ueSpectrumPhy = nullptr;
+    m_scheduler = nullptr;
+    m_nrUePhy = nullptr;
 }
 
 TypeId

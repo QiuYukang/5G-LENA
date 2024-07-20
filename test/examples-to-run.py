@@ -180,6 +180,61 @@ cpp_examples = [
     ("cttc-nr-traffic-ngmn-mixed", "True", "True"),
     ("cttc-nr-traffic-3gpp-xr", "True", "True"),
     ("traffic-generator-example", "True", "True"),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali1 --technology=NR --nrConfigurationScenario=DenseA --operationMode=TDD --numRings=0 --crossPolarizedGnb=false --polSlantAngleGnb1=45 --polSlantAngleUe1=0.0 --ueBearingAngle=0 --appGenerationTime=0.5 --enableFading=true --enableShadowing=true --bfMethod=Omni --attachToClosest=1 --freqScenario=1 --trafficScenario=0",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali2 --technology=NR --nrConfigurationScenario=DenseA --operationMode=FDD --numRings=0 --crossPolarizedGnb=false --polSlantAngleGnb1=45 --polSlantAngleUe1=0.0 --ueBearingAngle=0 --appGenerationTime=0.5 --enableFading=true --enableShadowing=true --bfMethod=CellScan --attachToClosest=1 --freqScenario=1 --trafficScenario=1",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali3 --technology=NR --nrConfigurationScenario=RuralA --operationMode=FDD --numRings=0 --crossPolarizedGnb=true --appGenerationTime=0.1 --enableFading=false --enableShadowing=false --bfMethod=CellScan --freqScenario=0 --trafficScenario=2",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali4 --technology=LTE --errorModelType=ns3::LenaErrorModel --nrConfigurationScenario=DenseA --numRings=0 --operationMode=TDD --crossPolarizedGnb=false --polSlantAngleGnb1=45 --polSlantAngleUe1=0.0 --ueBearingAngle=0 --appGenerationTime=0.5 --enableFading=true --enableShadowing=true --bfMethod=CellScan --attachToClosest=1 --freqScenario=1 --trafficScenario=3",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-3gpp-calibration-user --simTag=NrCali5 --simulator=LENA --technology=LTE --errorModelType=LteMiErrorModel --nrConfigurationScenario=RuralA --numRings=0 --operationMode=FDD --crossPolarizedGnb=true --appGenerationTime=0.1 --enableFading=false --enableShadowing=false --bfMethod=CellScan --freqScenario=0 --trafficScenario=4",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --bandwidth=2.5e6 --subbandSize=1",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=2.5e6 --subbandSize=1 --downsamplingTechnique=FirstPRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=5e6 --subbandSize=4 --downsamplingTechnique=FirstPRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=10e6 --subbandSize=8 --downsamplingTechnique=FirstPRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=20e6 --subbandSize=16 --downsamplingTechnique=AveragePRB",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=40e6 --subbandSize=32 --downsamplingTechnique=AveragePRB",
+        "True",
+        "True",
+    ),
     ("nr-v2x-west-to-east-highway --enableSensing=1 --simTag=testpy-sensing", "True", "True"),
     ("nr-v2x-west-to-east-highway --enableSensing=0 --simTag=testpy-nosensing", "True", "True"),
     ("cttc-nr-v2x-demo-simple --simTag=testpy", "True", "True"),

@@ -90,8 +90,7 @@ class LenaV2Utils
                                              uint16_t beamConfSector,
                                              double beamConfElevation,
                                              double isd,
-                                             bool ueBearingAngle,
-                                             bool useFixedRi);
+                                             bool ueBearingAngle);
 
     static void ReportSinrNr(SinrOutputStats* stats,
                              uint16_t cellId,

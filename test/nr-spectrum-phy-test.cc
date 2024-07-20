@@ -158,13 +158,13 @@ SetNoisePsdTestCase::DoRun()
     Ptr<NrSpectrumPhy> txPhy = CreateObject<NrSpectrumPhy>();
     txPhy->SetMobility(CreateObject<ConstantPositionMobilityModel>());
     Ptr<UniformPlanarArray> ueAntenna = CreateObject<UniformPlanarArray>();
-    Ptr<NrGnbPhy> uePhy = CreateObject<NrGnbPhy>();
-    uePhy->InstallSpectrumPhy(txPhy);
-    txPhy->InstallPhy(uePhy);
+    Ptr<NrGnbPhy> gnbPhy = CreateObject<NrGnbPhy>();
+    gnbPhy->InstallSpectrumPhy(txPhy);
+    txPhy->InstallPhy(gnbPhy);
     txPhy->SetAntenna(ueAntenna);
     Ptr<BeamManager> ueBeamManager = CreateObject<BeamManager>();
     ueBeamManager->Configure(ueAntenna);
-    uePhy->DoSetCellId(99);
+    gnbPhy->DoSetCellId(99);
 
     params1->txPhy = txPhy;
 
@@ -198,6 +198,8 @@ SetNoisePsdTestCase::DoRun()
     Simulator::Schedule(MilliSeconds(9), &SetNoisePsdTestCase::DoEvaluateTest, this);
 
     Simulator::Run();
+    rxPhy->Dispose();  // Explicitly dispose NrSpectrumPhy since it is not aggregated to a Node
+    gnbPhy->Dispose(); // Explicitly dispose NrPhy since it is not aggregated to a Node
     Simulator::Destroy();
 }
 

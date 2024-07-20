@@ -95,10 +95,6 @@ class RealisticBeamformingAlgorithm : public Object
                  const Ptr<NrSpectrumPhy>& ueSpectrumPhy,
                  const Ptr<NrMacScheduler>& scheduler);
     /**
-     * \brief destructor
-     */
-    ~RealisticBeamformingAlgorithm() override;
-    /**
      * \brief Get the type id
      * \return the type id of the class
      */
@@ -245,6 +241,8 @@ class RealisticBeamformingAlgorithm : public Object
      * \brief Removes the "oldest" delayed update info - from the beginning of the queue
      */
     void RemoveUsedDelayedUpdateInfo();
+
+    void DoDispose() override;
 
     // attribute members, configuration variables
     double m_beamSearchAngleStep{30}; //!< The beam angle step that will be used to define the set

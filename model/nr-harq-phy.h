@@ -36,6 +36,21 @@ class NrHarqPhy : public SimpleRefCount<NrHarqPhy>
 
     /**
      * \brief Return the info of the HARQ procId in case of retransmissions
+     * for DL/UL (asynchronous)
+     * \param dl if downlink
+     * \param rnti the RNTI
+     * \param harqProcId the HARQ proc id
+     * \return the vector of the info related to HARQ proc Id
+     */
+    const NrErrorModel::NrErrorModelHistory& GetHarqProcessInfoDlUl(bool dl,
+                                                                    uint16_t rnti,
+                                                                    uint8_t harqProcId)
+    {
+        return dl ? GetHarqProcessInfoDl(rnti, harqProcId) : GetHarqProcessInfoUl(rnti, harqProcId);
+    };
+
+    /**
+     * \brief Return the info of the HARQ procId in case of retransmissions
      * for DL (asynchronous)
      * \param rnti the RNTI
      * \param harqProcId the HARQ proc id

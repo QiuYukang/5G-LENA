@@ -978,18 +978,18 @@ NrUePhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     m_receptionEnabled = true;
     Time varTtiDuration = GetSymbolPeriod() * dci->m_numSym;
     NS_ASSERT(dci->m_rnti == m_rnti);
-    m_spectrumPhy->AddExpectedTb(dci->m_rnti,
-                                 dci->m_ndi,
-                                 dci->m_tbSize,
-                                 dci->m_mcs,
-                                 dci->m_rank,
-                                 FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
-                                 dci->m_harqProcess,
-                                 dci->m_rv,
-                                 true,
-                                 dci->m_symStart,
-                                 dci->m_numSym,
-                                 m_currentSlot);
+    m_spectrumPhy->AddExpectedTb({dci->m_ndi,
+                                  dci->m_tbSize,
+                                  dci->m_mcs,
+                                  dci->m_rank,
+                                  dci->m_rnti,
+                                  FromRBGBitmaskToRBAssignment(dci->m_rbgBitmask),
+                                  dci->m_harqProcess,
+                                  dci->m_rv,
+                                  true,
+                                  dci->m_symStart,
+                                  dci->m_numSym,
+                                  m_currentSlot});
     m_reportDlTbSize(m_netDevice->GetObject<NrUeNetDevice>()->GetImsi(), dci->m_tbSize);
     NS_LOG_INFO("UE" << m_rnti << " RXing DL DATA frame for symbols " << +dci->m_symStart << "-"
                      << +(dci->m_symStart + dci->m_numSym - 1) << " num of rbg assigned: "

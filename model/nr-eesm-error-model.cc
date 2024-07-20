@@ -7,6 +7,7 @@
 
 #include "nr-eesm-error-model.h"
 
+#include "fast-exp.h"
 #include "nr-phy-mac-common.h"
 
 #include "ns3/enum.h"
@@ -89,7 +90,7 @@ NrEesmErrorModel::SinrExp(const SpectrumValue& sinr, const std::vector<int>& map
     for (int i : map)
     {
         double sinrLin = sinr[i];
-        SINRexp = exp(-sinrLin / beta);
+        SINRexp = exp21d(-sinrLin / beta);
         SINRsum += SINRexp;
     }
     return SINRsum;

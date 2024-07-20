@@ -96,6 +96,11 @@ class NrSpectrumValueHelper
     static Ptr<SpectrumValue> CreateTxPsdOverAllRbs(double powerTx,
                                                     const std::vector<int>& activeRbs,
                                                     const Ptr<const SpectrumModel>& spectrumModel);
+
+    /**
+     * Delete SpectrumValues stored in g_nrSpectrumModelMap
+     */
+    static void DeleteSpectrumValues();
 };
 
 } // namespace ns3
