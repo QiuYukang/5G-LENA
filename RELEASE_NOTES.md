@@ -15,6 +15,48 @@ http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
+Release NR-v3.2
+---------------
+
+Availability
+------------
+In development
+
+Cite this version
+-----------------
+DOI: TBD
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- Arch Linux with g++-13 and clang-16.
+- Ubuntu 20.04 with g++10.
+- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+- Ubuntu 23.04 with g++13.
+- Ubuntu 23.10 (Mantic Minotaur) with clang-16.
+
+This release will be compatible with ns-3.4x.
+
+Important news
+--------------
+
+- Remember to follow the instructions from the README.md file, i.e., to checkout
+  the correct release branch of both ns-3 and the NR module. The information about
+  compatibility with the corresponding ns-3 release branch is stated in the
+  `README.md` file.
+
+New user-visible features
+-------------------------
+
+Bugs fixed
+----------
+
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
 Release NR-v3.1
 ----------------
 
@@ -64,7 +106,7 @@ New user-visible features
 - A new MIMO Type-I Single Panel codebook is available in the NR module.
   The ``NrCbTypeOneSp`` codebook allows the MIMO model introduced in
   nr-3.0 to support up to 32 antenna ports and up to rank 4. See the
-  ``cttc-nr-mimo-demo.cc`` file for an example on how to configure 
+  ``cttc-nr-mimo-demo.cc`` file for an example on how to configure
   the new codebook. More details are available at the nr-manual and Doxygen.
 
 - Sub-band downsampling/upsampling techniques were implemented, allowing
@@ -72,7 +114,7 @@ New user-visible features
 
 Bugs fixed
 ----------
-- (edd72f85) Fixed the number of rows when creating a dummy precoding matrix 
+- (edd72f85) Fixed the number of rows when creating a dummy precoding matrix
 - (2c98da82) Abort when size of packet isn't supported by UDP
 - (d827c1df) Detect overflow in active tx count
 - (a9c6af8b) Assigned random streams to fix traffic-generator-test

@@ -50,6 +50,19 @@ us a note on ns-developers mailing list.
 
 ---
 
+## Changes from NR-v3.1 to v3.2
+
+### New API:
+
+
+### Changes to existing API:
+
+
+### Changed behavior:
+
+
+---
+
 ## Changes from NR-v3.0 to v3.1
 
 This release contains the upgrade of the supported ns-3 release, i.e., upgrade
