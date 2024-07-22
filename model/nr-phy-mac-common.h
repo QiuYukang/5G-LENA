@@ -505,18 +505,19 @@ struct ExpectedTb
     ExpectedTb() = delete;
     ExpectedTb(const ExpectedTb& o) = default;
 
-    uint8_t m_ndi{0};            //!< New data indicator
-    uint32_t m_tbSize{0};        //!< TBSize
-    uint8_t m_mcs{0};            //!< MCS
-    uint8_t m_rank{1};           //!< MIMO rank
-    uint16_t m_rnti{0};          //!< RNTI
-    std::vector<int> m_rbBitmap; //!< RB Bitmap
-    uint8_t m_harqProcessId{0};  //!< HARQ process ID (MAC)
-    uint8_t m_rv{0};             //!< RV
-    bool m_isDownlink{false};    //!< is Downlink?
-    uint8_t m_symStart{0};       //!< Sym start
-    uint8_t m_numSym{0};         //!< Num sym
-    SfnSf m_sfn;                 //!< SFN
+    uint8_t m_ndi{0};                                         //!< New data indicator
+    uint32_t m_tbSize{0};                                     //!< TBSize
+    uint8_t m_mcs{0};                                         //!< MCS
+    uint8_t m_rank{1};                                        //!< MIMO rank
+    uint16_t m_rnti{0};                                       //!< RNTI
+    std::vector<int> m_rbBitmap;                              //!< RB Bitmap
+    uint8_t m_harqProcessId{0};                               //!< HARQ process ID (MAC)
+    uint8_t m_rv{0};                                          //!< RV
+    bool m_isDownlink{false};                                 //!< is Downlink?
+    uint8_t m_symStart{0};                                    //!< Sym start
+    uint8_t m_numSym{0};                                      //!< Num sym
+    SfnSf m_sfn;                                              //!< SFN
+    uint16_t m_dstL2Id{std::numeric_limits<uint16_t>::max()}; //!< Destination L2 ID
 };
 
 struct TransportBlockInfo
@@ -539,8 +540,22 @@ struct TransportBlockInfo
                                     //    Filled at the end of data rx/tx
     bool m_harqFeedbackSent{false}; //!< Indicate if the feedback has been sent for an entire TB
     Ptr<NrErrorModelOutput> m_outputOfEM; //!< Output of the Error Model (depends on the EM type)
-    double m_sinrAvg{0.0};                //!< AVG SINR (only for the RB used to transmit the TB)
+    SpectrumValue m_sinrPerceived; //!< SINR that is being update at the end of the DATA reception
+                                   //!< and is used for TB decoding
+    bool m_sinrUpdated{false};     //!< Flag to indicate the successful update of sinrPerceived
+
+    double m_sinrAvg{0.0}; //!< AVG SINR (only for the RB used to transmit the TB)
     double m_sinrMin{0.0}; //!< MIN SINR (only between the RB used to transmit the TB)
+    bool m_isSci2Corrupted{
+        false}; //!< True if the ErrorModel indicates that the SCI stage 2 is corrupted.
+                //    Filled at the end of data rx/tx
+    bool m_isHarqEnabled{false}; //!< Indicate if the SCI2A header had HARQ enabled
+    Ptr<NrErrorModelOutput>
+        m_outputEmForData; //!< Output of the Error Model (depends on the EM type) for data
+    Ptr<NrErrorModelOutput>
+        m_outputEmForSci2; //!< Output of the Error Model (depends on the EM type) for SCI stage 2
+    uint32_t m_pktIndex{std::numeric_limits<uint32_t>::max()}; //!< Index of the TB in the \p
+                                                               //!< m_slRxSigParamInfo buffer
 };
 
 /**
@@ -573,6 +588,8 @@ struct RxPacketTraceParams
           m_bwpId(bwpId),
           m_rbAssignedNum(static_cast<uint32_t>(tbInfo.m_expected.m_rbBitmap.size())),
           m_cqi(cqi){};
+
+    RxPacketTraceParams() = default;
     uint64_t m_cellId{0};
     uint16_t m_rnti{0};
     uint32_t m_frameNum{std::numeric_limits<uint32_t>::max()};

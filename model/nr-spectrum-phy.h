@@ -791,93 +791,6 @@ class NrSpectrumPhy : public SpectrumPhy
     };
 
     /**
-     * \brief Information about the expected NR SL transport block at a certain point in the slot
-     *
-     * Information passed by the PHY through a call to AddSlExpectedTb
-     */
-    struct SlExpectedTb
-    {
-        /**
-         * \brief constructor
-         * \param dstId The Destination id
-         * \param tbSize The TB size
-         * \param mcs The MCS
-         * \param rbMap The RB map
-         * \param symStart The starting symbol index
-         * \param numSym The total number of symbols
-         * \param sfn The SfnSf
-         */
-        SlExpectedTb(uint32_t dstId,
-                     uint32_t tbSize,
-                     uint8_t mcs,
-                     const std::vector<int>& rbMap,
-                     uint8_t symStart,
-                     uint8_t numSym,
-                     const SfnSf& sfn)
-            : dstId{dstId},
-              tbSize(tbSize),
-              mcs(mcs),
-              rbBitmap(rbMap),
-              symStart(symStart),
-              numSym(numSym),
-              sfn(sfn)
-        {
-        }
-
-        SlExpectedTb() = delete;
-        /**
-         * \brief default copy constructor
-         * \param o other SlExpectedTb object
-         */
-        SlExpectedTb(const SlExpectedTb& o) = default;
-
-        uint32_t dstId{0};         //!< Destination id
-        uint32_t tbSize{0};        //!< TBSize
-        uint8_t mcs{0};            //!< MCS
-        std::vector<int> rbBitmap; //!< RB Bitmap
-        uint8_t symStart{0};       //!< Sym start
-        uint8_t numSym{0};         //!< Num sym
-        SfnSf sfn;                 //!< SFN
-    };
-
-    /**
-     * \brief Sidelink transport block info
-     */
-    struct SlTransportBlockInfo
-    {
-        /**
-         * \brief constructor
-         * \param expectedTb Expected NR SL data from the PHY
-         */
-        SlTransportBlockInfo(const SlExpectedTb& expectedTb)
-            : expectedTb(expectedTb)
-        {
-        }
-
-        SlTransportBlockInfo() = delete;
-
-        SlExpectedTb expectedTb; //!< Expected NR SL data from the PHY. Filled by AddSlExpectedTb
-        bool isDataCorrupted{
-            false}; //!< True if the ErrorModel indicates that the data TB is corrupted.
-        bool isSci2Corrupted{
-            false}; //!< True if the ErrorModel indicates that the SCI stage 2 is corrupted.
-                    //    Filled at the end of data rx/tx
-        bool isHarqEnabled{false};    //!< Indicate if the SCI2A header had HARQ enabled
-        bool harqFeedbackSent{false}; //!< Indicate if the feedback has been sent for an entire TB
-        Ptr<NrErrorModelOutput>
-            outputEmForData; //!< Output of the Error Model (depends on the EM type) for data
-        Ptr<NrErrorModelOutput>
-            outputEmForSci2; //!< Output of the Error Model (depends on the EM type) for SCI stage 2
-        SpectrumValue sinrPerceived; //!< SINR that is being update at the end of the DATA reception
-                                     //!< and is used for TB decoding
-        bool sinrUpdated{false};     //!< Flag to indicate the successful update of sinrPerceived
-        double sinrAvg{0.0};         //!< AVG SINR (only for the RB used to transmit the TB)
-        double sinrMin{0.0};         //!< MIN SINR (only between the RB used to transmit the TB)
-        uint32_t pktIndex{std::numeric_limits<uint32_t>::max()}; //!< Index of the TB in the \p
-                                                                 //!< m_slRxSigParamInfo buffer
-    };
-
-    /**
      * \brief This callback method type is used to notify about a successful PSCCH reception
      */
     typedef std::function<void(const Ptr<Packet>&, const SpectrumValue&)> NrPhyRxPscchEndOkCallback;
@@ -1014,23 +927,10 @@ class NrSpectrumPhy : public SpectrumPhy
     void SetNrPhyRxSlPsfchCallback(NrPhyRxSlPsfchCallback c);
     /**
      * \brief Add sidelink expected Transport Block (TB)
-     * \param rnti The RNTI of the UE from whom to expect the TB
-     * \param dstId The destination L2 id
-     * \param tbSize The TB size
-     * \param mcs The MCS
-     * \param rbMap Bitmap indicating the RBs used to tx the TB
-     * \param symStart The index of the starting symbol
-     * \param numSym The total number of symbols used
-     * \param sfn The sfn
+     * \param expectedTb the expected TB
+     * \param dstL2Id The destination L2 id
      */
-    void AddSlExpectedTb(uint16_t rnti,
-                         uint32_t dstId,
-                         uint32_t tbSize,
-                         uint8_t mcs,
-                         const std::vector<int>& rbMap,
-                         uint8_t symStart,
-                         uint8_t numSym,
-                         const SfnSf& sfn);
+    void AddSlExpectedTb(ExpectedTb expectedTb, uint16_t dstL2Id);
 
     /**
      * \brief Clear the buffer of NR SL expected transport block
@@ -1113,7 +1013,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief typedef for NR SL transport block map per RNTI of TBs which are
      *        expected to be received after successful decoding of SCI stage-1.
      */
-    typedef std::unordered_map<uint16_t, SlTransportBlockInfo> SlTransportBlocks;
+    typedef std::unordered_map<uint16_t, TransportBlockInfo> SlTransportBlocks;
 
     SlTransportBlocks m_slTransportBlocks; //!< Map of type SlTransportBlocks
 

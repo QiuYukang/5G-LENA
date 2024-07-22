@@ -2100,14 +2100,19 @@ NrUePhy::PhyPscchPduReceived(const Ptr<Packet>& p, const SpectrumValue& psd)
         NS_LOG_INFO("Received first stage SCI for destination " << *it << " from RNTI "
                                                                 << tag.GetRnti());
         // Assume first stream
-        m_spectrumPhy->AddSlExpectedTb(tag.GetRnti(),
-                                       tag.GetDstL2Id(),
-                                       tag.GetTbSize(),
-                                       sciF1a.GetMcs(),
-                                       rbBitMap,
-                                       tag.GetSymStart(),
-                                       tag.GetNumSym(),
-                                       tag.GetSfn());
+        m_spectrumPhy->AddSlExpectedTb({UINT8_MAX,
+                                        tag.GetTbSize(),
+                                        sciF1a.GetMcs(),
+                                        UINT8_MAX,
+                                        tag.GetRnti(),
+                                        rbBitMap,
+                                        UINT8_MAX,
+                                        UINT8_MAX,
+                                        false,
+                                        tag.GetSymStart(),
+                                        tag.GetNumSym(),
+                                        tag.GetSfn()},
+                                       tag.GetDstL2Id());
         SaveFutureSlRxGrants(sciF1a, tag, sbChSize);
     }
     else
@@ -2194,14 +2199,19 @@ NrUePhy::SendSlExpectedTbInfo(const SfnSf& s)
         if (expectedTbInfo.sfn == s)
         {
             m_slRxGrants.pop_front();
-            m_spectrumPhy->AddSlExpectedTb(expectedTbInfo.rnti,
-                                           expectedTbInfo.dstId,
-                                           expectedTbInfo.tbSize,
-                                           expectedTbInfo.mcs,
-                                           expectedTbInfo.rbBitmap,
-                                           expectedTbInfo.symStart,
-                                           expectedTbInfo.numSym,
-                                           expectedTbInfo.sfn);
+            m_spectrumPhy->AddSlExpectedTb({UINT8_MAX,
+                                            expectedTbInfo.tbSize,
+                                            expectedTbInfo.mcs,
+                                            UINT8_MAX,
+                                            expectedTbInfo.rnti,
+                                            expectedTbInfo.rbBitmap,
+                                            UINT8_MAX,
+                                            UINT8_MAX,
+                                            false,
+                                            expectedTbInfo.symStart,
+                                            expectedTbInfo.numSym,
+                                            expectedTbInfo.sfn},
+                                           expectedTbInfo.dstId);
         }
     }
 }

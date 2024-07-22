@@ -2513,18 +2513,18 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
             NS_LOG_DEBUG("Continuing because RNTI " << tag.GetRnti() << " not found");
             continue;
         }
-        itTb->second.sinrPerceived = m_slSinrPerceived.at(pktIndex);
-        itTb->second.pktIndex = pktIndex;
+        itTb->second.m_sinrPerceived = m_slSinrPerceived.at(pktIndex);
+        itTb->second.m_pktIndex = pktIndex;
         NS_LOG_DEBUG("Updating SINR for RNTI " << tag.GetRnti());
-        itTb->second.sinrUpdated = true;
-        // Let's compute some stats
-        auto sinrStats = GetSinrStats(itTb->second.sinrPerceived, itTb->second.expectedTb.rbBitmap);
-        itTb->second.sinrAvg = sinrStats.sinrAvg;
-        itTb->second.sinrMin = sinrStats.sinrMin;
+        itTb->second.m_sinrUpdated = true;
+        auto sinrStats =
+            GetSinrStats(itTb->second.m_sinrPerceived, itTb->second.m_expected.m_rbBitmap);
+        itTb->second.m_sinrAvg = sinrStats.sinrAvg;
+        itTb->second.m_sinrMin = sinrStats.sinrMin;
 
-        NS_LOG_INFO("Finishing RX, sinrAvg = " << itTb->second.sinrAvg << " sinrMin = "
-                                               << itTb->second.sinrMin << " SinrAvg (dB) "
-                                               << 10 * log(itTb->second.sinrAvg) / log(10));
+        NS_LOG_INFO("Finishing RX, sinrAvg = " << itTb->second.m_sinrAvg << " sinrMin = "
+                                               << itTb->second.m_sinrMin << " SinrAvg (dB) "
+                                               << 10 * log(itTb->second.m_sinrAvg) / log(10));
     }
 
     std::unordered_set<int> collidedRbBitmap;
@@ -2536,8 +2536,8 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
              itTb != m_slTransportBlocks.end();
              itTb++)
         {
-            for (std::vector<int>::iterator rbIt = (*itTb).second.expectedTb.rbBitmap.begin();
-                 rbIt != (*itTb).second.expectedTb.rbBitmap.end();
+            for (std::vector<int>::iterator rbIt = (*itTb).second.m_expected.m_rbBitmap.begin();
+                 rbIt != (*itTb).second.m_expected.m_rbBitmap.end();
                  rbIt++)
             {
                 if (collidedRbBitmapTemp.find(*rbIt) != collidedRbBitmapTemp.end())
@@ -2557,7 +2557,7 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
     // Compute the error and check for collision for each expected TB
     for (auto& tbIt : m_slTransportBlocks)
     {
-        if (tbIt.second.sinrUpdated == false)
+        if (tbIt.second.m_sinrUpdated == false)
         {
             // The below abort seems too strict; it could be the case that SCI stage 1
             // was not decoded.
@@ -2566,7 +2566,7 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
             NS_LOG_WARN("SINR not updated for the expected TB from RNTI " << tbIt.first);
             continue;
         }
-        Ptr<Packet> sci2Pkt = RetrieveSci2FromPktBurst(tbIt.second.pktIndex);
+        Ptr<Packet> sci2Pkt = RetrieveSci2FromPktBurst(tbIt.second.m_pktIndex);
         NrSlSciF2aHeader sciF2a;
         sci2Pkt->PeekHeader(sciF2a);
 
@@ -2587,16 +2587,16 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                 NS_LOG_DEBUG(this << " PSSCH DropTbOnRbOnCollision and error model enabled: "
                                      "Checking for RB collision");
                 // Check if any of the RBs have been decoded
-                for (std::vector<int>::iterator rbIt = tbIt.second.expectedTb.rbBitmap.begin();
-                     rbIt != tbIt.second.expectedTb.rbBitmap.end();
+                for (std::vector<int>::iterator rbIt = tbIt.second.m_expected.m_rbBitmap.begin();
+                     rbIt != tbIt.second.m_expected.m_rbBitmap.end();
                      rbIt++)
                 {
                     if (collidedRbBitmap.find(*rbIt) != collidedRbBitmap.end())
                     {
                         NS_LOG_DEBUG(*rbIt << " collided, labeled as corrupted!");
                         rbCollided = true;
-                        tbIt.second.isSci2Corrupted = true;
-                        tbIt.second.isDataCorrupted = true;
+                        tbIt.second.m_isSci2Corrupted = true;
+                        tbIt.second.m_isCorrupted = true;
                         break;
                     }
                 }
@@ -2609,54 +2609,54 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
             // if we will do it inside "if (!rbCollided)" outputEmForData will remain
             // null.
             uint8_t Sci2Mcs = 0 /*using QPSK*/;
-            tbIt.second.outputEmForSci2 = m_slErrorModel->GetTbDecodificationStats(
-                tbIt.second.sinrPerceived,
-                tbIt.second.expectedTb.rbBitmap,
+            tbIt.second.m_outputEmForSci2 = m_slErrorModel->GetTbDecodificationStats(
+                tbIt.second.m_sinrPerceived,
+                tbIt.second.m_expected.m_rbBitmap,
                 sciF2a.GetSerializedSize() /*5 bytes is the fixed size of SCI-stage 2 Format 2A*/,
                 Sci2Mcs,
                 NrErrorModel::NrErrorModelHistory());
             // check the decodification of SCI stage 2 with a random probability
             sciF2aCorrupted =
-                m_random->GetValue() > tbIt.second.outputEmForSci2->m_tbler ? false : true;
-            tbIt.second.isSci2Corrupted = sciF2aCorrupted;
+                m_random->GetValue() > tbIt.second.m_outputEmForSci2->m_tbler ? false : true;
+            tbIt.second.m_isSci2Corrupted = sciF2aCorrupted;
             NS_LOG_DEBUG(this << " SCI stage 2 decoding, errorRate "
-                              << tbIt.second.outputEmForSci2->m_tbler << " corrupt "
-                              << tbIt.second.isSci2Corrupted);
+                              << tbIt.second.m_outputEmForSci2->m_tbler << " corrupt "
+                              << tbIt.second.m_isSci2Corrupted);
             if (sciF2aCorrupted)
             {
                 NS_LOG_DEBUG(this << " PSSCH SCI stage 2 decoding failed, errorRate "
-                                  << tbIt.second.outputEmForSci2->m_tbler);
+                                  << tbIt.second.m_outputEmForSci2->m_tbler);
                 m_slSci2aDecodeFailures++;
                 // If SCI stage 2 is corrupted, data is also corrupted.
-                tbIt.second.isDataCorrupted = true;
+                tbIt.second.m_isCorrupted = true;
 
                 // Trace
                 SlRxDataPacketTraceParams traceParams;
                 traceParams.m_timeMs = Simulator::Now().GetSeconds() * 1000.0;
                 traceParams.m_cellId = ueRx->GetPhy(GetBwpId())->GetCellId();
                 traceParams.m_rnti = ueRx->GetPhy(GetBwpId())->GetRnti();
-                traceParams.m_tbSize = tbIt.second.expectedTb.tbSize;
-                traceParams.m_frameNum = tbIt.second.expectedTb.sfn.GetFrame();
-                traceParams.m_subframeNum = tbIt.second.expectedTb.sfn.GetSubframe();
-                traceParams.m_slotNum = tbIt.second.expectedTb.sfn.GetSlot();
+                traceParams.m_tbSize = tbIt.second.m_expected.m_tbSize;
+                traceParams.m_frameNum = tbIt.second.m_expected.m_sfn.GetFrame();
+                traceParams.m_subframeNum = tbIt.second.m_expected.m_sfn.GetSubframe();
+                traceParams.m_slotNum = tbIt.second.m_expected.m_sfn.GetSlot();
                 traceParams.m_txRnti = tbIt.first; // this is the RNTI of the TX UE
-                traceParams.m_mcs = tbIt.second.expectedTb.mcs;
-                traceParams.m_sinr = tbIt.second.sinrAvg;
-                traceParams.m_sinrMin = tbIt.second.sinrMin;
-                traceParams.m_tblerSci2 = tbIt.second.outputEmForSci2->m_tbler;
+                traceParams.m_mcs = tbIt.second.m_expected.m_mcs;
+                traceParams.m_sinr = tbIt.second.m_sinrAvg;
+                traceParams.m_sinrMin = tbIt.second.m_sinrMin;
+                traceParams.m_tblerSci2 = tbIt.second.m_outputEmForSci2->m_tbler;
                 traceParams.m_rv = sciF2a.GetRv();
                 traceParams.m_ndi = sciF2a.GetNdi();
-                traceParams.m_corrupt = tbIt.second.isDataCorrupted;
-                traceParams.m_sci2Corrupted = tbIt.second.isSci2Corrupted;
-                traceParams.m_symStart = tbIt.second.expectedTb.symStart;
-                traceParams.m_numSym = tbIt.second.expectedTb.numSym;
+                traceParams.m_corrupt = tbIt.second.m_isCorrupted;
+                traceParams.m_sci2Corrupted = tbIt.second.m_isSci2Corrupted;
+                traceParams.m_symStart = tbIt.second.m_expected.m_symStart;
+                traceParams.m_numSym = tbIt.second.m_expected.m_numSym;
                 traceParams.m_bwpId = GetBwpId();
                 traceParams.m_dstL2Id = sciF2a.GetDstId();
                 traceParams.m_srcL2Id = sciF2a.GetSrcId();
                 uint32_t rbBitmapSize =
-                    static_cast<uint32_t>(tbIt.second.expectedTb.rbBitmap.size());
-                traceParams.m_rbStart = tbIt.second.expectedTb.rbBitmap.at(0);
-                traceParams.m_rbEnd = tbIt.second.expectedTb.rbBitmap.at(rbBitmapSize - 1);
+                    static_cast<uint32_t>(tbIt.second.m_expected.m_rbBitmap.size());
+                traceParams.m_rbStart = tbIt.second.m_expected.m_rbBitmap.at(0);
+                traceParams.m_rbEnd = tbIt.second.m_expected.m_rbBitmap.at(rbBitmapSize - 1);
                 traceParams.m_rbAssignedNum = rbBitmapSize;
                 m_rxPsschTraceUe(traceParams);
                 continue;
@@ -2664,7 +2664,7 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
             else
             {
                 NS_LOG_DEBUG(this << " PSSCH SCI stage 2 decoding succeeded, errorRate "
-                                  << tbIt.second.outputEmForSci2->m_tbler);
+                                  << tbIt.second.m_outputEmForSci2->m_tbler);
             }
             if (sciF2a.GetNdi())
             {
@@ -2673,7 +2673,7 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                                                    << tbIt.first << " rv " << +sciF2a.GetRv());
                 m_harqPhyModule->RemovePrevDecoded(tbIt.first, sciF2a.GetHarqId());
             }
-            tbIt.second.isHarqEnabled = sciF2a.GetHarqFbIndicator();
+            tbIt.second.m_isHarqEnabled = sciF2a.GetHarqFbIndicator();
             // Do not dispatch already decoded TBs to UE PHY (may be a blind retx)
             if (m_harqPhyModule->IsPrevDecoded(tbIt.first, sciF2a.GetHarqId()))
             {
@@ -2698,41 +2698,41 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                 const_cast<NrErrorModel::NrErrorModelHistory&>(harqInfoList) =
                     m_harqPhyModule->GetHarqProcessInfoSl(tbIt.first, sciF2a.GetHarqId());
             }
-            tbIt.second.outputEmForData =
-                m_slErrorModel->GetTbDecodificationStats(tbIt.second.sinrPerceived,
-                                                         tbIt.second.expectedTb.rbBitmap,
-                                                         tbIt.second.expectedTb.tbSize,
-                                                         tbIt.second.expectedTb.mcs,
+            tbIt.second.m_outputEmForData =
+                m_slErrorModel->GetTbDecodificationStats(tbIt.second.m_sinrPerceived,
+                                                         tbIt.second.m_expected.m_rbBitmap,
+                                                         tbIt.second.m_expected.m_tbSize,
+                                                         tbIt.second.m_expected.m_mcs,
                                                          harqInfoList);
             if (!rbCollided)
             {
                 // check the decodification of data with a random probability
-                tbIt.second.isDataCorrupted =
-                    m_random->GetValue() <= tbIt.second.outputEmForData->m_tbler;
-                for (auto it = tbIt.second.sinrPerceived.ConstValuesBegin();
-                     it != tbIt.second.sinrPerceived.ConstValuesEnd();
+                tbIt.second.m_isCorrupted =
+                    m_random->GetValue() <= tbIt.second.m_outputEmForData->m_tbler;
+                for (auto it = tbIt.second.m_sinrPerceived.ConstValuesBegin();
+                     it != tbIt.second.m_sinrPerceived.ConstValuesEnd();
                      it++)
                 {
                     NS_ABORT_MSG_IF(std::isnan(*it), "Invalid SINR spectrum value (nan)");
                 }
-                if (tbIt.second.isDataCorrupted)
+                if (tbIt.second.m_isCorrupted)
                 {
                     NS_LOG_DEBUG(this << " PSSCH TB decoding failed, errorRate "
-                                      << tbIt.second.outputEmForData->m_tbler);
+                                      << tbIt.second.m_outputEmForData->m_tbler);
                     m_slTbDecodeFailures++;
-                    tbIt.second.isDataCorrupted = true;
+                    tbIt.second.m_isCorrupted = true;
                 }
                 else
                 {
                     NS_LOG_DEBUG(this << " PSSCH TB decoding successful, errorRate "
-                                      << tbIt.second.outputEmForData->m_tbler << " data corrupt "
-                                      << tbIt.second.isDataCorrupted);
-                    tbIt.second.isDataCorrupted = false;
+                                      << tbIt.second.m_outputEmForData->m_tbler << " data corrupt "
+                                      << tbIt.second.m_isCorrupted);
+                    tbIt.second.m_isCorrupted = false;
                     m_harqPhyModule->IndicatePrevDecoded(tbIt.first, sciF2a.GetHarqId());
                 }
 
                 // Arrange the HARQ history
-                if (!tbIt.second.isDataCorrupted)
+                if (!tbIt.second.m_isCorrupted)
                 {
                     NS_LOG_DEBUG("Reset SL process: " << +sciF2a.GetHarqId()
                                                       << " for the packets received from RNTI "
@@ -2746,19 +2746,19 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                                                        << tbIt.first);
                     m_harqPhyModule->UpdateSlDataHarqProcessStatus(tbIt.first,
                                                                    sciF2a.GetHarqId(),
-                                                                   tbIt.second.outputEmForData);
+                                                                   tbIt.second.m_outputEmForData);
                 }
 
-                if (tbIt.second.isDataCorrupted)
+                if (tbIt.second.m_isCorrupted)
                 {
                     NS_LOG_INFO("RNTI " << tbIt.first << " processId " << +sciF2a.GetHarqId()
-                                        << " size " << tbIt.second.expectedTb.tbSize << " mcs "
-                                        << +tbIt.second.expectedTb.mcs << " bitmap size "
-                                        << tbIt.second.expectedTb.rbBitmap.size()
+                                        << " size " << tbIt.second.m_expected.m_tbSize << " mcs "
+                                        << +tbIt.second.m_expected.m_mcs << " bitmap size "
+                                        << tbIt.second.m_expected.m_rbBitmap.size()
                                         << " rv from MAC: " << +sciF2a.GetRv()
                                         << " elements in the history: " << harqInfoList.size()
-                                        << " TBLER " << tbIt.second.outputEmForData->m_tbler
-                                        << " corrupted " << tbIt.second.isDataCorrupted);
+                                        << " TBLER " << tbIt.second.m_outputEmForData->m_tbler
+                                        << " corrupted " << tbIt.second.m_isCorrupted);
                 }
             }
         }
@@ -2771,7 +2771,7 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                                                    << tbIt.first << " rv " << +sciF2a.GetRv());
                 m_harqPhyModule->RemovePrevDecoded(tbIt.first, sciF2a.GetHarqId());
             }
-            tbIt.second.isHarqEnabled = sciF2a.GetHarqFbIndicator();
+            tbIt.second.m_isHarqEnabled = sciF2a.GetHarqFbIndicator();
             // Do not dispatch already decoded TBs to UE PHY (may be a blind retx)
             if (m_harqPhyModule->IsPrevDecoded(tbIt.first, sciF2a.GetHarqId()))
             {
@@ -2783,28 +2783,28 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
                 NS_LOG_DEBUG(this << " PSSCH DropTbOnRbOnCollision enabled, error model disabled: "
                                      "Checking for RB collision");
                 // Check if any of the RBs have been decoded
-                for (std::vector<int>::iterator rbIt = tbIt.second.expectedTb.rbBitmap.begin();
-                     rbIt != tbIt.second.expectedTb.rbBitmap.end();
+                for (std::vector<int>::iterator rbIt = tbIt.second.m_expected.m_rbBitmap.begin();
+                     rbIt != tbIt.second.m_expected.m_rbBitmap.end();
                      rbIt++)
                 {
                     if (collidedRbBitmap.find(*rbIt) != collidedRbBitmap.end())
                     {
                         NS_LOG_DEBUG(*rbIt << " collided, labeled as corrupted!");
                         rbCollided = true;
-                        tbIt.second.isSci2Corrupted = true;
-                        tbIt.second.isDataCorrupted = true;
+                        tbIt.second.m_isSci2Corrupted = true;
+                        tbIt.second.m_isCorrupted = true;
                         break;
                     }
                 }
             }
             /*
             //This if is redundant since the default values for
-            //isSci2Corrupted and isDataCorrupted is false. Leaving
+            //isSci2Corrupted and isCorrupted is false. Leaving
             //it for readability purpose at this stage.
             if (!rbCollided)
               {
-                tbIt.second.isSci2Corrupted = false;
-                tbIt.second.isDataCorrupted = false;
+                tbIt.second.m_isSci2Corrupted = false;
+                tbIt.second.m_isCorrupted = false;
               }
              */
         }
@@ -2813,34 +2813,34 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
         traceParams.m_timeMs = Simulator::Now().GetSeconds() * 1000.0;
         traceParams.m_cellId = ueRx->GetPhy(GetBwpId())->GetCellId();
         traceParams.m_rnti = ueRx->GetPhy(GetBwpId())->GetRnti();
-        traceParams.m_tbSize = tbIt.second.expectedTb.tbSize;
-        traceParams.m_frameNum = tbIt.second.expectedTb.sfn.GetFrame();
-        traceParams.m_subframeNum = tbIt.second.expectedTb.sfn.GetSubframe();
-        traceParams.m_slotNum = tbIt.second.expectedTb.sfn.GetSlot();
+        traceParams.m_tbSize = tbIt.second.m_expected.m_tbSize;
+        traceParams.m_frameNum = tbIt.second.m_expected.m_sfn.GetFrame();
+        traceParams.m_subframeNum = tbIt.second.m_expected.m_sfn.GetSubframe();
+        traceParams.m_slotNum = tbIt.second.m_expected.m_sfn.GetSlot();
         traceParams.m_txRnti = tbIt.first; // this is the RNTI of the TX UE
-        traceParams.m_mcs = tbIt.second.expectedTb.mcs;
+        traceParams.m_mcs = tbIt.second.m_expected.m_mcs;
         traceParams.m_rv = sciF2a.GetRv();
         traceParams.m_ndi = sciF2a.GetNdi();
-        traceParams.m_sinr = tbIt.second.sinrAvg;
-        traceParams.m_sinrMin = tbIt.second.sinrMin;
+        traceParams.m_sinr = tbIt.second.m_sinrAvg;
+        traceParams.m_sinrMin = tbIt.second.m_sinrMin;
         if (m_slDataErrorModelEnabled)
         {
-            traceParams.m_tbler = tbIt.second.outputEmForData->m_tbler;
-            traceParams.m_tblerSci2 = tbIt.second.outputEmForSci2->m_tbler;
+            traceParams.m_tbler = tbIt.second.m_outputEmForData->m_tbler;
+            traceParams.m_tblerSci2 = tbIt.second.m_outputEmForSci2->m_tbler;
         }
         else
         {
             traceParams.m_tbler = 0;
             traceParams.m_tblerSci2 = 0;
         }
-        traceParams.m_corrupt = tbIt.second.isDataCorrupted;
-        traceParams.m_sci2Corrupted = tbIt.second.isSci2Corrupted;
-        traceParams.m_symStart = tbIt.second.expectedTb.symStart;
-        traceParams.m_numSym = tbIt.second.expectedTb.numSym;
+        traceParams.m_corrupt = tbIt.second.m_isCorrupted;
+        traceParams.m_sci2Corrupted = tbIt.second.m_isSci2Corrupted;
+        traceParams.m_symStart = tbIt.second.m_expected.m_symStart;
+        traceParams.m_numSym = tbIt.second.m_expected.m_numSym;
         traceParams.m_bwpId = GetBwpId();
-        uint32_t rbBitmapSize = static_cast<uint32_t>(tbIt.second.expectedTb.rbBitmap.size());
-        traceParams.m_rbStart = tbIt.second.expectedTb.rbBitmap.at(0);
-        traceParams.m_rbEnd = tbIt.second.expectedTb.rbBitmap.at(rbBitmapSize - 1);
+        uint32_t rbBitmapSize = static_cast<uint32_t>(tbIt.second.m_expected.m_rbBitmap.size());
+        traceParams.m_rbStart = tbIt.second.m_expected.m_rbBitmap.at(0);
+        traceParams.m_rbEnd = tbIt.second.m_expected.m_rbBitmap.at(rbBitmapSize - 1);
         traceParams.m_rbAssignedNum = rbBitmapSize;
         traceParams.m_dstL2Id = sciF2a.GetDstId();
         traceParams.m_srcL2Id = sciF2a.GetSrcId();
@@ -2848,17 +2848,17 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
 
         GetSecond GetTBInfo;
         // send HARQ feedback (if not already done for this TB)
-        if (tbIt.second.isHarqEnabled && !GetTBInfo(tbIt).harqFeedbackSent &&
+        if (tbIt.second.m_isHarqEnabled && !GetTBInfo(tbIt).m_harqFeedbackSent &&
             !m_phySlHarqFeedbackCallback.IsNull())
         {
-            GetTBInfo(tbIt).harqFeedbackSent = true;
+            GetTBInfo(tbIt).m_harqFeedbackSent = true;
             SlHarqInfo slHarqInfo;
             slHarqInfo.m_txRnti = tbIt.first; // this is the RNTI of the TX UE
             slHarqInfo.m_rnti = ueRx->GetPhy(GetBwpId())->GetRnti();
             slHarqInfo.m_dstL2Id = sciF2a.GetDstId();
             slHarqInfo.m_harqProcessId = sciF2a.GetHarqId();
             slHarqInfo.m_bwpIndex = GetBwpId();
-            if (GetTBInfo(tbIt).isDataCorrupted || GetTBInfo(tbIt).isSci2Corrupted)
+            if (GetTBInfo(tbIt).m_isCorrupted || GetTBInfo(tbIt).m_isSci2Corrupted)
             {
                 NS_LOG_DEBUG("Sending NACK HARQ feedback to SlHarqFeedback callback");
                 slHarqInfo.m_harqStatus = SlHarqInfo::NACK;
@@ -2872,12 +2872,12 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
         }
 
         // Now dispatch the non corrupted TBs to UE PHY
-        if (!tbIt.second.isDataCorrupted)
+        if (!tbIt.second.m_isCorrupted)
         {
             NS_LOG_DEBUG("SpectrumPhy dispatching a non corrupted TB to UE PHY");
             Ptr<NrSpectrumSignalParametersSlDataFrame> params =
                 DynamicCast<NrSpectrumSignalParametersSlDataFrame>(
-                    m_slRxSigParamInfo.at(tbIt.second.pktIndex).params);
+                    m_slRxSigParamInfo.at(tbIt.second.m_pktIndex).params);
             Ptr<PacketBurst> pb = params->packetBurst;
             Ptr<SpectrumValue> psd = params->psd;
             m_nrPhyRxPsschEndOkCallback(pb, *psd);
@@ -2993,17 +2993,10 @@ NrSpectrumPhy::SetNrPhyRxSlPsfchCallback(NrPhyRxSlPsfchCallback c)
 }
 
 void
-NrSpectrumPhy::AddSlExpectedTb(uint16_t rnti,
-                               uint32_t dstId,
-                               uint32_t tbSize,
-                               uint8_t mcs,
-                               const std::vector<int>& rbMap,
-                               uint8_t symStart,
-                               uint8_t numSym,
-                               const SfnSf& sfn)
+NrSpectrumPhy::AddSlExpectedTb(ExpectedTb expectedTb, uint16_t dstL2Id)
 {
     NS_LOG_FUNCTION(this);
-    auto it = m_slTransportBlocks.find(rnti);
+    auto it = m_slTransportBlocks.find(expectedTb.m_rnti);
 
     Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice>(GetDevice());
 
@@ -3015,27 +3008,29 @@ NrSpectrumPhy::AddSlExpectedTb(uint16_t rnti,
         NS_LOG_WARN("Variable m_slTransportBlocks is not designed to manage two TBs from same RNTI "
                     "in same slot");
         NS_LOG_DEBUG("RNTI " << ueRx->GetPhy(GetBwpId())->GetRnti()
-                             << " failed to add NR SL expected TB from rnti " << rnti
-                             << " with Dest id " << dstId << " TB size = " << tbSize
-                             << " mcs = " << static_cast<uint32_t>(mcs) << " sfn: " << sfn
-                             << " symstart = " << static_cast<uint32_t>(symStart)
-                             << " numSym = " << static_cast<uint32_t>(numSym));
+                             << " failed to add NR SL expected TB from rnti " << expectedTb.m_rnti
+                             << " with Dest id " << dstL2Id << " TB size = " << expectedTb.m_tbSize
+                             << " mcs = " << static_cast<uint32_t>(expectedTb.m_mcs)
+                             << " sfn: " << expectedTb.m_sfn
+                             << " symstart = " << static_cast<uint32_t>(expectedTb.m_symStart)
+                             << " numSym = " << static_cast<uint32_t>(expectedTb.m_numSym));
         return;
     }
+    expectedTb.m_dstL2Id = dstL2Id;
+    TransportBlockInfo tbInfo({expectedTb});
 
-    auto tbInfo =
-        SlTransportBlockInfo(SlExpectedTb(dstId, tbSize, mcs, rbMap, symStart, numSym, sfn));
-
-    bool insertStatus = m_slTransportBlocks.emplace(std::make_pair(rnti, tbInfo)).second;
+    bool insertStatus =
+        m_slTransportBlocks.emplace(std::make_pair(expectedTb.m_rnti, tbInfo)).second;
 
     NS_ASSERT_MSG(insertStatus == true, "Unable to emplace the info of an NR SL expected TB");
 
     NS_LOG_DEBUG("RNTI " << ueRx->GetPhy(GetBwpId())->GetRnti()
-                         << " added NR SL expected TB from rnti " << rnti << " with Dest id "
-                         << dstId << " TB size = " << tbSize
-                         << " mcs = " << static_cast<uint32_t>(mcs) << " sfn: " << sfn
-                         << " symstart = " << static_cast<uint32_t>(symStart)
-                         << " numSym = " << static_cast<uint32_t>(numSym));
+                         << " added NR SL expected TB from rnti " << expectedTb.m_rnti
+                         << " with Dest id " << dstL2Id << " TB size = " << expectedTb.m_tbSize
+                         << " mcs = " << static_cast<uint32_t>(expectedTb.m_mcs)
+                         << " sfn: " << expectedTb.m_sfn
+                         << " symstart = " << static_cast<uint32_t>(expectedTb.m_symStart)
+                         << " numSym = " << static_cast<uint32_t>(expectedTb.m_numSym));
 }
 
 void
