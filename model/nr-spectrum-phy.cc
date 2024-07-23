@@ -2473,7 +2473,7 @@ NrSpectrumPhy::RxSlPssch(std::vector<uint32_t> paramIndexes)
 
     // Compute error on PSSCH
     // Create a mapping between the packet tag and the index of the packet bursts.
-    for (uint32_t i = 0; i < m_slRxSigParamInfo.size(); i++)
+    for (uint32_t i = 0; i < paramIndexes.size(); i++)
     {
         uint32_t pktIndex = paramIndexes[i];
 
