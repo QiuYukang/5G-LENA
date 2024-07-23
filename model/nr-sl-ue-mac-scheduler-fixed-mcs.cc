@@ -790,8 +790,10 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
         // sec. 8.1.4 of TS 38.214.  The scheduler is responsible for
         // further filtering out any candidates that overlap with already
         // scheduled grants within the selection window.
-        auto filteredReso =
-            FilterTxOpportunities(sfn, GetMac()->GetCandidateResources(sfn, params));
+        auto filteredReso = FilterTxOpportunities(sfn,
+                                                  GetMac()->GetCandidateResources(sfn, params),
+                                                  lcgMap.begin()->second->GetLcRri(lcIdOfRef),
+                                                  m_cResel);
         if (filteredReso.size() == 0)
         {
             NS_LOG_DEBUG("Resources not found");
@@ -1221,9 +1223,6 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& 
     NS_LOG_DEBUG("nSelected = " << +grant.nSelected);
 
     for (uint16_t i = 0; i < m_reselCounter; i++)
-#if 0
-    for (uint16_t i = 0; i < m_cResel; i++)
-#endif
     {
         for (const auto& it : slotAllocList)
         {
@@ -1405,9 +1404,11 @@ NrSlUeMacSchedulerFixedMcs::OverlappedResources(const SfnSf& firstSfn,
 
 std::list<SlResourceInfo>
 NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
-                                                  std::list<SlResourceInfo> txOppr)
+                                                  std::list<SlResourceInfo> txOppr,
+                                                  Time rri,
+                                                  uint16_t cResel)
 {
-    NS_LOG_FUNCTION(this << sfn.Normalize() << txOppr.size());
+    NS_LOG_FUNCTION(this << sfn.Normalize() << txOppr.size() << rri.As(Time::MS) << cResel);
 
     if (txOppr.empty())
     {
@@ -1430,7 +1431,8 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
                                         itTxOppr->slSubchannelStart,
                                         itTxOppr->slSubchannelLength))
                 {
-                    NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
+                    NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize()
+                                                      << " due to published grant overlap");
                     itTxOppr = txOppr.erase(itTxOppr);
                 }
                 else
@@ -1442,6 +1444,8 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
             {
                 if (itPublished->sfn == itTxOppr->sfn)
                 {
+                    NS_LOG_INFO("Erasing candidate " << itTxOppr->sfn.Normalize()
+                                                     << " due to published grant overlap");
                     NS_LOG_INFO("Erasing candidate " << itTxOppr->sfn.Normalize());
                     itTxOppr = txOppr.erase(itTxOppr);
                 }
@@ -1474,41 +1478,52 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
                 auto itTxOppr = txOppr.begin();
                 while (itTxOppr != txOppr.end())
                 {
-                    if (m_allowMultipleDestinationsPerSlot)
+                    // need to consider this txOppr plus its potential repetitions
+                    bool foundOverlap = false;
+                    for (uint16_t i = 0; i <= cResel; i++)
                     {
-                        if (OverlappedResources(itGrantAlloc->sfn,
-                                                itGrantAlloc->slPsschSubChStart,
-                                                itGrantAlloc->slPsschSubChLength,
-                                                itTxOppr->sfn,
-                                                itTxOppr->slSubchannelStart,
-                                                itTxOppr->slSubchannelLength))
+                        SfnSf candidateSfn =
+                            itTxOppr->sfn.GetFutureSfnSf(i * rri.GetMilliSeconds() * 4);
+                        if (itGrantAlloc->sfn < candidateSfn)
                         {
-                            NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
-                            itTxOppr = txOppr.erase(itTxOppr);
+                            break;
+                        }
+                        if (m_allowMultipleDestinationsPerSlot)
+                        {
+                            if (OverlappedResources(itGrantAlloc->sfn,
+                                                    itGrantAlloc->slPsschSubChStart,
+                                                    itGrantAlloc->slPsschSubChLength,
+                                                    candidateSfn,
+                                                    itTxOppr->slSubchannelStart,
+                                                    itTxOppr->slSubchannelLength))
+                            {
+                                foundOverlap = true;
+                                break;
+                            }
                         }
                         else
                         {
-                            ++itTxOppr;
+                            // Disallow scheduling again on a previously scheduled slot
+                            if (itGrantAlloc->sfn == candidateSfn)
+                            {
+                                foundOverlap = true;
+                                break;
+                            }
                         }
+                    }
+                    if (foundOverlap)
+                    {
+                        NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
+                        itTxOppr = txOppr.erase(itTxOppr);
                     }
                     else
                     {
-                        // Disallow scheduling again on a previously scheduled slot
-                        if (itGrantAlloc->sfn == itTxOppr->sfn)
-                        {
-                            NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
-                            itTxOppr = txOppr.erase(itTxOppr);
-                        }
-                        else
-                        {
-                            ++itTxOppr;
-                        }
+                        ++itTxOppr;
                     }
                 }
             }
         }
     }
-
     return txOppr;
 }
 

@@ -169,14 +169,18 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
                              uint16_t secondLength) const;
 
     /**
-     * \brief Removes resources which are already part of an existing unpublished grant.
+     * \brief Removes resources which are already part of an existing grant.
      *
      * \param sfn The current SfnSf
      * \param txOppr The list of available slots
-     * \return The list of resources which are not used by any existing unpublished grant.
+     * \param rri The RRI for SPS grants
+     * \param cResel The cResel value for SPS grants
+     * \return The list of resources which are not used by any existing grant.
      */
     std::list<SlResourceInfo> FilterTxOpportunities(const SfnSf& sfn,
-                                                    std::list<SlResourceInfo> txOppr);
+                                                    std::list<SlResourceInfo> txOppr,
+                                                    Time rri,
+                                                    uint16_t cResel);
 
     /**
      * \brief Calculate a timeout value for the grant allocation.
