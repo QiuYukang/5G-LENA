@@ -1136,11 +1136,10 @@ NrSlUeMac::DoNrSlSlotIndication(const SfnSf& sfn)
                 slLcId.lcId = currentSlot.slRlcPduInfo.front().lcid;
                 slLcId.srcL2Id = m_srcL2Id;
                 slLcId.dstL2Id = currentSlot.dstL2Id;
-                const auto& itLc = m_nrSlLcInfoMap.find(slLcId);
-                NS_ASSERT_MSG(itLc != m_nrSlLcInfoMap.end(),
-                              "No LC with id " << +slLcId.lcId << " found for destination "
-                                               << currentSlot.dstL2Id);
-                sciF2a.SetCastType(static_cast<uint8_t>(itLc->second.lcInfo.castType));
+                NS_ASSERT_MSG(currentGrant.castType != SidelinkInfo::CastType::Invalid,
+                              "Invalid cast type for LC " << +slLcId.lcId << " dstL2Id "
+                                                          << currentSlot.dstL2Id);
+                sciF2a.SetCastType(static_cast<uint8_t>(currentGrant.castType));
                 // Request HARQ feedback if HARQ enabled and PSFCH period > 0
                 if (currentGrant.harqEnabled &&
                     (m_slTxPool->GetPsfchPeriod(GetBwpId(), m_poolId) > 0))

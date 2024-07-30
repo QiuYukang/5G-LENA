@@ -30,6 +30,7 @@ struct AllocationInfo
     uint32_t m_tbSize{0};      //!< The transport block size
     std::vector<SlRlcPduInfo> m_allocatedRlcPdus; //!< RLC PDUs
     Time m_rri{0};                                //!< Resource Reservation Interval (if SPS)
+    SidelinkInfo::CastType m_castType{SidelinkInfo::CastType::Invalid}; //!< Cast type
 };
 
 /**
@@ -122,33 +123,36 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \param sfn The SfnSf
      * \param dstL2Id The destination layer 2 id
      * \param candResources The list of candidate resources
-     * \param allocatedRlcPdus the RLC PDU information vector
+     * \param allocationInfo the allocation information to use
      */
     void AttemptGrantAllocation(const SfnSf& sfn,
                                 uint32_t dstL2Id,
                                 const std::list<SlResourceInfo>& candResources,
-                                AllocationInfo allocationInfo);
+                                const AllocationInfo& allocationInfo);
     /**
      * \brief Create future SPS grants based on slot allocation
      *
      * \param slotAllocList The slot allocation list
-     * \param rri The resource reservation interval
+     * \param allocationInfo the allocation information to use
      * \return The grant info for a destination based on the scheduler allocation
      *
      * \see SlGrantResource
      * \see GrantInfo
      */
-    GrantInfo CreateSpsGrantInfo(const std::set<SlGrantResource>& params, Time rri) const;
+    GrantInfo CreateSpsGrantInfo(const std::set<SlGrantResource>& params,
+                                 const AllocationInfo& allocationInfo) const;
     /**
      * \brief Create a single-PDU grant based on slot allocation
      *
      * \param slotAllocList The slot allocation list
+     * \param allocationInfo the allocation information to use
      * \return The grant info for a destination based on the scheduler allocation
      *
      * \see SlGrantResource
      * \see GrantInfo
      */
-    GrantInfo CreateSinglePduGrantInfo(const std::set<SlGrantResource>& params) const;
+    GrantInfo CreateSinglePduGrantInfo(const std::set<SlGrantResource>& params,
+                                       const AllocationInfo& allocationInfo) const;
 
     /**
      * \brief Check if the resources indicated by two SFN/subchannel ranges overlap
@@ -232,26 +236,24 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \brief Method to create future SPS grant repetitions
      * \param sfn The SfnSf
      * \param slotAllocList The slot allocation list from the selection window
-     * \param harqEnabled Whether HARQ is enabled
-     * \param rri The resource reservation interval
+     * \param allocationInfo the allocation information to use
      *
      * \see SlGrantResource
      */
     void CreateSpsGrant(const SfnSf& sfn,
                         const std::set<SlGrantResource>& slotAllocList,
-                        bool harqEnabled,
-                        Time rri);
+                        const AllocationInfo& allocationInfo);
     /**
      * \brief Method to create a single-PDU grant
      * \param sfn The SfnSf
      * \param slotAllocList The slot allocation list from the selection window
-     * \param harqEnabled Whether HARQ is enabled
+     * \param allocationInfo the allocation information to use
      *
      * \see SlGrantResource
      */
     void CreateSinglePduGrant(const SfnSf& sfn,
                               const std::set<SlGrantResource>& slotAllocList,
-                              bool harqEnabled);
+                              const AllocationInfo& allocationInfo);
 
     /**
      * \brief Check whether any grants are at the processing delay deadline
@@ -329,7 +331,7 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
     virtual bool DoNrSlAllocation(const std::list<SlResourceInfo>& candResources,
                                   const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
                                   std::set<SlGrantResource>& slotAllocList,
-                                  AllocationInfo allocationInfo);
+                                  const AllocationInfo& allocationInfo);
     /**
      * \brief Method to get total number of sub-channels.
      *

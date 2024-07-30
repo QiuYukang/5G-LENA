@@ -213,6 +213,13 @@ NrSlUeMacSchedulerLCG::GetLcPdb(uint8_t lcId) const
     return m_lcMap.at(lcId)->m_pdb;
 }
 
+SidelinkInfo::CastType
+NrSlUeMacSchedulerLCG::GetLcCastType(uint8_t lcId) const
+{
+    NS_ASSERT(Contains(lcId));
+    return m_lcMap.at(lcId)->m_castType;
+}
+
 void
 NrSlUeMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size)
 {

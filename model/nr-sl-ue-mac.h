@@ -85,6 +85,7 @@ class NrSlUeMac : public NrUeMac
             0}; //!< The counter to count the number of time a TB is tx/reTx in a reservation period
         uint32_t tbSize{0}; //!< Size of Transport Block in bytes
         Time rri{0}; //!< The resource reservation interval for the semi-persistent scheduled grant
+        SidelinkInfo::CastType castType{SidelinkInfo::CastType::Invalid}; //!< Cast type
     };
 
     /**

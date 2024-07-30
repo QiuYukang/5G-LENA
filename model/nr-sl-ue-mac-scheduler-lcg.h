@@ -281,6 +281,14 @@ class NrSlUeMacSchedulerLCG
     Time GetLcPdb(uint8_t lcId) const;
 
     /**
+     * \brief Get the LC cast type
+     *
+     * \param lcId The LC id
+     * \return The cast type of the LC
+     */
+    SidelinkInfo::CastType GetLcCastType(uint8_t lcId) const;
+
+    /**
      * \brief Inform the LCG of the assigned data to a LC id
      *
      * \param lcId the LC id to which the data was assigned

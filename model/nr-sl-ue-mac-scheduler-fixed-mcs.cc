@@ -726,6 +726,7 @@ NrSlUeMacSchedulerFixedMcs::LogicalChannelPrioritization(
                                                                  << m_cResel);
     }
     allocationInfo.m_priority = lcgMap.begin()->second->GetLcPriority(lcIdOfRef);
+    allocationInfo.m_castType = lcgMap.begin()->second->GetLcCastType(lcIdOfRef);
     NS_LOG_DEBUG("Number of LCs to attempt allocation for the selected destination: "
                  << nRemainingLcs << "/" << nLcs << ". LcId of reference " << +lcIdOfRef);
 
@@ -895,7 +896,7 @@ void
 NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(const SfnSf& sfn,
                                                    uint32_t dstL2Id,
                                                    const std::list<SlResourceInfo>& candResources,
-                                                   AllocationInfo allocationInfo)
+                                                   const AllocationInfo& allocationInfo)
 {
     NS_LOG_FUNCTION(this << sfn << dstL2Id);
 
@@ -911,11 +912,11 @@ NrSlUeMacSchedulerFixedMcs::AttemptGrantAllocation(const SfnSf& sfn,
 
     if (allocationInfo.m_isDynamic)
     {
-        CreateSinglePduGrant(sfn, allocList, allocationInfo.m_harqEnabled);
+        CreateSinglePduGrant(sfn, allocList, allocationInfo);
     }
     else
     {
-        CreateSpsGrant(sfn, allocList, allocationInfo.m_harqEnabled, allocationInfo.m_rri);
+        CreateSpsGrant(sfn, allocList, allocationInfo);
     }
 }
 
@@ -937,17 +938,16 @@ NrSlUeMacSchedulerFixedMcs::GetSpsGrantTimeout(const SfnSf& sfn,
 void
 NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
                                            const std::set<SlGrantResource>& slotAllocList,
-                                           bool harqEnabled,
-                                           Time rri)
+                                           const AllocationInfo& allocationInfo)
 {
-    NS_LOG_FUNCTION(this << sfn << harqEnabled << rri);
+    NS_LOG_FUNCTION(this << sfn);
     // m_grantInfo is a map with key dstL2Id and value std::vector<GrantInfo>
     auto itVecGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
     if (itVecGrantInfo == m_grantInfo.end())
     {
         NS_LOG_DEBUG("New destination " << slotAllocList.begin()->dstL2Id);
-        GrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
-        auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, rri);
+        GrantInfo grant = CreateSpsGrantInfo(slotAllocList, allocationInfo);
+        auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, allocationInfo.m_rri);
         auto harqId =
             GetMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id, true, timeout);
         if (!harqId.has_value())
@@ -960,7 +960,8 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
         // HARQ feedback transmissions are enabled.  However, the semantics
         // of this flag for a published grant are that harqEnabled refers
         // only to whether HARQ feedback is enabled
-        grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
+        grant.harqEnabled = allocationInfo.m_harqEnabled && GetMac()->GetPsfchPeriod();
+        grant.castType = allocationInfo.m_castType;
         std::vector<GrantInfo> grantVector;
         grantVector.push_back(grant);
         NotifyGrantCreated(grant);
@@ -980,7 +981,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
         {
             NS_ASSERT_MSG(itGrantVector->slotAllocations.size(),
                           "No slots associated with grant to " << slotAllocList.begin()->dstL2Id);
-            if (itGrantVector->rri == rri &&
+            if (itGrantVector->rri == allocationInfo.m_rri &&
                 itGrantVector->slotAllocations.begin()->slRlcPduInfo.size() ==
                     slotAllocList.begin()->slRlcPduInfo.size())
             {
@@ -1022,7 +1023,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
                 "Sidelink resource counter must be zero before assigning new grant for dst "
                     << slotAllocList.begin()->dstL2Id);
             uint8_t prevHarqId = itGrantVector->harqId;
-            GrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
+            GrantInfo grant = CreateSpsGrantInfo(slotAllocList, allocationInfo);
             *itGrantVector = grant;
             itGrantVector->harqId = prevHarqId; // Preserve previous ID
             NS_LOG_INFO("Updated SPS grant to destination "
@@ -1032,8 +1033,8 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
         else
         {
             // Insert
-            GrantInfo grant = CreateSpsGrantInfo(slotAllocList, rri);
-            auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, rri);
+            GrantInfo grant = CreateSpsGrantInfo(slotAllocList, allocationInfo);
+            auto timeout = GetSpsGrantTimeout(sfn, grant.slResoReselCounter, allocationInfo.m_rri);
             auto harqId =
                 GetMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id, true, timeout);
             if (!harqId.has_value())
@@ -1046,7 +1047,8 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrant(const SfnSf& sfn,
             // HARQ feedback transmissions are enabled.  However, the semantics
             // of this flag for a published grant are that harqEnabled refers
             // only to whether HARQ feedback is enabled
-            grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
+            grant.harqEnabled = allocationInfo.m_harqEnabled && GetMac()->GetPsfchPeriod();
+            grant.castType = allocationInfo.m_castType;
             itVecGrantInfo->second.push_back(grant);
             NotifyGrantCreated(grant);
             NS_LOG_INFO("New SPS grant created to existing destination "
@@ -1095,17 +1097,19 @@ NrSlUeMacSchedulerFixedMcs::GetDynamicGrantTimeout(const SfnSf& sfn,
 void
 NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
                                                  const std::set<SlGrantResource>& slotAllocList,
-                                                 bool harqEnabled)
+                                                 const AllocationInfo& allocationInfo)
 {
-    NS_LOG_FUNCTION(this << sfn << harqEnabled);
+    NS_LOG_FUNCTION(this << sfn);
     auto itGrantInfo = m_grantInfo.find(slotAllocList.begin()->dstL2Id);
 
     if (itGrantInfo == m_grantInfo.end())
     {
         // New destination
         NS_LOG_DEBUG("New destination " << slotAllocList.begin()->dstL2Id);
-        auto timeout =
-            GetDynamicGrantTimeout(sfn, slotAllocList, harqEnabled, GetMac()->GetPsfchPeriod());
+        auto timeout = GetDynamicGrantTimeout(sfn,
+                                              slotAllocList,
+                                              allocationInfo.m_harqEnabled,
+                                              GetMac()->GetPsfchPeriod());
         auto harqId =
             GetMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id, false, timeout);
         if (!harqId.has_value())
@@ -1113,13 +1117,14 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
             NS_LOG_WARN("Unable to create grant, HARQ Id not available");
             return;
         }
-        GrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
+        GrantInfo grant = CreateSinglePduGrantInfo(slotAllocList, allocationInfo);
         grant.harqId = harqId.value();
         // To this point, the 'harqEnabled' flag means that either blind or
         // HARQ feedback transmissions are enabled.  However, the semantics
         // of this flag for a published grant are that harqEnabled refers
         // only to whether HARQ feedback is enabled
-        grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
+        grant.harqEnabled = allocationInfo.m_harqEnabled && GetMac()->GetPsfchPeriod();
+        grant.castType = allocationInfo.m_castType;
         NotifyGrantCreated(grant);
         std::vector<GrantInfo> grantVector;
         grantVector.push_back(grant);
@@ -1167,8 +1172,10 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
         else
         {
             // Insert
-            auto timeout =
-                GetDynamicGrantTimeout(sfn, slotAllocList, harqEnabled, GetMac()->GetPsfchPeriod());
+            auto timeout = GetDynamicGrantTimeout(sfn,
+                                                  slotAllocList,
+                                                  allocationInfo.m_harqEnabled,
+                                                  GetMac()->GetPsfchPeriod());
             NS_LOG_INFO("Inserting dynamic grant with timeout of " << timeout.As(Time::MS));
             auto harqId =
                 GetMacHarq()->AllocateHarqProcessId(slotAllocList.begin()->dstL2Id, false, timeout);
@@ -1177,13 +1184,14 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
                 NS_LOG_WARN("Unable to create grant, HARQ Id not available");
                 return;
             }
-            GrantInfo grant = CreateSinglePduGrantInfo(slotAllocList);
+            GrantInfo grant = CreateSinglePduGrantInfo(slotAllocList, allocationInfo);
             grant.harqId = harqId.value();
             // To this point, the 'harqEnabled' flag means that either blind or
             // HARQ feedback transmissions are enabled.  However, the semantics
             // of this flag for a published grant are that harqEnabled refers
             // only to whether HARQ feedback is enabled
-            grant.harqEnabled = harqEnabled && GetMac()->GetPsfchPeriod();
+            grant.harqEnabled = allocationInfo.m_harqEnabled && GetMac()->GetPsfchPeriod();
+            grant.castType = allocationInfo.m_castType;
             NotifyGrantCreated(grant);
             itGrantInfo->second.push_back(grant);
             NS_LOG_INFO("New dynamic grant created to existing destination "
@@ -1195,19 +1203,20 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrant(const SfnSf& sfn,
 
 NrSlUeMacScheduler::GrantInfo
 NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& slotAllocList,
-                                               Time rri) const
+                                               const AllocationInfo& allocationInfo) const
 {
-    NS_LOG_FUNCTION(this << rri);
+    NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG((m_reselCounter != 0),
                   "Can not create SPS grants with 0 Resource selection counter");
     NS_ASSERT_MSG((m_cResel != 0), "Can not create SPS grants with 0 cResel counter");
-    NS_ASSERT_MSG((!rri.IsZero()), "Can not create SPS grants with 0 RRI");
+    NS_ASSERT_MSG((!allocationInfo.m_rri.IsZero()), "Can not create SPS grants with 0 RRI");
 
     NS_LOG_DEBUG("Creating SPS grants for dstL2Id " << slotAllocList.begin()->dstL2Id);
-    NS_LOG_DEBUG("Resource reservation interval " << rri.GetMilliSeconds() << " ms");
+    NS_LOG_DEBUG("Resource reservation interval " << allocationInfo.m_rri.GetMilliSeconds()
+                                                  << " ms");
     NS_LOG_DEBUG("Resel Counter " << +m_reselCounter << " and cResel " << m_cResel);
 
-    uint16_t resPeriodSlots = GetMac()->GetResvPeriodInSlots(rri);
+    uint16_t resPeriodSlots = GetMac()->GetResvPeriodInSlots(allocationInfo.m_rri);
     GrantInfo grant;
 
     grant.cReselCounter = m_cResel;
@@ -1219,7 +1228,8 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& 
     // if further IDs are needed and the std::deque needs to be popped from
     // front, need to copy the std::deque to remove its constness
     grant.nSelected = static_cast<uint8_t>(slotAllocList.size());
-    grant.rri = rri;
+    grant.rri = allocationInfo.m_rri;
+    grant.castType = allocationInfo.m_castType;
     NS_LOG_DEBUG("nSelected = " << +grant.nSelected);
 
     for (uint16_t i = 0; i < m_reselCounter; i++)
@@ -1259,8 +1269,8 @@ NrSlUeMacSchedulerFixedMcs::CreateSpsGrantInfo(const std::set<SlGrantResource>& 
 }
 
 NrSlUeMacScheduler::GrantInfo
-NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(
-    const std::set<SlGrantResource>& slotAllocList) const
+NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(const std::set<SlGrantResource>& slotAllocList,
+                                                     const AllocationInfo& allocationInfo) const
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("Creating single-PDU grant for dstL2Id " << slotAllocList.begin()->dstL2Id);
@@ -1268,6 +1278,7 @@ NrSlUeMacSchedulerFixedMcs::CreateSinglePduGrantInfo(
     GrantInfo grant;
     grant.nSelected = static_cast<uint8_t>(slotAllocList.size());
     grant.isDynamic = true;
+    grant.castType = allocationInfo.m_castType;
 
     NS_LOG_DEBUG("nSelected = " << +grant.nSelected);
 
@@ -1341,6 +1352,7 @@ NrSlUeMacSchedulerFixedMcs::CheckForGrantsToPublish(const SfnSf& sfn)
             grant.tbSize = tbSize;
             grant.rri = itGrantVector->rri;
             grant.harqEnabled = itGrantVector->harqEnabled;
+            grant.castType = itGrantVector->castType;
             // Add the NDI slot and retransmissions to the set of slot allocations
             m_publishedGrants.emplace_back(currentSlot);
             grant.slotAllocations.emplace(currentSlot);
@@ -1607,7 +1619,7 @@ NrSlUeMacSchedulerFixedMcs::DoNrSlAllocation(
     const std::list<SlResourceInfo>& candResources,
     const std::shared_ptr<NrSlUeMacSchedulerDstInfo>& dstInfo,
     std::set<SlGrantResource>& slotAllocList,
-    AllocationInfo allocationInfo)
+    const AllocationInfo& allocationInfo)
 {
     NS_LOG_FUNCTION(this);
     bool allocated = false;

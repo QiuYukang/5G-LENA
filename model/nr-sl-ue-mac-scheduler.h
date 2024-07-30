@@ -69,6 +69,7 @@ class NrSlUeMacScheduler : public Object
                                //!< if it is for semi-persistent scheduling
         bool harqEnabled{false}; //!< true if the grant should use HARQ
         Time rri{0}; //!< The resource reservation interval for the semi-persistent scheduled grant
+        SidelinkInfo::CastType castType{SidelinkInfo::CastType::Invalid}; //!< Cast type
     };
 
     //
