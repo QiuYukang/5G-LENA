@@ -112,6 +112,7 @@ To check out the correct tags, consult the following table:
 
 | NR V2X git branch | ns-3 V2X git tag  | Build system| ns-3 version|
 | ----------------- | ----------------- | ----------- | ----------- |
+| v2x-v1.1          | ns-3-dev-v2x-v1.1 | cmake       | ns-3.42     |
 | v2x-v1.0          | ns-3-dev-v2x-v1.0 | cmake       | ns-3.42     |
 | v2x-v0.4          | ns-3-dev-v2x-v0.4 | cmake       | ns-3.41     |
 | v2x-v0.3          | ns-3-dev-v2x-v0.3 | cmake       | ns-3.40     |
