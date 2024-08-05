@@ -68,6 +68,7 @@ NrEesmErrorModel::SinrEff(const SpectrumValue& sinr,
     double sinrExpSum = SinrExp(sinr, map, mcs);
     double beta = GetBetaTable()->at(mcs);
     double SINR = -beta * log((a + sinrExpSum) / b);
+    SINR = std::max(SINR, 0.0);
 
     NS_LOG_INFO(" Effective SINR = " << SINR);
 
