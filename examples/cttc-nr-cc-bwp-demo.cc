@@ -568,8 +568,8 @@ main(int argc, char* argv[])
                 dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
                 clientApps.Add(dlClient.Install(remoteHost));
 
-                Ptr<EpcTft> tft = Create<EpcTft>();
-                EpcTft::PacketFilter dlpf;
+                Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+                NrEpcTft::PacketFilter dlpf;
                 dlpf.localPortStart = dlPort;
                 dlpf.localPortEnd = dlPort;
                 ++dlPort;
@@ -613,8 +613,8 @@ main(int argc, char* argv[])
                 ulClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
                 clientApps.Add(ulClient.Install(ueNodes.Get(u)));
 
-                Ptr<EpcTft> tft = Create<EpcTft>();
-                EpcTft::PacketFilter ulpf;
+                Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+                NrEpcTft::PacketFilter ulpf;
                 ulpf.remotePortStart = ulPort;
                 ulpf.remotePortEnd = ulPort;
                 ++ulPort;

@@ -1128,7 +1128,7 @@ NrHelper::AttachToEnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         // activate default EPS bearer
         m_epcHelper->ActivateEpsBearer(ueDevice,
                                        ueNetDev->GetImsi(),
-                                       EpcTft::Default(),
+                                       NrEpcTft::Default(),
                                        NrEpsBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
@@ -1147,7 +1147,7 @@ NrHelper::AttachToEnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
 uint8_t
 NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
                                      NrEpsBearer bearer,
-                                     Ptr<EpcTft> tft)
+                                     Ptr<NrEpcTft> tft)
 {
     NS_LOG_FUNCTION(this);
     for (NetDeviceContainer::Iterator i = ueDevices.Begin(); i != ueDevices.End(); ++i)
@@ -1159,7 +1159,7 @@ NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
 }
 
 uint8_t
-NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer, Ptr<EpcTft> tft)
+NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer, Ptr<NrEpcTft> tft)
 {
     NS_LOG_FUNCTION(this);
 

@@ -423,8 +423,8 @@ main(int argc, char* argv[])
     NrEpsBearer videoBearer(NrEpsBearer::GBR_CONV_VIDEO);
 
     // The filter for the low-latency traffic
-    Ptr<EpcTft> videoTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfVideo;
+    Ptr<NrEpcTft> videoTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfVideo;
     dlpfVideo.localPortStart = dlPortVideo;
     dlpfVideo.localPortEnd = dlPortVideo;
     videoTft->Add(dlpfVideo);
@@ -440,8 +440,8 @@ main(int argc, char* argv[])
     NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
-    Ptr<EpcTft> voiceTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfVoice;
+    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfVoice;
     dlpfVoice.localPortStart = dlPortVoice;
     dlpfVoice.localPortEnd = dlPortVoice;
     voiceTft->Add(dlpfVoice);
@@ -457,11 +457,11 @@ main(int argc, char* argv[])
     NrEpsBearer gamingBearer(NrEpsBearer::GBR_GAMING);
 
     // The filter for the gaming traffic
-    Ptr<EpcTft> gamingTft = Create<EpcTft>();
-    EpcTft::PacketFilter ulpfGaming;
+    Ptr<NrEpcTft> gamingTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter ulpfGaming;
     ulpfGaming.remotePortStart = ulPortGaming;
     ulpfGaming.remotePortEnd = ulPortGaming;
-    ulpfGaming.direction = EpcTft::UPLINK;
+    ulpfGaming.direction = NrEpcTft::UPLINK;
     gamingTft->Add(ulpfGaming);
 
     /*

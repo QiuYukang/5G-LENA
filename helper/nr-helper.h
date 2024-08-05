@@ -28,6 +28,7 @@ class NrSpectrumValueHelper;
 class NrGnbMac;
 class EpcHelper;
 class EpcTft;
+class NrEpcTft;
 class NrBearerStatsCalculator;
 class NrMacRxTrace;
 class NrPhyRxTrace;

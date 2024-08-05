@@ -553,8 +553,8 @@ main(int argc, char* argv[])
     NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
-    Ptr<EpcTft> lowLatTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfLowLat;
+    Ptr<NrEpcTft> lowLatTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfLowLat;
     dlpfLowLat.localPortStart = dlPortLowLat;
     dlpfLowLat.localPortEnd = dlPortLowLat;
     lowLatTft->Add(dlpfLowLat);
@@ -570,11 +570,11 @@ main(int argc, char* argv[])
     NrEpsBearer videoBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the voice traffic
-    Ptr<EpcTft> voiceTft = Create<EpcTft>();
-    EpcTft::PacketFilter ulpfVoice;
+    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter ulpfVoice;
     ulpfVoice.remotePortStart = ulPortVoice;
     ulpfVoice.remotePortEnd = ulPortVoice;
-    ulpfVoice.direction = EpcTft::UPLINK;
+    ulpfVoice.direction = NrEpcTft::UPLINK;
     voiceTft->Add(ulpfVoice);
 
     //  Install the applications

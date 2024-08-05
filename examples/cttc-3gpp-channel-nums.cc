@@ -383,8 +383,8 @@ main(int argc, char* argv[])
     // The bearer that will carry low latency traffic
     NrEpsBearer bearer(NrEpsBearer::GBR_CONV_VOICE);
 
-    Ptr<EpcTft> tft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpf;
+    Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
     dlpf.localPortEnd = dlPort;
     tft->Add(dlpf);

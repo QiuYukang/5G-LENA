@@ -283,8 +283,8 @@ main(int argc, char* argv[])
     // attach UEs to the closest eNB
     nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
 
-    Ptr<EpcTft> tft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpf;
+    Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpf;
     dlpf.localPortStart = 1234;
     dlpf.localPortEnd = 1235;
     tft->Add(dlpf);

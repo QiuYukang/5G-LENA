@@ -51,8 +51,9 @@ ConfigureXrApp(NodeContainer& ueContainer,
                NetDeviceContainer& ueNetDev,
                Ptr<NrHelper> nrHelper,
                NrEpsBearer& bearer,
+               Ptr<NrEpcTft> tft,
                bool isMx1,
-               std::vector<Ptr<EpcTft>>& tfts,
+               std::vector<Ptr<NrEpcTft>>& tfts,
                ApplicationContainer& serverApps,
                ApplicationContainer& clientApps,
                ApplicationContainer& pingApps)
@@ -359,6 +360,9 @@ main(int argc, char* argv[])
 
     // The bearer that will carry AR traffic
     NrEpsBearer arBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    Ptr<NrEpcTft> arTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfAr;
+    std::vector<Ptr<NrEpcTft>> arTfts;
 
     if (isMx1)
     {
@@ -371,7 +375,7 @@ main(int argc, char* argv[])
         // create 3 xrTfts for 1x1 mapping
         for (uint32_t i = 0; i < 3; i++)
         {
-            Ptr<EpcTft> tempTft = Create<EpcTft>();
+            Ptr<NrEpcTft> tempTft = Create<NrEpcTft>();
             dlpfAr.localPortStart = dlPortArStart + i;
             dlpfAr.localPortEnd = dlPortArStart + i;
             tempTft->Add(dlpfAr);
@@ -381,8 +385,8 @@ main(int argc, char* argv[])
     // The bearer that will carry VR traffic
     NrEpsBearer vrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<EpcTft> vrTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfVr;
+    Ptr<NrEpcTft> vrTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfVr;
     dlpfVr.localPortStart = dlPortVrStart;
     dlpfVr.localPortEnd = dlPortVrStart;
     vrTft->Add(dlpfVr);
@@ -390,8 +394,8 @@ main(int argc, char* argv[])
     // The bearer that will carry CG traffic
     NrEpsBearer cgBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<EpcTft> cgTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfCg;
+    Ptr<NrEpcTft> cgTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfCg;
     dlpfCg.localPortStart = dlPortCgStart;
     dlpfCg.localPortEnd = dlPortCgStart;
     cgTft->Add(dlpfCg);

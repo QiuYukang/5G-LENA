@@ -451,8 +451,8 @@ main(int argc, char* argv[])
     NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
-    Ptr<EpcTft> dlTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlPktFilter;
+    Ptr<NrEpcTft> dlTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlPktFilter;
     dlPktFilter.localPortStart = dlPort;
     dlPktFilter.localPortEnd = dlPort;
     dlTft->Add(dlPktFilter);

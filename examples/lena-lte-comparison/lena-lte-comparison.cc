@@ -47,6 +47,32 @@ namespace ns3
 
 const Time appStartWindow = MilliSeconds(50);
 
+template <typename T>
+Ptr<T>
+CreateLowLatTft(uint16_t start, uint16_t end, std::string dir)
+{
+    Ptr<T> lowLatTft;
+    lowLatTft = Create<T>();
+    typename T::PacketFilter dlpfLowLat;
+    if (dir == "DL")
+    {
+        dlpfLowLat.localPortStart = start;
+        dlpfLowLat.localPortEnd = end;
+        dlpfLowLat.direction = T::DOWNLINK;
+    }
+    else
+    {
+        dlpfLowLat.remotePortStart = start;
+        dlpfLowLat.remotePortEnd = end;
+        dlpfLowLat.direction = T::UPLINK;
+    }
+    lowLatTft->Add(dlpfLowLat);
+    return lowLatTft;
+}
+
+template Ptr<ns3::EpcTft> CreateLowLatTft<ns3::EpcTft>(uint16_t, uint16_t, std::string);
+template Ptr<ns3::NrEpcTft> CreateLowLatTft<ns3::NrEpcTft>(uint16_t, uint16_t, std::string);
+
 static std::pair<ApplicationContainer, Time>
 InstallApps(const Ptr<Node>& ue,
             const Ptr<NetDevice>& ueDevice,
@@ -69,21 +95,8 @@ InstallApps(const Ptr<Node>& ue,
     NrEpsBearer nrLowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
-    Ptr<EpcTft> lowLatTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfLowLat;
-    if (direction == "DL")
-    {
-        dlpfLowLat.localPortStart = dlPortLowLat;
-        dlpfLowLat.localPortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::DOWNLINK;
-    }
-    else
-    {
-        dlpfLowLat.remotePortStart = dlPortLowLat;
-        dlpfLowLat.remotePortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::UPLINK;
-    }
-    lowLatTft->Add(dlpfLowLat);
+    Ptr<EpcTft> lowLatTft = CreateLowLatTft<EpcTft>(dlPortLowLat, dlPortLowLat, direction);
+    Ptr<NrEpcTft> nrLowLatTft = CreateLowLatTft<NrEpcTft>(dlPortLowLat, dlPortLowLat, direction);
 
     // The client, who is transmitting, is installed in the remote host,
     // with destination address set to the address of the UE

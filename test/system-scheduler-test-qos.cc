@@ -61,7 +61,6 @@ SystemSchedulerTestQos::DoRun()
 
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
-    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
     Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals
@@ -355,11 +354,11 @@ SystemSchedulerTestQos::DoRun()
         ulClientLowlat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
         ulClientLowlat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
 
-        Ptr<EpcTft> ulLowLatTft = Create<EpcTft>();
-        EpcTft::PacketFilter ulpfLowLat;
+        Ptr<NrEpcTft> ulLowLatTft = Create<NrEpcTft>();
+        NrEpcTft::PacketFilter ulpfLowLat;
         ulpfLowLat.remotePortStart = ulPortLowLat;
         ulpfLowLat.remotePortEnd = ulPortLowLat;
-        ulpfLowLat.direction = EpcTft::UPLINK;
+        ulpfLowLat.direction = NrEpcTft::UPLINK;
         ulLowLatTft->Add(ulpfLowLat);
 
         NrEpsBearer bearerLowLat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
@@ -370,11 +369,11 @@ SystemSchedulerTestQos::DoRun()
         ulClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
         ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
-        Ptr<EpcTft> ulVoiceTft = Create<EpcTft>();
-        EpcTft::PacketFilter ulpfVoice;
+        Ptr<NrEpcTft> ulVoiceTft = Create<NrEpcTft>();
+        NrEpcTft::PacketFilter ulpfVoice;
         ulpfVoice.remotePortStart = ulPortVoice;
         ulpfVoice.remotePortEnd = ulPortVoice;
-        ulpfVoice.direction = EpcTft::UPLINK;
+        ulpfVoice.direction = NrEpcTft::UPLINK;
         ulVoiceTft->Add(ulpfVoice);
 
         NrEpsBearer bearerVoice(NrEpsBearer::GBR_CONV_VOICE);
@@ -414,20 +413,20 @@ SystemSchedulerTestQos::DoRun()
         serverAppsDlLowLat = (dlPacketSinkLowLat.Install(ueLowLatContainer));
         serverAppsDlVoice = (dlPacketSinkVoice.Install(ueVoiceContainer));
 
-        Ptr<EpcTft> dlLowLatTft = Create<EpcTft>();
-        EpcTft::PacketFilter dlpfLowLat;
+        Ptr<NrEpcTft> dlLowLatTft = Create<NrEpcTft>();
+        NrEpcTft::PacketFilter dlpfLowLat;
         dlpfLowLat.localPortStart = dlPortLowLat;
         dlpfLowLat.localPortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::DOWNLINK;
+        dlpfLowLat.direction = NrEpcTft::DOWNLINK;
         dlLowLatTft->Add(dlpfLowLat);
 
         NrEpsBearer bearerLowlat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-        Ptr<EpcTft> dlVoiceTft = Create<EpcTft>();
-        EpcTft::PacketFilter dlpfVoice;
+        Ptr<NrEpcTft> dlVoiceTft = Create<NrEpcTft>();
+        NrEpcTft::PacketFilter dlpfVoice;
         dlpfVoice.localPortStart = dlPortVoice;
         dlpfVoice.localPortEnd = dlPortVoice;
-        dlpfVoice.direction = EpcTft::DOWNLINK;
+        dlpfVoice.direction = NrEpcTft::DOWNLINK;
         dlVoiceTft->Add(dlpfVoice);
 
         NrEpsBearer bearerVoice(NrEpsBearer::GBR_CONV_VOICE);

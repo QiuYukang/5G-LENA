@@ -1164,19 +1164,19 @@ main(int argc, char* argv[])
     NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
-    Ptr<EpcTft> lowLatTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfLowLat;
+    Ptr<NrEpcTft> lowLatTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfLowLat;
     if (direction == "DL")
     {
         dlpfLowLat.localPortStart = dlPortLowLat;
         dlpfLowLat.localPortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::DOWNLINK;
+        dlpfLowLat.direction = NrEpcTft::DOWNLINK;
     }
     else
     {
         dlpfLowLat.remotePortStart = dlPortLowLat;
         dlpfLowLat.remotePortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::UPLINK;
+        dlpfLowLat.direction = NrEpcTft::UPLINK;
     }
     lowLatTft->Add(dlpfLowLat);
 

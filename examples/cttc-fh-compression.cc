@@ -88,10 +88,10 @@ class RadioNetworkParametersHelper
      * \param numerology Numerology to use.
      * \param freqReuse The cell frequency reuse.
      */
-    void SetNetworkToNr(const std::string scenario,
-                        const std::string operationMode,
-                        uint16_t numerology,
-                        uint16_t numCcs);
+    void SetNetworkToLte(const std::string scenario,
+                         const std::string operationMode,
+                         uint16_t numerology,
+                         uint16_t numCcs);
 
     /**
      * \brief Gets the BS transmit power
@@ -187,10 +187,10 @@ RadioNetworkParametersHelper::SetNetworkToLte(const std::string scenario,
 }
 
 void
-RadioNetworkParametersHelper::SetNetworkToNr(const std::string scenario,
-                                             const std::string operationMode,
-                                             uint16_t numerology,
-                                             uint16_t numCcs)
+RadioNetworkParametersHelper::SetNetworkToLte(const std::string scenario,
+                                              const std::string operationMode,
+                                              uint16_t numerology,
+                                              uint16_t numCcs)
 {
     NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi", "Unsupported scenario");
 
@@ -284,7 +284,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     }
     else if (radioNetwork == "NR")
     {
-        ranHelper.SetNetworkToNr(scenario, operationMode, numerology, 1);
+        ranHelper.SetNetworkToLte(scenario, operationMode, numerology, 1);
         if (errorModel.empty())
         {
             errorModel = "ns3::NrEesmIrT2";
@@ -876,37 +876,39 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     }
 
     // When all the configuration is done, explicitly call UpdateConfig ()
-
-    for (auto it = gnbSector1NetDev.Begin(); it != gnbSector1NetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = gnbSector2NetDev.Begin(); it != gnbSector2NetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = gnbSector3NetDev.Begin(); it != gnbSector3NetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = ueSector1NetDev.Begin(); it != ueSector1NetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = ueSector2NetDev.Begin(); it != ueSector2NetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = ueSector3NetDev.Begin(); it != ueSector3NetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
+    nrHelper->UpdateDeviceConfigs(gnbSector1NetDev);
+    nrHelper->UpdateDeviceConfigs(gnbSector2NetDev);
+    nrHelper->UpdateDeviceConfigs(gnbSector3NetDev);
+    nrHelper->UpdateDeviceConfigs(ueSector1NetDev);
+    nrHelper->UpdateDeviceConfigs(ueSector2NetDev);
+    nrHelper->UpdateDeviceConfigs(ueSector3NetDev);
 }
+
+template <typename T>
+Ptr<T>
+CreateLowLatTft(uint16_t start, uint16_t end, std::string dir)
+{
+    Ptr<T> lowLatTft;
+    lowLatTft = Create<T>();
+    typename T::PacketFilter dlpfLowLat;
+    if (dir == "DL")
+    {
+        dlpfLowLat.localPortStart = start;
+        dlpfLowLat.localPortEnd = end;
+        dlpfLowLat.direction = T::DOWNLINK;
+    }
+    else
+    {
+        dlpfLowLat.remotePortStart = start;
+        dlpfLowLat.remotePortEnd = end;
+        dlpfLowLat.direction = T::UPLINK;
+    }
+    lowLatTft->Add(dlpfLowLat);
+    return lowLatTft;
+}
+
+template Ptr<ns3::EpcTft> CreateLowLatTft<ns3::EpcTft>(uint16_t, uint16_t, std::string);
+template Ptr<ns3::NrEpcTft> CreateLowLatTft<ns3::NrEpcTft>(uint16_t, uint16_t, std::string);
 
 int
 main(int argc, char* argv[])
@@ -1344,21 +1346,8 @@ main(int argc, char* argv[])
     NrEpsBearer nrLowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
-    Ptr<EpcTft> lowLatTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfLowLat;
-    if (direction == "DL")
-    {
-        dlpfLowLat.localPortStart = dlPortLowLat;
-        dlpfLowLat.localPortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::DOWNLINK;
-    }
-    else
-    {
-        dlpfLowLat.remotePortStart = dlPortLowLat;
-        dlpfLowLat.remotePortEnd = dlPortLowLat;
-        dlpfLowLat.direction = EpcTft::UPLINK;
-    }
-    lowLatTft->Add(dlpfLowLat);
+    Ptr<EpcTft> lowLatTft = CreateLowLatTft<EpcTft>(dlPortLowLat, dlPortLowLat, direction);
+    Ptr<NrEpcTft> nrLowLatTft = CreateLowLatTft<NrEpcTft>(dlPortLowLat, dlPortLowLat, direction);
 
     std::vector<uint32_t> lambdaPerCell(gridScenario.GetNumCells());
     if (uniformLambda)
@@ -1483,7 +1472,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+                nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
             }
             else
             {
@@ -1528,7 +1517,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+                nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
             }
             else
             {
@@ -1573,7 +1562,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+                nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
             }
             else
             {

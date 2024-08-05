@@ -318,8 +318,8 @@ NrTestFdmOfNumerologiesCase1::DoRun()
                                               // a short time, how much traffic can handle each BWP
             clientAppsUl.Add(ulClient.Install(ueNodes.Get(j)));
 
-            Ptr<EpcTft> tft = Create<EpcTft>();
-            EpcTft::PacketFilter ulpf;
+            Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+            NrEpcTft::PacketFilter ulpf;
             ulpf.remotePortStart = ulPort;
             ulpf.remotePortEnd = ulPort;
             tft->Add(ulpf);
@@ -364,8 +364,8 @@ NrTestFdmOfNumerologiesCase1::DoRun()
                                               // a short time, how much traffic can handle each BWP
             clientAppsDl.Add(dlClient.Install(remoteHost));
 
-            Ptr<EpcTft> tft = Create<EpcTft>();
-            EpcTft::PacketFilter dlpf;
+            Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+            NrEpcTft::PacketFilter dlpf;
             dlpf.localPortStart = dlPort;
             dlpf.localPortEnd = dlPort;
             tft->Add(dlpf);

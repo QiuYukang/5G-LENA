@@ -424,8 +424,8 @@ main(int argc, char* argv[])
     NrEpsBearer ue1flowBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the UE with 1 flow Non GBR traffic
-    Ptr<EpcTft> ue1flowTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfUe1flow;
+    Ptr<NrEpcTft> ue1flowTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfUe1flow;
     dlpfUe1flow.localPortStart = dlPortUe1flow;
     dlpfUe1flow.localPortEnd = dlPortUe1flow;
     ue1flowTft->Add(dlpfUe1flow);
@@ -446,8 +446,8 @@ main(int argc, char* argv[])
     NrEpsBearer ue2flowsNgbrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB); // qosInfoInterServ2);
 
     // The filter for the UE with 2 Flows Non GBR traffic
-    Ptr<EpcTft> ue2flowsNgbrTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfUe2flowsNgbr;
+    Ptr<NrEpcTft> ue2flowsNgbrTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfUe2flowsNgbr;
     dlpfUe2flowsNgbr.localPortStart = dlPortUe2flowsNgbr;
     dlpfUe2flowsNgbr.localPortEnd = dlPortUe2flowsNgbr;
     ue2flowsNgbrTft->Add(dlpfUe2flowsNgbr);
@@ -467,8 +467,8 @@ main(int argc, char* argv[])
     NrEpsBearer ue2flowsDcGbrBearer(NrEpsBearer::DGBR_INTER_SERV_87, qosUe2flowsDcGbr);
 
     // The filter for the 2 Flows DC GBR traffic
-    Ptr<EpcTft> ue2FlowsDcGbrTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfUe2flowsDcGbr;
+    Ptr<NrEpcTft> ue2FlowsDcGbrTft = Create<NrEpcTft>();
+    NrEpcTft::PacketFilter dlpfUe2flowsDcGbr;
     dlpfUe2flowsDcGbr.localPortStart = dlPortUe2flowsDcGbr;
     dlpfUe2flowsDcGbr.localPortEnd = dlPortUe2flowsDcGbr;
     ue2FlowsDcGbrTft->Add(dlpfUe2flowsDcGbr);
