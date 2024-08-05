@@ -6,6 +6,8 @@
 
 #include "cttc-nr-3gpp-calibration-utils-v2.h"
 
+#include "ns3/config.h"
+
 namespace ns3
 {
 
