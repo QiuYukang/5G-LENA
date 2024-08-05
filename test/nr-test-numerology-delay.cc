@@ -5,10 +5,10 @@
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
-#include "ns3/eps-bearer-tag.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
+#include "ns3/nr-eps-bearer-tag.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
 
@@ -178,7 +178,7 @@ SendPacket(Ptr<NetDevice> device, Address& addr)
     // dropped in Ipv4L3Protocol::Receive method upon not finding the route.
     Ipv4Header ipHeader;
     pkt->AddHeader(ipHeader);
-    EpsBearerTag tag(1, 1);
+    NrEpsBearerTag tag(1, 1);
     pkt->AddPacketTag(tag);
     device->Send(pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }

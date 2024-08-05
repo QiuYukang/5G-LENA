@@ -66,6 +66,7 @@ InstallApps(const Ptr<Node>& ue,
 
     // The bearer that will carry low latency traffic
     EpsBearer lowLatBearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    NrEpsBearer nrLowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> lowLatTft = Create<EpcTft>();
@@ -113,7 +114,7 @@ InstallApps(const Ptr<Node>& ue,
     }
     else if (nrHelper != nullptr)
     {
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
     }
 
     return std::make_pair(app, startTime);
@@ -571,7 +572,7 @@ LenaLteComparison(const Parameters& params)
         }
         else if (nrHelper != nullptr)
         {
-            nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+            nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
             auto uePhyBwp0{nrHelper->GetUePhy(ueNetDev, 0)};
             auto gnbPhyBwp0{nrHelper->GetGnbPhy(gnbNetDev, 0)};
             Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();

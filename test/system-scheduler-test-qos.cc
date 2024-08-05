@@ -62,6 +62,7 @@ SystemSchedulerTestQos::DoRun()
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
     Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
+    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals
     int64_t randomStream = 1;
@@ -361,7 +362,7 @@ SystemSchedulerTestQos::DoRun()
         ulpfLowLat.direction = EpcTft::UPLINK;
         ulLowLatTft->Add(ulpfLowLat);
 
-        EpsBearer bearerLowLat(EpsBearer::NGBR_LOW_LAT_EMBB);
+        NrEpsBearer bearerLowLat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
         UdpClientHelper ulClientVoice;
         ulClientVoice.SetAttribute("RemotePort", UintegerValue(ulPortVoice));
@@ -376,7 +377,7 @@ SystemSchedulerTestQos::DoRun()
         ulpfVoice.direction = EpcTft::UPLINK;
         ulVoiceTft->Add(ulpfVoice);
 
-        EpsBearer bearerVoice(EpsBearer::GBR_CONV_VOICE);
+        NrEpsBearer bearerVoice(NrEpsBearer::GBR_CONV_VOICE);
 
         // configure here UDP traffic flows
         for (uint32_t j = 0; j < ueLowLatContainer.GetN(); ++j)
@@ -420,7 +421,7 @@ SystemSchedulerTestQos::DoRun()
         dlpfLowLat.direction = EpcTft::DOWNLINK;
         dlLowLatTft->Add(dlpfLowLat);
 
-        EpsBearer bearerLowlat(EpsBearer::NGBR_LOW_LAT_EMBB);
+        NrEpsBearer bearerLowlat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
         Ptr<EpcTft> dlVoiceTft = Create<EpcTft>();
         EpcTft::PacketFilter dlpfVoice;
@@ -429,7 +430,7 @@ SystemSchedulerTestQos::DoRun()
         dlpfVoice.direction = EpcTft::DOWNLINK;
         dlVoiceTft->Add(dlpfVoice);
 
-        EpsBearer bearerVoice(EpsBearer::GBR_CONV_VOICE);
+        NrEpsBearer bearerVoice(NrEpsBearer::GBR_CONV_VOICE);
 
         for (uint32_t j = 0; j < ueLowLatContainer.GetN(); ++j)
         {

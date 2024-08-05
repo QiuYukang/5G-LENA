@@ -550,7 +550,7 @@ main(int argc, char* argv[])
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
     // The bearer that will carry low latency traffic
-    EpsBearer lowLatBearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+    NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> lowLatTft = Create<EpcTft>();
@@ -567,7 +567,7 @@ main(int argc, char* argv[])
     ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
     // The bearer that will carry voice traffic
-    EpsBearer videoBearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    NrEpsBearer videoBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the voice traffic
     Ptr<EpcTft> voiceTft = Create<EpcTft>();

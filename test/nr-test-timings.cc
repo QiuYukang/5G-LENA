@@ -5,10 +5,10 @@
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
-#include "ns3/eps-bearer-tag.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
+#include "ns3/nr-eps-bearer-tag.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
 
@@ -121,7 +121,7 @@ SendPacket(const Ptr<NetDevice>& device, const Address& addr)
     NS_ASSERT(packetSize > header.GetSerializedSize());
     Ptr<Packet> pkt = Create<Packet>(packetSize - header.GetSerializedSize());
     header.SetProtocol(0x06);
-    EpsBearerTag tag(1, 1);
+    NrEpsBearerTag tag(1, 1);
     pkt->AddPacketTag(tag);
     pkt->AddHeader(header);
     device->Send(pkt, addr, Ipv4L3Protocol::PROT_NUMBER);

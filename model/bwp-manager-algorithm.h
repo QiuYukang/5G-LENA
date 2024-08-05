@@ -5,7 +5,8 @@
 #ifndef BWPMANAGERALGORITHM_H
 #define BWPMANAGERALGORITHM_H
 
-#include <ns3/eps-bearer.h>
+#include "nr-eps-bearer.h"
+
 #include <ns3/object.h>
 
 namespace ns3
@@ -55,7 +56,7 @@ class BwpManagerAlgorithm : public Object
      * \param v the qci
      * \return the bwp id that the algorithm selects for the qci specified
      */
-    virtual uint8_t GetBwpForEpsBearer(const EpsBearer::Qci& v) const = 0;
+    virtual uint8_t GetBwpForEpsBearer(const NrEpsBearer::Qci& v) const = 0;
 };
 
 /**
@@ -83,7 +84,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     ~BwpManagerAlgorithmStatic() override = default;
 
     // inherited
-    uint8_t GetBwpForEpsBearer(const EpsBearer::Qci& v) const override;
+    uint8_t GetBwpForEpsBearer(const NrEpsBearer::Qci& v) const override;
 
     /**
      * \brief Set BWP index of the QCI in the function name
@@ -91,7 +92,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetConvVoiceBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_CONV_VOICE] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_CONV_VOICE] = bwpIndex;
     }
 
     /**
@@ -100,7 +101,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetConvVoiceBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_CONV_VOICE);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_CONV_VOICE);
     }
 
     /**
@@ -109,7 +110,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetConvVideoBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_CONV_VIDEO] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_CONV_VIDEO] = bwpIndex;
     }
 
     /**
@@ -118,7 +119,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetConvVideoBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_CONV_VIDEO);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_CONV_VIDEO);
     }
 
     /**
@@ -127,7 +128,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetGamingBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_GAMING] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_GAMING] = bwpIndex;
     }
 
     /**
@@ -136,7 +137,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetGamingBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_GAMING);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_GAMING);
     }
 
     /**
@@ -145,7 +146,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetNonConvVideoBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_NON_CONV_VIDEO] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_NON_CONV_VIDEO] = bwpIndex;
     }
 
     /**
@@ -154,7 +155,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetNonConvVideoBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_NON_CONV_VIDEO);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_NON_CONV_VIDEO);
     }
 
     /**
@@ -163,7 +164,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetMcPttBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_MC_PUSH_TO_TALK] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_MC_PUSH_TO_TALK] = bwpIndex;
     }
 
     /**
@@ -172,7 +173,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetMcPttBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_MC_PUSH_TO_TALK);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_MC_PUSH_TO_TALK);
     }
 
     /**
@@ -181,7 +182,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetNmcPttBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_NMC_PUSH_TO_TALK] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_NMC_PUSH_TO_TALK] = bwpIndex;
     }
 
     /**
@@ -190,7 +191,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetNmcPttBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_NMC_PUSH_TO_TALK);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_NMC_PUSH_TO_TALK);
     }
 
     /**
@@ -199,7 +200,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetMcVideoBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_MC_VIDEO] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_MC_VIDEO] = bwpIndex;
     }
 
     /**
@@ -208,7 +209,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetMcVideoBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_MC_VIDEO);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_MC_VIDEO);
     }
 
     /**
@@ -217,7 +218,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetGbrV2xBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_V2X] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_V2X] = bwpIndex;
     }
 
     /**
@@ -226,7 +227,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetGbrV2xBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_V2X);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_V2X);
     }
 
     /**
@@ -235,7 +236,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetImsBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_IMS] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_IMS] = bwpIndex;
     }
 
     /**
@@ -244,7 +245,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetImsBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_IMS);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_IMS);
     }
 
     /**
@@ -253,7 +254,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetVideoTcpOpBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_VIDEO_TCP_OPERATOR] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_VIDEO_TCP_OPERATOR] = bwpIndex;
     }
 
     /**
@@ -262,7 +263,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetVideoTcpOpBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_VIDEO_TCP_OPERATOR);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_VIDEO_TCP_OPERATOR);
     }
 
     /**
@@ -271,7 +272,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetVideoGamingBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_VOICE_VIDEO_GAMING] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_VOICE_VIDEO_GAMING] = bwpIndex;
     }
 
     /**
@@ -280,7 +281,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetVideoGamingBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_VOICE_VIDEO_GAMING);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_VOICE_VIDEO_GAMING);
     }
 
     /**
@@ -289,7 +290,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetVideoTcpPremiumBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_VIDEO_TCP_PREMIUM] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM] = bwpIndex;
     }
 
     /**
@@ -298,7 +299,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetVideoTcpPremiumBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_VIDEO_TCP_PREMIUM);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM);
     }
 
     /**
@@ -307,7 +308,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetVideoTcpDefaultBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_VIDEO_TCP_DEFAULT] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT] = bwpIndex;
     }
 
     /**
@@ -316,7 +317,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetVideoTcpDefaultBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
     }
 
     /**
@@ -325,7 +326,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetMcDelaySignalBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_MC_DELAY_SIGNAL] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_MC_DELAY_SIGNAL] = bwpIndex;
     }
 
     /**
@@ -334,7 +335,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetMcDelaySignalBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_MC_DELAY_SIGNAL);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_MC_DELAY_SIGNAL);
     }
 
     /**
@@ -343,7 +344,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetMcDataBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_MC_DATA] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_MC_DATA] = bwpIndex;
     }
 
     /**
@@ -352,7 +353,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetMcDataBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_MC_DATA);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_MC_DATA);
     }
 
     /**
@@ -361,7 +362,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetNgbrV2xBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_V2X] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_V2X] = bwpIndex;
     }
 
     /**
@@ -370,7 +371,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetNgbrV2xBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_V2X);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_V2X);
     }
 
     /**
@@ -379,7 +380,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetLowLatEmbbBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::NGBR_LOW_LAT_EMBB] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::NGBR_LOW_LAT_EMBB] = bwpIndex;
     }
 
     /**
@@ -388,7 +389,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetLowLatEmbbBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::NGBR_LOW_LAT_EMBB);
+        return m_qciToBwpMap.at(NrEpsBearer::NGBR_LOW_LAT_EMBB);
     }
 
     /**
@@ -397,7 +398,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetDiscreteAutSmallBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_DISCRETE_AUT_SMALL] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_DISCRETE_AUT_SMALL] = bwpIndex;
     }
 
     /**
@@ -406,7 +407,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetDiscreteAutSmallBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_DISCRETE_AUT_SMALL);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_DISCRETE_AUT_SMALL);
     }
 
     /**
@@ -415,7 +416,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetDiscreteAutLargeBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_DISCRETE_AUT_LARGE] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_DISCRETE_AUT_LARGE] = bwpIndex;
     }
 
     /**
@@ -424,7 +425,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetDiscreteAutLargeBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_DISCRETE_AUT_LARGE);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_DISCRETE_AUT_LARGE);
     }
 
     /**
@@ -433,7 +434,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetItsBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_ITS] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_ITS] = bwpIndex;
     }
 
     /**
@@ -442,7 +443,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetItsBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_ITS);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_ITS);
     }
 
     /**
@@ -451,7 +452,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetElectricityBwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_ELECTRICITY] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_ELECTRICITY] = bwpIndex;
     }
 
     /**
@@ -460,7 +461,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetElectricityBwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_ELECTRICITY);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_ELECTRICITY);
     }
 
     /**
@@ -469,7 +470,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetLiveUlStream71Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_71] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_LIVE_UL_71] = bwpIndex;
     }
 
     /**
@@ -478,7 +479,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetLiveUlStream71Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_71);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_LIVE_UL_71);
     }
 
     /**
@@ -487,7 +488,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetLiveUlStream72Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_72] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_LIVE_UL_72] = bwpIndex;
     }
 
     /**
@@ -496,7 +497,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetLiveUlStream72Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_72);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_LIVE_UL_72);
     }
 
     /**
@@ -505,7 +506,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetLiveUlStream73Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_73] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_LIVE_UL_73] = bwpIndex;
     }
 
     /**
@@ -514,7 +515,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetLiveUlStream73Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_73);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_LIVE_UL_73);
     }
 
     /**
@@ -523,7 +524,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetLiveUlStream74Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_74] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_LIVE_UL_74] = bwpIndex;
     }
 
     /**
@@ -532,7 +533,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetLiveUlStream74Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_74);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_LIVE_UL_74);
     }
 
     /**
@@ -541,7 +542,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetLiveUlStream76Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::GBR_LIVE_UL_76] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::GBR_LIVE_UL_76] = bwpIndex;
     }
 
     /**
@@ -550,7 +551,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetLiveUlStream76Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::GBR_LIVE_UL_76);
+        return m_qciToBwpMap.at(NrEpsBearer::GBR_LIVE_UL_76);
     }
 
     /**
@@ -559,7 +560,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetInterService87Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_INTER_SERV_87] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_INTER_SERV_87] = bwpIndex;
     }
 
     /**
@@ -568,7 +569,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetInterService87Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_INTER_SERV_87);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_INTER_SERV_87);
     }
 
     /**
@@ -577,7 +578,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetInterService88Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_INTER_SERV_88] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_INTER_SERV_88] = bwpIndex;
     }
 
     /**
@@ -586,7 +587,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetInterService88Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_INTER_SERV_88);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_INTER_SERV_88);
     }
 
     /**
@@ -595,7 +596,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetVisualContent89Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_VISUAL_CONTENT_89] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_VISUAL_CONTENT_89] = bwpIndex;
     }
 
     /**
@@ -604,7 +605,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetVisualContent89Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_VISUAL_CONTENT_89);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_VISUAL_CONTENT_89);
     }
 
     /**
@@ -613,7 +614,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     void SetVisualContent90Bwp(uint8_t bwpIndex)
     {
-        m_qciToBwpMap[EpsBearer::DGBR_VISUAL_CONTENT_90] = bwpIndex;
+        m_qciToBwpMap[NrEpsBearer::DGBR_VISUAL_CONTENT_90] = bwpIndex;
     }
 
     /**
@@ -622,7 +623,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
      */
     uint8_t GetVisualContent90Bwp() const
     {
-        return m_qciToBwpMap.at(EpsBearer::DGBR_VISUAL_CONTENT_90);
+        return m_qciToBwpMap.at(NrEpsBearer::DGBR_VISUAL_CONTENT_90);
     }
 
   private:

@@ -381,7 +381,7 @@ main(int argc, char* argv[])
     dlClient.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda)));
 
     // The bearer that will carry low latency traffic
-    EpsBearer bearer(EpsBearer::GBR_CONV_VOICE);
+    NrEpsBearer bearer(NrEpsBearer::GBR_CONV_VOICE);
 
     Ptr<EpcTft> tft = Create<EpcTft>();
     EpcTft::PacketFilter dlpf;

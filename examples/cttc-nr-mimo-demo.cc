@@ -448,7 +448,7 @@ main(int argc, char* argv[])
     dlClient.SetAttribute("Interval", TimeValue(packetInterval));
 
     // The bearer that will carry the traffic
-    EpsBearer epsBearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+    NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
     Ptr<EpcTft> dlTft = Create<EpcTft>();

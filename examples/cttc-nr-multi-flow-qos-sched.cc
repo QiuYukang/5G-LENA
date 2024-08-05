@@ -421,7 +421,7 @@ main(int argc, char* argv[])
     dlClientUe1flow.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda1)));
 
     // The bearer that will carry UE with 1 flow Non GBR traffic
-    EpsBearer ue1flowBearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+    NrEpsBearer ue1flowBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the UE with 1 flow Non GBR traffic
     Ptr<EpcTft> ue1flowTft = Create<EpcTft>();
@@ -439,11 +439,11 @@ main(int argc, char* argv[])
     dlClientUe2flowsNgbr.SetAttribute("PacketSize", UintegerValue(udpPacketSize1));
     dlClientUe2flowsNgbr.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda1)));
 
-    // GbrQosInformation qosInfoInterServ2;
+    // NrGbrQosInformation qosInfoInterServ2;
     // qosInfoInterServ2.gbrDl = 6e6; // Downlink GBR
 
     // The bearer that will carry UE with 2 Flows Non GBR traffic
-    EpsBearer ue2flowsNgbrBearer(EpsBearer::NGBR_LOW_LAT_EMBB); // qosInfoInterServ2);
+    NrEpsBearer ue2flowsNgbrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB); // qosInfoInterServ2);
 
     // The filter for the UE with 2 Flows Non GBR traffic
     Ptr<EpcTft> ue2flowsNgbrTft = Create<EpcTft>();
@@ -460,11 +460,11 @@ main(int argc, char* argv[])
     dlClientUe2flowsDcGbr.SetAttribute("PacketSize", UintegerValue(udpPacketSize2));
     dlClientUe2flowsDcGbr.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda2)));
 
-    GbrQosInformation qosUe2flowsDcGbr;
+    NrGbrQosInformation qosUe2flowsDcGbr;
     qosUe2flowsDcGbr.gbrDl = 5e6; // Downlink GBR
 
     // The bearer that will carry Ue 2 Flows DC GBR traffic
-    EpsBearer ue2flowsDcGbrBearer(EpsBearer::DGBR_INTER_SERV_87, qosUe2flowsDcGbr);
+    NrEpsBearer ue2flowsDcGbrBearer(NrEpsBearer::DGBR_INTER_SERV_87, qosUe2flowsDcGbr);
 
     // The filter for the 2 Flows DC GBR traffic
     Ptr<EpcTft> ue2FlowsDcGbrTft = Create<EpcTft>();

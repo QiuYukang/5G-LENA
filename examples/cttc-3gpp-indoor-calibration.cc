@@ -6,9 +6,9 @@
 #include "ns3/applications-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/core-module.h"
-#include "ns3/eps-bearer-tag.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
+#include "ns3/nr-eps-bearer-tag.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
 

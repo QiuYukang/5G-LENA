@@ -5,6 +5,7 @@
 #ifndef BWPMANAGERUE_H
 #define BWPMANAGERUE_H
 
+#include "nr-eps-bearer.h"
 #include "nr-phy-mac-common.h"
 
 #include <ns3/eps-bearer.h>
@@ -101,7 +102,7 @@ class BwpManagerUe : public SimpleUeComponentCarrierManager
 
   private:
     Ptr<BwpManagerAlgorithm> m_algorithm;
-    std::unordered_map<uint8_t, EpsBearer::Qci> m_lcToBearerMap; //!< Map from LCID to bearer ID
+    std::unordered_map<uint8_t, NrEpsBearer::Qci> m_lcToBearerMap; //!< Map from LCID to bearer ID
 
     std::unordered_map<uint32_t, uint32_t> m_outputLinks; //!< Mapping between BWP.
 };

@@ -1341,6 +1341,7 @@ main(int argc, char* argv[])
 
     // The bearer that will carry low latency traffic
     EpsBearer lowLatBearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    NrEpsBearer nrLowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> lowLatTft = Create<EpcTft>();

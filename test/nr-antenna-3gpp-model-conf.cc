@@ -138,7 +138,7 @@ TestAntenna3gppModelConf::DoRun()
     DataRate udpRate = DataRate("2Mbps");
 
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
+    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -375,7 +375,7 @@ TestAntenna3gppModelConf::DoRun()
     dlpf.localPortEnd = dlPort;
     tft->Add(dlpf);
 
-    EpsBearer bearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+    NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
     nrHelper->ActivateDedicatedEpsBearer(ueNetDevs.Get(0), bearer, tft);
 
     // start UDP server and client apps

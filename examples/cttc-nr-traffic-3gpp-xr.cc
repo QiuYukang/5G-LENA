@@ -50,8 +50,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
                NodeContainer& remoteHostContainer,
                NetDeviceContainer& ueNetDev,
                Ptr<NrHelper> nrHelper,
-               EpsBearer& bearer,
-               Ptr<EpcTft> tft,
+               NrEpsBearer& bearer,
                bool isMx1,
                std::vector<Ptr<EpcTft>>& tfts,
                ApplicationContainer& serverApps,
@@ -359,10 +358,7 @@ main(int argc, char* argv[])
     uint16_t dlPortCgStart = 1141;
 
     // The bearer that will carry AR traffic
-    EpsBearer arBearer(EpsBearer::NGBR_LOW_LAT_EMBB);
-    Ptr<EpcTft> arTft = Create<EpcTft>();
-    EpcTft::PacketFilter dlpfAr;
-    std::vector<Ptr<EpcTft>> arTfts;
+    NrEpsBearer arBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     if (isMx1)
     {
@@ -383,7 +379,7 @@ main(int argc, char* argv[])
         }
     }
     // The bearer that will carry VR traffic
-    EpsBearer vrBearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+    NrEpsBearer vrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     Ptr<EpcTft> vrTft = Create<EpcTft>();
     EpcTft::PacketFilter dlpfVr;
@@ -392,7 +388,7 @@ main(int argc, char* argv[])
     vrTft->Add(dlpfVr);
 
     // The bearer that will carry CG traffic
-    EpsBearer cgBearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+    NrEpsBearer cgBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     Ptr<EpcTft> cgTft = Create<EpcTft>();
     EpcTft::PacketFilter dlpfCg;

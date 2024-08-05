@@ -14,6 +14,7 @@
 #include <ns3/net-device-container.h>
 #include <ns3/node-container.h>
 #include <ns3/nr-control-messages.h>
+#include <ns3/nr-eps-bearer.h>
 #include <ns3/nr-spectrum-phy.h>
 #include <ns3/object-factory.h>
 
@@ -318,7 +319,7 @@ class NrHelper : public Object
      * \param ueDevices the set of UE devices
      * \param bearer the characteristics of the bearer to be activated
      */
-    void ActivateDataRadioBearer(NetDeviceContainer ueDevices, EpsBearer bearer);
+    void ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrEpsBearer bearer);
     /**
      * \brief Activate a Data Radio Bearer on a UE device.
      *
@@ -328,7 +329,7 @@ class NrHelper : public Object
      * \param ueDevice the UE device
      * \param bearer the characteristics of the bearer to be activated
      */
-    void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer);
+    void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer);
     /**
      * Set the EpcHelper to be used to setup the EPC network in
      * conjunction with the setup of the LTE radio access network.
@@ -408,8 +409,7 @@ class NrHelper : public Object
      * \returns bearer ID
      */
     uint8_t ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
-                                       EpsBearer bearer,
-                                       Ptr<EpcTft> tft);
+                                       NrEpsBearer bearer,
 
     /**
      * Activate a dedicated EPS bearer on a given UE device.
@@ -419,7 +419,8 @@ class NrHelper : public Object
      * \param tft the Traffic Flow Template that identifies the traffic to go on this bearer.
      * \returns bearer ID
      */
-    uint8_t ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer, Ptr<EpcTft> tft);
+    uint8_t ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
+                                       NrEpsBearer bearer,
 
     /**
      *  \brief Manually trigger dedicated bearer de-activation at specific simulation time

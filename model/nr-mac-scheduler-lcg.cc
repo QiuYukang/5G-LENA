@@ -4,7 +4,8 @@
 
 #include "nr-mac-scheduler-lcg.h"
 
-#include <ns3/eps-bearer.h>
+#include "nr-eps-bearer.h"
+
 #include <ns3/log.h>
 
 namespace ns3
@@ -15,7 +16,7 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerLCG");
 NrMacSchedulerLC::NrMacSchedulerLC(const LogicalChannelConfigListElement_s& conf)
     : m_id(conf.m_logicalChannelIdentity)
 {
-    EpsBearer bearer(static_cast<EpsBearer::Qci>(conf.m_qci));
+    NrEpsBearer bearer(static_cast<NrEpsBearer::Qci>(conf.m_qci));
 
     m_delayBudget = MilliSeconds(bearer.GetPacketDelayBudgetMs());
     m_resourceType = bearer.GetResourceType();

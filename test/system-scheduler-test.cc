@@ -74,7 +74,7 @@ SystemSchedulerTest::DoRun()
 
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
-    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
+    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     Config::SetDefault(
         "ns3::NrUePhy::EnableUplinkPowerControl",
@@ -321,7 +321,7 @@ SystemSchedulerTest::DoRun()
             ulpf.direction = EpcTft::UPLINK;
             tft->Add(ulpf);
 
-            EpsBearer bearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+            NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
             nrHelper->ActivateDedicatedEpsBearer(ueNetDevs.Get(j), bearer, tft);
         }
 
@@ -355,7 +355,7 @@ SystemSchedulerTest::DoRun()
             dlpf.direction = EpcTft::DOWNLINK;
             tft->Add(dlpf);
 
-            EpsBearer bearer(EpsBearer::NGBR_LOW_LAT_EMBB);
+            NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
             nrHelper->ActivateDedicatedEpsBearer(ueNetDevs.Get(j), bearer, tft);
         }
         // start UDP server and client apps

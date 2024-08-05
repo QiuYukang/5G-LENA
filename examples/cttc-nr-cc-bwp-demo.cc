@@ -575,28 +575,28 @@ main(int argc, char* argv[])
                 ++dlPort;
                 tft->Add(dlpf);
 
-                enum EpsBearer::Qci q;
+                enum NrEpsBearer::Qci q;
                 if (flow == 0)
                 {
-                    q = EpsBearer::NGBR_LOW_LAT_EMBB;
+                    q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
                 }
                 else if (flow == 1)
                 {
-                    q = EpsBearer::GBR_CONV_VOICE;
+                    q = NrEpsBearer::GBR_CONV_VOICE;
                 }
                 else if (flow == 2)
                 {
-                    q = EpsBearer::NGBR_VIDEO_TCP_PREMIUM;
+                    q = NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM;
                 }
                 else if (flow == 3)
                 {
-                    q = EpsBearer::NGBR_VOICE_VIDEO_GAMING;
+                    q = NrEpsBearer::NGBR_VOICE_VIDEO_GAMING;
                 }
                 else
                 {
-                    q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
+                    q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
                 }
-                EpsBearer bearer(q);
+                NrEpsBearer bearer(q);
                 nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
             }
 
@@ -620,28 +620,28 @@ main(int argc, char* argv[])
                 ++ulPort;
                 tft->Add(ulpf);
 
-                enum EpsBearer::Qci q;
+                enum NrEpsBearer::Qci q;
                 if (flow == 0)
                 {
-                    q = EpsBearer::NGBR_LOW_LAT_EMBB;
+                    q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
                 }
                 else if (flow == 1)
                 {
-                    q = EpsBearer::GBR_CONV_VOICE;
+                    q = NrEpsBearer::GBR_CONV_VOICE;
                 }
                 else if (flow == 2)
                 {
-                    q = EpsBearer::NGBR_VIDEO_TCP_PREMIUM;
+                    q = NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM;
                 }
                 else if (flow == 3)
                 {
-                    q = EpsBearer::NGBR_VOICE_VIDEO_GAMING;
+                    q = NrEpsBearer::NGBR_VOICE_VIDEO_GAMING;
                 }
                 else
                 {
-                    q = EpsBearer::NGBR_VIDEO_TCP_DEFAULT;
+                    q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
                 }
-                EpsBearer bearer(q);
+                NrEpsBearer bearer(q);
                 nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
             }
         }

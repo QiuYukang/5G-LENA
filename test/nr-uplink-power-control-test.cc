@@ -415,7 +415,7 @@ NrUplinkPowerControlTestCase::DoRun()
     dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClient.SetAttribute("PacketSize", UintegerValue(100));
     dlClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
-    EpsBearer dlBearer(EpsBearer::GBR_CONV_VIDEO);
+    NrEpsBearer dlBearer(NrEpsBearer::GBR_CONV_VIDEO);
     Ptr<EpcTft> dlTft = Create<EpcTft>();
     EpcTft::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
@@ -427,7 +427,7 @@ NrUplinkPowerControlTestCase::DoRun()
     ulClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClient.SetAttribute("PacketSize", UintegerValue(100));
     ulClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
-    EpsBearer ulBearer(EpsBearer::GBR_CONV_VIDEO);
+    NrEpsBearer ulBearer(NrEpsBearer::GBR_CONV_VIDEO);
     Ptr<EpcTft> ulTft = Create<EpcTft>();
     EpcTft::PacketFilter ulpf;
     ulpf.remotePortStart = ulPort;

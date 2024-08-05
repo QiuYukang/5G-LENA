@@ -5,10 +5,10 @@
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
-#include "ns3/eps-bearer-tag.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
+#include "ns3/nr-eps-bearer-tag.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/three-gpp-channel-model.h"
@@ -85,8 +85,8 @@ NrTestFdmOfNumerologiesCase1::DoRun()
     uint16_t ueNumPergNb = 2;
     uint32_t packetSize = 1000;
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(15));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     RngSeedManager::SetSeed(1);
     RngSeedManager::SetRun(1);
@@ -324,18 +324,18 @@ NrTestFdmOfNumerologiesCase1::DoRun()
             ulpf.remotePortEnd = ulPort;
             tft->Add(ulpf);
 
-            enum EpsBearer::Qci q;
+            enum NrEpsBearer::Qci q;
 
             if (j == 0)
             {
-                q = EpsBearer::NGBR_LOW_LAT_EMBB;
+                q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
             }
             else
             {
-                q = EpsBearer::GBR_CONV_VOICE;
+                q = NrEpsBearer::GBR_CONV_VOICE;
             }
 
-            EpsBearer bearer(q);
+            NrEpsBearer bearer(q);
             nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
 
             ulPort++;
@@ -370,18 +370,18 @@ NrTestFdmOfNumerologiesCase1::DoRun()
             dlpf.localPortEnd = dlPort;
             tft->Add(dlpf);
 
-            enum EpsBearer::Qci q;
+            enum NrEpsBearer::Qci q;
 
             if (j == 0)
             {
-                q = EpsBearer::NGBR_LOW_LAT_EMBB;
+                q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
             }
             else
             {
-                q = EpsBearer::GBR_CONV_VOICE;
+                q = NrEpsBearer::GBR_CONV_VOICE;
             }
 
-            EpsBearer bearer(q);
+            NrEpsBearer bearer(q);
             nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
         }
 

@@ -420,7 +420,7 @@ main(int argc, char* argv[])
     dlClientVideo.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaVideo)));
 
     // The bearer that will carry low latency traffic
-    EpsBearer videoBearer(EpsBearer::GBR_CONV_VIDEO);
+    NrEpsBearer videoBearer(NrEpsBearer::GBR_CONV_VIDEO);
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> videoTft = Create<EpcTft>();
@@ -437,7 +437,7 @@ main(int argc, char* argv[])
     dlClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaVoice)));
 
     // The bearer that will carry voice traffic
-    EpsBearer voiceBearer(EpsBearer::GBR_CONV_VOICE);
+    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
     Ptr<EpcTft> voiceTft = Create<EpcTft>();
@@ -454,7 +454,7 @@ main(int argc, char* argv[])
     ulClientGaming.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaGaming)));
 
     // The bearer that will carry gaming traffic
-    EpsBearer gamingBearer(EpsBearer::GBR_GAMING);
+    NrEpsBearer gamingBearer(NrEpsBearer::GBR_GAMING);
 
     // The filter for the gaming traffic
     Ptr<EpcTft> gamingTft = Create<EpcTft>();

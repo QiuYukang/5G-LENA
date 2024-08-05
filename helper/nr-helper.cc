@@ -85,7 +85,7 @@ NrHelper::NrHelper()
     m_pathlossModelFactory.SetTypeId(ThreeGppPropagationLossModel::GetTypeId());
     m_channelConditionModelFactory.SetTypeId(ThreeGppChannelConditionModel::GetTypeId());
 
-    Config::SetDefault("ns3::EpsBearer::Release", UintegerValue(18));
+    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(18));
 
     m_phyStats = CreateObject<NrPhyRxTrace>();
     m_macSchedStats = CreateObject<NrMacSchedulingStats>();
@@ -1129,7 +1129,7 @@ NrHelper::AttachToEnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         m_epcHelper->ActivateEpsBearer(ueDevice,
                                        ueNetDev->GetImsi(),
                                        EpcTft::Default(),
-                                       EpsBearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+                                       NrEpsBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
     // tricks needed for the simplified LTE-only simulations
@@ -1146,7 +1146,7 @@ NrHelper::AttachToEnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
 
 uint8_t
 NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
-                                     EpsBearer bearer,
+                                     NrEpsBearer bearer,
                                      Ptr<EpcTft> tft)
 {
     NS_LOG_FUNCTION(this);
@@ -1159,7 +1159,7 @@ NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
 }
 
 uint8_t
-NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer, Ptr<EpcTft> tft)
+NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer, Ptr<EpcTft> tft)
 {
     NS_LOG_FUNCTION(this);
 
@@ -1509,7 +1509,7 @@ NrHelper::SetBeamformingHelper(Ptr<BeamformingHelperBase> beamformingHelper)
 class NrDrbActivator : public SimpleRefCount<NrDrbActivator>
 {
   public:
-    NrDrbActivator(Ptr<NetDevice> ueDevice, EpsBearer bearer);
+    NrDrbActivator(Ptr<NetDevice> ueDevice, NrEpsBearer bearer);
     static void ActivateCallback(Ptr<NrDrbActivator> a,
                                  std::string context,
                                  uint64_t imsi,
@@ -1520,11 +1520,11 @@ class NrDrbActivator : public SimpleRefCount<NrDrbActivator>
   private:
     bool m_active;
     Ptr<NetDevice> m_ueDevice;
-    EpsBearer m_bearer;
+    NrEpsBearer m_bearer;
     uint64_t m_imsi;
 };
 
-NrDrbActivator::NrDrbActivator(Ptr<NetDevice> ueDevice, EpsBearer bearer)
+NrDrbActivator::NrDrbActivator(Ptr<NetDevice> ueDevice, NrEpsBearer bearer)
     : m_active(false),
       m_ueDevice(ueDevice),
       m_bearer(bearer),
@@ -1570,7 +1570,7 @@ NrDrbActivator::ActivateDrb(uint64_t imsi, uint16_t cellId, uint16_t rnti)
 }
 
 void
-NrHelper::ActivateDataRadioBearer(NetDeviceContainer ueDevices, EpsBearer bearer)
+NrHelper::ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrEpsBearer bearer)
 {
     NS_LOG_FUNCTION(this);
     for (NetDeviceContainer::Iterator i = ueDevices.Begin(); i != ueDevices.End(); ++i)
@@ -1580,7 +1580,7 @@ NrHelper::ActivateDataRadioBearer(NetDeviceContainer ueDevices, EpsBearer bearer
 }
 
 void
-NrHelper::ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer)
+NrHelper::ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer)
 {
     NS_LOG_FUNCTION(this << ueDevice);
     NS_ASSERT_MSG(!m_epcHelper, "this method must not be used when the EPC is being used");
