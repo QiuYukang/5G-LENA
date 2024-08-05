@@ -209,16 +209,16 @@ main(int argc, char* argv[])
     }
 
     // setup the nr simulation
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
 
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
 
     nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
-    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+    nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
     nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
 
@@ -348,7 +348,7 @@ main(int argc, char* argv[])
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = epcHelper->GetPgwNode();
+    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;
     remoteHostContainer.Create(1);
     Ptr<Node> remoteHost = remoteHostContainer.Get(0);
@@ -372,15 +372,15 @@ main(int argc, char* argv[])
 
     Ipv4InterfaceContainer ue1FlowIpIface;
     Ipv4InterfaceContainer ue2FlowsIpIface;
-    ue1FlowIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ue1flowNetDev));
-    ue2FlowsIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ue2flowsNetDev));
+    ue1FlowIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ue1flowNetDev));
+    ue2FlowsIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ue2flowsNetDev));
 
     // Set the default gateway for the UEs
     for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
     {
         Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(
             gridScenario.GetUserTerminals().Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
     // attach UEs to the closest gNB

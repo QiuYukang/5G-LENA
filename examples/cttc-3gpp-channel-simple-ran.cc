@@ -163,12 +163,12 @@ main(int argc, char* argv[])
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
 
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
 
     // Create one operational band containing one CC with one bandwidth part
     BandwidthPartInfoPtrVector allBwps;
@@ -235,7 +235,7 @@ main(int argc, char* argv[])
     InternetStackHelper internet;
     internet.Install(gridScenario.GetUserTerminals());
     Ipv4InterfaceContainer ueIpIface;
-    ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
+    ueIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
     if (enableUl)
     {

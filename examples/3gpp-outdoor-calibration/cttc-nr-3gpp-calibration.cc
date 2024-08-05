@@ -610,6 +610,7 @@ Nr3gppCalibration(Parameters& params)
      */
     std::cout << "  helpers\n";
     Ptr<PointToPointEpcHelper> epcHelper;
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper;
 
     NetDeviceContainer gnbSector1NetDev;
     NetDeviceContainer gnbSector2NetDev;
@@ -663,7 +664,7 @@ Nr3gppCalibration(Parameters& params)
     }
     else if (params.simulator == "5GLENA")
     {
-        epcHelper = CreateObject<NrPointToPointEpcHelper>();
+        nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
         LenaV2Utils::SetLenaV2SimulatorParameters(sector0AngleRad,
                                                   params.scenario,
                                                   params.confType,
@@ -679,7 +680,7 @@ Nr3gppCalibration(Parameters& params)
                                                   ueSector1Container,
                                                   ueSector2Container,
                                                   ueSector3Container,
-                                                  epcHelper,
+                                                  nrEpcHelper,
                                                   nrHelper,
                                                   gnbSector1NetDev,
                                                   gnbSector2NetDev,
@@ -741,7 +742,15 @@ Nr3gppCalibration(Parameters& params)
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     std::cout << "  pgw and internet\n";
-    Ptr<Node> pgw = epcHelper->GetPgwNode();
+    Ptr<Node> pgw;
+    if (lteHelper)
+    {
+        pgw = epcHelper->GetPgwNode();
+    }
+    else
+    {
+        pgw = nrEpcHelper->GetPgwNode();
+    }
     NodeContainer remoteHostContainer;
     remoteHostContainer.Create(1);
     Ptr<Node> remoteHost = remoteHostContainer.Get(0);
@@ -767,7 +776,19 @@ Nr3gppCalibration(Parameters& params)
     gnbNetDevs.Add(gnbSector3NetDev);
     NetDeviceContainer ueNetDevs(ueSector1NetDev, ueSector2NetDev);
     ueNetDevs.Add(ueSector3NetDev);
-    Ipv4InterfaceContainer ueIpIfaces{epcHelper->AssignUeIpv4Address(ueNetDevs)};
+
+    Ipv4InterfaceContainer ueIpIfaces;
+    Ipv4Address gatewayAddress;
+    if (lteHelper)
+    {
+        ueIpIfaces = epcHelper->AssignUeIpv4Address(ueNetDevs);
+        gatewayAddress = epcHelper->GetUeDefaultGatewayAddress();
+    }
+    else
+    {
+        ueIpIfaces = nrEpcHelper->AssignUeIpv4Address(ueNetDevs);
+        gatewayAddress = nrEpcHelper->GetUeDefaultGatewayAddress();
+    }
 
     Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress(1);
 
@@ -777,7 +798,7 @@ Nr3gppCalibration(Parameters& params)
     {
         Ptr<Ipv4StaticRouting> ueStaticRouting =
             ipv4RoutingHelper.GetStaticRouting((*ue)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+        ueStaticRouting->SetDefaultRoute(gatewayAddress, 1);
     }
 
     if (nrHelper != nullptr && params.attachToClosest)

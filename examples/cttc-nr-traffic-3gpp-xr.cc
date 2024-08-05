@@ -214,9 +214,9 @@ main(int argc, char* argv[])
                                          TypeIdValue(DirectPathBeamforming::GetTypeId()));
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
 
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
-    nrHelper->SetEpcHelper(epcHelper);
-    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
+    nrHelper->SetEpcHelper(nrEpcHelper);
+    nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
     // Initialize nrHelper
     nrHelper->Initialize();
@@ -303,7 +303,7 @@ main(int argc, char* argv[])
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = epcHelper->GetPgwNode();
+    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;
     remoteHostContainer.Create(1);
     Ptr<Node> remoteHost = remoteHostContainer.Get(0);
@@ -330,16 +330,16 @@ main(int argc, char* argv[])
     Ipv4InterfaceContainer ueVrIpIface;
     Ipv4InterfaceContainer ueCgIpIface;
 
-    ueArIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueArNetDev));
-    ueVrIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueVrNetDev));
-    ueCgIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueCgNetDev));
+    ueArIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueArNetDev));
+    ueVrIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueVrNetDev));
+    ueCgIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueCgNetDev));
 
     // Set the default gateway for the UEs
     for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
     {
         Ptr<Ipv4StaticRouting> ueStaticRouting =
             ipv4RoutingHelper.GetStaticRouting(ueNodes.Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
     // attach UEs to the closest gNB

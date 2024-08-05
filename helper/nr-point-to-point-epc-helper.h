@@ -19,10 +19,10 @@ namespace ns3
  * automatic inside the NrHelper. All the user has to do, is:
  *
 \verbatim
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper> ();
   ...
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-  nrHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetEpcHelper (nrEpcHelper);
 \endverbatim
  *
  * This helper will then used to create the links between the GNBs and the EPC.
@@ -30,7 +30,7 @@ namespace ns3
  * The user can set the point-to-point links properties by using:
  *
 \verbatim
-  epcHelper->SetAttribute ("AttributeName", UintegerValue (10));
+  nrEpcHelper->SetAttribute ("AttributeName", UintegerValue (10));
 \endverbatim
  *
  * And these attribute will be valid for all the code that follows the
@@ -41,7 +41,7 @@ namespace ns3
  *
  * You can obtain the pointer to the PGW node by doing:
 \verbatim
-  Ptr<Node> pgw = epcHelper->GetPgwNode ();
+  Ptr<Node> pgw = nrEpcHelper->GetPgwNode ();
 \endverbatim
  *
  * After that, you would probably want to setup a network between the PGW and
@@ -82,7 +82,8 @@ namespace ns3
  *
 \verbatim
   NetDeviceContainer netDeviceContainerForUe = ...;
-  Ipv4InterfaceContainer ueLowLatIpIface = epcHelper->AssignUeIpv4Address (netDeviceContainerForUe);
+  Ipv4InterfaceContainer ueLowLatIpIface = nrEpcHelper->AssignUeIpv4Address
+(netDeviceContainerForUe);
 \endverbatim
  *
  * And, of course, you would like to set the default routing for the UE,
@@ -94,7 +95,7 @@ namespace ns3
     {
       Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting
 (ueContainer.Get(j)->GetObject<Ipv4> ()); ueStaticRouting->SetDefaultRoute
-(epcHelper->GetUeDefaultGatewayAddress (), 1);
+(nrEpcHelper->GetUeDefaultGatewayAddress (), 1);
     }
 \endverbatim
  *

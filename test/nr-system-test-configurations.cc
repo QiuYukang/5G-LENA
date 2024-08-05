@@ -80,13 +80,13 @@ NrSystemTestConfigurationsTestCase1::DoRun()
 
     ueNode.Get(0)->GetObject<MobilityModel>()->SetPosition(Vector(0, 10, hUT));
 
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
 
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
 
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
@@ -129,7 +129,7 @@ NrSystemTestConfigurationsTestCase1::DoRun()
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = epcHelper->GetPgwNode();
+    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;
     remoteHostContainer.Create(1);
     Ptr<Node> remoteHost = remoteHostContainer.Get(0);
@@ -151,7 +151,7 @@ NrSystemTestConfigurationsTestCase1::DoRun()
     remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
     internet.Install(ueNode);
     Ipv4InterfaceContainer ueIpIface;
-    ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
+    ueIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
     ApplicationContainer clientApps;
@@ -161,7 +161,7 @@ NrSystemTestConfigurationsTestCase1::DoRun()
     // Set the default gateway for the UE
     Ptr<Ipv4StaticRouting> ueStaticRouting =
         ipv4RoutingHelper.GetStaticRouting(ue->GetObject<Ipv4>());
-    ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+    ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
 
     UdpServerHelper dlPacketSinkHelper(dlPort);
     serverApps.Add(dlPacketSinkHelper.Install(ueNode.Get(0)));

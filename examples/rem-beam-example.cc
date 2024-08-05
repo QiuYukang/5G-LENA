@@ -100,13 +100,13 @@ main(int argc, char* argv[])
     ueNodes.Get(0)->GetObject<MobilityModel>()->SetPosition(Vector(10, 10, 1.5));
 
     // Create and configure helpers
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(DirectPathQuasiOmniBeamforming::GetTypeId()));
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
 
     /*
      *  Create spectrum configuration: a single operational band with 1 CC and 1 BWP.
@@ -158,7 +158,7 @@ main(int argc, char* argv[])
     // install the IP stack on the UEs, this is needed to allow attachment
     InternetStackHelper internet;
     internet.Install(ueNodes);
-    epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
+    nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
     // we need to attach UEs to gNB so that they obtain the same configuration of channel as gNB
     nrHelper->AttachToGnb(ueNetDev.Get(0), gnbNetDev.Get(0));

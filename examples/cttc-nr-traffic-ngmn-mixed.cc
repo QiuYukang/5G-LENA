@@ -160,7 +160,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
                              NodeContainer ueSector1Container,
                              NodeContainer ueSector2Container,
                              NodeContainer ueSector3Container,
-                             Ptr<PointToPointEpcHelper>& baseEpcHelper,
+                             Ptr<NrPointToPointEpcHelper>& baseNrEpcHelper,
                              Ptr<NrHelper>& nrHelper,
                              NetDeviceContainer& gnbSector1NetDev,
                              NetDeviceContainer& gnbSector2NetDev,
@@ -190,8 +190,9 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     // Put the pointers inside nrHelper
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
 
-    Ptr<NrPointToPointEpcHelper> epcHelper = DynamicCast<NrPointToPointEpcHelper>(baseEpcHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper =
+        DynamicCast<NrPointToPointEpcHelper>(baseNrEpcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
 
     /*
      * Spectrum division. We create one operational band containing three
@@ -367,7 +368,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         nrHelper->SetSchedulerAttribute("DlCtrlSymbols", UintegerValue(1));
     }
     // Core latency
-    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+    nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
     // Antennas for all the UEs
     nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(1));
@@ -934,7 +935,7 @@ main(int argc, char* argv[])
     /*
      * Setup the 5G-LENA scenario
      */
-    Ptr<PointToPointEpcHelper> epcHelper;
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper;
 
     NetDeviceContainer gnbSector1NetDev;
     NetDeviceContainer gnbSector2NetDev;
@@ -945,7 +946,7 @@ main(int argc, char* argv[])
 
     Ptr<NrHelper> nrHelper = nullptr;
 
-    epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Set5gLenaSimulatorParameters(gridScenario,
                                  scenario,
                                  radioNetwork,
@@ -957,7 +958,7 @@ main(int argc, char* argv[])
                                  ueSector1Container,
                                  ueSector2Container,
                                  ueSector3Container,
-                                 epcHelper,
+                                 nrEpcHelper,
                                  nrHelper,
                                  gnbSector1NetDev,
                                  gnbSector2NetDev,
@@ -972,7 +973,7 @@ main(int argc, char* argv[])
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = epcHelper->GetPgwNode();
+    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;
     remoteHostContainer.Create(1);
     Ptr<Node> remoteHost = remoteHostContainer.Get(0);
@@ -1058,11 +1059,11 @@ main(int argc, char* argv[])
     }
 
     Ipv4InterfaceContainer ueSector1IpIface =
-        epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector1NetDev));
+        nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector1NetDev));
     Ipv4InterfaceContainer ueSector2IpIface =
-        epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector2NetDev));
+        nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector2NetDev));
     Ipv4InterfaceContainer ueSector3IpIface =
-        epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector3NetDev));
+        nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector3NetDev));
 
     Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress(1);
 
@@ -1071,7 +1072,7 @@ main(int argc, char* argv[])
     {
         Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(
             gridScenario.GetUserTerminals().Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
     // attach UEs to their gNB. Try to attach them per cellId order

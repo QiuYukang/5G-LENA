@@ -280,11 +280,11 @@ main(int argc, char* argv[])
     /**
      * Create the NR helpers that will be used to create and setup NR devices, spectrum, ...
      */
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
     /**
      * Prepare spectrum. Prepare one operational band, containing
      * one component carrier, and a single bandwidth part
@@ -322,7 +322,7 @@ main(int argc, char* argv[])
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(TypeId::LookupByName(beamformingMethod)));
     // Core latency
-    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+    nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
     /**
      * Configure gNb antenna
@@ -394,7 +394,7 @@ main(int argc, char* argv[])
 
     // create the Internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = epcHelper->GetPgwNode();
+    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;
     remoteHostContainer.Create(1);
     Ptr<Node> remoteHost = remoteHostContainer.Get(0);
@@ -415,11 +415,12 @@ main(int argc, char* argv[])
         ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
     remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
     internet.Install(ueContainer);
-    Ipv4InterfaceContainer ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
+    Ipv4InterfaceContainer ueIpIface =
+        nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
     // Set the default gateway for the UE
     Ptr<Ipv4StaticRouting> ueStaticRouting =
         ipv4RoutingHelper.GetStaticRouting(ueContainer.Get(0)->GetObject<Ipv4>());
-    ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+    ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
 
     // attach each UE to its gNB according to desired scenario
     nrHelper->AttachToGnb(ueNetDev.Get(0), gnbNetDev.Get(0));
