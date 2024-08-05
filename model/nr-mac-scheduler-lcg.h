@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "nr-ff-mac-common.h"
 #include "nr-mac-sched-sap.h"
 
-#include <ns3/ff-mac-common.h>
 #include <ns3/nstime.h>
 
 #include <memory>
@@ -199,6 +199,8 @@ class NrMacSchedulerLCG
      * \param type String representing the type of allocation currently in act (DL or UL)
      */
     void AssignedData(uint8_t lcId, uint32_t size, std::string type);
+
+    void ReleaseLC(uint8_t lcId);
 
   private:
     uint8_t m_id{0};                            //!< ID of the LCG

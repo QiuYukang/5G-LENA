@@ -63,8 +63,8 @@ class BandwidthPartGnb : public ComponentCarrierBaseStation
     void SetMac(Ptr<NrGnbMac> s);
 
     /**
-     * Set the FfMacScheduler Algorithm
-     * \param s a pointer to the FfMacScheduler
+     * Set the NrMacScheduler Algorithm
+     * \param s a pointer to the NrMacScheduler
      */
     void SetNrMacScheduler(Ptr<NrMacScheduler> s);
 

@@ -6,8 +6,7 @@
 #define NR_MAC_CSCHED_SAP_H
 
 #include "beam-id.h"
-
-#include <ns3/ff-mac-common.h>
+#include "nr-ff-mac-common.h"
 
 #include <vector>
 

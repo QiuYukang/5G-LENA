@@ -8,6 +8,7 @@
 #define SRC_NR_MODEL_NR_PHY_MAC_COMMON_H
 
 #include "nr-error-model.h"
+#include "nr-ff-mac-common.h"
 #include "sfnsf.h"
 
 #include <ns3/log.h>

@@ -4,7 +4,8 @@
 
 #include "nr-mac-scheduler-lc-qos.h"
 
-#include "ns3/ff-mac-common.h"
+#include "nr-ff-mac-common.h"
+
 #include "ns3/log.h"
 
 #include <algorithm>

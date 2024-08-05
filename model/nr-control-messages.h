@@ -5,9 +5,9 @@
 #ifndef SRC_NR_MODEL_NR_CONTROL_MESSAGES_H_
 #define SRC_NR_MODEL_NR_CONTROL_MESSAGES_H_
 
+#include "nr-ff-mac-common.h"
 #include "nr-phy-mac-common.h"
 
-#include <ns3/ff-mac-common.h>
 #include <ns3/lte-rrc-sap.h>
 #include <ns3/simple-ref-count.h>
 

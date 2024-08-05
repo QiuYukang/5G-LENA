@@ -9,7 +9,6 @@
 
 #include <ns3/abort.h>
 #include <ns3/boolean.h>
-#include <ns3/ff-mac-scheduler.h>
 #include <ns3/log.h>
 #include <ns3/pointer.h>
 
@@ -35,11 +34,11 @@ BandwidthPartGnb::GetTypeId()
                                           PointerValue(),
                                           MakePointerAccessor(&BandwidthPartGnb::m_mac),
                                           MakePointerChecker<NrGnbMac>())
-                            .AddAttribute("FfMacScheduler",
-                                          "The scheduler associated to this EnbNetDevice",
+                            .AddAttribute("MacScheduler",
+                                          "The scheduler associated to this GnbNetDevice",
                                           PointerValue(),
                                           MakePointerAccessor(&BandwidthPartGnb::m_scheduler),
-                                          MakePointerChecker<FfMacScheduler>());
+                                          MakePointerChecker<NrMacScheduler>());
     return tid;
 }
 
