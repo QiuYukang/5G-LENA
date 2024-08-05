@@ -11,6 +11,7 @@
 #include "nr-gnb-mac.h"
 
 #include "beam-id.h"
+#include "nr-common.h"
 #include "nr-control-messages.h"
 #include "nr-mac-header-fs-ul.h"
 #include "nr-mac-header-vs.h"
@@ -895,7 +896,7 @@ NrGnbMac::DoUlCqiReport(NrMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi
         NS_LOG_DEBUG(this << " gNB rxed an SRS UL-CQI");
     }
     NS_LOG_INFO("*** UL CQI report SINR "
-                << LteFfConverter::fpS11dot3toDouble(ulcqi.m_ulCqi.m_sinr[0])
+                << nr::FfConverter::fpS11dot3toDouble(ulcqi.m_ulCqi.m_sinr[0])
                 << " slot: " << m_currentSlot);
 
     // NS_ASSERT (ulcqi.m_sfnSf.m_varTtiNum != 0); Now UL data can be the first TTI..

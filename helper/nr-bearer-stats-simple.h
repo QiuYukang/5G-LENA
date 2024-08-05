@@ -6,8 +6,8 @@
 #define NR_RADIO_BEARER_STATS_SIMPLE_H_
 
 #include "ns3/basic-data-calculators.h"
-#include "ns3/lte-common.h"
 #include "ns3/lte-stats-calculator.h"
+#include "ns3/nr-common.h"
 #include "ns3/object.h"
 #include "ns3/uinteger.h"
 

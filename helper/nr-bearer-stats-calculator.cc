@@ -128,11 +128,11 @@ NrBearerStatsCalculator::UlTxPdu(uint16_t cellId,
 {
     NS_LOG_FUNCTION(this);
 
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     if (Simulator::Now() >= m_startTime)
     {
         m_ulCellId[p] = cellId;
-        m_flowId[p] = LteFlowId_t(rnti, lcid);
+        m_flowId[p] = nr::FlowId_t(rnti, lcid);
         m_ulTxPackets[p]++;
         m_ulTxData[p] += packetSize;
     }
@@ -148,11 +148,11 @@ NrBearerStatsCalculator::DlTxPdu(uint16_t cellId,
 {
     NS_LOG_FUNCTION(this);
 
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     if (Simulator::Now() >= m_startTime)
     {
         m_dlCellId[p] = cellId;
-        m_flowId[p] = LteFlowId_t(rnti, lcid);
+        m_flowId[p] = nr::FlowId_t(rnti, lcid);
         m_dlTxPackets[p]++;
         m_dlTxData[p] += packetSize;
     }
@@ -169,14 +169,14 @@ NrBearerStatsCalculator::UlRxPdu(uint16_t cellId,
 {
     NS_LOG_FUNCTION(this);
 
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     if (Simulator::Now() >= m_startTime)
     {
         m_ulCellId[p] = cellId;
         m_ulRxPackets[p]++;
         m_ulRxData[p] += packetSize;
 
-        Uint64StatsMap::iterator it = m_ulDelay.find(p);
+        nr::Uint64StatsMap::iterator it = m_ulDelay.find(p);
         if (it == m_ulDelay.end())
         {
             NS_LOG_DEBUG(this << " Creating UL stats calculators for IMSI " << p.m_imsi
@@ -200,14 +200,14 @@ NrBearerStatsCalculator::DlRxPdu(uint16_t cellId,
 {
     NS_LOG_FUNCTION(this);
 
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     if (Simulator::Now() >= m_startTime)
     {
         m_dlCellId[p] = cellId;
         m_dlRxPackets[p]++;
         m_dlRxData[p] += packetSize;
 
-        Uint64StatsMap::iterator it = m_dlDelay.find(p);
+        nr::Uint64StatsMap::iterator it = m_dlDelay.find(p);
         if (it == m_dlDelay.end())
         {
             NS_LOG_DEBUG(this << " Creating DL stats calculators for IMSI " << p.m_imsi
@@ -287,7 +287,7 @@ NrBearerStatsCalculator::WriteUlResults(std::ofstream& outFile)
 
     // Get the unique IMSI / LCID list
 
-    std::vector<ImsiLcidPair_t> pairVector;
+    std::vector<nr::ImsiLcidPair_t> pairVector;
     for (auto& m_ulTxPacket : m_ulTxPackets)
     {
         if (find(pairVector.begin(), pairVector.end(), m_ulTxPacket.first) == pairVector.end())
@@ -331,7 +331,7 @@ NrBearerStatsCalculator::WriteDlResults(std::ofstream& outFile)
     NS_LOG_FUNCTION(this);
 
     // Get the unique IMSI list
-    std::vector<ImsiLcidPair_t> pairVector;
+    std::vector<nr::ImsiLcidPair_t> pairVector;
     for (auto& m_dlTxPacket : m_dlTxPackets)
     {
         if (find(pairVector.begin(), pairVector.end(), m_dlTxPacket.first) == pairVector.end())
@@ -415,7 +415,7 @@ uint32_t
 NrBearerStatsCalculator::GetUlTxPackets(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_ulTxPackets[p];
 }
 
@@ -423,7 +423,7 @@ uint32_t
 NrBearerStatsCalculator::GetUlRxPackets(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_ulRxPackets[p];
 }
 
@@ -431,7 +431,7 @@ uint64_t
 NrBearerStatsCalculator::GetUlTxData(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_ulTxData[p];
 }
 
@@ -439,7 +439,7 @@ uint64_t
 NrBearerStatsCalculator::GetUlRxData(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_ulRxData[p];
 }
 
@@ -447,8 +447,8 @@ double
 NrBearerStatsCalculator::GetUlDelay(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
-    Uint64StatsMap::iterator it = m_ulDelay.find(p);
+    nr::ImsiLcidPair_t p(imsi, lcid);
+    nr::Uint64StatsMap::iterator it = m_ulDelay.find(p);
     if (it == m_ulDelay.end())
     {
         NS_LOG_ERROR("UL delay for " << imsi << " - " << (uint16_t)lcid << " not found");
@@ -461,9 +461,9 @@ std::vector<double>
 NrBearerStatsCalculator::GetUlDelayStats(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     std::vector<double> stats;
-    Uint64StatsMap::iterator it = m_ulDelay.find(p);
+    nr::Uint64StatsMap::iterator it = m_ulDelay.find(p);
     if (it == m_ulDelay.end())
     {
         stats.push_back(0.0);
@@ -483,9 +483,9 @@ std::vector<double>
 NrBearerStatsCalculator::GetUlPduSizeStats(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     std::vector<double> stats;
-    Uint32StatsMap::iterator it = m_ulPduSize.find(p);
+    nr::Uint32StatsMap::iterator it = m_ulPduSize.find(p);
     if (it == m_ulPduSize.end())
     {
         stats.push_back(0.0);
@@ -505,7 +505,7 @@ uint32_t
 NrBearerStatsCalculator::GetDlTxPackets(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_dlTxPackets[p];
 }
 
@@ -513,7 +513,7 @@ uint32_t
 NrBearerStatsCalculator::GetDlRxPackets(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_dlRxPackets[p];
 }
 
@@ -521,7 +521,7 @@ uint64_t
 NrBearerStatsCalculator::GetDlTxData(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_dlTxData[p];
 }
 
@@ -529,7 +529,7 @@ uint64_t
 NrBearerStatsCalculator::GetDlRxData(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_dlRxData[p];
 }
 
@@ -537,7 +537,7 @@ uint32_t
 NrBearerStatsCalculator::GetUlCellId(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_ulCellId[p];
 }
 
@@ -545,7 +545,7 @@ uint32_t
 NrBearerStatsCalculator::GetDlCellId(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     return m_dlCellId[p];
 }
 
@@ -553,8 +553,8 @@ double
 NrBearerStatsCalculator::GetDlDelay(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
-    Uint64StatsMap::iterator it = m_dlDelay.find(p);
+    nr::ImsiLcidPair_t p(imsi, lcid);
+    nr::Uint64StatsMap::iterator it = m_dlDelay.find(p);
     if (it == m_dlDelay.end())
     {
         NS_LOG_ERROR("DL delay for " << imsi << " not found");
@@ -567,9 +567,9 @@ std::vector<double>
 NrBearerStatsCalculator::GetDlDelayStats(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     std::vector<double> stats;
-    Uint64StatsMap::iterator it = m_dlDelay.find(p);
+    nr::Uint64StatsMap::iterator it = m_dlDelay.find(p);
     if (it == m_dlDelay.end())
     {
         stats.push_back(0.0);
@@ -589,9 +589,9 @@ std::vector<double>
 NrBearerStatsCalculator::GetDlPduSizeStats(uint64_t imsi, uint8_t lcid)
 {
     NS_LOG_FUNCTION(this << imsi << (uint16_t)lcid);
-    ImsiLcidPair_t p(imsi, lcid);
+    nr::ImsiLcidPair_t p(imsi, lcid);
     std::vector<double> stats;
-    Uint32StatsMap::iterator it = m_dlPduSize.find(p);
+    nr::Uint32StatsMap::iterator it = m_dlPduSize.find(p);
     if (it == m_dlPduSize.end())
     {
         stats.push_back(0.0);
