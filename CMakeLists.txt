@@ -278,7 +278,7 @@ set(test_sources
     test/nr-test-sfnsf.cc
     test/nr-test-timings.cc
     test/nr-spectrum-phy-test.cc
-    test/nr-lte-cc-bwp-configuration.cc
+    test/nr-cc-bwp-configuration.cc
     test/system-scheduler-test.cc
     test/nr-mac-short-bsr-ce-test.cc
     test/nr-test-notching.cc

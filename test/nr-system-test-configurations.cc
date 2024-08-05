@@ -59,19 +59,19 @@ NrSystemTestConfigurationsTestCase1::DoRun()
     double hUT = 1.5;  // user antenna height in meters;
 
     // create base stations and mobile terminals
-    NodeContainer enbNode;
+    NodeContainer gnbNode;
     NodeContainer ueNode;
-    enbNode.Create(1);
+    gnbNode.Create(1);
     ueNode.Create(1);
 
     // position the base stations
-    Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator>();
-    enbPositionAlloc->Add(Vector(0.0, 0.0, hBS));
+    Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator>();
+    gnbPositionAlloc->Add(Vector(0.0, 0.0, hBS));
 
-    MobilityHelper enbmobility;
-    enbmobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    enbmobility.SetPositionAllocator(enbPositionAlloc);
-    enbmobility.Install(enbNode);
+    MobilityHelper gnbMobility;
+    gnbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    gnbMobility.SetPositionAllocator(gnbPositionAlloc);
+    gnbMobility.Install(gnbNode);
 
     // position the mobile terminals and enable the mobility
     MobilityHelper uemobility;
@@ -114,10 +114,10 @@ NrSystemTestConfigurationsTestCase1::DoRun()
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName(m_scheduler));
 
     // install nr net devices
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNode, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbNode, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNode, allBwps);
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -177,8 +177,8 @@ NrSystemTestConfigurationsTestCase1::DoRun()
     serverApps.Stop(MilliSeconds(800));
     clientApps.Stop(MilliSeconds(800));
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     Simulator::Stop(MilliSeconds(800));
     Simulator::Run();

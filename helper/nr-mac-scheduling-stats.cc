@@ -171,7 +171,7 @@ NrMacSchedulingStats::DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
     uint64_t imsi = 0;
     std::ostringstream pathAndRnti;
     std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
-    pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
+    pathAndRnti << pathGnb << "/NrGnbRrc/UeMap/" << traceInfo.m_rnti;
     if (macStats->ExistsImsiPath(pathAndRnti.str()))
     {
         imsi = macStats->GetImsiPath(pathAndRnti.str());
@@ -205,7 +205,7 @@ NrMacSchedulingStats::UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
     uint64_t imsi = 0;
     std::ostringstream pathAndRnti;
     std::string pathGnb = path.substr(0, path.find("/BandwidthPartMap"));
-    pathAndRnti << pathGnb << "/LteEnbRrc/UeMap/" << traceInfo.m_rnti;
+    pathAndRnti << pathGnb << "/NrGnbRrc/UeMap/" << traceInfo.m_rnti;
     if (macStats->ExistsImsiPath(pathAndRnti.str()))
     {
         imsi = macStats->GetImsiPath(pathAndRnti.str());

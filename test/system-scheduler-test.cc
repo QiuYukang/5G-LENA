@@ -72,8 +72,8 @@ SystemSchedulerTest::DoRun()
     uint32_t maxPackets = 400;
     DataRate udpRate = DataRate("320kbps"); // 400 packets of 800 bits
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
     Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     Config::SetDefault(
@@ -283,8 +283,8 @@ SystemSchedulerTest::DoRun()
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDevs, gNbNetDevs);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDevs, gNbNetDevs);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;

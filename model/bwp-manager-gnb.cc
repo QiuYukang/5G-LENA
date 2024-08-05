@@ -19,7 +19,7 @@ NS_LOG_COMPONENT_DEFINE("BwpManagerGnb");
 NS_OBJECT_ENSURE_REGISTERED(BwpManagerGnb);
 
 BwpManagerGnb::BwpManagerGnb()
-    : RrComponentCarrierManager()
+    : NrRrComponentCarrierManager()
 {
     NS_LOG_FUNCTION(this);
 }
@@ -33,7 +33,7 @@ TypeId
 BwpManagerGnb::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BwpManagerGnb")
-                            .SetParent<NoOpComponentCarrierManager>()
+                            .SetParent<NrNoOpComponentCarrierManager>()
                             .SetGroupName("nr")
                             .AddConstructor<BwpManagerGnb>()
                             .AddAttribute("BwpManagerAlgorithm",
@@ -52,7 +52,7 @@ BwpManagerGnb::SetBwpManagerAlgorithm(const Ptr<BwpManagerAlgorithm>& algorithm)
 }
 
 uint8_t
-BwpManagerGnb::GetResourceType(LteMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerGnb::GetResourceType(NrMacSapProvider::ReportBufferStatusParameters params)
 {
     NS_ASSERT_MSG(m_ueInfo.find(params.rnti) != m_ueInfo.end(),
                   "Trying to check the QoS of unknown UE");
@@ -62,23 +62,23 @@ BwpManagerGnb::GetResourceType(LteMacSapProvider::ReportBufferStatusParameters p
     return (m_ueInfo[params.rnti].m_rlcLcInstantiated[params.lcid]).resourceType;
 }
 
-std::vector<LteCcmRrcSapProvider::LcsConfig>
-BwpManagerGnb::DoSetupDataRadioBearer(EpsBearer bearer,
+std::vector<NrCcmRrcSapProvider::LcsConfig>
+BwpManagerGnb::DoSetupDataRadioBearer(NrEpsBearer bearer,
                                       uint8_t bearerId,
                                       uint16_t rnti,
                                       uint8_t lcid,
                                       uint8_t lcGroup,
-                                      LteMacSapUser* msu)
+                                      NrMacSapUser* msu)
 {
     NS_LOG_FUNCTION(this);
 
-    std::vector<LteCcmRrcSapProvider::LcsConfig> lcsConfig =
-        RrComponentCarrierManager::DoSetupDataRadioBearer(bearer,
-                                                          bearerId,
-                                                          rnti,
-                                                          lcid,
-                                                          lcGroup,
-                                                          msu);
+    std::vector<NrCcmRrcSapProvider::LcsConfig> lcsConfig =
+        NrRrComponentCarrierManager::DoSetupDataRadioBearer(bearer,
+                                                            bearerId,
+                                                            rnti,
+                                                            lcid,
+                                                            lcGroup,
+                                                            msu);
     return lcsConfig;
 }
 
@@ -95,8 +95,8 @@ BwpManagerGnb::GetBwpIndex(uint16_t rnti, uint8_t lcid)
     uint8_t qci = m_ueInfo[rnti].m_rlcLcInstantiated[lcid].qci;
 
     // Force a conversion between the uint8_t type that comes from the LcInfo
-    // struct (yeah, using the EpsBearer::Qci type was too hard ...)
-    return m_algorithm->GetBwpForEpsBearer(static_cast<EpsBearer::Qci>(qci));
+    // struct (yeah, using the NrEpsBearer::Qci type was too hard ...)
+    return m_algorithm->GetBwpForEpsBearer(static_cast<NrEpsBearer::Qci>(qci));
 }
 
 uint8_t
@@ -113,8 +113,8 @@ BwpManagerGnb::PeekBwpIndex(uint16_t rnti, uint8_t lcid) const
     uint8_t qci = m_ueInfo.at(rnti).m_rlcLcInstantiated.at(lcid).qci;
 
     // Force a conversion between the uint8_t type that comes from the LcInfo
-    // struct (yeah, using the EpsBearer::Qci type was too hard ...)
-    return m_algorithm->GetBwpForEpsBearer(static_cast<EpsBearer::Qci>(qci));
+    // struct (yeah, using the NrEpsBearer::Qci type was too hard ...)
+    return m_algorithm->GetBwpForEpsBearer(static_cast<NrEpsBearer::Qci>(qci));
 }
 
 uint8_t
@@ -160,7 +160,7 @@ BwpManagerGnb::SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp)
 }
 
 void
-BwpManagerGnb::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerGnb::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
 {
     NS_LOG_FUNCTION(this);
 
@@ -177,13 +177,13 @@ BwpManagerGnb::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParamet
 }
 
 void
-BwpManagerGnb::DoNotifyTxOpportunity(LteMacSapUser::TxOpportunityParameters txOpParams)
+BwpManagerGnb::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams)
 {
     NS_LOG_FUNCTION(this);
-    std::map<uint16_t, UeInfo>::iterator rntiIt = m_ueInfo.find(txOpParams.rnti);
+    std::map<uint16_t, NrUeInfo>::iterator rntiIt = m_ueInfo.find(txOpParams.rnti);
     NS_ASSERT_MSG(rntiIt != m_ueInfo.end(), "could not find RNTI" << txOpParams.rnti);
 
-    std::map<uint8_t, LteMacSapUser*>::iterator lcidIt =
+    std::map<uint8_t, NrMacSapUser*>::iterator lcidIt =
         rntiIt->second.m_ueAttached.find(txOpParams.lcid);
     NS_ASSERT_MSG(lcidIt != rntiIt->second.m_ueAttached.end(),
                   "could not find LCID " << (uint16_t)txOpParams.lcid);

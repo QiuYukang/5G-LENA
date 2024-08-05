@@ -391,7 +391,7 @@ NrUplinkPowerControlTestCase::DoRun()
     ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
 
     // Attach a UE to a gNB
-    nrHelper->AttachToEnb(ueDevs.Get(0), gnbDevs.Get(0));
+    nrHelper->AttachToGnb(ueDevs.Get(0), gnbDevs.Get(0));
 
     /*
      * Traffic part. Install two kinds of traffic: low-latency and voice, each

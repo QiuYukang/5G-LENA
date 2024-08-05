@@ -192,9 +192,9 @@ main(int argc, char* argv[])
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(23));
     nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(7));
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::LteEnbRrc::EpsBearerToRlcMapping",
-                       EnumValue(useUdp ? LteEnbRrc::RLC_UM_ALWAYS : LteEnbRrc::RLC_AM_ALWAYS));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrGnbRrc::EpsBearerToRlcMapping",
+                       EnumValue(useUdp ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
 
     nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(4));
     nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(8));
@@ -342,10 +342,10 @@ main(int argc, char* argv[])
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueArNetDev, gNbNetDev);
-    nrHelper->AttachToClosestEnb(ueVrNetDev, gNbNetDev);
-    nrHelper->AttachToClosestEnb(ueCgNetDev, gNbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueArNetDev, gNbNetDev);
+    nrHelper->AttachToClosestGnb(ueVrNetDev, gNbNetDev);
+    nrHelper->AttachToClosestGnb(ueCgNetDev, gNbNetDev);
 
     // Install sink application
     ApplicationContainer serverApps;

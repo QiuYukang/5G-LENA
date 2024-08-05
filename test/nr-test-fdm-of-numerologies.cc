@@ -166,19 +166,19 @@ NrTestFdmOfNumerologiesCase1::DoRun()
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(1));
 
     // install nr net devices
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNodes, allBwps);
 
     double x = pow(10, totalTxPower / 10);
 
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(m_numerology));
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("Numerology", UintegerValue(m_numerology));
 
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw1 / totalBandwidth) * x)));
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw2 / totalBandwidth) * x)));
 
     nrHelper->GetUePhy(ueNetDev.Get(0), 0)
@@ -197,7 +197,7 @@ NrTestFdmOfNumerologiesCase1::DoRun()
         for (uint8_t bwpId = 0; bwpId < 2; bwpId++)
         {
             Ptr<const NrSpectrumPhy> txSpectrumPhy =
-                nrHelper->GetGnbPhy(enbNetDev.Get(j), bwpId)->GetSpectrumPhy();
+                nrHelper->GetGnbPhy(gnbNetDev.Get(j), bwpId)->GetSpectrumPhy();
             Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
             Ptr<ThreeGppPropagationLossModel> propagationLossModel =
                 DynamicCast<ThreeGppPropagationLossModel>(
@@ -243,7 +243,7 @@ NrTestFdmOfNumerologiesCase1::DoRun()
         }
     }
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -289,8 +289,8 @@ NrTestFdmOfNumerologiesCase1::DoRun()
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;

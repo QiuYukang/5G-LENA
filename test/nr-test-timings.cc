@@ -806,8 +806,8 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
 // Ugly pre-processor macro, to speed up writing. The best way would be to use
 // static functions... so please forget them, and remember that they work
 // only here in the DoRun function, as it is all hard-coded
-#define GET_ENB_PHY(X, Y) nrHelper->GetGnbPhy(enbNetDev.Get(X), Y)
-#define GET_ENB_MAC(X, Y) nrHelper->GetGnbMac(enbNetDev.Get(X), Y)
+#define GET_GNB_PHY(X, Y) nrHelper->GetGnbPhy(gnbNetDev.Get(X), Y)
+#define GET_GNB_MAC(X, Y) nrHelper->GetGnbMac(gnbNetDev.Get(X), Y)
 
 #define GET_UE_PHY(X, Y) nrHelper->GetUePhy(ueNetDev.Get(X), Y)
 #define GET_UE_MAC(X, Y) nrHelper->GetUeMac(ueNetDev.Get(X), Y)
@@ -881,21 +881,21 @@ NrTimingsTest::DoRun()
 
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(50.0));
 
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gNbNode, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gNbNode, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNode, allBwps);
 
     int64_t randomStream = 1;
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    GET_ENB_PHY(0, 0)->TraceConnectWithoutContext("GnbPhyTxedCtrlMsgsTrace",
+    GET_GNB_PHY(0, 0)->TraceConnectWithoutContext("GnbPhyTxedCtrlMsgsTrace",
                                                   MakeCallback(&NrTimingsTest::GnbPhyTx, this));
-    GET_ENB_PHY(0, 0)->TraceConnectWithoutContext("GnbPhyRxedCtrlMsgsTrace",
+    GET_GNB_PHY(0, 0)->TraceConnectWithoutContext("GnbPhyRxedCtrlMsgsTrace",
                                                   MakeCallback(&NrTimingsTest::GnbPhyRx, this));
 
-    GET_ENB_MAC(0, 0)->TraceConnectWithoutContext("GnbMacTxedCtrlMsgsTrace",
+    GET_GNB_MAC(0, 0)->TraceConnectWithoutContext("GnbMacTxedCtrlMsgsTrace",
                                                   MakeCallback(&NrTimingsTest::GnbMacTx, this));
-    GET_ENB_MAC(0, 0)->TraceConnectWithoutContext("GnbMacRxedCtrlMsgsTrace",
+    GET_GNB_MAC(0, 0)->TraceConnectWithoutContext("GnbMacRxedCtrlMsgsTrace",
                                                   MakeCallback(&NrTimingsTest::GnbMacRx, this));
 
     GET_UE_PHY(0, 0)->TraceConnectWithoutContext("UePhyTxedCtrlMsgsTrace",
@@ -910,7 +910,7 @@ NrTimingsTest::DoRun()
 
     // When all the configuration is done, explicitly call UpdateConfig ()
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -925,17 +925,17 @@ NrTimingsTest::DoRun()
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     // DL at 0.4
     Simulator::Schedule(MilliSeconds(400),
                         &SendPacket,
-                        enbNetDev.Get(0),
+                        gnbNetDev.Get(0),
                         ueNetDev.Get(0)->GetAddress());
 
     // UL at 0.8
     // Simulator::Schedule (MilliSeconds (800), &SendPacket, ueNetDev.Get(0),
-    // enbNetDev.Get(0)->GetAddress ());
+    // gnbNetDev.Get(0)->GetAddress ());
 
     Simulator::Stop(MilliSeconds(1200));
 

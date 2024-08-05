@@ -82,7 +82,7 @@ class NrLteMiErrorModel : public NrErrorModel
 
     /**
      * \brief Get an output for the decodification error probability of a given
-     * transport block, assuming the MIESM method, LTE TC coding and block
+     * transport block, assuming the MIESM method, NR TC coding and block
      * segmentation, MCSs in LTE, and HARQ based on IR.
      *
      * \param sinr SINR vector
@@ -124,7 +124,7 @@ class NrLteMiErrorModel : public NrErrorModel
   private:
     /**
      * \brief Get an output for the decodification error probability of a given
-     * transport block, assuming the MIESM method, LTE TC coding and block
+     * transport block, assuming the MIESM method, NR TC coding and block
      * segmentation, MCSs in LTE, and HARQ based on IR.
      *
      * \param sinr SINR vector

@@ -117,7 +117,7 @@ main(int argc, char* argv[])
         LogComponentEnable("NrMacSchedulerTdma", logLevel1);
     }
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     /*
      * Create the scenario. In our examples, we heavily use helpers that setup
@@ -285,20 +285,20 @@ main(int argc, char* argv[])
      * We have configured the attributes we needed. Now, install and get the pointers
      * to the NetDevices, which contains all the NR stack:
      */
-    NetDeviceContainer enbNetDev =
+    NetDeviceContainer gnbNetDev =
         nrHelper->InstallGnbDevice(gridScenario.GetBaseStations(), allBwps);
     NetDeviceContainer ueLowLatNetDev = nrHelper->InstallUeDevice(ueLowLatContainer, allBwps);
     NetDeviceContainer ueVoiceNetDev = nrHelper->InstallUeDevice(ueVoiceContainer, allBwps);
 
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueLowLatNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueVoiceNetDev, randomStream);
 
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("Numerology", UintegerValue(numerology));
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(10 * log10(x)));
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Numerology", UintegerValue(numerology));
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(10 * log10(x)));
 
     // When all the configuration is done, explicitly call UpdateConfig ()
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -350,8 +350,8 @@ main(int argc, char* argv[])
     }
 
     // attach UEs to the closest gNB
-    nrHelper->AttachToClosestEnb(ueLowLatNetDev, enbNetDev);
-    nrHelper->AttachToClosestEnb(ueVoiceNetDev, enbNetDev);
+    nrHelper->AttachToClosestGnb(ueLowLatNetDev, gnbNetDev);
+    nrHelper->AttachToClosestGnb(ueVoiceNetDev, gnbNetDev);
 
     /*
      * Traffic part. Install two kind of traffic: low-latency and voice, each
@@ -463,7 +463,7 @@ main(int argc, char* argv[])
     Simulator::Run();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
     GtkConfigStore config;
     config.ConfigureAttributes ();

@@ -22,15 +22,15 @@ TypeId
 BandwidthPartGnb::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BandwidthPartGnb")
-                            .SetParent<ComponentCarrierBaseStation>()
+                            .SetParent<NrComponentCarrierBaseStation>()
                             .AddConstructor<BandwidthPartGnb>()
                             .AddAttribute("NrGnbPhy",
-                                          "The PHY associated to this EnbNetDevice",
+                                          "The PHY associated to this GnbNetDevice",
                                           PointerValue(),
                                           MakePointerAccessor(&BandwidthPartGnb::m_phy),
                                           MakePointerChecker<NrGnbPhy>())
                             .AddAttribute("NrGnbMac",
-                                          "The MAC associated to this EnbNetDevice",
+                                          "The MAC associated to this GnbNetDevice",
                                           PointerValue(),
                                           MakePointerAccessor(&BandwidthPartGnb::m_mac),
                                           MakePointerChecker<NrGnbMac>())
@@ -43,7 +43,7 @@ BandwidthPartGnb::GetTypeId()
 }
 
 BandwidthPartGnb::BandwidthPartGnb()
-    : ComponentCarrierBaseStation()
+    : NrComponentCarrierBaseStation()
 {
     NS_LOG_FUNCTION(this);
     m_phy = nullptr;

@@ -103,10 +103,10 @@ RxRlcPDU(std::string path, uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t
 void
 ConnectPdcpRlcTraces()
 {
-    Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
+    Config::Connect("/NodeList/*/DeviceList/*/NrUeRrc/DataRadioBearerMap/1/NrPdcp/RxPDU",
                     MakeCallback(&RxPdcpPDU));
 
-    Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
+    Config::Connect("/NodeList/*/DeviceList/*/NrUeRrc/DataRadioBearerMap/1/NrRlc/RxPDU",
                     MakeCallback(&RxRlcPDU));
 }
 
@@ -116,10 +116,10 @@ ConnectPdcpRlcTraces()
 void
 ConnectUlPdcpRlcTraces()
 {
-    Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LtePdcp/RxPDU",
+    Config::Connect("/NodeList/*/DeviceList/*/NrGnbRrc/UeMap/*/DataRadioBearerMap/*/NrPdcp/RxPDU",
                     MakeCallback(&RxPdcpPDU));
 
-    Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/UeMap/*/DataRadioBearerMap/*/LteRlc/RxPDU",
+    Config::Connect("/NodeList/*/DeviceList/*/NrGnbRrc/UeMap/*/DataRadioBearerMap/*/NrRlc/RxPDU",
                     MakeCallback(&RxRlcPDU));
 }
 
@@ -210,19 +210,19 @@ main(int argc, char* argv[])
                                      PointerValue(CreateObject<IsotropicAntennaModel>()));
 
     // Install and get the pointers to the NetDevices
-    NetDeviceContainer enbNetDev =
+    NetDeviceContainer gnbNetDev =
         nrHelper->InstallGnbDevice(gridScenario.GetBaseStations(), allBwps);
     NetDeviceContainer ueNetDev =
         nrHelper->InstallUeDevice(gridScenario.GetUserTerminals(), allBwps);
 
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0)
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+    // Set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp1));
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -242,20 +242,20 @@ main(int argc, char* argv[])
         Simulator::Schedule(sendPacketTime,
                             &SendPacket,
                             ueNetDev.Get(0),
-                            enbNetDev.Get(0)->GetAddress(),
+                            gnbNetDev.Get(0)->GetAddress(),
                             udpPacketSize);
     }
     else
     {
         Simulator::Schedule(sendPacketTime,
                             &SendPacket,
-                            enbNetDev.Get(0),
+                            gnbNetDev.Get(0),
                             ueNetDev.Get(0)->GetAddress(),
                             udpPacketSize);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     if (enableUl)
     {

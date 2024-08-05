@@ -2,16 +2,15 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#ifndef NR_ENB_PHY_H
-#define NR_ENB_PHY_H
+#ifndef NR_GNB_PHY_H
+#define NR_GNB_PHY_H
 
 #include "ideal-beamforming-algorithm.h"
 #include "nr-control-messages.h"
+#include "nr-gnb-cphy-sap.h"
 #include "nr-harq-phy.h"
+#include "nr-phy-sap.h"
 #include "nr-phy.h"
-
-#include <ns3/lte-enb-cphy-sap.h>
-#include <ns3/lte-enb-phy-sap.h>
 
 #include <functional>
 
@@ -86,7 +85,7 @@ class BeamManager;
  */
 class NrGnbPhy : public NrPhy
 {
-    friend class MemberLteEnbCphySapProvider<NrGnbPhy>;
+    friend class MemberNrGnbCphySapProvider<NrGnbPhy>;
     friend class NrMemberPhySapProvider;
 
   public:
@@ -110,12 +109,12 @@ class NrGnbPhy : public NrPhy
      * \brief Set the C PHY SAP user
      * \param s the C PHY SAP user
      */
-    void SetEnbCphySapUser(LteEnbCphySapUser* s);
+    void SetGnbCphySapUser(NrGnbCphySapUser* s);
     /**
      * \brief Get the C PHY SAP provider
      * \return the C PHY SAP provider pointer
      */
-    LteEnbCphySapProvider* GetEnbCphySapProvider();
+    NrGnbCphySapProvider* GetGnbCphySapProvider();
 
     /**
      * \brief: Set the minimum processing delay (in slots)
@@ -254,7 +253,7 @@ class NrGnbPhy : public NrPhy
     void PhyCtrlMessagesReceived(const Ptr<NrControlMessage>& msg);
 
     /**
-     * \brief Get the power of the enb
+     * \brief Get the power of the gnb
      * \return the power
      */
     int8_t DoGetReferenceSignalPower() const;
@@ -590,7 +589,7 @@ class NrGnbPhy : public NrPhy
 
     void GenerateAllocationStatistics(const SlotAllocInfo& allocInfo) const;
 
-    // LteEnbCphySapProvider forwarded methods
+    // NrGnbCphySapProvider forwarded methods
     void DoSetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth);
     void DoSetEarfcn(uint16_t dlEarfcn, uint16_t ulEarfcn);
     void DoAddUe(uint16_t rnti);
@@ -598,8 +597,8 @@ class NrGnbPhy : public NrPhy
     void DoSetPa(uint16_t rnti, double pa);
     void DoSetTransmissionMode(uint16_t rnti, uint8_t txMode);
     void DoSetSrsConfigurationIndex(uint16_t rnti, uint16_t srcCi);
-    void DoSetMasterInformationBlock(LteRrcSap::MasterInformationBlock mib);
-    void DoSetSystemInformationBlockType1(LteRrcSap::SystemInformationBlockType1 sib1);
+    void DoSetMasterInformationBlock(NrRrcSap::MasterInformationBlock mib);
+    void DoSetSystemInformationBlockType1(NrRrcSap::SystemInformationBlockType1 sib1);
     void DoSetEarfcn(uint16_t Earfcn);
 
     /**
@@ -713,10 +712,10 @@ class NrGnbPhy : public NrPhy
   private:
     NrGnbPhySapUser* m_phySapUser{nullptr}; //!< MAC SAP user pointer, MAC is user of services of
                                             //!< PHY, implements e.g. ReceiveRachPreamble
-    LteEnbCphySapProvider* m_enbCphySapProvider{
+    NrGnbCphySapProvider* m_gnbCphySapProvider{
         nullptr}; //!< PHY SAP provider pointer, PHY provides control services to RRC, RRC can call
     //!< e.g SetBandwidth
-    LteEnbCphySapUser* m_enbCphySapUser{
+    NrGnbCphySapUser* m_gnbCphySapUser{
         nullptr}; //!< PHY CSAP user pointer, RRC can receive control information by PHY, currently
     //!< configured but not used
 
@@ -724,8 +723,8 @@ class NrGnbPhy : public NrPhy
     std::set<uint16_t> m_ueAttachedRnti;         //!< Set of attached UE (by RNTI)
     std::vector<Ptr<NrUeNetDevice>> m_deviceMap; //!< Vector of UE devices
 
-    LteRrcSap::SystemInformationBlockType1 m_sib1; //!< SIB1 message
-    Time m_lastSlotStart;                          //!< Time at which the last slot started
+    NrRrcSap::SystemInformationBlockType1 m_sib1; //!< SIB1 message
+    Time m_lastSlotStart;                         //!< Time at which the last slot started
     uint8_t m_currSymStart{0}; //!< Symbol at which the current allocation started
     std::unordered_map<uint8_t, std::vector<uint8_t>>
         m_rbgAllocationPerSym; //!< RBG allocation in each sym
@@ -807,7 +806,7 @@ class NrGnbPhy : public NrPhy
 
     Ptr<NrChAccessManager> m_cam; //!< Channel Access Manager
 
-    friend class LtePatternTestCase;
+    friend class NrPatternTestCase;
 
     uint32_t m_n0Delay{0}; //!< minimum processing delay (in slots) needed to decode DL DCI and
                            //!< decode DL data (UE side)
@@ -825,4 +824,4 @@ class NrGnbPhy : public NrPhy
 
 } // namespace ns3
 
-#endif /* NR_ENB_PHY_H */
+#endif /* NR_GNB_PHY_H */

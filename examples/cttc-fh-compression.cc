@@ -88,10 +88,10 @@ class RadioNetworkParametersHelper
      * \param numerology Numerology to use.
      * \param freqReuse The cell frequency reuse.
      */
-    void SetNetworkToLte(const std::string scenario,
-                         const std::string operationMode,
-                         uint16_t numerology,
-                         uint16_t numCcs);
+    void SetNetworkToNr(const std::string scenario,
+                        const std::string operationMode,
+                        uint16_t numerology,
+                        uint16_t numCcs);
 
     /**
      * \brief Gets the BS transmit power
@@ -187,10 +187,10 @@ RadioNetworkParametersHelper::SetNetworkToLte(const std::string scenario,
 }
 
 void
-RadioNetworkParametersHelper::SetNetworkToLte(const std::string scenario,
-                                              const std::string operationMode,
-                                              uint16_t numerology,
-                                              uint16_t numCcs)
+RadioNetworkParametersHelper::SetNetworkToNr(const std::string scenario,
+                                             const std::string operationMode,
+                                             uint16_t numerology,
+                                             uint16_t numCcs)
 {
     NS_ABORT_MSG_IF(scenario != "UMa" && scenario != "UMi", "Unsupported scenario");
 
@@ -284,7 +284,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     }
     else if (radioNetwork == "NR")
     {
-        ranHelper.SetNetworkToLte(scenario, operationMode, numerology, 1);
+        ranHelper.SetNetworkToNr(scenario, operationMode, numerology, 1);
         if (errorModel.empty())
         {
             errorModel = "ns3::NrEesmIrT2";
@@ -548,7 +548,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
      * to the NetDevices, which contains all the NR stack:
      */
 
-    //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (),
+    //  NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (),
     //  allBwps);
     gnbSector1NetDev = nrHelper->InstallGnbDevice(gnbSector1Container, bwps1);
     gnbSector2NetDev = nrHelper->InstallGnbDevice(gnbSector2Container, bwps2);
@@ -1049,7 +1049,7 @@ main(int argc, char* argv[])
     {
         LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
         LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-        LogComponentEnable("LtePdcp", LOG_LEVEL_INFO);
+        LogComponentEnable("NrPdcp", LOG_LEVEL_INFO);
         //      LogComponentEnable ("NrMacSchedulerOfdma", LOG_LEVEL_ALL);
     }
 
@@ -1057,7 +1057,7 @@ main(int argc, char* argv[])
      * Default values for the simulation. We are progressively removing all
      * the instances of SetDefault, but we need it for legacy code (LTE)
      */
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     /*
      * Create the scenario. In our examples, we heavily use helpers that setup
@@ -1239,7 +1239,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+                nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
             }
             else
             {
@@ -1263,7 +1263,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+                nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
             }
             else
             {
@@ -1287,7 +1287,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+                nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
             }
             else
             {
@@ -1604,7 +1604,7 @@ main(int argc, char* argv[])
     Simulator::Run();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
     GtkConfigStore config;
     config.ConfigureAttributes ();

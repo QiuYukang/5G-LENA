@@ -212,15 +212,15 @@ main(int argc, char* argv[])
         // LogComponentEnable ("ChannelConditionModel", LOG_LEVEL_ALL);
         // LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
         // LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-        // LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
-        // LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
+        // LogComponentEnable ("NrRlcUm", LOG_LEVEL_LOGIC);
+        // LogComponentEnable ("NrPdcp", LOG_LEVEL_INFO);
     }
 
     /*
      * Default values for the simulation. We are progressively removing all
      * the instances of SetDefault, but we need it for legacy code (LTE)
      */
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     // set mobile device and base station antenna heights in meters, according to the chosen
     // scenario
@@ -540,18 +540,18 @@ main(int argc, char* argv[])
     }
 
     // attach UEs to the closest gNB
-    nrHelper->AttachToEnb(ueNetDev.Get(0), gnbNetDev.Get(0));
+    nrHelper->AttachToGnb(ueNetDev.Get(0), gnbNetDev.Get(0));
 
     if (deploymentScenario == "TwoGnbs")
     {
-        nrHelper->AttachToEnb(ueNetDev.Get(1), gnbNetDev.Get(1));
+        nrHelper->AttachToGnb(ueNetDev.Get(1), gnbNetDev.Get(1));
     }
 
     if (deploymentScenario == "FourGnbs")
     {
-        nrHelper->AttachToEnb(ueNetDev.Get(1), gnbNetDev.Get(1));
-        nrHelper->AttachToEnb(ueNetDev.Get(2), gnbNetDev.Get(2));
-        nrHelper->AttachToEnb(ueNetDev.Get(3), gnbNetDev.Get(3));
+        nrHelper->AttachToGnb(ueNetDev.Get(1), gnbNetDev.Get(1));
+        nrHelper->AttachToGnb(ueNetDev.Get(2), gnbNetDev.Get(2));
+        nrHelper->AttachToGnb(ueNetDev.Get(3), gnbNetDev.Get(3));
     }
 
     // start server and client apps

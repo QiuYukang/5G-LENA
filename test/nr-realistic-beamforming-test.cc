@@ -145,7 +145,7 @@ NrRealisticBeamformingTestCase::DoRun()
                     mobility.SetPositionAllocator(positionAlloc);
                     mobility.Install(allNodes);
 
-                    // Create Devices and install them in the Nodes (eNB and UE)
+                    // Create Devices and install them in the Nodes (gNB and UE)
                     NetDeviceContainer gnbDevs;
                     NetDeviceContainer ueDevs;
                     nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));

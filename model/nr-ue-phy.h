@@ -7,11 +7,11 @@
 
 #include "nr-amc.h"
 #include "nr-harq-phy.h"
+#include "nr-phy-sap.h"
 #include "nr-phy.h"
 #include "nr-pm-search.h"
+#include "nr-ue-cphy-sap.h"
 
-#include <ns3/lte-ue-cphy-sap.h>
-#include <ns3/lte-ue-phy-sap.h>
 #include <ns3/traced-callback.h>
 
 namespace ns3
@@ -48,7 +48,7 @@ class NrUePowerControl;
  * messages that come from the gNb. However, we still are not at this level,
  * and we have to rely on direct calls to configure the same values between
  * the gnb and the ue. At this moment, the call that the helper has to perform
- * are in NrHelper::AttachToEnb().
+ * are in NrHelper::AttachToGnb().
  *
  * To initialize the class, you must call also SetSpectrumPhy() and StartEventLoop().
  * Usually, this is taken care inside the helper.
@@ -58,8 +58,8 @@ class NrUePowerControl;
  */
 class NrUePhy : public NrPhy
 {
-    friend class UeMemberLteUePhySapProvider;
-    friend class MemberLteUeCphySapProvider<NrUePhy>;
+    friend class UeMemberNrUePhySapProvider;
+    friend class MemberNrUeCphySapProvider<NrUePhy>;
 
   public:
     /**
@@ -82,13 +82,13 @@ class NrUePhy : public NrPhy
      * \brief Retrieve the pointer for the C PHY SAP provider (AKA the PHY interface towards the
      * RRC) \return the C PHY SAP pointer
      */
-    LteUeCphySapProvider* GetUeCphySapProvider() __attribute__((warn_unused_result));
+    NrUeCphySapProvider* GetUeCphySapProvider() __attribute__((warn_unused_result));
 
     /**
      * \brief Install ue C PHY SAP user (AKA the PHY interface towards the RRC)
      * \param s the C PHY SAP user pointer to install
      */
-    void SetUeCphySapUser(LteUeCphySapUser* s);
+    void SetUeCphySapUser(NrUeCphySapUser* s);
 
     /**
      * \brief Install the PHY sap user (AKA the UE MAC)
@@ -126,9 +126,9 @@ class NrUePhy : public NrPhy
     double GetRsrp() const;
 
     /**
-     * \brief Get LTE uplink power control entity
+     * \brief Get NR uplink power control entity
      *
-     * \return ptr pointer to LTE uplink power control entity
+     * \return ptr pointer to NR uplink power control entity
      */
     Ptr<NrUePowerControl> GetUplinkPowerControl() const;
 
@@ -146,7 +146,7 @@ class NrUePhy : public NrPhy
     void SetUplinkPowerControl(Ptr<NrUePowerControl> pc);
 
     /**
-     * \brief Register the UE to a certain Enb
+     * \brief Register the UE to a certain Gnb
      *
      * Install the configuration parameters in the UE.
      *
@@ -154,7 +154,7 @@ class NrUePhy : public NrPhy
      *
      *
      */
-    void RegisterToEnb(uint16_t bwpId);
+    void RegisterToGnb(uint16_t bwpId);
 
     /**
      * \brief Set the AMC pointer from the GNB
@@ -467,7 +467,7 @@ class NrUePhy : public NrPhy
     void ReportUeMeasurements();
 
     /**
-     * \brief Compute the AvgSinr (copied from LteUePhy)
+     * \brief Compute the AvgSinr (copied from NrUePhy)
      * \param sinr the SINR
      * \return the average on all the RB
      */
@@ -639,8 +639,8 @@ class NrUePhy : public NrPhy
     // SAP methods
     void DoReset();
     void DoStartCellSearch(uint16_t dlEarfcn);
-    void DoSynchronizeWithEnb(uint16_t cellId);
-    void DoSynchronizeWithEnb(uint16_t cellId, uint16_t dlEarfcn);
+    void DoSynchronizeWithGnb(uint16_t cellId);
+    void DoSynchronizeWithGnb(uint16_t cellId, uint16_t dlEarfcn);
     void DoSetPa(double pa);
     /**
      * \param rsrpFilterCoefficient value. Determines the strength of
@@ -738,9 +738,9 @@ class NrUePhy : public NrPhy
      */
     void InsertFutureAllocation(const SfnSf& sfnSf, const std::shared_ptr<DciInfoElementTdma>& dci);
 
-    NrUePhySapUser* m_phySapUser;              //!< SAP pointer
-    LteUeCphySapProvider* m_ueCphySapProvider; //!< SAP pointer
-    LteUeCphySapUser* m_ueCphySapUser;         //!< SAP pointer
+    NrUePhySapUser* m_phySapUser;             //!< SAP pointer
+    NrUeCphySapProvider* m_ueCphySapProvider; //!< SAP pointer
+    NrUeCphySapUser* m_ueCphySapUser;         //!< SAP pointer
 
     bool m_enableUplinkPowerControl{
         false};                           //!< Flag that indicates whether power control is enabled

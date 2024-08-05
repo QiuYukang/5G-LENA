@@ -278,7 +278,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \param duration the duration of this transmission
      */
     void StartTxDlControlFrames(const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
-                                const Time& duration); // control frames from enb to ue
+                                const Time& duration); // control frames from Gnb to ue
     /**
      * \brief Start transmission of UL CTRL
      * \param ctrlMsgList the list of control messages to be transmitted in UL
@@ -423,11 +423,11 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void AddSrsSnrReportCallback(SrsSnrReportCallback callback);
     /**
-     * \brief Set whether this spectrum PHY belongs to eNB or UE
+     * \brief Set whether this spectrum PHY belongs to Gnb or UE
      * TODO NrHelper should be declared as friend and this function should be private
-     * \param isEnb whether the spectrum PHY belongs to eNB or UE
+     * \param isGnb whether the spectrum PHY belongs to Gnb or UE
      */
-    void SetIsEnb(bool isEnb);
+    void SetIsGnb(bool isGnb);
     /**
      * \return the cell id
      */
@@ -496,9 +496,9 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
     /**
-     * \return true if this class is inside an enb/gnb
+     * \return true if this class is inside an Gnb/gnb
      */
-    bool IsEnb() const;
+    bool IsGnb() const;
     /**
      * \brief Update the state of the spectrum phy. The states are:
      *  IDLE, TX, RX_DATA, RX_DL_CTRL, RX_UL_CTRL, CCA_BUSY.
@@ -673,11 +673,11 @@ class NrSpectrumPhy : public SpectrumPhy
     TracedCallback<Time> m_txCtrlTrace; //!< trace callback that is notifying when this spectrum phy
                                         //!< starts to occupy the channel with transmission of CTRL
     TracedCallback<RxPacketTraceParams>
-        m_rxPacketTraceEnb; //!< trace callback that is notifying when eNb received the packet
+        m_rxPacketTraceGnb; //!< trace callback that is notifying when Gnb received the packet
     TracedCallback<RxPacketTraceParams>
         m_rxPacketTraceUe; //!< trace callback that is notifying when UE received the packet
     TracedCallback<GnbPhyPacketCountParameter>
-        m_txPacketTraceEnb; //!< trace callback that is notifying when eNb transmts the packet
+        m_txPacketTraceGnb; //!< trace callback that is notifying when Gnb transmts the packet
     TracedCallback<const SfnSf&, Ptr<const SpectrumValue>, const Time&, uint16_t, uint16_t>
         m_rxDataTrace;
     TracedCallback<const SfnSf,
@@ -703,7 +703,7 @@ class NrSpectrumPhy : public SpectrumPhy
     DlDataPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
     bool m_enableDlDataPathlossTrace =
         false; //!< By default this trace is disabled to not slow done simulations
-    bool m_isEnb = false;
+    bool m_isGnb = false;
 };
 
 } // namespace ns3

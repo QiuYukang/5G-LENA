@@ -23,7 +23,7 @@ TypeId
 BandwidthPartUe::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BandwidthPartUe")
-                            .SetParent<ComponentCarrier>()
+                            .SetParent<NrComponentCarrier>()
                             .AddConstructor<BandwidthPartUe>()
                             .AddAttribute("NrUePhy",
                                           "The PHY associated to this BandwidthPartUe",
@@ -39,7 +39,7 @@ BandwidthPartUe::GetTypeId()
 }
 
 BandwidthPartUe::BandwidthPartUe()
-    : ComponentCarrier()
+    : NrComponentCarrier()
 {
     NS_LOG_FUNCTION(this);
     m_phy = nullptr;

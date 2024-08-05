@@ -99,7 +99,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
     Time GetEpoch() const;
     /**
      * Notifies the stats calculator that an uplink transmission has occurred.
-     * @param cellId CellId of the attached Enb
+     * @param cellId CellId of the attached Gnb
      * @param imsi IMSI of the UE who transmitted the PDU
      * @param rnti C-RNTI of the UE who transmitted the PDU
      * @param lcid LCID through which the PDU has been transmitted
@@ -112,7 +112,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
                  uint32_t packetSize) override;
     /**
      * Notifies the stats calculator that an uplink reception has occurred.
-     * @param cellId CellId of the attached Enb
+     * @param cellId CellId of the attached Gnb
      * @param imsi IMSI of the UE who received the PDU
      * @param rnti C-RNTI of the UE who received the PDU
      * @param lcid LCID through which the PDU has been received
@@ -127,7 +127,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
                  uint64_t delay) override;
     /**
      * Notifies the stats calculator that an downlink transmission has occurred.
-     * @param cellId CellId of the attached Enb
+     * @param cellId CellId of the attached Gnb
      * @param imsi IMSI of the UE who is receiving the PDU
      * @param rnti C-RNTI of the UE who is receiving the PDU
      * @param lcid LCID through which the PDU has been transmitted
@@ -140,7 +140,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
                  uint32_t packetSize) override;
     /**
      * Notifies the stats calculator that an downlink reception has occurred.
-     * @param cellId CellId of the attached Enb
+     * @param cellId CellId of the attached Gnb
      * @param imsi IMSI of the UE who received the PDU
      * @param rnti C-RNTI of the UE who received the PDU
      * @param lcid LCID through which the PDU has been transmitted
@@ -182,10 +182,10 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      */
     uint64_t GetUlRxData(uint64_t imsi, uint8_t lcid);
     /**
-     * Gets the attached Enb cellId.
+     * Gets the attached Gnb cellId.
      * @param imsi IMSI of the UE
      * @param lcid LCID
-     * @return Enb cellId
+     * @return Gnb cellId
      */
     uint32_t GetUlCellId(uint64_t imsi, uint8_t lcid);
     /**
@@ -238,10 +238,10 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      */
     uint64_t GetDlRxData(uint64_t imsi, uint8_t lcid);
     /**
-     * Gets the attached Enb cellId.
+     * Gets the attached Gnb cellId.
      * @param imsi IMSI of the UE
      * @param lcid LCID
-     * @return Enb cellId
+     * @return Gnb cellId
      */
     uint32_t GetDlCellId(uint64_t imsi, uint8_t lcid);
     /**

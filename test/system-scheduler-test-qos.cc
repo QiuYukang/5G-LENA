@@ -59,8 +59,8 @@ SystemSchedulerTestQos::DoRun()
     Time udpAppStopTimeUl = MilliSeconds(1500); // Let's give 1 to end the tx
     uint16_t gNbNum = 1;
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::LteRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
     Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals
@@ -319,8 +319,8 @@ SystemSchedulerTestQos::DoRun()
     }
 
     // attach UEs to the closest gNB
-    nrHelper->AttachToClosestEnb(ueLowLatNetDev, gNbNetDevs);
-    nrHelper->AttachToClosestEnb(ueVoiceNetDev, gNbNetDevs);
+    nrHelper->AttachToClosestGnb(ueLowLatNetDev, gNbNetDevs);
+    nrHelper->AttachToClosestGnb(ueVoiceNetDev, gNbNetDevs);
 
     /*
      * Traffic part. Install two kind of traffic: low-latency and voice, each

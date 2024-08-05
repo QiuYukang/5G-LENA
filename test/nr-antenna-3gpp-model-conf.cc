@@ -349,8 +349,8 @@ TestAntenna3gppModelConf::DoRun()
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDevs, gNbDevs);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDevs, gNbDevs);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#ifndef NR_ENB_NET_DEVICE_H
-#define NR_ENB_NET_DEVICE_H
+#ifndef NR_GNB_NET_DEVICE_H
+#define NR_GNB_NET_DEVICE_H
 
 #include "nr-net-device.h"
 
@@ -17,9 +17,9 @@ class PacketBurst;
 class Node;
 class NrGnbPhy;
 class NrGnbMac;
-class LteEnbRrc;
+class NrGnbRrc;
 class BandwidthPartGnb;
-class LteEnbComponentCarrierManager;
+class NrGnbComponentCarrierManager;
 class BwpManagerGnb;
 class NrMacScheduler;
 
@@ -66,9 +66,9 @@ class NrGnbNetDevice : public NrNetDevice
 
     uint16_t GetEarfcn(uint8_t index) const;
 
-    void SetRrc(Ptr<LteEnbRrc> rrc);
+    void SetRrc(Ptr<NrGnbRrc> rrc);
 
-    Ptr<LteEnbRrc> GetRrc();
+    Ptr<NrGnbRrc> GetRrc();
 
     void SetCcMap(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccm);
 
@@ -108,16 +108,16 @@ class NrGnbNetDevice : public NrNetDevice
     bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) override;
 
   private:
-    Ptr<LteEnbRrc> m_rrc;
+    Ptr<NrGnbRrc> m_rrc;
 
     uint16_t m_cellId; //!< Cell ID. Set by the helper.
 
-    std::map<uint8_t, Ptr<BandwidthPartGnb>> m_ccMap; /**< ComponentCarrier map */
+    std::map<uint8_t, Ptr<BandwidthPartGnb>> m_ccMap; /**< NrComponentCarrier map */
 
-    Ptr<LteEnbComponentCarrierManager>
-        m_componentCarrierManager; ///< the component carrier manager of this eNb
+    Ptr<NrGnbComponentCarrierManager>
+        m_componentCarrierManager; ///< the component carrier manager of this gNB
 };
 
 } // namespace ns3
 
-#endif /* NR_ENB_NET_DEVICE_H */
+#endif /* NR_GNB_NET_DEVICE_H */

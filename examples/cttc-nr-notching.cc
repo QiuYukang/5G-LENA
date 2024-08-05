@@ -292,7 +292,7 @@ main(int argc, char* argv[])
         LogComponentEnable("CcBwpHelper", logLevel2);
     }
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     int64_t randomStream = 1;
 
@@ -419,50 +419,50 @@ main(int argc, char* argv[])
     }
 
     // Install and get the pointers to the NetDevices
-    NetDeviceContainer enbNetDev =
+    NetDeviceContainer gnbNetDev =
         nrHelper->InstallGnbDevice(gridScenario.GetBaseStations(), allBwps);
     NetDeviceContainer ueNetDev =
         nrHelper->InstallUeDevice(gridScenario.GetUserTerminals(), allBwps);
 
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
     for (uint32_t i = 0; i < gNbNum; ++i)
     {
-        // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0),
+        // Manually set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0),
         // (1), ...
-        nrHelper->GetGnbPhy(enbNetDev.Get(i), 0)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(enbNetDev.Get(i), 0)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(x)));
 
         // Set the mask
         Ptr<NrMacSchedulerNs3> schedulerBwp1 =
-            DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(enbNetDev.Get(i), 0));
+            DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(gnbNetDev.Get(i), 0));
         schedulerBwp1->SetDlNotchedRbgMask(notchedMaskDl);
 
         if (operationMode == "TDD")
         {
-            nrHelper->GetGnbPhy(enbNetDev.Get(i), 0)->SetAttribute("Pattern", StringValue(pattern));
+            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)->SetAttribute("Pattern", StringValue(pattern));
             schedulerBwp1->SetUlNotchedRbgMask(notchedMaskUl);
         }
         else
         {
-            nrHelper->GetGnbPhy(enbNetDev.Get(i), 0)
+            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
                 ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
 
-            nrHelper->GetGnbPhy(enbNetDev.Get(i), 1)
+            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 1)
                 ->SetAttribute("Numerology", UintegerValue(numerology));
-            nrHelper->GetGnbPhy(enbNetDev.Get(i), 1)->SetAttribute("TxPower", DoubleValue(-30.0));
-            nrHelper->GetGnbPhy(enbNetDev.Get(i), 1)
+            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 1)->SetAttribute("TxPower", DoubleValue(-30.0));
+            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 1)
                 ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
             Ptr<NrMacSchedulerNs3> schedulerBwp2 =
-                DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(enbNetDev.Get(i), 1));
+                DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(gnbNetDev.Get(i), 1));
             schedulerBwp2->SetUlNotchedRbgMask(notchedMaskUl);
 
             // Link the two FDD BWPs:
-            nrHelper->GetBwpManagerGnb(enbNetDev.Get(i))->SetOutputLink(1, 0);
+            nrHelper->GetBwpManagerGnb(gnbNetDev.Get(i))->SetOutputLink(1, 0);
         }
     }
 
@@ -475,7 +475,7 @@ main(int argc, char* argv[])
         }
     }
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -520,7 +520,7 @@ main(int argc, char* argv[])
     }
 
     // Attach to GNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     // install UDP applications
     uint16_t dlPortLowLat = 1234;
@@ -630,7 +630,7 @@ main(int argc, char* argv[])
     Simulator::Run();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy ->
     NrPhyMacCommong-> Numerology, Bandwidth, ... GtkConfigStore config; config.ConfigureAttributes
     ();

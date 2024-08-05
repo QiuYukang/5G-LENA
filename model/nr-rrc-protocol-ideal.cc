@@ -87,7 +87,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionRequest(LteRrcSap::RrcConnectionRequest
     SetEnbRrcSapProvider();
 
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
-                        &LteEnbRrcSapProvider::RecvRrcConnectionRequest,
+                        &NrGnbRrcSapProvider::RecvRrcConnectionRequest,
                         m_enbRrcSapProvider,
                         m_rnti,
                         msg);
@@ -97,7 +97,7 @@ void
 nrUeRrcProtocolIdeal::DoSendRrcConnectionSetupCompleted(LteRrcSap::RrcConnectionSetupCompleted msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
-                        &LteEnbRrcSapProvider::RecvRrcConnectionSetupCompleted,
+                        &NrGnbRrcSapProvider::RecvRrcConnectionSetupCompleted,
                         m_enbRrcSapProvider,
                         m_rnti,
                         msg);
@@ -113,7 +113,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionReconfigurationCompleted(
     SetEnbRrcSapProvider();
 
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
-                        &LteEnbRrcSapProvider::RecvRrcConnectionReconfigurationCompleted,
+                        &NrGnbRrcSapProvider::RecvRrcConnectionReconfigurationCompleted,
                         m_enbRrcSapProvider,
                         m_rnti,
                         msg);
@@ -124,7 +124,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentRequest(
     LteRrcSap::RrcConnectionReestablishmentRequest msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
-                        &LteEnbRrcSapProvider::RecvRrcConnectionReestablishmentRequest,
+                        &NrGnbRrcSapProvider::RecvRrcConnectionReestablishmentRequest,
                         m_enbRrcSapProvider,
                         m_rnti,
                         msg);
@@ -135,7 +135,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentComplete(
     LteRrcSap::RrcConnectionReestablishmentComplete msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
-                        &LteEnbRrcSapProvider::RecvRrcConnectionReestablishmentComplete,
+                        &NrGnbRrcSapProvider::RecvRrcConnectionReestablishmentComplete,
                         m_enbRrcSapProvider,
                         m_rnti,
                         msg);
@@ -145,7 +145,7 @@ void
 nrUeRrcProtocolIdeal::DoSendMeasurementReport(LteRrcSap::MeasurementReport msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
-                        &LteEnbRrcSapProvider::RecvMeasurementReport,
+                        &NrGnbRrcSapProvider::RecvMeasurementReport,
                         m_enbRrcSapProvider,
                         m_rnti,
                         msg);
@@ -187,7 +187,7 @@ nrUeRrcProtocolIdeal::SetEnbRrcSapProvider()
         }
     }
     NS_ASSERT_MSG(found, " Unable to find gNB with BwpID =" << bwpId);
-    m_enbRrcSapProvider = gnbDev->GetRrc()->GetLteEnbRrcSapProvider();
+    m_enbRrcSapProvider = gnbDev->GetRrc()->GetNrGnbRrcSapProvider();
     Ptr<NrGnbRrcProtocolIdeal> enbRrcProtocolIdeal =
         gnbDev->GetRrc()->GetObject<NrGnbRrcProtocolIdeal>();
     enbRrcProtocolIdeal->SetUeRrcSapProvider(m_rnti, m_ueRrcSapProvider);
@@ -199,7 +199,7 @@ NrGnbRrcProtocolIdeal::NrGnbRrcProtocolIdeal()
     : m_enbRrcSapProvider(nullptr)
 {
     NS_LOG_FUNCTION(this);
-    m_enbRrcSapUser = new MemberLteEnbRrcSapUser<NrGnbRrcProtocolIdeal>(this);
+    m_enbRrcSapUser = new MemberNrGnbRrcSapUser<NrGnbRrcProtocolIdeal>(this);
 }
 
 NrGnbRrcProtocolIdeal::~NrGnbRrcProtocolIdeal()
@@ -224,13 +224,13 @@ NrGnbRrcProtocolIdeal::GetTypeId()
 }
 
 void
-NrGnbRrcProtocolIdeal::SetLteEnbRrcSapProvider(LteEnbRrcSapProvider* p)
+NrGnbRrcProtocolIdeal::SetNrGnbRrcSapProvider(NrGnbRrcSapProvider* p)
 {
     m_enbRrcSapProvider = p;
 }
 
-LteEnbRrcSapUser*
-NrGnbRrcProtocolIdeal::GetLteEnbRrcSapUser()
+NrGnbRrcSapUser*
+NrGnbRrcProtocolIdeal::GetNrGnbRrcSapUser()
 {
     return m_enbRrcSapUser;
 }
@@ -254,7 +254,7 @@ NrGnbRrcProtocolIdeal::SetUeRrcSapProvider(uint16_t rnti, LteUeRrcSapProvider* p
 }
 
 void
-NrGnbRrcProtocolIdeal::DoSetupUe(uint16_t rnti, LteEnbRrcSapUser::SetupUeParameters params)
+NrGnbRrcProtocolIdeal::DoSetupUe(uint16_t rnti, NrGnbRrcSapUser::SetupUeParameters params)
 {
     NS_LOG_FUNCTION(this << rnti);
     m_enbRrcSapProviderMap[rnti] = nullptr;

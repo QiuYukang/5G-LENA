@@ -322,7 +322,7 @@ class NrPhy : public Object
      * \brief Set the cell ID
      * \param cellId the cell id.
      *
-     * Called by lte-enb-cphy-sap only.
+     * Called by lte-gnb-cphy-sap only.
      */
     void DoSetCellId(uint16_t cellId);
 

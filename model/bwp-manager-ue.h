@@ -7,9 +7,8 @@
 
 #include "nr-eps-bearer.h"
 #include "nr-phy-mac-common.h"
-
-#include <ns3/eps-bearer.h>
-#include <ns3/simple-ue-component-carrier-manager.h>
+#include "nr-simple-ue-component-carrier-manager.h"
+#include "nr-ue-ccm-rrc-sap.h"
 
 namespace ns3
 {
@@ -21,7 +20,7 @@ class NrControlMessage;
  * \ingroup ue-bwp
  * \brief The BwpManagerUe class
  */
-class BwpManagerUe : public SimpleUeComponentCarrierManager
+class BwpManagerUe : public NrSimpleUeComponentCarrierManager
 {
   public:
     /**
@@ -91,14 +90,14 @@ class BwpManagerUe : public SimpleUeComponentCarrierManager
     void SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp);
 
   protected:
-    void DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params) override;
-    std::vector<LteUeCcmRrcSapProvider::LcsConfig> DoAddLc(
+    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params) override;
+    std::vector<NrUeCcmRrcSapProvider::LcsConfig> DoAddLc(
         uint8_t lcId,
-        LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
-        LteMacSapUser* msu) override;
-    LteMacSapUser* DoConfigureSignalBearer(uint8_t lcId,
-                                           LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
-                                           LteMacSapUser* msu) override;
+        NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
+        NrMacSapUser* msu) override;
+    NrMacSapUser* DoConfigureSignalBearer(uint8_t lcId,
+                                          NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
+                                          NrMacSapUser* msu) override;
 
   private:
     Ptr<BwpManagerAlgorithm> m_algorithm;

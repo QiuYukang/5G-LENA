@@ -415,7 +415,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
      * to the NetDevices, which contains all the NR stack:
      */
 
-    //  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (),
+    //  NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gridScenario.GetBaseStations (),
     //  allBwps);
     gnbSector1NetDev = nrHelper->InstallGnbDevice(gnbSector1Container, bwps1);
     gnbSector2NetDev = nrHelper->InstallGnbDevice(gnbSector2Container, bwps2);
@@ -1084,7 +1084,7 @@ main(int argc, char* argv[])
             Ptr<NetDevice> gnbNetDev = gnbSector1NetDev.Get(i % gridScenario.GetNumSites());
             Ptr<NetDevice> ueNetDev = ueSector1NetDev.Get(i);
 
-            nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+            nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
 
             if (logging)
             {
@@ -1098,7 +1098,7 @@ main(int argc, char* argv[])
         {
             Ptr<NetDevice> gnbNetDev = gnbSector2NetDev.Get(i % gridScenario.GetNumSites());
             Ptr<NetDevice> ueNetDev = ueSector2NetDev.Get(i);
-            nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+            nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
             if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1111,7 +1111,7 @@ main(int argc, char* argv[])
         {
             Ptr<NetDevice> gnbNetDev = gnbSector3NetDev.Get(i % gridScenario.GetNumSites());
             Ptr<NetDevice> ueNetDev = ueSector3NetDev.Get(i);
-            nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+            nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
             if (logging)
             {
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();

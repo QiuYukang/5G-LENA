@@ -5,17 +5,17 @@
 #ifndef BWP_MANAGER_H
 #define BWP_MANAGER_H
 
-#include <ns3/eps-bearer.h>
-#include <ns3/lte-ccm-rrc-sap.h>
-#include <ns3/lte-rlc.h>
-#include <ns3/no-op-component-carrier-manager.h>
+#include "nr-ccm-rrc-sap.h"
+#include "nr-eps-bearer.h"
+#include "nr-no-op-component-carrier-manager.h"
+#include "nr-rlc.h"
 
 #include <unordered_map>
 
 namespace ns3
 {
-class UeManager;
-class LteCcmRrcSapProvider;
+class NrUeManager;
+class NrCcmRrcSapProvider;
 class BwpManagerAlgorithm;
 class NrControlMessage;
 
@@ -23,7 +23,7 @@ class NrControlMessage;
  * \ingroup gnb-bwp
  * \brief Bandwidth part manager that coordinates traffic over different bandwidth parts.
  */
-class BwpManagerGnb : public RrComponentCarrierManager
+class BwpManagerGnb : public NrRrComponentCarrierManager
 {
   public:
     BwpManagerGnb();
@@ -95,14 +95,14 @@ class BwpManagerGnb : public RrComponentCarrierManager
     /*
      * \brief This function contains most of the BwpManager logic.
      */
-    void DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params) override;
+    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params) override;
 
     /*
      * \brief Intercepts function calls from MAC of component carriers when it notifies RLC
      * of transmission opportunities. This function decides id the transmission opportunity
      * will be forwarded to the RLC.
      */
-    void DoNotifyTxOpportunity(LteMacSapUser::TxOpportunityParameters txOpParams) override;
+    void DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams) override;
 
     /**
      * \brief Forwards uplink BSR to CCM, called by MAC through CCM SAP interface.
@@ -121,20 +121,19 @@ class BwpManagerGnb : public RrComponentCarrierManager
     /**
      * \brief Overload DoSetupBadaRadioBearer to connect directly to Rlc retransmission buffer size.
      */
-    std::vector<LteCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(
-        EpsBearer bearer,
-        uint8_t bearerId,
-        uint16_t rnti,
-        uint8_t lcid,
-        uint8_t lcGroup,
-        LteMacSapUser* msu) override;
+    std::vector<NrCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(NrEpsBearer bearer,
+                                                                       uint8_t bearerId,
+                                                                       uint16_t rnti,
+                                                                       uint8_t lcid,
+                                                                       uint8_t lcGroup,
+                                                                       NrMacSapUser* msu) override;
 
   private:
     /**
      * \brief Get the resource type of the flow.
      * \returns The resource type
      */
-    uint8_t GetResourceType(LteMacSapProvider::ReportBufferStatusParameters params);
+    uint8_t GetResourceType(NrMacSapProvider::ReportBufferStatusParameters params);
 
     Ptr<BwpManagerAlgorithm> m_algorithm; //!< The BWP selection algorithm.
 

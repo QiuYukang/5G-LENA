@@ -42,7 +42,7 @@ NrUePhy::NrUePhy()
 {
     NS_LOG_FUNCTION(this);
     m_wbCqiLast = Simulator::Now();
-    m_ueCphySapProvider = new MemberLteUeCphySapProvider<NrUePhy>(this);
+    m_ueCphySapProvider = new MemberNrUeCphySapProvider<NrUePhy>(this);
     m_powerControl = CreateObject<NrUePowerControl>(this);
 
     Simulator::Schedule(m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);
@@ -208,13 +208,13 @@ NrUePhy::ChannelAccessDenied()
 }
 
 void
-NrUePhy::SetUeCphySapUser(LteUeCphySapUser* s)
+NrUePhy::SetUeCphySapUser(NrUeCphySapUser* s)
 {
     NS_LOG_FUNCTION(this);
     m_ueCphySapUser = s;
 }
 
-LteUeCphySapProvider*
+NrUeCphySapProvider*
 NrUePhy::GetUeCphySapProvider()
 {
     NS_LOG_FUNCTION(this);
@@ -339,7 +339,7 @@ NrUePhy::ProcessSrsDci([[maybe_unused]] const SfnSf& ulSfnSf,
 }
 
 void
-NrUePhy::RegisterToEnb(uint16_t bwpId)
+NrUePhy::RegisterToGnb(uint16_t bwpId)
 {
     NS_LOG_FUNCTION(this);
 
@@ -973,7 +973,7 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     if (pktBurst && pktBurst->GetNPackets() > 0)
     {
         std::list<Ptr<Packet>> pkts = pktBurst->GetPackets();
-        LteRadioBearerTag bearerTag;
+        NrRadioBearerTag bearerTag;
         if (!pkts.front()->PeekPacketTag(bearerTag))
         {
             NS_FATAL_ERROR("No radio bearer tag");
@@ -1094,7 +1094,7 @@ NrUePhy::SendDataChannels(const Ptr<PacketBurst>& pb,
 {
     if (pb->GetNPackets() > 0)
     {
-        LteRadioBearerTag tag;
+        NrRadioBearerTag tag;
         if (!pb->GetPackets().front()->PeekPacketTag(tag))
         {
             NS_FATAL_ERROR("No radio bearer tag");
@@ -1161,7 +1161,7 @@ NrUePhy::EnqueueDlHarqFeedback(const DlHarqInfo& m)
 
     auto k1It = m_harqIdToK1Map.find(m.m_harqProcessId);
 
-    NS_LOG_DEBUG("ReceiveLteDlHarqFeedback"
+    NS_LOG_DEBUG("ReceiveNrDlHarqFeedback"
                  << " Harq Process " << static_cast<uint32_t>(k1It->first)
                  << " K1: " << k1It->second << " Frame " << m_currentSlot);
 
@@ -1213,10 +1213,10 @@ NrUePhy::DoStartCellSearch(uint16_t dlEarfcn)
 }
 
 void
-NrUePhy::DoSynchronizeWithEnb(uint16_t cellId, uint16_t dlEarfcn)
+NrUePhy::DoSynchronizeWithGnb(uint16_t cellId, uint16_t dlEarfcn)
 {
     NS_LOG_FUNCTION(this << cellId << dlEarfcn);
-    DoSynchronizeWithEnb(cellId);
+    DoSynchronizeWithGnb(cellId);
 }
 
 void
@@ -1232,7 +1232,7 @@ NrUePhy::DoSetRsrpFilterCoefficient(uint8_t rsrpFilterCoefficient)
 }
 
 void
-NrUePhy::DoSynchronizeWithEnb(uint16_t cellId)
+NrUePhy::DoSynchronizeWithGnb(uint16_t cellId)
 {
     NS_LOG_FUNCTION(this << cellId);
     DoSetCellId(cellId);
@@ -1335,7 +1335,7 @@ NrUePhy::ReportUeMeasurements()
 {
     NS_LOG_FUNCTION(this);
 
-    // LteUeCphySapUser::UeMeasurementsParameters ret;
+    NrUeCphySapUser::UeMeasurementsParameters ret;
 
     std::map<uint16_t, UeMeasurementsElement>::iterator it;
     for (it = m_ueMeasurementsMap.begin(); it != m_ueMeasurementsMap.end(); it++)
@@ -1437,7 +1437,7 @@ void
 NrUePhy::DoSetInitialBandwidth()
 {
     NS_LOG_FUNCTION(this);
-    // configure initial bandwidth to 6 RBs
+    // configure initial bandwidth to 6 RBs, numerology 0
     double initialBandwidthHz =
         6 * GetSubcarrierSpacing() * NrSpectrumValueHelper::SUBCARRIERS_PER_RB;
     // divided by 100*1000 because the parameter should be in 100KHz

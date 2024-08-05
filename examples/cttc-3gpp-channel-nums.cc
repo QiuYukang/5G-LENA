@@ -57,7 +57,7 @@ main(int argc, char* argv[])
     {
         LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
         LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-        LogComponentEnable("LtePdcp", LOG_LEVEL_INFO);
+        LogComponentEnable("NrPdcp", LOG_LEVEL_INFO);
     }
 
     // set simulation time and mobility
@@ -172,7 +172,7 @@ main(int argc, char* argv[])
         nrHelper->SetSchedulerAttribute("StartingMcsUl", UintegerValue(fixedMcs));
     }
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     // Antennas for all the UEs
     nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(2));
@@ -351,8 +351,8 @@ main(int argc, char* argv[])
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, gNbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gNbNetDev);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;

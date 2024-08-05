@@ -1027,7 +1027,7 @@ notice these log messages once data arrive at the PHY layer:
   +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=2|DL|SYM=1|NSYM=12|McsStream0=0|TBsStream0=39|NdiStream0=1|RvS
   tream0=0|TYPE=1|BWP=0|HARQP=15|RBG=[0;15] at +4464ns
   +0.400187500s 0  [ CellId 2, bwpId 0] NrGnbPhy:FillTheEvent(): [INFO ] Scheduled allocation RNTI=0|UL|SYM=13|NSYM=1|TYPE=2|BWP=0|HARQP=0|RBG=[0;15] at +58032ns
-  +0.400191964s 0  [ CellId 2, bwpId 0] NrGnbPhy:DlData(): [INFO ] ENB TXing DL DATA frame FrameNum: 40 SubFrameNum: 0 SlotNum: 3 symbols 1-12 start +4.00192e+08ns end +4.00246e+08ns
+  +0.400191964s 0  [ CellId 2, bwpId 0] NrGnbPhy:DlData(): [INFO ] gNB TXing DL DATA frame FrameNum: 40 SubFrameNum: 0 SlotNum: 3 symbols 1-12 start +4.00192e+08ns end +4.00246e+08ns
   +0.400250000s 0  [ CellId 3, bwpId 1] NrGnbPhy:EndSlot(): [INFO ] Release the channel because we did not have any data to maintain the grant
 
 

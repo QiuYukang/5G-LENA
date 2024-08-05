@@ -10,7 +10,7 @@
 #include "nr-bearer-stats-connector.h"
 #include "nr-mac-scheduling-stats.h"
 
-#include <ns3/eps-bearer.h>
+#include "ns3/nr-component-carrier.h"
 #include <ns3/net-device-container.h>
 #include <ns3/node-container.h>
 #include <ns3/nr-control-messages.h>
@@ -26,14 +26,12 @@ class NrGnbPhy;
 class SpectrumChannel;
 class NrSpectrumValueHelper;
 class NrGnbMac;
-class EpcHelper;
-class EpcTft;
+class NrEpcHelper;
 class NrEpcTft;
 class NrBearerStatsCalculator;
 class NrMacRxTrace;
 class NrPhyRxTrace;
-class ComponentCarrierEnb;
-class ComponentCarrier;
+class NrComponentCarrierGnb;
 class NrMacScheduler;
 class NrGnbNetDevice;
 class NrUeNetDevice;
@@ -64,12 +62,12 @@ class BwpManagerUe;
  * of the simulation program:
  *
 \verbatim
-  Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper> ();
+  Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper> ();
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
 
   nrHelper->SetBeamformingHelper (idealBeamformingHelper);
-  nrHelper->SetEpcHelper (epcHelper);
+  nrHelper->SetEpcHelper (nrEpcHelper);
 \endverbatim
  *
  * As you can see, we have created two other object that can help this class:
@@ -140,11 +138,11 @@ class BwpManagerUe;
  *
 \verbatim
   ...
-  NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice (gnbContainer, allBwps);
-  nrHelper->GetGnbPhy (enbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (2));
+  NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbContainer, allBwps);
+  nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (2));
 \endverbatim
  *
- * In the snippet, we are selecting the first gnb (`enbNetDev.Get (0)`) and
+ * In the snippet, we are selecting the first gnb (`gnbNetDev.Get (0)`) and
  * then selecting the first BWP (`, 0`). We are using the method GetGnbPhy()
  * to obtain the PHY pointer, and then setting the `Numerology` attribute
  * on it. The list of attributes is present in the class description, as well
@@ -162,7 +160,7 @@ class BwpManagerUe;
  * on all the NetDevices:
  *
 \verbatim
-  for (auto it = enbNetDev.Begin (); it != enbNetDev.End (); ++it)
+  for (auto it = gnbNetDev.Begin (); it != gnbNetDev.End (); ++it)
     {
       DynamicCast<NrGnbNetDevice> (*it)->UpdateConfig ();
     }
@@ -184,8 +182,8 @@ class BwpManagerUe;
  *
  * \section helper_attachment Attachment of UEs to GNBs
  *
- * We provide two methods to attach a set of UE to a GNB: AttachToClosestEnb()
- * and AttachToEnb(). Through these function, you will manually attach one or
+ * We provide two methods to attach a set of UE to a GNB: AttachToClosestGnb()
+ * and AttachToGnb(). Through these function, you will manually attach one or
  * more UEs to a specified GNB.
  *
  * \section helper_Traces Traces
@@ -294,15 +292,15 @@ class NrHelper : public Object
     /**
      * \brief Attach the UE specified to the closest GNB
      * \param ueDevices UE devices to attach
-     * \param enbDevices GNB devices from which the algorithm has to select the closest
+     * \param gnbDevices GNB devices from which the algorithm has to select the closest
      */
-    void AttachToClosestEnb(NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+    void AttachToClosestGnb(NetDeviceContainer ueDevices, NetDeviceContainer gnbDevices);
     /**
      * \brief Attach a UE to a particular GNB
      * \param ueDevice the UE device
      * \param gnbDevice the GNB device to which attach the UE
      */
-    void AttachToEnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbDevice);
+    void AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbDevice);
 
     /**
      * \brief Enables the following traces:
@@ -332,19 +330,19 @@ class NrHelper : public Object
      */
     void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer);
     /**
-     * Set the EpcHelper to be used to setup the EPC network in
-     * conjunction with the setup of the LTE radio access network.
+     * Set the NrEpcHelper to be used to setup the EPC network in
+     * conjunction with the setup of the NR radio access network.
      *
-     * \note if no EpcHelper is ever set, then LteHelper will default
-     * to creating a simulation with no EPC, using LteRlcSm as
+     * \note if no NrEpcHelper is ever set, then NrHelper will default
+     * to creating a simulation with no EPC, using NrRlcSm as
      * the RLC model, and without supporting any IP networking. In other
-     * words, it will be a radio-level simulation involving only LTE PHY
+     * words, it will be a radio-level simulation involving only NR PHY
      * and MAC and the Scheduler, with a saturation traffic model for
      * the RLC.
      *
-     * \param epcHelper a pointer to the EpcHelper to be used
+     * \param NrEpcHelper a pointer to the NrEpcHelper to be used
      */
-    void SetEpcHelper(Ptr<EpcHelper> epcHelper);
+    void SetEpcHelper(Ptr<NrEpcHelper> NrEpcHelper);
 
     /**
      * \brief Set an ideal beamforming helper
@@ -411,6 +409,7 @@ class NrHelper : public Object
      */
     uint8_t ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
                                        NrEpsBearer bearer,
+                                       Ptr<NrEpcTft> tft);
 
     /**
      * Activate a dedicated EPS bearer on a given UE device.
@@ -422,18 +421,20 @@ class NrHelper : public Object
      */
     uint8_t ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
                                        NrEpsBearer bearer,
+                                       Ptr<NrEpcTft> tft);
 
     /**
      *  \brief Manually trigger dedicated bearer de-activation at specific simulation time
      *  \param ueDevice the UE on which dedicated bearer to be de-activated must be of the type
-     * LteUeNetDevice \param enbDevice eNB, must be of the type LteEnbNetDevice \param bearerId
-     * Bearer Identity which is to be de-activated
+     * NrUeNetDevice
+     *  \param gnbDevice gNB, must be of the type NrGnbNetDevice
+     *  \param bearerId Bearer Identity which is to be de-activated
      *
      *  \warning Requires the use of EPC mode. See SetEpcHelper() method.
      */
 
     void DeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                      Ptr<NetDevice> enbDevice,
+                                      Ptr<NetDevice> gnbDevice,
                                       uint8_t bearerId);
 
     /**
@@ -845,7 +846,7 @@ class NrHelper : public Object
      *
      *
      * \param c NetDeviceContainer of the set of net devices for which the
-     *          LteNetDevice should be modified to use a fixed stream
+     *          NrNetDevice should be modified to use a fixed stream
      * \param stream first stream index to use
      * \return the number of stream indices (possibly zero) that have been assigned
      */
@@ -910,7 +911,7 @@ class NrHelper : public Object
      *
      *
      * \param c NetDeviceContainer of the set of net devices for which the
-     *          LteNetDevice should be modified to use a fixed stream
+     *          NrNetDevice should be modified to use a fixed stream
      * \param stream first stream index to use
      * \return the number of stream indices (possibly zero) that have been assigned
      */
@@ -918,15 +919,15 @@ class NrHelper : public Object
 
     /**
      *  \brief The actual function to trigger a manual bearer de-activation
-     *  \param ueDevice the UE on which bearer to be de-activated must be of the type LteUeNetDevice
-     *  \param enbDevice eNB, must be of the type LteEnbNetDevice
+     *  \param ueDevice the UE on which bearer to be de-activated must be of the type NrUeNetDevice
+     *  \param gnbDevice gNB, must be of the type NrGnbNetDevice
      *  \param bearerId Bearer Identity which is to be de-activated
      *
      *  This method is normally scheduled by DeActivateDedicatedEpsBearer() to run at a specific
      *  time when a manual bearer de-activation is desired by the simulation user.
      */
     void DoDeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                        Ptr<NetDevice> enbDevice,
+                                        Ptr<NetDevice> gnbDevice,
                                         uint8_t bearerId);
 
     Ptr<NrGnbPhy> CreateGnbPhy(const Ptr<Node>& n,
@@ -949,7 +950,7 @@ class NrHelper : public Object
     Ptr<NetDevice> InstallSingleGnbDevice(
         const Ptr<Node>& n,
         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
-    void AttachToClosestEnb(Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
+    void AttachToClosestGnb(Ptr<NetDevice> ueDevice, NetDeviceContainer gnbDevices);
 
     ObjectFactory m_gnbNetDeviceFactory;            //!< NetDevice factory for gnb
     ObjectFactory m_ueNetDeviceFactory;             //!< NetDevice factory for ue
@@ -977,7 +978,7 @@ class NrHelper : public Object
 
     uint16_t m_cellIdCounter{1}; //!< CellId Counter
 
-    Ptr<EpcHelper> m_epcHelper{nullptr};                     //!< Ptr to the EPC helper (optional)
+    Ptr<NrEpcHelper> m_nrEpcHelper{nullptr};                 //!< Ptr to the EPC helper (optional)
     Ptr<BeamformingHelperBase> m_beamformingHelper{nullptr}; //!< Ptr to the beamforming helper
 
     bool m_harqEnabled{false};
@@ -993,7 +994,7 @@ class NrHelper : public Object
         m_radioBearerStatsConnectorCalculator; //!< RLC and PDCP statistics connector for complex
                                                //!< calculator statistics
 
-    std::map<uint8_t, ComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
+    std::map<uint8_t, NrComponentCarrier> m_componentCarrierPhyParams; //!< component carrier map
     std::vector<Ptr<Object>>
         m_channelObjectsWithAssignedStreams; //!< channel and propagation objects to which NrHelper
     //!< has assigned streams in order to avoid double

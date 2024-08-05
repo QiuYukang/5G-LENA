@@ -145,24 +145,24 @@ NrBearerStatsConnector::EnsureConnected()
     NS_LOG_FUNCTION(this);
     if (!m_connected)
     {
-        Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/NewUeContext",
-                        MakeBoundCallback(&NrBearerStatsConnector::NotifyNewUeContextEnb, this));
+        Config::Connect("/NodeList/*/DeviceList/*/NrGnbRrc/NewUeContext",
+                        MakeBoundCallback(&NrBearerStatsConnector::NotifyNewUeContextGnb, this));
         Config::Connect(
-            "/NodeList/*/DeviceList/*/LteUeRrc/RandomAccessSuccessful",
+            "/NodeList/*/DeviceList/*/NrUeRrc/RandomAccessSuccessful",
             MakeBoundCallback(&NrBearerStatsConnector::NotifyRandomAccessSuccessfulUe, this));
         Config::Connect(
-            "/NodeList/*/DeviceList/*/LteEnbRrc/ConnectionReconfiguration",
-            MakeBoundCallback(&NrBearerStatsConnector::NotifyConnectionReconfigurationEnb, this));
+            "/NodeList/*/DeviceList/*/NrGnbRrc/ConnectionReconfiguration",
+            MakeBoundCallback(&NrBearerStatsConnector::NotifyConnectionReconfigurationGnb, this));
         Config::Connect(
-            "/NodeList/*/DeviceList/*/LteUeRrc/ConnectionReconfiguration",
+            "/NodeList/*/DeviceList/*/NrUeRrc/ConnectionReconfiguration",
             MakeBoundCallback(&NrBearerStatsConnector::NotifyConnectionReconfigurationUe, this));
-        Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverStart",
-                        MakeBoundCallback(&NrBearerStatsConnector::NotifyHandoverStartEnb, this));
-        Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/HandoverStart",
+        Config::Connect("/NodeList/*/DeviceList/*/NrGnbRrc/HandoverStart",
+                        MakeBoundCallback(&NrBearerStatsConnector::NotifyHandoverStartGnb, this));
+        Config::Connect("/NodeList/*/DeviceList/*/NrUeRrc/HandoverStart",
                         MakeBoundCallback(&NrBearerStatsConnector::NotifyHandoverStartUe, this));
-        Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverEndOk",
-                        MakeBoundCallback(&NrBearerStatsConnector::NotifyHandoverEndOkEnb, this));
-        Config::Connect("/NodeList/*/DeviceList/*/LteUeRrc/HandoverEndOk",
+        Config::Connect("/NodeList/*/DeviceList/*/NrGnbRrc/HandoverEndOk",
+                        MakeBoundCallback(&NrBearerStatsConnector::NotifyHandoverEndOkGnb, this));
+        Config::Connect("/NodeList/*/DeviceList/*/NrUeRrc/HandoverEndOk",
                         MakeBoundCallback(&NrBearerStatsConnector::NotifyHandoverEndOkUe, this));
         m_connected = true;
     }
@@ -220,7 +220,7 @@ NrBearerStatsConnector::NotifyHandoverEndOkUe(NrBearerStatsConnector* c,
 }
 
 void
-NrBearerStatsConnector::NotifyNewUeContextEnb(NrBearerStatsConnector* c,
+NrBearerStatsConnector::NotifyNewUeContextGnb(NrBearerStatsConnector* c,
                                               std::string context,
                                               uint16_t cellId,
                                               uint16_t rnti)
@@ -229,34 +229,34 @@ NrBearerStatsConnector::NotifyNewUeContextEnb(NrBearerStatsConnector* c,
 }
 
 void
-NrBearerStatsConnector::NotifyConnectionReconfigurationEnb(NrBearerStatsConnector* c,
+NrBearerStatsConnector::NotifyConnectionReconfigurationGnb(NrBearerStatsConnector* c,
                                                            std::string context,
                                                            uint64_t imsi,
                                                            uint16_t cellId,
                                                            uint16_t rnti)
 {
-    c->ConnectTracesEnbIfFirstTime(context, imsi, cellId, rnti);
+    c->ConnectTracesGnbIfFirstTime(context, imsi, cellId, rnti);
 }
 
 void
-NrBearerStatsConnector::NotifyHandoverStartEnb(NrBearerStatsConnector* c,
+NrBearerStatsConnector::NotifyHandoverStartGnb(NrBearerStatsConnector* c,
                                                std::string context,
                                                uint64_t imsi,
                                                uint16_t cellId,
                                                uint16_t rnti,
                                                uint16_t targetCellId)
 {
-    c->DisconnectTracesEnb(context, imsi, cellId, rnti);
+    c->DisconnectTracesGnb(context, imsi, cellId, rnti);
 }
 
 void
-NrBearerStatsConnector::NotifyHandoverEndOkEnb(NrBearerStatsConnector* c,
+NrBearerStatsConnector::NotifyHandoverEndOkGnb(NrBearerStatsConnector* c,
                                                std::string context,
                                                uint64_t imsi,
                                                uint16_t cellId,
                                                uint16_t rnti)
 {
-    c->ConnectTracesEnb(context, imsi, cellId, rnti);
+    c->ConnectTracesGnb(context, imsi, cellId, rnti);
 }
 
 void
@@ -295,28 +295,28 @@ NrBearerStatsConnector::ConnectSrb0Traces(std::string context,
         arg->cellId = cellId;
         arg->stats = m_rlcStats;
 
-        // disconnect eventually previously connected SRB0 both at UE and eNB
-        Config::Disconnect(ueRrcPath + "/Srb0/LteRlc/TxPDU",
+        // disconnect eventually previously connected SRB0 both at UE and gNB
+        Config::Disconnect(ueRrcPath + "/Srb0/NrRlc/TxPDU",
                            MakeBoundCallback(&UlTxPduCallback, arg));
-        Config::Disconnect(ueRrcPath + "/Srb0/LteRlc/RxPDU",
+        Config::Disconnect(ueRrcPath + "/Srb0/NrRlc/RxPDU",
                            MakeBoundCallback(&DlRxPduCallback, arg));
-        Config::Disconnect(ueManagerPath + "/Srb0/LteRlc/TxPDU",
+        Config::Disconnect(ueManagerPath + "/Srb0/NrRlc/TxPDU",
                            MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Disconnect(ueManagerPath + "/Srb0/LteRlc/RxPDU",
+        Config::Disconnect(ueManagerPath + "/Srb0/NrRlc/RxPDU",
                            MakeBoundCallback(&UlRxPduCallback, arg));
 
-        // connect SRB0 both at UE and eNB
-        Config::Connect(ueRrcPath + "/Srb0/LteRlc/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
-        Config::Connect(ueRrcPath + "/Srb0/LteRlc/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
-        Config::Connect(ueManagerPath + "/Srb0/LteRlc/TxPDU",
+        // connect SRB0 both at UE and gNB
+        Config::Connect(ueRrcPath + "/Srb0/NrRlc/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
+        Config::Connect(ueRrcPath + "/Srb0/NrRlc/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
+        Config::Connect(ueManagerPath + "/Srb0/NrRlc/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Connect(ueManagerPath + "/Srb0/LteRlc/RxPDU",
+        Config::Connect(ueManagerPath + "/Srb0/NrRlc/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
 
-        // connect SRB1 at eNB only (at UE SRB1 will be setup later)
-        Config::Connect(ueManagerPath + "/Srb1/LteRlc/TxPDU",
+        // connect SRB1 at gNB only (at UE SRB1 will be setup later)
+        Config::Connect(ueManagerPath + "/Srb1/NrRlc/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Connect(ueManagerPath + "/Srb1/LteRlc/RxPDU",
+        Config::Connect(ueManagerPath + "/Srb1/NrRlc/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
     }
     if (m_pdcpStats)
@@ -326,10 +326,10 @@ NrBearerStatsConnector::ConnectSrb0Traces(std::string context,
         arg->cellId = cellId;
         arg->stats = m_pdcpStats;
 
-        // connect SRB1 at eNB only (at UE SRB1 will be setup later)
-        Config::Connect(ueManagerPath + "/Srb1/LtePdcp/RxPDU",
+        // connect SRB1 at gNB only (at UE SRB1 will be setup later)
+        Config::Connect(ueManagerPath + "/Srb1/NrPdcp/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
-        Config::Connect(ueManagerPath + "/Srb1/LtePdcp/TxPDU",
+        Config::Connect(ueManagerPath + "/Srb1/NrPdcp/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
     }
 }
@@ -347,8 +347,8 @@ NrBearerStatsConnector::ConnectSrb1TracesUe(std::string ueRrcPath,
         arg->imsi = imsi;
         arg->cellId = cellId;
         arg->stats = m_rlcStats;
-        Config::Connect(ueRrcPath + "/Srb1/LteRlc/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
-        Config::Connect(ueRrcPath + "/Srb1/LteRlc/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
+        Config::Connect(ueRrcPath + "/Srb1/NrRlc/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
+        Config::Connect(ueRrcPath + "/Srb1/NrRlc/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
     }
     if (m_pdcpStats)
     {
@@ -356,10 +356,8 @@ NrBearerStatsConnector::ConnectSrb1TracesUe(std::string ueRrcPath,
         arg->imsi = imsi;
         arg->cellId = cellId;
         arg->stats = m_pdcpStats;
-        Config::Connect(ueRrcPath + "/Srb1/LtePdcp/RxPDU",
-                        MakeBoundCallback(&DlRxPduCallback, arg));
-        Config::Connect(ueRrcPath + "/Srb1/LtePdcp/TxPDU",
-                        MakeBoundCallback(&UlTxPduCallback, arg));
+        Config::Connect(ueRrcPath + "/Srb1/NrPdcp/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
+        Config::Connect(ueRrcPath + "/Srb1/NrPdcp/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
     }
 }
 
@@ -378,16 +376,16 @@ NrBearerStatsConnector::ConnectTracesUeIfFirstTime(std::string context,
 }
 
 void
-NrBearerStatsConnector::ConnectTracesEnbIfFirstTime(std::string context,
+NrBearerStatsConnector::ConnectTracesGnbIfFirstTime(std::string context,
                                                     uint64_t imsi,
                                                     uint16_t cellId,
                                                     uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << context);
-    if (m_imsiSeenEnb.find(imsi) == m_imsiSeenEnb.end())
+    if (m_imsiSeenGnb.find(imsi) == m_imsiSeenGnb.end())
     {
-        m_imsiSeenEnb.insert(imsi);
-        ConnectTracesEnb(context, imsi, cellId, rnti);
+        m_imsiSeenGnb.insert(imsi);
+        ConnectTracesGnb(context, imsi, cellId, rnti);
     }
 }
 
@@ -398,7 +396,7 @@ NrBearerStatsConnector::ConnectTracesUe(std::string context,
                                         uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << context);
-    NS_LOG_LOGIC(this << "expected context should match /NodeList/*/DeviceList/*/LteUeRrc/");
+    NS_LOG_LOGIC(this << "expected context should match /NodeList/*/DeviceList/*/NrUeRrc/");
     std::string basePath = context.substr(0, context.rfind('/'));
     if (m_rlcStats)
     {
@@ -406,12 +404,12 @@ NrBearerStatsConnector::ConnectTracesUe(std::string context,
         arg->imsi = imsi;
         arg->cellId = cellId;
         arg->stats = m_rlcStats;
-        Config::Connect(basePath + "/DataRadioBearerMap/*/LteRlc/TxPDU",
+        Config::Connect(basePath + "/DataRadioBearerMap/*/NrRlc/TxPDU",
                         MakeBoundCallback(&UlTxPduCallback, arg));
-        Config::Connect(basePath + "/DataRadioBearerMap/*/LteRlc/RxPDU",
+        Config::Connect(basePath + "/DataRadioBearerMap/*/NrRlc/RxPDU",
                         MakeBoundCallback(&DlRxPduCallback, arg));
-        Config::Connect(basePath + "/Srb1/LteRlc/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
-        Config::Connect(basePath + "/Srb1/LteRlc/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
+        Config::Connect(basePath + "/Srb1/NrRlc/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
+        Config::Connect(basePath + "/Srb1/NrRlc/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
     }
     if (m_pdcpStats)
     {
@@ -419,23 +417,23 @@ NrBearerStatsConnector::ConnectTracesUe(std::string context,
         arg->imsi = imsi;
         arg->cellId = cellId;
         arg->stats = m_pdcpStats;
-        Config::Connect(basePath + "/DataRadioBearerMap/*/LtePdcp/RxPDU",
+        Config::Connect(basePath + "/DataRadioBearerMap/*/NrPdcp/RxPDU",
                         MakeBoundCallback(&DlRxPduCallback, arg));
-        Config::Connect(basePath + "/DataRadioBearerMap/*/LtePdcp/TxPDU",
+        Config::Connect(basePath + "/DataRadioBearerMap/*/NrPdcp/TxPDU",
                         MakeBoundCallback(&UlTxPduCallback, arg));
-        Config::Connect(basePath + "/Srb1/LtePdcp/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
-        Config::Connect(basePath + "/Srb1/LtePdcp/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
+        Config::Connect(basePath + "/Srb1/NrPdcp/RxPDU", MakeBoundCallback(&DlRxPduCallback, arg));
+        Config::Connect(basePath + "/Srb1/NrPdcp/TxPDU", MakeBoundCallback(&UlTxPduCallback, arg));
     }
 }
 
 void
-NrBearerStatsConnector::ConnectTracesEnb(std::string context,
+NrBearerStatsConnector::ConnectTracesGnb(std::string context,
                                          uint64_t imsi,
                                          uint16_t cellId,
                                          uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << context);
-    NS_LOG_LOGIC(this << "expected context  should match /NodeList/*/DeviceList/*/LteEnbRrc/");
+    NS_LOG_LOGIC(this << "expected context  should match /NodeList/*/DeviceList/*/NrGnbRrc/");
     std::ostringstream basePath;
     basePath << context.substr(0, context.rfind('/')) << "/UeMap/" << (uint32_t)rnti;
     if (m_rlcStats)
@@ -444,17 +442,17 @@ NrBearerStatsConnector::ConnectTracesEnb(std::string context,
         arg->imsi = imsi;
         arg->cellId = cellId;
         arg->stats = m_rlcStats;
-        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/LteRlc/RxPDU",
+        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/NrRlc/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
-        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/LteRlc/TxPDU",
+        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/NrRlc/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Connect(basePath.str() + "/Srb0/LteRlc/RxPDU",
+        Config::Connect(basePath.str() + "/Srb0/NrRlc/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
-        Config::Connect(basePath.str() + "/Srb0/LteRlc/TxPDU",
+        Config::Connect(basePath.str() + "/Srb0/NrRlc/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Connect(basePath.str() + "/Srb1/LteRlc/RxPDU",
+        Config::Connect(basePath.str() + "/Srb1/NrRlc/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
-        Config::Connect(basePath.str() + "/Srb1/LteRlc/TxPDU",
+        Config::Connect(basePath.str() + "/Srb1/NrRlc/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
     }
     if (m_pdcpStats)
@@ -463,13 +461,13 @@ NrBearerStatsConnector::ConnectTracesEnb(std::string context,
         arg->imsi = imsi;
         arg->cellId = cellId;
         arg->stats = m_pdcpStats;
-        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/LtePdcp/TxPDU",
+        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/NrPdcp/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/LtePdcp/RxPDU",
+        Config::Connect(basePath.str() + "/DataRadioBearerMap/*/NrPdcp/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
-        Config::Connect(basePath.str() + "/Srb1/LtePdcp/TxPDU",
+        Config::Connect(basePath.str() + "/Srb1/NrPdcp/TxPDU",
                         MakeBoundCallback(&DlTxPduCallback, arg));
-        Config::Connect(basePath.str() + "/Srb1/LtePdcp/RxPDU",
+        Config::Connect(basePath.str() + "/Srb1/NrPdcp/RxPDU",
                         MakeBoundCallback(&UlRxPduCallback, arg));
     }
 }
@@ -484,7 +482,7 @@ NrBearerStatsConnector::DisconnectTracesUe(std::string context,
 }
 
 void
-NrBearerStatsConnector::DisconnectTracesEnb(std::string context,
+NrBearerStatsConnector::DisconnectTracesGnb(std::string context,
                                             uint64_t imsi,
                                             uint16_t cellId,
                                             uint16_t rnti)

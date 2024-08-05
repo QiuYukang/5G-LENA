@@ -15,9 +15,9 @@ class PacketBurst;
 class Node;
 class NrUePhy;
 class NrUeMac;
-class LteUeComponentCarrierManager;
-class EpcUeNas;
-class LteUeRrc;
+class NrUeComponentCarrierManager;
+class NrEpcUeNas;
+class NrUeRrc;
 class NrGnbNetDevice;
 class BandwidthPartUe;
 class BwpManagerUe;
@@ -97,36 +97,36 @@ class NrUeNetDevice : public NrNetDevice
      * \brief Get a pointer to the Nas
      * \return the NAS pointer
      */
-    Ptr<EpcUeNas> GetNas() const;
+    Ptr<NrEpcUeNas> GetNas() const;
 
     /**
      * \brief Get a Rrc pointer
      * \return RRC pointer
      */
-    Ptr<LteUeRrc> GetRrc() const;
+    Ptr<NrUeRrc> GetRrc() const;
 
     /**
      * \brief Set the GNB to which this UE is attached to
-     * \param enb GNB to attach to
+     * \param gnb GNB to attach to
      *
      * This method may change once we implement handover.
      */
-    void SetTargetEnb(Ptr<NrGnbNetDevice> enb);
+    void SetTargetGnb(Ptr<NrGnbNetDevice> gnb);
 
     /**
-     * \brief Obtain a pointer to the target enb
-     * \return a pointer to the target enb
+     * \brief Obtain a pointer to the target gnb
+     * \return a pointer to the target gnb
      */
-    Ptr<const NrGnbNetDevice> GetTargetEnb() const;
+    Ptr<const NrGnbNetDevice> GetTargetGnb() const;
 
     /**
-     * \brief Set the ComponentCarrier Map for the UE
+     * \brief Set the NrComponentCarrier Map for the UE
      * \param ccm the map of ComponentCarrierUe
      */
     void SetCcMap(std::map<uint8_t, Ptr<BandwidthPartUe>> ccm);
 
     /**
-     * \brief Get the ComponentCarrier Map for the UE
+     * \brief Get the NrComponentCarrier Map for the UE
      * \returns the map of ComponentCarrierUe
      */
     std::map<uint8_t, Ptr<BandwidthPartUe>> GetCcMap();
@@ -180,14 +180,14 @@ class NrUeNetDevice : public NrNetDevice
     bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) override;
 
   private:
-    Ptr<NrGnbNetDevice> m_targetEnb; //!< GNB pointer
-    Ptr<LteUeRrc> m_rrc;             //!< RRC pointer
-    Ptr<EpcUeNas> m_nas;             //!< NAS pointer
+    Ptr<NrGnbNetDevice> m_targetGnb; //!< GNB pointer
+    Ptr<NrUeRrc> m_rrc;              //!< RRC pointer
+    Ptr<NrEpcUeNas> m_nas;           //!< NAS pointer
     uint64_t m_imsi;                 //!< UE IMSI
     uint32_t m_csgId;                //!< ?_?
 
-    std::map<uint8_t, Ptr<BandwidthPartUe>> m_ccMap;             ///< component carrier map
-    Ptr<LteUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
+    std::map<uint8_t, Ptr<BandwidthPartUe>> m_ccMap;            ///< component carrier map
+    Ptr<NrUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
 };
 
 } // namespace ns3

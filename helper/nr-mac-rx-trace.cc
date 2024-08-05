@@ -101,7 +101,7 @@ NrMacRxTrace::RxedGnbMacCtrlMsgsCallback(Ptr<NrMacRxTrace> macStats,
     }
 
     m_rxedGnbMacCtrlMsgsFile << Simulator::Now().GetNanoSeconds() / (double)1e9 << "\t"
-                             << "ENB MAC Rxed"
+                             << "gNB MAC Rxed"
                              << "\t" << sfn.GetFrame() << "\t"
                              << static_cast<uint32_t>(sfn.GetSubframe()) << "\t"
                              << static_cast<uint32_t>(sfn.GetSlot()) << "\t" << nodeId << "\t"
@@ -174,7 +174,7 @@ NrMacRxTrace::TxedGnbMacCtrlMsgsCallback(Ptr<NrMacRxTrace> macStats,
     }
 
     m_txedGnbMacCtrlMsgsFile << Simulator::Now().GetNanoSeconds() / (double)1e9 << "\t"
-                             << "ENB MAC Txed"
+                             << "gNB MAC Txed"
                              << "\t" << sfn.GetFrame() << "\t"
                              << static_cast<uint32_t>(sfn.GetSubframe()) << "\t"
                              << static_cast<uint32_t>(sfn.GetSlot()) << "\t" << nodeId << "\t"

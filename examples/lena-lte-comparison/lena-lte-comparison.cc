@@ -805,7 +805,7 @@ LenaLteComparison(const Parameters& params)
     rbStats.EmptyCache();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
     GtkConfigStore config;
     config.ConfigureAttributes ();

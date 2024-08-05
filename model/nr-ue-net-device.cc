@@ -6,15 +6,15 @@
 
 #include "bandwidth-part-ue.h"
 #include "bwp-manager-ue.h"
+#include "nr-epc-ue-nas.h"
 #include "nr-gnb-net-device.h"
+#include "nr-ue-component-carrier-manager.h"
 #include "nr-ue-mac.h"
 #include "nr-ue-phy.h"
+#include "nr-ue-rrc.h"
 
-#include <ns3/epc-ue-nas.h>
 #include <ns3/ipv4-l3-protocol.h>
 #include <ns3/ipv6-l3-protocol.h>
-#include <ns3/lte-ue-component-carrier-manager.h>
-#include <ns3/lte-ue-rrc.h>
 #include <ns3/object-map.h>
 #include <ns3/pointer.h>
 
@@ -32,31 +32,31 @@ NrUeNetDevice::GetTypeId()
         TypeId("ns3::NrUeNetDevice")
             .SetParent<NrNetDevice>()
             .AddConstructor<NrUeNetDevice>()
-            .AddAttribute("EpcUeNas",
+            .AddAttribute("NrEpcUeNas",
                           "The NAS associated to this UeNetDevice",
                           PointerValue(),
                           MakePointerAccessor(&NrUeNetDevice::m_nas),
-                          MakePointerChecker<EpcUeNas>())
+                          MakePointerChecker<NrEpcUeNas>())
             .AddAttribute("nrUeRrc",
                           "The RRC associated to this UeNetDevice",
                           PointerValue(),
                           MakePointerAccessor(&NrUeNetDevice::m_rrc),
-                          MakePointerChecker<LteUeRrc>())
+                          MakePointerChecker<NrUeRrc>())
             .AddAttribute("Imsi",
                           "International Mobile Subscriber Identity assigned to this UE",
                           UintegerValue(0),
                           MakeUintegerAccessor(&NrUeNetDevice::m_imsi),
                           MakeUintegerChecker<uint64_t>())
-            .AddAttribute("LteUeRrc",
-                          "The RRC layer associated with the ENB",
+            .AddAttribute("NrUeRrc",
+                          "The RRC layer associated with the gNB",
                           PointerValue(),
                           MakePointerAccessor(&NrUeNetDevice::m_rrc),
-                          MakePointerChecker<LteUeRrc>())
-            .AddAttribute("LteUeComponentCarrierManager",
+                          MakePointerChecker<NrUeRrc>())
+            .AddAttribute("NrUeComponentCarrierManager",
                           "The ComponentCarrierManager associated to this UeNetDevice",
                           PointerValue(),
                           MakePointerAccessor(&NrUeNetDevice::m_componentCarrierManager),
-                          MakePointerChecker<LteUeComponentCarrierManager>())
+                          MakePointerChecker<NrUeComponentCarrierManager>())
             .AddAttribute("ComponentCarrierMapUe",
                           "List of all component Carrier.",
                           ObjectMapValue(),
@@ -89,7 +89,7 @@ NrUeNetDevice::DoDispose()
     m_rrc->Dispose();
     m_rrc = nullptr;
 
-    m_targetEnb = nullptr;
+    m_targetGnb = nullptr;
     m_nas->Dispose();
     m_nas = nullptr;
     for (const auto& it : m_ccMap)
@@ -226,14 +226,14 @@ NrUeNetDevice::GetBwpManager() const
     return DynamicCast<BwpManagerUe>(m_componentCarrierManager);
 }
 
-Ptr<EpcUeNas>
+Ptr<NrEpcUeNas>
 NrUeNetDevice::GetNas() const
 {
     NS_LOG_FUNCTION(this);
     return m_nas;
 }
 
-Ptr<LteUeRrc>
+Ptr<NrUeRrc>
 NrUeNetDevice::GetRrc() const
 {
     NS_LOG_FUNCTION(this);
@@ -250,10 +250,10 @@ NrUeNetDevice::GetImsi() const
 uint16_t
 NrUeNetDevice::GetCellId() const
 {
-    auto gnb = GetTargetEnb();
+    auto gnb = GetTargetGnb();
     if (gnb)
     {
-        return GetTargetEnb()->GetCellId();
+        return GetTargetGnb()->GetCellId();
     }
     else
     {
@@ -262,17 +262,17 @@ NrUeNetDevice::GetCellId() const
 }
 
 void
-NrUeNetDevice::SetTargetEnb(Ptr<NrGnbNetDevice> enb)
+NrUeNetDevice::SetTargetGnb(Ptr<NrGnbNetDevice> gnb)
 {
     NS_LOG_FUNCTION(this);
-    m_targetEnb = enb;
+    m_targetGnb = gnb;
 }
 
 Ptr<const NrGnbNetDevice>
-NrUeNetDevice::GetTargetEnb() const
+NrUeNetDevice::GetTargetGnb() const
 {
     NS_LOG_FUNCTION(this);
-    return m_targetEnb;
+    return m_targetGnb;
 }
 
 } // namespace ns3

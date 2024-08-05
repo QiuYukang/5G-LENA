@@ -79,7 +79,7 @@ class NrPhyRxTrace : public Object
     static void ReportPacketCountUeCallback(Ptr<NrPhyRxTrace> phyStats,
                                             std::string path,
                                             UePhyPacketCountParameter param);
-    static void ReportPacketCountEnbCallback(Ptr<NrPhyRxTrace> phyStats,
+    static void ReportPacketCountGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                                              std::string path,
                                              GnbPhyPacketCountParameter param);
     static void ReportDownLinkTBSize(Ptr<NrPhyRxTrace> phyStats,
@@ -89,12 +89,12 @@ class NrPhyRxTrace : public Object
     static void RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
                                         std::string path,
                                         RxPacketTraceParams param);
-    static void RxPacketTraceEnbCallback(Ptr<NrPhyRxTrace> phyStats,
+    static void RxPacketTraceGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                                          std::string path,
                                          RxPacketTraceParams param);
 
     /**
-     *  Trace sink for Enb Phy Received Control Messages.
+     *  Trace sink for Gnb Phy Received Control Messages.
      *
      * \param [in] phyStats Physical layer statistics.
      * \param [in] path Path of the file where the traces will be written
@@ -113,7 +113,7 @@ class NrPhyRxTrace : public Object
                                            Ptr<const NrControlMessage> msg);
 
     /**
-     *  Trace sink for Enb Phy Transmitted Control Messages.
+     *  Trace sink for Gnb Phy Transmitted Control Messages.
      *
      * \param [in] frame Frame number
      * \param [in] subframe Subframe number
@@ -263,7 +263,7 @@ class NrPhyRxTrace : public Object
     void ReportInterferenceTrace(uint64_t imsi, SpectrumValue& sinr);
     void ReportPowerTrace(uint64_t imsi, SpectrumValue& power);
     void ReportPacketCountUe(UePhyPacketCountParameter param);
-    void ReportPacketCountEnb(GnbPhyPacketCountParameter param);
+    void ReportPacketCountGnb(GnbPhyPacketCountParameter param);
     void ReportDLTbSize(uint64_t imsi, uint64_t tbSize);
     /**
      * \brief Write DL pathloss values in a file

@@ -605,9 +605,9 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
 
     // Disable channel matrix update to speed up the simulation execution
     // Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
-    // Config::SetDefault ("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    // Config::SetDefault ("ns3::LteRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue(320));
+    // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(320));
 
     if (cellScan)
     {
@@ -736,8 +736,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDevs, gNbDevs);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDevs, gNbDevs);
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;

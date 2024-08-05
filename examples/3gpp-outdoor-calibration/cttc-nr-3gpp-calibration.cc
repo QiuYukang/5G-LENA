@@ -782,7 +782,7 @@ Nr3gppCalibration(Parameters& params)
 
     if (nrHelper != nullptr && params.attachToClosest)
     {
-        nrHelper->AttachToClosestEnb(ueNetDevs, gnbNetDevs);
+        nrHelper->AttachToClosestGnb(ueNetDevs, gnbNetDevs);
     }
     else
     {
@@ -799,7 +799,7 @@ Nr3gppCalibration(Parameters& params)
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->AttachToEnb(ueNetDev, gnbNetDev);
+                nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
                 auto uePhyBwp0{nrHelper->GetUePhy(ueNetDev, 0)};
                 auto gnbPhyBwp0{nrHelper->GetGnbPhy(gnbNetDev, 0)};
                 Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1051,7 +1051,7 @@ Nr3gppCalibration(Parameters& params)
     rbStats.EmptyCache();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
     GtkConfigStore config;
     config.ConfigureAttributes ();

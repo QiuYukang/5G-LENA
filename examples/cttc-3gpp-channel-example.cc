@@ -70,15 +70,15 @@ main(int argc, char* argv[])
         // LogComponentEnable ("ChannelConditionModel", LOG_LEVEL_ALL);
         // LogComponentEnable ("UdpClient", LOG_LEVEL_INFO);
         // LogComponentEnable ("UdpServer", LOG_LEVEL_INFO);
-        // LogComponentEnable ("LteRlcUm", LOG_LEVEL_LOGIC);
-        // LogComponentEnable ("LtePdcp", LOG_LEVEL_INFO);
+        // LogComponentEnable ("NrRlcUm", LOG_LEVEL_LOGIC);
+        // LogComponentEnable ("NrPdcp", LOG_LEVEL_INFO);
     }
 
     /*
      * Default values for the simulation. We are progressively removing all
      * the instances of SetDefault, but we need it for legacy code (LTE)
      */
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     // set mobile device and base station antenna heights in meters, according to the chosen
     // scenario
@@ -119,19 +119,19 @@ main(int argc, char* argv[])
     }
 
     // create base stations and mobile terminals
-    NodeContainer enbNodes;
+    NodeContainer gnbNodes;
     NodeContainer ueNodes;
-    enbNodes.Create(2);
+    gnbNodes.Create(2);
     ueNodes.Create(2);
 
     // position the base stations
-    Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator>();
-    enbPositionAlloc->Add(Vector(0.0, 0.0, hBS));
-    enbPositionAlloc->Add(Vector(0.0, 80.0, hBS));
-    MobilityHelper enbmobility;
-    enbmobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    enbmobility.SetPositionAllocator(enbPositionAlloc);
-    enbmobility.Install(enbNodes);
+    Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator>();
+    gnbPositionAlloc->Add(Vector(0.0, 0.0, hBS));
+    gnbPositionAlloc->Add(Vector(0.0, 80.0, hBS));
+    MobilityHelper gnbMobility;
+    gnbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    gnbMobility.SetPositionAllocator(gnbPositionAlloc);
+    gnbMobility.Install(gnbNodes);
 
     // position the mobile terminals and enable the mobility
     MobilityHelper uemobility;
@@ -214,18 +214,18 @@ main(int argc, char* argv[])
                                      PointerValue(CreateObject<IsotropicAntennaModel>()));
 
     // install nr net devices
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(enbNodes, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNodes, allBwps);
 
     int64_t randomStream = 1;
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetTxPower(txPower);
-    nrHelper->GetGnbPhy(enbNetDev.Get(1), 0)->SetTxPower(txPower);
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPower);
+    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)->SetTxPower(txPower);
 
     // When all the configuration is done, explicitly call UpdateConfig ()
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -287,8 +287,8 @@ main(int argc, char* argv[])
         clientApps.Add(dlClient.Install(remoteHost));
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     // start server and client apps
     serverApps.Start(Seconds(0.4));

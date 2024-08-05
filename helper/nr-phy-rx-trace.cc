@@ -298,7 +298,7 @@ NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback(Ptr<NrPhyRxTrace> phyStats,
     }
 
     m_rxedGnbPhyCtrlMsgsFile << Simulator::Now().GetNanoSeconds() / (double)1e9 << "\t"
-                             << "ENB PHY Rxed"
+                             << "gNB PHY Rxed"
                              << "\t" << sfn.GetFrame() << "\t"
                              << static_cast<uint32_t>(sfn.GetSubframe()) << "\t"
                              << static_cast<uint32_t>(sfn.GetSlot()) << "\t" << nodeId << "\t"
@@ -376,7 +376,7 @@ NrPhyRxTrace::TxedGnbPhyCtrlMsgsCallback(Ptr<NrPhyRxTrace> phyStats,
     }
 
     m_txedGnbPhyCtrlMsgsFile << Simulator::Now().GetNanoSeconds() / (double)1e9 << "\t"
-                             << "ENB PHY Txed"
+                             << "gNB PHY Txed"
                              << "\t" << sfn.GetFrame() << "\t"
                              << static_cast<uint32_t>(sfn.GetSubframe()) << "\t"
                              << static_cast<uint32_t>(sfn.GetSlot()) << "\t" << nodeId << "\t"
@@ -723,11 +723,11 @@ NrPhyRxTrace::ReportPacketCountUeCallback(Ptr<NrPhyRxTrace> phyStats,
 }
 
 void
-NrPhyRxTrace::ReportPacketCountEnbCallback(Ptr<NrPhyRxTrace> phyStats,
+NrPhyRxTrace::ReportPacketCountGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                                            std::string path,
                                            GnbPhyPacketCountParameter param)
 {
-    phyStats->ReportPacketCountEnb(param);
+    phyStats->ReportPacketCountGnb(param);
 }
 
 void
@@ -759,7 +759,7 @@ NrPhyRxTrace::ReportPacketCountUe(UePhyPacketCountParameter param)
 }
 
 void
-NrPhyRxTrace::ReportPacketCountEnb(GnbPhyPacketCountParameter param)
+NrPhyRxTrace::ReportPacketCountGnb(GnbPhyPacketCountParameter param)
 {
     FILE* log_file;
     std::string fname = "BS_" + std::to_string(param.m_cellId) + "_Packet_Trace.txt";
@@ -875,7 +875,7 @@ NrPhyRxTrace::RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
 }
 
 void
-NrPhyRxTrace::RxPacketTraceEnbCallback(Ptr<NrPhyRxTrace> phyStats,
+NrPhyRxTrace::RxPacketTraceGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                                        std::string path,
                                        RxPacketTraceParams params)
 {

@@ -5,9 +5,9 @@
 #ifndef COMPONENT_CARRIER_GNB_H
 #define COMPONENT_CARRIER_GNB_H
 
+#include "nr-component-carrier.h"
 #include "nr-gnb-phy.h"
 
-#include <ns3/component-carrier.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
 
@@ -23,7 +23,7 @@ class NrMacScheduler;
  *
  * Defines a single bandwidth part for the GNB.
  */
-class BandwidthPartGnb : public ComponentCarrierBaseStation
+class BandwidthPartGnb : public NrComponentCarrierBaseStation
 {
   public:
     /**

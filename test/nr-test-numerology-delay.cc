@@ -21,7 +21,7 @@ using namespace ns3;
  * \ingroup test
  *
  * \brief In this test case we want to observe delays of a single UDP packet, and to track its
- * eNB processing time, air time, UE time depending on the numerology.
+ * gNB processing time, air time, UE time depending on the numerology.
  */
 
 static uint32_t packetSize = 1000;
@@ -39,7 +39,7 @@ class NrTestNumerologyDelayCase1 : public TestCase
                       uint32_t rnti,
                       uint8_t componentCarrierId);
     void DlSpectrumUeEndRx(RxPacketTraceParams params);
-    void DlSpectrumEnbStartTx(GnbPhyPacketCountParameter params);
+    void DlSpectrumGnbStartTx(GnbPhyPacketCountParameter params);
     void TxRlcPDU(uint16_t rnti, uint8_t lcid, uint32_t bytes);
     void TxPdcpPDU(uint16_t rnti, uint8_t lcid, uint32_t bytes);
     void RxRlcPDU(uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t delay);
@@ -81,9 +81,9 @@ NrTestNumerologyDelayCase1::~NrTestNumerologyDelayCase1()
 }
 
 void
-LteTestDlSchedCallback(NrTestNumerologyDelayCase1* testcase,
-                       std::string path,
-                       NrSchedulingCallbackInfo info)
+NrTestDlSchedCallback(NrTestNumerologyDelayCase1* testcase,
+                      std::string path,
+                      NrSchedulingCallbackInfo info)
 {
     testcase->DlScheduling(info.m_frameNum,
                            info.m_subframeNum,
@@ -95,59 +95,59 @@ LteTestDlSchedCallback(NrTestNumerologyDelayCase1* testcase,
 }
 
 void
-LteTestRxPacketUeCallback(NrTestNumerologyDelayCase1* testcase,
-                          std::string path,
-                          RxPacketTraceParams rxParams)
+NrTestRxPacketUeCallback(NrTestNumerologyDelayCase1* testcase,
+                         std::string path,
+                         RxPacketTraceParams rxParams)
 {
     testcase->DlSpectrumUeEndRx(rxParams);
 }
 
 void
-LteTestTxPacketEnbCallback(NrTestNumerologyDelayCase1* testcase,
-                           std::string path,
-                           GnbPhyPacketCountParameter params)
+NrTestTxPacketGnbCallback(NrTestNumerologyDelayCase1* testcase,
+                          std::string path,
+                          GnbPhyPacketCountParameter params)
 {
-    testcase->DlSpectrumEnbStartTx(params);
+    testcase->DlSpectrumGnbStartTx(params);
 }
 
 void
-LteTestTxRlcPDUCallback(NrTestNumerologyDelayCase1* testcase,
-                        std::string path,
-                        uint16_t rnti,
-                        uint8_t lcid,
-                        uint32_t bytes)
+NrTestTxRlcPDUCallback(NrTestNumerologyDelayCase1* testcase,
+                       std::string path,
+                       uint16_t rnti,
+                       uint8_t lcid,
+                       uint32_t bytes)
 {
     testcase->TxRlcPDU(rnti, lcid, bytes);
 }
 
 void
-LteTestTxPdcpPDUCallback(NrTestNumerologyDelayCase1* testcase,
-                         std::string path,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t bytes)
+NrTestTxPdcpPDUCallback(NrTestNumerologyDelayCase1* testcase,
+                        std::string path,
+                        uint16_t rnti,
+                        uint8_t lcid,
+                        uint32_t bytes)
 {
     testcase->TxPdcpPDU(rnti, lcid, bytes);
 }
 
 void
-LteTestRxRlcPDUCallback(NrTestNumerologyDelayCase1* testcase,
-                        std::string path,
-                        uint16_t rnti,
-                        uint8_t lcid,
-                        uint32_t bytes,
-                        uint64_t delay)
+NrTestRxRlcPDUCallback(NrTestNumerologyDelayCase1* testcase,
+                       std::string path,
+                       uint16_t rnti,
+                       uint8_t lcid,
+                       uint32_t bytes,
+                       uint64_t delay)
 {
     testcase->RxRlcPDU(rnti, lcid, bytes, delay);
 }
 
 void
-LteTestRxPdcpPDUCallback(NrTestNumerologyDelayCase1* testcase,
-                         std::string path,
-                         uint16_t rnti,
-                         uint8_t lcid,
-                         uint32_t bytes,
-                         uint64_t delay)
+NrTestRxPdcpPDUCallback(NrTestNumerologyDelayCase1* testcase,
+                        std::string path,
+                        uint16_t rnti,
+                        uint8_t lcid,
+                        uint32_t bytes,
+                        uint64_t delay)
 {
     testcase->RxPdcpPDU(rnti, lcid, bytes, delay);
 }
@@ -155,17 +155,17 @@ LteTestRxPdcpPDUCallback(NrTestNumerologyDelayCase1* testcase,
 void
 ConnectRlcPdcpTraces(NrTestNumerologyDelayCase1* testcase)
 {
-    Config::Connect("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LteRlc/TxPDU",
-                    MakeBoundCallback(&LteTestTxRlcPDUCallback, testcase));
+    Config::Connect("/NodeList/1/DeviceList/*/NrGnbRrc/UeMap/1/DataRadioBearerMap/1/NrRlc/TxPDU",
+                    MakeBoundCallback(&NrTestTxRlcPDUCallback, testcase));
 
-    Config::Connect("/NodeList/1/DeviceList/*/LteEnbRrc/UeMap/1/DataRadioBearerMap/1/LtePdcp/TxPDU",
-                    MakeBoundCallback(&LteTestTxPdcpPDUCallback, testcase));
+    Config::Connect("/NodeList/1/DeviceList/*/NrGnbRrc/UeMap/1/DataRadioBearerMap/1/NrPdcp/TxPDU",
+                    MakeBoundCallback(&NrTestTxPdcpPDUCallback, testcase));
 
-    Config::Connect("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LteRlc/RxPDU",
-                    MakeBoundCallback(&LteTestRxRlcPDUCallback, testcase));
+    Config::Connect("/NodeList/0/DeviceList/*/NrUeRrc/DataRadioBearerMap/1/NrRlc/RxPDU",
+                    MakeBoundCallback(&NrTestRxRlcPDUCallback, testcase));
 
-    Config::Connect("/NodeList/0/DeviceList/*/LteUeRrc/DataRadioBearerMap/1/LtePdcp/RxPDU",
-                    MakeBoundCallback(&LteTestRxPdcpPDUCallback, testcase));
+    Config::Connect("/NodeList/0/DeviceList/*/NrUeRrc/DataRadioBearerMap/1/NrPdcp/RxPDU",
+                    MakeBoundCallback(&NrTestRxPdcpPDUCallback, testcase));
 }
 
 static void
@@ -202,14 +202,14 @@ NrTestNumerologyDelayCase1::DoRun()
 
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
-    Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>();
+    Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
 
     // Beamforming method
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(DirectPathBeamforming::GetTypeId()));
 
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
-    nrHelper->SetEpcHelper(epcHelper);
+    nrHelper->SetEpcHelper(nrEpcHelper);
 
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
@@ -259,13 +259,13 @@ NrTestNumerologyDelayCase1::DoRun()
     nrHelper->InitializeOperationBand(&band1);
     allBwps = CcBwpCreator::GetAllBwps({band1});
 
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gNbNode, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gNbNode, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNode, allBwps);
 
-    m_l1l2 = nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->GetL1L2CtrlLatency();
-    m_tbDecodeLatency = nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->GetTbDecodeLatency();
+    m_l1l2 = nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->GetL1L2CtrlLatency();
+    m_tbDecodeLatency = nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->GetTbDecodeLatency();
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -278,26 +278,26 @@ NrTestNumerologyDelayCase1::DoRun()
     InternetStackHelper internet;
     internet.Install(ueNode);
     Ipv4InterfaceContainer ueIpIface;
-    ueIpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
+    ueIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
     Simulator::Schedule(m_sendPacketTime,
                         &SendPacket,
-                        enbNetDev.Get(0),
+                        gnbNetDev.Get(0),
                         ueNetDev.Get(0)->GetAddress());
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
-                    MakeBoundCallback(&LteTestDlSchedCallback, this));
+                    MakeBoundCallback(&NrTestDlSchedCallback, this));
 
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
-        MakeBoundCallback(&LteTestRxPacketUeCallback, this));
+        MakeBoundCallback(&NrTestRxPacketUeCallback, this));
 
     Config::Connect(
-        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/TxPacketTraceEnb",
-        MakeBoundCallback(&LteTestTxPacketEnbCallback, this));
+        "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/TxPacketTraceGnb",
+        MakeBoundCallback(&NrTestTxPacketGnbCallback, this));
 
     Simulator::Schedule(MilliSeconds(200), &ConnectRlcPdcpTraces, this);
 
@@ -382,9 +382,9 @@ NrTestNumerologyDelayCase1::DlScheduling(uint32_t frameNo,
 }
 
 void
-NrTestNumerologyDelayCase1::DlSpectrumEnbStartTx(GnbPhyPacketCountParameter params)
+NrTestNumerologyDelayCase1::DlSpectrumGnbStartTx(GnbPhyPacketCountParameter params)
 {
-    /*  std::cout<<"\n\n Started transmission at eNb PHY at:"<<Simulator::Now()<<std::endl;
+    /*  std::cout<<"\n\n Started transmission at gNB PHY at:"<<Simulator::Now()<<std::endl;
       std::cout<<"\n cell id :"<<params.m_cellId<<std::endl;
       std::cout<<"\n no of bytes :"<<(unsigned)params.m_noBytes<<std::endl;
       std::cout<<"\n subframe no:"<<params.m_subframeno<<std::endl;*/

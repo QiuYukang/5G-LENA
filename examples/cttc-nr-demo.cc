@@ -182,7 +182,7 @@ main(int argc, char* argv[])
     {
         LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
         LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-        LogComponentEnable("LtePdcp", LOG_LEVEL_INFO);
+        LogComponentEnable("NrPdcp", LOG_LEVEL_INFO);
     }
 
     /*
@@ -191,7 +191,7 @@ main(int argc, char* argv[])
      * an example: if you want to make the RLC buffer very large, you can pass a very large integer
      * here.
      */
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     /*
      * Create the scenario. In our examples, we heavily use helpers that setup
@@ -407,12 +407,12 @@ main(int argc, char* argv[])
      * to the NetDevices, which contains all the NR stack:
      */
 
-    NetDeviceContainer enbNetDev =
+    NetDeviceContainer gnbNetDev =
         nrHelper->InstallGnbDevice(gridScenario.GetBaseStations(), allBwps);
     NetDeviceContainer ueLowLatNetDev = nrHelper->InstallUeDevice(ueLowLatContainer, allBwps);
     NetDeviceContainer ueVoiceNetDev = nrHelper->InstallUeDevice(ueVoiceContainer, allBwps);
 
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueLowLatNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueVoiceNetDev, randomStream);
     /*
@@ -420,26 +420,26 @@ main(int argc, char* argv[])
      * per-node.
      */
 
-    // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
+    // Get the first netdevice (gnbNetDev.Get (0)) and the first bandwidth part (0)
     // and set the attribute.
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp1));
-    nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((bandwidthBand1 / totalBandwidth) * x)));
 
     if (doubleOperationalBand)
     {
-        // Get the first netdevice (enbNetDev.Get (0)) and the second bandwidth part (1)
+        // Get the first netdevice (gnbNetDev.Get (0)) and the second bandwidth part (1)
         // and set the attribute.
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("Numerology", UintegerValue(numerologyBwp2));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetTxPower(10 * log10((bandwidthBand2 / totalBandwidth) * x));
     }
 
     // When all the configuration is done, explicitly call UpdateConfig ()
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -494,9 +494,9 @@ main(int argc, char* argv[])
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueLowLatNetDev, enbNetDev);
-    nrHelper->AttachToClosestEnb(ueVoiceNetDev, enbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueLowLatNetDev, gnbNetDev);
+    nrHelper->AttachToClosestGnb(ueVoiceNetDev, gnbNetDev);
 
     /*
      * Traffic part. Install two kind of traffic: low-latency and voice, each
@@ -612,7 +612,7 @@ main(int argc, char* argv[])
     Simulator::Run();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
     GtkConfigStore config;
     config.ConfigureAttributes ();

@@ -8,7 +8,6 @@
 #include "nr-spectrum-signal-parameters.h"
 
 #include <ns3/log.h>
-#include <ns3/lte-chunk-processor.h>
 #include <ns3/simulator.h>
 
 #include <algorithm>
@@ -19,7 +18,7 @@ namespace ns3
 {
 
 NrInterference::NrInterference()
-    : LteInterference(),
+    : NrInterferenceBase(),
       m_firstPower(0.0)
 {
     NS_LOG_FUNCTION(this);
@@ -39,7 +38,7 @@ NrInterference::DoDispose()
     m_rxSignalsMimo.clear();
     m_allSignalsMimo.clear();
 
-    LteInterference::DoDispose();
+    NrInterferenceBase::DoDispose();
 }
 
 TypeId
@@ -79,7 +78,7 @@ NrInterference::AddSignal(Ptr<const SpectrumValue> spd, Time duration)
     // for how long.
     AppendEvent(Simulator::Now(), Simulator::Now() + duration, rxPowerW);
 
-    LteInterference::AddSignal(spd, duration);
+    NrInterferenceBase::AddSignal(spd, duration);
 }
 
 void
@@ -332,9 +331,9 @@ NrInterference::AddSignalMimo(Ptr<const SpectrumSignalParameters> params, const 
     auto rxPowerW = Integral(*params->psd);
 
     NS_LOG_FUNCTION(this << *params->psd << duration);
-    LteInterference::DoAddSignal(params->psd);
+    NrInterferenceBase::DoAddSignal(params->psd);
     m_allSignalsMimo.push_back(params);
-    // Update signal ID to match signal ID in LteInterference
+    // Update signal ID to match signal ID in NrInterferenceBase
     if (++m_lastSignalId == m_lastSignalIdBeforeReset)
     {
         m_lastSignalIdBeforeReset += NR_LTE_SIGNALID_INCR;
@@ -363,7 +362,7 @@ NrInterference::StartRxMimo(Ptr<const SpectrumSignalParameters> params)
         // Clear the list of stored chunks
         cp->Start();
     }
-    LteInterference::StartRx(rxPsd);
+    NrInterferenceBase::StartRx(rxPsd);
 }
 
 void

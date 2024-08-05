@@ -679,7 +679,7 @@ or in both flexible and UL slots by setting the attribute ``EnableSrsInUlSlots``
 Uplink power control
 ====================
 
-Uplink Power Control (ULPC) allows an eNB to adjust the transmission power
+Uplink Power Control (ULPC) allows an gNB to adjust the transmission power
 of an UE, and as such it plays a critical role in reducing inter-cell Interference.
 In LTE and NR, the standardized procedure can have two forms: open and closed loop,
 where closed loop relies on open loop functionality, and extends it with control

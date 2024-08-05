@@ -7,6 +7,7 @@
 #include "nr-gnb-net-device.h"
 #include "nr-gnb-phy.h"
 #include "nr-lte-mi-error-model.h"
+#include "nr-radio-bearer-tag.h"
 #include "nr-ue-net-device.h"
 #include "nr-ue-phy.h"
 
@@ -14,7 +15,6 @@
 #include "ns3/uniform-planar-array.h"
 #include <ns3/boolean.h>
 #include <ns3/double.h>
-#include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/trace-source-accessor.h>
 
 namespace ns3
@@ -142,13 +142,13 @@ NrSpectrumPhy::GetTypeId()
                           MakeDoubleAccessor(&NrSpectrumPhy::SetCcaMode1Threshold,
                                              &NrSpectrumPhy::GetCcaMode1Threshold),
                           MakeDoubleChecker<double>())
-            .AddTraceSource("RxPacketTraceEnb",
+            .AddTraceSource("RxPacketTraceGnb",
                             "The no. of packets received and transmitted by the Base Station",
-                            MakeTraceSourceAccessor(&NrSpectrumPhy::m_rxPacketTraceEnb),
+                            MakeTraceSourceAccessor(&NrSpectrumPhy::m_rxPacketTraceGnb),
                             "ns3::RxPacketTraceParams::TracedCallback")
-            .AddTraceSource("TxPacketTraceEnb",
+            .AddTraceSource("TxPacketTraceGnb",
                             "Traces when the packet is being transmitted by the Base Station",
-                            MakeTraceSourceAccessor(&NrSpectrumPhy::m_txPacketTraceEnb),
+                            MakeTraceSourceAccessor(&NrSpectrumPhy::m_txPacketTraceGnb),
                             "ns3::GnbPhyPacketCountParameter::TracedCallback")
             .AddTraceSource("RxPacketTraceUe",
                             "The no. of packets received and transmitted by the User Device",
@@ -239,7 +239,7 @@ NrSpectrumPhy::SetDevice(Ptr<NetDevice> d)
     // class, so passing also device as a parameter to constructor would create a more complicate
     // interface.
 
-    if (m_isEnb)
+    if (m_isGnb)
     {
         m_interferenceSrs = CreateObject<NrInterference>();
         m_interferenceSrs->TraceConnectWithoutContext(
@@ -444,7 +444,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
             {
                 StartRxData(nrDataRxParams);
             }
-            if (!m_isEnb and m_enableDlDataPathlossTrace)
+            if (!m_isGnb and m_enableDlDataPathlossTrace)
             {
                 Ptr<const SpectrumValue> txPsd =
                     DynamicCast<NrSpectrumPhy>(nrDataRxParams->txPhy)->GetTxPowerSpectralDensity();
@@ -468,7 +468,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     {
         m_interferenceCtrl->AddSignalMimo(params, duration);
 
-        if (!m_isEnb)
+        if (!m_isGnb)
         {
             if (dlCtrlRxParams->pss)
             {
@@ -520,7 +520,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     }
     else if (ulCtrlRxParams != nullptr)
     {
-        if (m_isEnb) // only gNBs should enter into reception of UL CTRL signals
+        if (m_isGnb) // only gNBs should enter into reception of UL CTRL signals
         {
             if (ulCtrlRxParams->cellId == GetCellId())
             {
@@ -603,7 +603,7 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
         txParams->precodingMatrix = dci->m_precMats;
 
         /* This section is used for trace */
-        if (m_isEnb)
+        if (m_isGnb)
         {
             GnbPhyPacketCountParameter traceParam;
             traceParam.m_noBytes = (txParams->packetBurst) ? txParams->packetBurst->GetSize() : 0;
@@ -611,7 +611,7 @@ NrSpectrumPhy::StartTxDataFrames(const Ptr<PacketBurst>& pb,
             traceParam.m_isTx = true;
             traceParam.m_subframeno = 0; // TODO extend this
 
-            m_txPacketTraceEnb(traceParam);
+            m_txPacketTraceGnb(traceParam);
         }
 
         m_txDataTrace(duration);
@@ -758,7 +758,7 @@ void
 NrSpectrumPhy::AddSrsSinrChunkProcessor(const Ptr<LteChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT_MSG(m_isEnb && m_interferenceSrs,
+    NS_ASSERT_MSG(m_isGnb && m_interferenceSrs,
                   "SRS interference object does not exist or this device is not gNb so the "
                   "function should not be called.");
     m_interferenceSrs->AddSinrChunkProcessor(p);
@@ -872,7 +872,7 @@ NrSpectrumPhy::AddExpectedTb(ExpectedTb expectedTb)
 {
     NS_LOG_FUNCTION(this);
 
-    if (!IsEnb())
+    if (!IsGnb())
     {
         NS_ASSERT_MSG(m_hasRnti, "Cannot send TB to a UE whose RNTI has not been set");
         NS_ASSERT_MSG(m_rnti == expectedTb.m_rnti,
@@ -928,10 +928,10 @@ NrSpectrumPhy::StartRxData(const Ptr<NrSpectrumSignalParametersDataFrame>& param
     switch (m_state)
     {
     case TX:
-        if (m_isEnb) // I am gNB. We are here because some of my rebellious UEs is transmitting
+        if (m_isGnb) // I am gNB. We are here because some of my rebellious UEs is transmitting
                      // at the same time as me. -> invalid state.
         {
-            NS_FATAL_ERROR("eNB transmission overlaps in time with UE transmission. CellId:"
+            NS_FATAL_ERROR("gNB transmission overlaps in time with UE transmission. CellId:"
                            << params->cellId);
         }
         else // I am UE, and while I am transmitting, someone else also transmits. If we are
@@ -1010,7 +1010,7 @@ NrSpectrumPhy::StartRxDlCtrl(const Ptr<NrSpectrumSignalParametersDlCtrlFrame>& p
     // that UE can start to receive DL CTRL only from its own cellId,
     // and CTRL from other cellIds will be ignored
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(params->cellId == GetCellId() && !m_isEnb);
+    NS_ASSERT(params->cellId == GetCellId() && !m_isGnb);
     // RDF: method currently supports Downlink control only!
     switch (m_state)
     {
@@ -1056,7 +1056,7 @@ NrSpectrumPhy::StartRxUlCtrl(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& p
     // 2) this function should be only called for gNB, only gNB should enter into reception of
     // UL CTRL signals 3) gNB can receive simultaneously signals from various UEs
     NS_LOG_FUNCTION(this);
-    NS_ASSERT(params->cellId == GetCellId() && m_isEnb);
+    NS_ASSERT(params->cellId == GetCellId() && m_isGnb);
     // RDF: method currently supports Uplink control only!
     switch (m_state)
     {
@@ -1118,7 +1118,7 @@ NrSpectrumPhy::StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& para
     // UL SRS signals 3) SRS should be received only one at a time, otherwise this function
     // should assert 4) CTRL message list contains only one message and that one is SRS CTRL
     // message
-    NS_ASSERT(params->cellId == GetCellId() && m_isEnb && m_state != RX_UL_SRS &&
+    NS_ASSERT(params->cellId == GetCellId() && m_isGnb && m_state != RX_UL_SRS &&
               params->ctrlMsgList.size() == 1 &&
               (*params->ctrlMsgList.begin())->GetMessageType() == NrControlMessage::SRS);
 
@@ -1177,15 +1177,15 @@ NrSpectrumPhy::GetBwpId() const
 }
 
 bool
-NrSpectrumPhy::IsEnb() const
+NrSpectrumPhy::IsGnb() const
 {
-    return m_isEnb;
+    return m_isGnb;
 }
 
 void
-NrSpectrumPhy::SetIsEnb(bool isEnb)
+NrSpectrumPhy::SetIsGnb(bool isGnb)
 {
-    m_isEnb = isEnb;
+    m_isGnb = isGnb;
 }
 
 void
@@ -1432,7 +1432,7 @@ NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
 void
 NrSpectrumPhy::ProcessReceivedPacketBurst()
 {
-    Ptr<NrGnbNetDevice> enbRx = DynamicCast<NrGnbNetDevice>(GetDevice());
+    Ptr<NrGnbNetDevice> gnbRx = DynamicCast<NrGnbNetDevice>(GetDevice());
     Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice>(GetDevice());
     std::map<uint16_t, DlHarqInfo> harqDlInfoMap;
     for (auto packetBurst : m_rxPacketBurstList)
@@ -1444,7 +1444,7 @@ NrSpectrumPhy::ProcessReceivedPacketBurst()
                 continue;
             }
 
-            LteRadioBearerTag bearerTag;
+            NrRadioBearerTag bearerTag;
             if (!packet->PeekPacketTag(bearerTag))
             {
                 NS_FATAL_ERROR("No radio bearer tag found");
@@ -1468,15 +1468,15 @@ NrSpectrumPhy::ProcessReceivedPacketBurst()
                 NS_LOG_INFO("TB failed");
             }
 
-            if (enbRx)
+            if (gnbRx)
             {
                 RxPacketTraceParams traceParams(tbInfo,
                                                 m_dataErrorModelEnabled,
                                                 rnti,
-                                                enbRx->GetCellId(),
+                                                gnbRx->GetCellId(),
                                                 GetBwpId(),
                                                 255);
-                m_rxPacketTraceEnb(traceParams);
+                m_rxPacketTraceGnb(traceParams);
             }
             else if (ueRx)
             {
@@ -1485,7 +1485,7 @@ NrSpectrumPhy::ProcessReceivedPacketBurst()
                 RxPacketTraceParams traceParams(tbInfo,
                                                 m_dataErrorModelEnabled,
                                                 rnti,
-                                                ueRx->GetTargetEnb()->GetCellId(),
+                                                ueRx->GetTargetGnb()->GetCellId(),
                                                 GetBwpId(),
                                                 cqi);
                 m_rxPacketTraceUe(traceParams);
@@ -1555,7 +1555,7 @@ NrSpectrumPhy::EndRxCtrl()
     m_interferenceCtrl->EndRx();
 
     // control error model not supported
-    // forward control messages of this frame to LtePhy
+    // forward control messages of this frame to NrPhy
     if (!m_rxControlMessageList.empty())
     {
         if (m_phyRxCtrlEndOkCallback)

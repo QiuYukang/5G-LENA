@@ -17,7 +17,7 @@ NS_LOG_COMPONENT_DEFINE("BwpManagerUe");
 NS_OBJECT_ENSURE_REGISTERED(BwpManagerUe);
 
 BwpManagerUe::BwpManagerUe()
-    : SimpleUeComponentCarrierManager()
+    : NrSimpleUeComponentCarrierManager()
 {
     NS_LOG_FUNCTION(this);
 }
@@ -38,7 +38,7 @@ TypeId
 BwpManagerUe::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BwpManagerUe")
-                            .SetParent<SimpleUeComponentCarrierManager>()
+                            .SetParent<NrSimpleUeComponentCarrierManager>()
                             .SetGroupName("nr")
                             .AddConstructor<BwpManagerUe>()
                             .AddAttribute("BwpManagerAlgorithm",
@@ -50,7 +50,7 @@ BwpManagerUe::GetTypeId()
 }
 
 void
-BwpManagerUe::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerUe::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_algorithm != nullptr);
@@ -65,10 +65,10 @@ BwpManagerUe::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParamete
     m_componentCarrierLcMap.at(bwpIndex).at(params.lcid)->ReportBufferStatus(params);
 }
 
-std::vector<LteUeCcmRrcSapProvider::LcsConfig>
+std::vector<NrUeCcmRrcSapProvider::LcsConfig>
 BwpManagerUe::DoAddLc(uint8_t lcId,
-                      LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
-                      LteMacSapUser* msu)
+                      NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
+                      NrMacSapUser* msu)
 {
     NS_LOG_FUNCTION(this);
 
@@ -76,16 +76,16 @@ BwpManagerUe::DoAddLc(uint8_t lcId,
                              << static_cast<uint32_t>(lcConfig.priority) << " from priority "
                              << static_cast<uint32_t>(lcConfig.priority));
 
-    // see lte-enb-rrc.cc:453
-    m_lcToBearerMap.insert(std::make_pair(lcId, static_cast<EpsBearer::Qci>(lcConfig.priority)));
+    // see nr-gnb-rrc.cc
+    m_lcToBearerMap.insert(std::make_pair(lcId, static_cast<NrEpsBearer::Qci>(lcConfig.priority)));
 
-    return SimpleUeComponentCarrierManager::DoAddLc(lcId, lcConfig, msu);
+    return NrSimpleUeComponentCarrierManager::DoAddLc(lcId, lcConfig, msu);
 }
 
-LteMacSapUser*
+NrMacSapUser*
 BwpManagerUe::DoConfigureSignalBearer(uint8_t lcId,
-                                      LteUeCmacSapProvider::LogicalChannelConfig lcConfig,
-                                      LteMacSapUser* msu)
+                                      NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
+                                      NrMacSapUser* msu)
 {
     NS_LOG_FUNCTION(this);
 
@@ -93,7 +93,7 @@ BwpManagerUe::DoConfigureSignalBearer(uint8_t lcId,
     // m_lcToBearerMap.insert (std::make_pair (lcId, EpsBearer::FromPriority
     // (lcConfig.priority).qci));
 
-    return SimpleUeComponentCarrierManager::DoConfigureSignalBearer(lcId, lcConfig, msu);
+    return NrSimpleUeComponentCarrierManager::DoConfigureSignalBearer(lcId, lcConfig, msu);
 }
 
 uint8_t

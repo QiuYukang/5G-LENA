@@ -128,7 +128,7 @@ main(int argc, char* argv[])
      * Default values for the simulation. We are progressively removing all
      * the instances of SetDefault, but we need it for legacy code (LTE)
      */
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     /*
      * TODO: remove all the instances of SetDefault, NrEesmErrorModel, NrAmc
@@ -264,7 +264,7 @@ main(int argc, char* argv[])
      * per-node.
      */
 
-    // Get the first netdevice (enbNetDev.Get (0)) and the first bandwidth part (0)
+    // Get the first netdevice (gnbNetDev.Get (0)) and the first bandwidth part (0)
     // and set the attribute.
     nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp));
@@ -353,8 +353,8 @@ main(int argc, char* argv[])
     serverApps.Stop(Seconds(simTime));
     clientApps.Stop(Seconds(simTime));
 
-    // attach UEs to the closest eNB
-    nrHelper->AttachToClosestEnb(ueNetDev, gnbNetDev);
+    // attach UEs to the closest gNB
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     // enable the traces provided by the nr module
     // nrHelper->EnableTraces();

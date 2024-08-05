@@ -5,7 +5,8 @@
 #ifndef NR_RRC_PROTOCOL_IDEAL_H
 #define NR_RRC_PROTOCOL_IDEAL_H
 
-#include <ns3/lte-rrc-sap.h>
+#include "nr-rrc-sap.h"
+
 #include <ns3/object.h>
 #include <ns3/ptr.h>
 
@@ -14,10 +15,10 @@
 namespace ns3
 {
 
-class LteUeRrcSapProvider;
-class LteUeRrcSapUser;
-class LteEnbRrcSapProvider;
-class LteUeRrc;
+class NrUeRrcSapProvider;
+class NrUeRrcSapUser;
+class NrGnbRrcSapProvider;
+class NrUeRrc;
 
 /**
  * \ingroup ue
@@ -32,7 +33,7 @@ class LteUeRrc;
  */
 class nrUeRrcProtocolIdeal : public Object
 {
-    friend class MemberLteUeRrcSapUser<nrUeRrcProtocolIdeal>;
+    friend class MemberNrUeRrcSapUser<nrUeRrcProtocolIdeal>;
 
   public:
     /**
@@ -53,34 +54,34 @@ class nrUeRrcProtocolIdeal : public Object
     static TypeId GetTypeId();
 
     /**
-     * \brief SetLteUeRrcSapProvider
+     * \brief SetNrUeRrcSapProvider
      * \param p
      */
-    void SetLteUeRrcSapProvider(LteUeRrcSapProvider* p);
+    void SetNrUeRrcSapProvider(NrUeRrcSapProvider* p);
     /**
-     * \brief GetLteUeRrcSapUser
+     * \brief GetNrUeRrcSapUser
      * \return
      */
-    LteUeRrcSapUser* GetLteUeRrcSapUser();
+    NrUeRrcSapUser* GetNrUeRrcSapUser();
 
     /**
      * \brief SetUeRrc
      * \param rrc
      */
-    void SetUeRrc(Ptr<LteUeRrc> rrc);
+    void SetUeRrc(Ptr<NrUeRrc> rrc);
 
   private:
-    // methods forwarded from LteUeRrcSapUser
-    void DoSetup(LteUeRrcSapUser::SetupParameters params);
-    void DoSendRrcConnectionRequest(LteRrcSap::RrcConnectionRequest msg);
-    void DoSendRrcConnectionSetupCompleted(LteRrcSap::RrcConnectionSetupCompleted msg);
+    // methods forwarded from NrUeRrcSapUser
+    void DoSetup(NrUeRrcSapUser::SetupParameters params);
+    void DoSendRrcConnectionRequest(NrRrcSap::RrcConnectionRequest msg);
+    void DoSendRrcConnectionSetupCompleted(NrRrcSap::RrcConnectionSetupCompleted msg);
     void DoSendRrcConnectionReconfigurationCompleted(
-        LteRrcSap::RrcConnectionReconfigurationCompleted msg);
+        NrRrcSap::RrcConnectionReconfigurationCompleted msg);
     void DoSendRrcConnectionReestablishmentRequest(
-        LteRrcSap::RrcConnectionReestablishmentRequest msg);
+        NrRrcSap::RrcConnectionReestablishmentRequest msg);
     void DoSendRrcConnectionReestablishmentComplete(
-        LteRrcSap::RrcConnectionReestablishmentComplete msg);
-    void DoSendMeasurementReport(LteRrcSap::MeasurementReport msg);
+        NrRrcSap::RrcConnectionReestablishmentComplete msg);
+    void DoSendMeasurementReport(NrRrcSap::MeasurementReport msg);
     /**
      * \brief Send Ideal UE context remove request function
      *
@@ -94,11 +95,11 @@ class nrUeRrcProtocolIdeal : public Object
 
     void SetEnbRrcSapProvider();
 
-    Ptr<LteUeRrc> m_rrc;
+    Ptr<NrUeRrc> m_rrc;
     uint16_t m_rnti;
-    LteUeRrcSapProvider* m_ueRrcSapProvider;
-    LteUeRrcSapUser* m_ueRrcSapUser;
-    LteEnbRrcSapProvider* m_enbRrcSapProvider;
+    NrUeRrcSapProvider* m_ueRrcSapProvider;
+    NrUeRrcSapUser* m_ueRrcSapUser;
+    NrGnbRrcSapProvider* m_enbRrcSapProvider;
 };
 
 /**
@@ -109,7 +110,7 @@ class nrUeRrcProtocolIdeal : public Object
  */
 class NrGnbRrcProtocolIdeal : public Object
 {
-    friend class MemberLteEnbRrcSapUser<NrGnbRrcProtocolIdeal>;
+    friend class MemberNrGnbRrcSapUser<NrGnbRrcProtocolIdeal>;
 
   public:
     NrGnbRrcProtocolIdeal();
@@ -119,37 +120,36 @@ class NrGnbRrcProtocolIdeal : public Object
     void DoDispose() override;
     static TypeId GetTypeId();
 
-    void SetLteEnbRrcSapProvider(LteEnbRrcSapProvider* p);
-    LteEnbRrcSapUser* GetLteEnbRrcSapUser();
+    void SetNrGnbRrcSapProvider(NrGnbRrcSapProvider* p);
+    NrGnbRrcSapUser* GetNrGnbRrcSapUser();
 
-    LteUeRrcSapProvider* GetUeRrcSapProvider(uint16_t rnti);
-    void SetUeRrcSapProvider(uint16_t rnti, LteUeRrcSapProvider* p);
+    NrUeRrcSapProvider* GetUeRrcSapProvider(uint16_t rnti);
+    void SetUeRrcSapProvider(uint16_t rnti, NrUeRrcSapProvider* p);
 
   private:
-    // methods forwarded from LteEnbRrcSapUser
-    void DoSetupUe(uint16_t rnti, LteEnbRrcSapUser::SetupUeParameters params);
+    // methods forwarded from NrGnbRrcSapUser
+    void DoSetupUe(uint16_t rnti, NrGnbRrcSapUser::SetupUeParameters params);
     void DoRemoveUe(uint16_t rnti);
-    void DoSendSystemInformation(uint16_t cellId, LteRrcSap::SystemInformation msg);
-    void SendSystemInformation(uint16_t cellId, LteRrcSap::SystemInformation msg);
-    void DoSendRrcConnectionSetup(uint16_t rnti, LteRrcSap::RrcConnectionSetup msg);
+    void DoSendSystemInformation(uint16_t cellId, NrRrcSap::SystemInformation msg);
+    void SendSystemInformation(uint16_t cellId, NrRrcSap::SystemInformation msg);
+    void DoSendRrcConnectionSetup(uint16_t rnti, NrRrcSap::RrcConnectionSetup msg);
     void DoSendRrcConnectionReconfiguration(uint16_t rnti,
-                                            LteRrcSap::RrcConnectionReconfiguration msg);
+                                            NrRrcSap::RrcConnectionReconfiguration msg);
     void DoSendRrcConnectionReestablishment(uint16_t rnti,
-                                            LteRrcSap::RrcConnectionReestablishment msg);
-    void DoSendRrcConnectionReestablishmentReject(
-        uint16_t rnti,
-        LteRrcSap::RrcConnectionReestablishmentReject msg);
-    void DoSendRrcConnectionRelease(uint16_t rnti, LteRrcSap::RrcConnectionRelease msg);
-    void DoSendRrcConnectionReject(uint16_t rnti, LteRrcSap::RrcConnectionReject msg);
-    Ptr<Packet> DoEncodeHandoverPreparationInformation(LteRrcSap::HandoverPreparationInfo msg);
-    LteRrcSap::HandoverPreparationInfo DoDecodeHandoverPreparationInformation(Ptr<Packet> p);
-    Ptr<Packet> DoEncodeHandoverCommand(LteRrcSap::RrcConnectionReconfiguration msg);
-    LteRrcSap::RrcConnectionReconfiguration DoDecodeHandoverCommand(Ptr<Packet> p);
+                                            NrRrcSap::RrcConnectionReestablishment msg);
+    void DoSendRrcConnectionReestablishmentReject(uint16_t rnti,
+                                                  NrRrcSap::RrcConnectionReestablishmentReject msg);
+    void DoSendRrcConnectionRelease(uint16_t rnti, NrRrcSap::RrcConnectionRelease msg);
+    void DoSendRrcConnectionReject(uint16_t rnti, NrRrcSap::RrcConnectionReject msg);
+    Ptr<Packet> DoEncodeHandoverPreparationInformation(NrRrcSap::HandoverPreparationInfo msg);
+    NrRrcSap::HandoverPreparationInfo DoDecodeHandoverPreparationInformation(Ptr<Packet> p);
+    Ptr<Packet> DoEncodeHandoverCommand(NrRrcSap::RrcConnectionReconfiguration msg);
+    NrRrcSap::RrcConnectionReconfiguration DoDecodeHandoverCommand(Ptr<Packet> p);
 
     uint16_t m_rnti;
-    LteEnbRrcSapProvider* m_enbRrcSapProvider;
-    LteEnbRrcSapUser* m_enbRrcSapUser;
-    std::map<uint16_t, LteUeRrcSapProvider*> m_enbRrcSapProviderMap;
+    NrGnbRrcSapProvider* m_enbRrcSapProvider;
+    NrGnbRrcSapUser* m_enbRrcSapUser;
+    std::map<uint16_t, NrUeRrcSapProvider*> m_enbRrcSapProviderMap;
 };
 
 } // namespace ns3

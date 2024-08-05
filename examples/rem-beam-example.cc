@@ -161,7 +161,7 @@ main(int argc, char* argv[])
     epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
     // we need to attach UEs to gNB so that they obtain the same configuration of channel as gNB
-    nrHelper->AttachToEnb(ueNetDev.Get(0), gnbNetDev.Get(0));
+    nrHelper->AttachToGnb(ueNetDev.Get(0), gnbNetDev.Get(0));
 
     // configure REM parameters
     Ptr<NrRadioEnvironmentMapHelper> remHelper = CreateObject<NrRadioEnvironmentMapHelper>();

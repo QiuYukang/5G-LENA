@@ -227,10 +227,10 @@ main(int argc, char* argv[])
     {
         LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
         LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-        LogComponentEnable("LtePdcp", LOG_LEVEL_INFO);
+        LogComponentEnable("NrPdcp", LOG_LEVEL_INFO);
     }
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
                        TimeValue(MilliSeconds(updatePeriodMs)));
 
@@ -352,13 +352,13 @@ main(int argc, char* argv[])
     /**
      * Finally, create the gNB and the UE device.
      */
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gnbContainer, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbContainer, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueContainer, allBwps);
 
     if (enableInterfNode && interfPolSlantDelta != 0)
     {
         // reconfigure the polarization slant angle of the interferer
-        nrHelper->GetGnbPhy(enbNetDev.Get(1), 0)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)
             ->GetSpectrumPhy()
             ->GetAntenna()
             ->SetAttribute("PolSlantAngle",
@@ -376,13 +376,13 @@ main(int argc, char* argv[])
      * reproducibility of the results.
      */
     int64_t randomStream = 1;
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
     // When all the configuration is done, explicitly call UpdateConfig ()
     // TODO: Check if this is necessary to call when we do not reconfigure anything after devices
     // have been created
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -422,10 +422,10 @@ main(int argc, char* argv[])
     ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
 
     // attach each UE to its gNB according to desired scenario
-    nrHelper->AttachToEnb(ueNetDev.Get(0), enbNetDev.Get(0));
+    nrHelper->AttachToGnb(ueNetDev.Get(0), gnbNetDev.Get(0));
     if (enableInterfNode)
     {
-        nrHelper->AttachToEnb(ueNetDev.Get(1), enbNetDev.Get(1));
+        nrHelper->AttachToGnb(ueNetDev.Get(1), gnbNetDev.Get(1));
     }
 
     /**

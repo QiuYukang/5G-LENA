@@ -910,7 +910,7 @@ CttcRealisticBeamforming::RunSimulation()
     }
 
     // Attach UE to gNB
-    nrHelper->AttachToEnb(ueNetDev.Get(0), gNbDev.Get(0));
+    nrHelper->AttachToGnb(ueNetDev.Get(0), gNbDev.Get(0));
 
     // Install UDP downlink applications
     ApplicationContainer clientAppDl;

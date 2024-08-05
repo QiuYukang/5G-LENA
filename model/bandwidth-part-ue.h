@@ -5,6 +5,7 @@
 #ifndef COMPONENT_CARRIER_NR_UE_H
 #define COMPONENT_CARRIER_NR_UE_H
 
+#include "nr-component-carrier.h"
 #include "nr-ue-phy.h"
 
 #include <ns3/component-carrier.h>
@@ -21,7 +22,7 @@ class NrUeMac;
  * \brief Bandwidth part representation for a UE
  *
  */
-class BandwidthPartUe : public ComponentCarrier
+class BandwidthPartUe : public NrComponentCarrier
 {
   public:
     /**

@@ -20,7 +20,7 @@ namespace ns3
  * \ingroup test
  * \brief TestSched testcase
  */
-class LtePatternTestCase : public TestCase
+class NrPatternTestCase : public TestCase
 {
   public:
     /**
@@ -44,10 +44,10 @@ class LtePatternTestCase : public TestCase
     };
 
     /**
-     * \brief Create LtePatternTestCase
+     * \brief Create NrPatternTestCase
      * \param name Name of the test
      */
-    LtePatternTestCase(const std::string& name)
+    NrPatternTestCase(const std::string& name)
         : TestCase(name)
     {
     }
@@ -99,7 +99,7 @@ class LtePatternTestCase : public TestCase
 };
 
 void
-LtePatternTestCase::DoRun()
+NrPatternTestCase::DoRun()
 {
     auto one = {
         LteNrTddSlotType::DL,
@@ -1387,7 +1387,7 @@ LtePatternTestCase::DoRun()
 }
 
 void
-LtePatternTestCase::Print(const std::map<uint32_t, std::vector<uint32_t>>& str)
+NrPatternTestCase::Print(const std::map<uint32_t, std::vector<uint32_t>>& str)
 {
     std::cout << "{" << std::endl;
     for (const auto& v : str)
@@ -1403,7 +1403,7 @@ LtePatternTestCase::Print(const std::map<uint32_t, std::vector<uint32_t>>& str)
 }
 
 void
-LtePatternTestCase::PrintHarq(const std::map<uint32_t, uint32_t>& str)
+NrPatternTestCase::PrintHarq(const std::map<uint32_t, uint32_t>& str)
 {
     std::cout << "{" << std::endl;
     for (const auto& v : str)
@@ -1416,7 +1416,7 @@ LtePatternTestCase::PrintHarq(const std::map<uint32_t, uint32_t>& str)
 }
 
 void
-LtePatternTestCase::CheckVector(const std::vector<uint32_t>& a, const std::vector<uint32_t>& b)
+NrPatternTestCase::CheckVector(const std::vector<uint32_t>& a, const std::vector<uint32_t>& b)
 {
     NS_TEST_ASSERT_MSG_EQ(a.size(), b.size(), "Two vectors have different length");
     for (uint32_t i = 0; i < a.size(); ++i)
@@ -1426,8 +1426,8 @@ LtePatternTestCase::CheckVector(const std::vector<uint32_t>& a, const std::vecto
 }
 
 void
-LtePatternTestCase::CheckMap(const std::map<uint32_t, std::vector<uint32_t>>& a,
-                             const std::map<uint32_t, std::vector<uint32_t>>& b)
+NrPatternTestCase::CheckMap(const std::map<uint32_t, std::vector<uint32_t>>& a,
+                            const std::map<uint32_t, std::vector<uint32_t>>& b)
 {
     NS_TEST_ASSERT_MSG_EQ(a.size(), b.size(), "Two maps have different length");
 
@@ -1438,8 +1438,8 @@ LtePatternTestCase::CheckMap(const std::map<uint32_t, std::vector<uint32_t>>& a,
 }
 
 void
-LtePatternTestCase::CheckHarqMap(const std::map<uint32_t, uint32_t>& a,
-                                 const std::map<uint32_t, uint32_t>& b)
+NrPatternTestCase::CheckHarqMap(const std::map<uint32_t, uint32_t>& a,
+                                const std::map<uint32_t, uint32_t>& b)
 {
     NS_TEST_ASSERT_MSG_EQ(a.size(), b.size(), "Two HARQ maps have different length");
 
@@ -1452,7 +1452,7 @@ LtePatternTestCase::CheckHarqMap(const std::map<uint32_t, uint32_t>& a,
 }
 
 void
-LtePatternTestCase::TestPattern(const std::vector<LteNrTddSlotType>& pattern, const Result& result)
+NrPatternTestCase::TestPattern(const std::vector<LteNrTddSlotType>& pattern, const Result& result)
 {
     std::map<uint32_t, std::vector<uint32_t>> toSendDl;
     std::map<uint32_t, std::vector<uint32_t>> toSendUl;
@@ -1532,18 +1532,18 @@ LtePatternTestCase::TestPattern(const std::vector<LteNrTddSlotType>& pattern, co
 }
 
 /**
- * \brief The NrLtePatternTestSuite class
+ * \brief The NrPatternTestSuite class
  */
-class NrLtePatternTestSuite : public TestSuite
+class NrPatternTestSuite : public TestSuite
 {
   public:
-    NrLtePatternTestSuite()
+    NrPatternTestSuite()
         : TestSuite("nr-lte-pattern-generation", Type::UNIT)
     {
-        AddTestCase(new LtePatternTestCase("LTE TDD Pattern test"), Duration::QUICK);
+        AddTestCase(new NrPatternTestCase("LTE TDD Pattern test"), Duration::QUICK);
     }
 };
 
-static NrLtePatternTestSuite nrLtePatternTestSuite; //!< Pattern test suite
+static NrPatternTestSuite nrNrPatternTestSuite; //!< Pattern test suite
 
 } // namespace ns3

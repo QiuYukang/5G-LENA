@@ -193,10 +193,10 @@ main(int argc, char* argv[])
         LogComponentEnable("Nr3gppChannel", LOG_LEVEL_ALL);
         LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
         LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
-        LogComponentEnable("LtePdcp", LOG_LEVEL_INFO);
+        LogComponentEnable("NrPdcp", LOG_LEVEL_INFO);
     }
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -430,73 +430,73 @@ main(int argc, char* argv[])
                                                  UintegerValue(bwpIdForVideoGaming));
 
     // Install and get the pointers to the NetDevices
-    NetDeviceContainer enbNetDev = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
+    NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNodes, allBwps);
 
     int64_t randomStream = 1;
-    randomStream += nrHelper->AssignStreams(enbNetDev, randomStream);
+    randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
     if (contiguousCc)
     {
-        // Manually set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0),
+        // Manually set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0),
         // (1), ...
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 2)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 2)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 3)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 3)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 3)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("Pattern", StringValue(pattern));
     }
     else
     {
-        // Set the attribute of the netdevice (enbNetDev.Get (0)) and bandwidth part (0), (1), ...
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+        // Set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0), (1), ...
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute("Numerology", UintegerValue(numerologyCc0Bwp0));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(10 *
                             log10((band.GetBwpAt(0, 0)->m_channelBandwidth / bandwidthBand) * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("Numerology", UintegerValue(numerologyCc0Bwp1));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(10 *
                             log10((band.GetBwpAt(1, 0)->m_channelBandwidth / bandwidthBand) * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 2)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("Numerology", UintegerValue(numerologyCc1Bwp0));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 2)
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(10 *
                             log10((band.GetBwpAt(1, 1)->m_channelBandwidth / bandwidthBand) * x)));
-        nrHelper->GetGnbPhy(enbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
+        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
     }
 
-    for (auto it = enbNetDev.Begin(); it != enbNetDev.End(); ++it)
+    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
@@ -542,8 +542,8 @@ main(int argc, char* argv[])
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
 
-    // attach UEs to the closest eNB before creating the dedicated flows
-    nrHelper->AttachToClosestEnb(ueNetDev, enbNetDev);
+    // attach UEs to the closest gNB before creating the dedicated flows
+    nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
     // install UDP applications
     uint16_t dlPort = 1234;
@@ -670,7 +670,7 @@ main(int argc, char* argv[])
     Simulator::Run();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of eNb Device, and its configuration.
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy ->
     NrPhyMacCommong-> Numerology, Bandwidth, ... GtkConfigStore config; config.ConfigureAttributes
     ();

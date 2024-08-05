@@ -20,10 +20,9 @@
 #include "nr-mac-scheduler.h"
 #include "nr-mac-short-bsr-ce.h"
 #include "nr-phy-mac-common.h"
+#include "nr-radio-bearer-tag.h"
 
 #include <ns3/log.h>
-#include <ns3/lte-common.h>
-#include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/spectrum-model.h>
 #include <ns3/uinteger.h>
 
@@ -39,16 +38,16 @@ NS_OBJECT_ENSURE_REGISTERED(NrGnbMac);
 // member SAP forwarders
 // //////////////////////////////////////
 
-class NrGnbMacMemberEnbCmacSapProvider : public LteEnbCmacSapProvider
+class NrGnbMacMemberGnbCmacSapProvider : public NrGnbCmacSapProvider
 {
   public:
-    NrGnbMacMemberEnbCmacSapProvider(NrGnbMac* mac);
+    NrGnbMacMemberGnbCmacSapProvider(NrGnbMac* mac);
 
-    // inherited from LteEnbCmacSapProvider
+    // inherited from NrGnbCmacSapProvider
     void ConfigureMac(uint16_t ulBandwidth, uint16_t dlBandwidth) override;
     void AddUe(uint16_t rnti) override;
     void RemoveUe(uint16_t rnti) override;
-    void AddLc(LcInfo lcinfo, LteMacSapUser* msu) override;
+    void AddLc(LcInfo lcinfo, NrMacSapUser* msu) override;
     void ReconfigureLc(LcInfo lcinfo) override;
     void ReleaseLc(uint16_t rnti, uint8_t lcid) override;
     void UeUpdateConfigurationReq(UeConfig params) override;
@@ -59,72 +58,72 @@ class NrGnbMacMemberEnbCmacSapProvider : public LteEnbCmacSapProvider
     NrGnbMac* m_mac;
 };
 
-NrGnbMacMemberEnbCmacSapProvider::NrGnbMacMemberEnbCmacSapProvider(NrGnbMac* mac)
+NrGnbMacMemberGnbCmacSapProvider::NrGnbMacMemberGnbCmacSapProvider(NrGnbMac* mac)
     : m_mac(mac)
 {
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::ConfigureMac(uint16_t ulBandwidth, uint16_t dlBandwidth)
+NrGnbMacMemberGnbCmacSapProvider::ConfigureMac(uint16_t ulBandwidth, uint16_t dlBandwidth)
 {
     m_mac->DoConfigureMac(ulBandwidth, dlBandwidth);
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::AddUe(uint16_t rnti)
+NrGnbMacMemberGnbCmacSapProvider::AddUe(uint16_t rnti)
 {
     m_mac->DoAddUe(rnti);
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::RemoveUe(uint16_t rnti)
+NrGnbMacMemberGnbCmacSapProvider::RemoveUe(uint16_t rnti)
 {
     m_mac->DoRemoveUe(rnti);
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::AddLc(LcInfo lcinfo, LteMacSapUser* msu)
+NrGnbMacMemberGnbCmacSapProvider::AddLc(LcInfo lcinfo, NrMacSapUser* msu)
 {
     m_mac->DoAddLc(lcinfo, msu);
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::ReconfigureLc(LcInfo lcinfo)
+NrGnbMacMemberGnbCmacSapProvider::ReconfigureLc(LcInfo lcinfo)
 {
     m_mac->DoReconfigureLc(lcinfo);
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::ReleaseLc(uint16_t rnti, uint8_t lcid)
+NrGnbMacMemberGnbCmacSapProvider::ReleaseLc(uint16_t rnti, uint8_t lcid)
 {
     m_mac->DoReleaseLc(rnti, lcid);
 }
 
 void
-NrGnbMacMemberEnbCmacSapProvider::UeUpdateConfigurationReq(UeConfig params)
+NrGnbMacMemberGnbCmacSapProvider::UeUpdateConfigurationReq(UeConfig params)
 {
     m_mac->UeUpdateConfigurationReq(params);
 }
 
-LteEnbCmacSapProvider::RachConfig
-NrGnbMacMemberEnbCmacSapProvider::GetRachConfig()
+NrGnbCmacSapProvider::RachConfig
+NrGnbMacMemberGnbCmacSapProvider::GetRachConfig()
 {
     return m_mac->DoGetRachConfig();
 }
 
-LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue
-NrGnbMacMemberEnbCmacSapProvider::AllocateNcRaPreamble(uint16_t rnti)
+NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue
+NrGnbMacMemberGnbCmacSapProvider::AllocateNcRaPreamble(uint16_t rnti)
 {
     return m_mac->DoAllocateNcRaPreamble(rnti);
 }
 
-// SAP interface between ENB PHY AND MAC
+// SAP interface between gNB PHY AND MAC
 // PHY is provider and MAC is user of its service following OSI model.
 // However, PHY may request some information from MAC.
-class NrMacEnbMemberPhySapUser : public NrGnbPhySapUser
+class NrMacGnbMemberPhySapUser : public NrGnbPhySapUser
 {
   public:
-    NrMacEnbMemberPhySapUser(NrGnbMac* mac);
+    NrMacGnbMemberPhySapUser(NrGnbMac* mac);
 
     void ReceivePhyPdu(Ptr<Packet> p) override;
 
@@ -155,85 +154,85 @@ class NrMacEnbMemberPhySapUser : public NrGnbPhySapUser
     NrGnbMac* m_mac;
 };
 
-NrMacEnbMemberPhySapUser::NrMacEnbMemberPhySapUser(NrGnbMac* mac)
+NrMacGnbMemberPhySapUser::NrMacGnbMemberPhySapUser(NrGnbMac* mac)
     : m_mac(mac)
 {
 }
 
 void
-NrMacEnbMemberPhySapUser::ReceivePhyPdu(Ptr<Packet> p)
+NrMacGnbMemberPhySapUser::ReceivePhyPdu(Ptr<Packet> p)
 {
     m_mac->DoReceivePhyPdu(p);
 }
 
 void
-NrMacEnbMemberPhySapUser::ReceiveControlMessage(Ptr<NrControlMessage> msg)
+NrMacGnbMemberPhySapUser::ReceiveControlMessage(Ptr<NrControlMessage> msg)
 {
     m_mac->DoReceiveControlMessage(msg);
 }
 
 void
-NrMacEnbMemberPhySapUser::SlotDlIndication(const SfnSf& sfn, LteNrTddSlotType type)
+NrMacGnbMemberPhySapUser::SlotDlIndication(const SfnSf& sfn, LteNrTddSlotType type)
 {
     m_mac->DoSlotDlIndication(sfn, type);
 }
 
 void
-NrMacEnbMemberPhySapUser::SlotUlIndication(const SfnSf& sfn, LteNrTddSlotType type)
+NrMacGnbMemberPhySapUser::SlotUlIndication(const SfnSf& sfn, LteNrTddSlotType type)
 {
     m_mac->DoSlotUlIndication(sfn, type);
 }
 
 void
-NrMacEnbMemberPhySapUser::SetCurrentSfn(const SfnSf& sfn)
+NrMacGnbMemberPhySapUser::SetCurrentSfn(const SfnSf& sfn)
 {
     m_mac->SetCurrentSfn(sfn);
 }
 
 void
-NrMacEnbMemberPhySapUser::UlCqiReport(NrMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi)
+NrMacGnbMemberPhySapUser::UlCqiReport(NrMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi)
 {
     m_mac->DoUlCqiReport(ulcqi);
 }
 
 void
-NrMacEnbMemberPhySapUser::ReceiveRachPreamble(uint32_t raId)
+NrMacGnbMemberPhySapUser::ReceiveRachPreamble(uint32_t raId)
 {
     m_mac->ReceiveRachPreamble(raId);
 }
 
 void
-NrMacEnbMemberPhySapUser::UlHarqFeedback(UlHarqInfo params)
+NrMacGnbMemberPhySapUser::UlHarqFeedback(UlHarqInfo params)
 {
     m_mac->DoUlHarqFeedback(params);
 }
 
 void
-NrMacEnbMemberPhySapUser::BeamChangeReport(BeamId beamId, uint8_t rnti)
+NrMacGnbMemberPhySapUser::BeamChangeReport(BeamId beamId, uint8_t rnti)
 {
     m_mac->BeamChangeReport(beamId, rnti);
 }
 
 uint32_t
-NrMacEnbMemberPhySapUser::GetNumRbPerRbg() const
+NrMacGnbMemberPhySapUser::GetNumRbPerRbg() const
 {
     return m_mac->GetNumRbPerRbg();
 }
 
 std::shared_ptr<DciInfoElementTdma>
-NrMacEnbMemberPhySapUser::GetDlCtrlDci() const
+NrMacGnbMemberPhySapUser::GetDlCtrlDci() const
 {
     return m_mac->GetDlCtrlDci();
 }
 
 std::shared_ptr<DciInfoElementTdma>
-NrMacEnbMemberPhySapUser::GetUlCtrlDci() const
+NrMacGnbMemberPhySapUser::GetUlCtrlDci() const
 {
     return m_mac->GetUlCtrlDci();
 }
 
 uint8_t
-NrMacEnbMemberPhySapUser::GetDlCtrlSymbols() const
+NrMacGnbMemberPhySapUser::GetDlCtrlSymbols() const
 {
     return m_mac->GetDlCtrlSyms();
 }
@@ -418,11 +417,11 @@ NrGnbMac::GetTypeId()
                             MakeTraceSourceAccessor(&NrGnbMac::m_srCallback),
                             "ns3::NrGnbMac::SrTracedCallback")
             .AddTraceSource("GnbMacRxedCtrlMsgsTrace",
-                            "Enb MAC Rxed Control Messages Traces.",
+                            "Gnb MAC Rxed Control Messages Traces.",
                             MakeTraceSourceAccessor(&NrGnbMac::m_macRxedCtrlMsgsTrace),
                             "ns3::NrMacRxTrace::RxedGnbMacCtrlMsgsTracedCallback")
             .AddTraceSource("GnbMacTxedCtrlMsgsTrace",
-                            "Enb MAC Txed Control Messages Traces.",
+                            "Gnb MAC Txed Control Messages Traces.",
                             MakeTraceSourceAccessor(&NrGnbMac::m_macTxedCtrlMsgsTrace),
                             "ns3::NrMacRxTrace::TxedGnbMacCtrlMsgsTracedCallback")
             .AddTraceSource("DlHarqFeedback",
@@ -436,23 +435,21 @@ NrGnbMac::NrGnbMac()
     : Object()
 {
     NS_LOG_FUNCTION(this);
-    m_cmacSapProvider = new NrGnbMacMemberEnbCmacSapProvider(this);
-    m_macSapProvider = new EnbMacMemberLteMacSapProvider<NrGnbMac>(this);
-    m_phySapUser = new NrMacEnbMemberPhySapUser(this);
+    m_cmacSapProvider = new NrGnbMacMemberGnbCmacSapProvider(this);
+    m_macSapProvider = new GnbMacMemberNrMacSapProvider<NrGnbMac>(this);
+    m_phySapUser = new NrMacGnbMemberPhySapUser(this);
     m_macSchedSapUser = new NrMacMemberMacSchedSapUser(this);
     m_macCschedSapUser = new NrMacMemberMacCschedSapUser(this);
-    m_ccmMacSapProvider = new MemberLteCcmMacSapProvider<NrGnbMac>(this);
+    m_ccmMacSapProvider = new MemberNrCcmMacSapProvider<NrGnbMac>(this);
 }
 
 NrGnbMac::~NrGnbMac()
 {
-    NS_LOG_FUNCTION(this);
 }
 
 void
 NrGnbMac::DoDispose()
 {
-    NS_LOG_FUNCTION(this);
     m_dlCqiReceived.clear();
     m_ulCqiReceived.clear();
     m_ulCeReceived.clear();
@@ -515,32 +512,32 @@ NrGnbMac::ReceiveRachPreamble(uint32_t raId)
     ++m_receivedRachPreambleCount[raId];
 }
 
-LteMacSapProvider*
+NrMacSapProvider*
 NrGnbMac::GetMacSapProvider()
 {
     return m_macSapProvider;
 }
 
-LteEnbCmacSapProvider*
-NrGnbMac::GetEnbCmacSapProvider()
+NrGnbCmacSapProvider*
+NrGnbMac::GetGnbCmacSapProvider()
 {
     return m_cmacSapProvider;
 }
 
 void
-NrGnbMac::SetEnbCmacSapUser(LteEnbCmacSapUser* s)
+NrGnbMac::SetGnbCmacSapUser(NrGnbCmacSapUser* s)
 {
     m_cmacSapUser = s;
 }
 
 void
-NrGnbMac::SetLteCcmMacSapUser(LteCcmMacSapUser* s)
+NrGnbMac::SetNrCcmMacSapUser(NrCcmMacSapUser* s)
 {
     m_ccmMacSapUser = s;
 }
 
-LteCcmMacSapProvider*
-NrGnbMac::GetLteCcmMacSapProvider()
+NrCcmMacSapProvider*
+NrGnbMac::GetNrCcmMacSapProvider()
 {
     NS_LOG_FUNCTION(this);
     return m_ccmMacSapProvider;
@@ -578,30 +575,6 @@ NrGnbMac::DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
             msg->SetDlCqi(v);
             m_macRxedCtrlMsgsTrace(m_currentSlot, GetCellId(), v.m_rnti, GetBwpId(), msg);
         }
-    }
-
-    if (!m_receivedRachPreambleCount.empty())
-    {
-        // process received RACH preambles and notify the scheduler
-        NrMacSchedSapProvider::SchedDlRachInfoReqParameters rachInfoReqParams;
-
-        for (auto it = m_receivedRachPreambleCount.begin(); it != m_receivedRachPreambleCount.end();
-             ++it)
-        {
-            uint16_t rnti = m_cmacSapUser->AllocateTemporaryCellRnti();
-
-            NS_LOG_INFO("Informing MAC scheduler of the RACH preamble for RAPID "
-                        << static_cast<uint16_t>(it->first) << " in slot " << sfnSf
-                        << "; Allocated RNTI: " << rnti);
-            RachListElement_s rachLe;
-            rachLe.m_rnti = rnti;
-            rachLe.m_estimatedSize = 144; // to be confirmed
-            rachInfoReqParams.m_rachList.emplace_back(rachLe);
-
-            m_rapIdRntiMap.insert(std::make_pair(rnti, it->first));
-        }
-        m_receivedRachPreambleCount.clear();
-        m_macSchedSapProvider->SchedDlRachInfoReq(rachInfoReqParams);
     }
 
     NrMacSchedSapProvider::SchedDlTriggerReqParameters dlParams;
@@ -749,7 +722,7 @@ NrGnbMac::DoReportMacCeToScheduler(MacCeListElement_s bsr)
     NS_LOG_DEBUG(this << " bsr Size " << (uint16_t)m_ulCeReceived.size());
     uint32_t size = 0;
 
-    // send to LteCcmMacSapUser
+    // send to NrCcmMacSapUser
     // convert MacCeListElement_s to MacCeElement
 
     MacCeElement mce;
@@ -778,7 +751,7 @@ NrGnbMac::DoReportMacCeToScheduler(MacCeListElement_s bsr)
     }
 
     m_ulCeReceived.push_back(
-        mce); // this to called when LteUlCcmSapProvider::ReportMacCeToScheduler is called
+        mce); // this to called when NrUlCcmSapProvider::ReportMacCeToScheduler is called
     NS_LOG_DEBUG(" Reported by UE " << static_cast<uint32_t>(bsr.m_macCeValue.m_crnti) << " size "
                                     << size << " bsr vector ize after push_back "
                                     << static_cast<uint32_t>(m_ulCeReceived.size()));
@@ -797,7 +770,7 @@ NrGnbMac::DoReceivePhyPdu(Ptr<Packet> p)
 {
     NS_LOG_FUNCTION(this);
 
-    LteRadioBearerTag tag;
+    NrRadioBearerTag tag;
     p->RemovePacketTag(tag);
 
     uint16_t rnti = tag.GetRnti();
@@ -837,7 +810,7 @@ NrGnbMac::DoReceivePhyPdu(Ptr<Packet> p)
 
     auto lcidIt = rntiIt->second.find(macHeader.GetLcId());
 
-    LteMacSapUser::ReceivePduParameters rxParams;
+    NrMacSapUser::ReceivePduParameters rxParams;
     rxParams.p = p;
     rxParams.lcid = macHeader.GetLcId();
     rxParams.rnti = rnti;
@@ -974,7 +947,7 @@ NrGnbMac::DoDlHarqFeedback(const DlHarqInfo& params)
 }
 
 void
-NrGnbMac::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters params)
+NrGnbMac::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
 {
     NS_LOG_FUNCTION(this);
     NrMacSchedSapProvider::SchedDlRlcBufferReqParameters schedParams;
@@ -996,9 +969,9 @@ NrGnbMac::DoReportBufferStatus(LteMacSapProvider::ReportBufferStatusParameters p
     m_macSchedSapProvider->SchedDlRlcBufferReq(schedParams);
 }
 
-// forwarded from LteMacSapProvider
+// forwarded from NrMacSapProvider
 void
-NrGnbMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
+NrGnbMac::DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params)
 {
     // TB UID passed back along with RLC data as HARQ process ID
     uint32_t tbMapKey = ((params.rnti & 0xFFFF) << 8) | (params.harqProcessId & 0xFF);
@@ -1016,7 +989,7 @@ NrGnbMac::DoTransmitPdu(LteMacSapProvider::TransmitPduParameters params)
 
     params.pdu->AddHeader(header);
 
-    LteRadioBearerTag bearerTag(params.rnti, params.lcid, 0);
+    NrRadioBearerTag bearerTag(params.rnti, params.lcid, 0);
     params.pdu->AddPacketTag(bearerTag);
 
     harqIt->second.at(params.harqProcessId).m_pktBurst->AddPacket(params.pdu);
@@ -1137,7 +1110,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                 for (auto& j : rlcPduInfo)
                 {
                     NS_ASSERT_MSG(rntiIt != m_rlcAttached.end(), "could not find RNTI" << rnti);
-                    std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt =
+                    std::unordered_map<uint8_t, NrMacSapUser*>::iterator lcidIt =
                         rntiIt->second.find(j.m_lcid);
                     NS_ASSERT_MSG(lcidIt != rntiIt->second.end(),
                                   "could not find LCID" << std::to_string(j.m_lcid));
@@ -1146,12 +1119,12 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                                 << (unsigned int)j.m_size);
 
                     (*lcidIt).second->NotifyTxOpportunity(
-                        LteMacSapUser::TxOpportunityParameters((j.m_size),
-                                                               0,
-                                                               harqId,
-                                                               GetBwpId(),
-                                                               rnti,
-                                                               j.m_lcid));
+                        NrMacSapUser::TxOpportunityParameters((j.m_size),
+                                                              0,
+                                                              harqId,
+                                                              GetBwpId(),
+                                                              rnti,
+                                                              j.m_lcid));
                     harqIt->second.at(harqId).m_lcidList.push_back(j.m_lcid);
                 }
 
@@ -1322,11 +1295,11 @@ void
 NrGnbMac::DoAddUe(uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << " rnti=" << rnti);
-    std::unordered_map<uint8_t, LteMacSapUser*> empty;
-    std::pair<std::unordered_map<uint16_t, std::unordered_map<uint8_t, LteMacSapUser*>>::iterator,
+    std::unordered_map<uint8_t, NrMacSapUser*> empty;
+    std::pair<std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>>::iterator,
               bool>
         ret = m_rlcAttached.insert(
-            std::pair<uint16_t, std::unordered_map<uint8_t, LteMacSapUser*>>(rnti, empty));
+            std::pair<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>>(rnti, empty));
     NS_ASSERT_MSG(ret.second, "element already present, RNTI already existed");
 
     NrMacCschedSapProvider::CschedUeConfigReqParameters params;
@@ -1360,18 +1333,18 @@ NrGnbMac::DoRemoveUe(uint16_t rnti)
 }
 
 void
-NrGnbMac::DoAddLc(LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu)
+NrGnbMac::DoAddLc(NrGnbCmacSapProvider::LcInfo lcinfo, NrMacSapUser* msu)
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_FUNCTION(this);
 
-    std::unordered_map<uint16_t, std::unordered_map<uint8_t, LteMacSapUser*>>::iterator rntiIt =
+    std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>>::iterator rntiIt =
         m_rlcAttached.find(lcinfo.rnti);
     NS_ASSERT_MSG(rntiIt != m_rlcAttached.end(), "RNTI not found");
-    std::unordered_map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find(lcinfo.lcId);
+    std::unordered_map<uint8_t, NrMacSapUser*>::iterator lcidIt = rntiIt->second.find(lcinfo.lcId);
     if (lcidIt == rntiIt->second.end())
     {
-        rntiIt->second.insert(std::pair<uint8_t, LteMacSapUser*>(lcinfo.lcId, msu));
+        rntiIt->second.insert(std::pair<uint8_t, NrMacSapUser*>(lcinfo.lcId, msu));
     }
     else
     {
@@ -1408,7 +1381,7 @@ NrGnbMac::DoAddLc(LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu)
 }
 
 void
-NrGnbMac::DoReconfigureLc(LteEnbCmacSapProvider::LcInfo lcinfo)
+NrGnbMac::DoReconfigureLc(NrGnbCmacSapProvider::LcInfo lcinfo)
 {
     NS_FATAL_ERROR("not implemented");
 }
@@ -1417,7 +1390,7 @@ void
 NrGnbMac::DoReleaseLc(uint16_t rnti, uint8_t lcid)
 {
     // Find user based on rnti and then erase lcid stored against the same
-    std::unordered_map<uint16_t, std::unordered_map<uint8_t, LteMacSapUser*>>::iterator rntiIt =
+    std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>>::iterator rntiIt =
         m_rlcAttached.find(rnti);
     rntiIt->second.erase(lcid);
 
@@ -1428,7 +1401,7 @@ NrGnbMac::DoReleaseLc(uint16_t rnti, uint8_t lcid)
 }
 
 void
-NrGnbMac::UeUpdateConfigurationReq(LteEnbCmacSapProvider::UeConfig params)
+NrGnbMac::UeUpdateConfigurationReq(NrGnbCmacSapProvider::UeConfig params)
 {
     NS_LOG_FUNCTION(this);
     // propagates to scheduler
@@ -1440,16 +1413,16 @@ NrGnbMac::UeUpdateConfigurationReq(LteEnbCmacSapProvider::UeConfig params)
     m_macCschedSapProvider->CschedUeConfigReq(req);
 }
 
-LteEnbCmacSapProvider::RachConfig
+NrGnbCmacSapProvider::RachConfig
 NrGnbMac::DoGetRachConfig()
 {
     // UEs in NR does not choose RACH preambles randomly, therefore,
     // it does not rely on the following parameters. However, the
-    // recent change in LteUeRrc class introduced an assert to
+    // recent change in NrUeRrc class introduced an assert to
     // check the correct value of connEstFailCount parameter.
     // Thus, we need to assign dummy but correct values to
-    // avoid this assert in LteUeRrc class.
-    LteEnbCmacSapProvider::RachConfig rc;
+    // avoid this assert in NrUeRrc class.
+    NrGnbCmacSapProvider::RachConfig rc;
     rc.numberOfRaPreambles = 52;
     rc.preambleTransMax = 50;
     rc.raResponseWindowSize = 3;
@@ -1457,10 +1430,10 @@ NrGnbMac::DoGetRachConfig()
     return rc;
 }
 
-LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue
+NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue
 NrGnbMac::DoAllocateNcRaPreamble(uint16_t rnti)
 {
-    return LteEnbCmacSapProvider::AllocateNcRaPreambleReturnValue();
+    return NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue();
 }
 
 // ////////////////////////////////////////////
@@ -1504,7 +1477,7 @@ NrGnbMac::DoCschedUeConfigUpdateInd(NrMacCschedSapUser::CschedUeConfigUpdateIndP
 {
     NS_LOG_FUNCTION(this);
     // propagates to RRC
-    LteEnbCmacSapUser::UeConfig ueConfigUpdate;
+    NrGnbCmacSapUser::UeConfig ueConfigUpdate;
     ueConfigUpdate.m_rnti = params.m_rnti;
     ueConfigUpdate.m_transmissionMode = params.m_transmissionMode;
     m_cmacSapUser->RrcConfigurationUpdateInd(ueConfigUpdate);

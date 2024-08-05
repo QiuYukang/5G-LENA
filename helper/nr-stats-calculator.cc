@@ -6,10 +6,10 @@
 
 #include <ns3/config.h>
 #include <ns3/log.h>
-#include <ns3/lte-enb-rrc.h>
-#include <ns3/lte-ue-rrc.h>
 #include <ns3/nr-gnb-net-device.h>
+#include <ns3/nr-gnb-rrc.h>
 #include <ns3/nr-ue-net-device.h>
+#include <ns3/nr-ue-rrc.h>
 
 namespace ns3
 {
@@ -107,18 +107,18 @@ NrStatsCalculator::FindImsiFromGnbRlcPath(std::string path)
 {
     NS_LOG_FUNCTION(path);
     // Sample path input:
-    // /NodeList/#NodeId/DeviceList/#DeviceId/LteEnbRrc/UeMap/#C-RNTI/DataRadioBearerMap/#LCID/LteRlc/RxPDU
+    // /NodeList/#NodeId/DeviceList/#DeviceId/NrGnbRrc/UeMap/#C-RNTI/DataRadioBearerMap/#LCID/NrRlc/RxPDU
 
-    // We retrieve the UeManager associated to the C-RNTI and perform the IMSI lookup
+    // We retrieve the NrUeManager associated to the C-RNTI and perform the IMSI lookup
     std::string ueMapPath = path.substr(0, path.find("/DataRadioBearerMap"));
     Config::MatchContainer match = Config::LookupMatches(ueMapPath);
 
     if (match.GetN() != 0)
     {
         Ptr<Object> ueInfo = match.Get(0);
-        NS_LOG_LOGIC("FindImsiFromEnbRlcPath: " << path << ", "
-                                                << ueInfo->GetObject<UeManager>()->GetImsi());
-        return ueInfo->GetObject<UeManager>()->GetImsi();
+        NS_LOG_LOGIC("FindImsiFromGnbRlcPath: " << path << ", "
+                                                << ueInfo->GetObject<NrUeManager>()->GetImsi());
+        return ueInfo->GetObject<NrUeManager>()->GetImsi();
     }
     else
     {
@@ -134,7 +134,7 @@ NrStatsCalculator::FindImsiFromNrUeNetDevice(std::string path)
     // Sample path input:
     // /NodeList/#NodeId/DeviceList/#DeviceId/
 
-    // We retrieve the Imsi associated to the LteUeNetDevice
+    // We retrieve the Imsi associated to the NrUeNetDevice
     Config::MatchContainer match = Config::LookupMatches(path);
 
     if (match.GetN() != 0)
@@ -156,17 +156,17 @@ NrStatsCalculator::FindCellIdFromGnbRlcPath(std::string path)
 {
     NS_LOG_FUNCTION(path);
     // Sample path input:
-    // /NodeList/#NodeId/DeviceList/#DeviceId/LteEnbRrc/UeMap/#C-RNTI/DataRadioBearerMap/#LCID/LteRlc/RxPDU
+    // /NodeList/#NodeId/DeviceList/#DeviceId/NrGnbRrc/UeMap/#C-RNTI/DataRadioBearerMap/#LCID/NrRlc/RxPDU
 
     // We retrieve the CellId associated to the gNB
-    std::string gnbNetDevicePath = path.substr(0, path.find("/LteEnbRrc"));
+    std::string gnbNetDevicePath = path.substr(0, path.find("/NrGnbRrc"));
     Config::MatchContainer match = Config::LookupMatches(gnbNetDevicePath);
     if (match.GetN() != 0)
     {
-        Ptr<Object> enbNetDevice = match.Get(0);
+        Ptr<Object> gnbNetDevice = match.Get(0);
         NS_LOG_LOGIC("FindCellIdFromGnbRlcPath: "
-                     << path << ", " << enbNetDevice->GetObject<NrGnbNetDevice>()->GetCellId());
-        return enbNetDevice->GetObject<NrGnbNetDevice>()->GetCellId();
+                     << path << ", " << gnbNetDevice->GetObject<NrGnbNetDevice>()->GetCellId());
+        return gnbNetDevice->GetObject<NrGnbNetDevice>()->GetCellId();
     }
     else
     {
@@ -184,9 +184,9 @@ NrStatsCalculator::FindImsiFromGnbMac(std::string path, uint16_t rnti)
     std::ostringstream oss;
     std::string p = path.substr(0, path.find("/BandwidthPartMap"));
     oss << rnti;
-    p += "/LteEnbRrc/UeMap/" + oss.str();
+    p += "/NrGnbRrc/UeMap/" + oss.str();
     uint64_t imsi = FindImsiFromGnbRlcPath(p);
-    NS_LOG_LOGIC("FindImsiFromEnbMac: " << path << ", " << rnti << ", " << imsi);
+    NS_LOG_LOGIC("FindImsiFromGnbMac: " << path << ", " << rnti << ", " << imsi);
     return imsi;
 }
 
@@ -198,7 +198,7 @@ NrStatsCalculator::FindCellIdFromGnbMac(std::string path, uint16_t rnti)
     std::ostringstream oss;
     std::string p = path.substr(0, path.find("/BandwidthPartMap"));
     oss << rnti;
-    p += "/LteEnbRrc/UeMap/" + oss.str();
+    p += "/NrGnbRrc/UeMap/" + oss.str();
     uint16_t cellId = FindCellIdFromGnbRlcPath(p);
     NS_LOG_LOGIC("FindCellIdFromGnbMac: " << path << ", " << rnti << ", " << cellId);
     return cellId;

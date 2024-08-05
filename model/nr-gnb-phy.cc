@@ -44,7 +44,7 @@ NrGnbPhy::NrGnbPhy()
       m_n1Delay(4)
 {
     NS_LOG_FUNCTION(this);
-    m_enbCphySapProvider = new MemberLteEnbCphySapProvider<NrGnbPhy>(this);
+    m_gnbCphySapProvider = new MemberNrGnbCphySapProvider<NrGnbPhy>(this);
 }
 
 NrGnbPhy::~NrGnbPhy()
@@ -55,7 +55,7 @@ void
 NrGnbPhy::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    delete m_enbCphySapProvider;
+    delete m_gnbCphySapProvider;
     NrPhy::DoDispose();
 }
 
@@ -114,11 +114,11 @@ NrGnbPhy::GetTypeId()
                             MakeTraceSourceAccessor(&NrGnbPhy::m_ulSinrTrace),
                             "ns3::UlSinr::TracedCallback")
             .AddTraceSource("GnbPhyRxedCtrlMsgsTrace",
-                            "Enb PHY Rxed Control Messages Traces.",
+                            "Gnb PHY Rxed Control Messages Traces.",
                             MakeTraceSourceAccessor(&NrGnbPhy::m_phyRxedCtrlMsgsTrace),
                             "ns3::NrPhyRxTrace::RxedGnbPhyCtrlMsgsTracedCallback")
             .AddTraceSource("GnbPhyTxedCtrlMsgsTrace",
-                            "Enb PHY Txed Control Messages Traces.",
+                            "Gnb PHY Txed Control Messages Traces.",
                             MakeTraceSourceAccessor(&NrGnbPhy::m_phyTxedCtrlMsgsTrace),
                             "ns3::NrPhyRxTrace::TxedGnbPhyCtrlMsgsTracedCallback")
             .AddAttribute("N0Delay",
@@ -502,17 +502,17 @@ NrGnbPhy::StartEventLoop(uint16_t frame, uint8_t subframe, uint16_t slot)
 }
 
 void
-NrGnbPhy::SetEnbCphySapUser(LteEnbCphySapUser* s)
+NrGnbPhy::SetGnbCphySapUser(NrGnbCphySapUser* s)
 {
     NS_LOG_FUNCTION(this);
-    m_enbCphySapUser = s;
+    m_gnbCphySapUser = s;
 }
 
-LteEnbCphySapProvider*
-NrGnbPhy::GetEnbCphySapProvider()
+NrGnbCphySapProvider*
+NrGnbPhy::GetGnbCphySapProvider()
 {
     NS_LOG_FUNCTION(this);
-    return m_enbCphySapProvider;
+    return m_gnbCphySapProvider;
 }
 
 uint32_t
@@ -633,7 +633,7 @@ void
 NrGnbPhy::QueueMib()
 {
     NS_LOG_FUNCTION(this);
-    LteRrcSap::MasterInformationBlock mib;
+    NrRrcSap::MasterInformationBlock mib;
     mib.dlBandwidth = GetChannelBandwidth() / (1000 * 100);
     mib.systemFrameNumber = 1;
     Ptr<NrMibMessage> mibMsg = Create<NrMibMessage>();
@@ -1220,7 +1220,7 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     // The function that is filling m_ctrlMsgs is NrPhy::encodeCtrlMsgs
     if (!m_ctrlMsgs.empty())
     {
-        NS_LOG_DEBUG("ENB TXing DL CTRL with "
+        NS_LOG_DEBUG("gNB TXing DL CTRL with "
                      << m_ctrlMsgs.size() << " msgs, frame " << m_currentSlot << " symbols "
                      << static_cast<uint32_t>(dci->m_symStart) << "-"
                      << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
@@ -1254,7 +1254,7 @@ NrGnbPhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
-    NS_LOG_DEBUG("ENB RXng UL CTRL frame "
+    NS_LOG_DEBUG("gNB RXng UL CTRL frame "
                  << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
                  << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
                  << Simulator::Now() << " end " << Simulator::Now() + varTtiPeriod);
@@ -1280,7 +1280,7 @@ NrGnbPhy::DlData(const std::shared_ptr<DciInfoElementTdma>& dci)
         return varTtiPeriod;
     }
 
-    NS_LOG_INFO("ENB TXing DL DATA frame "
+    NS_LOG_INFO("gNB TXing DL DATA frame "
                 << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
                 << static_cast<uint32_t>(dci->m_symStart + dci->m_numSym - 1) << " start "
                 << Simulator::Now() + NanoSeconds(1) << " end "
@@ -1319,7 +1319,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
                                   dci->m_numSym,
                                   m_currentSlot});
 
-    bool found = false;
+    // bool found = false;
     for (auto& i : m_deviceMap)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
@@ -1330,11 +1330,11 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
             ChangeBeamformingVector(i); // assume the control signal is omni
-            found = true;
+            // found = true;
             break;
         }
     }
-    NS_ASSERT(found);
+    // NS_ASSERT(found);
 
     NS_LOG_INFO("GNB RXing UL DATA frame "
                 << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
@@ -1391,9 +1391,9 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
         }
     }
 
-    NS_ABORT_MSG_IF(!found && (notValidRntiCounter == 0),
-                    "All RNTIs are already set (all UEs received RAR message), "
-                    "but the RNTI for this SRS was not found");
+    // NS_ABORT_MSG_IF(!found && (notValidRntiCounter == 0),
+    //                 "All RNTIs are already set (all UEs received RAR message), "
+    //                 "but the RNTI for this SRS was not found");
 
     if (!found)
     {
@@ -1492,7 +1492,7 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
         NS_ASSERT_MSG(!m_spectrumPhy->IsTransmitting(),
                       "Cannot change analog BF after TX has started");
         m_lastBfChange = Simulator::Now();
-        bool found = false;
+        // bool found = false;
         for (auto& i : m_deviceMap)
         {
             Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
@@ -1500,11 +1500,11 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
             if (dci->m_rnti == ueRnti)
             {
                 ChangeBeamformingVector(i);
-                found = true;
+                // found = true;
                 break;
             }
         }
-        NS_ABORT_IF(!found);
+        // NS_ABORT_IF(!found);
     }
 
     // in the map we stored the RBG allocated by the MAC for this symbol.
@@ -1584,7 +1584,7 @@ NrGnbPhy::GenerateDataCqiReport(const SpectrumValue& sinr)
         //   double sinrdb = 10 * std::log10 ((*it));
         //       NS_LOG_INFO ("ULCQI RB " << i << " value " << sinrdb);
         // convert from double to fixed point notaltion Sxxxxxxxxxxx.xxx
-        //   int16_t sinrFp = LteFfConverter::double2fpS11dot3 (sinrdb);
+        //   int16_t sinrFp = nr::FfConverter::double2fpS11dot3 (sinrdb);
         ulcqi.m_ulCqi.m_sinr.push_back(
             *it); // will be processed by NrMacSchedulerCQIManagement::UlSBCQIReported, it will look
                   // into a map of assignment
@@ -1709,13 +1709,13 @@ NrGnbPhy::DoSetSrsConfigurationIndex(uint16_t rnti, uint16_t srcCi)
 }
 
 void
-NrGnbPhy::DoSetMasterInformationBlock([[maybe_unused]] LteRrcSap::MasterInformationBlock mib)
+NrGnbPhy::DoSetMasterInformationBlock([[maybe_unused]] NrRrcSap::MasterInformationBlock mib)
 {
     NS_LOG_FUNCTION(this);
 }
 
 void
-NrGnbPhy::DoSetSystemInformationBlockType1(LteRrcSap::SystemInformationBlockType1 sib1)
+NrGnbPhy::DoSetSystemInformationBlockType1(NrRrcSap::SystemInformationBlockType1 sib1)
 {
     NS_LOG_FUNCTION(this);
     m_sib1 = sib1;

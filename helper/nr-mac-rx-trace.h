@@ -23,7 +23,7 @@ class NrMacRxTrace : public Object
     static TypeId GetTypeId();
 
     /**
-     *  Trace sink for Enb Mac Received Control Messages.
+     *  Trace sink for Gnb Mac Received Control Messages.
      *
      * \param [in] frame Frame number.
      * \param [in] subframe Subframe number.
@@ -43,7 +43,7 @@ class NrMacRxTrace : public Object
                                            Ptr<const NrControlMessage> msg);
 
     /**
-     *  Trace sink for Enb Mac Transmitted Control Messages.
+     *  Trace sink for Gnb Mac Transmitted Control Messages.
      *
      * \param [in] frame Frame number.
      * \param [in] subframe Subframe number.
