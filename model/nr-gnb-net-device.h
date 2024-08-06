@@ -101,6 +101,34 @@ class NrGnbNetDevice : public NrNetDevice
      */
     void UpdateConfig();
 
+    /**
+     * \brief Get downlink bandwidth for a given physical cell Id
+     * \param cellId Physical cell Id
+     * \return number of RBs
+     */
+    uint16_t GetCellIdDlBandwidth(uint16_t cellId) const;
+
+    /**
+     * \brief Get uplink bandwidth for a given physical cell Id
+     * \param cellId Physical cell Id
+     * \return number of RBs
+     */
+    uint16_t GetCellIdUlBandwidth(uint16_t cellId) const;
+
+    /**
+     * \brief Get uplink earfcn for a given physical cell Id
+     * \param cellId Physical cell Id
+     * \return downlink earfcn
+     */
+    uint32_t GetCellIdDlEarfcn(uint16_t cellId) const;
+
+    /**
+     * \brief Get uplink earfcn for a given physical cell Id
+     * \param cellId Physical cell Id
+     * \return uplink earfcn
+     */
+    uint32_t GetCellIdUlEarfcn(uint16_t cellId) const;
+
   protected:
     void DoInitialize() override;
 

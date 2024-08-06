@@ -246,4 +246,72 @@ NrGnbNetDevice::UpdateConfig()
     m_rrc->ConfigureCell(ccPhyConfMap);
 }
 
+uint16_t
+NrGnbNetDevice::GetCellIdDlBandwidth(uint16_t cellId) const
+{
+    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
+    if (m_rrc->HasCellId(cellId))
+    {
+        for (const auto& [key, cc] : m_ccMap)
+        {
+            if (cc->GetCellId() == cellId)
+            {
+                return cc->GetDlBandwidth();
+            }
+        }
+    }
+    return 0;
+}
+
+uint16_t
+NrGnbNetDevice::GetCellIdUlBandwidth(uint16_t cellId) const
+{
+    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
+    if (m_rrc->HasCellId(cellId))
+    {
+        for (const auto& [key, cc] : m_ccMap)
+        {
+            if (cc->GetCellId() == cellId)
+            {
+                return cc->GetUlBandwidth();
+            }
+        }
+    }
+    return 0;
+}
+
+uint32_t
+NrGnbNetDevice::GetCellIdDlEarfcn(uint16_t cellId) const
+{
+    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
+    if (m_rrc->HasCellId(cellId))
+    {
+        for (const auto& [key, cc] : m_ccMap)
+        {
+            if (cc->GetCellId() == cellId)
+            {
+                return cc->GetDlEarfcn();
+            }
+        }
+    }
+    return 0;
+}
+
+uint32_t
+NrGnbNetDevice::GetCellIdUlEarfcn(uint16_t cellId) const
+{
+    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
+    if (m_rrc->HasCellId(cellId))
+    {
+        for (const auto& [key, cc] : m_ccMap)
+        {
+            if (cc->GetCellId() == cellId)
+            {
+                return cc->GetUlEarfcn();
+            }
+        }
+    }
+    return 0;
+}
+
 } // namespace ns3
