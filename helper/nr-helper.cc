@@ -576,7 +576,7 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
 
     cam->SetNrSpectrumPhy(channelPhy); // connect CAM
 
-    Ptr<LteChunkProcessor> pData = Create<LteChunkProcessor>();
+    Ptr<NrChunkProcessor> pData = Create<NrChunkProcessor>();
     pData->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSinrPerceived, channelPhy));
     channelPhy->AddDataSinrChunkProcessor(pData);
 
@@ -598,11 +598,11 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
         pData->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReport, phy));
     }
 
-    Ptr<LteChunkProcessor> pRs = Create<LteChunkProcessor>();
+    Ptr<NrChunkProcessor> pRs = Create<NrChunkProcessor>();
     pRs->AddCallback(MakeCallback(&NrUePhy::ReportRsReceivedPower, phy));
     channelPhy->AddRsPowerChunkProcessor(pRs);
 
-    Ptr<LteChunkProcessor> pSinr = Create<LteChunkProcessor>();
+    Ptr<NrChunkProcessor> pSinr = Create<NrChunkProcessor>();
     pSinr->AddCallback(MakeCallback(&NrSpectrumPhy::ReportDlCtrlSinr, channelPhy));
     channelPhy->AddDlCtrlSinrChunkProcessor(pSinr);
 

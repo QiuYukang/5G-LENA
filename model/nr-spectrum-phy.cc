@@ -4,6 +4,7 @@
 
 #include "nr-spectrum-phy.h"
 
+#include "nr-chunk-processor.h"
 #include "nr-gnb-net-device.h"
 #include "nr-gnb-phy.h"
 #include "nr-lte-mi-error-model.h"
@@ -741,21 +742,21 @@ NrSpectrumPhy::StartTxUlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
 }
 
 void
-NrSpectrumPhy::AddDataPowerChunkProcessor(const Ptr<LteChunkProcessor>& p)
+NrSpectrumPhy::AddDataPowerChunkProcessor(const Ptr<NrChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
     m_interferenceData->AddRsPowerChunkProcessor(p);
 }
 
 void
-NrSpectrumPhy::AddDataSinrChunkProcessor(const Ptr<LteChunkProcessor>& p)
+NrSpectrumPhy::AddDataSinrChunkProcessor(const Ptr<NrChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
     m_interferenceData->AddSinrChunkProcessor(p);
 }
 
 void
-NrSpectrumPhy::AddSrsSinrChunkProcessor(const Ptr<LteChunkProcessor>& p)
+NrSpectrumPhy::AddSrsSinrChunkProcessor(const Ptr<NrChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(m_isGnb && m_interferenceSrs,
@@ -802,14 +803,14 @@ NrSpectrumPhy::UpdateSrsSnrPerceived(const double srsSnr)
 }
 
 void
-NrSpectrumPhy::AddRsPowerChunkProcessor(const Ptr<LteChunkProcessor>& p)
+NrSpectrumPhy::AddRsPowerChunkProcessor(const Ptr<NrChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
     m_interferenceCtrl->AddRsPowerChunkProcessor(p);
 }
 
 void
-NrSpectrumPhy::AddDlCtrlSinrChunkProcessor(const Ptr<LteChunkProcessor>& p)
+NrSpectrumPhy::AddDlCtrlSinrChunkProcessor(const Ptr<NrChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
     m_interferenceCtrl->AddSinrChunkProcessor(p);

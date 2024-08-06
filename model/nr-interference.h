@@ -5,7 +5,8 @@
 #ifndef NR_INTERFERENCE_H
 #define NR_INTERFERENCE_H
 
-#include <ns3/lte-interference.h>
+#include "nr-chunk-processor.h"
+
 #include <ns3/nstime.h>
 #include <ns3/object.h>
 #include <ns3/spectrum-signal-parameters.h>

@@ -290,30 +290,30 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Adds the chunk processor that will process the power for the data
      * \param p the chunk processor
      */
-    void AddDataPowerChunkProcessor(const Ptr<LteChunkProcessor>& p);
+    void AddDataPowerChunkProcessor(const Ptr<NrChunkProcessor>& p);
     /**
      * \brief Adds the chunk processor that will process the interference
      * \param p the chunk processor
      */
-    void AddDataSinrChunkProcessor(const Ptr<LteChunkProcessor>& p);
+    void AddDataSinrChunkProcessor(const Ptr<NrChunkProcessor>& p);
 
     /*
      * \brief Adds the chunk processort that will process the interference for SRS signals at gNBs
      * \param p the chunk processor
      */
-    void AddSrsSinrChunkProcessor(const Ptr<LteChunkProcessor>& p);
+    void AddSrsSinrChunkProcessor(const Ptr<NrChunkProcessor>& p);
 
     /**
      * \brief Adds the chunk processor that will process the received power
      * \param p the chunk processor
      */
-    void AddRsPowerChunkProcessor(const Ptr<LteChunkProcessor>& p);
+    void AddRsPowerChunkProcessor(const Ptr<NrChunkProcessor>& p);
 
     /**
      * \brief Adds the chunk processor that will process the received power
      * \param p the chunk processor
      */
-    void AddDlCtrlSinrChunkProcessor(const Ptr<LteChunkProcessor>& p);
+    void AddDlCtrlSinrChunkProcessor(const Ptr<NrChunkProcessor>& p);
     /**
      * \brief SpectrumPhy that will be called when the SINR for the received
      * DATA is being calculated by the interference object over DATA chunk
