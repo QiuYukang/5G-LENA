@@ -47,8 +47,8 @@ $ ./ns3 run "cttc-nr-traffic-ngmn-mixed --PrintHelp"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 #include <ns3/antenna-module.h>
+#include <ns3/nr-radio-environment-map-helper.h>
 #include <ns3/ping-helper.h>
-#include <ns3/radio-environment-map-helper.h>
 #include <ns3/rng-seed-manager.h>
 #include <ns3/three-gpp-ftp-m1-helper.h>
 #include <ns3/three-gpp-http-client.h>
