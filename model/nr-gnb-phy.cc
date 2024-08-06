@@ -1400,7 +1400,7 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
     m_spectrumPhy->AddExpectedSrsRnti(dci->m_rnti);
 
     bool found = false;
-    uint16_t notValidRntiCounter =
+    [[maybe_unused]] uint16_t notValidRntiCounter =
         0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
     // if yes, and the rnti for the current SRS is not found in the list,
     // the code will not abort
