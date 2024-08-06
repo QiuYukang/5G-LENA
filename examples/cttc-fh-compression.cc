@@ -1144,8 +1144,8 @@ main(int argc, char* argv[])
     NetDeviceContainer ueSector2NetDev;
     NetDeviceContainer ueSector3NetDev;
 
-    Ptr<LteHelper> lteHelper = nullptr;
-    Ptr<NrHelper> nrHelper = nullptr;
+    Ptr<LteHelper> lteHelper;
+    Ptr<NrHelper> nrHelper;
 
     std::vector<int16_t> maxMcsVector = GetMcsVectorFromInput(maxMcsVectorInput);
 
