@@ -715,6 +715,10 @@ class NrUePhy : public NrPhy
      */
     void DoResetRlfParams();
 
+    void InitializeRlfParams();
+
+    void RlfDetection(double sinrDb);
+
     /**
      * \brief Start in Sync detection function
      *
@@ -915,6 +919,36 @@ class NrUePhy : public NrPhy
      * and whether the cell is the serving cell. Moreover it report the m_componentCarrierId.
      */
     TracedCallback<uint16_t, uint16_t, double, double, bool, uint8_t> m_reportUeMeasurements;
+
+    bool m_isConnected;
+    void DoNotifyConnectionSuccessful();
+    /**
+     * The 'Qin' attribute.
+     * corresponds to 2% block error rate of a hypothetical PDCCH transmission
+     * taking into account the PCFICH errors.
+     */
+    double m_qIn;
+
+    /**
+     * The 'Qout' attribute.
+     * corresponds to 2% block error rate of a hypothetical PDCCH transmission
+     * taking into account the PCFICH errors.
+     */
+    double m_qOut;
+
+    uint16_t m_numOfQoutEvalSf; ///< the downlink radio link quality is estimated over this period
+    ///< for detecting out-of-syncs
+    uint16_t m_numOfQinEvalSf; ///< the downlink radio link quality is estimated over this period
+    ///< for detecting in-syncs
+    bool m_downlinkInSync; ///< when set, DL SINR evaluation for out-of-sync indications is
+    ///< conducted.
+    uint16_t m_numOfSubframes; ///< count the number of subframes for which the downlink radio link
+    ///< quality is estimated
+    uint16_t m_numOfFrames; ///< count the number of frames for which the downlink radio link
+    ///< quality is estimated
+    double m_sinrDbFrame;           ///< the average SINR per radio frame
+    SpectrumValue m_ctrlSinrForRlf; ///< the CTRL SINR used for RLF detection
+    bool m_enableRlfDetection;      ///< Flag to enable/disable RLF detection
 };
 
 } // namespace ns3

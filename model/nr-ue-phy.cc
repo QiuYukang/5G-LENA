@@ -14,6 +14,7 @@
 
 #include "beam-manager.h"
 #include "nr-ch-access-manager.h"
+#include "nr-radio-bearer-tag.h"
 #include "nr-ue-net-device.h"
 #include "nr-ue-power-control.h"
 
@@ -21,7 +22,6 @@
 #include <ns3/double.h>
 #include <ns3/enum.h>
 #include <ns3/log.h>
-#include <ns3/lte-radio-bearer-tag.h>
 #include <ns3/node.h>
 #include <ns3/pointer.h>
 #include <ns3/simulator.h>
@@ -44,7 +44,7 @@ NrUePhy::NrUePhy()
     m_wbCqiLast = Simulator::Now();
     m_ueCphySapProvider = new MemberNrUeCphySapProvider<NrUePhy>(this);
     m_powerControl = CreateObject<NrUePowerControl>(this);
-
+    m_isConnected = false;
     Simulator::Schedule(m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);
 }
 
@@ -192,7 +192,12 @@ NrUePhy::GetTypeId()
             .AddTraceSource("ReportUeMeasurements",
                             "Report UE measurements RSRP (dBm) and RSRQ (dB).",
                             MakeTraceSourceAccessor(&NrUePhy::m_reportUeMeasurements),
-                            "ns3::NrUePhy::RsrpRsrqTracedCallback");
+                            "ns3::NrUePhy::RsrpRsrqTracedCallback")
+            .AddAttribute("EnableRlfDetection",
+                          "If true, RLF detection will be enabled.",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrUePhy::m_enableRlfDetection),
+                          MakeBooleanChecker());
     return tid;
 }
 
@@ -1256,6 +1261,8 @@ void
 NrUePhy::DoReset()
 {
     NS_LOG_FUNCTION(this);
+    m_raPreambleId = 255; // value out of range
+    m_isConnected = false;
 }
 
 void
@@ -1412,7 +1419,14 @@ NrUePhy::ReportUeMeasurements()
 
         m_reportRsrpTrace(GetCellId(), m_imsi, m_rnti, avg_rsrp, GetBwpId());
 
-        /*LteUeCphySapUser::UeMeasurementsElement newEl;
+        // trigger RLF detection only when UE has an active RRC connection
+        // and RLF detection attribute is set to true
+        if (m_isConnected && m_enableRlfDetection)
+        {
+            double avrgSinrForRlf = ComputeAvgSinr(m_ctrlSinrForRlf);
+            RlfDetection(10 * log10(avrgSinrForRlf));
+        }
+
         NrUeCphySapUser::UeMeasurementsElement newEl;
         newEl.m_cellId = (*it).first;
         newEl.m_rsrp = avg_rsrp;
@@ -1598,24 +1612,141 @@ NrUePhy::SetPhySapUser(NrUePhySapUser* ptr)
 }
 
 void
+NrUePhy::DoNotifyConnectionSuccessful()
+{
+    /**
+     * Radio link failure detection should take place only on the
+     * primary carrier to avoid errors due to multiple calls to the
+     * same methods at the RRC layer
+     */
+    if (GetBwpId() == 0)
+    {
+        m_isConnected = true;
+        // Initialize the parameters for radio link failure detection
+        InitializeRlfParams();
+    }
+}
+
+void
 NrUePhy::DoResetPhyAfterRlf()
 {
     NS_LOG_FUNCTION(this);
-    NS_FATAL_ERROR("NrUePhy does not have RLF functionality yet");
+    // m_spectrumPhy->m_harqPhyModule->ClearDlHarqBuffer(m_rnti); // flush HARQ buffers
+    DoReset();
 }
 
 void
 NrUePhy::DoResetRlfParams()
 {
     NS_LOG_FUNCTION(this);
-    NS_FATAL_ERROR("NrUePhy does not have RLF functionality yet");
+    InitializeRlfParams();
 }
 
 void
 NrUePhy::DoStartInSyncDetection()
 {
     NS_LOG_FUNCTION(this);
-    NS_FATAL_ERROR("NrUePhy does not have RLF functionality yet");
+    // indicates that the downlink radio link quality has to be monitored for in-sync indications
+    m_downlinkInSync = false;
+}
+
+void
+NrUePhy::InitializeRlfParams()
+{
+    NS_LOG_FUNCTION(this);
+    m_numOfSubframes = 0;
+    m_sinrDbFrame = 0;
+    m_numOfFrames = 0;
+    m_downlinkInSync = true;
+}
+
+void
+NrUePhy::RlfDetection(double sinrDb)
+{
+    NS_LOG_FUNCTION(this << sinrDb);
+    m_sinrDbFrame += sinrDb;
+    m_numOfSubframes++;
+    NS_LOG_LOGIC("No of Subframes: " << m_numOfSubframes
+                                     << " UE synchronized: " << m_downlinkInSync);
+    // check for out_of_sync indications first when UE is both DL and UL synchronized
+    // m_downlinkInSync=true indicates that the evaluation is for out-of-sync indications
+    if (m_downlinkInSync && m_numOfSubframes == 10)
+    {
+        /**
+         * For every frame, if the downlink radio link quality(avg SINR)
+         * is less than the threshold Qout, then the frame cannot be decoded
+         */
+        if ((m_sinrDbFrame / m_numOfSubframes) < m_qOut)
+        {
+            m_numOfFrames++; // increment the counter if a frame cannot be decoded
+            NS_LOG_LOGIC("No of Frames which cannot be decoded: " << m_numOfFrames);
+        }
+        else
+        {
+            /**
+             * If the downlink radio link quality(avg SINR) is greater
+             * than the threshold Qout, then the frame counter is reset
+             * since only consecutive frames should be considered.
+             */
+            NS_LOG_INFO("Resetting frame counter at phy. Current value = " << m_numOfFrames);
+            m_numOfFrames = 0;
+            // Also reset the sync indicator counter at RRC
+            m_ueCphySapUser->ResetSyncIndicationCounter();
+        }
+        m_numOfSubframes = 0;
+        m_sinrDbFrame = 0;
+    }
+    /**
+     * Once the number of consecutive frames which cannot be decoded equals
+     * the Qout evaluation period (i.e 200ms), then an out-of-sync indication
+     * is sent to the RRC layer
+     */
+    if (m_downlinkInSync && (m_numOfFrames * 10) == m_numOfQoutEvalSf)
+    {
+        NS_LOG_LOGIC("At " << Simulator::Now().As(Time::MS)
+                           << " ms UE PHY sending out of sync indication to UE RRC layer");
+        m_ueCphySapUser->NotifyOutOfSync();
+        m_numOfFrames = 0;
+    }
+    // check for in_sync indications when T310 timer is started
+    // m_downlinkInSync=false indicates that the evaluation is for in-sync indications
+    if (!m_downlinkInSync && m_numOfSubframes == 10)
+    {
+        /**
+         * For every frame, if the downlink radio link quality(avg SINR)
+         * is greater than the threshold Qin, then the frame can be
+         * successfully decoded.
+         */
+        if ((m_sinrDbFrame / m_numOfSubframes) > m_qIn)
+        {
+            m_numOfFrames++; // increment the counter if a frame can be decoded
+            NS_LOG_LOGIC("No of Frames successfully decoded: " << m_numOfFrames);
+        }
+        else
+        {
+            /**
+             * If the downlink radio link quality(avg SINR) is less
+             * than the threshold Qin, then the frame counter is reset
+             * since only consecutive frames should be considered
+             */
+            m_numOfFrames = 0;
+            // Also reset the sync indicator counter at RRC
+            m_ueCphySapUser->ResetSyncIndicationCounter();
+        }
+        m_numOfSubframes = 0;
+        m_sinrDbFrame = 0;
+    }
+    /**
+     * Once the number of consecutive frames which can be decoded equals the Qin evaluation period
+     * (i.e 100ms), then an in-sync indication is sent to the RRC layer
+     */
+    if (!m_downlinkInSync && (m_numOfFrames * 10) == m_numOfQinEvalSf)
+    {
+        NS_LOG_LOGIC("At " << Simulator::Now().As(Time::MS)
+                           << " ms UE PHY sending in sync indication to UE RRC layer");
+        m_ueCphySapUser->NotifyInSync();
+        m_numOfFrames = 0;
+    }
 }
 
 void
