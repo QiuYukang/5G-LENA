@@ -1,11 +1,17 @@
-// Copyright (c) 2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+// Copyright (c) 2011-2019 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
+//
+// Authors:
+//   Jaume Nin <jnin@cttc.es>
+//   Nicola Baldo <nbaldo@cttc.es>
+//   Manuel Requena <manuel.requena@cttc.es>
+//   (most of the code refactored to no-backhaul-epc-helper.h)
 
 #ifndef NR_POINT_TO_POINT_EPC_HELPER_H
 #define NR_POINT_TO_POINT_EPC_HELPER_H
 
-#include <ns3/point-to-point-epc-helper.h>
+#include "nr-no-backhaul-epc-helper.h"
 
 namespace ns3
 {
@@ -103,7 +109,7 @@ namespace ns3
  *
  * \see PointToPointEpcHelper
  */
-class NrPointToPointEpcHelper : public PointToPointEpcHelper
+class NrPointToPointEpcHelper : public NrNoBackhaulEpcHelper
 {
   public:
     /**
@@ -122,17 +128,56 @@ class NrPointToPointEpcHelper : public PointToPointEpcHelper
      *  \return The object TypeId.
      */
     static TypeId GetTypeId();
+    TypeId GetInstanceTypeId() const override;
+    void DoDispose() override;
 
-  protected:
-    void DoAddX2Interface(const Ptr<EpcX2>& gnb1X2,
-                          const Ptr<NetDevice>& gnb1NetDev,
-                          const Ipv4Address& gnb1X2Address,
-                          const Ptr<EpcX2>& gnb2X2,
-                          const Ptr<NetDevice>& gnb2NetDev,
-                          const Ipv4Address& gnb2X2Address) const override;
-    void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                  const Ptr<EpcTft>& tft,
-                                  const EpsBearer& bearer) const override;
+    // inherited from NrEpcHelper
+    void AddGnb(Ptr<Node> gnbNode,
+                Ptr<NetDevice> nrGnbNetDevice,
+                std::vector<uint16_t> cellIds) override;
+
+  private:
+    /**
+     * S1-U interfaces
+     */
+
+    /**
+     * Helper to assign addresses to S1-U NetDevices
+     */
+    Ipv4AddressHelper m_s1uIpv4AddressHelper;
+
+    /**
+     * The data rate to be used for the next S1-U link to be created
+     */
+    DataRate m_s1uLinkDataRate;
+
+    /**
+     * The delay to be used for the next S1-U link to be created
+     */
+    Time m_s1uLinkDelay;
+
+    /**
+     * The MTU of the next S1-U link to be created. Note that,
+     * because of the additional GTP/UDP/IP tunneling overhead,
+     * you need a MTU larger than the end-to-end MTU that you
+     * want to support.
+     */
+    uint16_t m_s1uLinkMtu;
+
+    /**
+     * Helper to assign addresses to S1-MME NetDevices
+     */
+    Ipv4AddressHelper m_s1apIpv4AddressHelper;
+
+    /**
+     * Enable PCAP generation for S1 link
+     */
+    bool m_s1uLinkEnablePcap;
+
+    /**
+     * Prefix for the PCAP file for the S1 link
+     */
+    std::string m_s1uLinkPcapPrefix;
 };
 
 } // namespace ns3
