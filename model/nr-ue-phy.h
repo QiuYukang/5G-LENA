@@ -432,6 +432,23 @@ class NrUePhy : public NrPhy
     /// \param sinr the SINR
     void ReportRsrpSinrTrace(const SpectrumValue& sinr);
 
+    /**
+     * TracedCallback signature for cell RSRP and RSRQ.
+     *
+     * \param [in] rnti
+     * \param [in] cellId
+     * \param [in] rsrp
+     * \param [in] rsrq
+     * \param [in] isServingCell
+     * \param [in] componentCarrierId
+     */
+    typedef void (*RsrpRsrqTracedCallback)(uint16_t rnti,
+                                           uint16_t cellId,
+                                           double rsrp,
+                                           double rsrq,
+                                           bool isServingCell,
+                                           uint8_t componentCarrierId);
+
     /// \brief Generate DL CQI, PMI, and RI (channel quality precoding matrix and rank indicators)
     /// \param mimoChunks a vector of parameters of the received signals and interference
     void GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks);
@@ -890,6 +907,14 @@ class NrUePhy : public NrPhy
      */
     TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, uint8_t, uint32_t>
         m_phyUeTxedHarqFeedbackTrace;
+
+    /**
+     * The `ReportUeMeasurements` trace source. Contains trace information
+     * regarding RSRP and RSRQ measured from a specific cell (see TS 36.214).
+     * Exporting RNTI, the ID of the measured cell, RSRP (in dBm), RSRQ (in dB),
+     * and whether the cell is the serving cell. Moreover it report the m_componentCarrierId.
+     */
+    TracedCallback<uint16_t, uint16_t, double, double, bool, uint8_t> m_reportUeMeasurements;
 };
 
 } // namespace ns3

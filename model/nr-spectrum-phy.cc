@@ -107,6 +107,7 @@ NrSpectrumPhy::DoDispose()
     m_phyRxDataEndOkCallback = MakeNullCallback<void, const Ptr<Packet>&>();
     m_phyDlHarqFeedbackCallback = MakeNullCallback<void, const DlHarqInfo&>();
     m_phyUlHarqFeedbackCallback = MakeNullCallback<void, const UlHarqInfo&>();
+    m_phyRxPssCallback = MakeNullCallback<void, uint16_t, const Ptr<SpectrumValue>&>();
 
     SpectrumPhy::DoDispose();
 }
