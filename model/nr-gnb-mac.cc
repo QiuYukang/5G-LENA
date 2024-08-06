@@ -925,6 +925,11 @@ NrGnbMac::DoReceivePhyPdu(Ptr<Packet> p)
     p->RemoveHeader(macHeader);
 
     auto lcidIt = rntiIt->second.find(macHeader.GetLcId());
+    if (lcidIt == rntiIt->second.end())
+    {
+        NS_LOG_DEBUG("Discarding PDU addressed to non-existent LCID " << macHeader.GetLcId());
+        return;
+    }
 
     NrMacSapUser::ReceivePduParameters rxParams;
     rxParams.p = p;

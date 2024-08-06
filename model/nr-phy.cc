@@ -188,6 +188,7 @@ NrPhy::NrPhy()
 {
     NS_LOG_FUNCTION(this);
     m_phySapProvider = new NrMemberPhySapProvider(this);
+    SetNumerology(0); // Initialize sub-carrier spacing assuming numerology 0
 }
 
 NrPhy::~NrPhy()

@@ -103,24 +103,39 @@ NrHelper::~NrHelper()
 TypeId
 NrHelper::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrHelper")
-                            .SetParent<Object>()
-                            .AddConstructor<NrHelper>()
-                            .AddAttribute("EnableMimoFeedback",
-                                          "Generate CQI feedback with RI and PMI for MIMO support",
-                                          BooleanValue(false),
-                                          MakeBooleanAccessor(&NrHelper::m_enableMimoFeedback),
-                                          MakeBooleanChecker())
-                            .AddAttribute("PmSearchMethod",
-                                          "Type of the precoding matrix search method.",
-                                          TypeIdValue(NrPmSearchFull::GetTypeId()),
-                                          MakeTypeIdAccessor(&NrHelper::SetPmSearchTypeId),
-                                          MakeTypeIdChecker())
-                            .AddAttribute("HarqEnabled",
-                                          "Enable Hybrid ARQ",
-                                          BooleanValue(true),
-                                          MakeBooleanAccessor(&NrHelper::m_harqEnabled),
-                                          MakeBooleanChecker());
+    static TypeId tid =
+        TypeId("ns3::NrHelper")
+            .SetParent<Object>()
+            .AddConstructor<NrHelper>()
+            .AddAttribute("EnableMimoFeedback",
+                          "Generate CQI feedback with RI and PMI for MIMO support",
+                          BooleanValue(false),
+                          MakeBooleanAccessor(&NrHelper::m_enableMimoFeedback),
+                          MakeBooleanChecker())
+            .AddAttribute("PmSearchMethod",
+                          "Type of the precoding matrix search method.",
+                          TypeIdValue(NrPmSearchFull::GetTypeId()),
+                          MakeTypeIdAccessor(&NrHelper::SetPmSearchTypeId),
+                          MakeTypeIdChecker())
+            .AddAttribute("HarqEnabled",
+                          "Enable Hybrid ARQ",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrHelper::m_harqEnabled),
+                          MakeBooleanChecker())
+            .AddAttribute("UseIdealRrc",
+                          "If true, NrRrcProtocolIdeal will be used for RRC signaling. "
+                          "If false, NrRrcProtocolReal will be used.",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrHelper::m_useIdealRrc),
+                          MakeBooleanChecker())
+            .AddAttribute("HandoverAlgorithm",
+                          "The type of handover algorithm to be used for gNBs. "
+                          "The allowed values for this attributes are the type names "
+                          "of any class inheriting from ns3::LteHandoverAlgorithm.",
+                          StringValue("ns3::NrNoOpHandoverAlgorithm"),
+                          MakeStringAccessor(&NrHelper::SetHandoverAlgorithmType,
+                                             &NrHelper::GetHandoverAlgorithmType),
+                          MakeStringChecker());
     return tid;
 }
 
@@ -683,8 +698,7 @@ NrHelper::InstallSingleUeDevice(
     ccmUe->SetNrCcmRrcSapUser(rrc->GetNrCcmRrcSapUser());
     ccmUe->SetNumberOfComponentCarriers(ueCcMap.size());
 
-    bool useIdealRrc = true;
-    if (useIdealRrc)
+    if (m_useIdealRrc)
     {
         Ptr<nrUeRrcProtocolIdeal> rrcProtocol = CreateObject<nrUeRrcProtocolIdeal>();
         rrcProtocol->SetUeRrc(rrc);
@@ -1042,6 +1056,101 @@ NrHelper::InstallSingleGnbDevice(
         rrc->SetEpcX2SapProvider(x2->GetEpcX2SapProvider());
     }
     return dev;
+}
+
+std::string
+NrHelper::GetHandoverAlgorithmType() const
+{
+    return m_handoverAlgorithmFactory.GetTypeId().GetName();
+}
+
+void
+NrHelper::SetHandoverAlgorithmType(std::string type)
+{
+    NS_LOG_FUNCTION(this << type);
+    m_handoverAlgorithmFactory = ObjectFactory();
+    m_handoverAlgorithmFactory.SetTypeId(type);
+}
+
+void
+NrHelper::SetHandoverAlgorithmAttribute(std::string n, const AttributeValue& v)
+{
+    NS_LOG_FUNCTION(this << n);
+    m_handoverAlgorithmFactory.Set(n, v);
+}
+
+void
+NrHelper::AddX2Interface(NodeContainer gnbNodes)
+{
+    NS_LOG_FUNCTION(this);
+
+    NS_ASSERT_MSG(m_nrEpcHelper, "X2 interfaces cannot be set up when the EPC is not used");
+
+    for (auto i = gnbNodes.Begin(); i != gnbNodes.End(); ++i)
+    {
+        for (auto j = i + 1; j != gnbNodes.End(); ++j)
+        {
+            AddX2Interface(*i, *j);
+        }
+    }
+}
+
+void
+NrHelper::AddX2Interface(Ptr<Node> gnbNode1, Ptr<Node> gnbNode2)
+{
+    NS_LOG_FUNCTION(this);
+    NS_LOG_INFO("setting up the X2 interface");
+
+    m_nrEpcHelper->AddX2Interface(gnbNode1, gnbNode2);
+}
+
+void
+NrHelper::HandoverRequest(Time hoTime,
+                          Ptr<NetDevice> ueDev,
+                          Ptr<NetDevice> sourceGnbDev,
+                          Ptr<NetDevice> targetGnbDev)
+{
+    NS_LOG_FUNCTION(this << ueDev << sourceGnbDev << targetGnbDev);
+    NS_ASSERT_MSG(m_nrEpcHelper,
+                  "Handover requires the use of the EPC - did you forget to call "
+                  "NrHelper::SetEpcHelper () ?");
+    uint16_t targetCellId = targetGnbDev->GetObject<NrGnbNetDevice>()->GetCellId();
+    Simulator::Schedule(hoTime,
+                        &NrHelper::DoHandoverRequest,
+                        this,
+                        ueDev,
+                        sourceGnbDev,
+                        targetCellId);
+}
+
+void
+NrHelper::HandoverRequest(Time hoTime,
+                          Ptr<NetDevice> ueDev,
+                          Ptr<NetDevice> sourceGnbDev,
+                          uint16_t targetCellId)
+{
+    NS_LOG_FUNCTION(this << ueDev << sourceGnbDev << targetCellId);
+    NS_ASSERT_MSG(m_nrEpcHelper,
+                  "Handover requires the use of the EPC - did you forget to call "
+                  "NrHelper::SetEpcHelper () ?");
+    Simulator::Schedule(hoTime,
+                        &NrHelper::DoHandoverRequest,
+                        this,
+                        ueDev,
+                        sourceGnbDev,
+                        targetCellId);
+}
+
+void
+NrHelper::DoHandoverRequest(Ptr<NetDevice> ueDev,
+                            Ptr<NetDevice> sourceGnbDev,
+                            uint16_t targetCellId)
+{
+    NS_LOG_FUNCTION(this << ueDev << sourceGnbDev << targetCellId);
+
+    Ptr<NrGnbRrc> sourceRrc = sourceGnbDev->GetObject<NrGnbNetDevice>()->GetRrc();
+    uint16_t rnti = ueDev->GetObject<NrUeNetDevice>()->GetRrc()->GetRnti();
+    sourceRrc->SendHandoverRequest(rnti, targetCellId);
 }
 
 void

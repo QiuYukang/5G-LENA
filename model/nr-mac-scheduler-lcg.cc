@@ -254,4 +254,10 @@ NrMacSchedulerLCG::AssignedData(uint8_t lcId, uint32_t size, std::string type)
                                   << ", RLC TX=" << m_lcMap.at(lcId)->m_rlcTransmissionQueueSize);
 }
 
+void
+NrMacSchedulerLCG::ReleaseLC(uint8_t lcId)
+{
+    m_lcMap.erase(lcId);
+}
+
 } // namespace ns3

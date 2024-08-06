@@ -163,4 +163,43 @@ NrMacSchedulerUeInfo::GetNumRbPerRbg() const
     return m_getNumRbPerRbg();
 }
 
+void
+NrMacSchedulerUeInfo::ReleaseLC(uint8_t lcid)
+{
+    for (auto lcgIt = m_dlLCG.begin(); lcgIt != m_dlLCG.end(); lcgIt++)
+    {
+        lcgIt->second->ReleaseLC(lcid);
+    }
+    for (auto lcgIt = m_ulLCG.begin(); lcgIt != m_ulLCG.end(); lcgIt++)
+    {
+        lcgIt->second->ReleaseLC(lcid);
+    }
+    auto it = m_dlLCG.begin();
+    while (it != m_dlLCG.end())
+    {
+        if (it->second->GetLCId().empty())
+        {
+            m_dlLCG.erase(it);
+            it = m_dlLCG.begin();
+        }
+        else
+        {
+            it++;
+        }
+    }
+    it = m_ulLCG.begin();
+    while (it != m_ulLCG.end())
+    {
+        if (it->second->GetLCId().empty())
+        {
+            m_ulLCG.erase(it);
+            it = m_ulLCG.begin();
+        }
+        else
+        {
+            it++;
+        }
+    }
+}
+
 } // namespace ns3

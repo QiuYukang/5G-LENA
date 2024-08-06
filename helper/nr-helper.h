@@ -895,6 +895,22 @@ class NrHelper : public Object
     /// \param mp the struct with MIMO PMI parameters
     void SetupMimoPmi(const MimoPmiParams& mp);
 
+    // Handover related functions
+    void AddX2Interface(NodeContainer gnbNodes);
+    void AddX2Interface(Ptr<Node> gnbNode1, Ptr<Node> gnbNode2);
+
+    std::string GetHandoverAlgorithmType() const;
+    void SetHandoverAlgorithmType(std::string type);
+    void SetHandoverAlgorithmAttribute(std::string n, const AttributeValue& v);
+    void HandoverRequest(Time hoTime,
+                         Ptr<NetDevice> ueDev,
+                         Ptr<NetDevice> sourceGnbDev,
+                         Ptr<NetDevice> targetGnbDev);
+    void HandoverRequest(Time hoTime,
+                         Ptr<NetDevice> ueDev,
+                         Ptr<NetDevice> sourceGnbDev,
+                         uint16_t targetCellId);
+
   private:
     bool m_enableMimoFeedback{false}; ///< Let UE compute MIMO feedback with PMI and RI
     ObjectFactory m_pmSearchFactory;  ///< Factory for precoding matrix search algorithm
@@ -949,6 +965,10 @@ class NrHelper : public Object
     Ptr<NetDevice> InstallSingleGnbDevice(
         const Ptr<Node>& n,
         const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps);
+
+    void DoHandoverRequest(Ptr<NetDevice> ueDev,
+                           Ptr<NetDevice> sourceGnbDev,
+                           uint16_t targetCellId);
     void AttachToClosestGnb(Ptr<NetDevice> ueDevice, NetDeviceContainer gnbDevices);
 
     ObjectFactory m_gnbNetDeviceFactory;            //!< NetDevice factory for gnb
@@ -974,6 +994,7 @@ class NrHelper : public Object
     ObjectFactory m_gnbUlAmcFactory;                //!< UL AMC factory
     ObjectFactory m_gnbBeamManagerFactory;          //!< gNb Beam manager factory
     ObjectFactory m_ueBeamManagerFactory;           //!< UE beam manager factory
+    ObjectFactory m_handoverAlgorithmFactory;       //!< Handover algorithm factory
 
     uint16_t m_cellIdCounter{1}; //!< CellId Counter
 
@@ -999,6 +1020,7 @@ class NrHelper : public Object
     //!< has assigned streams in order to avoid double
     //!< assignments
     Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
+    bool m_useIdealRrc;
 };
 
 } // namespace ns3

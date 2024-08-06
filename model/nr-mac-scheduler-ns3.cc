@@ -715,8 +715,6 @@ NrMacSchedulerNs3::DoCschedLcConfigReq(
 /**
  * \brief Release a LC
  * \param params params of the LC to release.
- *
- * Not implemented.
  */
 void
 NrMacSchedulerNs3::DoCschedLcReleaseReq(
@@ -724,13 +722,11 @@ NrMacSchedulerNs3::DoCschedLcReleaseReq(
 {
     NS_LOG_FUNCTION(this);
 
-    for ([[maybe_unused]] const auto& lcId : params.m_logicalChannelIdentity)
+    for (const auto& lcId : params.m_logicalChannelIdentity)
     {
         auto itUe = m_ueMap.find(params.m_rnti);
         NS_ABORT_IF(itUe == m_ueMap.end());
-
-        // TODO !!!!
-        // UeInfoOf(itUe)->ReleaseLC (lcId);
+        itUe->second->ReleaseLC(lcId);
     }
 }
 
@@ -795,9 +791,10 @@ NrMacSchedulerNs3::BSRReceivedFromUe(const MacCeElement& bsr)
         auto itLcg = UeInfoOf(*itUe)->m_ulLCG.find(lcg);
         if (itLcg == UeInfoOf(*itUe)->m_ulLCG.end())
         {
-            NS_ABORT_MSG_IF(bufSize > 0,
-                            "LCG " << static_cast<uint32_t>(lcg) << " not found for UE "
-                                   << itUe->second->m_rnti);
+            // NS_ABORT_MSG_IF(bufSize > 0,
+            //                 "LCG " << static_cast<uint32_t>(lcg) << " not found for UE "
+            //                        << itUe->second->m_rnti);
+            NS_LOG_DEBUG("BSR does not match an established lcg");
             continue;
         }
 

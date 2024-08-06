@@ -89,9 +89,7 @@ BwpManagerUe::DoConfigureSignalBearer(uint8_t lcId,
 {
     NS_LOG_FUNCTION(this);
 
-    // Ignore signaling bearers for the moment. These are for an advanced use.
-    // m_lcToBearerMap.insert (std::make_pair (lcId, EpsBearer::FromPriority
-    // (lcConfig.priority).qci));
+    m_lcToBearerMap.insert(std::make_pair(lcId, static_cast<NrEpsBearer::Qci>(lcConfig.priority)));
 
     return NrSimpleUeComponentCarrierManager::DoConfigureSignalBearer(lcId, lcConfig, msu);
 }
