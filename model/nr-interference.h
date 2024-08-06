@@ -6,6 +6,7 @@
 #define NR_INTERFERENCE_H
 
 #include "nr-chunk-processor.h"
+#include "nr-interference-base.h"
 
 #include <ns3/nstime.h>
 #include <ns3/object.h>
@@ -35,7 +36,7 @@ class NrMimoChunkProcessor;
  * energy detection functionality.
  *
  */
-class NrInterference : public LteInterference
+class NrInterference : public NrInterferenceBase
 {
   public:
     /**

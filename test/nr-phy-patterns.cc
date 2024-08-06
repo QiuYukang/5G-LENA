@@ -7,6 +7,7 @@
 #include <ns3/node.h>
 #include <ns3/nr-ch-access-manager.h>
 #include <ns3/nr-gnb-phy.h>
+#include <ns3/nr-interference-base.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/object-factory.h>
 #include <ns3/test.h>
