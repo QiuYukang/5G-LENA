@@ -895,6 +895,18 @@ class NrHelper : public Object
     /// \param mp the struct with MIMO PMI parameters
     void SetupMimoPmi(const MimoPmiParams& mp);
 
+    /// \brief Create BandwidthParts from a vector of band configurations
+    /// \param bandConfs the vector with operation band configurations
+    /// \return a pair with total bandwidth and vector of bandwidth parts
+    std::pair<double, BandwidthPartInfoPtrVector> CreateBandwidthParts(
+        std::vector<CcBwpCreator::SimpleOperationBandConf> bandConfs);
+
+    /**
+     * \brief Update netdevice configuration of one or more UEs and/or gNBs
+     * \param netDevs NetDevice container with the UEs and GNBs
+     */
+    void UpdateDeviceConfigs(const NetDeviceContainer& netDevs);
+
     // Handover related functions
     void AddX2Interface(NodeContainer gnbNodes);
     void AddX2Interface(Ptr<Node> gnbNode1, Ptr<Node> gnbNode2);
@@ -1021,6 +1033,7 @@ class NrHelper : public Object
     //!< assignments
     Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
     bool m_useIdealRrc;
+    std::vector<OperationBandInfo> m_bands;
 };
 
 } // namespace ns3

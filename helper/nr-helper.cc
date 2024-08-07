@@ -372,6 +372,24 @@ NrHelper::InitializeOperationBand(OperationBandInfo* band, uint8_t flags)
     }
 }
 
+std::pair<double, BandwidthPartInfoPtrVector>
+NrHelper::CreateBandwidthParts(std::vector<CcBwpCreator::SimpleOperationBandConf> bandConfs)
+{
+    CcBwpCreator ccBwpCreator;
+    double totalBandwidth = 0.0;
+    for (auto& bandConf : bandConfs)
+    {
+        m_bands.push_back(ccBwpCreator.CreateOperationBandContiguousCc(bandConf));
+        InitializeOperationBand(&m_bands.back());
+        totalBandwidth += bandConf.m_channelBandwidth;
+    }
+    std::vector<std::reference_wrapper<OperationBandInfo>> bandsRefs(m_bands.rbegin(),
+                                                                     m_bands.rbegin() +
+                                                                         bandConfs.size());
+
+    return std::make_pair(totalBandwidth, CcBwpCreator::GetAllBwps(bandsRefs));
+}
+
 uint32_t
 NrHelper::GetNumberBwp(const Ptr<const NetDevice>& gnbDevice)
 {
@@ -534,6 +552,24 @@ NrHelper::InstallGnbDevice(const NodeContainer& c,
         devices.Add(device);
     }
     return devices;
+}
+
+void
+NrHelper::UpdateDeviceConfigs(const NetDeviceContainer& netDevs)
+{
+    for (uint32_t i = 0; i < netDevs.GetN(); i++)
+    {
+        auto ueNetDev = DynamicCast<NrUeNetDevice>(netDevs.Get(i));
+        auto gnbNetDev = DynamicCast<NrGnbNetDevice>(netDevs.Get(i));
+        if (ueNetDev)
+        {
+            ueNetDev->UpdateConfig();
+        }
+        if (gnbNetDev)
+        {
+            gnbNetDev->UpdateConfig();
+        }
+    }
 }
 
 Ptr<NrUeMac>
