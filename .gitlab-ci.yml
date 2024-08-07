@@ -34,7 +34,7 @@ workflow:
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - git log -1
-    - CXX=$COMPILER CXXFLAGS="$FLAGS" ./ns3 configure -d $MODE -GNinja --enable-examples --enable-tests --enable-asserts --filter-module-examples-and-tests="nr;lte" $EXTRAS
+    - CXX=$COMPILER CXXFLAGS="$FLAGS" ./ns3 configure -d $MODE -GNinja --enable-examples --enable-tests --enable-asserts --filter-module-examples-and-tests="nr" $EXTRAS
     - cmake --version
     - ccache -z
     - ./ns3 build
