@@ -5,7 +5,6 @@
 #ifndef SRC_NR_MODEL_NR_CONTROL_MESSAGES_H_
 #define SRC_NR_MODEL_NR_CONTROL_MESSAGES_H_
 
-#include "nr-ff-mac-common.h"
 #include "nr-phy-mac-common.h"
 #include "nr-rrc-sap.h"
 
@@ -442,8 +441,8 @@ class NrRarMessage : public NrControlMessage
      */
     struct Rar
     {
-        uint8_t rapId;                    //!< RA ID
-        BuildRarListElement_s rarPayload; //!< RA Payload
+        uint8_t rapId;                      //!< RA ID
+        NrBuildRarListElement_s rarPayload; //!< RA Payload
     };
 
     /**

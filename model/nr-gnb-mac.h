@@ -274,7 +274,7 @@ class NrGnbMac : public Object
     void ReceiveRachPreamble(uint32_t raId);
     void DoReceiveRachPreamble(uint32_t raId);
     void ReceiveBsrMessage(MacCeElement bsr);
-    void DoReportMacCeToScheduler(MacCeListElement_s bsr);
+    void DoReportMacCeToScheduler(nr::MacCeListElement_s bsr);
     /**
      * \brief Called by CCM to inform us that we are the addressee of a SR.
      * \param rnti RNTI that requested to be scheduled
@@ -319,14 +319,18 @@ class NrGnbMac : public Object
     void DoUlHarqFeedback(const UlHarqInfo& params);
 
     /**
-     * \brief Send to PHY the RAR messages
+     * \brief Create RAR elements and set DCI,
+     * RA premable to the RAR elements to be sent by
+     * PHY through RAR control message
      * \param rarList list of messages that come from scheduler
      *
      * Clears m_rapIdRntiMap.
      */
-    void SendRar(const std::vector<BuildRarListElement_s>& rarList);
+    void DoBuildRarList(SlotAllocInfo& slotAllocInfo);
 
   private:
+    bool HasMsg3Allocations(const SlotAllocInfo& slotInfo);
+
     struct NrDlHarqProcessInfo
     {
         Ptr<PacketBurst> m_pktBurst;
@@ -364,7 +368,31 @@ class NrGnbMac : public Object
     std::vector<NrMacSchedSapProvider::SchedUlCqiInfoReqParameters> m_ulCqiReceived;
     std::vector<MacCeElement> m_ulCeReceived; // CE received (BSR up to now)
 
+    // start of RACH related member variables
+    uint8_t m_numberOfRaPreambles;  ///< number of RA preambles
+    uint8_t m_preambleTransMax;     ///< preamble transmit maximum
+    uint8_t m_raResponseWindowSize; ///< RA response window size
+    uint8_t m_connEstFailCount;     ///< the counter value for T300 timer expiration
+
+    /**
+     * info associated with a preamble allocated for non-contention based RA
+     *
+     */
+    struct NcRaPreambleInfo
+    {
+        uint16_t rnti;   ///< rnti previously allocated for this non-contention based RA procedure
+        Time expiryTime; ///< value the expiration time of this allocation (so that stale preambles
+                         ///< can be reused)
+    };
+
+    /**
+     * map storing as key the random access preamble IDs allocated for
+     * non-contention based access, and as value the associated info
+     *
+     */
+    std::map<uint8_t, NcRaPreambleInfo> m_allocatedNcRaPreambleMap;
     std::unordered_map<uint8_t, uint32_t> m_receivedRachPreambleCount;
+    // end of RACH related member variables
 
     std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>> m_rlcAttached;
 
@@ -406,6 +434,12 @@ class NrGnbMac : public Object
      * Trace DL HARQ info list elements.
      */
     TracedCallback<const DlHarqInfo&> m_dlHarqFeedback;
+
+    void ProcessRaPreambles(const SfnSf& sfnSf);
+    void SetNumberOfRaPreambles(uint8_t numberOfRaPreambles);
+    void SetPreambleTransMax(uint8_t preambleTransMax);
+    void SetRaResponseWindowSize(uint8_t raResponseWindowSize);
+    void SetConnEstFailCount(uint8_t connEstFailCount);
 };
 
 } // namespace ns3

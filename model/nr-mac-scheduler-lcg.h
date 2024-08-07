@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "nr-ff-mac-common.h"
 #include "nr-mac-sched-sap.h"
+#include "nr-phy-mac-common.h"
 
 #include <ns3/nstime.h>
 
@@ -33,7 +33,7 @@ class NrMacSchedulerLC
      * \brief NrMacSchedulerLC constructor
      * \param conf Configuration of the LC
      */
-    NrMacSchedulerLC(const LogicalChannelConfigListElement_s& conf);
+    NrMacSchedulerLC(const nr::LogicalChannelConfigListElement_s& conf);
     /**
      * \brief NrMacSchedulerLC default constructor (deletec)
      */

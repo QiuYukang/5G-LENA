@@ -381,11 +381,11 @@ NrNotchingTestCase::DoRun()
             paramsLc.m_rnti = rntiCnt;
             paramsLc.m_reconfigureFlag = false;
 
-            LogicalChannelConfigListElement_s lc;
+            nr::LogicalChannelConfigListElement_s lc;
             lc.m_logicalChannelIdentity = 1;
             lc.m_logicalChannelGroup = 2;
-            lc.m_direction = LogicalChannelConfigListElement_s::DIR_DL;
-            lc.m_qosBearerType = LogicalChannelConfigListElement_s::QBT_NON_GBR;
+            lc.m_direction = nr::LogicalChannelConfigListElement_s::DIR_DL;
+            lc.m_qosBearerType = nr::LogicalChannelConfigListElement_s::QBT_NON_GBR;
             lc.m_qci = 9;
             paramsLc.m_logicalChannelConfigList.emplace_back(lc);
 

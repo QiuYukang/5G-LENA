@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#ifndef NRMACSCHEDSAPPROVIDER_H
-#define NRMACSCHEDSAPPROVIDER_H
+#ifndef NR_MAC_SCHED_SAP_PROVIDER_H
+#define NR_MAC_SCHED_SAP_PROVIDER_H
 
 #include "nr-control-messages.h"
 #include "nr-phy-mac-common.h"
@@ -118,10 +118,10 @@ class NrMacSchedSapProvider
      */
     struct SchedDlRachInfoReqParameters
     {
-        uint16_t m_sfnSf;                                 //!< sfn SF
-        std::vector<struct RachListElement_s> m_rachList; //!< RACH list
+        uint16_t m_sfnSf;                                     //!< sfn SF
+        std::vector<struct nr::RachListElement_s> m_rachList; //!< RACH list
 
-        std::vector<struct VendorSpecificListElement_s>
+        std::vector<struct nr::VendorSpecificListElement_s>
             m_vendorSpecificList; ///< vendor specific list
     };
 
@@ -185,7 +185,7 @@ class NrMacSchedSapUser
     /**
      * \brief ~NrMacSchedSapUser
      */
-    virtual ~NrMacSchedSapUser();
+    virtual ~NrMacSchedSapUser() = default;
 
     /**
      * \brief The SchedConfigIndParameters struct
@@ -202,9 +202,8 @@ class NrMacSchedSapUser
         {
         }
 
-        const SfnSf m_sfnSf;                               //!< The SfnSf
-        SlotAllocInfo m_slotAllocInfo;                     //!< The allocation info
-        std::vector<BuildRarListElement_s> m_buildRarList; ///< build rar list
+        const SfnSf m_sfnSf;           //!< The SfnSf
+        SlotAllocInfo m_slotAllocInfo; //!< The allocation info
     };
 
     /**
@@ -254,11 +253,26 @@ class NrMacSchedSapUser
      * \return the slot period
      */
     virtual Time GetSlotPeriod() const = 0;
+
+    /**
+     * \brief Build RAR list from allocations and assign preamble IDs
+     * @param slotAllocInfo Allocations
+     */
+    virtual void BuildRarList(SlotAllocInfo& slotAllocInfo) = 0;
 };
 
-std::ostream& operator<<(std::ostream& os,
-                         const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& p);
+inline std::ostream&
+operator<<(std::ostream& os, const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& p)
+{
+    os << "RNTI: " << p.m_rnti << " LCId: " << static_cast<uint32_t>(p.m_logicalChannelIdentity)
+       << " RLCTxQueueSize: " << p.m_rlcTransmissionQueueSize
+       << " B, RLCTXHolDel: " << p.m_rlcTransmissionQueueHolDelay
+       << " ms, RLCReTXQueueSize: " << p.m_rlcRetransmissionQueueSize
+       << " B, RLCReTXHolDel: " << p.m_rlcRetransmissionHolDelay
+       << " ms, RLCStatusPduSize: " << p.m_rlcStatusPduSize << " B.";
+    return os;
+}
 
 } // namespace ns3
 
-#endif /* NRMACSCHEDSAPPROVIDER_H */
+#endif /* NR_MAC_SCHED_SAP_PROVIDER_H */

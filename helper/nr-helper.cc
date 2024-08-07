@@ -930,10 +930,10 @@ NrHelper::InstallSingleGnbDevice(
     // Convert Gnb carrier map to only PhyConf map
     // we want to make RRC to be generic, to be able to work with any type of carriers, not only
     // strictly LTE carriers
-    std::map<uint8_t, Ptr<NrComponentCarrierBaseStation>> ccPhyConfMap;
+    std::map<uint8_t, Ptr<BandwidthPartGnb>> ccPhyConfMap;
     for (const auto& i : ccMap)
     {
-        Ptr<NrComponentCarrierBaseStation> c = i.second;
+        Ptr<BandwidthPartGnb> c = i.second;
         ccPhyConfMap.insert(std::make_pair(i.first, c));
     }
 

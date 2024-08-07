@@ -22,7 +22,7 @@ TypeId
 BandwidthPartGnb::GetTypeId()
 {
     static TypeId tid = TypeId("ns3::BandwidthPartGnb")
-                            .SetParent<NrComponentCarrierBaseStation>()
+                            .SetParent<NrComponentCarrier>()
                             .AddConstructor<BandwidthPartGnb>()
                             .AddAttribute("NrGnbPhy",
                                           "The PHY associated to this GnbNetDevice",
@@ -43,7 +43,7 @@ BandwidthPartGnb::GetTypeId()
 }
 
 BandwidthPartGnb::BandwidthPartGnb()
-    : NrComponentCarrierBaseStation()
+    : NrComponentCarrier()
 {
     NS_LOG_FUNCTION(this);
     m_phy = nullptr;
@@ -118,6 +118,19 @@ BandwidthPartGnb::SetAsPrimary(bool primaryCarrier)
     {
         m_phy->SetPrimary();
     }
+}
+
+uint16_t
+BandwidthPartGnb::GetCellId() const
+{
+    return m_cellId;
+}
+
+void
+BandwidthPartGnb::SetCellId(uint16_t cellId)
+{
+    NS_LOG_FUNCTION(this << cellId);
+    m_cellId = cellId;
 }
 
 } // namespace ns3

@@ -70,6 +70,20 @@ SlotAllocInfo::ContainsDlCtrlAllocation() const
 }
 
 bool
+SlotAllocInfo::ContainsUlMsg3Allocation() const
+{
+    NS_LOG_FUNCTION(this);
+    for (const auto& allocation : m_varTtiAllocInfo)
+    {
+        if (allocation.m_dci->m_type == DciInfoElementTdma::MSG3)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
 SlotAllocInfo::ContainsUlCtrlAllocation() const
 {
     NS_LOG_FUNCTION(this);
@@ -171,6 +185,10 @@ operator<<(std::ostream& os, const SlotAllocInfo& item)
         else if (alloc.m_dci->m_type == DciInfoElementTdma::SRS)
         {
             type = "SRS";
+        }
+        else if (alloc.m_dci->m_type == DciInfoElementTdma::MSG3)
+        {
+            type = "MSG3";
         }
         else
         {

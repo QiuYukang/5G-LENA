@@ -172,6 +172,10 @@ class TestSchedSapUser : public NrMacSchedSapUser
         return MilliSeconds(1);
     }
 
+    void BuildRarList(SlotAllocInfo& allocInfo) override
+    {
+    }
+
   private:
     NrSchedGeneralTestCase* m_testCase;
 };
@@ -252,7 +256,7 @@ NrSchedGeneralTestCase::LcConfigFor(uint16_t rnti,
                                     const Ptr<NrMacSchedulerNs3>& sched)
 {
     NrMacCschedSapProvider::CschedLcConfigReqParameters params;
-    LogicalChannelConfigListElement_s lc;
+    nr::LogicalChannelConfigListElement_s lc;
     params.m_rnti = rnti;
     params.m_reconfigureFlag = false;
     params.m_logicalChannelConfigList.emplace_back(lc);

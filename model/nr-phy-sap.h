@@ -38,7 +38,7 @@ class NrPhySapProvider
     /**
      * \brief ~NrPhySapProvider
      */
-    virtual ~NrPhySapProvider();
+    virtual ~NrPhySapProvider() = default;
 
     /**
      * \brief Send a Mac PDU
@@ -157,9 +157,7 @@ class NrGnbPhySapUser
     /**
      * \brief ~NrGnbPhySapUser
      */
-    virtual ~NrGnbPhySapUser()
-    {
-    }
+    virtual ~NrGnbPhySapUser() = default;
 
     /**
      * \brief Notify the MAC of the reception of a new PHY-PDU

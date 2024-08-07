@@ -32,10 +32,9 @@ namespace ns3
  * Deciding the SRS offset and periodicity at RRC would involve the scheduler
  * as well, because the scheduler must not schedule any data that would be
  * on the same resources as the expected SRS (DL or UL). Hence, implementing
- * the decision at RRC would have lead to the complexity of modifying RRC (which
- * is inside the lte module) plus the complexity of informing the scheduler of
- * such decision, including multiple SAP interface modifications to allow
- * intra-layer communication.
+ * the decision at RRC would have lead to the complexity of modifying RRC
+ * plus the complexity of informing the scheduler of such decision, including
+ * multiple SAP interface modifications to allow intra-layer communication.
  *
  * Therefore, we went for implementing such decision inside the scheduler,
  * which will create a DCI format 2_3 to inform the UE about its scheduled

@@ -531,6 +531,13 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     bool IsHarqReTxEnable() const;
 
+    /**
+     * \brief Sets the default RACH UL
+     * grant MCS
+     * \param v the MCS to be used for RACH UL grant
+     */
+    void SetRachUlGrantMcs(uint8_t v);
+
   protected:
     /**
      * \brief Create an UE representation for the scheduler.
@@ -682,9 +689,9 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     virtual void SortUlHarq(ActiveHarqMap* activeUlHarq) const;
 
-    virtual LCGPtr CreateLCG(const LogicalChannelConfigListElement_s& config) const;
+    virtual LCGPtr CreateLCG(const nr::LogicalChannelConfigListElement_s& config) const;
 
-    virtual LCPtr CreateLC(const LogicalChannelConfigListElement_s& config) const;
+    virtual LCPtr CreateLC(const nr::LogicalChannelConfigListElement_s& config) const;
 
     /**
      * \brief Private function that is used to get the number of resource
@@ -821,6 +828,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
                              uint32_t symAvail,
                              const ActiveUeMap& activeUl,
                              SlotAllocInfo* slotAlloc) const;
+    uint8_t DoScheduleUlMsg3(PointInFTPlane* sPoint, uint8_t symAvail, SlotAllocInfo* slotAlloc);
     void DoScheduleUlSr(PointInFTPlane* spoint, const std::list<uint16_t>& rntiList) const;
     uint8_t DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
                          const ActiveHarqMap& activeDlHarq,
@@ -873,6 +881,10 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     int8_t m_maxDlMcs{0};      //!< Maximum index for DL MCS
     Time m_cqiTimersThreshold; //!< The time while a CQI is valid
 
+    uint8_t m_rachUlGrantMcs{0}; //!< The MCS that will be used for UL RACH grant
+    uint8_t m_ulRachBwpIndex{
+        0}; //!< The BWP index for UL RACH, i.e., RRC connection request message
+
     NrMacSchedulerCQIManagement m_cqiManagement; //!< CQI Management
 
     std::vector<DlHarqInfo>
@@ -882,7 +894,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
 
     std::list<uint16_t> m_srList; //!< List of RNTI of UEs that asked for a SR
 
-    std::vector<struct RachListElement_s> m_rachList; //!< rach list
+    std::vector<struct nr::RachListElement_s> m_rachList; //!< rach list
 
     uint16_t m_bandwidth{0};         //!< Bandwidth in number of RBG
     uint8_t m_dlCtrlSymbols{0};      //!< DL ctrl symbols (attribute)

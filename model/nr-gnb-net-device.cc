@@ -236,11 +236,11 @@ NrGnbNetDevice::UpdateConfig()
 
     NS_ASSERT(!m_ccMap.empty());
 
-    std::map<uint8_t, Ptr<NrComponentCarrierBaseStation>> ccPhyConfMap;
+    std::map<uint8_t, Ptr<BandwidthPartGnb>> ccPhyConfMap;
     for (const auto& i : m_ccMap)
     {
-        Ptr<NrComponentCarrierBaseStation> c = i.second;
-        ccPhyConfMap.insert(std::pair<uint8_t, Ptr<NrComponentCarrierBaseStation>>(i.first, c));
+        Ptr<BandwidthPartGnb> c = i.second;
+        ccPhyConfMap.insert(std::pair<uint8_t, Ptr<BandwidthPartGnb>>(i.first, c));
     }
 
     m_rrc->ConfigureCell(ccPhyConfMap);

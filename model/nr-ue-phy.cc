@@ -323,8 +323,18 @@ NrUePhy::ProcessDataDci(const SfnSf& ulSfnSf,
 }
 
 void
-NrUePhy::ProcessSrsDci([[maybe_unused]] const SfnSf& ulSfnSf,
-                       [[maybe_unused]] const std::shared_ptr<DciInfoElementTdma>& dciInfoElem)
+NrUePhy::SendRachPreamble(uint32_t PreambleId, uint32_t Rnti)
+{
+    NS_LOG_FUNCTION(this << PreambleId);
+    m_raPreambleId = PreambleId;
+    Ptr<NrRachPreambleMessage> msg = Create<NrRachPreambleMessage>();
+    msg->SetSourceBwp(GetBwpId());
+    msg->SetRapId(PreambleId);
+    EnqueueCtrlMsgNow(msg);
+}
+
+void
+NrUePhy::ProcessSrsDci(const SfnSf& ulSfnSf, const std::shared_ptr<DciInfoElementTdma>& dciInfoElem)
 {
     NS_LOG_FUNCTION(this);
     // Instruct PHY for transmitting the SRS
@@ -550,16 +560,55 @@ NrUePhy::PhyCtrlMessagesReceived(const Ptr<NrControlMessage>& msg)
     {
         Ptr<NrRarMessage> rarMsg = DynamicCast<NrRarMessage>(msg);
 
-        Simulator::Schedule((GetSlotPeriod() * (GetL1L2CtrlLatency() / 2)),
-                            &NrUePhy::DoReceiveRar,
-                            this,
-                            rarMsg);
+        ProcessRar(rarMsg);
     }
     else
     {
         NS_LOG_INFO("Message type not recognized " << msg->GetMessageType());
         m_phyRxedCtrlMsgsTrace(m_currentSlot, GetCellId(), m_rnti, GetBwpId(), msg);
         m_phySapUser->ReceiveControlMessage(msg);
+    }
+}
+
+void
+NrUePhy::ProcessRar(const Ptr<NrRarMessage>& rarMsg)
+{
+    NS_LOG_FUNCTION(this);
+    bool myRar = false;
+    {
+        for (auto it = rarMsg->RarListBegin(); it != rarMsg->RarListEnd(); ++it)
+        {
+            NS_LOG_INFO("Received RAR in slot"
+                        << m_currentSlot << " with RA premble ID:" << it->rarPayload.raPreambleId);
+            if (it->rarPayload.raPreambleId == m_raPreambleId)
+            {
+                NS_LOG_INFO("Received RAR with RA preamble ID:" << +it->rarPayload.raPreambleId
+                                                                << " current RA preamble ID is :"
+                                                                << m_raPreambleId);
+                // insert allocation
+                SfnSf ulSfnSf = m_currentSlot;
+                uint32_t k2Delay = it->rarPayload.k2Delay;
+                ulSfnSf.Add(k2Delay);
+                NS_LOG_DEBUG("Insert RAR UL DCI allocation for " << ulSfnSf);
+                ProcessDataDci(ulSfnSf, (*it).rarPayload.ulMsg3Dci);
+                myRar = true;
+                // notify MAC and above about transmission opportunity
+                m_phySapUser->ReceiveControlMessage(rarMsg);
+                // fire CTRL msg trace
+                m_phyRxedCtrlMsgsTrace(m_currentSlot, GetCellId(), m_rnti, GetBwpId(), rarMsg);
+                // reset RACH variables with out of range values
+                m_raPreambleId = 255;
+            }
+        }
+        if (!myRar)
+        {
+            NS_LOG_DEBUG("Skipping RAR, does not contain preamble ID."
+                         << "\n My preamble id: " << m_raPreambleId << " found:");
+            for (auto it = rarMsg->RarListBegin(); it != rarMsg->RarListEnd(); ++it)
+            {
+                NS_LOG_DEBUG("rapId: " << (unsigned)it->rarPayload.raPreambleId);
+            }
+        }
     }
 }
 
@@ -597,7 +646,8 @@ NrUePhy::TryToPerformLbt()
             int64_t dciEndsAt = m_lastSlotStart.GetMicroSeconds() +
                                 ((alloc.m_dci->m_numSym + alloc.m_dci->m_symStart) * symbolPeriod);
 
-            if (alloc.m_dci->m_type != DciInfoElementTdma::DATA)
+            if (alloc.m_dci->m_type != DciInfoElementTdma::DATA &&
+                alloc.m_dci->m_type != DciInfoElementTdma::MSG3)
             {
                 continue;
             }
@@ -648,23 +698,6 @@ NrUePhy::RequestAccess()
     NS_LOG_DEBUG("Request access because we have to transmit UL CTRL");
     m_cam->RequestAccess(); // This will put the m_channelStatus to granted when
                             // the channel will be granted.
-}
-
-void
-NrUePhy::DoReceiveRar(Ptr<NrRarMessage> rarMsg)
-{
-    NS_LOG_FUNCTION(this);
-
-    NS_LOG_INFO("Received RAR in slot " << m_currentSlot);
-    m_phyRxedCtrlMsgsTrace(m_currentSlot, GetCellId(), m_rnti, GetBwpId(), rarMsg);
-
-    for (auto it = rarMsg->RarListBegin(); it != rarMsg->RarListEnd(); ++it)
-    {
-        if (it->rapId == m_raPreambleId)
-        {
-            m_phySapUser->ReceiveControlMessage(rarMsg);
-        }
-    }
 }
 
 void
@@ -778,6 +811,13 @@ NrUePhy::StartSlot(const SfnSf& s)
             break;
         case DciInfoElementTdma::VarTtiType::CTRL:
             type = "CTRL";
+            NS_LOG_DEBUG("Allocation from sym "
+                         << static_cast<uint32_t>(alloc.m_dci->m_symStart) << " to sym "
+                         << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
+                         << " direction " << direction << " type " << type);
+            break;
+        case DciInfoElementTdma::VarTtiType::MSG3:
+            type = "MSG3";
             NS_LOG_DEBUG("Allocation from sym "
                          << static_cast<uint32_t>(alloc.m_dci->m_symStart) << " to sym "
                          << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
@@ -983,7 +1023,15 @@ NrUePhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
     {
         // put an error, as something is wrong. The UE should not be scheduled
         // if there is no data for him...
-        NS_FATAL_ERROR("The UE " << dci->m_rnti << " has been scheduled without data");
+        if (dci->m_type != DciInfoElementTdma::MSG3)
+        {
+            NS_FATAL_ERROR("The UE " << dci->m_rnti << " has been scheduled without data");
+        }
+        else
+        {
+            NS_LOG_WARN("Not sending MSG3. Probably in RRC IDEAL mode.");
+            return varTtiDuration;
+        }
     }
     m_reportUlTbSize(m_netDevice->GetObject<NrUeNetDevice>()->GetImsi(), dci->m_tbSize);
 
@@ -1027,7 +1075,8 @@ NrUePhy::StartVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
     {
         varTtiDuration = DlData(dci);
     }
-    else if (dci->m_type == DciInfoElementTdma::DATA && dci->m_format == DciInfoElementTdma::UL)
+    else if ((dci->m_type == DciInfoElementTdma::DATA || dci->m_type == DciInfoElementTdma::MSG3) &&
+             dci->m_format == DciInfoElementTdma::UL)
     {
         varTtiDuration = UlData(dci);
     }

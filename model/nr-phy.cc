@@ -324,12 +324,7 @@ NrPhy::DoSetCellId(uint16_t cellId)
 void
 NrPhy::SendRachPreamble(uint32_t PreambleId, uint32_t Rnti)
 {
-    NS_LOG_FUNCTION(this);
-    m_raPreambleId = PreambleId;
-    Ptr<NrRachPreambleMessage> msg = Create<NrRachPreambleMessage>();
-    msg->SetSourceBwp(GetBwpId());
-    msg->SetRapId(PreambleId);
-    EnqueueCtrlMsgNow(msg);
+    NS_LOG_FUNCTION(this); // overriden only in nr-ue-phy
 }
 
 void

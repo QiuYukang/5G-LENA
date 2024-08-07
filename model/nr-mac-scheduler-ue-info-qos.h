@@ -177,7 +177,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                 std::unique_ptr<NrMacSchedulerLC>& LCPtr = ueLcg.second->GetLC(lcId);
                 double delayBudgetFactor = 1.0;
 
-                if (LCPtr->m_resourceType == LogicalChannelConfigListElement_s::QBT_DGBR)
+                if (LCPtr->m_resourceType == nr::LogicalChannelConfigListElement_s::QBT_DGBR)
                 {
                     delayBudgetFactor =
                         CalculateDelayBudgetFactor(LCPtr->m_delayBudget.GetMilliSeconds(),

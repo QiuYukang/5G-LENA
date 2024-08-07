@@ -8,7 +8,6 @@
 #define SRC_NR_MODEL_NR_PHY_MAC_COMMON_H
 
 #include "nr-error-model.h"
-#include "nr-ff-mac-common.h"
 #include "sfnsf.h"
 
 #include <ns3/log.h>
@@ -115,6 +114,7 @@ struct DciInfoElementTdma
         SRS = 0,  //!< Used for SRS (it would be like DCI format 2_3)
         DATA = 1, //!< Used for DL/UL DATA
         CTRL = 2, //!< Used for DL/UL CTRL
+        MSG3 = 3, //!< Used for UL MSG3
     };
 
     /**
@@ -268,6 +268,15 @@ struct VarTtiAllocInfo
     }
 };
 
+struct NrBuildRarListElement_s
+{
+    std::shared_ptr<DciInfoElementTdma>
+        ulMsg3Dci;             //!< UL MSG3 DCI that will be sent throuhg RAR message
+    uint8_t raPreambleId{255}; //!< RA preamble ID, initialize with out of range values
+    uint32_t k2Delay{100}; //!< delay (in slots) between DL/UL DCI reception and subframe to which
+                           //!< it applies for reception/transmission of Data (k0/k2)
+};
+
 /**
  * \ingroup utils
  * \brief The SlotAllocInfo struct
@@ -305,6 +314,12 @@ struct SlotAllocInfo
     bool ContainsDataAllocation() const;
 
     /**
+     * \brief Check if we have UL MSG3 allocations
+     * \return true if m_varTtiAllocInfo contains data allocations
+     */
+    bool ContainsUlMsg3Allocation() const;
+
+    /**
      * \return true if m_varTtiAllocInfo contains a DL ctrl allocation
      */
     bool ContainsDlCtrlAllocation() const;
@@ -314,11 +329,11 @@ struct SlotAllocInfo
      */
     bool ContainsUlCtrlAllocation() const;
 
-    SfnSf m_sfnSf{};                               //!< SfnSf of this allocation
-    uint32_t m_numSymAlloc{0};                     //!< Number of allocated symbols
-    std::deque<VarTtiAllocInfo> m_varTtiAllocInfo; //!< queue of allocations
-    AllocationType m_type{NONE};                   //!< Allocations type
-
+    SfnSf m_sfnSf{};                                     //!< SfnSf of this allocation
+    uint32_t m_numSymAlloc{0};                           //!< Number of allocated symbols
+    std::deque<VarTtiAllocInfo> m_varTtiAllocInfo;       //!< queue of allocations
+    AllocationType m_type{NONE};                         //!< Allocations type
+    std::vector<NrBuildRarListElement_s> m_buildRarList; //!< build rar list that will be sent to UE
     /**
      * \brief operator < (less than)
      * \param rhs other SlotAllocInfo to compare
@@ -665,6 +680,102 @@ struct UlHarqInfo : public HarqInfo
         return m_receptionStatus == Ok;
     }
 };
+
+namespace nr
+{
+
+/**
+ * \brief Base class for storing the values of vendor specific parameters
+ */
+struct VendorSpecificValue : public SimpleRefCount<VendorSpecificValue>
+{
+    virtual ~VendorSpecificValue(){};
+};
+
+/**
+ * \brief See section 4.3.3 vendorSpecificListElement
+ * \struct VendorSpecificListElement_s
+ */
+struct VendorSpecificListElement_s
+{
+    uint32_t m_type{UINT32_MAX};      ///< type
+    uint32_t m_length{UINT32_MAX};    ///< length
+    Ptr<VendorSpecificValue> m_value; ///< value
+};
+
+/**
+ * \brief See section 4.3.4 logicalChannelConfigListElement
+ * \struct LogicalChannelConfigListElement_s
+ */
+struct LogicalChannelConfigListElement_s
+{
+    uint8_t m_logicalChannelIdentity{UINT8_MAX}; ///< logical channel identity
+    uint8_t m_logicalChannelGroup{UINT8_MAX};    ///< logical channel group
+
+    /// Direction enum
+    enum Direction_e
+    {
+        DIR_UL,
+        DIR_DL,
+        DIR_BOTH,
+        NotValid
+    } m_direction{NotValid}; ///< the direction
+
+    /// QosBearerType enum
+    enum QosBearerType_e
+    {
+        QBT_NON_GBR,
+        QBT_GBR,
+        QBT_DGBR,
+        NotValid_QosBearerType
+    } m_qosBearerType{NotValid_QosBearerType}; ///< the QOS bearer type
+
+    uint8_t m_qci{UINT8_MAX};                       ///< QCI
+    uint64_t m_eRabMaximulBitrateUl{UINT64_MAX};    ///< ERAB maximum bit rate UL
+    uint64_t m_eRabMaximulBitrateDl{UINT64_MAX};    ///< ERAB maximum bit rate DL
+    uint64_t m_eRabGuaranteedBitrateUl{UINT64_MAX}; ///< ERAB guaranteed bit rate UL
+    uint64_t m_eRabGuaranteedBitrateDl{UINT64_MAX}; ///< ERAB guaranteed bit rate DL
+};
+
+/**
+ * \brief See section 4.3.6 rachListElement
+ * \struct RachListElement_s
+ */
+struct RachListElement_s
+{
+    uint16_t m_rnti{UINT16_MAX};          ///< RNTI
+    uint16_t m_estimatedSize{UINT16_MAX}; ///< estimated size
+};
+
+/**
+ * \brief See section 4.3.15 macCEValue
+ */
+struct MacCeValue_u
+{
+    uint8_t m_phr{UINT8_MAX};            ///< phr
+    uint8_t m_crnti{UINT8_MAX};          ///< NRTI
+    std::vector<uint8_t> m_bufferStatus; ///< buffer status
+};
+
+/**
+ * \brief See section 4.3.14 macCEListElement
+ */
+struct MacCeListElement_s
+{
+    uint16_t m_rnti{UINT16_MAX}; ///< RNTI
+
+    /// MAC CE type enum
+    enum MacCeType_e
+    {
+        BSR,
+        PHR,
+        CRNTI,
+        NotValid
+    } m_macCeType{NotValid};          ///< MAC CE type
+    struct MacCeValue_u m_macCeValue; ///< MAC CE value
+};
+
+} // namespace nr
 
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma& item);
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma::DciFormat& item);

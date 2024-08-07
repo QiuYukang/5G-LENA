@@ -226,7 +226,7 @@ class NrUeMac : public Object
      * \brief Received a RA response
      * \param raResponse the response
      */
-    void RecvRaResponse(BuildRarListElement_s raResponse);
+    void RecvRaResponse(NrBuildRarListElement_s raResponse);
     /**
      * \brief Set the RNTI
      */
@@ -277,6 +277,7 @@ class NrUeMac : public Object
     void DoReceivePhyPdu(Ptr<Packet> p);
     void DoReceiveControlMessage(Ptr<NrControlMessage> msg);
     // void DoNotifyHarqDeliveryFailure (uint8_t harqId);
+    void RaResponseTimeout(bool contention);
 
     // forwarded from UE CMAC SAP
     void DoConfigureRach(NrUeCmacSapProvider::RachConfig rc);
@@ -463,6 +464,19 @@ class NrUeMac : public Object
      */
     TracedCallback<SfnSf, uint16_t, uint16_t, uint8_t, Ptr<const NrControlMessage>>
         m_macTxedCtrlMsgsTrace;
+
+    /**
+     * \brief The `RaResponseTimeout` trace source. Fired RA response timeout.
+     * Exporting IMSI, contention flag, preamble transmission counter
+     * and the max limit of preamble transmission.
+     */
+    TracedCallback<uint64_t, bool, uint8_t, uint8_t> m_raResponseTimeoutTrace;
+
+    void StartWaitingForRaResponse();
+    bool m_rachConfigured = false;                ///< is RACH configured?
+    NrUeCmacSapProvider::RachConfig m_rachConfig; ///< RACH configuration
+    uint8_t m_preambleTransmissionCounter{0};     ///< preamble transmission counter
+    EventId m_noRaResponseReceivedEvent;          ///< no RA response received event ID
 };
 
 } // namespace ns3

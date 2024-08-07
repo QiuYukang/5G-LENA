@@ -31,7 +31,6 @@ class NrEpcTft;
 class NrBearerStatsCalculator;
 class NrMacRxTrace;
 class NrPhyRxTrace;
-class NrComponentCarrierGnb;
 class NrMacScheduler;
 class NrGnbNetDevice;
 class NrUeNetDevice;

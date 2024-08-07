@@ -221,7 +221,11 @@ NrUeMac::GetTypeId()
             .AddTraceSource("UeMacTxedCtrlMsgsTrace",
                             "Ue MAC Control Messages Traces.",
                             MakeTraceSourceAccessor(&NrUeMac::m_macTxedCtrlMsgsTrace),
-                            "ns3::NrMacRxTrace::TxedUeMacCtrlMsgsTracedCallback");
+                            "ns3::NrMacRxTrace::TxedUeMacCtrlMsgsTracedCallback")
+            .AddTraceSource("RaResponseTimeout",
+                            "Trace fired upon RA response timeout",
+                            MakeTraceSourceAccessor(&NrUeMac::m_raResponseTimeoutTrace),
+                            "ns3::NrUeMac::RaResponseTimeoutTracedCallback");
     return tid;
 }
 
@@ -345,6 +349,11 @@ void
 NrUeMac::DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params)
 {
     NS_LOG_FUNCTION(this);
+    if (m_ulDci == nullptr)
+    {
+        return;
+    }
+    NS_ASSERT(m_ulDci);
     NS_ASSERT(m_ulDci->m_harqProcess == params.harqProcessId);
 
     m_miUlHarqProcessesPacket.at(params.harqProcessId).m_lcidList.push_back(params.lcid);
@@ -358,6 +367,10 @@ NrUeMac::DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params)
     NrRadioBearerTag bearerTag(params.rnti, params.lcid, 0);
     params.pdu->AddPacketTag(bearerTag);
 
+    if (!m_miUlHarqProcessesPacket.at(params.harqProcessId).m_pktBurst)
+    {
+        m_miUlHarqProcessesPacket.at(params.harqProcessId).m_pktBurst = CreateObject<PacketBurst>();
+    }
     m_miUlHarqProcessesPacket.at(params.harqProcessId).m_pktBurst->AddPacket(params.pdu);
     m_miUlHarqProcessesPacketTimer.at(params.harqProcessId) = GetNumHarqProcess();
 
@@ -586,6 +599,11 @@ NrUeMac::DoReceivePhyPdu(Ptr<Packet> p)
     rxParams.lcid = header.GetLcId();
 
     auto it = m_lcInfoMap.find(header.GetLcId());
+    // Ignore non-existing lcids
+    if (it == m_lcInfoMap.end())
+    {
+        return;
+    }
 
     // p can be empty. Well, right now no, but when someone will add CE in downlink,
     // then p can be empty.
@@ -596,13 +614,49 @@ NrUeMac::DoReceivePhyPdu(Ptr<Packet> p)
 }
 
 void
-NrUeMac::RecvRaResponse(BuildRarListElement_s raResponse)
+NrUeMac::RecvRaResponse(NrBuildRarListElement_s raResponse)
 {
     NS_LOG_FUNCTION(this);
     m_waitingForRaResponse = false;
-    m_rnti = raResponse.m_rnti;
+    m_noRaResponseReceivedEvent.Cancel();
+    NS_LOG_INFO(" IMSI " << m_imsi << " RNTI " << m_rnti << " received RAR for RA preamble ID "
+                         << +m_raPreambleId
+                         << ", setting T-C-RNTI = " << raResponse.ulMsg3Dci->m_rnti
+                         << " at: " << Simulator::Now().As(Time::MS));
+    m_rnti = raResponse.ulMsg3Dci->m_rnti;
     m_cmacSapUser->SetTemporaryCellRnti(m_rnti);
+    // in principle we should wait for contention resolution,
+    // but in the current NR model when two or more identical
+    // preambles are sent no one is received, so there is no need
+    // for contention resolution
     m_cmacSapUser->NotifyRandomAccessSuccessful();
+    // Trigger Tx opportunity for Message 3 over LC 0
+    // this is needed since Message 3's UL GRANT is in the RAR, not in UL-DCIs
+    const uint8_t lc0Lcid = 0;
+    auto lc0InfoIt = m_lcInfoMap.find(lc0Lcid);
+    NS_ASSERT_MSG(lc0InfoIt != m_lcInfoMap.end(),
+                  "LC0 not mapped to this UE MAC with bwpId:" << GetBwpId());
+    auto lc0BsrIt = m_ulBsrReceived.find(lc0Lcid);
+    if ((lc0BsrIt != m_ulBsrReceived.end()) && (lc0BsrIt->second.txQueueSize > 0))
+    {
+        NS_LOG_INFO(
+            "Notify RLC about transmission opportunity for sending RRC CONNECTION REQUEST.");
+        NS_ASSERT_MSG(raResponse.ulMsg3Dci->m_tbSize > lc0BsrIt->second.txQueueSize,
+                      "segmentation of Message 3 is not allowed");
+        NrMacSapUser::TxOpportunityParameters txOpParams;
+        txOpParams.lcid = lc0Lcid;
+        txOpParams.rnti = m_rnti;
+        txOpParams.bytes = raResponse.ulMsg3Dci->m_tbSize;
+        txOpParams.layer = 0;
+        txOpParams.harqId = 0;
+        txOpParams.componentCarrierId = GetBwpId();
+
+        lc0InfoIt->second.macSapUser->NotifyTxOpportunity(txOpParams);
+        lc0BsrIt->second.txQueueSize = 0;
+        lc0BsrIt->second.retxQueueSize = 0;
+        lc0BsrIt->second.statusPduSize = 0;
+        m_ulBsrReceived.erase(lc0BsrIt);
+    }
 }
 
 void
@@ -992,7 +1046,7 @@ NrUeMac::DoReceiveControlMessage(Ptr<NrControlMessage> msg)
                                                  << +m_raRnti);
             for (auto it = rarMsg->RarListBegin(); it != rarMsg->RarListEnd(); ++it)
             {
-                if (it->rapId == m_raPreambleId)
+                if (it->rarPayload.raPreambleId == m_raPreambleId)
                 {
                     RecvRaResponse(it->rarPayload);
                 }
@@ -1019,9 +1073,43 @@ NrUeMac::SetPhySapProvider(NrPhySapProvider* ptr)
 }
 
 void
-NrUeMac::DoConfigureRach([[maybe_unused]] LteUeCmacSapProvider::RachConfig rc)
+NrUeMac::RaResponseTimeout(bool contention)
+{
+    NS_LOG_FUNCTION(this << contention);
+    m_waitingForRaResponse = false;
+    // 3GPP 36.321 5.1.4
+    ++m_preambleTransmissionCounter;
+    // fire RA response timeout trace
+    m_raResponseTimeoutTrace(m_imsi,
+                             contention,
+                             m_preambleTransmissionCounter,
+                             m_rachConfig.preambleTransMax + 1);
+    if (m_preambleTransmissionCounter == m_rachConfig.preambleTransMax + 1)
+    {
+        NS_LOG_INFO("RAR timeout, preambleTransMax reached => giving up");
+        m_cmacSapUser->NotifyRandomAccessFailed();
+    }
+    else
+    {
+        NS_LOG_INFO("RAR timeout while waiting for raPreambleId " << +m_raPreambleId
+                                                                  << " re-send preamble");
+        if (contention)
+        {
+            RandomlySelectAndSendRaPreamble();
+        }
+        else
+        {
+            SendRaPreamble(contention);
+        }
+    }
+}
+
+void
+NrUeMac::DoConfigureRach(NrUeCmacSapProvider::RachConfig rc)
 {
     NS_LOG_FUNCTION(this);
+    m_rachConfig = rc;
+    m_rachConfigured = true;
 }
 
 void
@@ -1035,25 +1123,51 @@ void
 NrUeMac::RandomlySelectAndSendRaPreamble()
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_DEBUG(m_currentSlot << " Received System Information, send to PHY the RA preamble");
+    // 3GPP 36.321 5.1.1
+    NS_ASSERT_MSG(m_rachConfigured, "RACH not configured");
+    // assume that there is no Random Access Preambles group B
+    m_raPreambleId =
+        m_raPreambleUniformVariable->GetInteger(0, m_rachConfig.numberOfRaPreambles - 1);
+    NS_LOG_DEBUG(m_currentSlot << " Received System Information, send to PHY the "
+                                  "RA preamble: "
+                               << m_raPreambleId);
     SendRaPreamble(true);
 }
 
 void
 NrUeMac::SendRaPreamble(bool contention)
 {
-    NS_LOG_FUNCTION(this);
-    // m_raPreambleId = m_raPreambleUniformVariable->GetInteger (0, 64 - 1);
-    m_raPreambleId = g_raPreambleId++;
+    NS_LOG_FUNCTION(this << (uint32_t)m_raPreambleId << contention);
+
+    if (contention)
+    {
+        // m_raPreambleId = m_raPreambleUniformVariable->GetInteger (0, 64 - 1);
+        m_raPreambleId = g_raPreambleId++;
+    }
     /*raRnti should be subframeNo -1 */
     m_raRnti = 1;
 
+    // 3GPP 36.321 5.1.4
+    m_phySapProvider->SendRachPreamble(m_raPreambleId, m_raRnti);
+    NS_LOG_INFO(" Sent preamble id " << +m_raPreambleId
+                                     << " at: " << Simulator::Now().As(Time::MS));
+    Time raWindowBegin = m_phySapProvider->GetSlotPeriod();
+    Time raWindowEnd = m_phySapProvider->GetSlotPeriod() * (6 + m_rachConfig.raResponseWindowSize);
+    Simulator::Schedule(raWindowBegin, &NrUeMac::StartWaitingForRaResponse, this);
+    m_noRaResponseReceivedEvent =
+        Simulator::Schedule(raWindowEnd, &NrUeMac::RaResponseTimeout, this, contention);
+
+    // Tracing purposes
     Ptr<NrRachPreambleMessage> rachMsg = Create<NrRachPreambleMessage>();
     rachMsg->SetSourceBwp(GetBwpId());
     m_macTxedCtrlMsgsTrace(m_currentSlot, GetCellId(), m_rnti, GetBwpId(), rachMsg);
 }
 
-    m_phySapProvider->SendRachPreamble(m_raPreambleId, m_raRnti);
+void
+NrUeMac::StartWaitingForRaResponse()
+{
+    NS_LOG_FUNCTION(this);
+    m_waitingForRaResponse = true;
 }
 
 void
@@ -1066,6 +1180,10 @@ NrUeMac::DoStartNonContentionBasedRandomAccessProcedure(uint16_t rnti,
                   "requested PRACH MASK = " << (uint32_t)prachMask
                                             << ", but only PRACH MASK = 0 is supported");
     m_rnti = rnti;
+    m_raPreambleId = preambleId;
+    m_preambleTransmissionCounter = 0;
+    bool contention = false;
+    SendRaPreamble(contention);
 }
 
 void
@@ -1085,6 +1203,29 @@ void
 NrUeMac::DoRemoveLc(uint8_t lcId)
 {
     NS_LOG_FUNCTION(this << " lcId" << lcId);
+    NS_ASSERT_MSG(m_lcInfoMap.find(lcId) != m_lcInfoMap.end(),
+                  "could not find LCID " << (uint16_t)lcId);
+    m_lcInfoMap.erase(lcId);
+    m_ulBsrReceived.erase(lcId); // empty BSR buffer for this lcId
+    // for (auto& harqProcess: m_miUlHarqProcessesPacket)
+    //{
+    //     uint32_t packets = harqProcess.m_pktBurst->GetNPackets();
+    //     auto itPackets = harqProcess.m_pktBurst->GetPackets();
+    //     for (uint32_t p = 0; p < packets; p++)
+    //     {
+    //         uint32_t i = packets-p-1;
+    //         if (harqProcess.m_lcidList.at(i) == lcId)
+    //         {
+    //             // how to erase from packetburst?
+    //             //auto it = itPackets.begin();
+    //             //std::advance(it, i);
+    //             //harqProcess.m_pktBurst->GetPackets().erase(it);
+    //             auto it2 = harqProcess.m_lcidList.begin();
+    //             std::advance(it2, i);
+    //             harqProcess.m_lcidList.erase(it2);
+    //         }
+    //     }
+    // }
 }
 
 NrMacSapProvider*
@@ -1097,6 +1238,25 @@ void
 NrUeMac::DoReset()
 {
     NS_LOG_FUNCTION(this);
+    auto it = m_lcInfoMap.begin();
+    while (it != m_lcInfoMap.end())
+    {
+        // don't delete CCCH)
+        if (it->first == 0)
+        {
+            ++it;
+        }
+        else
+        {
+            // note: use of postfix operator preserves validity of iterator
+            m_lcInfoMap.erase(it++);
+        }
+    }
+    // note: rnti will be assigned by the gNB using RA response message
+    m_rnti = 0;
+    m_noRaResponseReceivedEvent.Cancel();
+    m_rachConfigured = false;
+    m_ulBsrReceived.clear();
 }
 
 //////////////////////////////////////////////

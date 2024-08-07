@@ -23,7 +23,7 @@ class NrMacScheduler;
  *
  * Defines a single bandwidth part for the GNB.
  */
-class BandwidthPartGnb : public NrComponentCarrierBaseStation
+class BandwidthPartGnb : public NrComponentCarrier
 {
   public:
     /**
@@ -88,6 +88,18 @@ class BandwidthPartGnb : public NrComponentCarrierBaseStation
      */
     void SetAsPrimary(bool primaryCarrier);
 
+    /**
+     * Get cell identifier
+     * \return cell identifier
+     */
+    uint16_t GetCellId() const;
+
+    /**
+     * Set physical cell identifier
+     * \param cellId cell identifier
+     */
+    void SetCellId(uint16_t cellId);
+
   protected:
     /**
      * \brief DoDispose method inherited from Object
@@ -98,6 +110,7 @@ class BandwidthPartGnb : public NrComponentCarrierBaseStation
     Ptr<NrGnbPhy> m_phy;             ///< the Phy instance of this eNodeB component carrier
     Ptr<NrGnbMac> m_mac;             ///< the MAC instance of this eNodeB component carrier
     Ptr<NrMacScheduler> m_scheduler; ///< the scheduler instance of this eNodeB component carrier
+    uint16_t m_cellId{0};            ///< Cell identifier
 };
 
 } // namespace ns3

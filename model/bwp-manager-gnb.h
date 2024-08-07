@@ -109,7 +109,7 @@ class BwpManagerGnb : public NrRrComponentCarrierManager
      * \param bsr the BSR
      * \param componentCarrierId the component carrier ID
      */
-    void DoUlReceiveMacCe(MacCeListElement_s bsr, uint8_t componentCarrierId) override;
+    void DoUlReceiveMacCe(nr::MacCeListElement_s bsr, uint8_t componentCarrierId) override;
 
     /**
      * \brief Forward SR to the right MAC instance through CCM SAP interface

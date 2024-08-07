@@ -251,6 +251,7 @@ class NrMacMemberMacSchedSapUser : public NrMacSchedSapUser
     uint16_t GetCellId() const override;
     uint32_t GetSymbolsPerSlot() const override;
     Time GetSlotPeriod() const override;
+    void BuildRarList(SlotAllocInfo& slotAllocInfo) override;
 
   private:
     NrGnbMac* m_mac;
@@ -310,6 +311,12 @@ Time
 NrMacMemberMacSchedSapUser::GetSlotPeriod() const
 {
     return m_mac->m_phySapProvider->GetSlotPeriod();
+}
+
+void
+NrMacMemberMacSchedSapUser::BuildRarList(ns3::SlotAllocInfo& slotAllocInfo)
+{
+    m_mac->DoBuildRarList(slotAllocInfo);
 }
 
 class NrMacMemberMacCschedSapUser : public NrMacCschedSapUser
@@ -427,7 +434,30 @@ NrGnbMac::GetTypeId()
             .AddTraceSource("DlHarqFeedback",
                             "Harq feedback.",
                             MakeTraceSourceAccessor(&NrGnbMac::m_dlHarqFeedback),
-                            "ns3::NrGnbMac::DlHarqFeedbackTracedCallback");
+                            "ns3::NrGnbMac::DlHarqFeedbackTracedCallback")
+            .AddAttribute("NumberOfRaPreambles",
+                          "How many random access preambles are available for the contention based "
+                          "RACH process",
+                          UintegerValue(52),
+                          MakeUintegerAccessor(&NrGnbMac::SetNumberOfRaPreambles),
+                          MakeUintegerChecker<uint8_t>(4, 64))
+            .AddAttribute("PreambleTransMax",
+                          "Maximum number of random access preamble transmissions",
+                          UintegerValue(50),
+                          MakeUintegerAccessor(&NrGnbMac::SetPreambleTransMax),
+                          MakeUintegerChecker<uint8_t>(3, 200))
+            .AddAttribute(
+                "RaResponseWindowSize",
+                "Length of the window for the reception of the random access response (RAR); "
+                "the resulting RAR timeout is this value + 5 ms",
+                UintegerValue(3),
+                MakeUintegerAccessor(&NrGnbMac::SetRaResponseWindowSize),
+                MakeUintegerChecker<uint8_t>(2, 10))
+            .AddAttribute("ConnEstFailCount",
+                          "How many time T300 timer can expire on the same cell",
+                          UintegerValue(1),
+                          MakeUintegerAccessor(&NrGnbMac::SetConnEstFailCount),
+                          MakeUintegerChecker<uint8_t>(1, 4));
     return tid;
 }
 
@@ -460,6 +490,30 @@ NrGnbMac::DoDispose()
     delete m_macCschedSapUser;
     delete m_phySapUser;
     delete m_ccmMacSapProvider;
+}
+
+void
+NrGnbMac::SetNumberOfRaPreambles(uint8_t numberOfRaPreambles)
+{
+    m_numberOfRaPreambles = numberOfRaPreambles;
+}
+
+void
+NrGnbMac::SetPreambleTransMax(uint8_t preambleTransMax)
+{
+    m_preambleTransMax = preambleTransMax;
+}
+
+void
+NrGnbMac::SetRaResponseWindowSize(uint8_t raResponseWindowSize)
+{
+    m_raResponseWindowSize = raResponseWindowSize;
+}
+
+void
+NrGnbMac::SetConnEstFailCount(uint8_t connEstFailCount)
+{
+    m_connEstFailCount = connEstFailCount;
 }
 
 void
@@ -613,10 +667,71 @@ NrGnbMac::DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 }
 
 void
+NrGnbMac::ProcessRaPreambles(const SfnSf& sfnSf)
+{
+    NS_LOG_FUNCTION(this);
+
+    // process received RACH preambles and notify the scheduler
+    NrMacSchedSapProvider::SchedDlRachInfoReqParameters rachInfoReqParams;
+
+    for (auto it = m_receivedRachPreambleCount.begin(); it != m_receivedRachPreambleCount.end();
+         ++it)
+    {
+        NS_LOG_INFO(this << " preambleId " << static_cast<uint32_t>(it->first) << ": " << it->second
+                         << " received");
+        NS_ASSERT(it->second != 0);
+        if (it->second > 1)
+        {
+            NS_LOG_INFO("preambleId " << static_cast<uint32_t>(it->first) << ": collision"
+                                      << " at: " << Simulator::Now().As(Time::MS));
+            // in case of collision we assume that no preamble is
+            // successfully received, hence no RAR is sent
+        }
+        else
+        {
+            uint16_t rnti;
+            std::map<uint8_t, NcRaPreambleInfo>::iterator jt =
+                m_allocatedNcRaPreambleMap.find(it->first);
+            if (jt != m_allocatedNcRaPreambleMap.end())
+            {
+                rnti = jt->second.rnti;
+                NS_LOG_INFO("preambleId previously allocated for NC based RA, RNTI ="
+                            << static_cast<uint32_t>(rnti) << ", sending RAR"
+                            << " at: " << Simulator::Now().As(Time::MS));
+            }
+            else
+            {
+                rnti = m_cmacSapUser->AllocateTemporaryCellRnti();
+                NS_LOG_INFO("preambleId " << static_cast<uint32_t>(it->first)
+                                          << ": allocated T-C-RNTI " << static_cast<uint32_t>(rnti)
+                                          << ", sending RAR "
+                                          << " at: " << Simulator::Now().As(Time::MS));
+            }
+
+            NS_LOG_INFO("Informing MAC scheduler of the RACH preamble for "
+                        << static_cast<uint16_t>(it->first) << " in slot " << sfnSf);
+            nr::RachListElement_s rachLe;
+            rachLe.m_rnti = rnti;
+            rachLe.m_estimatedSize = 144; // to be confirmed
+            rachInfoReqParams.m_rachList.push_back(rachLe);
+            m_rapIdRntiMap.insert(std::pair<uint16_t, uint32_t>(rnti, it->first));
+        }
+    }
+
+    m_receivedRachPreambleCount.clear();
+    m_macSchedSapProvider->SchedDlRachInfoReq(rachInfoReqParams);
+}
+
+void
 NrGnbMac::DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type)
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_LOGIC("Perform things on UL, slot on the air: " << sfnSf);
+
+    if (!m_receivedRachPreambleCount.empty())
+    {
+        ProcessRaPreambles(sfnSf);
+    }
 
     // --- UPLINK ---
     // Send UL-CQI info to the scheduler
@@ -690,9 +805,10 @@ void
 NrGnbMac::ReceiveBsrMessage(MacCeElement bsr)
 {
     NS_LOG_FUNCTION(this);
-    // in order to use existing SAP interfaces we need to convert MacCeElement to MacCeListElement_s
+    // in order to use existing SAP interfaces we need to convert MacCeElement to
+    // nr::MacCeListElement_s
 
-    MacCeListElement_s mcle;
+    nr::MacCeListElement_s mcle;
     mcle.m_rnti = bsr.m_rnti;
     mcle.m_macCeValue.m_bufferStatus = bsr.m_macCeValue.m_bufferStatus;
     mcle.m_macCeValue.m_crnti = bsr.m_macCeValue.m_crnti;
@@ -701,29 +817,29 @@ NrGnbMac::ReceiveBsrMessage(MacCeElement bsr)
 
     if (bsr.m_macCeType == MacCeElement::BSR)
     {
-        mcle.m_macCeType = MacCeListElement_s::BSR;
+        mcle.m_macCeType = nr::MacCeListElement_s::BSR;
     }
     else if (bsr.m_macCeType == MacCeElement::CRNTI)
     {
-        mcle.m_macCeType = MacCeListElement_s::CRNTI;
+        mcle.m_macCeType = nr::MacCeListElement_s::CRNTI;
     }
     else if (bsr.m_macCeType == MacCeElement::PHR)
     {
-        mcle.m_macCeType = MacCeListElement_s::PHR;
+        mcle.m_macCeType = nr::MacCeListElement_s::PHR;
     }
 
     m_ccmMacSapUser->UlReceiveMacCe(mcle, GetBwpId());
 }
 
 void
-NrGnbMac::DoReportMacCeToScheduler(MacCeListElement_s bsr)
+NrGnbMac::DoReportMacCeToScheduler(nr::MacCeListElement_s bsr)
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG(this << " bsr Size " << (uint16_t)m_ulCeReceived.size());
     uint32_t size = 0;
 
     // send to NrCcmMacSapUser
-    // convert MacCeListElement_s to MacCeElement
+    // convert nr::MacCeListElement_s to MacCeElement
 
     MacCeElement mce;
     mce.m_rnti = bsr.m_rnti;
@@ -732,15 +848,15 @@ NrGnbMac::DoReportMacCeToScheduler(MacCeListElement_s bsr)
     mce.m_macCeValue.m_phr = bsr.m_macCeValue.m_phr;
     mce.m_macCeValue.m_bufferStatus = bsr.m_macCeValue.m_bufferStatus;
 
-    if (bsr.m_macCeType == MacCeListElement_s::BSR)
+    if (bsr.m_macCeType == nr::MacCeListElement_s::BSR)
     {
         mce.m_macCeType = MacCeElement::BSR;
     }
-    else if (bsr.m_macCeType == MacCeListElement_s::CRNTI)
+    else if (bsr.m_macCeType == nr::MacCeListElement_s::CRNTI)
     {
         mce.m_macCeType = MacCeElement::CRNTI;
     }
-    else if (bsr.m_macCeType == MacCeListElement_s::PHR)
+    else if (bsr.m_macCeType == nr::MacCeListElement_s::PHR)
     {
         mce.m_macCeType = MacCeElement::PHR;
     }
@@ -1006,37 +1122,56 @@ NrGnbMac::DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params)
 }
 
 void
-NrGnbMac::SendRar(const std::vector<BuildRarListElement_s>& rarList)
+NrGnbMac::DoBuildRarList(SlotAllocInfo& slotAllocInfo)
 {
     NS_LOG_FUNCTION(this);
 
-    // Random Access procedure: send RARs
-    Ptr<NrRarMessage> rarMsg = Create<NrRarMessage>();
-    uint16_t raRnti = 1; // NO!! 38.321-5.1.3
-    rarMsg->SetRaRnti(raRnti);
-    rarMsg->SetSourceBwp(GetBwpId());
-    for (const auto& rarAllocation : rarList)
+    if (!HasMsg3Allocations(slotAllocInfo))
     {
-        auto itRapId = m_rapIdRntiMap.find(rarAllocation.m_rnti);
-        NS_ABORT_IF(itRapId == m_rapIdRntiMap.end());
-        NrRarMessage::Rar rar;
-        rar.rapId = itRapId->second;
-        rar.rarPayload = rarAllocation;
-        rarMsg->AddRar(rar);
-        NS_LOG_INFO("In slot " << m_currentSlot << " send to PHY the RAR message for RNTI "
-                               << rarAllocation.m_rnti << " rapId " << itRapId->second);
-        m_macTxedCtrlMsgsTrace(m_currentSlot,
-                               GetCellId(),
-                               rarAllocation.m_rnti,
-                               GetBwpId(),
-                               rarMsg);
+        return;
     }
 
-    if (!rarList.empty())
+    for (const auto& varTti : slotAllocInfo.m_varTtiAllocInfo)
     {
-        m_phySapProvider->SendControlMessage(rarMsg);
-        m_rapIdRntiMap.clear();
+        if (varTti.m_dci->m_type == DciInfoElementTdma::MSG3)
+        {
+            NrBuildRarListElement_s rarElement;
+            rarElement.ulMsg3Dci = varTti.m_dci;
+            // set RA preamble ID
+            auto itRaPreambleId = m_rapIdRntiMap.find(rarElement.ulMsg3Dci->m_rnti);
+            NS_ABORT_IF(itRaPreambleId == m_rapIdRntiMap.end());
+            NS_LOG_INFO("In slot " << m_currentSlot
+                                   << " gNB MAC pass to PHY the RAR message for RNTI "
+                                   << rarElement.ulMsg3Dci->m_rnti << " RA preamble ID "
+                                   << itRaPreambleId->second << " at:" << Simulator::Now());
+            rarElement.raPreambleId = itRaPreambleId->second; //!< set RA preamble ID
+            // K2 will be set by phy
+            slotAllocInfo.m_buildRarList.push_back(rarElement);
+        }
     }
+
+    if (!slotAllocInfo.m_buildRarList.empty())
+    {
+        m_rapIdRntiMap.clear(); // reset RA preamble to RNTI MAP
+        NS_LOG_DEBUG("Sending RAR message to UE.");
+    }
+    else
+    {
+        NS_LOG_DEBUG("No RAR messages to be sent.");
+    }
+}
+
+bool
+NrGnbMac::HasMsg3Allocations(const SlotAllocInfo& slotInfo)
+{
+    for (const auto& varTti : slotInfo.m_varTtiAllocInfo)
+    {
+        if (varTti.m_dci->m_type == DciInfoElementTdma::MSG3)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void
@@ -1051,8 +1186,6 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
         NS_LOG_INFO("New scheduled allocation: " << ind.m_slotAllocInfo);
     }
     m_phySapProvider->SetSlotAllocInfo(ind.m_slotAllocInfo);
-
-    SendRar(ind.m_buildRarList);
 
     for (auto& varTtiAllocInfo : ind.m_slotAllocInfo.m_varTtiAllocInfo)
     {
@@ -1330,6 +1463,25 @@ NrGnbMac::DoRemoveUe(uint16_t rnti)
     m_macCschedSapProvider->CschedUeReleaseReq(params);
     m_miDlHarqProcessesPackets.erase(rnti);
     m_rlcAttached.erase(rnti);
+
+    // remove unprocessed preamble received for RACH during handover
+    auto jt = m_allocatedNcRaPreambleMap.begin();
+    while (jt != m_allocatedNcRaPreambleMap.end())
+    {
+        if (jt->second.rnti == rnti)
+        {
+            auto it = m_receivedRachPreambleCount.find(jt->first);
+            if (it != m_receivedRachPreambleCount.end())
+            {
+                m_receivedRachPreambleCount.erase(it->first);
+            }
+            jt = m_allocatedNcRaPreambleMap.erase(jt);
+        }
+        else
+        {
+            ++jt;
+        }
+    }
 }
 
 void
@@ -1361,18 +1513,18 @@ NrGnbMac::DoAddLc(NrGnbCmacSapProvider::LcInfo lcinfo, NrMacSapUser* msu)
         params.m_rnti = lcinfo.rnti;
         params.m_reconfigureFlag = false;
 
-        struct LogicalChannelConfigListElement_s lccle;
+        struct nr::LogicalChannelConfigListElement_s lccle;
         lccle.m_logicalChannelIdentity = lcinfo.lcId;
         lccle.m_logicalChannelGroup = lcinfo.lcGroup;
-        lccle.m_direction = LogicalChannelConfigListElement_s::DIR_BOTH;
+        lccle.m_direction = nr::LogicalChannelConfigListElement_s::DIR_BOTH;
         lccle.m_qci = lcinfo.qci;
         lccle.m_eRabMaximulBitrateUl = lcinfo.mbrUl;
         lccle.m_eRabMaximulBitrateDl = lcinfo.mbrDl;
         lccle.m_eRabGuaranteedBitrateUl = lcinfo.gbrUl;
         lccle.m_eRabGuaranteedBitrateDl = lcinfo.gbrDl;
 
-        lccle.m_qosBearerType =
-            static_cast<LogicalChannelConfigListElement_s::QosBearerType_e>(lcinfo.resourceType);
+        lccle.m_qosBearerType = static_cast<nr::LogicalChannelConfigListElement_s::QosBearerType_e>(
+            lcinfo.resourceType);
 
         params.m_logicalChannelConfigList.push_back(lccle);
 
@@ -1416,24 +1568,75 @@ NrGnbMac::UeUpdateConfigurationReq(NrGnbCmacSapProvider::UeConfig params)
 NrGnbCmacSapProvider::RachConfig
 NrGnbMac::DoGetRachConfig()
 {
-    // UEs in NR does not choose RACH preambles randomly, therefore,
-    // it does not rely on the following parameters. However, the
-    // recent change in NrUeRrc class introduced an assert to
-    // check the correct value of connEstFailCount parameter.
-    // Thus, we need to assign dummy but correct values to
-    // avoid this assert in NrUeRrc class.
-    NrGnbCmacSapProvider::RachConfig rc;
-    rc.numberOfRaPreambles = 52;
-    rc.preambleTransMax = 50;
-    rc.raResponseWindowSize = 3;
-    rc.connEstFailCount = 1;
+    NS_LOG_FUNCTION(this);
+    struct NrGnbCmacSapProvider::RachConfig rc;
+    rc.numberOfRaPreambles = m_numberOfRaPreambles;
+    rc.preambleTransMax = m_preambleTransMax;
+    rc.raResponseWindowSize = m_raResponseWindowSize;
+    rc.connEstFailCount = m_connEstFailCount;
     return rc;
 }
 
 NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue
 NrGnbMac::DoAllocateNcRaPreamble(uint16_t rnti)
 {
-    return NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue();
+    bool found = false;
+    uint8_t preambleId;
+    for (preambleId = m_numberOfRaPreambles; preambleId < 64; ++preambleId)
+    {
+        std::map<uint8_t, NcRaPreambleInfo>::iterator it =
+            m_allocatedNcRaPreambleMap.find(preambleId);
+        /**
+         * Allocate preamble only if its free. The non-contention preamble
+         * assigned to UE during handover or PDCCH order is valid only until the
+         * time duration of the “expiryTime” of the preamble is reached. This
+         * timer value is only maintained at the gNB and the UE has no way of
+         * knowing if this timer has expired. If the UE tries to send the preamble
+         * again after the expiryTime and the preamble is re-assigned to another
+         * UE, it results in errors. This has been solved by re-assigning the
+         * preamble to another UE only if it is not being used (An UE can be using
+         * the preamble even after the expiryTime duration).
+         */
+        if ((it != m_allocatedNcRaPreambleMap.end()) && (it->second.expiryTime < Simulator::Now()))
+        {
+            if (!m_cmacSapUser->IsRandomAccessCompleted(it->second.rnti))
+            {
+                // random access of the UE is not completed,
+                // check other preambles
+                continue;
+            }
+        }
+        if ((it == m_allocatedNcRaPreambleMap.end()) || (it->second.expiryTime < Simulator::Now()))
+        {
+            found = true;
+            NcRaPreambleInfo preambleInfo;
+            uint32_t expiryIntervalMs =
+                (uint32_t)m_preambleTransMax * ((uint32_t)m_raResponseWindowSize + 5);
+
+            preambleInfo.expiryTime = Simulator::Now() + MilliSeconds(expiryIntervalMs);
+            preambleInfo.rnti = rnti;
+            NS_LOG_INFO("allocated preamble for NC based RA: preamble "
+                        << preambleId << ", RNTI " << preambleInfo.rnti << ", exiryTime "
+                        << preambleInfo.expiryTime);
+            m_allocatedNcRaPreambleMap[preambleId] =
+                preambleInfo; // create if not exist, update otherwise
+            break;
+        }
+    }
+    NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue ret;
+    if (found)
+    {
+        ret.valid = true;
+        ret.raPreambleId = preambleId;
+        ret.raPrachMaskIndex = 0;
+    }
+    else
+    {
+        ret.valid = false;
+        ret.raPreambleId = 0;
+        ret.raPrachMaskIndex = 0;
+    }
+    return ret;
 }
 
 // ////////////////////////////////////////////

@@ -413,7 +413,7 @@ Packet drops
 Packets can be dropped if there is no association between GTP-U TEID and gNB-UE link's RNTI and BID.
 
 .. _`ns-3 manual`: https://www.nsnam.org/docs/release/3.39/models/html/packets.html
-.. _`EpsFlowId_t data structure`: https://www.nsnam.org/doxygen/da/d34/structns3_1_1_epc_enb_application_1_1_eps_flow_id__t.html
+.. _`EpsFlowId_t data structure`: https://cttc-lena.gitlab.io/nr/html/structns3_1_1_nr_epc_gnb_application_1_1_eps_flow_id__t.html
 .. _`Flow Monitor`: https://www.nsnam.org/docs/release/3.39/models/html/flow-monitor.html
 
 NrGnbNetDevice

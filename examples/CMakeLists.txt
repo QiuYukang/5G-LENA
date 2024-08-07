@@ -18,7 +18,6 @@ set(base_examples
     cttc-channel-randomness
     rem-example
     rem-beam-example
-    cttc-fh-compression
     cttc-nr-notching
     cttc-nr-traffic-ngmn-mixed
     cttc-nr-traffic-3gpp-xr
@@ -37,6 +36,13 @@ foreach(
                       ${libflow-monitor}
   )
 endforeach()
+
+build_lib_example(
+  NAME cttc-fh-compression
+  SOURCE_FILES cttc-fh-compression.cc
+  LIBRARIES_TO_LINK ${libnr}
+                    ${liblte}
+)
 
 if(${ENABLE_EIGEN})
   build_lib_example(
@@ -81,6 +87,7 @@ else()
         ${libnr}
         ${libflow-monitor}
         ${libstats}
+        ${liblte}
     )
   endforeach()
 
@@ -103,6 +110,7 @@ else()
       ${libnr}
       ${libflow-monitor}
       ${libstats}
+      ${liblte}
   )
 
   set(example

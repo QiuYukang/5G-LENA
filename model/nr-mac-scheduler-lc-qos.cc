@@ -4,7 +4,7 @@
 
 #include "nr-mac-scheduler-lc-qos.h"
 
-#include "nr-ff-mac-common.h"
+#include "nr-phy-mac-common.h"
 
 #include "ns3/log.h"
 
@@ -75,9 +75,9 @@ NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>
         for (const auto lcId : ueActiveLCs)
         {
             if ((GetLCG(lcg)->GetLC(lcId)->m_resourceType ==
-                     LogicalChannelConfigListElement_s::QBT_DGBR ||
+                     nr::LogicalChannelConfigListElement_s::QBT_DGBR ||
                  GetLCG(lcg)->GetLC(lcId)->m_resourceType ==
-                     LogicalChannelConfigListElement_s::QBT_GBR) &&
+                     nr::LogicalChannelConfigListElement_s::QBT_GBR) &&
                 GetLCG(lcg)->GetLC(lcId)->m_eRabGuaranteedBitrateDl != UINT64_MAX)
             {
                 gbrActiveLCs.emplace_back(GetLCGID(lcg), lcId);

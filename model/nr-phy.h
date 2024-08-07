@@ -109,7 +109,7 @@ class NrPhy : public Object
      * \param PreambleId preamble ID
      * \param Rnti RNTI
      */
-    void SendRachPreamble(uint32_t PreambleId, uint32_t Rnti);
+    virtual void SendRachPreamble(uint32_t PreambleId, uint32_t Rnti);
 
     /**
      * \brief Store the slot allocation info

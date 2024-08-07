@@ -6,7 +6,7 @@
 #define NR_MAC_CSCHED_SAP_H
 
 #include "beam-id.h"
-#include "nr-ff-mac-common.h"
+#include "nr-phy-mac-common.h"
 
 #include <vector>
 
@@ -41,6 +41,13 @@ class NrMacCschedSapProvider
      * Parameters of the API primitives
      */
 
+    /// NormalExtended_e enumeration
+    enum class NormalExtended_e
+    {
+        normal,
+        extended
+    };
+
     /**
      * Parameters of the CSCHED_CELL_CONFIG_REQ primitive.
      * See section 4.1.1 for a detailed description of the parameters.
@@ -65,17 +72,15 @@ class NrMacCschedSapProvider
             PHICH_R_TWO
         } m_phichResource;
 
-        enum NormalExtended_e m_phichDuration;
+        NormalExtended_e m_phichDuration;
 
         uint8_t m_initialNrOfPdcchOfdmSymbols;
-
-        struct SiConfiguration_s m_siConfiguration;
 
         uint16_t m_ulBandwidth; //!< In number of RBG, created by MAC and passed to the scheduler
         uint16_t m_dlBandwidth; //!< In number of RBG, created by MAC and passed to the scheduler
 
-        enum NormalExtended_e m_ulCyclicPrefixLength;
-        enum NormalExtended_e m_dlCyclicPrefixLength;
+        NormalExtended_e m_ulCyclicPrefixLength;
+        NormalExtended_e m_dlCyclicPrefixLength;
 
         uint8_t m_antennaPortsCount;
 
@@ -110,7 +115,7 @@ class NrMacCschedSapProvider
             MOD_64QAM
         } m_enable64Qam;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -122,8 +127,6 @@ class NrMacCschedSapProvider
         uint16_t m_rnti;
         BeamId m_beamId; //!< Beam Id
         bool m_reconfigureFlag;
-        bool m_drxConfigPresent;
-        struct DrxConfig_s m_drxConfig;
         uint16_t m_timeAlignmentTimer;
 
         enum MeasGapConfigPattern_e
@@ -134,16 +137,9 @@ class NrMacCschedSapProvider
         } m_measGapConfigPattern;
 
         uint8_t m_measGapConfigSubframeOffset;
-        bool m_spsConfigPresent;
-        struct SpsConfig_s m_spsConfig;
-        bool m_srConfigPresent;
-        struct SrConfig_s m_srConfig;
-        bool m_cqiConfigPresent;
-        struct CqiConfig_s m_cqiConfig;
         uint8_t m_transmissionMode;
         uint64_t m_ueAggregatedMaximumBitrateUl;
         uint64_t m_ueAggregatedMaximumBitrateDl;
-        struct UeCapabilities_s m_ueCapabilities;
 
         enum OpenClosedLoop_e
         {
@@ -178,7 +174,7 @@ class NrMacCschedSapProvider
 
         uint8_t m_ackNackRepetitionFactor;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -190,9 +186,9 @@ class NrMacCschedSapProvider
         uint16_t m_rnti;
         bool m_reconfigureFlag;
 
-        std::vector<struct LogicalChannelConfigListElement_s> m_logicalChannelConfigList;
+        std::vector<struct nr::LogicalChannelConfigListElement_s> m_logicalChannelConfigList;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -205,7 +201,7 @@ class NrMacCschedSapProvider
 
         std::vector<uint8_t> m_logicalChannelIdentity;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -216,7 +212,7 @@ class NrMacCschedSapProvider
     {
         uint16_t m_rnti;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     //
@@ -247,6 +243,13 @@ class NrMacCschedSapUser
     {
     }
 
+    /// Result_e enumeration
+    enum class Result_e
+    {
+        SUCCESS,
+        FAILURE
+    };
+
     /**
      * Parameters of the API primitives
      */
@@ -257,9 +260,9 @@ class NrMacCschedSapUser
      */
     struct CschedCellConfigCnfParameters
     {
-        enum Result_e m_result;
+        Result_e m_result;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -269,9 +272,9 @@ class NrMacCschedSapUser
     struct CschedUeConfigCnfParameters
     {
         uint16_t m_rnti;
-        enum Result_e m_result;
+        Result_e m_result;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -281,11 +284,11 @@ class NrMacCschedSapUser
     struct CschedLcConfigCnfParameters
     {
         uint16_t m_rnti;
-        enum Result_e m_result;
+        Result_e m_result;
 
         std::vector<uint8_t> m_logicalChannelIdentity;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -295,11 +298,11 @@ class NrMacCschedSapUser
     struct CschedLcReleaseCnfParameters
     {
         uint16_t m_rnti;
-        enum Result_e m_result;
+        Result_e m_result;
 
         std::vector<uint8_t> m_logicalChannelIdentity;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -309,9 +312,9 @@ class NrMacCschedSapUser
     struct CschedUeReleaseCnfParameters
     {
         uint16_t m_rnti;
-        enum Result_e m_result;
+        Result_e m_result;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -322,14 +325,8 @@ class NrMacCschedSapUser
     {
         uint16_t m_rnti;
         uint8_t m_transmissionMode;
-        bool m_spsConfigPresent;
-        struct SpsConfig_s m_spsConfig;
-        bool m_srConfigPresent;
-        struct SrConfig_s m_srConfig;
-        bool m_cqiConfigPresent;
-        struct CqiConfig_s m_cqiConfig;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     /**
@@ -341,7 +338,7 @@ class NrMacCschedSapUser
         uint8_t m_prbUtilizationDl;
         uint8_t m_prbUtilizationUl;
 
-        std::vector<struct VendorSpecificListElement_s> m_vendorSpecificList;
+        std::vector<struct nr::VendorSpecificListElement_s> m_vendorSpecificList;
     };
 
     //

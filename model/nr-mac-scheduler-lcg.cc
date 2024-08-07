@@ -13,7 +13,7 @@ namespace ns3
 
 NS_LOG_COMPONENT_DEFINE("NrMacSchedulerLCG");
 
-NrMacSchedulerLC::NrMacSchedulerLC(const LogicalChannelConfigListElement_s& conf)
+NrMacSchedulerLC::NrMacSchedulerLC(const nr::LogicalChannelConfigListElement_s& conf)
     : m_id(conf.m_logicalChannelIdentity)
 {
     NrEpsBearer bearer(static_cast<NrEpsBearer::Qci>(conf.m_qci));

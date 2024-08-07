@@ -756,14 +756,16 @@ NrGnbPhy::StartSlot(const SfnSf& startSlot)
             if (SlotAllocInfoExists(ulSfn))
             {
                 SlotAllocInfo& ulSlot = PeekSlotAllocInfo(ulSfn);
-                hasUlDci = ulSlot.ContainsDataAllocation() || ulSlot.ContainsUlCtrlAllocation();
+                hasUlDci = ulSlot.ContainsDataAllocation() || ulSlot.ContainsUlCtrlAllocation() ||
+                           ulSlot.ContainsUlMsg3Allocation();
             }
         }
         // If there is a DL CTRL, try to obtain the channel to transmit it;
         // because, even if right now there isn't any message, maybe they
         // will come from another BWP.
         if (m_currSlotAllocInfo.ContainsDataAllocation() ||
-            m_currSlotAllocInfo.ContainsDlCtrlAllocation() || hasUlDci)
+            m_currSlotAllocInfo.ContainsDlCtrlAllocation() ||
+            m_currSlotAllocInfo.ContainsUlMsg3Allocation() || hasUlDci)
         {
             // Request the channel access
             if (m_channelStatus == NONE)
@@ -924,7 +926,8 @@ NrGnbPhy::GenerateAllocationStatistics(const SlotAllocInfo& allocInfo) const
         NS_ASSERT(lastSymStart <= allocation.m_dci->m_symStart);
 
         auto rbgUsed = (rbg * GetNumRbPerRbg()) * allocation.m_dci->m_numSym;
-        if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+        if (allocation.m_dci->m_type == DciInfoElementTdma::DATA ||
+            allocation.m_dci->m_type == DciInfoElementTdma::MSG3)
         {
             dataReg += rbgUsed;
         }
@@ -937,7 +940,8 @@ NrGnbPhy::GenerateAllocationStatistics(const SlotAllocInfo& allocInfo) const
         {
             symUsed += allocation.m_dci->m_numSym;
 
-            if (allocation.m_dci->m_type == DciInfoElementTdma::DATA)
+            if (allocation.m_dci->m_type == DciInfoElementTdma::DATA ||
+                allocation.m_dci->m_type == DciInfoElementTdma::MSG3)
             {
                 dataSym += allocation.m_dci->m_numSym;
             }
@@ -1091,9 +1095,37 @@ NrGnbPhy::RetrieveDciFromAllocation(const SlotAllocInfo& alloc,
     NS_LOG_FUNCTION(this);
     std::list<Ptr<NrControlMessage>> ctrlMsgs;
 
+    if (!alloc.m_buildRarList.empty())
+    {
+        Ptr<NrRarMessage> ulMsg3DciMsg = Create<NrRarMessage>();
+        for (const auto& rarIt : alloc.m_buildRarList)
+        {
+            NrRarMessage::Rar rar;
+            // RA preamble and RNTI should be set before by MAC/scheduler
+            NS_ASSERT(rarIt.raPreambleId != 255);
+            rar.rarPayload = rarIt;
+            rar.rarPayload.k2Delay = kDelay;
+            ulMsg3DciMsg->AddRar(rar);
+
+            NS_LOG_INFO("In slot " << m_currentSlot << " PHY retrieves the RAR message for RNTI "
+                                   << rar.rarPayload.ulMsg3Dci->m_rnti << " RA preamble Id "
+                                   << +rar.rarPayload.raPreambleId << " at:" << Simulator::Now()
+                                   << " for slot:" << alloc.m_sfnSf << " kDelay:" << kDelay
+                                   << "k1Delay:" << k1Delay);
+            ulMsg3DciMsg->SetSourceBwp(GetBwpId());
+        }
+        if (kDelay != 0)
+        {
+            ctrlMsgs.push_back(ulMsg3DciMsg);
+        }
+    }
+
     for (const auto& dlAlloc : alloc.m_varTtiAllocInfo)
     {
-        if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL && dlAlloc.m_dci->m_format == format)
+        if (dlAlloc.m_dci->m_type != DciInfoElementTdma::CTRL &&
+            dlAlloc.m_dci->m_type != DciInfoElementTdma::MSG3 // we are sending MSG3 grant via RAR
+                                                              // message, we cannot also send UL DCI
+            && dlAlloc.m_dci->m_format == format)
         {
             auto& dciElem = dlAlloc.m_dci;
             NS_ASSERT(dciElem->m_format == format);
@@ -1428,7 +1460,7 @@ NrGnbPhy::StartVarTti(const std::shared_ptr<DciInfoElementTdma>& dci)
             varTtiPeriod = UlCtrl(dci);
         }
     }
-    else if (dci->m_type == DciInfoElementTdma::DATA)
+    else if (dci->m_type == DciInfoElementTdma::DATA || dci->m_type == DciInfoElementTdma::MSG3)
     {
         if (dci->m_format == DciInfoElementTdma::DL)
         {

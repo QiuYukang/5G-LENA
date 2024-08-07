@@ -738,6 +738,26 @@ class NrUePhy : public NrPhy
      */
     void InsertFutureAllocation(const SfnSf& sfnSf, const std::shared_ptr<DciInfoElementTdma>& dci);
 
+    /**
+     * \brief Send the Rach Preamble
+     *
+     * The RACH PREAMBLE is sent ASAP, without applying any delay,
+     * since it is sent in the PRACH channel
+     *
+     * \param PreambleId preamble ID
+     * \param Rnti RNTI
+     */
+    void SendRachPreamble(uint32_t PreambleId, uint32_t Rnti) override;
+
+    /**
+     * \brief Process received RAR UL grants
+     *
+     * Process RAR UL grants received after sending a RACH preamble
+     *
+     * \param rarMsg RAR UL grant
+     */
+    void ProcessRar(const Ptr<NrRarMessage>& rarMsg);
+
     NrUePhySapUser* m_phySapUser;             //!< SAP pointer
     NrUeCphySapProvider* m_ueCphySapProvider; //!< SAP pointer
     NrUeCphySapUser* m_ueCphySapUser;         //!< SAP pointer

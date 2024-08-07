@@ -93,13 +93,13 @@ class nrUeRrcProtocolIdeal : public Object
      */
     void DoSendIdealUeContextRemoveRequest(uint16_t rnti);
 
-    void SetEnbRrcSapProvider();
+    void SetGnbRrcSapProvider();
 
     Ptr<NrUeRrc> m_rrc;
     uint16_t m_rnti;
     NrUeRrcSapProvider* m_ueRrcSapProvider;
     NrUeRrcSapUser* m_ueRrcSapUser;
-    NrGnbRrcSapProvider* m_enbRrcSapProvider;
+    NrGnbRrcSapProvider* m_gnbRrcSapProvider;
 };
 
 /**
@@ -147,9 +147,9 @@ class NrGnbRrcProtocolIdeal : public Object
     NrRrcSap::RrcConnectionReconfiguration DoDecodeHandoverCommand(Ptr<Packet> p);
 
     uint16_t m_rnti;
-    NrGnbRrcSapProvider* m_enbRrcSapProvider;
-    NrGnbRrcSapUser* m_enbRrcSapUser;
-    std::map<uint16_t, NrUeRrcSapProvider*> m_enbRrcSapProviderMap;
+    NrGnbRrcSapProvider* m_gnbRrcSapProvider;
+    NrGnbRrcSapUser* m_gnbRrcSapUser;
+    std::map<uint16_t, NrUeRrcSapProvider*> m_gnbRrcSapProviderMap;
 };
 
 } // namespace ns3

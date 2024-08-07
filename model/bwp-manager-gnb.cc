@@ -192,11 +192,11 @@ BwpManagerGnb::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpP
 }
 
 void
-BwpManagerGnb::DoUlReceiveMacCe(MacCeListElement_s bsr, uint8_t componentCarrierId)
+BwpManagerGnb::DoUlReceiveMacCe(nr::MacCeListElement_s bsr, uint8_t componentCarrierId)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_algorithm != nullptr);
-    NS_ASSERT_MSG(bsr.m_macCeType == MacCeListElement_s::BSR,
+    NS_ASSERT_MSG(bsr.m_macCeType == nr::MacCeListElement_s::BSR,
                   "Received a Control Message not allowed " << bsr.m_macCeType);
     NS_ASSERT_MSG(m_ccmMacSapProviderMap.find(componentCarrierId) != m_ccmMacSapProviderMap.end(),
                   "Mac sap provider does not exist.");

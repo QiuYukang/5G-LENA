@@ -192,7 +192,12 @@ NrMacSchedulerNs3::GetTypeId()
                 TypeIdValue(NrMacSchedulerLcRR::GetTypeId()),
                 MakeTypeIdAccessor(&NrMacSchedulerNs3::SetLcSched),
                 //&NrMacSchedulerNs3::GetLcSched),
-                MakeTypeIdChecker());
+                MakeTypeIdChecker())
+            .AddAttribute("RachUlGrantMcs",
+                          "The MCS of the RACH UL grant, must be [0..15] (default 0)",
+                          UintegerValue(0),
+                          MakeUintegerAccessor(&NrMacSchedulerNs3::SetRachUlGrantMcs),
+                          MakeUintegerChecker<uint8_t>());
 
     return tid;
 }
@@ -291,6 +296,12 @@ NrMacSchedulerNs3::GetMaxDlMcs() const
 {
     NS_LOG_FUNCTION(this);
     return m_maxDlMcs;
+}
+
+void
+NrMacSchedulerNs3::SetRachUlGrantMcs(uint8_t v)
+{
+    m_rachUlGrantMcs = v;
 }
 
 void
@@ -499,7 +510,7 @@ NrMacSchedulerNs3::DoCschedCellConfigReq(
     m_bandwidth = params.m_dlBandwidth;
 
     NrMacCschedSapUser::CschedUeConfigCnfParameters cnf;
-    cnf.m_result = SUCCESS;
+    cnf.m_result = NrMacCschedSapUser::Result_e::SUCCESS;
     m_macCschedSapUser->CschedUeConfigCnf(cnf);
 }
 
@@ -601,7 +612,7 @@ NrMacSchedulerNs3::GetNumRbPerRbg() const
  * \return a pointer to the representation of a logical channel
  */
 LCPtr
-NrMacSchedulerNs3::CreateLC(const LogicalChannelConfigListElement_s& config) const
+NrMacSchedulerNs3::CreateLC(const nr::LogicalChannelConfigListElement_s& config) const
 {
     NS_LOG_FUNCTION(this);
     return std::make_unique<NrMacSchedulerLC>(config);
@@ -618,7 +629,7 @@ NrMacSchedulerNs3::CreateLC(const LogicalChannelConfigListElement_s& config) con
  * \return a pointer to the representation of a logical channel group
  */
 LCGPtr
-NrMacSchedulerNs3::CreateLCG(const LogicalChannelConfigListElement_s& config) const
+NrMacSchedulerNs3::CreateLCG(const nr::LogicalChannelConfigListElement_s& config) const
 {
     NS_LOG_FUNCTION(this);
     return std::make_unique<NrMacSchedulerLCG>(config.m_logicalChannelGroup);
@@ -648,8 +659,8 @@ NrMacSchedulerNs3::DoCschedLcConfigReq(
 
     for (const auto& lcConfig : params.m_logicalChannelConfigList)
     {
-        if (lcConfig.m_direction == LogicalChannelConfigListElement_s::DIR_DL ||
-            lcConfig.m_direction == LogicalChannelConfigListElement_s::DIR_BOTH)
+        if (lcConfig.m_direction == nr::LogicalChannelConfigListElement_s::DIR_DL ||
+            lcConfig.m_direction == nr::LogicalChannelConfigListElement_s::DIR_BOTH)
         {
             auto itDl = UeInfoOf(*itUe)->m_dlLCG.find(lcConfig.m_logicalChannelGroup);
             auto itDlEnd = UeInfoOf(*itUe)->m_dlLCG.end();
@@ -670,8 +681,8 @@ NrMacSchedulerNs3::DoCschedLcConfigReq(
                          << " ID=" << static_cast<uint32_t>(lcConfig.m_logicalChannelIdentity)
                          << " in LCG " << static_cast<uint32_t>(lcConfig.m_logicalChannelGroup));
         }
-        if (lcConfig.m_direction == LogicalChannelConfigListElement_s::DIR_UL ||
-            lcConfig.m_direction == LogicalChannelConfigListElement_s::DIR_BOTH)
+        if (lcConfig.m_direction == nr::LogicalChannelConfigListElement_s::DIR_UL ||
+            lcConfig.m_direction == nr::LogicalChannelConfigListElement_s::DIR_BOTH)
         {
             auto itUl = UeInfoOf(*itUe)->m_ulLCG.find(lcConfig.m_logicalChannelGroup);
             auto itUlEnd = UeInfoOf(*itUe)->m_ulLCG.end();
@@ -1782,16 +1793,6 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
         dlSlot.m_slotAllocInfo.m_numSymAlloc += m_ulCtrlSymbols;
     }
 
-    // RACH
-    for (const auto& rachReq : m_rachList)
-    {
-        BuildRarListElement_s newRar;
-        newRar.m_rnti = rachReq.m_rnti;
-        // newRar.m_ulGrant is not used
-        dlSlot.m_buildRarList.push_back(newRar);
-    }
-    m_rachList.clear();
-
     // compute active ue in the current subframe, group them by BeamId
     ActiveHarqMap activeDlHarq;
     ComputeActiveHarq(&activeDlHarq, dlHarqFeedback);
@@ -1883,6 +1884,7 @@ NrMacSchedulerNs3::ScheduleUl(const NrMacSchedSapProvider::SchedUlTriggerReqPara
 
     NS_LOG_INFO("Total DCI for UL : " << ulSlot.m_slotAllocInfo.m_varTtiAllocInfo.size()
                                       << " including UL CTRL");
+    m_macSchedSapUser->BuildRarList(ulSlot.m_slotAllocInfo);
     m_macSchedSapUser->SchedConfigInd(ulSlot);
 }
 
@@ -1964,6 +1966,19 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
                                   << " Active Beams UL HARQ: " << activeUlHarq.size()
                                   << " starting from (" << +ulAssignationStartPoint.m_rbg << ", "
                                   << +ulAssignationStartPoint.m_sym << ")");
+
+    // RACH
+    uint8_t usedMsg3 = 0;
+    if (!m_rachList.empty())
+    {
+        usedMsg3 = DoScheduleUlMsg3(&ulAssignationStartPoint, ulSymAvail, allocInfo);
+        NS_ASSERT_MSG(ulSymAvail >= usedMsg3,
+                      "Available: " << +ulSymAvail << " used by UL MSG3: " << +usedMsg3);
+        NS_LOG_INFO("For the slot " << ulSfn << " reserved " << static_cast<uint32_t>(usedMsg3)
+                                    << " symbols for UL MSG3");
+        ulSymAvail -= usedMsg3;
+        allocInfo->m_numSymAlloc += usedMsg3;
+    }
 
     if (!activeUlHarq.empty())
     {
@@ -2054,7 +2069,8 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
                                                << static_cast<uint32_t>(alloc.m_dci->m_symStart)
                                                << " numSym " << +alloc.m_dci->m_numSym);
 
-            if (alloc.m_dci->m_type == DciInfoElementTdma::DATA)
+            if (alloc.m_dci->m_type == DciInfoElementTdma::DATA ||
+                alloc.m_dci->m_type == DciInfoElementTdma::MSG3)
             {
                 NS_LOG_INFO("Placed the above allocation in the CQI map");
                 allocations.emplace_back(alloc.m_dci->m_rnti,
@@ -2484,6 +2500,96 @@ NrMacSchedulerNs3::DoSchedUlSrInfoReq(
         }
     }
     NS_ASSERT(m_srList.size() >= params.m_srList.size());
+}
+
+/**
+ * \brief Scheduler UL RACH
+ * \param sPoint
+ * \param symAvail
+ * \param ueMap
+ * \param slotAlloc
+ *
+ *  RLC TM SDU sent over resources specified in the UL Grant
+ *  in the RAR (not in UL DCIs); the reason is that C-RNTI is
+ *  not known yet at this stage. In the simulator, this is modeled
+ *  as a real RLC TM RLC PDU whose UL resources are allocated
+ *  by the scheduler upon call to SCHED_DL_RACH_INFO_REQ.
+ *
+ * \return The number of symbols used in the allocation
+ */
+uint8_t
+NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,
+                                    uint8_t symAvail,
+                                    SlotAllocInfo* slotAlloc)
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(sPoint->m_rbg == 0);
+
+    uint8_t symAvailBeforeRach = symAvail;
+
+    for (const auto& rachReq : m_rachList)
+    {
+        uint8_t allocSymbols = 0;
+        uint16_t tbSizeBits = 0;
+
+        // find the lowest TB size that fits UL grant estimated size
+        while ((tbSizeBits < rachReq.m_estimatedSize) && (symAvail - allocSymbols > 0))
+        {
+            allocSymbols++;
+            tbSizeBits =
+                GetUlAmc()->CalculateTbSize(m_rachUlGrantMcs,
+                                            1,
+                                            GetBandwidthInRbg() * GetNumRbPerRbg() * allocSymbols) *
+                8;
+        }
+
+        if (tbSizeBits < rachReq.m_estimatedSize)
+        {
+            // no more allocation space: finish allocation
+            break;
+        }
+
+        sPoint->m_sym -= allocSymbols;
+
+        // DL-RACH Allocation
+        // Ideal: no needs of configuring m_dci
+        // UL-RACH Allocation
+        uint8_t rank{1};
+        Ptr<const ComplexMatrixArray> precMats{nullptr};
+        std::shared_ptr<DciInfoElementTdma> ulMsg3Dci =
+            std::make_shared<DciInfoElementTdma>(rachReq.m_rnti,
+                                                 DciInfoElementTdma::UL,
+                                                 sPoint->m_sym,
+                                                 allocSymbols,
+                                                 m_rachUlGrantMcs,
+                                                 rank,
+                                                 precMats,
+                                                 tbSizeBits / 8,
+                                                 1,
+                                                 0,
+                                                 DciInfoElementTdma::MSG3,
+                                                 GetBwpId(),
+                                                 GetTpc());
+
+        std::vector<uint8_t> rbgBitmask(GetBandwidthInRbg(), 1);
+
+        ulMsg3Dci->m_rbgBitmask = rbgBitmask;
+        symAvail -= allocSymbols;
+
+        NS_LOG_INFO(" UL grant allocated to RNTI "
+                    << ulMsg3Dci->m_rnti << " in slot: " << slotAlloc->m_sfnSf << " symStart "
+                    << +ulMsg3Dci->m_symStart << " symEnd " << +ulMsg3Dci->m_numSym
+                    << " number of PRB" << GetBandwidthInRbg() * GetNumRbPerRbg() << " MCS "
+                    << (uint16_t) + ulMsg3Dci->m_mcs << " tbSize in bytes:" << +ulMsg3Dci->m_tbSize
+                    << " BWP index: " << +ulMsg3Dci->m_bwpIndex
+                    << " RBG bitmask:" << +ulMsg3Dci->m_rbgBitmask.size());
+
+        VarTtiAllocInfo slotInfo(ulMsg3Dci);
+        slotAlloc->m_varTtiAllocInfo.emplace_front(slotInfo);
+    }
+
+    m_rachList.clear();
+    return (symAvailBeforeRach - symAvail);
 }
 
 } // namespace ns3
