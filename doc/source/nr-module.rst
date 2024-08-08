@@ -111,16 +111,16 @@ The ccId numbering is, for some untrained eyes, weird. But that is because some 
    +------------+------------+---------------+---------------+---------------+
    |    GNB     |  Cell ID   | CcId for BWP0 | CcId for BWP1 | CcId for BWP2 |
    +============+============+===============+===============+===============+
-   |   GNB 0    |      1     |       2       |       3       |      4        |
+   |   GNB 0    |      1     |       1       |       2       |      3        |
    +------------+------------+---------------+---------------+---------------+
-   |   GNB 1    |      5     |       6       |       7       |      8        |
+   |   GNB 1    |      4     |       4       |       5       |      6        |
    +------------+------------+---------------+---------------+---------------+
-   |   GNB 2    |      9     |       10      |       11      |      12       |
+   |   GNB 2    |      7     |       7       |       8       |      9        |
    +------------+------------+---------------+---------------+---------------+
-   |   GNB 3    |      13    |       14      |       15      |      16       |
+   |   GNB 3    |      10    |       10      |       11      |      12       |
    +------------+------------+---------------+---------------+---------------+
 
-If we would use this as a simulation scenario, the messages that come from the CcId 2, 6, 10, 14, would refer to the same portion of the spectrum. These IDs, internally at the GNB, would be translated into the BWP 0 in all the cases. The BWP 1 will be associated with the CcId 3, 7, 11, 15 (respectively), and everything else follows.
+If we would use this as a simulation scenario, the messages that come from the CcId 1, 4, 7, 10, would refer to the same portion of the spectrum. These IDs, internally at the GNB, would be translated into the BWP 0 in all the cases. The BWP 1 will be associated with the CcId 2, 5, 8, 11 (respectively), and everything else follows.
 
 PHY layer
 *********
