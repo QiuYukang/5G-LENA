@@ -31,19 +31,19 @@ class NrUeRrc;
  * resources.
  *
  */
-class nrUeRrcProtocolIdeal : public Object
+class NrUeRrcProtocolIdeal : public Object
 {
-    friend class MemberNrUeRrcSapUser<nrUeRrcProtocolIdeal>;
+    friend class MemberNrUeRrcSapUser<NrUeRrcProtocolIdeal>;
 
   public:
     /**
-     * \brief nrUeRrcProtocolIdeal constructor
+     * \brief NrUeRrcProtocolIdeal constructor
      */
-    nrUeRrcProtocolIdeal();
+    NrUeRrcProtocolIdeal();
     /**
-     * \brief ~nrUeRrcProtocolIdeal
+     * \brief ~NrUeRrcProtocolIdeal
      */
-    ~nrUeRrcProtocolIdeal() override;
+    ~NrUeRrcProtocolIdeal() override;
 
     // inherited from Object
     void DoDispose() override;

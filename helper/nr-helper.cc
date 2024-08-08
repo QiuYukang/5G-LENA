@@ -737,7 +737,7 @@ NrHelper::InstallSingleUeDevice(
 
     if (m_useIdealRrc)
     {
-        Ptr<nrUeRrcProtocolIdeal> rrcProtocol = CreateObject<nrUeRrcProtocolIdeal>();
+        Ptr<NrUeRrcProtocolIdeal> rrcProtocol = CreateObject<NrUeRrcProtocolIdeal>();
         rrcProtocol->SetUeRrc(rrc);
         rrc->AggregateObject(rrcProtocol);
         rrcProtocol->SetNrUeRrcSapProvider(rrc->GetNrUeRrcSapProvider());

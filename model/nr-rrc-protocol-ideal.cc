@@ -23,21 +23,21 @@ namespace ns3
 
 static const Time RRC_IDEAL_MSG_DELAY = MilliSeconds(0);
 
-NS_OBJECT_ENSURE_REGISTERED(nrUeRrcProtocolIdeal);
+NS_OBJECT_ENSURE_REGISTERED(NrUeRrcProtocolIdeal);
 
-nrUeRrcProtocolIdeal::nrUeRrcProtocolIdeal()
+NrUeRrcProtocolIdeal::NrUeRrcProtocolIdeal()
     : m_ueRrcSapProvider(nullptr),
       m_gnbRrcSapProvider(nullptr)
 {
-    m_ueRrcSapUser = new MemberNrUeRrcSapUser<nrUeRrcProtocolIdeal>(this);
+    m_ueRrcSapUser = new MemberNrUeRrcSapUser<NrUeRrcProtocolIdeal>(this);
 }
 
-nrUeRrcProtocolIdeal::~nrUeRrcProtocolIdeal()
+NrUeRrcProtocolIdeal::~NrUeRrcProtocolIdeal()
 {
 }
 
 void
-nrUeRrcProtocolIdeal::DoDispose()
+NrUeRrcProtocolIdeal::DoDispose()
 {
     NS_LOG_FUNCTION(this);
     delete m_ueRrcSapUser;
@@ -45,41 +45,41 @@ nrUeRrcProtocolIdeal::DoDispose()
 }
 
 TypeId
-nrUeRrcProtocolIdeal::GetTypeId()
+NrUeRrcProtocolIdeal::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::nrUeRrcProtocolIdeal")
+    static TypeId tid = TypeId("ns3::NrUeRrcProtocolIdeal")
                             .SetParent<Object>()
-                            .AddConstructor<nrUeRrcProtocolIdeal>();
+                            .AddConstructor<NrUeRrcProtocolIdeal>();
     return tid;
 }
 
 void
-nrUeRrcProtocolIdeal::SetNrUeRrcSapProvider(NrUeRrcSapProvider* p)
+NrUeRrcProtocolIdeal::SetNrUeRrcSapProvider(NrUeRrcSapProvider* p)
 {
     m_ueRrcSapProvider = p;
 }
 
 NrUeRrcSapUser*
-nrUeRrcProtocolIdeal::GetNrUeRrcSapUser()
+NrUeRrcProtocolIdeal::GetNrUeRrcSapUser()
 {
     return m_ueRrcSapUser;
 }
 
 void
-nrUeRrcProtocolIdeal::SetUeRrc(Ptr<NrUeRrc> rrc)
+NrUeRrcProtocolIdeal::SetUeRrc(Ptr<NrUeRrc> rrc)
 {
     m_rrc = rrc;
 }
 
 void
-nrUeRrcProtocolIdeal::DoSetup(NrUeRrcSapUser::SetupParameters params)
+NrUeRrcProtocolIdeal::DoSetup(NrUeRrcSapUser::SetupParameters params)
 {
     NS_LOG_FUNCTION(this);
     // We don't care about SRB0/SRB1 since we use ideal RRC messages.
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendRrcConnectionRequest(NrRrcSap::RrcConnectionRequest msg)
+NrUeRrcProtocolIdeal::DoSendRrcConnectionRequest(NrRrcSap::RrcConnectionRequest msg)
 {
     // initialize the RNTI and get the GnbNrRrcSapProvider for the
     // gNB we are currently attached to
@@ -94,7 +94,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionRequest(NrRrcSap::RrcConnectionRequest 
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendRrcConnectionSetupCompleted(NrRrcSap::RrcConnectionSetupCompleted msg)
+NrUeRrcProtocolIdeal::DoSendRrcConnectionSetupCompleted(NrRrcSap::RrcConnectionSetupCompleted msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
                         &NrGnbRrcSapProvider::RecvRrcConnectionSetupCompleted,
@@ -104,7 +104,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionSetupCompleted(NrRrcSap::RrcConnectionS
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendRrcConnectionReconfigurationCompleted(
+NrUeRrcProtocolIdeal::DoSendRrcConnectionReconfigurationCompleted(
     NrRrcSap::RrcConnectionReconfigurationCompleted msg)
 {
     // re-initialize the RNTI and get the GnbNrRrcSapProvider for the
@@ -120,7 +120,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionReconfigurationCompleted(
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentRequest(
+NrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentRequest(
     NrRrcSap::RrcConnectionReestablishmentRequest msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
@@ -131,7 +131,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentRequest(
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentComplete(
+NrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentComplete(
     NrRrcSap::RrcConnectionReestablishmentComplete msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
@@ -142,7 +142,7 @@ nrUeRrcProtocolIdeal::DoSendRrcConnectionReestablishmentComplete(
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendMeasurementReport(NrRrcSap::MeasurementReport msg)
+NrUeRrcProtocolIdeal::DoSendMeasurementReport(NrRrcSap::MeasurementReport msg)
 {
     Simulator::Schedule(RRC_IDEAL_MSG_DELAY,
                         &NrGnbRrcSapProvider::RecvMeasurementReport,
@@ -152,13 +152,13 @@ nrUeRrcProtocolIdeal::DoSendMeasurementReport(NrRrcSap::MeasurementReport msg)
 }
 
 void
-nrUeRrcProtocolIdeal::DoSendIdealUeContextRemoveRequest(uint16_t rnti)
+NrUeRrcProtocolIdeal::DoSendIdealUeContextRemoveRequest(uint16_t rnti)
 {
-    NS_FATAL_ERROR("nrUeRrcProtocolIdeal does not have RLF functionality yet");
+    NS_FATAL_ERROR("NrUeRrcProtocolIdeal does not have RLF functionality yet");
 }
 
 void
-nrUeRrcProtocolIdeal::SetGnbRrcSapProvider()
+NrUeRrcProtocolIdeal::SetGnbRrcSapProvider()
 {
     uint16_t bwpId = m_rrc->GetCellId();
 

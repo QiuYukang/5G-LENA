@@ -566,7 +566,6 @@ GetNameMap()
         BwpManagerUe::GetTypeId(),
         IdealBeamformingAlgorithm::GetTypeId(),
         LenaErrorModel::GetTypeId(),
-        nrUeRrcProtocolIdeal::GetTypeId(),
         RealisticBeamformingAlgorithm::GetTypeId(),
         RealisticBfManager::GetTypeId(),
     };
