@@ -38,7 +38,7 @@
     <dia:attribute name="grid">
       <dia:composite type="grid">
         <dia:attribute name="dynamic">
-          <dia:boolean val="false"/>
+          <dia:boolean val="true"/>
         </dia:attribute>
         <dia:attribute name="width_x">
           <dia:real val="1"/>
@@ -88,6 +88,7 @@
       </dia:composite>
     </dia:attribute>
   </dia:diagramdata>
+  <dia:layer name="Background" visible="true" connectable="false"/>
   <dia:layer name="Background" visible="true" connectable="false"/>
   <dia:layer name="Background" visible="true" connectable="true" active="true">
     <dia:object type="Standard - Line" version="0" id="O0">
@@ -319,7 +320,7 @@
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#ns3::LteUeRrc::DoReceivePdcpSdu()#</dia:string>
+            <dia:string>#ns3::NrUeRrc::DoReceivePdcpSdu()#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="sans" style="0" name="Helvetica"/>
@@ -364,7 +365,7 @@
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#ns3::EpcUeNas::DoRecvData()#</dia:string>
+            <dia:string>#ns3::NrEpcUeNas::DoRecvData()#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="sans" style="0" name="Helvetica"/>
@@ -454,7 +455,7 @@
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#ns3::LteRlcUm::DoReceivePdu()#</dia:string>
+            <dia:string>#ns3::NrRlcUm::DoReceivePdu()#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="sans" style="0" name="Helvetica"/>
@@ -499,7 +500,7 @@
       <dia:attribute name="text">
         <dia:composite type="text">
           <dia:attribute name="string">
-            <dia:string>#ns3::LtePdcp::DoReceivePdu()#</dia:string>
+            <dia:string>#ns3::NrPdcp::DoReceivePdu()#</dia:string>
           </dia:attribute>
           <dia:attribute name="font">
             <dia:font family="sans" style="0" name="Helvetica"/>

@@ -323,34 +323,34 @@ For reference, :numref:`fig-nr-gnb` and :numref:`fig-nr-ue` are also provided as
 packet being processed by each actor of the RAN, i.e., gNB and UE, respectively.
 
 This tutorial will walk through each step of the way, starting with the entry point for these packets in the RAN-- the
-``EpcEnbApplication``.
+``EpcGnbApplication``.
 
-EpcEnbApplication
+EpcGnbApplication
 =================
-The ``EpcEnbApplication`` is installed on the gNB. It is responsible for receiving packets tunneled through the EPC
+The ``EpcGnbApplication`` is installed on the gNB. It is responsible for receiving packets tunneled through the EPC
 model and sending them into the ``NrGnbNetDevice``.  Conceptually, this is just an application-level relay function.
-It is possible to run the ``cttc-nr-demo`` scenario by enabling the ``EpcEnbApplication`` log component, which can also
+It is possible to run the ``cttc-nr-demo`` scenario by enabling the ``EpcGnbApplication`` log component, which can also
 be configured to print messages at INFO level and prefix the message by stating the time of the simulation, the node ID
 of interest, and the routine that prints that message. In this way, with the following command
 
 .. sourcecode:: bash
 
-  $ NS_LOG="EpcEnbApplication=info|prefix_all" ./ns3 run 'cttc-nr-demo' > log.out 2>&1
+  $ NS_LOG="EpcGnbApplication=info|prefix_all" ./ns3 run 'cttc-nr-demo' > log.out 2>&1
 
 one can observe this relay function on the first packet, as follows:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 EpcEnbApplication:RecvFromS1uSocket(): [INFO ] Received packet from S1-U interface with GTP TEID: 2
-  +0.400000282s 0 EpcEnbApplication:SendToLteSocket(): [INFO ] Add EpsBearerTag with RNTI 2 and bearer ID 2
-  +0.400000282s 0 EpcEnbApplication:SendToLteSocket(): [INFO ] Forward packet from eNB's S1-U to LTE stack via IPv4 socket.
+  +0.400000282s 0 EpcGnbApplication:RecvFromS1uSocket(): [INFO ] Received packet from S1-U interface with GTP TEID: 2
+  +0.400000282s 0 EpcGnbApplication:SendToNrSocket(): [INFO ] Add NrEpsBearerTag with RNTI 2 and bearer ID 2
+  +0.400000282s 0 EpcGnbApplication:SendToNrSocket(): [INFO ] Forward packet from gNB's S1-U to NR stack via IPv4 socket.
 
-The file ``src/lte/model/epc-enb-application.cc`` contains the source code.
+The file ``model/epc-gnb-application.cc`` contains the source code.
 
-The ``EpcEnbApplication`` adds the cell-specific UE ID (RNTI) and BID as tags through ``EpsBearerTag``.
+The ``EpcGnbApplication`` adds the cell-specific UE ID (RNTI) and BID as tags through ``NrEpsBearerTag``.
 This greatly simplifies packet processing in later sections.
 The application is able to find the right RNTI and BID given the TEID present on the GTP-U header of the received
-packet structure. This process can be found at ``EpcEnbApplication::RecvFromS1uSocket()`` source code:
+packet structure. This process can be found at ``EpcGnbApplication::RecvFromS1uSocket()`` source code:
 
 .. sourcecode:: cpp
 
@@ -366,47 +366,47 @@ packet structure. This process can be found at ``EpcEnbApplication::RecvFromS1uS
   else
   {
       m_rxS1uSocketPktTrace(packet->Copy());
-      SendToLteSocket(packet, it->second.m_rnti, it->second.m_bid);
+      SendToNrSocket(packet, it->second.m_rnti, it->second.m_bid);
   }
 
 .. TODO:
 
-  Add to EpcEnbApplication:
-  NS_LOG_INFO("Mapped TEID "<< teid << " to RNTI "<< it->second.m_rnti << " and BID " << it->second.m_bid << " and sent to LTE socket");
+  Add to EpcGnbApplication:
+  NS_LOG_INFO("Mapped TEID "<< teid << " to RNTI "<< it->second.m_rnti << " and BID " << it->second.m_bid << " and sent to NR socket");
   so that the code listing here can be removed and the description can be greatly simplified.
 
 Notice that the hashmap ``<uint32_t, EpsFlowId_t>`` links together a TEID, handled by ``uint32_t``,  with RNTI and BID,
 grouped by `EpsFlowId_t data structure`_.
 
 The packet and its modifications can be visually represented as shown in
-:numref:`figEpcEnbApplication-RecvFromS1uSocket-packet`, where removed portions of the packet are marked in red,
+:numref:`figEpcGnbApplication-RecvFromS1uSocket-packet`, where removed portions of the packet are marked in red,
 whereas green ones are the added portions.
 
-.. _figEpcEnbApplication-RecvFromS1uSocket-packet:
-.. figure:: figures/EpcEnbApplication-RecvFromS1uSocket-packet.*
+.. _figEpcGnbApplication-RecvFromS1uSocket-packet:
+.. figure:: figures/EpcGnbApplication-RecvFromS1uSocket-packet.*
    :align: center
    :scale: 100%
 
-   Structure of the packet handled by ``EpcEnbApplication``
+   Structure of the packet handled by ``EpcGnbApplication``
 
 There is also a byte tag to trace the packet for flow statistics, which are bound to `Flow Monitor`_ and are relevant to the final results that are printed by the scenario.
 
 .. TODO  This byte tag is linked to the packet byte range ``[32-140]``. It is possible to see that such range changes at the second inspection, as the packet structure is modified, i.e., GTP-U header is removed.
 
-The new modified packet is finally sent to ``EpcEnbApplication::SendToLteSocket()``, which distinguishes the packet to
+The new modified packet is finally sent to ``EpcGnbApplication::SendToNrSocket()``, which distinguishes the packet to
 be sent according to its L3 type, in this case IPv4.
 
 As a final remark, the following traces can be used to track incoming and outgoing packets from this application:
 
-- ``RxFromEnb``: Receive data packets from LTE Enb Net Device
+- ``RxFromGnb``: Receive data packets from NR Gnb Net Device
 - ``RxFromS1u``: Receive data packets from S1-U Net Device
 - ``RxFromS1uDrop``: Drop data packets from S1-U Net Device
-- ``TxToEnd``: Transmit data packets to LTE eNB Net Device
+- ``TxToEnd``: Transmit data packets to NR gNB Net Device
 - ``TxToS1u``: Transmit data packets to S1-U Net Device
 
 Packet latency
 ##############
-Packets cannot incur latency in the ``EnbEpcApplication``.
+Packets cannot incur latency in the ``EpcGnbApplication``.
 
 Packet drops
 ############
@@ -419,7 +419,7 @@ Packets can be dropped if there is no association between GTP-U TEID and gNB-UE 
 NrGnbNetDevice
 ==============
 
-After the ``EpcEnbApplication`` sends a packet, it is immediately received on the ``NrGnbNetDevice::DoSend()`` method.
+After the ``EpcGnbApplication`` sends a packet, it is immediately received on the ``NrGnbNetDevice::DoSend()`` method.
 We can observe this in the logs:
 
 .. sourcecode:: bash
@@ -430,10 +430,10 @@ We can observe this in the logs:
 
   +0.400000282s 0 NrGnbNetDevice:DoSend(): [INFO ] Forward received packet to RRC Layer
 
-The source code for this method is in the file ``contrib/nr/model/nr-gnb-net-device.cc``.  As an aside, notice how we
-are bouncing back and forth between the source code directories ``src/lte/`` (for the previous ``EpcEnbApplication``)
-and ``contrib/nr/`` (for this object); this is true for the upper layers of the current ``nr`` module, which reuse
-pieces originally implemented for LTE.
+The source code for this method is in the file ``contrib/nr/model/nr-gnb-net-device.cc``.  As an aside, notice that
+before nr-3.2 the previous ``EpcGnbApplication`` used to be part of the ``src/lte/model/epc-gnb-application.cc``,
+as were upper layers shared with LTE. Since nr-3.2, all of these have been integrated into the ``nr`` module.
+They are still based on LTE standards, just copied, renamed and slightly adapted for NR.
 
 The source code reveals that it is possible to trace the packet via ``NrNetDevice/Tx``.
 
@@ -449,39 +449,39 @@ Packet drops
 ############
 Packets cannot be dropped in the ``NrGnbNetDevice``.
 
-LteEnbRrc
+NrGnbRrc
 =========
-The RRC layer of the gNB is handled by ``LteEnbRrc`` and its companion ``UeManager``, both available in
-``lte/model/lte-enb-rrc.cc``. While packets incoming from the upper layers are processed by ``LteEnbRrc::SendData()``,
-packets to be sent to UEs are handled by ``UeManager::SendPacket()``.
+The RRC layer of the gNB is handled by ``NrGnbRrc`` and its companion ``NrUeManager``, both available in
+``nr/model/nr-gnb-rrc.cc``. While packets incoming from the upper layers are processed by ``NrGnbRrc::SendData()``,
+packets to be sent to UEs are handled by ``NrUeManager::SendPacket()``.
 Indeed, if the simulation is started with the following command
 
 .. sourcecode:: bash
 
-    $ NS_LOG="LteEnbRrc=info|prefix_all" ./ns3 run cttc-nr-demo &> out.log
+    $ NS_LOG="NrGnbRrc=info|prefix_all" ./ns3 run cttc-nr-demo &> out.log
 
 it produces the following log messages:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 LteEnbRrc:SendData(): [INFO ] Sending a packet of 128 bytes to IMSI 1, RNTI 2, BID 2
-  +0.400000282s 0 LteEnbRrc:SendData(): [INFO ] queueing data on PDCP for transmission over the air
-  +0.400000282s 0 LteEnbRrc:SendPacket(): [INFO ] Send packet to PDCP layer
+  +0.400000282s 0 NrGnbRrc:SendData(): [INFO ] Sending a packet of 128 bytes to IMSI 1, RNTI 2, BID 2
+  +0.400000282s 0 NrGnbRrc:SendData(): [INFO ] queueing data on PDCP for transmission over the air
+  +0.400000282s 0 NrGnbRrc:SendPacket(): [INFO ] Send packet to PDCP layer
 
 By taking a look at the source code, the RRC layer starts by extracting the RNTI, which is handled by the
-``EpsBearerTag`` data structure. Thanks to the RNTI, it is possible to retrieve the corresponding ``UeManager``
-instance, which keeps track of the gNB-UE link state through a FSM. The search is done by ``LteEnbRrc``, which uses a
-hashmap that links each RNTI to a pointer of the ``UeManager`` of interest.
+``NrEpsBearerTag`` data structure. Thanks to the RNTI, it is possible to retrieve the corresponding ``NrUeManager``
+instance, which keeps track of the gNB-UE link state through a FSM. The search is done by ``NrGnbRrc``, which uses a
+hashmap that links each RNTI to a pointer of the ``NrUeManager`` of interest.
 Once found, the matching ``SendData()`` method is called with the packet's BID of reference.
 
 .. sourcecode:: cpp
 
-  EpsBearerTag tag;
+  NrEpsBearerTag tag;
   bool found = packet->RemovePacketTag(tag);
-  NS_ASSERT_MSG(found, "no EpsBearerTag found in packet to be sent");
-  Ptr<UeManager> ueManager = GetUeManager(tag.GetRnti());
+  NS_ASSERT_MSG(found, "no NrEpsBearerTag found in packet to be sent");
+  Ptr<NrUeManager> NrUeManager = GetNrUeManager(tag.GetRnti());
 
-  ueManager->SendData(tag.GetBid(), packet);
+  NrUeManager->SendData(tag.GetBid(), packet);
 
 The ``SendData()`` method can be quickly understood with the following code excerpt:
 
@@ -514,68 +514,68 @@ If the UE is ready to receive the packet from the gNB viewpoint, i.e. it's in ``
 
 .. sourcecode:: cpp
 
-    LtePdcpSapProvider::TransmitPdcpSduParameters params;
+    NrPdcpSapProvider::TransmitPdcpSduParameters params;
     params.pdcpSdu = p;
     params.rnti = m_rnti;
     params.lcid = Bid2Lcid(bid);
     uint8_t drbid = Bid2Drbid(bid);
     // Transmit PDCP sdu only if DRB ID found in drbMap
-    std::map<uint8_t, Ptr<LteDataRadioBearerInfo>>::iterator it = m_drbMap.find(drbid);
+    std::map<uint8_t, Ptr<NrDataRadioBearerInfo>>::iterator it = m_drbMap.find(drbid);
     if (it != m_drbMap.end())
     {
-        Ptr<LteDataRadioBearerInfo> bearerInfo = GetDataRadioBearerInfo(drbid);
+        Ptr<NrDataRadioBearerInfo> bearerInfo = GetDataRadioBearerInfo(drbid);
         if (bearerInfo)
         {
             NS_LOG_INFO("Send packet to PDCP layer");
-            LtePdcpSapProvider* pdcpSapProvider = bearerInfo->m_pdcp->GetLtePdcpSapProvider();
+            NrPdcpSapProvider* pdcpSapProvider = bearerInfo->m_pdcp->GetNrPdcpSapProvider();
             pdcpSapProvider->TransmitPdcpSdu(params);
         }
     }
 
 Over there, the packet is processed by creating a PDCP SDU structure with complementary information, known as
-``LtePdcpSapProvider::TransmitPdcpSduParameters``.
+``NrPdcpSapProvider::TransmitPdcpSduParameters``.
 These parameters are the RNTI and other two parameters which are dependent of the BID, such as LCID, which in this case
-is 4, and DRBID, which is 2. The latter is used to retrieve the ``LteDataRadioBearerInfo`` associated to a DRBID, if it
-is still in place. At last, the SDU is forwarded to the active ``LtePdcpSapProvider`` through ``TransmitPdcpSdu()``.
+is 4, and DRBID, which is 2. The latter is used to retrieve the ``NrDataRadioBearerInfo`` associated to a DRBID, if it
+is still in place. At last, the SDU is forwarded to the active ``NrPdcpSapProvider`` through ``TransmitPdcpSdu()``.
 
 With this procedure in mind, it is possible to understand how the packet is modified. If we run the same simulation by
-enabling the ``LteEnbRrc`` log component, we obtain the following message logs:
+enabling the ``NrGnbRrc`` log component, we obtain the following message logs:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 LteEnbRrc:SendData(): [INFO ] Received packet
-  +0.400000282s 0 LteEnbRrc:SendPacket(): [INFO ] Send packet to PDCP layer
+  +0.400000282s 0 NrGnbRrc:SendData(): [INFO ] Received packet
+  +0.400000282s 0 NrGnbRrc:SendPacket(): [INFO ] Send packet to PDCP layer
 
 As it can be noticed, packet tags are removed, as the RNTI and BID are transferred to the
-``LtePdcpSapProvider::TransmitPdcpSduParameters`` instance. Byte tags and packet structure remain unaltered.
+``NrPdcpSapProvider::TransmitPdcpSduParameters`` instance. Byte tags and packet structure remain unaltered.
 
 Packet latency
 ##############
-Packets cannot incur latency in ``LteEnbRrc``.
+Packets cannot incur latency in ``NrGnbRrc``.
 
 Packet drops
 ############
 There may be a chance that the UE is still asking for resources on the RACH, i.e., ``INITIAL_RANDOM_ACCESS``, or there
 is still pending set up, i.e., ``CONNECTION_SETUP``. In that case, the packet cannot be transmitted. To this end, it is
-placed in the ``UeManager/Drop`` trace source and discarded.
+placed in the ``NrUeManager/Drop`` trace source and discarded.
 
 .. TODO: how to reproduce a packet drop here?
 
-LtePdcp
+NrPdcp
 =======
 
-The ``LteEnbRrc`` sends the packet down the stack by referencing a ``LtePdcpSapProvider``. This is an abstract interface
+The ``NrGnbRrc`` sends the packet down the stack by referencing a ``NrPdcpSapProvider``. This is an abstract interface
 in order to implement any kind of PDCP layer. In this case, the simulation makes use of the implementation provided by
-``LtePdcp`` available in ``lte/model/lte-pdcp.cc``.
+``NrPdcp`` available in ``model/nr-pdcp.cc``.
 
-The ``LtePdcp`` log component can be enabled at INFO level to check out these log messages:
+The ``NrPdcp`` log component can be enabled at INFO level to check out these log messages:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 LtePdcp:DoTransmitPdcpSdu(): [INFO ] Received PDCP SDU
-  +0.400000282s 0 LtePdcp:DoTransmitPdcpSdu(): [INFO ] Transmit PDCP PDU
+  +0.400000282s 0 NrPdcp:DoTransmitPdcpSdu(): [INFO ] Received PDCP SDU
+  +0.400000282s 0 NrPdcp:DoTransmitPdcpSdu(): [INFO ] Transmit PDCP PDU
 
-According to the ``LtePdcpSapProvider`` interface, the internal method used to receive an incoming packet from upper
+According to the ``NrPdcpSapProvider`` interface, the internal method used to receive an incoming packet from upper
 layers is called ``DoTransmitPdcpSdu()``, which in this case is defined as the following:
 
 .. TODO: This listing can be converted to LOG messages
@@ -587,7 +587,7 @@ layers is called ``DoTransmitPdcpSdu()``, which in this case is defined as the f
     // Sender timestamp
     PdcpTag pdcpTag(Simulator::Now());
 
-    LtePdcpHeader pdcpHeader;
+    NrPdcpHeader pdcpHeader;
     pdcpHeader.SetSequenceNumber(m_txSequenceNumber);
 
     m_txSequenceNumber++;
@@ -596,7 +596,7 @@ layers is called ``DoTransmitPdcpSdu()``, which in this case is defined as the f
         m_txSequenceNumber = 0;
     }
 
-    pdcpHeader.SetDcBit(LtePdcpHeader::DATA_PDU);
+    pdcpHeader.SetDcBit(NrPdcpHeader::DATA_PDU);
 
     NS_LOG_LOGIC("PDCP header: " << pdcpHeader);
     p->AddHeader(pdcpHeader);
@@ -604,57 +604,57 @@ layers is called ``DoTransmitPdcpSdu()``, which in this case is defined as the f
 
     m_txPdu(m_rnti, m_lcid, p->GetSize());
 
-    LteRlcSapProvider::TransmitPdcpPduParameters txParams;
+    NrRlcSapProvider::TransmitPdcpPduParameters txParams;
     txParams.rnti = m_rnti;
     txParams.lcid = m_lcid;
     txParams.pdcpPdu = p;
 
     m_rlcSapProvider->TransmitPdcpPdu(txParams);
 
-As it can be observed, a PDCP packet tag, identified by ``PdcpTag``, and its header, represented by ``LtePdcpHeader``,
+As it can be observed, a PDCP packet tag, identified by ``PdcpTag``, and its header, represented by ``NrPdcpHeader``,
 are created and attached to the SDU. The former stores the current simulation time and the latter is set with a
 specified sequence number and a D/C bit. While the sequence number is locally tracked through the ``m_txSequenceNumber``
 property, the D/C bit is set to ``DATA_PDU`` to indicate that this is a data packet and not a control one.
-This change can be visually represented as :numref:`LtePdcp-DoTransmitPdcpSdu-packet`.
+This change can be visually represented as :numref:`NrPdcp-DoTransmitPdcpSdu-packet`.
 
-.. _LtePdcp-DoTransmitPdcpSdu-packet:
-.. figure:: figures/LtePdcp-DoTransmitPdcpSdu-packet.*
+.. _NrPdcp-DoTransmitPdcpSdu-packet:
+.. figure:: figures/NrPdcp-DoTransmitPdcpSdu-packet.*
    :align: center
    :scale: 80%
 
-   Structure of the PDCP PDU processed by ``LtePdcp``. Green blocks are added at the PDCP layer, while blue ones
+   Structure of the PDCP PDU processed by ``NrPdcp``. Green blocks are added at the PDCP layer, while blue ones
    represent unchanged structure.
 
-Finally, the packet is forwarded to the RLC layer through ``LteRlcSapProvider::TransmitPdcpPdu()``, by providing some
+Finally, the packet is forwarded to the RLC layer through ``NrRlcSapProvider::TransmitPdcpPdu()``, by providing some
 additional parameters to the PDCP PDU, such as the RNTI and the LCID, under the
-``LteRlcSapProvider::TransmitPdcpPduParameters`` structure.
+``NrRlcSapProvider::TransmitPdcpPduParameters`` structure.
 
 Packet latency
 ##############
-Packets cannot incur latency in the ``LtePdcp``.
+Packets cannot incur latency in the ``NrPdcp``.
 
 Packet drops
 ############
-Packets cannot be dropped in the ``LtePdcp``.
+Packets cannot be dropped in the ``NrPdcp``.
 
-LteRlcUm
+NrRlcUm
 ========
 
-Following the same design of ``LtePdcpSapProvider`` template class and its implementation ``LtePdcp``, the RLC layer is
-based on the same class structure. Here, the ``LteRlcSapProvider`` is a template class where multiple implementations
-of the RLC can be defined. On |ns3|, the RLC layer is implemented by ``LteRlcAm``, ``LteRlcTm``, and ``LteRlcUm``,
+Following the same design of ``NrPdcpSapProvider`` template class and its implementation ``NrPdcp``, the RLC layer is
+based on the same class structure. Here, the ``NrRlcSapProvider`` is a template class where multiple implementations
+of the RLC can be defined. On |ns3|, the RLC layer is implemented by ``NrRlcAm``, ``NrRlcTm``, and ``NrRlcUm``,
 according to how the PDCP PDU is transferred to the UE, if on Acknowledged Mode (AM), Transparent Mode (TM), or
-Unacknowledged Mode (UM), respectively. For this simulation, the ``LteRlcUm`` is adopted, which is implemented in
-``lte/model/lte-rlc-um.cc``.
+Unacknowledged Mode (UM), respectively. For this simulation, the ``NrRlcUm`` is adopted, which is implemented in
+``model/nr-rlc-um.cc``.
 
-If the ``LteRlcUm`` log component is enabled at INFO level, it produces the following log messages:
+If the ``NrRlcUm`` log component is enabled at INFO level, it produces the following log messages:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
-  +0.400000282s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
+  +0.400000282s 0 NrRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
+  +0.400000282s 0 NrRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
 
-As it can be deduced, the RLC SDU is received at ``LteRlcUm::DoTransmitPdcpPdu()``, with its implementation that is:
+As it can be deduced, the RLC SDU is received at ``NrRlcUm::DoTransmitPdcpPdu()``, with its implementation that is:
 
 .. sourcecode:: cpp
 
@@ -664,8 +664,8 @@ As it can be deduced, the RLC SDU is received at ``LteRlcUm::DoTransmitPdcpPdu()
           // Ignored, as this flag is false by default
 
       /** Store PDCP PDU */
-      LteRlcSduStatusTag tag;
-      tag.SetStatus(LteRlcSduStatusTag::FULL_SDU);
+      NrRlcSduStatusTag tag;
+      tag.SetStatus(NrRlcSduStatusTag::FULL_SDU);
       p->AddPacketTag(tag);
 
       NS_LOG_INFO("New packet enqueued to the RLC Tx Buffer");
@@ -688,16 +688,16 @@ As it can be deduced, the RLC SDU is received at ``LteRlcUm::DoTransmitPdcpPdu()
   DoReportBufferStatus();
   m_rbsTimer.Cancel();
 
-The packet remains unchanged, if not for a new tag managed by ``LteRlcSduStatusTag``, which keeps track of the
+The packet remains unchanged, if not for a new tag managed by ``NrRlcSduStatusTag``, which keeps track of the
 fragmentation status of the packet done by the RLC layer. Given that ``DoTransmitPdcpPdu()`` does not fragment the
-packet, the state is set to ``LteRlcSduStatusTag::FULL_SDU`` accordingly.
+packet, the state is set to ``NrRlcSduStatusTag::FULL_SDU`` accordingly.
 
 The packet is then appended to a buffer called ``m_txBuffer``, which is a ``vector<TxPdu>``, where ``TxPdu`` is a
 structure containing (i) a pointer to the packet, and (ii) the time when the packet has been added to the buffer, as
 dictated by the ``Simulator::Now()`` call in ``m_txBuffer.emplace_back()`` instruction.
 
 At the end of the procedure, ``DoReportBufferStatus()`` is called to alert the queue size at the MAC layer, handled by
-``LteMacSapProvider``. The buffer report focuses on reporting the queue size and its HOL delay, together with the RNTI
+``NrMacSapProvider``. The buffer report focuses on reporting the queue size and its HOL delay, together with the RNTI
 and LCID of reference, as it can be noticed by the following excerpt of the said method:
 
 .. sourcecode:: cpp
@@ -713,7 +713,7 @@ and LCID of reference, as it can be noticed by the following excerpt of the said
           m_txBufferSize + 2 * m_txBuffer.size(); // Data in tx queue + estimated headers size
   }
 
-  LteMacSapProvider::ReportBufferStatusParameters r;
+  NrMacSapProvider::ReportBufferStatusParameters r;
   r.rnti = m_rnti;
   r.lcid = m_lcid;
   r.txQueueSize = queueSize;
@@ -726,19 +726,19 @@ and LCID of reference, as it can be noticed by the following excerpt of the said
   m_macSapProvider->ReportBufferStatus(r);
 
 There is no mention of the actual ``m_txBuffer``, which is kept at the RLC layer, until a transmission opportunity is
-found at the MAC layer, for which there is an upcall to ``LteRlcUm::DoNotifyTxOpportunity()`` done by the MAC scheduler.
+found at the MAC layer, for which there is an upcall to ``NrRlcUm::DoNotifyTxOpportunity()`` done by the MAC scheduler.
 Indeed, the INFO log messages suggest that the buffer acquires two RLC SDUs before a transmission opportunity takes
 place:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
-  +0.400000282s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
-  +0.400002262s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
-  +0.400002262s 0 LteRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
-  +0.400062500s 0 LteRlcUm:DoNotifyTxOpportunity(): [INFO ] RLC layer is preparing data for the following Tx opportunity of 36 bytes for RNTI=2, LCID=4, CCID=0, HARQ ID=15, MIMO Layer=0
+  +0.400000282s 0 NrRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
+  +0.400000282s 0 NrRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
+  +0.400002262s 0 NrRlcUm:DoTransmitPdcpPdu(): [INFO ] Received RLC SDU
+  +0.400002262s 0 NrRlcUm:DoTransmitPdcpPdu(): [INFO ] New packet enqueued to the RLC Tx Buffer
+  +0.400062500s 0 NrRlcUm:DoNotifyTxOpportunity(): [INFO ] RLC layer is preparing data for the following Tx opportunity of 36 bytes for RNTI=2, LCID=4, CCID=0, HARQ ID=15, MIMO Layer=0
 
-The ``LteRlcUm::DoNotifyTxOpportunity()`` prepares the data to transmit in the following way:
+The ``NrRlcUm::DoNotifyTxOpportunity()`` prepares the data to transmit in the following way:
 
 .. sourcecode:: cpp
 
@@ -750,7 +750,7 @@ The ``LteRlcUm::DoNotifyTxOpportunity()`` prepares the data to transmit in the f
   }
 
   Ptr<Packet> packet = Create<Packet>();
-  LteRlcHeader rlcHeader;
+  NrRlcHeader rlcHeader;
 
   // Build Data field
   uint32_t nextSegmentSize = txOpParams.bytes - 2;
@@ -789,7 +789,7 @@ From the head of ``m_txBuffer``, the first RLC SDU is taken and it is called ``f
 time. Until we have space for the transmission opportunity, tracked by ``nextSegmentSize``, the while loop is executed.
 
 Of course, if the ``firstSegment`` is too big to fit in the transmission opportunity, it is fragmented. The
-``LteRlcSduStatusTag`` is then updated to check if the fragment is the ``FIRST_SEGMENT``, ``MIDDLE_SEGMENT``, or
+``NrRlcSduStatusTag`` is then updated to check if the fragment is the ``FIRST_SEGMENT``, ``MIDDLE_SEGMENT``, or
 ``LAST_SEGMENT``, according to how many parts the packet is fragmented. Fragments that do not fit the opportunity window
 size are inserted back to the head of ``m_txBuffer``. If such fragment is not the last, the RLC Header
 ``DATA_FIELD_FOLLOWS`` bit is set to alert that this packet does not contain the entire PDCP packet. This will be
@@ -801,10 +801,10 @@ there is still more space left on the segment and other packets are waiting in t
 ``firstSegment`` is placed in the segment and the left space, tracked by ``nextSegmentSize``, is evaluated to add a new
 packet in the segment at the next while loop iteration.
 
-This operation can be better visualized by observing :numref:`LteRlcUm-DoNotifyTxOpportunity-fragmentation`.
+This operation can be better visualized by observing :numref:`NrRlcUm-DoNotifyTxOpportunity-fragmentation`.
 
-.. _LteRlcUm-DoNotifyTxOpportunity-fragmentation:
-.. figure:: figures/LteRlcUm-DoNotifyTxOpportunity-fragmentation.*
+.. _NrRlcUm-DoNotifyTxOpportunity-fragmentation:
+.. figure:: figures/NrRlcUm-DoNotifyTxOpportunity-fragmentation.*
   :align: center
 
   Overview of how the packets buffered by the RLC layer are combined to prepare a segment with a size equal to the
@@ -812,7 +812,7 @@ This operation can be better visualized by observing :numref:`LteRlcUm-DoNotifyT
 
 where the "Hdr" that precedes the MAC SDU fragment is the subheader according to `3GPP TS 38.321`_.
 
-After the fragmentation procedure, the RLC header, handled by ``LteRlcHeader`` data structure, is set up. The sequence
+After the fragmentation procedure, the RLC header, handled by ``NrRlcHeader`` data structure, is set up. The sequence
 number is set and kept track via the local property ``m_sequenceNumber``. Moreover, the framing information is set to
 declare if the last byte of the segment corresponds or not to the end of a RLC SDU. Finally, a ``RlcTag`` byte tag is
 added and linked to the RLC header, which saves the current simulation time.
@@ -821,19 +821,19 @@ It is possible to enable INFO log messages to understand when the packet is sent
 
 .. sourcecode:: text
 
-  +0.400062500s 0 LteRlcUm:DoNotifyTxOpportunity(): [INFO ] Forward RLC PDU to MAC Layer
+  +0.400062500s 0 NrRlcUm:DoNotifyTxOpportunity(): [INFO ] Forward RLC PDU to MAC Layer
 
 
 .. TODO Traces can be used to further inspect the packet contents, providing an output like this:
-      ns3::LteRlcHeader (Len=2 FI=1 E=0 SN=0) ns3::LtePdcpHeader (D/C=1 SN=0) ns3::Ipv4Header (tos 0x0 DSCP Default ECN Not-ECT ttl 63 id 0 protocol 17 offset (bytes) 0 flags [none] length: 128 1.0.0.2 > 7.0.0.2) ns3::UdpHeader (length: 108 49153 > 1234) ns3::SeqTsHeader ((seq=0 time=+0.4s)) Payload Fragment [0:37]
+      ns3::NrRlcHeader (Len=2 FI=1 E=0 SN=0) ns3::NrPdcpHeader (D/C=1 SN=0) ns3::Ipv4Header (tos 0x0 DSCP Default ECN Not-ECT ttl 63 id 0 protocol 17 offset (bytes) 0 flags [none] length: 128 1.0.0.2 > 7.0.0.2) ns3::UdpHeader (length: 108 49153 > 1234) ns3::SeqTsHeader ((seq=0 time=+0.4s)) Payload Fragment [0:37]
 
   As expected, the incoming RLC SDU has been fragmented. The first RLC PDU that can be seen here contains:
-  - The ``LteRlcHeader``, which requires 2 bytes, as it can be seen on the ``Len`` property in the packet inspection.
+  - The ``NrRlcHeader``, which requires 2 bytes, as it can be seen on the ``Len`` property in the packet inspection.
     Furthermore, the ``FI`` framing info is set to 1, which indicates that the first byte of this PDU corresponds to the
     first byte of a RLC SDU, but the last byte of this PDU does not correspond to the last byte of the SDU. The ``SN``
     sequence number is zero, as expected, along the ``E`` extension bit, which means that the header does not have any
     extensions.
-  - The ``LtePdcpHeader``, which covers 2 bytes.
+  - The ``NrPdcpHeader``, which covers 2 bytes.
   - The ``Ipv4Header``, which has 20 bytes.
   - The ``UdpHeader``, which occupies 8 bytes.
   - The ``SeqTsHeader``, which requires 12 bytes.
@@ -845,21 +845,21 @@ It is possible to enable INFO log messages to understand when the packet is sent
 .. TODO Indeed, in the next RLC PDU forward to the MAC layer, it is possible to notice this other log message:
 
 .. TODO describe how to obtain trace sources
-  ns3::LteRlcHeader (Len=4 FI=3 E=1 SN=1 E=0 LI=51 ) Payload Fragment [37:88] ns3::LtePdcpHeader (D/C=1 SN=1) ns3::Ipv4Header (tos 0x0 DSCP Default ECN Not-ECT ttl 63 id 1 protocol 17 offset (bytes) 0 flags [none] length: 128 1.0.0.2 > 7.0.0.2) ns3::UdpHeader Fragment [0:4]
+  ns3::NrRlcHeader (Len=4 FI=3 E=1 SN=1 E=0 LI=51 ) Payload Fragment [37:88] ns3::NrPdcpHeader (D/C=1 SN=1) ns3::Ipv4Header (tos 0x0 DSCP Default ECN Not-ECT ttl 63 id 1 protocol 17 offset (bytes) 0 flags [none] length: 128 1.0.0.2 > 7.0.0.2) ns3::UdpHeader Fragment [0:4]
 
-  By observing the ``LteRlcHeader`` properties, it is possible to notice that its length ``Len`` is now of 4 bytes,
+  By observing the ``NrRlcHeader`` properties, it is possible to notice that its length ``Len`` is now of 4 bytes,
   due to the fact that the extension bit ``E`` is set to 1 and the length indicator ``LI`` indicates that there are 51
   bytes belonging to a previous transmission. Indeed, it is possible to see that right after the RLC header properties,
   there is ``Payload Fragment [37:88]``, which is the byte range indicating the remaining 51 bytes belonging to the
   original RLC SDU. The same reasoning can be applied on further transmissions, as in this RLC PDU there is another SDU
-  fragment starting from ``ns3::LtePdcpHeader``.
+  fragment starting from ``ns3::NrPdcpHeader``.
 
 Once the RLC PDU is ready, it is pushed to the MAC SAP through the ``TransmitPdu()`` interface method, together with the
 RNTI, LCID, CCID, HARQ ID, and MIMO layer.
 
 Packet latency
 ##############
-Packets do incur latency in ``LteRlcUm``, and in the RLC layer in general, according to when the transmission
+Packets do incur latency in ``NrRlcUm``, and in the RLC layer in general, according to when the transmission
 opportunities take place and how much large is the buffer. A small buffer may improve latency on one hand, at the cost
 of risking the event of a full transmission buffer, which causes packet drops.
 
@@ -990,7 +990,7 @@ All this information can be obtained in the following log messages:
 
 The ``F`` in the TDD pattern means that for each TDD slot it will be possible to handle any type of frame, from DL to
 UL, which can be of ``CTRL`` or ``DATA`` type. More information can be found in the
-`NR doxygen regarding the LteNrTddSlotType`_.
+`NR doxygen regarding the NrTddSlotType`_.
 
 The gNB's PHY layer receives the MAC PDU through the ``NrPhy::SetMacPdu()`` method. First of all, the numerology is
 checked to understand if the PHY is working at that numerology at the moment. If such condition is true, the PDU is
@@ -1054,7 +1054,7 @@ are found to be corrupted. Whether the packet is corrupted is evaluated in ``NrS
 the function ``NrErrorModel::GetTbDecodificationStats()`` which takes into account the HARQ history (used for the HARQ
 model being configured for this simulation, i.e., Chase Combining or Incremental Redundancy.)
 
-.. _`NR doxygen regarding the LteNrTddSlotType`: https://cttc-lena.gitlab.io/nr/html/group__utils.html#gae35a1a716a8137bb283336e7f988646f
+.. _`NR doxygen regarding the NrTddSlotType`: https://cttc-lena.gitlab.io/nr/html/group__utils.html#gae35a1a716a8137bb283336e7f988646f
 .. _`doxygen of NrGnbPhy`: https://cttc-lena.gitlab.io/nr/html/classns3_1_1_nr_gnb_phy.html
 .. _`doxygen of NrPhy`: https://cttc-lena.gitlab.io/nr/html/classns3_1_1_nr_phy.html
 .. _`nr-v2x-dev branch`: https://gitlab.com/cttc-lena/nr/-/tree/nr-v2x-dev?ref_type=heads
@@ -1169,7 +1169,7 @@ we get the following information:
   +0.402582140s 2  [ CellId 3, bwpId 1, rnti 1] NrUeMac:DoReceivePhyPdu(): [INFO ] Received PHY PDU from LCID 4 of size 12065 bytes.
 
 It is evident the amount of data being received by both BWPs. Finally, the MAC SDU is prepared by just removing the MAC
-header from its PDU and forwarded to the LTE RLC layer.
+header from its PDU and forwarded to the NR RLC layer.
 
 Packet latency
 ##############
@@ -1208,34 +1208,34 @@ Packet drops
 
 Packets may be dropped by ``NrUeMac`` if the RNTI does not match with the expected one.
 
-LteRlcUm - UE Side
+NrRlcUm - UE Side
 ==================
 
-When the RLC PDU is received at ``LteRlcUm::DoReceivePdu()``, its header is removed.
+When the RLC PDU is received at ``NrRlcUm::DoReceivePdu()``, its header is removed.
 Its packet sequence number is checked to verify if (i) the data need reordering, (ii) the data is a duplicate of a
 previous one, and (iii) it has been received outside the reordering window.
 To fully understand this logic, please refer to `Section 5.1.2.2 of the LTE RLC protocol specification`_.
 
-Once the SDU is reassembled correctly from the received PDUs, ``LteRlcUm::ReassembleAndDeliver()`` sends the packet up
+Once the SDU is reassembled correctly from the received PDUs, ``NrRlcUm::ReassembleAndDeliver()`` sends the packet up
 to the PDCP layer.
 
-.. _LteRlcUm-UESide-packetlatency:
+.. _NrRlcUm-UESide-packetlatency:
 
 Packet latency
 ##############
 
 The delay at RLC layer can be tracked with the ``RxPdu`` trace. At the same time, it is possible to enable the
-``LteRlcUm`` log component and filter by the ``LteRlcUm::DoReceivePdu()`` messages. It can be noticed that, for the
+``NrRlcUm`` log component and filter by the ``NrRlcUm::DoReceivePdu()`` messages. It can be noticed that, for the
 low latency voice, the packets have an average latency of 234 us, whereas the high quality voice has 681 us.
 This data can be easily extracted with the following two commands:
 
 .. sourcecode:: bash
 
-  $ grep '1 LteRlcUm:DoReceivePdu' output.log | \
+  $ grep '1 NrRlcUm:DoReceivePdu' output.log | \
       grep -oP '[0-9]+(?=ns)' | \
       awk '{ total += $1; count ++ } END { print total/count/1e3 }'
   233.976
-  $ grep '2 LteRlcUm:DoReceivePdu' output.log | \
+  $ grep '2 NrRlcUm:DoReceivePdu' output.log | \
       grep -oP '[0-9]+(?=ns)' | \
       awk '{ total += $1; count ++ } END { print total/count/1e3 }'
   680.866
@@ -1251,18 +1251,18 @@ The RLC PDU is dropped if it was already received or its sequence number falls o
 
 .. _`Section 5.1.2.2 of the LTE RLC protocol specification`: https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=2438
 
-LtePdcp - UE Side
+NrPdcp - UE Side
 =================
 
-Like what we have seen at RLC layer, the incoming PDCP PDUs are received at ``LtePdcp::DoReceivePdu()`` method. The
-header is removed and the packet is then transmitted to the ``LteUeRrc``, which straightly pass the packet to
-``EpcUeNas`` and then ``NrUeNetDevice``.
+Like what we have seen at RLC layer, the incoming PDCP PDUs are received at ``NrPdcp::DoReceivePdu()`` method. The
+header is removed and the packet is then transmitted to the ``NrUeRrc``, which straightly pass the packet to
+``NrEpcUeNas`` and then ``NrUeNetDevice``.
 
 Packet latency
 ##############
 
-Latency can be evaluated with the same method used for :numref:`LteRlcUm-UESide-packetlatency`.
-``LteUeRrc`` and ``EpcUeNas`` acts transparently and do not add any additional latency.
+Latency can be evaluated with the same method used for :numref:`NrRlcUm-UESide-packetlatency`.
+``NrUeRrc`` and ``NrEpcUeNas`` acts transparently and do not add any additional latency.
 
 Packet drops
 ############
@@ -1272,7 +1272,7 @@ Packets cannot be dropped at this layer, neither at RRC and UE NAS.
 NrUeNetDevice
 =============
 
-The packet is received by the ``EpcUeNas`` to ``NrUeNetDevice::DoRecvData()`` which does an up-callback to
+The packet is received by the ``NrEpcUeNas`` to ``NrUeNetDevice::DoRecvData()`` which does an up-callback to
 ``NrUeNetDevice::Receive()``. The implementation of such callback is the same for both UE and gNB, and thus it can be
 found in ``NrNetDevice``, i.e., ``contrib/nr/model/nr-net-device.cc``.
 
