@@ -49,7 +49,7 @@ In this section, we present the design of the different features and procedures 
 
 Architecture
 ************
-The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure :ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an PGW/SGW (Packet Gateway and Service Gateway), through a link. Such a connection can be defined with any technology that is currently available in ns-3.  The diagram illustrates a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``EpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NRGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NRUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but in the opposite direction.
+The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure :ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an PGW/SGW (Packet Gateway and Service Gateway), through a link. Such a connection can be defined with any technology that is currently available in ns-3.  The diagram illustrates a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``NrEpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NrGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NrUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but in the opposite direction.
 
 .. _fig-e2e:
 
@@ -59,7 +59,7 @@ The 'NR' module has been designed to perform end-to-end simulations of 3GPP-orie
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and ``NRUeNetDevice`` in Figure :ref:`fig-ran`. The ``NRGnbMac`` and ``NRUeMac`` MAC classes implement the LTE module Service Access Point (SAP) provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NRMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``LteEnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NrGnbNetDevice`` and ``NrUeNetDevice`` in Figure :ref:`fig-ran`. The ``NrGnbMac`` and ``NrUeMac`` MAC classes implement the LTE module Service Access Point (SAP) provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NrMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``NrGnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -69,7 +69,7 @@ Concerning the RAN, we detail what is happening between ``NRGnbNetDevice`` and `
 
    RAN class overview
 
-Two interesting blocks in Figure :ref:`fig-ran` are the ``NRGnbBwpM`` and ``NRUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. The component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and thereby improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its own PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NRGnbBwpM`` and ``NRUeBwpM``).
+Two interesting blocks in Figure :ref:`fig-ran` are the ``NrGnbBwpM`` and ``NrUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. The component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and thereby improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its own PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NrGnbBwpM`` and ``NrUeBwpM``).
 
 Note: The 3GPP definition for "Bandwidth Part" (BWP) is made for energy-saving purposes at the UE nodes. As per the 3GPP standard, the active 3GPP BWP at a UE can vary semi-statically, and multiple 3GPP BWPs can span over the same frequency spectrum region. In this text, and through the code, we use the word BWP to refer to various things that are not always in line with the 3GPP definition.
 
@@ -1206,6 +1206,7 @@ the information to other entities that can perform a different computations by e
     * Interference covariance matrices for each different time-domain chunk are passed to CQI generating functions and used
       are used with channel matrix to compute the precoding matrix PMI feedback.
 
+Since nr-3.2, ``LteChunkProcessor`` has been ported to NR as ``NrChunkProcessor``.
 
 Computation of TBLER based on the MIMO SINR
 ###########################################
@@ -1595,7 +1596,7 @@ Note also that, in case of adaptive MCS, in the simulator, the gNBs DL data tran
 
 Transport block model
 =====================
-The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (LteRadioBearerTag), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP. The incorporation of real MAC headers has recently started, so it is expected that in the next releases such tag will be removed. At the moment, we introduced the concept of MAC header to include the Buffer Status Report as a MAC Control Element, as it is defined by the standard (with some differences, to adapt it to the ancient LTE scheduler interface).
+The model of the MAC Transport Blocks (TBs) provided by the simulator is simplified with respect to the 3GPP specifications. In particular, a simulator-specific class (PacketBurst) is used to aggregate MAC SDUs to achieve the simulator’s equivalent of a TB, without the corresponding implementation complexity. The multiplexing of different logical channels to and from the RLC layer is performed using a dedicated packet tag (``NrRadioBearerTag``), which produces a functionality which is partially equivalent to that of the MAC headers specified by 3GPP. The incorporation of real MAC headers has recently started, so it is expected that in the next releases such tag will be removed. At the moment, we introduced the concept of MAC header to include the Buffer Status Report as a MAC Control Element, as it is defined by the standard (with some differences, to adapt it to the ancient LTE scheduler interface).
 
 **Transport block size determination**: Transport block size determination in NR is described in [TS38214]_, and it is used to determine the TB size of downlink and uplink shared channels, for a given MCS table, MCS index and resource allocation (in terms of OFDM symbols and RBs). The procedure included in the 'NR' module for TB size determination follows TS 38.214 Section 5.1.3.2 (DL) and 6.1.4.2 (UL) but without including quantizations and and limits. That is, including Steps 1 and 2, but skipping Steps 3 and 4, of the NR standard procedure. This is done in this way to allow the simulator to operate in larger bandwidths that the ones permitted by the NR specification. In particular, the TB size is computed in the simulator as follows:
 
@@ -1646,14 +1647,20 @@ with the UNIT Test :ref:`notchingTest` described in :ref:`Validation` section.
 
 RLC layer
 *********
-The simulator currently reuses the RLC layer available in LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#rlc
+The simulator currently uses a ported version of the RLC layer available in LENA ns-3 LTE.
+The RLC related files were copied and renamed, replacing the ``lte-`` prefix with ``nr-``.
+Similarly, the ported classes/structures/tests had their ``Lte`` prefix replaced with ``Nr``.
+For example, LTE's ``LteRlc`` is the counterpart for NR's ``NrRlc``.
+For model details see: https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#rlc
 
 
 PDCP layer
 **********
-The simulator currently reuses the PDCP layer available in LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#pdcp
+The simulator currently uses a ported version of the PDCP layer available in LENA ns-3 LTE.
+The PDCP related files were copied and renamed, replacing the ``lte-`` prefix with ``nr-``.
+Similarly, the ported classes/structures/tests had their ``Lte`` prefix replaced with ``Nr``.
+For example, LTE's ``LtePdcp`` is the counterpart for NR's ``NrPdcp``.
+For model details see: https://www.nsnam.org/docs/release/3.29/models/html/lte-design.html#pdcp
 
 
 SDAP layer
@@ -1663,32 +1670,47 @@ SDAP layer is not present yet in the 'NR' module.
 
 RRC layer
 *********
-The simulator currently reuses the RRC layer available in LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/models/html/lte-design.html#rrc
+The simulator currently uses a ported version of the RRC layer available in LENA ns-3 LTE.
+The RRC related files were copied and renamed, replacing the ``lte-`` prefix with ``nr-``.
+Similarly, the ported classes/structures/tests had their ``Lte`` prefix replaced with ``Nr``.
+For example, LTE's ``LteRrc`` is the counterpart for NR's ``NrRrc``.
+For model details see: https://www.nsnam.org/docs/models/html/lte-design.html#rrc
 
 
 NAS layer
 *********
-The simulator currently reuses the NAS layer available in LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/models/html/lte-design.html#nas
+The simulator currently uses a ported version of the NAS layer available in LENA ns-3 LTE.
+The NAS related files were copied and renamed, adding the ``nr-`` prefix.
+Similarly, the ported classes/structures/tests received the ``Nr`` prefix.
+For example, LTE's ``EpcUeNas`` is the counterpart for NR's ``NeEpcUeNas``.
+For model details see: https://www.nsnam.org/docs/models/html/lte-design.html#nas
 
 
 EPC model
 *********
-The simulator currently reuses the core network (EPC) of LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/models/html/lte-design.html#epc-model
+The simulator currently uses a ported version of the core network (EPC) of LENA ns-3 LTE.
+The EPC related files were copied and renamed, adding the ``nr-`` prefix.
+Similarly, the ported classes/structures/tests received the ``Nr`` prefix.
+For example, LTE's ``EpcEnbApplication`` is the counterpart for NR's ``NrEpcGnbApplication``.
+For model details see: https://www.nsnam.org/docs/models/html/lte-design.html#epc-model
 
 
 S1, S5, S11 interfaces
 **********************
-The simulator currently reuses the S1, S5, and S11 interfaces of LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/models/html/lte-design.html#s1-s5-and-s11
+The simulator currently uses a ported version of the S1, S5, and S11 interfaces of LENA ns-3 LTE.
+The S1, S5, and S11 interfaces related files were copied and renamed, adding the ``nr-`` prefix.
+Similarly, the ported classes/structures/tests received the ``Nr`` prefix.
+For example, LTE's ``EpcS1apSap`` is the counterpart for NR's ``NrEpcS1apSap``.
+For model details see: https://www.nsnam.org/docs/models/html/lte-design.html#s1-s5-and-s11
 
 
 X2 interface
 ************
-The simulator currently reuses the X2 interfaces of LENA ns-3 LTE. For details see:
-https://www.nsnam.org/docs/models/html/lte-design.html#x2
+The simulator currently uses a ported version of the X2 interfaces of LENA ns-3 LTE.
+The X2 interface related files were copied and renamed, adding the ``nr-`` prefix.
+Similarly, the ported classes/structures/tests received the ``Nr`` prefix.
+For example, LTE's ``EpcX2`` is the counterpart for NR's ``NrEpcX2``.
+For model details see: https://www.nsnam.org/docs/models/html/lte-design.html#x2
 
 
 NR REM Helper
