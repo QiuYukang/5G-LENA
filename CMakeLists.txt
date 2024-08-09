@@ -300,3 +300,17 @@ build_lib(
     ${libflow-monitor}
   TEST_SOURCES ${test_sources}
 )
+
+# Get path src/nr or contrib/nr
+string(
+  REPLACE "${PROJECT_SOURCE_DIR}/"
+          ""
+          FOLDER
+          "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+build_exec(
+  EXECNAME nr-print-introspected-doxygen
+  SOURCE_FILES ./utils/print-introspected-doxygen.cc
+  LIBRARIES_TO_LINK ${libnr}
+  EXECUTABLE_DIRECTORY_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FOLDER}
+)

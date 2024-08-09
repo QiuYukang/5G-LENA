@@ -118,28 +118,47 @@ documentation:
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-    - apt-get install -y doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments texlive-fonts-extra git
+    - apt-get install -y ccache cmake g++ python3 doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments texlive-fonts-extra git
     - sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
     - sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
   image: ubuntu
   script:
-    - mkdir -p public/
-    - cd doc
-    - make latexpdf && mv ./build/latex/*.pdf ../public/
+    # Setup ccache
+    - mkdir -p $CCACHE_BASEDIR_VALUE
+    - export CCACHE_BASEDIR=${PWD}
+    - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
+    # Clone ns-3 and configure then extract introspected doxygen
+    - git clone --branch=$NS3_RELEASE_VERSION --depth=1 https://gitlab.com/nsnam/ns-3-dev.git
+    - ln -s ${PWD} ns-3-dev/contrib/nr
+    - pushd ns-3-dev
+    - ./ns3 configure
+    - ./ns3 run nr-print-introspected-doxygen --quiet > contrib/nr/doc/introspected-doxygen.h
+    - popd
+    # Export nr version for documentation
     - export NRVERSION="nr-`git describe`"
+    - mkdir -p public/
+    # Build NR manual
+    - pushd doc
+    - make latexpdf && mv ./build/latex/nrmodule.pdf ../public/
+    # Build doxygen
     - doxygen doxygen.conf && mv ./doc/html/ ../public/
-    - cd ..
-     # this should be optimized in future to not download the whole ns-3
-     # only because we need one script from utils (rescale-pdf.sh)!
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
-    - mkdir -p ns-3-dev/contrib/nr/
-    - cp -r tutorial ns-3-dev/contrib/nr/
-    - cd ns-3-dev/contrib/nr/tutorial && make latexpdf
-    - cd ../../../..
-    - mv ns-3-dev/contrib/nr/tutorial/build/latex/*.pdf public/
+    - popd
+    # Build tutorial
+    - pushd tutorial
+    - make latexpdf && mv ./build/latex/cttc-nr-demo-tutorial.pdf ../public/
+    - popd
   artifacts:
     paths:
       - public
+  cache:
+    key: "ccache-$CI_JOB_NAME"
+    paths:
+      - $CCACHE_BASEDIR_VALUE/
+  timeout: 9h
+  interruptible: true
+  variables:
+    CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
+    NS3_RELEASE_VERSION: "ns-3.42"
 
 pages:
   stage: deploy

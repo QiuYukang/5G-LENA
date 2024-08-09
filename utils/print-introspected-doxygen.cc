@@ -196,7 +196,7 @@ class StaticInformation
     /**
      * Print output in "a -> b" form on std::cout
      */
-    void Print(void) const;
+    void Print() const;
 
     /**
      * \return the configuration paths for tid
@@ -208,13 +208,13 @@ class StaticInformation
     /**
      * \return the type names we couldn't aggregate.
      */
-    std::vector<std::string> GetNoTypeIds(void) const;
+    std::vector<std::string> GetNoTypeIds() const;
 
   private:
     /**
      * \return the current configuration path
      */
-    std::string GetCurrentPath(void) const;
+    std::string GetCurrentPath() const;
     /**
      * Gather attribute, configuration path information for tid
      *
@@ -282,21 +282,21 @@ StaticInformation::RecordAggregationInfo(std::string a, std::string b)
 }
 
 void
-StaticInformation::Print(void) const
+StaticInformation::Print() const
 {
     NS_LOG_FUNCTION(this);
-    for (auto item : m_output)
+    for (const auto& item : m_output)
     {
         std::cout << item.first.GetName() << " -> " << item.second << std::endl;
     }
 }
 
 std::string
-StaticInformation::GetCurrentPath(void) const
+StaticInformation::GetCurrentPath() const
 {
     NS_LOG_FUNCTION(this);
     std::ostringstream oss;
-    for (auto item : m_currentPath)
+    for (const auto& item : m_currentPath)
     {
         oss << "/" << item;
     }
@@ -314,7 +314,7 @@ bool
 StaticInformation::HasAlreadyBeenProcessed(TypeId tid) const
 {
     NS_LOG_FUNCTION(this << tid);
-    for (auto it : m_alreadyProcessed)
+    for (const auto& it : m_alreadyProcessed)
     {
         if (it == tid)
         {
@@ -329,7 +329,7 @@ StaticInformation::Get(TypeId tid) const
 {
     NS_LOG_FUNCTION(this << tid);
     std::vector<std::string> paths;
-    for (auto item : m_output)
+    for (const auto& item : m_output)
     {
         if (item.first == tid)
         {
@@ -363,7 +363,7 @@ Uniquefy(T t)
 }
 
 std::vector<std::string>
-StaticInformation::GetNoTypeIds(void) const
+StaticInformation::GetNoTypeIds() const
 {
     NS_LOG_FUNCTION(this);
     Uniquefy(m_noTids);
@@ -392,7 +392,7 @@ StaticInformation::DoGather(TypeId tid)
         struct TypeId::AttributeInformation info = tid.GetAttribute(i);
         const PointerChecker* ptrChecker =
             dynamic_cast<const PointerChecker*>(PeekPointer(info.checker));
-        if (ptrChecker != 0)
+        if (ptrChecker != nullptr)
         {
             TypeId pointee = ptrChecker->GetPointeeTypeId();
 
@@ -418,7 +418,7 @@ StaticInformation::DoGather(TypeId tid)
         // attempt to cast to an object vector.
         const ObjectPtrContainerChecker* vectorChecker =
             dynamic_cast<const ObjectPtrContainerChecker*>(PeekPointer(info.checker));
-        if (vectorChecker != 0)
+        if (vectorChecker != nullptr)
         {
             TypeId item = vectorChecker->GetItemTypeId();
             m_currentPath.push_back(info.name + "/[i]");
@@ -442,7 +442,7 @@ StaticInformation::DoGather(TypeId tid)
             m_currentPath.pop_back();
         }
     }
-    for (auto item : m_aggregates)
+    for (const auto& item : m_aggregates)
     {
         if (item.first == tid || item.second == tid)
         {
@@ -540,7 +540,7 @@ typedef NameMap::const_iterator NameMapIterator; ///< NameMap iterator
  * \returns NameMap
  */
 NameMap
-GetNameMap(void)
+GetNameMap()
 {
     NS_LOG_FUNCTION_NOARGS();
 
@@ -555,51 +555,33 @@ GetNameMap(void)
     // Short circuit next call
     mapped = true;
 
-    // Get typical aggregation relationships.
-    // StaticInformation info = GetTypicalAggregations ();
+    // We start a list of all NR classes that are not Nr prefixed
+    static std::vector<TypeId> types = {
+        BandwidthPartGnb::GetTypeId(),
+        BandwidthPartUe::GetTypeId(),
+        BeamManager::GetTypeId(),
+        BwpManagerAlgorithm::GetTypeId(),
+        BwpManagerAlgorithmStatic::GetTypeId(),
+        BwpManagerGnb::GetTypeId(),
+        BwpManagerUe::GetTypeId(),
+        IdealBeamformingAlgorithm::GetTypeId(),
+        LenaErrorModel::GetTypeId(),
+        nrUeRrcProtocolIdeal::GetTypeId(),
+        RealisticBeamformingAlgorithm::GetTypeId(),
+        RealisticBfManager::GetTypeId(),
+    };
 
-    static std::list<TypeId> types = {NrLteMiErrorModel::GetTypeId(),
-                                      NrErrorModel::GetTypeId(),
-                                      NrEesmIr::GetTypeId(),
-                                      NrEesmIrT2::GetTypeId(),
-                                      NrEesmIrT1::GetTypeId(),
-                                      NrEesmErrorModel::GetTypeId(),
-                                      NrEesmCcT2::GetTypeId(),
-                                      NrEesmCcT1::GetTypeId(),
-                                      NrChAccessManager::GetTypeId(),
-                                      NrAlwaysOnAccessManager::GetTypeId(),
-                                      NrAmc::GetTypeId(),
-                                      NrUePhy::GetTypeId(),
-                                      NrUeNetDevice::GetTypeId(),
-                                      NrUeMac::GetTypeId(),
-                                      NrSpectrumPhy::GetTypeId(),
-                                      nrUeRrcProtocolIdeal::GetTypeId(),
-                                      NrRadioBearerTag::GetTypeId(),
-                                      NrPhy::GetTypeId(),
-                                      NrNetDevice::GetTypeId(),
-                                      NrMacScheduler::GetTypeId(),
-                                      NrMacSchedulerTdma::GetTypeId(),
-                                      NrMacSchedulerTdmaRR::GetTypeId(),
-                                      NrMacSchedulerTdmaPF::GetTypeId(),
-                                      NrMacSchedulerTdmaMR::GetTypeId(),
-                                      NrMacSchedulerOfdma::GetTypeId(),
-                                      NrMacSchedulerOfdmaRR::GetTypeId(),
-                                      NrMacSchedulerOfdmaPF::GetTypeId(),
-                                      NrMacSchedulerOfdmaMR::GetTypeId(),
-                                      NrMacSchedulerNs3::GetTypeId(),
-                                      NrInterference::GetTypeId(),
-                                      NrHelper::GetTypeId(),
-                                      NrGnbPhy::GetTypeId(),
-                                      NrGnbNetDevice::GetTypeId(),
-                                      NrGnbMac::GetTypeId(),
-                                      IdealBeamformingAlgorithm::GetTypeId(),
-                                      BwpManagerUe::GetTypeId(),
-                                      BwpManagerGnb::GetTypeId(),
-                                      BwpManagerAlgorithm::GetTypeId(),
-                                      BwpManagerAlgorithmStatic::GetTypeId(),
-                                      BeamManager::GetTypeId(),
-                                      BandwidthPartGnb::GetTypeId(),
-                                      BandwidthPartUe::GetTypeId()};
+    // Then we scan the Nr prefixed rest automatically
+    for (uint32_t i = 0; i < TypeId::GetRegisteredN(); i++)
+    {
+        TypeId tid = TypeId::GetRegistered(i);
+        std::string name = tid.GetName();
+        auto nrPrefixIt = name.find("Nr");
+        if (nrPrefixIt != std::string::npos)
+        {
+            types.push_back(tid);
+        }
+    }
 
     // Registered types
     for (const auto& tid : types)
@@ -657,7 +639,7 @@ PrintConfigPaths(std::ostream& os, const TypeId tid)
         os << tid.GetName() << " is accessible through the following paths"
            << " with Config::Set and Config::Connect:" << std::endl;
         os << listStart << std::endl;
-        for (auto path : paths)
+        for (const auto& path : paths)
         {
             os << listLineStart << "`" << path << "`" << listLineStop << breakTextOnly << std::endl;
         }
@@ -700,7 +682,7 @@ PrintAttributesTid(std::ostream& os, const TypeId tid)
                 {
                     const PointerChecker* ptrChecker =
                         dynamic_cast<const PointerChecker*>(PeekPointer(info.checker));
-                    if (ptrChecker != 0)
+                    if (ptrChecker != nullptr)
                     {
                         os << reference << "ns3::Ptr"
                            << "< " << reference << ptrChecker->GetPointeeTypeId().GetName() << ">";
@@ -711,7 +693,7 @@ PrintAttributesTid(std::ostream& os, const TypeId tid)
                 {
                     const ObjectPtrContainerChecker* ptrChecker =
                         dynamic_cast<const ObjectPtrContainerChecker*>(PeekPointer(info.checker));
-                    if (ptrChecker != 0)
+                    if (ptrChecker != nullptr)
                     {
                         os << reference << "ns3::Ptr"
                            << "< " << reference << ptrChecker->GetItemTypeId().GetName() << ">";
@@ -915,7 +897,7 @@ PrintTypeIdBlocks(std::ostream& os)
 
     // Iterate over the map, which will print the class names in
     // alphabetical order.
-    for (auto item : nameMap)
+    for (const auto& item : nameMap)
     {
         // Handle only real TypeIds
         if (item.second < 0)
@@ -966,7 +948,7 @@ PrintAllTypeIds(std::ostream& os)
     NameMap nameMap = GetNameMap();
     // Iterate over the map, which will print the class names in
     // alphabetical order.
-    for (auto item : nameMap)
+    for (const auto& item : nameMap)
     {
         // Handle only real TypeIds
         if (item.second < 0)
@@ -1005,7 +987,7 @@ PrintAllAttributes(std::ostream& os)
     NameMap nameMap = GetNameMap();
     // Iterate over the map, which will print the class names in
     // alphabetical order.
-    for (auto item : nameMap)
+    for (const auto& item : nameMap)
     {
         // Handle only real TypeIds
         if (item.second < 0)
@@ -1080,7 +1062,7 @@ PrintAllLogComponents(std::ostream& os)
     // Find longest log name
     std::size_t widthL = std::string("Log Component").size();
     std::size_t widthR = std::string("file").size();
-    for (auto it : (*logs))
+    for (const auto& it : (*logs))
     {
         widthL = std::max(widthL, it.first.size());
         std::string file = it.second->File();
@@ -1102,7 +1084,7 @@ PrintAllLogComponents(std::ostream& os)
        << std::endl;
 
     LogComponent::ComponentList::const_iterator it;
-    for (auto it : (*logs))
+    for (const auto& it : (*logs))
     {
         std::string file = it.second->File();
         // Strip leading "../" related to depth in build directory
@@ -1141,7 +1123,7 @@ PrintAllTraceSources(std::ostream& os)
 
     // Iterate over the map, which will print the class names in
     // alphabetical order.
-    for (auto item : nameMap)
+    for (const auto& item : nameMap)
     {
         // Handle only real TypeIds
         if (item.second < 0)
@@ -1249,7 +1231,7 @@ PrintAttributeValueWithName(std::ostream& os,
     if ((name == "EmptyAttribute") || (name == "ObjectPtrContainer"))
     {
         // Just default constructors.
-        os << "(void)\n";
+        os << "()\n";
     }
     else
     {
@@ -1260,8 +1242,8 @@ PrintAttributeValueWithName(std::ostream& os,
     }
     os << commentStop;
 
-    // <name>Value::Get (void) const
-    os << commentStart << functionStart << type << qualClass << "::Get (void) const\n"
+    // <name>Value::Get () const
+    os << commentStart << functionStart << type << qualClass << "::Get () const\n"
        << returns << "The " << name << " value.\n"
        << commentStop;
 
@@ -1349,9 +1331,9 @@ PrintMakeChecker(std::ostream& os, const std::string& name, const std::string& h
     os << commentStop;
 
     // \ingroup attribute_<name>Value
-    // Make<name>Checker (void)
+    // Make<name>Checker ()
     os << commentStart << sectAttr << functionStart << "ns3::Ptr<const ns3::AttributeChecker> "
-       << make << "(void)\n"
+       << make << "()\n"
        << returns << "The AttributeChecker.\n"
        << seeAlso << "AttributeChecker\n"
        << commentStop;
@@ -1443,7 +1425,7 @@ PrintAttributeImplementations(std::ostream& os)
         {"", "", false, "last placeholder"}};
 
     int i = 0;
-    while (attributes[i].m_name != "")
+    while (!attributes[i].m_name.empty())
     {
         PrintAttributeHelper(os, attributes[i]);
         ++i;
