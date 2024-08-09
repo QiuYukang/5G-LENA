@@ -60,7 +60,7 @@ IMAGES_BUILD = \
 
 IMAGES = $(IMAGES_NOBUILD) $(IMAGES_BUILD)
 
-RESCALE = ../../../utils/rescale-pdf.sh
+RESCALE = ../tools/rescale-pdf.sh
 
 %.eps : %.dia; $(DIA) -t eps $< -e $@
 %.png : %.dia; $(DIA) -t png $< -e $@
