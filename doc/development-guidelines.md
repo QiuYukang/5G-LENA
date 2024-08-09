@@ -308,20 +308,59 @@ To the point and precise commit messages are always appreciated. Therefore,
 
 it is advised to follow the following rules to commit like a pro:
 
-1.  Subject of a commit message should not exceed 80 characters.
+1. Subject of a commit message (first line) should not exceed 100 characters
+   (as checked by the ``LengthCheck`` in the ``check-commit-message.py`` script).
 
 2. More description about ***what*** and ***why*** should go to the body of a
    commit message.
 
-3. Each commit message should start with a ***tag*** in small letters.
+3. The subject of the commit message should be formatted as follows:
 
-4. Tag should immediately (no space) follow by a colon **":"** sign.
+   1. First there should be a **tag** in lowercase characters. **Tags** are *typically*
+      the name of the modified files, without their extensions separated by commas.
+      Or the common top-level directory containing file changes if more than 3 files are changed.
 
-5. Add space after the colon **":"** sign to start the message.
+      1. The existence of such files and directories is checked via the ``CheckPrefix`` in
+         the ``check-commit-message.py`` script.
 
-6. This message should have the first letter as **capital**.
+      2. When working with code with multiple variants (e.g. ``nr-mac-scheduler-ofdma-mr/pf/qos/rr``),
+         you can use the shared prefix ``nr-mac-scheduler-ofdma-*`` instead of listing all files. This
+         is checked every time the tag exceeds 40 characters.
 
-7. Do not end the subject line with a period.
+   2. **Tag** should immediately (no space) follow by a colon **":"** sign.
+
+   3. Add space after the colon **":"** sign to start the message.
+
+   4. This message should have the first letter as **capital**.
+
+   5. Do not end the subject line with a period.
+
+   6. A commit fixing an issue can optionally contain the ``(fixes #issuenumber)``
+      right after the colon **":"** sign and before the actual description.
+
+   Correct format:
+      1. ``nr: (fixes #101) Correct format``
+      2. ``nr: Correct format``
+      3. ``bandwidth-part-gnb: Correct format``
+      4. ``bandwidth-part-gnb, beamforming-part-ue: Correct format``
+      5. ``nr-bearer-stats-*: Correct format``
+
+   Incorrect format:
+      1. ``nr:Missing whitespace after colon``
+      2. ``NR: Upper-case N``
+      3. ``Nr: Upper-case N``
+      4. ``nr : Incorrect whitespace before colon``
+      5. ``nr :Incorrect whitespace before colon and not after``
+      6. ``bandwidth-part-gnb ,bandwidth-part-ue: Incorrect whitespace before comma and not after``
+      7. ``nr-bearer-stats-calculator, nr-bearer-stats-connector, nr-bearer-stats-simple: Tag is longer than 40 characters``
+      8. ``nr-amc, fast-exp, beam-id, nr-phy: Incorrect due to more than 3 files, should use 'model' as the prefix``
+
+   The format is checked by the ``MatchesFormatCheck`` in the ``check-commit-message.py`` script,
+   using the regex ``r"^([a-z0-9\-\*]+(?:, [a-z0-9\-\*]+)*):((?: \(\w+ #\d+\))?) ([A-Z][^\n]*$)"``.
+
+The ``check-commit-message`` CI job uses the ``check-commit-message.py`` script to check each commit
+when compared to upstream HEAD of the master branch. The checks are performed per commit, and
+diagnostic messages are emitted in case the format does not match the guidelines above.
 
 For example, the following commit tells us that it introduced a change at the
 MAC layer, and specifically in the scheduler.
@@ -364,7 +403,6 @@ It is time to hit the enter key! After this, you have successfully commit your
 new changes. We are almost there to generate a merge request. However, you should
 first check if the master branch has progressed or not. If it does not, go to step 5.
 Otherwise, we need to rebase our branch to include new changes in the master branch.
-
 
 ### 4. Rebase your branch
 
