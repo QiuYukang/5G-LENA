@@ -1711,12 +1711,13 @@ NrSlUeMac::DoReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo)
     {
         // This HARQ is for us.  If this is a HARQ ACK, check whether to cancel
         // a pending grant for retransmitting the associated TB.
+        bool transportBlockRemoved = m_nrSlHarq->RecvHarqFeedback(harqInfo);
         if (harqInfo.IsReceivedOk())
         {
             // Look for the std::deque of NrSlGrant objects corresponding to
             // this dstL2Id
             auto itNrSlGrantMap = m_slGrants.find(harqInfo.m_dstL2Id);
-            if (itNrSlGrantMap != m_slGrants.end())
+            if (transportBlockRemoved && itNrSlGrantMap != m_slGrants.end())
             {
                 // Iterate the std::deque to find the NrSlGrant with a
                 // matching HARQ process ID
@@ -1725,9 +1726,9 @@ NrSlUeMac::DoReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo)
                 {
                     if (itNrSlGrant->harqId == harqInfo.m_harqProcessId)
                     {
-                        NS_LOG_DEBUG("HARQ ACK: erasing grant to " << harqInfo.m_dstL2Id
-                                                                   << " with HARQ process ID "
-                                                                   << +harqInfo.m_harqProcessId);
+                        NS_LOG_INFO("HARQ ACK: erasing grant to " << harqInfo.m_dstL2Id
+                                                                  << " with HARQ process ID "
+                                                                  << +harqInfo.m_harqProcessId);
                         itNrSlGrant = itNrSlGrantMap->second.erase(itNrSlGrant);
                         break;
                     }
@@ -1738,7 +1739,6 @@ NrSlUeMac::DoReceivePsfch(uint32_t sendingNodeId, SlHarqInfo harqInfo)
                 }
             }
         }
-        m_nrSlHarq->RecvHarqFeedback(harqInfo);
     }
 }
 

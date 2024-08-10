@@ -221,7 +221,7 @@ NrSlUeMacHarq::AddPacket(uint32_t dstL2Id, uint8_t lcId, uint8_t harqId, Ptr<Pac
                     "Mismatch between TB size and size of packet burst");
 }
 
-void
+bool
 NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
 {
     NS_LOG_FUNCTION(this << harqInfo.m_dstL2Id << +harqInfo.m_harqProcessId
@@ -231,14 +231,14 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
     {
         NS_LOG_DEBUG("Feedback (possibly stale) received for unused HARQ ID "
                      << +harqInfo.m_harqProcessId);
-        return;
+        return false;
     }
     if (harqInfo.IsReceivedOk() &&
         (m_pktBuffer.at(harqInfo.m_harqProcessId).dstL2Id != harqInfo.m_dstL2Id))
     {
         NS_LOG_DEBUG("Feedback (possibly stale) received for different dstL2Id "
                      << harqInfo.m_dstL2Id << " on HARQ ID " << +harqInfo.m_harqProcessId);
-        return;
+        return false;
     }
     // Received HARQ feedback but there are no packets in the PacketBurst
     // buffer (possibly feedback for previous use of this HARQ ID)
@@ -247,7 +247,7 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
     {
         NS_LOG_DEBUG("Feedback (possibly stale) received for ID " << +harqInfo.m_harqProcessId
                                                                   << " with no transmissions");
-        return;
+        return false;
     }
     // Received HARQ feedback but there have been no transmissions of this
     // packet burst yet (possibly feedback for previous use of this HARQ ID)
@@ -257,7 +257,7 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
     {
         NS_LOG_DEBUG("Feedback (possibly stale) received for ID " << +harqInfo.m_harqProcessId
                                                                   << " with no transmissions");
-        return;
+        return false;
     }
 
     // If transmission is ACKed, and it is a dynamic grant, free both the
@@ -278,6 +278,7 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
             {
                 DeallocateHarqProcessId(harqInfo.m_harqProcessId);
             }
+            return true;
         }
     }
     else
@@ -285,6 +286,7 @@ NrSlUeMacHarq::RecvHarqFeedback(SlHarqInfo harqInfo)
         NS_LOG_INFO("Negative feedback for dstL2Id " << harqInfo.m_dstL2Id << " on HARQ ID "
                                                      << +harqInfo.m_harqProcessId);
     }
+    return false;
 }
 
 void

@@ -169,8 +169,9 @@ class NrSlUeMacHarq : public Object
     /**
      * \brief Receive NR Sidelink Harq feedback
      * \param harqInfo Sidelink HARQ info structure
+     * \return Whether the feedback resulted in the ACK and removal of a TB
      */
-    void RecvHarqFeedback(SlHarqInfo harqInfo);
+    bool RecvHarqFeedback(SlHarqInfo harqInfo);
 
     /**
      * Flush the HARQ buffer associated with the HARQ process ID.
