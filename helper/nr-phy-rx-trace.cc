@@ -856,10 +856,10 @@ NrPhyRxTrace::RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
                         << "\t" << (unsigned)params.m_slotNum << "\t" << (unsigned)params.m_symStart
                         << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId << "\t"
                         << (unsigned)params.m_bwpId << "\t" << params.m_rnti << "\t"
-                        << params.m_rnti << "\t" << params.m_tbSize << "\t"
-                        << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rank << "\t"
-                        << (unsigned)params.m_rv << "\t" << 10 * log10(params.m_sinr) << "\t"
-                        << params.m_corrupt << "\t" << params.m_tbler << "\t" << std::endl;
+                        << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
+                        << (unsigned)params.m_rank << "\t" << (unsigned)params.m_rv << "\t"
+                        << 10 * log10(params.m_sinr) << "\t" << params.m_corrupt << "\t"
+                        << params.m_tbler << "\t" << std::endl;
 
     if (params.m_corrupt)
     {
@@ -930,10 +930,11 @@ NrPhyRxTrace::RxPacketTraceEnbCallback(Ptr<NrPhyRxTrace> phyStats,
                         << "\t" << params.m_frameNum << "\t" << (unsigned)params.m_subframeNum
                         << "\t" << (unsigned)params.m_slotNum << "\t" << (unsigned)params.m_symStart
                         << "\t" << (unsigned)params.m_numSym << "\t" << params.m_cellId << "\t"
-                        << (unsigned)params.m_bwpId << params.m_rnti << "\t" << params.m_tbSize
-                        << "\t" << (unsigned)params.m_mcs << "\t" << (unsigned)params.m_rank << "\t"
-                        << (unsigned)params.m_rv << "\t" << 10 * log10(params.m_sinr) << "\t"
-                        << params.m_corrupt << "\t" << params.m_tbler << "\t" << std::endl;
+                        << (unsigned)params.m_bwpId << "\t" << params.m_rnti << "\t"
+                        << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
+                        << (unsigned)params.m_rank << "\t" << (unsigned)params.m_rv << "\t"
+                        << 10 * log10(params.m_sinr) << "\t" << params.m_corrupt << "\t"
+                        << params.m_tbler << "\t" << std::endl;
 
     if (params.m_corrupt)
     {
