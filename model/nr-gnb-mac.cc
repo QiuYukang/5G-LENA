@@ -1088,7 +1088,7 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
             uint16_t rnti = varTtiAllocInfo.m_dci->m_rnti;
             auto rntiIt = m_rlcAttached.find(rnti);
             NS_ABORT_MSG_IF(rntiIt == m_rlcAttached.end(),
-                            "Scheduled UE " << rntiIt->first << " not attached");
+                            "Scheduled UE " << rnti << " not attached");
 
             // Call RLC entities to generate RLC PDUs
             auto dciElem = varTtiAllocInfo.m_dci;
