@@ -177,7 +177,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
 
         for (auto& ue : ueVector)
         {
-            BeforeDlSched(ue, FTResources(rbgAssignable * beamSym, beamSym));
+            BeforeDlSched(ue, FTResources(rbgAssignable, beamSym));
         }
 
         while (resources > 0)
@@ -269,7 +269,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
 
         for (auto& ue : ueVector)
         {
-            BeforeUlSched(ue, FTResources(rbgAssignable * beamSym, beamSym));
+            BeforeUlSched(ue, FTResources(rbgAssignable, beamSym));
         }
 
         while (resources > 0)
