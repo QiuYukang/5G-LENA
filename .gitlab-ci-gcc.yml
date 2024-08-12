@@ -145,3 +145,11 @@ weekly-build-gcc-13-optimized-sanitizers:
     EXTRAS: --enable-sanitizers
   tags:
     - CTTC
+
+weekly-build-gcc-13-optimized-noeigen:
+  extends: .weekly-build-gcc-base
+  image: ubuntu:23.04
+  variables:
+    MODE: optimized
+    COMPILER: g++-13
+    EXTRAS: --disable-eigen
