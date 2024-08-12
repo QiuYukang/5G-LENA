@@ -36,7 +36,7 @@ class NrMacSchedulerUeInfoMR : public NrMacSchedulerUeInfo
 
     /**
      * \brief comparison function object (i.e. an object that satisfies the
-     * requirements of Compare) which returns ​true if the first argument is less
+     * requirements of Compare) which returns true if the first argument is less
      * than (i.e. is ordered before) the second.
      * \param lue Left UE
      * \param rue Right UE
@@ -58,7 +58,7 @@ class NrMacSchedulerUeInfoMR : public NrMacSchedulerUeInfo
 
     /**
      * \brief comparison function object (i.e. an object that satisfies the
-     * requirements of Compare) which returns ​true if the first argument is less
+     * requirements of Compare) which returns true if the first argument is less
      * than (i.e. is ordered before) the second.
      * \param lue Left UE
      * \param rue Right UE
