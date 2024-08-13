@@ -141,18 +141,31 @@ NrMacSchedulerSrsDefault::SetStartingPeriodicity(uint32_t start)
         m_availableOffsetValues[i] = i;
     }
 
-    // Shuffle the available values, so it contains the element in a random order
-    for (auto i = m_availableOffsetValues.size() - 1; i > 0; --i)
+    // The below would be a candidate for a DoInitialize() method if one is ever added
+    if (m_shuffleEventId.IsPending())
     {
-        auto j = m_random->GetInteger(0, i);
-        std::swap(m_availableOffsetValues[i], m_availableOffsetValues[j]);
+        NS_LOG_DEBUG("Canceling previously scheduled shuffle");
+        m_shuffleEventId.Cancel();
     }
+    m_shuffleEventId = Simulator::ScheduleNow(&NrMacSchedulerSrsDefault::ShuffleOffsets, this);
 }
 
 uint32_t
 NrMacSchedulerSrsDefault::GetStartingPeriodicity() const
 {
     return m_periodicity;
+}
+
+void
+NrMacSchedulerSrsDefault::ShuffleOffsets()
+{
+    NS_LOG_FUNCTION(this);
+    // Shuffle the available values, so it contains the element in a random order
+    for (auto i = m_availableOffsetValues.size() - 1; i > 0; --i)
+    {
+        auto j = m_random->GetInteger(0, i);
+        std::swap(m_availableOffsetValues[i], m_availableOffsetValues[j]);
+    }
 }
 
 void

@@ -77,12 +77,17 @@ class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
      */
     void ReassignSrsValue(
         std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap);
+    /**
+     * \brief Randomly shuffle the available offset values
+     */
+    void ShuffleOffsets();
     static std::vector<uint32_t> StandardPeriodicity; //!< Standard periodicity of SRS
 
   private:
     uint32_t m_periodicity{0};                     //!< Configured periodicity
     std::vector<uint32_t> m_availableOffsetValues; //!< Available offset values
     Ptr<UniformRandomVariable> m_random;           //!< Random variable
+    EventId m_shuffleEventId;                      //!< Event ID for offset shuffling
 };
 
 } // namespace ns3
