@@ -92,6 +92,17 @@ struct GetSecond
 };
 
 /**
+ * \brief Flags for the CSI feedback configuration
+ */
+enum CsiFeedbackFlag : uint8_t
+{
+    CQI_PDSCH_MIMO = 0x01, //!< Initialize CSI feedback using MIMO PDSCH
+    CQI_CSI_RS = 0x02,     //!< Initialize CSI feedback to use CSI-RS
+    CQI_CSI_IM = 0x04,     //!< Initialize CSI feedback to use CSI-IM if PDSCH not available
+    CQI_PDSCH_SISO = 0x08  //!< Initialize CSI feedback using SISO PDSCH
+};
+
+/**
  * \ingroup utils
  * \brief Scheduling information. Despite the name, it is not TDMA.
  */

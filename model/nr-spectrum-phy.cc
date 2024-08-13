@@ -13,11 +13,12 @@
 #include "nr-ue-phy.h"
 
 #include "ns3/node.h"
-#include "ns3/uniform-planar-array.h"
 #include <ns3/boolean.h>
 #include <ns3/double.h>
 #include <ns3/matrix-based-channel-model.h>
 #include <ns3/trace-source-accessor.h>
+
+#include <numeric>
 
 namespace ns3
 {
@@ -57,7 +58,8 @@ operator<<(std::ostream& os, const enum NrSpectrumPhy::State state)
     return os;
 }
 
-NrSpectrumPhy::NrSpectrumPhy()
+NrSpectrumPhy::
+NrSpectrumPhy()
     : SpectrumPhy()
 {
     m_interferenceData = CreateObject<NrInterference>();
@@ -67,7 +69,8 @@ NrSpectrumPhy::NrSpectrumPhy()
     m_random->SetAttribute("Max", DoubleValue(1.0));
 }
 
-NrSpectrumPhy::~NrSpectrumPhy()
+NrSpectrumPhy::~
+NrSpectrumPhy()
 {
 }
 
@@ -96,6 +99,18 @@ NrSpectrumPhy::DoDispose()
     {
         m_interferenceSrs->Dispose();
         m_interferenceSrs = nullptr;
+    }
+
+    if (m_interferenceCsiRs)
+    {
+        m_interferenceCsiRs->Dispose();
+        m_interferenceCsiRs = nullptr;
+    }
+
+    if (m_interferenceCsiIm)
+    {
+        m_interferenceCsiIm->Dispose();
+        m_interferenceCsiIm = nullptr;
     }
 
     m_interferenceData = nullptr;
@@ -251,6 +266,8 @@ NrSpectrumPhy::SetDevice(Ptr<NetDevice> d)
     }
     else
     {
+        m_interferenceCsiRs = CreateObject<NrInterference>();
+        m_interferenceCsiIm = CreateObject<NrInterference>();
         m_interferenceData->TraceConnectWithoutContext(
             "SnrPerProcessedChunk",
             MakeCallback(&NrSpectrumPhy::ReportWbDlDataSnrPerceived, this));
@@ -394,6 +411,11 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity(const Ptr<const SpectrumValue>& nois
     {
         m_interferenceSrs->SetNoisePowerSpectralDensity(noisePsd);
     }
+    if (m_interferenceCsiRs)
+    {
+        m_interferenceCsiRs->SetNoisePowerSpectralDensity(noisePsd);
+        m_interferenceCsiIm->SetNoisePowerSpectralDensity(noisePsd);
+    }
 }
 
 void
@@ -450,7 +472,7 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     NS_LOG_FUNCTION(this);
     Ptr<const SpectrumValue> rxPsd = params->psd;
     Time duration = params->duration;
-    NS_LOG_INFO("Start receiving signal: " << rxPsd << " duration= " << duration);
+    NS_LOG_INFO("Start receiving signal: " << params->psd << " duration= " << duration);
 
     // phased-array mimo expects a channel
     if (!params->spectrumChannelMatrix &&
@@ -477,8 +499,17 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     Ptr<NrSpectrumSignalParametersUlCtrlFrame> ulCtrlRxParams =
         DynamicCast<NrSpectrumSignalParametersUlCtrlFrame>(params);
 
+    Ptr<NrSpectrumSignalParametersCsiRs> csiRsRxParams =
+        DynamicCast<NrSpectrumSignalParametersCsiRs>(params);
+
     if (nrDataRxParams)
     {
+        if (m_interferenceCsiIm && m_interferenceCsiIm->IsChunkProcessorSet() &&
+            nrDataRxParams->cellId != m_phy->GetCellId())
+        {
+            m_interferenceCsiIm->AddSignalMimo(params, duration);
+        }
+
         if (nrDataRxParams->cellId == GetCellId())
         {
             // Receive only signals intended for this receiver. Receive only
@@ -594,6 +625,13 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
         else
         {
             NS_LOG_DEBUG("UL CTRL ignored at UE device");
+        }
+    }
+    else if (csiRsRxParams != nullptr)
+    {
+        if (m_hasRnti && csiRsRxParams->cellId == GetCellId())
+        {
+            StartRxCsiRs(csiRsRxParams);
         }
     }
     else
@@ -747,9 +785,8 @@ void
 NrSpectrumPhy::StartTxCsiRs(uint16_t rnti, uint16_t beamId)
 {
     NS_LOG_LOGIC(this << " state: " << m_state);
-
-    // we simulate 1ns signals for CSi-RS, the real overhead is
-    // correctly calculated in the TB size
+    // we simulate 1ns signals for CSi-RS during DL CTRL duration,
+    // the real overhead is correctly calculated in the TB size
     Time duration = NanoSeconds(1);
 
     switch (m_state)
@@ -781,7 +818,8 @@ NrSpectrumPhy::StartTxCsiRs(uint16_t rnti, uint16_t beamId)
 
         if (m_channel)
         {
-            NS_LOG_UNCOND("Transmitting CSI-RS at: " << Simulator::Now().GetNanoSeconds());
+            NS_LOG_DEBUG("gNB with cellId " << GetCellId()
+                                            << " transmitting CSI-RS for RNTI:" << csiRs->rnti);
             m_channel->StartTx(csiRs);
         }
         else
@@ -1798,6 +1836,100 @@ NrSpectrumPhy::AddDataMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p)
 {
     NS_LOG_FUNCTION(this);
     m_interferenceData->AddMimoChunkProcessor(p);
+}
+
+void
+NrSpectrumPhy::AddCsiRsMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p)
+{
+    NS_LOG_FUNCTION(this);
+    m_interferenceCsiRs->AddMimoChunkProcessor(p);
+}
+
+void
+NrSpectrumPhy::AddCsiImMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p)
+{
+    NS_LOG_FUNCTION(this);
+    m_interferenceCsiIm->AddMimoChunkProcessor(p);
+}
+
+void
+NrSpectrumPhy::StartRxCsiRs(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams)
+{
+    // TODO extend in future to support a predefined set of beams
+    if (csiRsParams->rnti == m_rnti)
+    {
+        // add this signal to all the signals
+        m_interferenceCsiRs->AddSignalMimo(csiRsParams, csiRsParams->duration);
+        // declare the start of the reception of the CSI-RS signal
+        m_interferenceCsiRs->StartRxMimo(csiRsParams);
+        // declare the end of the reception of the CSI-RS signal
+        Simulator::Schedule(csiRsParams->duration, &NrInterference::EndRx, m_interferenceCsiRs);
+
+        Simulator::Schedule(m_ctrlEndTime - Simulator::Now() + NanoSeconds(2),
+                            &NrSpectrumPhy::CheckIfCsiImNeeded,
+                            this,
+                            csiRsParams);
+    }
+}
+
+void
+NrSpectrumPhy::CheckIfCsiImNeeded(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams)
+{
+    NS_LOG_FUNCTION(this);
+
+    Ptr<NrUePhy> nrUePhy = DynamicCast<NrUePhy>(m_phy);
+    bool pdschCsiEnabled = nrUePhy->GetCsiFeedbackType() & CsiFeedbackFlag::CQI_PDSCH_MIMO;
+
+    // CSI-IM enabled
+    if (m_interferenceCsiIm->IsChunkProcessorSet())
+    {
+        // Schedule only CSI-IM if either PDSCH is disabled, or it is enabled but the UE is not
+        // scheduled in this slot
+        if ((!pdschCsiEnabled) || (pdschCsiEnabled && !IsUeScheduled()))
+        {
+            ScheduleCsiIm(csiRsParams);
+        }
+    }
+    else // CSI-IM not enabled
+    {
+        // if CSI-IM and PDSCH are both disable, generate CSI based on CSI-RS
+        if (!pdschCsiEnabled)
+        {
+            nrUePhy->GenerateCsiRsCqi();
+        }
+        // else CSI will be generated once PDSCH is being received
+    }
+}
+
+void
+NrSpectrumPhy::ScheduleCsiIm(Ptr<SpectrumSignalParameters> csiRsParams) const
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(m_interferenceCsiIm);
+    // add fake signal to trigger NrInterference calculation for the duration of the fake CSI-IM
+    // signal
+    Ptr<SpectrumSignalParameters> fakeCsiImSignal = Create<SpectrumSignalParameters>();
+    fakeCsiImSignal->duration =
+        m_phy->GetSymbolPeriod() * (DynamicCast<NrUePhy>(m_phy))->GetCsiImDuration();
+    fakeCsiImSignal->psd = csiRsParams->psd;
+    fakeCsiImSignal->spectrumChannelMatrix = csiRsParams->spectrumChannelMatrix;
+    m_interferenceCsiIm->AddSignalMimo(fakeCsiImSignal, fakeCsiImSignal->duration);
+    m_interferenceCsiIm->StartRxMimo(fakeCsiImSignal);
+    // schedule NrInterference event when CSI-IM ends to calculate pass the CSI-IM interference
+    // to the corresponding callback function
+    Simulator::Schedule(fakeCsiImSignal->duration, &NrInterference::EndRx, m_interferenceCsiIm);
+}
+
+bool
+NrSpectrumPhy::IsUeScheduled() const
+{
+    return m_transportBlocks.contains(m_rnti);
+}
+
+void
+NrSpectrumPhy::AddExpectedDlCtrlEnd(Time ctrlEndTime)
+{
+    m_ctrlEndTime = ctrlEndTime;
 }
 
 } // namespace ns3

@@ -413,7 +413,13 @@ class NrSpectrumPhy : public SpectrumPhy
                                          uint16_t cellId);
 
     void AddExpectedSrsRnti(uint16_t rnti);
-
+    /**
+     * \brief Keeps track of when DL CTRL should finish. Needed for CSI-RS and
+     * CSI-IM implementation to be able to schedule CSI-IM just at the beginning
+     * of the PDSCH.
+     * @param ctrlEndTime Expected time when DL CTRL will end
+     */
+    void AddExpectedDlCtrlEnd(Time ctrlEndTime);
     /*
      * \brief SRS SINR callback whose input parameters are cellid, rnti, SRS SINR value
      */
@@ -465,7 +471,23 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void ReportWbDlDataSnrPerceived(const double dlDataSnr);
 
+    /**
+     * \brief Connect DATA chunk processor with the corresponding DATA interference object
+     * \param p the DATA chunk processor
+     */
     void AddDataMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p);
+
+    /**
+     * \brief Connect CSI-RS chunk processor with the corresponding CSI-RS interference object
+     * \param p the CSI-RS chunk processor
+     */
+    void AddCsiRsMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p);
+
+    /**
+     * \brief Connect CSI-IM chunk processor with the corresponding CSI-IM interference object
+     * \param p the CSI-IM chunk processor
+     */
+    void AddCsiImMimoChunkProcessor(const Ptr<NrMimoChunkProcessor>& p);
 
     /// \brief Store the SINR chunks for all received signals at end of interference calculations
     /// \param sinr The vector of all SINR values of receive signals. A new chunk is generated for
@@ -504,11 +526,22 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void StartRxUlCtrl(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
     /**
+     * \brief Function that is called when is being received CSI-RS signal
+     * @param csiRsParams holds CSI-RS signal parameters
+     */
+    void StartRxCsiRs(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams);
+    /**
      * \brief Function that is called when is being received SRS
      * \param param should hold UL CTRL frame signal parameters containing only
      * one CTRL message which should be of type SRS
      */
     void StartRxSrs(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
+    /**
+     * \brief Checks if CSI-IM measurement is needed, if not, then it checks if needed to
+     * call directly the generation of CSI feedback
+     * @param csiRsParams CSI-RS parameters that will be reused for CSI-IM measurement
+     */
+    void CheckIfCsiImNeeded(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams);
     /**
      * \brief Update the state of the spectrum phy. The states are:
      *  IDLE, TX, RX_DATA, RX_DL_CTRL, RX_UL_CTRL, CCA_BUSY.
@@ -535,6 +568,15 @@ class NrSpectrumPhy : public SpectrumPhy
      * It also updates spectrum phy state.
      */
     void EndRxData();
+    /**
+     * \brief Schedule CsiIm period on the CSI-IM instance of the NrInterference to measure the
+     * interference.
+     */
+    void ScheduleCsiIm(Ptr<SpectrumSignalParameters> csiRsParams) const;
+    /**
+     * @return Whether this UE has scheduled DL DATA in this slot
+     */
+    bool IsUeScheduled() const;
     /**
      * \brief Function that is called when the spectrum phy finishes the reception of CTRL.
      * It stores CTRL messages and updates spectrum phy state.
@@ -639,6 +681,11 @@ class NrSpectrumPhy : public SpectrumPhy
     Ptr<NrInterference> m_interferenceSrs{
         nullptr}; //!< the interference object used to calculate the interference for this spectrum
                   //!< phy, exists only at gNB phy
+    Ptr<NrInterference> m_interferenceCsiRs{
+        nullptr}; //!< the interference object used to obtain the CSI-RS measurements
+    Ptr<NrInterference> m_interferenceCsiIm{
+        nullptr}; //!< the interference object used to obtain the CSI-IM measurements
+
     Ptr<SpectrumValue> m_txPsd{nullptr};          //!< tx power spectral density
     Ptr<UniformRandomVariable> m_random{nullptr}; //!< the random variable used for TB decoding
 
@@ -666,6 +713,7 @@ class NrSpectrumPhy : public SpectrumPhy
     std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
     std::list<SrsSnrReportCallback> m_srsSnrReportCallback;   //!< list of SRS SNR callbacks
     uint16_t m_currentSrsRnti{0};
+    Time m_ctrlEndTime{0};        //!< Needed to schedule the interference measurements CSI-IM
     EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY
                                   //!< to IDLE.
     Time m_busyTimeEnds{

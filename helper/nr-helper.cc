@@ -113,6 +113,16 @@ NrHelper::GetTypeId()
                           BooleanValue(false),
                           MakeBooleanAccessor(&NrHelper::m_enableMimoFeedback),
                           MakeBooleanChecker())
+            .AddAttribute(
+                "CsiFeedbackFlags",
+                "Signals and measurements that will be used for CQI feedback if available."
+                "Supported configurations are: CQI_PDSCH_MIMO = 1, CQI_CSI_RS = 2, "
+                "CQI_PDSCH_MIMO|CQI_CSI_RS = 3, "
+                "CQI_CSI_RS|CQI_CSI_IM = 6, CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM = 7, and "
+                "CQI_PDSCH_SISO = 8.",
+                UintegerValue(CQI_CSI_IM | CQI_CSI_RS | CQI_PDSCH_MIMO),
+                MakeUintegerAccessor(&NrHelper::m_csiFeedbackFlags),
+                MakeUintegerChecker<uint8_t>(0x0, 0x08))
             .AddAttribute("PmSearchMethod",
                           "Type of the precoding matrix search method.",
                           TypeIdValue(NrPmSearchFull::GetTypeId()),
@@ -359,6 +369,8 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     phy->SetCam(cam);
     // set device
     phy->SetDevice(dev);
+    // Set CSI feedback type to UE device
+    phy->SetCsiFeedbackType(m_csiFeedbackFlags);
 
     Ptr<MobilityModel> mm = n->GetObject<MobilityModel>();
     NS_ASSERT_MSG(
@@ -389,13 +401,28 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
         pDataMimo = Create<NrMimoChunkProcessor>();
         pDataMimo->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateMimoSinrPerceived, channelPhy));
         channelPhy->AddDataMimoChunkProcessor(pDataMimo);
+
+        if (m_csiFeedbackFlags & CQI_PDSCH_MIMO)
+        {
+            // Report DL CQI, PMI, RI (channel quality, MIMO precoding matrix and rank indicators)
+            pDataMimo->AddCallback(MakeCallback(&NrUePhy::PdschMimoReceived, phy));
+        }
+
+        if (m_csiFeedbackFlags & CQI_CSI_RS)
+        {
+            Ptr<NrMimoChunkProcessor> pCsiRs = Create<NrMimoChunkProcessor>();
+            pCsiRs->AddCallback(MakeCallback(&NrUePhy::CsiRsReceived, phy));
+            channelPhy->AddCsiRsMimoChunkProcessor(pCsiRs);
+            // currently, CSI_IM can be enabled only if CSI-RS is enabled
+            if (m_csiFeedbackFlags & CQI_CSI_IM)
+            {
+                Ptr<NrMimoChunkProcessor> pCsiIm = Create<NrMimoChunkProcessor>();
+                pCsiIm->AddCallback(MakeCallback(&NrUePhy::CsiImEnded, phy));
+                channelPhy->AddCsiImMimoChunkProcessor(pCsiIm);
+            }
+        }
     }
-    if (phasedChannel && m_enableMimoFeedback)
-    {
-        // Report DL CQI, PMI, RI (channel quality, MIMO precoding matrix and rank indicators)
-        pDataMimo->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReportMimo, phy));
-    }
-    else
+    if (!phasedChannel || (m_csiFeedbackFlags == CQI_PDSCH_SISO))
     {
         // SISO CQI feedback
         pData->AddCallback(MakeCallback(&NrUePhy::GenerateDlCqiReport, phy));
@@ -651,7 +678,10 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         channelPhy->SetBeamManager(beamManager);
     }
     phy->InstallSpectrumPhy(channelPhy); // finally let know phy that there is this spectrum phy
-
+    if (m_csiFeedbackFlags & CQI_CSI_RS)
+    {
+        phy->EnableCsiRs();
+    }
     return phy;
 }
 

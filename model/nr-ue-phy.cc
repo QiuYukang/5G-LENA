@@ -38,7 +38,8 @@ const Time NR_DEFAULT_PMI_INTERVAL_SB{MilliSeconds(2)};  // Subband PMI update i
 NS_LOG_COMPONENT_DEFINE("NrUePhy");
 NS_OBJECT_ENSURE_REGISTERED(NrUePhy);
 
-NrUePhy::NrUePhy()
+NrUePhy::
+NrUePhy()
 {
     NS_LOG_FUNCTION(this);
     m_wbCqiLast = Simulator::Now();
@@ -48,7 +49,8 @@ NrUePhy::NrUePhy()
     Simulator::Schedule(m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);
 }
 
-NrUePhy::~NrUePhy()
+NrUePhy::~
+NrUePhy()
 {
     NS_LOG_FUNCTION(this);
 }
@@ -143,6 +145,18 @@ NrUePhy::GetTypeId()
                           TimeValue(NR_DEFAULT_PMI_INTERVAL_SB),
                           MakeTimeAccessor(&NrUePhy::m_sbPmiUpdateInterval),
                           MakeTimeChecker())
+            .AddAttribute("AlphaCovMat",
+                          "The alpha parameter for the calculation of the interference covariance "
+                          "matrix moving average",
+                          DoubleValue(1),
+                          MakeDoubleAccessor(&NrUePhy::SetAlphaCovMat, &NrUePhy::GetAlphaCovMat),
+                          MakeDoubleChecker<double>(0.0, 1))
+            .AddAttribute(
+                "CsiImDuration",
+                "CSI-IM duration in the number of OFDM symbols",
+                UintegerValue(1),
+                MakeUintegerAccessor(&NrUePhy::SetCsiImDuration, &NrUePhy::GetCsiImDuration),
+                MakeUintegerChecker<uint8_t>(1, 12))
             .AddTraceSource("DlDataSinr",
                             "DL DATA SINR statistics.",
                             MakeTraceSourceAccessor(&NrUePhy::m_dlDataSinrTrace),
@@ -234,6 +248,30 @@ void
 NrUePhy::SetEnableUplinkPowerControl(bool enable)
 {
     m_enableUplinkPowerControl = enable;
+}
+
+void
+NrUePhy::SetAlphaCovMat(double alpha)
+{
+    m_alphaCovMat = alpha;
+}
+
+double
+NrUePhy::GetAlphaCovMat() const
+{
+    return m_alphaCovMat;
+}
+
+void
+NrUePhy::SetCsiImDuration(uint8_t csiImDuration)
+{
+    m_csiImDuration = csiImDuration;
+}
+
+uint8_t
+NrUePhy::GetCsiImDuration() const
+{
+    return m_csiImDuration;
 }
 
 void
@@ -668,7 +706,7 @@ NrUePhy::TryToPerformLbt()
                             << " which is inside the LBT shared COT (the limit is " << limit
                             << "). No need for LBT");
                 m_lbtEvent.Cancel(); // Forget any LBT we previously set, because of the new
-                                     // DCI information
+                // DCI information
                 m_channelStatus = GRANTED;
             }
             else
@@ -876,6 +914,8 @@ NrUePhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
                       << (Simulator::Now() + varTtiDuration));
 
     m_tryToPerformLbt = true;
+
+    m_spectrumPhy->AddExpectedDlCtrlEnd(Simulator::Now() + varTtiDuration);
 
     return varTtiDuration;
 }
@@ -1450,6 +1490,12 @@ NrUePhy::ReportUeMeasurements()
 }
 
 void
+NrUePhy::SetCsiFeedbackType(uint8_t csiFeedbackType)
+{
+    m_csiFeedbackType = csiFeedbackType;
+}
+
+void
 NrUePhy::ReportDlCtrlSinr(const SpectrumValue& sinr)
 {
     NS_LOG_FUNCTION(this);
@@ -1532,7 +1578,7 @@ NrUePhy::DoSetInitialBandwidth()
 }
 
 uint16_t
-NrUePhy::DoGetCellId()
+NrUePhy::DoGetCellId() const
 {
     return GetCellId();
 }
@@ -1757,7 +1803,8 @@ NrUePhy::DoSetImsi(uint64_t imsi)
 }
 
 void
-NrUePhy::GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks)
+NrUePhy::GenerateDlCqiReportMimo(const NrMimoSignal& rxSignal,
+                                 NrPmSearch::PmiUpdate pmiUpdateParams)
 {
     NS_LOG_FUNCTION(this);
     // Adopted from NrUePhy::GenerateDlCqiReport: CQI feedback requires properly configured UE
@@ -1765,18 +1812,6 @@ NrUePhy::GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks)
     {
         return;
     }
-    // Adopted from NrUePhy::GenerateDlCqiReport: Do not send feedback if this UE was not
-    // receiving downlink data (was not scheduled)
-    if (!m_receptionEnabled)
-    {
-        return;
-    }
-
-    // Combine multiple signal chunks into a single channel matrix and interference covariance
-    auto rxSignal = NrMimoSignal{mimoChunks};
-
-    // Determine if an update to wideband or subband PMI is needed and possible
-    auto pmiUpdateParams = CheckUpdatePmi();
 
     // Create DL CQI message for CQI, PMI, and RI. PMI values are updated only if specified by
     // pmiUpdateParams, otherwise assume same PMI values as during last CQI feedback
@@ -1798,6 +1833,126 @@ NrUePhy::GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks)
     msg->SetDlCqi(dlcqi);
 
     DoSendControlMessage(msg);
+}
+
+uint8_t
+NrUePhy::GetCsiFeedbackType() const
+{
+    return m_csiFeedbackType;
+}
+
+void
+NrUePhy::CsiRsReceived(const std::vector<MimoSignalChunk>& csiRsMimoSignal)
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(csiRsMimoSignal.size() == 1);
+    m_csiRsMimoSignal = NrMimoSignal(csiRsMimoSignal);
+    m_lastCsiRsMimoSignalTime = Simulator::Now();
+}
+
+void
+NrUePhy::GenerateCsiRsCqi()
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT(m_csiRsMimoSignal.m_chanMat.GetSize() != 0);
+    NrMimoSignal csiFeedbackSignal = m_csiRsMimoSignal;
+    // if there is some old interference information use it,
+    // otherwise, just use the plain CSI-RS signal for the CQI feedback
+    // (i.e., no interference information). This may happen before any
+    // PDSCH for this UE is scheduled, and CSI-IM is disabled.
+    if (m_avgIntCovMat.GetSize() != 0)
+    {
+        csiFeedbackSignal.m_covMat = m_avgIntCovMat;
+    }
+    TriggerDlCqiGeneration(csiFeedbackSignal, NrPmSearch::PmiUpdate(true, true));
+}
+
+void
+NrUePhy::CsiImEnded(const std::vector<MimoSignalChunk>& csiImSignalChunks)
+{
+    NS_LOG_FUNCTION(this);
+    // Combine multiple CSI-IM signal chunks into a single channel,
+    // and interference covariance
+    auto csiFeedbackSignal = NrMimoSignal(csiImSignalChunks);
+    CalcAvgIntCovMat(&m_avgIntCovMat, csiFeedbackSignal.m_covMat);
+    // CSI-IM does not have RX spectrum channel matrix, because it only contains the interference
+    // hence the channel spectrum matrix to be used is from CSI-RS signal
+    if (m_alphaCovMat != 1)
+    {
+        csiFeedbackSignal.m_covMat = m_csiRsMimoSignal.m_covMat;
+    }
+    csiFeedbackSignal.m_chanMat = m_csiRsMimoSignal.m_chanMat;
+    TriggerDlCqiGeneration(csiFeedbackSignal, NrPmSearch::PmiUpdate(true, true));
+}
+
+void
+NrUePhy::PdschMimoReceived(const std::vector<MimoSignalChunk>& pdschMimoChunks)
+{
+    NS_LOG_FUNCTION(this);
+    // Combine multiple signal chunks into a single channel matrix and interference covariance
+    auto csiFeedbackSignal = NrMimoSignal(pdschMimoChunks);
+    // if alpha != 1, calculate the interference covariance moving average
+    CalcAvgIntCovMat(&m_avgIntCovMat, csiFeedbackSignal.m_covMat);
+    if (m_alphaCovMat != 1)
+    {
+        csiFeedbackSignal.m_covMat = m_avgIntCovMat;
+    }
+    // if CSI-RS enabled, use the spectrum channel matrix from CSI-RS signal
+    if (m_csiFeedbackType & CQI_CSI_RS)
+    {
+        NS_ASSERT_MSG(m_csiRsMimoSignal.m_chanMat.GetSize(),
+                      "CSI-RS based channel matrix not available");
+        csiFeedbackSignal.m_chanMat = m_csiRsMimoSignal.m_chanMat;
+    }
+
+    // CSI-RS slot, or PDSCH only based CQI feedback
+    // Determine if an update to wideband or subband PMI is needed and possible
+    auto pmiUpdateParams = CheckUpdatePmi();
+    TriggerDlCqiGeneration(csiFeedbackSignal, pmiUpdateParams);
+}
+
+void
+NrUePhy::TriggerDlCqiGeneration(const NrMimoSignal& csiFeedbackSignal,
+                                NrPmSearch::PmiUpdate pmiUpdateParams)
+{
+    NS_LOG_FUNCTION(this);
+    if (m_pmSearch)
+    {
+        GenerateDlCqiReportMimo(csiFeedbackSignal, pmiUpdateParams);
+    }
+    else
+    {
+        // Interference whitening: normalize the signal such that interference + noise covariance
+        // matrix is the identity matrix
+        auto intfNormChanMat =
+            csiFeedbackSignal.m_covMat.CalcIntfNormChannel(csiFeedbackSignal.m_chanMat);
+        // Create a dummy precoding matrix
+        ComplexMatrixArray precMat = ComplexMatrixArray(
+            csiFeedbackSignal.m_chanMat.GetNumCols(),
+            csiFeedbackSignal.m_chanMat.GetNumRows(),
+            csiFeedbackSignal.m_chanMat.GetNumPages(),
+            std::valarray<std::complex<double>>(std::complex<double>(1.0, 0.0),
+                                                csiFeedbackSignal.m_chanMat.GetSize()));
+        ;
+
+        NrSinrMatrix sinrMatrix = intfNormChanMat.ComputeSinrForPrecoding(precMat);
+        GenerateDlCqiReport(sinrMatrix.GetVectorizedSpecVal());
+    }
+}
+
+void
+NrUePhy::CalcAvgIntCovMat(NrCovMat* avgIntCovMat, const NrCovMat& newCovMat) const
+{
+    NS_LOG_FUNCTION(this);
+    if (avgIntCovMat->GetSize() == 0)
+    {
+        *avgIntCovMat = ComplexMatrixArray(newCovMat.GetNumRows(),
+                                           newCovMat.GetNumCols(),
+                                           newCovMat.GetNumPages());
+    };
+
+    *avgIntCovMat = newCovMat * std::complex<double>{m_alphaCovMat, 0.0} +
+                    *avgIntCovMat * std::complex<double>{1 - m_alphaCovMat, 0.0};
 }
 
 NrPmSearch::PmiUpdate

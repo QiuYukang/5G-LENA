@@ -60,6 +60,7 @@ class NrUePhy : public NrPhy
 {
     friend class UeMemberNrUePhySapProvider;
     friend class MemberNrUeCphySapProvider<NrUePhy>;
+    friend class NrHelper;
 
   public:
     /**
@@ -102,7 +103,26 @@ class NrUePhy : public NrPhy
      * \param enable parameter that enables or disables power control
      */
     void SetEnableUplinkPowerControl(bool enable);
-
+    /**
+     * \brief Set alpha parameter for the calculation of the CSI inteference covariance matrix
+     * moving average
+     * @param alpha the alpha parameter for the computation of the moving average
+     */
+    void SetAlphaCovMat(double alpha);
+    /**
+     * @return the alpha parameter used for the computation of the CSI interference covariance
+     * matrix moving average
+     */
+    double GetAlphaCovMat() const;
+    /**
+     * \brief Sets CSI-IM duration in the number of OFDM symbols, if enabled
+     * @param csiImDuration the duration of CSI-IM if enabled, see NrHelper
+     */
+    void SetCsiImDuration(uint8_t csiImDuration);
+    /**
+     * @return The duration of CSI-IM
+     */
+    uint8_t GetCsiImDuration() const;
     /**
      * \brief Set the transmission power for the UE
      *
@@ -450,9 +470,62 @@ class NrUePhy : public NrPhy
                                            uint8_t componentCarrierId);
 
     /// \brief Generate DL CQI, PMI, and RI (channel quality precoding matrix and rank indicators)
-    /// \param mimoChunks a vector of parameters of the received signals and interference
-    void GenerateDlCqiReportMimo(const std::vector<MimoSignalChunk>& mimoChunks);
+    /// \param cqiMimoFeedbackSignal a vector of parameters of the received signals and interference
+    /// \param pmiUpdateParams struct that defines if WB/SB PMIs need to be updated
+    void GenerateDlCqiReportMimo(const NrMimoSignal& cqiMimoFeedbackSignal,
+                                 NrPmSearch::PmiUpdate pmiUpdateParams);
 
+    /**
+     * @return The type of the CSI feedback
+     */
+    uint8_t GetCsiFeedbackType() const;
+    /// \brief A callback function that is called from NrMimoChunkProcessor
+    /// when CSI-RS is being received. It stores the CSI-RS signal information
+    /// \param csiRsSignal the structure that represents the CSI-RS signal
+    void CsiRsReceived(const std::vector<MimoSignalChunk>& csiRsSignal);
+    /**
+     * \brief Function that will be called in the case that CSI-RS is received, but CSI-IM is
+     * disabled and there is no PDSCH in the same slot, so this function will trigger CQI feedback
+     * generation based on the CSI-RS and the averaged covariance matrix if available,
+     * otherwise the CQI will be based only on CSI-RS that does not include any interference
+     * information.
+     */
+    void GenerateCsiRsCqi();
+    /**
+     * \brief Calculates the moving average of the interference covariance matrix.
+     * @param avgIntCovMat the past average of the interference covariance matrix
+     * @param newCovMat the new interference covariance matrix
+     */
+    void CalcAvgIntCovMat(NrCovMat* avgIntCovMat, const NrCovMat& newCovMat) const;
+    /**
+     * \brief Function is called when CSI-IM finishes, and this function triggers the update of the
+     * interference covariance matrix by using the spectrum channel matrix information from the last
+     * CSI-RS, and the interference information from this CSI-IM signal.
+     * @param csiImSignalChunks Chunks of the interference signals measured during the CSI-IM period
+     */
+    void CsiImEnded(const std::vector<MimoSignalChunk>& csiImSignalChunks);
+    /**
+     * \brief Function is called when PDSCH is received by the UE. It contains
+     * the channel and interference information of all the PDSCH signals of own gNB
+     * that occurred during the duration of the UE's PDSCH signal.
+     * @param pdschMimoChunks Chunks of the signals received by this UE from its cell, containing
+     * not only its own signals, but also towards other UEs of the same cell. This function triggers
+     * the generation of the CQI feedback if there was CSI-RS in the curren slot, or in the case
+     * that CSI-RS is disabled, so CQI feedback is only based on PDSCH.
+     */
+    void PdschMimoReceived(const std::vector<MimoSignalChunk>& pdschMimoChunks);
+    /**
+     * \brief Function is called in different possible scenarios to generate CQI information.
+     * For example, this function is called upon PDSCH reception, or upon CSI-IM period. It could be
+     * also triggered when CSI-RS ends, in the case that CSI-IM is disabled and PDSCH is not
+     * expected in the current slot. This function triggers the generation of the CQI feedback for
+     * both cases: SU-MIMO, and "SISO" (MIMO feedback is disabled, no spatial multiplexing).
+     * @param csiFeedbackSignal Contains the spectrum channel matrix and the interference covariance
+     * matrix that are used to generate the CQI feedback.
+     * @param pmiUpdateParams struct that defines if WB/SB PMIs need to be updated
+     */
+    void TriggerDlCqiGeneration(const NrMimoSignal& csiFeedbackSignal,
+                                NrPmSearch::PmiUpdate pmiUpdateParams);
     /// \brief Check if updates to wideband and/or subband PMI are necessary.
     /// This function is used to limit the frequency of PMI updates because computational complexity
     /// of PMI feedback can be very high, and because PMI feedback requires PUSCH/PUCCH resources.
@@ -470,6 +543,10 @@ class NrUePhy : public NrPhy
      * \brief DoDispose method inherited from Object
      */
     void DoDispose() override;
+    /**
+     * Returns the number of RBs per RBG
+     * @return the number of RBs per RBG
+     */
     uint32_t GetNumRbPerRbg() const override;
 
   private:
@@ -482,6 +559,12 @@ class NrUePhy : public NrPhy
      * periodicity as indicated by the *UeMeasFilterPeriod* attribute.
      */
     void ReportUeMeasurements();
+
+    /**
+     * \brief A function called by NrHelper to configure in NrUePhy what is the CSI feedback type.
+     * \param csiFeedbackType CSI feedback type that is configured by NrHelper
+     */
+    void SetCsiFeedbackType(uint8_t csiFeedbackType);
 
     /**
      * \brief Compute the AvgSinr (copied from NrUePhy)
@@ -677,7 +760,7 @@ class NrUePhy : public NrPhy
      * Get cell ID
      * \returns cell ID
      */
-    uint16_t DoGetCellId();
+    uint16_t DoGetCellId() const;
     /**
      * Get DL EARFCN
      * \returns DL EARFCN
@@ -854,6 +937,11 @@ class NrUePhy : public NrPhy
      */
     Time m_ueMeasurementsFilterPeriod;
 
+    NrMimoSignal m_csiRsMimoSignal;               //!< CSI-RS signal
+    Time m_lastCsiRsMimoSignalTime{Seconds(0.0)}; //!< Time when the last CSI-RS signal is received
+    NrCovMat m_avgIntCovMat;                      //!< Averaged interference covariance matrix
+    double m_alphaCovMat = {0.1};                 //!< Moving average alpha parameter
+    uint8_t m_csiImDuration = {1}; //!< Duration of CSI-IM is enabled, see NrHelper for enabling it
     /**
      * The `DlDataSinr` trace source (DlDataSinrTracedCallback). Trace information regarding
      * average SINR (see TS 36.214). Exporting cell ID, RNTI, SINR and BWP id.
@@ -949,6 +1037,7 @@ class NrUePhy : public NrPhy
     double m_sinrDbFrame;           ///< the average SINR per radio frame
     SpectrumValue m_ctrlSinrForRlf; ///< the CTRL SINR used for RLF detection
     bool m_enableRlfDetection;      ///< Flag to enable/disable RLF detection
+    uint8_t m_csiFeedbackType;      ///< CSI feedback type configured by NrHelper
 };
 
 } // namespace ns3
