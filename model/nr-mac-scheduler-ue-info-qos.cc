@@ -63,7 +63,7 @@ NrMacSchedulerUeInfoQos::CalculatePotentialTPutDl(
     // Since we compute a new potential throughput every time, there is no harm
     // in initializing it to zero here.
     m_potentialTputDl = 0.0;
-    m_potentialTputDl = amc->CalculateTbSize(m_dlMcs, m_dlRank, rbsAssignable);
+    m_potentialTputDl = amc->GetPayloadSize(m_dlMcs, m_dlRank, rbsAssignable);
     m_potentialTputDl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputDl " << m_potentialTputDl << " lastAvgThDl "
@@ -79,7 +79,7 @@ NrMacSchedulerUeInfoQos::CalculatePotentialTPutUl(
     NS_LOG_FUNCTION(this);
 
     uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg();
-    m_potentialTputUl = amc->CalculateTbSize(m_ulMcs, m_ulRank, rbsAssignable);
+    m_potentialTputUl = amc->GetPayloadSize(m_ulMcs, m_ulRank, rbsAssignable);
     m_potentialTputUl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputUl " << m_potentialTputUl << " lastAvgThUl "
