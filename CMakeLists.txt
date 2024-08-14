@@ -211,6 +211,7 @@ set(source_files
     model/nr-vendor-specific-parameters.cc
     model/realistic-beamforming-algorithm.cc
     model/realistic-bf-manager.cc
+    model/resource-assignment-matrix.cc
     model/sfnsf.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
     utils/traffic-generators/helper/traffic-generator-helper.cc
@@ -418,6 +419,7 @@ set(header_files
     model/nr-vendor-specific-parameters.h
     model/realistic-beamforming-algorithm.h
     model/realistic-bf-manager.h
+    model/resource-assignment-matrix.h
     model/sfnsf.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
     utils/nr-json.hpp
@@ -462,6 +464,7 @@ set(test_sources
     test/system-scheduler-test.cc
     test/nr-mac-short-bsr-ce-test.cc
     test/nr-test-notching.cc
+    test/nr-test-resource-assignment-matrix.cc
     test/nr-realistic-beamforming-test.cc
     test/nr-uplink-power-control-test.cc
     test/nr-power-allocation.cc

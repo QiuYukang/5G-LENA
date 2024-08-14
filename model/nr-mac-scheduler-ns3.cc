@@ -15,6 +15,7 @@
 #include "nr-mac-scheduler-lc-rr.h"
 #include "nr-mac-scheduler-srs-default.h"
 #include "nr-mac-short-bsr-ce.h"
+#include "resource-assignment-matrix.h"
 
 #include "ns3/boolean.h"
 #include "ns3/enum.h"
@@ -1882,6 +1883,17 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
     }
 
     m_macSchedSapUser->SchedConfigInd(dlSlot);
+#ifdef NS3_ASSERT_ENABLE
+    // Validates DL resource allocation
+    auto dlNotchedRBGsMask = GetDlNotchedRbgMask();
+    dlNotchedRBGsMask = dlNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
+                                                  : dlNotchedRBGsMask;
+    ResourceAssignmentMatrix::CheckResourceMatrixFromVarTtiAllocInfo(
+        dlSlot.m_slotAllocInfo.m_varTtiAllocInfo,
+        m_ueMap,
+        dlNotchedRBGsMask,
+        14);
+#endif
 }
 
 /**
@@ -1945,6 +1957,18 @@ NrMacSchedulerNs3::ScheduleUl(const NrMacSchedSapProvider::SchedUlTriggerReqPara
                                       << " including UL CTRL");
     m_macSchedSapUser->BuildRarList(ulSlot.m_slotAllocInfo);
     m_macSchedSapUser->SchedConfigInd(ulSlot);
+
+#ifdef NS3_ASSERT_ENABLE
+    // Validates UL resource allocation
+    auto ulNotchedRBGsMask = GetUlNotchedRbgMask();
+    ulNotchedRBGsMask = ulNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
+                                                  : ulNotchedRBGsMask;
+    ResourceAssignmentMatrix::CheckResourceMatrixFromVarTtiAllocInfo(
+        ulSlot.m_slotAllocInfo.m_varTtiAllocInfo,
+        m_ueMap,
+        ulNotchedRBGsMask,
+        14);
+#endif
 }
 
 /**
