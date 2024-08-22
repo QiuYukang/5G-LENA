@@ -198,12 +198,33 @@ class NrAmc : public Object
     /// \return a struct with the optimal MCS and corresponding CQI and TB size
     McsParams GetMaxMcsParams(const NrSinrMatrix& sinrMat, size_t subbandSize) const;
 
-  private:
-    /// \brief Find maximum MCS supported for this channel, using the Shannon model
+    /// \brief Find Sb MCS supported for this channel
+    /// \param subbandSize the size of each subband, used to create subband CQI values
     /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
-    /// \return the maximum MCS
-    uint8_t GetMaxMcsForShannonModel(const NrSinrMatrix& sinrMat) const;
+    /// \return the vector of MCS for subband
+    std::vector<uint8_t> GetSbMcs(const size_t subbandSize, const NrSinrMatrix& sinrMat) const;
 
+    /// \brief Find MCS supported for this channel
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \return the MCS
+    uint8_t GetMcs(const NrSinrMatrix& sinrMat) const;
+
+    /// \brief Create wide-band matrix based on average sinr of particular sub-band
+    /// \param avgSinrSb the average sinr of sub-band
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    /// \return the MIMO SINR matrix with the sub-band sinr value for whole matrix (rank * nRbs)
+    NrSinrMatrix CreateSinrMatForSb(const NrSinrMatrix& avgSinrSb,
+                                    const NrSinrMatrix& sinrMat) const;
+
+    /// \brief Extract sub-band sinr value from the sinrMatrix
+    /// \param sbIndex the index of sub-band to calc the value
+    /// \param subbandSize the size of each sub-band, used to create sub-band CQI values
+    /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
+    NrSinrMatrix ExtractSbFromMat(const uint8_t sbIndex,
+                                  const size_t subbandSize,
+                                  const NrSinrMatrix& sinrMat) const;
+
+  private:
     /// \brief Find maximum MCS supported for this channel, using the NR error model
     /// \param sinrMat the MIMO SINR matrix (rank * nRbs)
     /// \return the maximum MCS

@@ -359,6 +359,89 @@ NrAmc::GetBer() const
 NrAmc::McsParams
 NrAmc::GetMaxMcsParams(const NrSinrMatrix& sinrMat, size_t subbandSize) const
 {
+    auto wbMcs = GetMcs(sinrMat);
+    auto wbCqi = GetWbCqiFromMcs(wbMcs);
+    auto sbMcs = GetSbMcs(subbandSize, sinrMat);
+
+    std::vector<uint8_t> sbCqis;
+    sbCqis.resize(sbMcs.size());
+
+    std::transform(sbMcs.begin(), sbMcs.end(), sbCqis.begin(), [&](uint8_t mcs) {
+        return GetWbCqiFromMcs(mcs);
+    });
+
+    auto tbSize = CalcTbSizeForMimoMatrix(wbMcs, sinrMat);
+    return McsParams{wbMcs, wbCqi, sbCqis, tbSize};
+}
+
+std::vector<uint8_t>
+NrAmc::GetSbMcs(const size_t subbandSize, const NrSinrMatrix& sinrMat) const
+{
+    auto nRbs = sinrMat.GetNumRbs();
+    auto nSbs = (nRbs + subbandSize - 1) / subbandSize;
+    auto sbMcs = std::vector<uint8_t>(nSbs, 0);
+
+    for (size_t i = 0; i < sbMcs.size(); i++)
+    {
+        auto avgSinrSb = ExtractSbFromMat(i, subbandSize, sinrMat);
+        // Assume MCS 0 when SINR is zero (CQI 0 actually)
+        if (avgSinrSb(0, 0) == 0.0)
+        {
+            continue;
+        }
+        auto sinrTmp = CreateSinrMatForSb(avgSinrSb, sinrMat);
+        sbMcs[i] = GetMcs(sinrTmp);
+    }
+    return sbMcs;
+}
+
+NrSinrMatrix
+NrAmc::ExtractSbFromMat(const uint8_t sbIndex,
+                        const size_t subbandSize,
+                        const NrSinrMatrix& sinrMat) const
+{
+    const auto rank = sinrMat.GetNumRows();
+    DoubleMatrixArray sinrSb(rank, 1);
+    size_t subbandSizeActual = 0;
+    for (uint8_t r = 0; r < rank; r++)
+    {
+        for (size_t iRb = sbIndex * subbandSize; iRb < (sbIndex + 1) * subbandSize; iRb++)
+        {
+            sinrSb(r, 0) += sinrMat(r, iRb);
+            subbandSizeActual += 1;
+            if (iRb >= sinrMat.GetNumCols() - 1)
+            {
+                break;
+            }
+        }
+    }
+    subbandSizeActual /= rank;
+    for (uint8_t r = 0; r < rank; r++)
+    {
+        sinrSb(r, 0) /= subbandSizeActual;
+    }
+
+    return sinrSb;
+}
+
+NrSinrMatrix
+NrAmc::CreateSinrMatForSb(const NrSinrMatrix& avgSinrSb, const NrSinrMatrix& sinrMat) const
+{
+    auto sbSinrMat = DoubleMatrixArray{sinrMat.GetNumRows(), sinrMat.GetNumCols()};
+    for (size_t iRb = 0; iRb < sinrMat.GetNumCols(); iRb++)
+    {
+        for (size_t layer = 0; layer < sinrMat.GetNumRows(); layer++)
+        {
+            sbSinrMat(layer, iRb) = avgSinrSb(layer, 0);
+        }
+    }
+
+    return NrSinrMatrix{sbSinrMat};
+}
+
+uint8_t
+NrAmc::GetMcs(const NrSinrMatrix& sinrMat) const
+{
     auto mcs = uint8_t{0};
     switch (m_amcModel)
     {
@@ -372,16 +455,7 @@ NrAmc::GetMaxMcsParams(const NrSinrMatrix& sinrMat, size_t subbandSize) const
         NS_ABORT_MSG("AMC model not supported");
         break;
     }
-    auto wbCqi = GetWbCqiFromMcs(mcs);
-    auto nRbs = sinrMat.GetNumRbs();
-    auto nSbs = (nRbs + subbandSize - 1) / subbandSize;
-
-    // Create subband CQI. Workaround: using WB-CQI as SB-CQI
-    // TODO: remove workaround and compute actual SB-CQI
-    auto sbCqis = std::vector<uint8_t>(nSbs, wbCqi);
-
-    auto tbSize = CalcTbSizeForMimoMatrix(mcs, sinrMat);
-    return McsParams{mcs, wbCqi, sbCqis, tbSize};
+    return mcs;
 }
 
 uint8_t
