@@ -515,6 +515,12 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
      * \return pointer to NrSlUeMacHarq
      */
     Ptr<NrSlUeMacHarq> GetMacHarq(void) const;
+    /**
+     * \brief Remove unpublished grants for a given logical channel
+     * \param lcid The logical channel id
+     * \param dstL2Id The destination layer-2 id
+     */
+    void RemoveUnpublishedGrants(uint8_t lcid, uint32_t dstL2Id);
 
     std::unordered_map<uint32_t, std::shared_ptr<NrSlUeMacSchedulerDstInfo>>
         m_dstMap; //!< The map of between destination layer 2 id and the destination info

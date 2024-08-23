@@ -128,6 +128,7 @@ NrSlUeMacSchedulerFixedMcs::DoRemoveNrSlLcConfigReq(uint8_t lcid, uint32_t dstL2
     RemoveDstInfo(lcid, dstL2Id);
     // Send confirmation to MAC
     GetMac()->RemoveNrSlLcConfigCnf(lcid);
+    RemoveUnpublishedGrants(lcid, dstL2Id);
 }
 
 void
@@ -148,6 +149,50 @@ NrSlUeMacSchedulerFixedMcs::RemoveDstInfo(uint8_t lcid, uint32_t dstL2Id)
     else
     {
         NS_LOG_DEBUG("Already removed! Nothing to do!");
+    }
+}
+
+void
+NrSlUeMacSchedulerFixedMcs::RemoveUnpublishedGrants(uint8_t lcid, uint32_t dstL2Id)
+{
+    NS_LOG_FUNCTION(this << lcid << dstL2Id);
+    auto itGrantInfo = m_grantInfo.find(dstL2Id);
+    if (itGrantInfo != m_grantInfo.end())
+    {
+        for (auto itGrantVector = itGrantInfo->second.begin();
+             itGrantVector != itGrantInfo->second.end();)
+        {
+            uint32_t foundBytes = 0;
+            [[maybe_unused]] uint32_t foundSlots = 0;
+            for (auto allocIt = itGrantVector->slotAllocations.begin();
+                 allocIt != itGrantVector->slotAllocations.end();
+                 ++allocIt)
+            {
+                for (auto pduInfoIt : allocIt->slRlcPduInfo)
+                {
+                    if (pduInfoIt.lcid == lcid)
+                    {
+                        foundBytes += pduInfoIt.size;
+                        foundSlots++;
+                    }
+                }
+            }
+            if (foundBytes > 0)
+            {
+                NS_LOG_INFO("Removing unpublished grant for dstL2Id "
+                            << dstL2Id << " lcid " << lcid << " slots " << foundSlots << " bytes "
+                            << foundBytes);
+                itGrantVector = itGrantInfo->second.erase(itGrantVector);
+            }
+            else
+            {
+                ++itGrantVector;
+            }
+        }
+    }
+    else
+    {
+        NS_LOG_DEBUG("No unpublished grants for dstL2Id " << dstL2Id << " lcid " << lcid);
     }
 }
 
