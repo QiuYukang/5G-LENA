@@ -1480,6 +1480,35 @@ NrSlUeMac::DoRemoveNrSlLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id)
         m_nrSlUeMacScheduler->RemoveNrSlLcConfigReq(slLcId, dstL2Id);
     }
     m_nrSlLcInfoMap.erase(slLcIdentifier);
+    // Search for and remove grants
+    auto itNrSlGrantMap = m_slGrants.find(dstL2Id);
+    if (itNrSlGrantMap != m_slGrants.end())
+    {
+        for (auto itNrSlGrant = itNrSlGrantMap->second.begin();
+             itNrSlGrant != itNrSlGrantMap->second.end();)
+        {
+            uint32_t foundBytes = 0;
+            for (auto itPduInfos = itNrSlGrant->slotAllocations.begin()->slRlcPduInfo.begin();
+                 itPduInfos != itNrSlGrant->slotAllocations.begin()->slRlcPduInfo.end();
+                 itPduInfos++)
+            {
+                if (itPduInfos->lcid == slLcId)
+                {
+                    foundBytes += itPduInfos->size;
+                }
+            }
+            if (foundBytes > 0)
+            {
+                NS_LOG_INFO("Erasing grant to " << dstL2Id << " LC ID " << +slLcId);
+                m_nrSlGrantDrop(GetImsi(), GetRnti(), dstL2Id, slLcId, foundBytes);
+                itNrSlGrant = itNrSlGrantMap->second.erase(itNrSlGrant);
+            }
+            else
+            {
+                ++itNrSlGrant;
+            }
+        }
+    }
 }
 
 void
