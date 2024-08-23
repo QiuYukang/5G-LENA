@@ -554,6 +554,7 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
         while (itCandidate != remainingCandidates.end())
         {
             bool erased = false;
+            itCandidate->SetSlotBusy(false);
             // calculate all proposed transmissions of current candidate resource within selection
             // window
             std::list<SlResourceInfo> resourceInfoList;
@@ -604,6 +605,11 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
                                     erased = true; // Used to break out of outer for loop of sensed
                                                    // data projections
                                     break; // Stop further evaluation because candidate is erased
+                                }
+                                else
+                                {
+                                    // Although not overlapping in frequency, overlapped in time
+                                    itFutureCand.SetSlotBusy(true);
                                 }
                             }
                         }

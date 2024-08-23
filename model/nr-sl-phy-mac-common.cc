@@ -15,6 +15,18 @@ SlResourceInfo::operator<(const SlResourceInfo& rhs) const
     return (sfn < rhs.sfn || (sfn == rhs.sfn && slSubchannelStart < rhs.slSubchannelStart));
 }
 
+void
+SlResourceInfo::SetSlotBusy(bool isBusy)
+{
+    slotBusy = isBusy;
+}
+
+bool
+SlResourceInfo::GetSlotBusy() const
+{
+    return slotBusy;
+}
+
 bool
 SlGrantResource::operator<(const SlGrantResource& rhs) const
 {

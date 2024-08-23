@@ -543,6 +543,8 @@ class NrSlUeMacSchedulerFixedMcs : public NrSlUeMacScheduler
 
     bool m_prioToSps{true}; //!< Flag to give scheduling priority to logical channels that are
                             //!< configured with SPS in case of priority tie
+    bool m_wholeSlotExclusion{false}; //!< Flag to exclude scheduling in a slot for which
+                                      //!< reception on at least one resource is sensed
     bool m_allowMultipleDestinationsPerSlot{
         false}; //!< Allow scheduling of multiple destinations in same slot
     mutable Ptr<NrSlUeMacHarq> m_nrSlUeMacHarq{nullptr}; //!< Pointer to cache object

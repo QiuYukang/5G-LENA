@@ -254,6 +254,8 @@ struct SlResourceInfo
     uint8_t slSubchannelLength{
         std::numeric_limits<uint8_t>::max()}; //!< Number of continuous subchannels starting from
                                               //!< the index
+    bool slotBusy{
+        false}; //!< Whether a reception was detected in another subchannel in the same slot
     /**
      * \brief operator < (less than)
      * \param rhs other SlResourceInfo to compare
@@ -262,6 +264,25 @@ struct SlResourceInfo
      * The comparison is done on sfnSf
      */
     bool operator<(const SlResourceInfo& rhs) const;
+    /**
+     * \brief Indicate whether a reception was detected in another subchannel in the same slot
+     * \param isBusy whether the candidate should be noted as being adjacent to other reception(s)
+     *
+     * This parameter is not referenced in TS 38.214 Section 8.1.4 but it provides additional
+     * metadata about the resource that may be useful in scheduling, and it is more efficient
+     * to gather it as part of sensing rather than to derive it later in the scheduler.
+     * In brief, TS 38.214 procedures dictate that a resource be provided as a candidate if
+     * the subchannels spanned do not overlap with another sensed resource, but in some cases,
+     * the scheduler may wish to avoid scheduling a transmission on a slot in which it could
+     * instead receive.  This parameter provides the hint that although the candidate's
+     * subchannels are free, there was some other transmission sensed on different subchannel(s).
+     */
+    void SetSlotBusy(bool isBusy);
+    /**
+     * \brief Query whether a reception was detected in another subchannel in the same slot
+     * \return true if the candidate was noted as being adjacent to other reception(s)
+     */
+    bool GetSlotBusy() const;
 };
 
 /**

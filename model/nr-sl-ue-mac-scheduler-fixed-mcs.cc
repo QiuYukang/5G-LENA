@@ -49,6 +49,12 @@ NrSlUeMacSchedulerFixedMcs::GetTypeId(void)
                           BooleanValue(true),
                           MakeBooleanAccessor(&NrSlUeMacSchedulerFixedMcs::m_prioToSps),
                           MakeBooleanChecker())
+            .AddAttribute("WholeSlotExclusion",
+                          "Whether to exclude use of candidate resources when other resources "
+                          "in same slot are sensed",
+                          BooleanValue(false),
+                          MakeBooleanAccessor(&NrSlUeMacSchedulerFixedMcs::m_wholeSlotExclusion),
+                          MakeBooleanChecker())
             .AddAttribute("AllowMultipleDestinationsPerSlot",
                           "Allow scheduling of multiple destinations in same slot",
                           BooleanValue(false),
@@ -1471,14 +1477,27 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
     {
         return txOppr;
     }
-
     NS_LOG_DEBUG("Filtering txOppr list of size " << txOppr.size() << " resources");
-    auto itPublished = m_publishedGrants.begin();
-    while (itPublished != m_publishedGrants.end())
+    auto itTxOppr = txOppr.begin();
+    while (itTxOppr != txOppr.end())
     {
-        auto itTxOppr = txOppr.begin();
-        while (itTxOppr != txOppr.end())
+        // Filter each candidate on three possibilities:
+        // 1) if candidate overlaps with a resource in the list of published grants
+        // 2) if candidate overlaps with a resource in the list of unpublished grants
+        // 3) if whole slot exclusion option is enabled, and candidate is marked with slotBusy
+
+        bool filtered = false;
+        // 1) if candidate overlaps with a resource in the list of published grants
+        auto itPublished = m_publishedGrants.begin();
+        while (itPublished != m_publishedGrants.end())
         {
+            // Erase published records in the past
+            if (itPublished->sfn < sfn)
+            {
+                NS_LOG_INFO("Erasing published grant from " << itPublished->sfn.Normalize());
+                itPublished = m_publishedGrants.erase(itPublished);
+                continue;
+            }
             if (m_allowMultipleDestinationsPerSlot)
             {
                 if (OverlappedResources(itPublished->sfn,
@@ -1501,39 +1520,27 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
             {
                 if (itPublished->sfn == itTxOppr->sfn)
                 {
+                    filtered = true;
                     NS_LOG_INFO("Erasing candidate " << itTxOppr->sfn.Normalize()
                                                      << " due to published grant overlap");
-                    NS_LOG_INFO("Erasing candidate " << itTxOppr->sfn.Normalize());
-                    itTxOppr = txOppr.erase(itTxOppr);
-                }
-                else
-                {
-                    ++itTxOppr;
                 }
             }
-        }
-        // Erase published records in the past
-        if (itPublished->sfn < sfn)
-        {
-            NS_LOG_INFO("Erasing published grant from " << itPublished->sfn.Normalize());
-            itPublished = m_publishedGrants.erase(itPublished);
-        }
-        else
-        {
             ++itPublished;
         }
-    }
-    for (const auto& itDst : m_grantInfo)
-    {
-        for (auto itGrantVector = itDst.second.begin(); itGrantVector != itDst.second.end();
-             ++itGrantVector)
+        if (filtered)
         {
-            for (auto itGrantAlloc = itGrantVector->slotAllocations.begin();
-                 itGrantAlloc != itGrantVector->slotAllocations.end();
-                 itGrantAlloc++)
+            itTxOppr = txOppr.erase(itTxOppr);
+            continue;
+        }
+        // 2) if candidate overlaps with a resource in the list of unpublished grants
+        for (const auto& itDst : m_grantInfo)
+        {
+            for (auto itGrantVector = itDst.second.begin(); itGrantVector != itDst.second.end();
+                 ++itGrantVector)
             {
-                auto itTxOppr = txOppr.begin();
-                while (itTxOppr != txOppr.end())
+                for (auto itGrantAlloc = itGrantVector->slotAllocations.begin();
+                     itGrantAlloc != itGrantVector->slotAllocations.end();
+                     itGrantAlloc++)
                 {
                     // need to consider this txOppr plus its potential repetitions
                     bool foundOverlap = false;
@@ -1571,15 +1578,23 @@ NrSlUeMacSchedulerFixedMcs::FilterTxOpportunities(const SfnSf& sfn,
                     if (foundOverlap)
                     {
                         NS_LOG_DEBUG("Erasing candidate " << itTxOppr->sfn.Normalize());
-                        itTxOppr = txOppr.erase(itTxOppr);
-                    }
-                    else
-                    {
-                        ++itTxOppr;
+                        filtered = true;
                     }
                 }
             }
         }
+        if (filtered)
+        {
+            itTxOppr = txOppr.erase(itTxOppr);
+            continue;
+        }
+        // 3) if whole slot exclusion option is enabled, and candidate is marked with slotBusy
+        if (m_wholeSlotExclusion && itTxOppr->GetSlotBusy())
+        {
+            itTxOppr = txOppr.erase(itTxOppr);
+            continue;
+        }
+        ++itTxOppr;
     }
     return txOppr;
 }
