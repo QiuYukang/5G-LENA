@@ -138,7 +138,7 @@ struct DciInfoElementTdma
                        uint8_t numSym,
                        DciFormat format,
                        VarTtiType type,
-                       const std::vector<uint8_t>& rbgBitmask)
+                       const std::vector<bool>& rbgBitmask)
         : m_format(format),
           m_symStart(symStart),
           m_numSym(numSym),
@@ -229,14 +229,14 @@ struct DciInfoElementTdma
     const uint8_t m_mcs{0};       //!< MCS
     const uint8_t m_rank{1};      //!< the rank number (the number of MIMO layers)
     Ptr<const ComplexMatrixArray> m_precMats{nullptr};
-    const uint32_t m_tbSize{0};   //!< TB size
-    const uint8_t m_ndi{0};       //!< New Data Indicator
-    const uint8_t m_rv{0};        //!< Redundancy Version
-    const VarTtiType m_type{SRS}; //!< Var TTI type
-    const uint8_t m_bwpIndex{0};  //!< BWP Index to identify to which BWP this DCI applies to.
-    uint8_t m_harqProcess{0};     //!< HARQ process id
-    std::vector<uint8_t> m_rbgBitmask{}; //!< RBG mask: 0 if the RBG is not used, 1 otherwise
-    const uint8_t m_tpc{0};              //!< Tx power control command
+    const uint32_t m_tbSize{0};       //!< TB size
+    const uint8_t m_ndi{0};           //!< New Data Indicator
+    const uint8_t m_rv{0};            //!< Redundancy Version
+    const VarTtiType m_type{SRS};     //!< Var TTI type
+    const uint8_t m_bwpIndex{0};      //!< BWP Index to identify to which BWP this DCI applies to.
+    uint8_t m_harqProcess{0};         //!< HARQ process id
+    std::vector<bool> m_rbgBitmask{}; //!< RBG mask: 0 if the RBG is not used, 1 otherwise
+    const uint8_t m_tpc{0};           //!< Tx power control command
 };
 
 /**

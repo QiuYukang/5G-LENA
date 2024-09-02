@@ -357,7 +357,7 @@ NrMacSchedulerNs3::SetUlCtrlSyms(uint8_t v)
 }
 
 void
-NrMacSchedulerNs3::SetDlNotchedRbgMask(const std::vector<uint8_t>& dlNotchedRbgsMask)
+NrMacSchedulerNs3::SetDlNotchedRbgMask(const std::vector<bool>& dlNotchedRbgsMask)
 {
     NS_LOG_FUNCTION(this);
     m_dlNotchedRbgsMask = dlNotchedRbgsMask;
@@ -371,14 +371,14 @@ NrMacSchedulerNs3::SetDlNotchedRbgMask(const std::vector<uint8_t>& dlNotchedRbgs
     NS_LOG_INFO("Set DL notched mask: " << ss.str());
 }
 
-std::vector<uint8_t>
+std::vector<bool>
 NrMacSchedulerNs3::GetDlNotchedRbgMask() const
 {
     return m_dlNotchedRbgsMask;
 }
 
 void
-NrMacSchedulerNs3::SetUlNotchedRbgMask(const std::vector<uint8_t>& ulNotchedRbgsMask)
+NrMacSchedulerNs3::SetUlNotchedRbgMask(const std::vector<bool>& ulNotchedRbgsMask)
 {
     NS_LOG_FUNCTION(this);
     m_ulNotchedRbgsMask = ulNotchedRbgsMask;
@@ -392,7 +392,7 @@ NrMacSchedulerNs3::SetUlNotchedRbgMask(const std::vector<uint8_t>& ulNotchedRbgs
     NS_LOG_INFO("Set UL notched mask: " << ss.str());
 }
 
-std::vector<uint8_t>
+std::vector<bool>
 NrMacSchedulerNs3::GetUlNotchedRbgMask() const
 {
     return m_ulNotchedRbgsMask;
@@ -1149,7 +1149,7 @@ NrMacSchedulerNs3::PrependCtrlSym(uint8_t symStart,
                                   DciInfoElementTdma::DciFormat mode,
                                   std::deque<VarTtiAllocInfo>* allocations) const
 {
-    std::vector<uint8_t> rbgBitmask(GetBandwidthInRbg(), 1);
+    std::vector<bool> rbgBitmask(GetBandwidthInRbg(), true);
 
     NS_ASSERT_MSG(rbgBitmask.size() == GetBandwidthInRbg(),
                   "bitmask size " << rbgBitmask.size() << " conf " << GetBandwidthInRbg());
@@ -1187,7 +1187,7 @@ NrMacSchedulerNs3::AppendCtrlSym(uint8_t symStart,
                                  DciInfoElementTdma::DciFormat mode,
                                  std::deque<VarTtiAllocInfo>* allocations) const
 {
-    std::vector<uint8_t> rbgBitmask(GetBandwidthInRbg(), 1);
+    std::vector<bool> rbgBitmask(GetBandwidthInRbg(), true);
 
     NS_ASSERT(rbgBitmask.size() == GetBandwidthInRbg());
     if (mode == DciInfoElementTdma::DL)
@@ -2186,11 +2186,11 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
 
     for (uint32_t i = 0; i < m_srsCtrlSymbols; ++i)
     {
-        std::vector<uint8_t> rbgAssigned(GetBandwidthInRbg(), 1);
+        std::vector<bool> rbgAssigned(GetBandwidthInRbg(), true);
 
         NS_LOG_INFO("UE " << rnti << " assigned symbol " << +spoint->m_sym << " for SRS tx");
 
-        std::vector<uint8_t> rbgBitmask(GetBandwidthInRbg(), 1);
+        std::vector<bool> rbgBitmask(GetBandwidthInRbg(), true);
 
         spoint->m_sym--;
 
@@ -2653,7 +2653,7 @@ NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,
                                                  GetBwpId(),
                                                  GetTpc());
 
-        std::vector<uint8_t> rbgBitmask(GetBandwidthInRbg(), 1);
+        std::vector<bool> rbgBitmask(GetBandwidthInRbg(), true);
 
         ulMsg3Dci->m_rbgBitmask = rbgBitmask;
         symAvail -= allocSymbols;

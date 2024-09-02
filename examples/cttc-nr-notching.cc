@@ -246,18 +246,18 @@ main(int argc, char* argv[])
     }
 
     // Default mask (all 1s)
-    std::vector<uint8_t> notchedMaskDl(size, 1);
-    std::vector<uint8_t> notchedMaskUl(size, 1);
+    std::vector<bool> notchedMaskDl(size, true);
+    std::vector<bool> notchedMaskUl(size, true);
 
     // mute RBs from notchedRbStart to (notchedRbStart + numOfNotchedRbs)
     for (int i = notchedRbStartDl; i < (notchedRbStartDl + numOfNotchedRbsDl); i++)
     {
-        notchedMaskDl[i] = 0;
+        notchedMaskDl[i] = false;
     }
 
     for (int i = notchedRbStartUl; i < (notchedRbStartUl + numOfNotchedRbsUl); i++)
     {
-        notchedMaskUl[i] = 0;
+        notchedMaskUl[i] = false;
     }
 
     std::cout << "DL notched Mask: ";

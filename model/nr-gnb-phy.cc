@@ -1116,7 +1116,7 @@ NrGnbPhy::FillTheEvent()
 }
 
 void
-NrGnbPhy::StoreRBGAllocation(std::unordered_map<uint8_t, std::vector<uint8_t>>* map,
+NrGnbPhy::StoreRBGAllocation(std::unordered_map<uint8_t, std::vector<bool>>* map,
                              const std::shared_ptr<DciInfoElementTdma>& dci) const
 {
     NS_LOG_FUNCTION(this);
@@ -1132,7 +1132,7 @@ NrGnbPhy::StoreRBGAllocation(std::unordered_map<uint8_t, std::vector<uint8_t>>* 
         NS_ASSERT(existingRBGBitmask.size() == dci->m_rbgBitmask.size());
         for (uint32_t i = 0; i < existingRBGBitmask.size(); ++i)
         {
-            existingRBGBitmask.at(i) = existingRBGBitmask.at(i) | dci->m_rbgBitmask.at(i);
+            existingRBGBitmask.at(i) = existingRBGBitmask.at(i) || dci->m_rbgBitmask.at(i);
         }
     }
 }

@@ -123,7 +123,7 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
     uint32_t resources = symAvail;
     FTResources assigned(0, 0);
 
-    const std::vector<uint8_t> notchedRBGsMask =
+    const std::vector<bool> notchedRBGsMask =
         type == "DL" ? GetDlNotchedRbgMask() : GetUlNotchedRbgMask();
     int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
     uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
@@ -341,7 +341,7 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
         return nullptr;
     }
 
-    const std::vector<uint8_t> notchedRBGsMask = GetDlNotchedRbgMask();
+    const std::vector<bool> notchedRBGsMask = GetDlNotchedRbgMask();
     int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
     uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
 
@@ -394,7 +394,7 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
         return nullptr;
     }
 
-    const std::vector<uint8_t> notchedRBGsMask = GetUlNotchedRbgMask();
+    const std::vector<bool> notchedRBGsMask = GetUlNotchedRbgMask();
     int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
     uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
 
@@ -471,12 +471,12 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                              GetBwpId(),
                                              GetTpc());
 
-    std::vector<uint8_t> rbgAssigned =
+    std::vector<bool> rbgAssigned =
         fmt == DciInfoElementTdma::DL ? GetDlNotchedRbgMask() : GetUlNotchedRbgMask();
 
     if (rbgAssigned.empty())
     {
-        rbgAssigned = std::vector<uint8_t>(GetBandwidthInRbg(), 1);
+        rbgAssigned = std::vector<bool>(GetBandwidthInRbg(), true);
     }
 
     NS_ASSERT(rbgAssigned.size() == GetBandwidthInRbg());
@@ -484,7 +484,7 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     dci->m_rbgBitmask = std::move(rbgAssigned);
 
     std::ostringstream oss;
-    for (auto& x : dci->m_rbgBitmask)
+    for (auto x : dci->m_rbgBitmask)
     {
         oss << std::to_string(x) << " ";
     }

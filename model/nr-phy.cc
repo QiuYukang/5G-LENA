@@ -162,7 +162,7 @@ NrPhy::GetTypeId()
 }
 
 std::vector<int>
-NrPhy::FromRBGBitmaskToRBAssignment(const std::vector<uint8_t> rbgBitmask) const
+NrPhy::FromRBGBitmaskToRBAssignment(const std::vector<bool> rbgBitmask) const
 {
     std::vector<int> ret;
 

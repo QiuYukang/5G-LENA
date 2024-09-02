@@ -787,7 +787,7 @@ NrUePhy::PushCtrlAllocations(const SfnSf currentSfnSf)
 
     // The UE does not know anything from the GNB yet, so listen on the default
     // bandwidth.
-    std::vector<uint8_t> rbgBitmask(GetRbNum(), 1);
+    std::vector<bool> rbgBitmask(GetRbNum(), true);
 
     // The UE still doesn't know the TDD pattern, so just add a DL CTRL
     if (m_tddPattern.empty())

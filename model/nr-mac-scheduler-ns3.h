@@ -468,25 +468,25 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      * \brief Set the notched (blank) RBGs Mask for the DL
      * \param dlNotchedRbgsMask The mask of notched RBGs
      */
-    void SetDlNotchedRbgMask(const std::vector<uint8_t>& dlNotchedRbgsMask);
+    void SetDlNotchedRbgMask(const std::vector<bool>& dlNotchedRbgsMask);
 
     /**
      * \brief Get the notched (blank) RBGs Mask for the DL
      * \return The mask of notched RBGs
      */
-    std::vector<uint8_t> GetDlNotchedRbgMask() const;
+    std::vector<bool> GetDlNotchedRbgMask() const;
 
     /**
      * \brief Set the notched (blank) RBGs Mask for the UL
      * \param ulNotchedRbgsMask The mask of notched RBGs
      */
-    void SetUlNotchedRbgMask(const std::vector<uint8_t>& ulNotchedRbgsMask);
+    void SetUlNotchedRbgMask(const std::vector<bool>& ulNotchedRbgsMask);
 
     /**
      * \brief Get the notched (blank) RBGs Mask for the UL
      * \return The mask of notched RBGs
      */
-    std::vector<uint8_t> GetUlNotchedRbgMask() const;
+    std::vector<bool> GetUlNotchedRbgMask() const;
 
     /**
      * \brief Set the number of UL SRS symbols
@@ -754,7 +754,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
                   uint8_t numSym,
                   uint8_t mcs,
                   uint8_t rank,
-                  const std::vector<uint8_t>& rbgMask)
+                  const std::vector<bool>& rbgMask)
             : m_rnti(rnti),
               m_tbs(tbs),
               m_symStart(symStart),
@@ -765,13 +765,13 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         {
         }
 
-        uint16_t m_rnti{0};             //!< Allocated RNTI
-        uint32_t m_tbs{0};              //!< Allocated TBS
-        uint8_t m_symStart{0};          //!< Sym start
-        uint8_t m_numSym{0};            //!< Allocated symbols
-        uint8_t m_mcs{0};               //!< MCS of the transmission
-        uint8_t m_rank{1};              //!< rank of the transmission
-        std::vector<uint8_t> m_rbgMask; //!< RBG Mask
+        uint16_t m_rnti{0};          //!< Allocated RNTI
+        uint32_t m_tbs{0};           //!< Allocated TBS
+        uint8_t m_symStart{0};       //!< Sym start
+        uint8_t m_numSym{0};         //!< Allocated symbols
+        uint8_t m_mcs{0};            //!< MCS of the transmission
+        uint8_t m_rank{1};           //!< rank of the transmission
+        std::vector<bool> m_rbgMask; //!< RBG Mask
     };
 
     /**
@@ -942,8 +942,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     bool m_enableSrsInUlSlots{true}; //!< SRS allowed in UL slots (attribute)
     bool m_enableSrsInFSlots{true};  //!< SRS allowed in F slots (attribute)
 
-    std::vector<uint8_t> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
-    std::vector<uint8_t> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
+    std::vector<bool> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
+    std::vector<bool> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
 
     std::unique_ptr<NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 

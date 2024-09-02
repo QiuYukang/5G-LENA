@@ -165,13 +165,13 @@ class TestNotchingGnbMac : public NrGnbMac
 {
   public:
     static TypeId GetTypeId();
-    TestNotchingGnbMac(const std::vector<uint8_t>& inputMask);
+    TestNotchingGnbMac(const std::vector<bool>& inputMask);
     ~TestNotchingGnbMac() override;
     void DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind) override;
     void SetVerbose(bool verbose);
 
   private:
-    std::vector<uint8_t> m_inputMask;
+    std::vector<bool> m_inputMask;
     bool m_verboseMac = false;
 };
 
@@ -186,7 +186,7 @@ TestNotchingGnbMac::GetTypeId()
     return tid;
 }
 
-TestNotchingGnbMac::TestNotchingGnbMac(const std::vector<uint8_t>& inputMask)
+TestNotchingGnbMac::TestNotchingGnbMac(const std::vector<bool>& inputMask)
 {
     m_inputMask = inputMask;
 }
@@ -218,7 +218,7 @@ TestNotchingGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndPar
         if (m_verboseMac)
         {
             std::ostringstream oss;
-            for (auto& x : varTtiAllocInfo.m_dci->m_rbgBitmask)
+            for (auto x : varTtiAllocInfo.m_dci->m_rbgBitmask)
             {
                 oss << std::to_string(x) << " ";
             }
@@ -262,7 +262,7 @@ class NrNotchingTestCase : public TestCase
      * \param beamsNum The number beams to be tested
      */
     NrNotchingTestCase(const std::string& name,
-                       const std::vector<uint8_t>& mask,
+                       const std::vector<bool>& mask,
                        const std::string& schedulerType,
                        uint32_t numOfUesPerBeam,
                        uint32_t beamsNum)
@@ -284,7 +284,7 @@ class NrNotchingTestCase : public TestCase
         NrMacCschedSapProvider::CschedCellConfigReqParameters& params) const;
 
     bool m_verbose = false;
-    const std::vector<uint8_t> m_mask;
+    const std::vector<bool> m_mask;
     const std::string m_schedulerType;
     uint32_t m_numOfUesPerBeam;
     uint32_t m_beamsNum;
@@ -364,7 +364,7 @@ NrNotchingTestCase::DoRun()
                 if (beam == (m_beamsNum - 1) && u == (m_numOfUesPerBeam - 1))
                 {
                     std::ostringstream ss;
-                    for (auto& x : m_mask)
+                    for (auto x : m_mask)
                     {
                         ss << std::to_string(x) << " ";
                     }
@@ -424,14 +424,15 @@ class NrNotchingTestSuite : public TestSuite
     {
         // We simulate BW of 10 MHz so the size of the mask is 53 RBGs
         // considering that 1 RBG contains 1 RB
-        std::vector<uint8_t> notchedMask1{0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
-                                          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1,
-                                          1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+        // NOLINTBEGIN
+        std::vector<bool> notchedMask1{0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1,
+                                       1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
 
-        std::vector<uint8_t> notchedMask2{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
-                                          1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-                                          1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
-
+        std::vector<bool> notchedMask2{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+                                       1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+                                       1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
+        // NOLINTEND
         std::list<std::string> subdivision = {"Tdma", "Ofdma"};
         std::list<std::string> scheds = {"RR"};
         std::list<uint32_t> uesPerBeamList = {1, 2, 4, 6};

@@ -698,7 +698,7 @@ class NrGnbPhy : public NrPhy
      * \param dci DCI
      *
      */
-    void StoreRBGAllocation(std::unordered_map<uint8_t, std::vector<uint8_t>>* map,
+    void StoreRBGAllocation(std::unordered_map<uint8_t, std::vector<bool>>* map,
                             const std::shared_ptr<DciInfoElementTdma>& dci) const;
 
     /**
@@ -817,9 +817,9 @@ class NrGnbPhy : public NrPhy
     NrRrcSap::SystemInformationBlockType1 m_sib1; //!< SIB1 message
     Time m_lastSlotStart;                         //!< Time at which the last slot started
     uint8_t m_currSymStart{0}; //!< Symbol at which the current allocation started
-    std::unordered_map<uint8_t, std::vector<uint8_t>>
+    std::unordered_map<uint8_t, std::vector<bool>>
         m_rbgAllocationPerSym; //!< RBG allocation in each sym
-    std::unordered_map<uint8_t, std::vector<uint8_t>>
+    std::unordered_map<uint8_t, std::vector<bool>>
         m_rbgAllocationPerSymDataStat; //!< RBG allocation in each sym, for statistics (UL and DL
     //!< included, only data)
 

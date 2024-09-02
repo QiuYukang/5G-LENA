@@ -35,7 +35,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     [[maybe_unused]] uint32_t tbs,
     const NrMacSchedSapProvider::SchedUlCqiInfoReqParameters& params,
     const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
-    const std::vector<uint8_t>& rbgMask,
+    const std::vector<bool>& rbgMask,
     uint32_t numRbPerRbg,
     const Ptr<const SpectrumModel>& model) const
 {

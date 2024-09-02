@@ -1405,7 +1405,7 @@ NrGnbMac::GetDlCtrlDci() const
 
     auto bwInRbg = m_phySapProvider->GetRbNum() / GetNumRbPerRbg();
     NS_ASSERT(bwInRbg > 0);
-    std::vector<uint8_t> rbgBitmask(bwInRbg, 1);
+    std::vector<bool> rbgBitmask(bwInRbg, true);
 
     return std::make_shared<DciInfoElementTdma>(0,
                                                 m_macSchedSapProvider->GetDlCtrlSyms(),
@@ -1420,7 +1420,7 @@ NrGnbMac::GetUlCtrlDci() const
     NS_LOG_FUNCTION(this);
 
     NS_ASSERT(m_bandwidthInRbg > 0);
-    std::vector<uint8_t> rbgBitmask(m_bandwidthInRbg, 1);
+    std::vector<bool> rbgBitmask(m_bandwidthInRbg, true);
 
     return std::make_shared<DciInfoElementTdma>(0,
                                                 m_macSchedSapProvider->GetUlCtrlSyms(),

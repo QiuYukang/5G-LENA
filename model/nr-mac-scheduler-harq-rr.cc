@@ -198,11 +198,11 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
             {
                 if (startingPoint->m_rbg <= i && i < startingPoint->m_rbg + rbgAssigned)
                 {
-                    dciInfoReTx->m_rbgBitmask.at(i) = 1;
+                    dciInfoReTx->m_rbgBitmask.at(i) = true;
                 }
                 else
                 {
-                    dciInfoReTx->m_rbgBitmask.at(i) = 0;
+                    dciInfoReTx->m_rbgBitmask.at(i) = false;
                 }
             }
 

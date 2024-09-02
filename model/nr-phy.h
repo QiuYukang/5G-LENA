@@ -443,7 +443,7 @@ class NrPhy : public Object
      * <0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0> , and therefore the places in which there
      * is a 1 are from the 4th to the 11th, and that is reflected in the output)
      */
-    std::vector<int> FromRBGBitmaskToRBAssignment(const std::vector<uint8_t> rbgBitmask) const;
+    std::vector<int> FromRBGBitmaskToRBAssignment(const std::vector<bool> rbgBitmask) const;
 
     /**
      * \brief Protected function that is used to get the number of resource

@@ -167,7 +167,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
         uint32_t rbgAssignable = 1 * beamSym;
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assigned(0, 0);
-        const std::vector<uint8_t> dlNotchedRBGsMask = GetDlNotchedRbgMask();
+        const std::vector<bool> dlNotchedRBGsMask = GetDlNotchedRbgMask();
         uint32_t resources = !dlNotchedRBGsMask.empty()
                                  ? std::count(dlNotchedRBGsMask.begin(), dlNotchedRBGsMask.end(), 1)
                                  : GetBandwidthInRbg();
@@ -357,7 +357,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
         uint32_t rbgAssignable = 1 * beamSym;
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assigned(0, 0);
-        const std::vector<uint8_t> ulNotchedRBGsMask = GetUlNotchedRbgMask();
+        const std::vector<bool> ulNotchedRBGsMask = GetUlNotchedRbgMask();
         uint32_t resources = !ulNotchedRBGsMask.empty()
                                  ? std::count(ulNotchedRBGsMask.begin(), ulNotchedRBGsMask.end(), 1)
                                  : GetBandwidthInRbg();
@@ -469,11 +469,11 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     }
 
     uint32_t RBGNum = ueInfo->m_dlRBG / maxSym;
-    std::vector<uint8_t> rbgBitmask = GetDlNotchedRbgMask();
+    std::vector<bool> rbgBitmask = GetDlNotchedRbgMask();
 
     if (rbgBitmask.empty())
     {
-        rbgBitmask = std::vector<uint8_t>(GetBandwidthInRbg(), 1);
+        rbgBitmask = std::vector<bool>(GetBandwidthInRbg(), true);
     }
 
     // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
@@ -496,7 +496,7 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
         {
             // Set to 0 the position < spoint->m_rbg OR the remaining RBG when
             // we already assigned the number of requested RBG
-            rbgBitmask[i] = 0;
+            rbgBitmask[i] = false;
         }
     }
 
@@ -559,11 +559,11 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
     }
 
     uint32_t RBGNum = ueInfo->m_ulRBG / maxSym;
-    std::vector<uint8_t> rbgBitmask = GetUlNotchedRbgMask();
+    std::vector<bool> rbgBitmask = GetUlNotchedRbgMask();
 
     if (rbgBitmask.empty())
     {
-        rbgBitmask = std::vector<uint8_t>(GetBandwidthInRbg(), 1);
+        rbgBitmask = std::vector<bool>(GetBandwidthInRbg(), true);
     }
 
     // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
@@ -577,7 +577,7 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
     // and the number of RBG assigned to the UE
     for (uint32_t i = 0; i < GetBandwidthInRbg(); ++i)
     {
-        if (i >= spoint->m_rbg && RBGNum > 0 && rbgBitmask[i] == 1)
+        if (i >= spoint->m_rbg && RBGNum > 0 && rbgBitmask[i])
         {
             // assigned! Decrement RBGNum and continue the for
             RBGNum--;
@@ -587,7 +587,7 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
         {
             // Set to 0 the position < spoint->m_rbg OR the remaining RBG when
             // we already assigned the number of requested RBG
-            rbgBitmask[i] = 0;
+            rbgBitmask[i] = false;
         }
     }
 
