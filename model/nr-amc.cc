@@ -81,18 +81,21 @@ NrAmc::GetMcsFromCqi(uint8_t cqi) const
     NS_LOG_FUNCTION(cqi);
     NS_ASSERT_MSG(cqi >= 0 && cqi <= 15, "CQI must be in [0..15] = " << cqi);
 
-    double spectralEfficiency = m_errorModel->GetSpectralEfficiencyForCqi(cqi);
-    uint8_t mcs = 0;
-
-    while ((mcs < m_errorModel->GetMaxMcs()) &&
-           (m_errorModel->GetSpectralEfficiencyForMcs(mcs + 1) <= spectralEfficiency))
+    if (m_cachedCqiToMcsMap.find(cqi) == m_cachedCqiToMcsMap.end())
     {
-        ++mcs;
+        double spectralEfficiency = m_errorModel->GetSpectralEfficiencyForCqi(cqi);
+        uint8_t mcs = 0;
+
+        while ((mcs < m_errorModel->GetMaxMcs()) &&
+               (m_errorModel->GetSpectralEfficiencyForMcs(mcs + 1) <= spectralEfficiency))
+        {
+            ++mcs;
+        }
+        NS_LOG_LOGIC("mcs = " << mcs);
+        m_cachedCqiToMcsMap[cqi] = mcs;
     }
 
-    NS_LOG_LOGIC("mcs = " << mcs);
-
-    return mcs;
+    return m_cachedCqiToMcsMap.at(cqi);
 }
 
 uint8_t
@@ -328,6 +331,7 @@ NrAmc::SetErrorModelType(const TypeId& type)
     factory.SetTypeId(m_errorModelType);
     m_errorModel = DynamicCast<NrErrorModel>(factory.Create());
     NS_ASSERT(m_errorModel != nullptr);
+    m_cachedCqiToMcsMap.clear(); // clear stale cache
 }
 
 TypeId

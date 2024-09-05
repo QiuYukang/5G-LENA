@@ -239,6 +239,7 @@ class NrAmc : public Object
     uint8_t m_numRefScPerRb{1};                    //!< number of reference subcarriers per RB
     NrErrorModel::Mode m_emMode{NrErrorModel::DL}; //!< Error model mode
     static const unsigned int m_crcLen = 24 / 8;   //!< CRC length (in bytes)
+    mutable std::unordered_map<uint8_t, uint8_t> m_cachedCqiToMcsMap; //!< Cached CQI to MCS
 };
 
 } // end namespace ns3
