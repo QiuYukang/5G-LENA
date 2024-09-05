@@ -894,15 +894,7 @@ NrMacSchedulerNs3::DoSchedDlCqiInfoReq(
     {
         NS_ASSERT(m_ueMap.find(cqi.m_rnti) != m_ueMap.end());
         const std::shared_ptr<NrMacSchedulerUeInfo>& ue = m_ueMap.find(cqi.m_rnti)->second;
-
-        if (cqi.m_cqiType == DlCqiInfo::WB)
-        {
-            m_cqiManagement.DlWBCQIReported(cqi, ue, expirationTime, m_maxDlMcs);
-        }
-        else
-        {
-            m_cqiManagement.DlSBCQIReported(cqi, ue);
-        }
+        m_cqiManagement.DlCqiReported(cqi, ue, expirationTime, m_maxDlMcs, GetBandwidthInRbg());
     }
 }
 
@@ -1423,7 +1415,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
 
         for (const auto& ue : beam.second)
         {
-            if (ue.first->m_dlRBG == 0)
+            if (ue.first->m_dlRBG.empty())
             {
                 NS_LOG_INFO("UE " << ue.first->m_rnti << " does not have RBG assigned");
                 continue;
@@ -1456,7 +1448,7 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
                 allocSym += dci->m_numSym;
             }
 
-            NS_LOG_INFO("UE " << ue.first->m_rnti << " has " << ue.first->m_dlRBG
+            NS_LOG_INFO("UE " << ue.first->m_rnti << " has " << ue.first->m_dlRBG.size()
                               << " RBG assigned");
             NS_ASSERT_MSG(dci->m_symStart + dci->m_numSym <= m_macSchedSapUser->GetSymbolsPerSlot(),
                           "symStart: "
@@ -1624,7 +1616,7 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
 
         for (const auto& ue : beam.second)
         {
-            if (ue.first->m_ulRBG == 0)
+            if (ue.first->m_ulRBG.empty())
             {
                 NS_LOG_INFO("UE " << ue.first->m_rnti << " does not have RBG assigned");
                 continue;

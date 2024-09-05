@@ -76,25 +76,31 @@ class NrMacSchedulerUeInfo
      * @param ue UE pointer from which obtain the value
      * @return
      */
-    static uint32_t& GetDlRBG(const UePtr& ue);
+    static std::vector<uint16_t>& GetDlRBG(const UePtr& ue);
     /**
      * @brief GetUlRBG
      * @param ue UE pointer from which obtain the value
      * @return
      */
-    static uint32_t& GetUlRBG(const UePtr& ue);
+    static std::vector<uint16_t>& GetUlRBG(const UePtr& ue);
     /**
      * @brief GetDlSym
      * @param ue UE pointer from which obtain the value
      * @return
      */
-    static uint8_t& GetDlSym(const UePtr& ue);
+    static std::vector<uint8_t>& GetDlSym(const UePtr& ue);
     /**
      * @brief GetUlSym
      * @param ue UE pointer from which obtain the value
      * @return
      */
-    static uint8_t& GetUlSym(const UePtr& ue);
+    static std::vector<uint8_t>& GetUlSym(const UePtr& ue);
+    /**
+     * @brief Get the downlink MCS, given by the wideband CQI, or
+     *        the sub-band CQIs of the currently allocated RBGs, if available
+     * @return downlink mcs
+     */
+    uint8_t GetDlMcs() const;
     /**
      * @brief GetDlMcs
      * @param ue UE pointer from which obtain the value
@@ -232,10 +238,11 @@ class NrMacSchedulerUeInfo
             SB           //!< Sub-band
         } m_cqiType{WB}; //!< CQI type
 
-        std::vector<double> m_sinr; //!< Vector of SINR for the entire band
-        uint8_t m_wbCqi{0};         //!< CQI reported value
-        uint32_t m_timer{0};        //!< Timer (in slot number).
-                                    //!< When the timer is 0, the value is discarded
+        std::vector<double> m_sinr;   //!< Vector of SINR for the entire band
+        uint8_t m_wbCqi{0};           //!< CQI reported value
+        std::vector<uint8_t> m_sbCqi; //!< Sub-band CQI reported values
+        uint32_t m_timer{0};          //!< Timer (in slot number).
+                                      //!< When the timer is 0, the value is discarded
     };
 
     void ReleaseLC(uint8_t lcid);
@@ -246,17 +253,20 @@ class NrMacSchedulerUeInfo
     std::unordered_map<uint8_t, LCGPtr> m_dlLCG; //!< DL LCG
     std::unordered_map<uint8_t, LCGPtr> m_ulLCG; //!< UL LCG
 
-    uint32_t m_dlMRBRetx{0}; //!< MRB assigned for retx. To update the name,
-                             //!< what is MRB is not defined
-    uint32_t m_ulMRBRetx{0}; //!< MRB assigned for retx. To update the name,
-                             //!< what is MRB is not defined
-    uint32_t m_dlRBG{0};     //!< DL Resource Block Group assigned in this slot
-    uint32_t m_ulRBG{0};     //!< UL Resource Block Group assigned in this slot
-    uint8_t m_dlSym{0};      //!< Number of (new data) symbols assigned in this slot.
-    uint8_t m_ulSym{0};      //!< Number of (new data) symbols assigned in this slot.
+    uint32_t m_dlMRBRetx{0};       //!< MRB assigned for retx. To update the name,
+                                   //!< what is MRB is not defined
+    uint32_t m_ulMRBRetx{0};       //!< MRB assigned for retx. To update the name,
+                                   //!< what is MRB is not defined
+    std::vector<uint16_t> m_dlRBG; //!< DL Resource Block Group assigned in this slot
+    std::vector<uint16_t> m_ulRBG; //!< UL Resource Block Group assigned in this slot
+    std::vector<uint8_t> m_dlSym;  //!< Corresponding symbol of m_dlRBG in this slot
+    std::vector<uint8_t> m_ulSym;  //!< Corresponding symbol of m_ulRBG in this slot
 
     uint8_t m_dlMcs{0}; //!< DL MCS
-    uint8_t m_ulMcs{0}; //!< UL MCS
+    std::optional<uint8_t>
+        m_fhMaxMcsAssignable; //!< Maximum DL MCS assignable due to FH limitations
+    uint8_t m_ulMcs{0};       //!< UL MCS
+    std::vector<std::array<uint8_t, 2>> m_rbgDlMcs; //!< DL MCS for RBG based on sub-band CQI
 
     uint32_t m_dlTbSize{0}; //!< DL Transport Block Size, depends on MCS and RBG,
                             //!< updated in UpdateDlMetric()

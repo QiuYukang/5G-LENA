@@ -8,6 +8,8 @@
 
 #include "ns3/traced-value.h"
 
+#include <set>
+
 namespace ns3
 {
 
@@ -97,6 +99,109 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
     uint8_t GetTpc() const override;
 
   private:
-    TracedValue<uint32_t> m_tracedValueSymPerBeam;
+    /**
+     * @brief Create RBG bitmask from allocated RBG vector
+     * @param allocatedRbgs vector of allocated RBGs
+     * @return RBG bitmask
+     */
+    std::vector<bool> CreateRbgBitmaskFromAllocatedRbgs(
+        const std::vector<uint16_t>& allocatedRbgs) const;
+
+    /**
+     * @brief Advances schedInfoIt iterator to the next UE to be scheduled
+     *
+     * Iterate all the way from beginning to the end iterators of the vector of UEs to schedule,
+     * looking for the first UE that hasn't had scheduled enough resources to fill its entire
+     * buffer.
+     *
+     * In case an UE hasn't had enough resources scheduled, and the fronthaul policy allows
+     * (ShouldScheduleUeBasedOnFronthaul), it will be scheduled in the next iteration, returning
+     * true.
+     *
+     * If the fronthaul does now allow it, or there is no UE with more data to transmit, then return
+     * false to indicate scheduling has ended for this beam.
+     * @param schedInfoIt iterator pointing to the beginning of vector with UEs to be scheduled
+     * @param end end iterator of vector of UEs to be scheduled
+     * @param resourcesAssignable number of resources that can be scheduled per time (symbols per
+     * beam * 1 rbg)
+     * @return true in case scheduling should be done for a UE pointed by current schedInfoIt, false
+     * in case scheduling for beam should stop
+     */
+    bool AdvanceToNextUeToSchedule(std::vector<UePtrAndBufferReq>::iterator& schedInfoIt,
+                                   const std::vector<UePtrAndBufferReq>::iterator end,
+                                   uint32_t resourcesAssignable) const;
+    /**
+     * @brief Decides whether UE pointed by schedInfoIt should be scheduled based on fronthaul
+     * policy
+     *
+     * @param schedInfoIt iterator pointing to the beginning of vector with UEs to be scheduled
+     * @param resourcesAssignable number of resources that can be scheduled per time (symbols per
+     * beam * 1 rbg)
+     * @return true in case scheduling should be done for a UE pointed by current schedInfoIt, false
+     * in case UE should not be scheduled
+     */
+    bool ShouldScheduleUeBasedOnFronthaul(
+        const std::vector<UePtrAndBufferReq>::iterator& schedInfoIt,
+        uint32_t resourcesAssignable) const;
+
+    /**
+     * @brief Apply fronthaul control policy to constrain allocation post-fact, by deallocating
+     * resources
+     * @param ueVector Reference to vector of UEs scheduled for a beam
+     * @param beamSym Reference to number of resources (symbols per beam * 1 rbg) available
+     * @param assignedResources Reference to currently assigned resources (symbols, rbgs)
+     * @param availableRbgs Reference to vector of available RBGs
+     */
+    void DeallocateResourcesDueToFronthaulConstraint(const std::vector<UePtrAndBufferReq>& ueVector,
+                                                     const uint32_t& beamSym,
+                                                     FTResources& assignedResources,
+                                                     std::vector<bool>& availableRbgs) const;
+    /**
+     * @brief Allocate resources defined by currentRbg (RBG)*beamSym (symbols per beam) from
+     * currentUe, then update list of assignedResources and availableRbgs
+     * @param currentUe Pointer to UE that should have currentRbg deallocated
+     * @param currentRbg RBG to be deallocated
+     * @param beamSym Symbols per beam to be deallocated
+     * @param assignedResources Reference to total assigned resources
+     * @param availableRbgs Reference vector of available RBGs for scheduling
+     */
+    static void AllocateCurrentResourceToUe(std::shared_ptr<NrMacSchedulerUeInfo> currentUe,
+                                            const uint32_t& currentRbg,
+                                            const uint32_t beamSym,
+                                            FTResources& assignedResources,
+                                            std::vector<bool>& availableRbgs);
+    /**
+     * @brief Deallocate resources defined by currentRbg (RBG)*beamSym (symbols per beam) from
+     * currentUe, then update list of assignedResources and availableRbgs
+     * @param currentUe Pointer to UE that should have currentRbg deallocated
+     * @param currentRbg RBG to be deallocated
+     * @param beamSym Symbols per beam to be deallocated
+     * @param assignedResources Reference to total assigned resources
+     * @param availableRbgs Reference vector of available RBGs for scheduling
+     */
+    static void DeallocateCurrentResourceFromUe(std::shared_ptr<NrMacSchedulerUeInfo> currentUe,
+                                                const uint32_t& currentRbg,
+                                                const uint32_t beamSym,
+                                                FTResources& assignedResources,
+                                                std::vector<bool>& availableRbgs);
+    /**
+     * @brief Try to schedule the best RBG out of remainingRbgSet to an UE referenced by
+     * schedInfoIt, for beamSym symbols, then update the list of assignedResources and availableRbgs
+     * @param schedInfoIt Reference to the UE to be scheduled
+     * @param remainingRbgSet Reference to set of available RBGs to be scheduled
+     * @param beamSym Number of symbols per beam to be scheduled
+     * @param assignedResources Number of resources scheduled
+     * @param availableRbgs Mask of available RBGs
+     * @return true if scheduled, false if not scheduled
+     */
+    bool AttemptAllocationOfCurrentResourceToUe(
+        std::vector<UePtrAndBufferReq>::iterator schedInfoIt,
+        std::set<uint32_t>& remainingRbgSet,
+        const uint32_t beamSym,
+        FTResources& assignedResources,
+        std::vector<bool>& availableRbgs) const;
+
+    TracedValue<uint32_t>
+        m_tracedValueSymPerBeam; //!< Variable to trace symbols per beam allocation
 };
 } // namespace ns3

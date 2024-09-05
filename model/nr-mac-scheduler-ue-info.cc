@@ -6,6 +6,8 @@
 
 #include "ns3/log.h"
 
+#include <numeric>
+
 namespace ns3
 {
 
@@ -22,25 +24,25 @@ NrMacSchedulerUeInfo::~NrMacSchedulerUeInfo()
 {
 }
 
-uint32_t&
+std::vector<uint16_t>&
 NrMacSchedulerUeInfo::GetDlRBG(const UePtr& ue)
 {
     return ue->m_dlRBG;
 }
 
-uint32_t&
+std::vector<uint16_t>&
 NrMacSchedulerUeInfo::GetUlRBG(const UePtr& ue)
 {
     return ue->m_ulRBG;
 }
 
-uint8_t&
+std::vector<uint8_t>&
 NrMacSchedulerUeInfo::GetDlSym(const UePtr& ue)
 {
     return ue->m_dlSym;
 }
 
-uint8_t&
+std::vector<uint8_t>&
 NrMacSchedulerUeInfo::GetUlSym(const UePtr& ue)
 {
     return ue->m_ulSym;
@@ -50,6 +52,30 @@ uint8_t&
 NrMacSchedulerUeInfo::GetDlMcs(const UePtr& ue)
 {
     return ue->m_dlMcs;
+}
+
+uint8_t
+NrMacSchedulerUeInfo::GetDlMcs() const
+{
+    // Return maximum allowed MCS according to Fronthaul control
+    if (m_fhMaxMcsAssignable.has_value())
+    {
+        return m_fhMaxMcsAssignable.value();
+    }
+
+    // Otherwise, return the wideband MCS or the average of the allocated sub-band MCSs
+    uint8_t dlMcs = m_dlMcs;
+    if (!m_rbgDlMcs.empty() && !m_dlRBG.empty())
+    {
+        auto sum = std::transform_reduce(
+            m_dlRBG.begin(),
+            m_dlRBG.end(),
+            0,
+            [](auto a, auto b) { return (uint32_t)a + (uint32_t)b; },
+            [this](auto rbg) { return m_rbgDlMcs[rbg][1]; });
+        dlMcs = (uint8_t)(sum / m_dlRBG.size());
+    }
+    return dlMcs;
 }
 
 uint8_t&
@@ -105,8 +131,8 @@ void
 NrMacSchedulerUeInfo::ResetDlSchedInfo()
 {
     m_dlMRBRetx = 0;
-    m_dlRBG = 0;
-    m_dlSym = 0;
+    m_dlRBG.clear();
+    m_dlSym.clear();
     m_dlTbSize = 0;
 }
 
@@ -114,21 +140,22 @@ void
 NrMacSchedulerUeInfo::ResetUlSchedInfo()
 {
     m_ulMRBRetx = 0;
-    m_ulRBG = 0;
-    m_ulSym = 0;
+    m_ulRBG.clear();
+    m_ulSym.clear();
     m_ulTbSize = 0;
 }
 
 void
 NrMacSchedulerUeInfo::UpdateDlMetric()
 {
-    if (m_dlRBG == 0)
+    if (m_dlRBG.empty())
     {
         m_dlTbSize = 0;
     }
     else
     {
-        m_dlTbSize = m_dlAmc->CalculateTbSize(m_dlMcs, m_dlRank, m_dlRBG * GetNumRbPerRbg());
+        m_dlTbSize =
+            m_dlAmc->CalculateTbSize(GetDlMcs(), m_dlRank, m_dlRBG.size() * GetNumRbPerRbg());
     }
 }
 
@@ -141,13 +168,13 @@ NrMacSchedulerUeInfo::ResetDlMetric()
 void
 NrMacSchedulerUeInfo::UpdateUlMetric()
 {
-    if (m_ulRBG == 0)
+    if (m_ulRBG.empty())
     {
         m_ulTbSize = 0;
     }
     else
     {
-        m_ulTbSize = m_ulAmc->CalculateTbSize(m_ulMcs, m_ulRank, m_ulRBG * GetNumRbPerRbg());
+        m_ulTbSize = m_ulAmc->CalculateTbSize(m_ulMcs, m_ulRank, m_ulRBG.size() * GetNumRbPerRbg());
     }
 }
 

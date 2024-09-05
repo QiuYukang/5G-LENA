@@ -48,12 +48,12 @@ class NrMacSchedulerUeInfoMR : public NrMacSchedulerUeInfo
     static bool CompareUeWeightsDl(const NrMacSchedulerNs3::UePtrAndBufferReq& lue,
                                    const NrMacSchedulerNs3::UePtrAndBufferReq& rue)
     {
-        if (lue.first->m_dlMcs == rue.first->m_dlMcs)
+        if (lue.first->GetDlMcs() == rue.first->GetDlMcs())
         {
             return NrMacSchedulerUeInfoRR::CompareUeWeightsDl(lue, rue);
         }
 
-        return (lue.first->m_dlMcs > rue.first->m_dlMcs);
+        return (lue.first->GetDlMcs() > rue.first->GetDlMcs());
     }
 
     /**

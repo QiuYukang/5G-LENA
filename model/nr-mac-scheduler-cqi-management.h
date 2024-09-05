@@ -18,13 +18,13 @@ class NrAmc;
  * @ingroup scheduler
  * @brief CQI management for schedulers.
  *
- * The scheduler will call either DlWBCQIReported or DlSBCQIReported to calculate
+ * The scheduler will call either DlCqiReported to calculate
  * a new DL MCS. For UL, only the method UlSBCQIReported is implemented,
  * and it is a bit more complicated. For any detail, check the respective
  * documentation.
  *
  * @see UlSBCQIReported
- * @see DlWBCQIReported
+ * @see DlCqiReported
  */
 class NrMacSchedulerCQIManagement
 {
@@ -70,25 +70,18 @@ class NrMacSchedulerCQIManagement
      * @param ueInfo UE
      * @param expirationTime expiration time of the CQI in number of slot
      * @param maxDlMcs maximum DL MCS index
+     * @param bandwidthInRbgs number of RBGs in the channel
      *
      * Store the CQI information inside the m_dlCqi value of the UE, and then
      * calculate the corresponding MCS through NrAmc. The information is
      * contained in the structure CqiInfo, so no need to make calculation
      * here.
      */
-    void DlWBCQIReported(const DlCqiInfo& info,
-                         const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
-                         uint32_t expirationTime,
-                         int8_t maxDlMcs) const;
-    /**
-     * @brief SB CQI reported
-     * @param info SB CQI
-     * @param ueInfo UE
-     *
-     * NOT IMPLEMENTED
-     */
-    void DlSBCQIReported(const DlCqiInfo& info,
-                         const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo) const;
+    void DlCqiReported(const DlCqiInfo& info,
+                       const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+                       uint32_t expirationTime,
+                       int8_t maxDlMcs,
+                       uint16_t bandwidthInRbgs) const;
 
     /**
      * @brief An UL SB CQI has been reported for the specified UE

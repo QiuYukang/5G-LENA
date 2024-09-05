@@ -123,6 +123,208 @@ NrMacSchedulerOfdma::GetSymPerBeam(uint32_t symAvail,
     return ret;
 }
 
+bool
+NrMacSchedulerOfdma::AdvanceToNextUeToSchedule(
+    std::vector<UePtrAndBufferReq>::iterator& schedInfoIt,
+    const std::vector<UePtrAndBufferReq>::iterator end,
+    uint32_t resourcesAssignable) const
+{
+    // Skip UEs which already have enough resources to transmit
+    while (schedInfoIt != end)
+    {
+        const uint32_t bufQueueSize = schedInfoIt->second;
+        if (schedInfoIt->first->m_dlTbSize >= std::max(bufQueueSize, 10U))
+        {
+            std::advance(schedInfoIt, 1);
+        }
+        else
+        {
+            if (m_nrFhSchedSapProvider &&
+                m_nrFhSchedSapProvider->GetFhControlMethod() ==
+                    NrFhControl::FhControlMethod::OptimizeRBs &&
+                !ShouldScheduleUeBasedOnFronthaul(schedInfoIt, resourcesAssignable))
+            {
+                std::advance(schedInfoIt, 1);
+            }
+            else
+            {
+                return true; // UE left to schedule
+            }
+        }
+    }
+    return false; // No UE left to schedule
+}
+
+bool
+NrMacSchedulerOfdma::ShouldScheduleUeBasedOnFronthaul(
+    const std::vector<UePtrAndBufferReq>::iterator& schedInfoIt,
+    uint32_t resourcesAssignable) const
+{
+    GetFirst GetUe;
+    uint32_t quantizationStep = resourcesAssignable;
+    uint32_t maxAssignable = m_nrFhSchedSapProvider->GetMaxRegAssignable(
+        GetBwpId(),
+        GetUe(*schedInfoIt)->m_dlMcs,
+        GetUe(*schedInfoIt)->m_rnti,
+        GetUe(*schedInfoIt)->m_dlRank); // maxAssignable is in REGs
+    // set a minimum of the maxAssignable equal to 5 RBGs
+    maxAssignable = std::max(maxAssignable, 5 * resourcesAssignable);
+
+    // the minimum allocation is one resource in freq, containing rbgAssignable
+    // in time (REGs)
+    return GetUe(*schedInfoIt)->m_dlRBG.size() + quantizationStep <= maxAssignable;
+}
+
+void
+NrMacSchedulerOfdma::AllocateCurrentResourceToUe(std::shared_ptr<NrMacSchedulerUeInfo> currentUe,
+                                                 const uint32_t& currentRbg,
+                                                 const uint32_t beamSym,
+                                                 FTResources& assignedResources,
+                                                 std::vector<bool>& availableRbgs)
+{
+    // Assign 1 RBG for each available symbols for the beam,
+    // and then update the count of available resources
+    auto& assignedRbgs = currentUe->m_dlRBG;
+    auto existingRbgs = assignedRbgs.size();
+    assignedRbgs.resize(assignedRbgs.size() + beamSym);
+    std::fill(assignedRbgs.begin() + existingRbgs, assignedRbgs.end(), currentRbg);
+    assignedResources.m_rbg++; // We increment one RBG
+
+    auto& assignedSymbols = currentUe->m_dlSym;
+    auto existingSymbols = assignedSymbols.size();
+    assignedSymbols.resize(assignedSymbols.size() + beamSym);
+    std::iota(assignedSymbols.begin() + existingSymbols, assignedSymbols.end(), 0);
+    assignedResources.m_sym = beamSym; // We keep beams per symbol fixed, since it depends on beam
+
+    availableRbgs.at(currentRbg) = false; // Mark RBG as occupied
+}
+
+void
+NrMacSchedulerOfdma::DeallocateCurrentResourceFromUe(
+    std::shared_ptr<NrMacSchedulerUeInfo> currentUe,
+    const uint32_t& currentRbg,
+    const uint32_t beamSym,
+    FTResources& assignedResources,
+    std::vector<bool>& availableRbgs)
+{
+    auto& assignedRbgs = currentUe->m_dlRBG;
+    auto& assignedSymbols = currentUe->m_dlSym;
+
+    assignedRbgs.resize(assignedRbgs.size() - beamSym);
+    assignedSymbols.resize(assignedSymbols.size() - beamSym);
+
+    NS_ASSERT_MSG(assignedResources.m_rbg > 0,
+                  "Should have more than 0 resources allocated before deallocating");
+    assignedResources.m_rbg--; // We decrement the allocated RBGs
+    // We zero symbols allocated in case number of RBGs reaches 0
+    assignedResources.m_sym = assignedResources.m_rbg == 0 ? 0 : assignedResources.m_sym;
+    availableRbgs.at(currentRbg) = true;
+}
+
+bool
+NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
+    std::vector<UePtrAndBufferReq>::iterator schedInfoIt,
+    std::set<uint32_t>& remainingRbgSet,
+    const uint32_t beamSym,
+    FTResources& assignedResources,
+    std::vector<bool>& availableRbgs) const
+{
+    auto currentUe = schedInfoIt->first;
+
+    uint32_t currentRbgPos = std::numeric_limits<uint32_t>::max();
+
+    // Use wideband information in case there is no sub-band feedback yet
+    if (currentUe->m_rbgDlMcs.empty())
+    {
+        currentRbgPos = *remainingRbgSet.begin();
+    }
+    else
+    {
+        // Find the best resource for UE among the available ones
+        int maxCqi = 0;
+        for (auto resourcePos : remainingRbgSet)
+        {
+            if (currentUe->m_rbgDlMcs.at(resourcePos)[0] > maxCqi)
+            {
+                currentRbgPos = resourcePos;
+                maxCqi = currentUe->m_rbgDlMcs.at(resourcePos)[0];
+            }
+        }
+
+        // Do not schedule RBGs with sub-band CQI equals to zero
+        if (currentRbgPos == std::numeric_limits<uint32_t>::max())
+        {
+            return false;
+        }
+    }
+
+    AllocateCurrentResourceToUe(currentUe,
+                                currentRbgPos,
+                                beamSym,
+                                assignedResources,
+                                availableRbgs);
+    // Save previous tbSize to check if we need to undo this allocation because of a bad
+    // MCS
+    const auto previousTbSize = currentUe->m_dlTbSize;
+
+    AssignedDlResources(*schedInfoIt, FTResources(beamSym, beamSym), assignedResources);
+
+    // Check if the allocated RBG had a bad MCS and lowered our overall tbsize
+    const auto currentTbSize = currentUe->m_dlTbSize;
+    if (currentTbSize < previousTbSize * 0.975)
+    {
+        // Undo allocation
+        DeallocateCurrentResourceFromUe(currentUe,
+                                        currentRbgPos,
+                                        beamSym,
+                                        assignedResources,
+                                        availableRbgs);
+
+        // Update UE stats to go back to previous state
+        AssignedDlResources(*schedInfoIt, FTResources(beamSym, beamSym), assignedResources);
+        return false; // Unsuccessful allocation
+    }
+    remainingRbgSet.erase(currentRbgPos);
+    return true; // Successful allocation
+}
+
+void
+NrMacSchedulerOfdma::DeallocateResourcesDueToFronthaulConstraint(
+    const std::vector<UePtrAndBufferReq>& ueVector,
+    const uint32_t& beamSym,
+    FTResources& assignedResources,
+    std::vector<bool>& availableRbgs) const
+{
+    GetFirst GetUe;
+    std::vector<UePtrAndBufferReq> fhUeVector = ueVector;
+    auto rng = std::default_random_engine{};
+    std::shuffle(std::begin(fhUeVector), std::end(fhUeVector), rng);
+    for (auto schedInfoIt : fhUeVector)
+    {
+        const auto numAssignedResourcesToUe = GetUe(schedInfoIt)->m_dlRBG.size();
+        if (numAssignedResourcesToUe > 0) // UEs with an actual allocation
+        {
+            if (DoesFhAllocationFit(GetBwpId(),
+                                    GetUe(schedInfoIt)->GetDlMcs(),
+                                    numAssignedResourcesToUe,
+                                    GetUe(schedInfoIt)->m_dlRank) == 0)
+            {
+                // remove allocation if the UE does not fit in the available FH
+                // capacity
+                while (!schedInfoIt.first->m_dlRBG.empty())
+                {
+                    uint32_t resourceAssigned = schedInfoIt.first->m_dlRBG.back();
+                    DeallocateCurrentResourceFromUe(schedInfoIt.first,
+                                                    resourceAssigned,
+                                                    beamSym,
+                                                    assignedResources,
+                                                    availableRbgs);
+                }
+            }
+        }
+    }
+}
+
 /**
  * @brief Assign the available DL RBG to the UEs
  * @param symAvail Available symbols
@@ -164,117 +366,82 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
     {
         // Distribute the RBG evenly among UEs of the same beam
         uint32_t beamSym = symPerBeam.at(GetBeamId(el));
-        uint32_t rbgAssignable = 1 * beamSym;
         std::vector<UePtrAndBufferReq> ueVector;
-        FTResources assigned(0, 0);
+        FTResources assignedResources(0, 0);
         const std::vector<bool> dlNotchedRBGsMask = GetDlNotchedRbgMask();
-        uint32_t resources = !dlNotchedRBGsMask.empty()
-                                 ? std::count(dlNotchedRBGsMask.begin(), dlNotchedRBGsMask.end(), 1)
-                                 : GetBandwidthInRbg();
-        NS_ASSERT(resources > 0);
+        std::vector<bool> availableRbgs = !dlNotchedRBGsMask.empty()
+                                              ? dlNotchedRBGsMask
+                                              : std::vector<bool>(GetBandwidthInRbg(), true);
+        std::set<uint32_t> remainingRbgSet;
+        for (size_t i = 0; i < availableRbgs.size(); i++)
+        {
+            if (availableRbgs.at(i))
+            {
+                remainingRbgSet.emplace(i);
+            }
+        }
+
+        NS_ASSERT(!remainingRbgSet.empty());
 
         for (const auto& ue : GetUeVector(el))
         {
             ueVector.emplace_back(ue);
+            BeforeDlSched(ueVector.back(), FTResources(beamSym, beamSym));
         }
 
-        for (auto& ue : ueVector)
+        // While there are resources to schedule
+        while (!remainingRbgSet.empty())
         {
-            BeforeDlSched(ue, FTResources(rbgAssignable, beamSym));
-        }
+            // Keep track if resources are being allocated. If not, then stop.
+            const auto prevRemaining = remainingRbgSet.size();
 
-        while (resources > 0)
-        {
             if (m_activeDlAi)
             {
                 CallNotifyDlFn(ueVector);
             }
-            GetFirst GetUe;
+            // Sort UEs based on the selected scheduler policy (PF, RR, QoS, AI)
             std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareDlFn());
+
+            // Select the first UE
             auto schedInfoIt = ueVector.begin();
 
-            // Ensure fairness: pass over UEs which already has enough resources to transmit
-            while (schedInfoIt != ueVector.end())
+            // Advance schedInfoIt iterator to the next UE to schedule
+            while (AdvanceToNextUeToSchedule(schedInfoIt, ueVector.end(), beamSym))
             {
-                uint32_t bufQueueSize = schedInfoIt->second;
-                if (GetUe(*schedInfoIt)->m_dlTbSize >= std::max(bufQueueSize, 10U))
+                // Try to allocate the resource to the current UE
+                // If it fails, try again for the next UE
+                if (!AttemptAllocationOfCurrentResourceToUe(schedInfoIt,
+                                                            remainingRbgSet,
+                                                            beamSym,
+                                                            assignedResources,
+                                                            availableRbgs))
                 {
-                    schedInfoIt++;
+                    std::advance(schedInfoIt, 1); // Get the next UE
+                    continue;
                 }
-                else
-                {
-                    break;
-                }
-            }
+                // Update metrics
+                GetFirst GetUe;
+                NS_LOG_DEBUG("assignedResources " << GetUe(*schedInfoIt)->m_dlRBG.back()
+                                                  << " DL RBG, spanned over " << beamSym
+                                                  << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
 
-            if (m_nrFhSchedSapProvider)
-            {
-                if (m_nrFhSchedSapProvider->GetFhControlMethod() ==
-                    NrFhControl::FhControlMethod::OptimizeRBs)
+                // Update metrics for the unsuccessful UEs (who did not get any resource in this
+                // iteration)
+                for (auto& ue : ueVector)
                 {
-                    uint32_t quantizationStep = rbgAssignable;
-                    while (schedInfoIt != ueVector.end())
+                    if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
                     {
-                        uint32_t maxAssignable = m_nrFhSchedSapProvider->GetMaxRegAssignable(
-                            GetBwpId(),
-                            GetUe(*schedInfoIt)->m_dlMcs,
-                            GetUe(*schedInfoIt)->m_rnti,
-                            GetUe(*schedInfoIt)->m_dlRank); // maxAssignable is in REGs
-                        // set a minimum of the maxAssignable equal to 5 RBGs
-                        maxAssignable = std::max(maxAssignable, 5 * rbgAssignable);
-
-                        // the minimum allocation is one resource in freq, containing rbgAssignable
-                        // in time (REGs)
-                        if (GetUe(*schedInfoIt)->m_dlRBG + quantizationStep > maxAssignable)
-                        {
-                            schedInfoIt++;
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        NotAssignedDlResources(ue,
+                                               FTResources(beamSym, beamSym),
+                                               assignedResources);
                     }
                 }
+                break; // Successful allocation
             }
-
-            // In the case that all the UE already have their requirements fulfilled,
-            // then stop the beam processing and pass to the next
-            if (schedInfoIt == ueVector.end())
+            // No more UEs to allocate in the current beam
+            if (prevRemaining == remainingRbgSet.size())
             {
                 break;
-            }
-
-            do
-            {
-                // Assign 1 RBG for each available symbols for the beam,
-                // and then update the count of available resources
-                GetUe(*schedInfoIt)->m_dlRBG += rbgAssignable;
-                assigned.m_rbg += rbgAssignable;
-
-                GetUe(*schedInfoIt)->m_dlSym = beamSym;
-                assigned.m_sym = beamSym;
-
-                resources -= 1; // Resources are RBG, so they do not consider the beamSym
-
-                // Update metrics
-                NS_LOG_DEBUG("Assigned " << rbgAssignable << " DL RBG, spanned over " << beamSym
-                                         << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
-                // Following call to AssignedDlResources would update the
-                // TB size in the NrMacSchedulerUeInfo of this particular UE
-                // according the Rank Indicator reported by it. Only one call
-                // to this method is enough even if the UE reported rank indicator 2,
-                // since the number of RBG assigned to both the streams are the same.
-                AssignedDlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
-            } while (GetUe(*schedInfoIt)->m_dlTbSize < 10 && resources > 0);
-
-            // Update metrics for the unsuccessful UEs (who did not get any resource in this
-            // iteration)
-            for (auto& ue : ueVector)
-            {
-                if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
-                {
-                    NotAssignedDlResources(ue, FTResources(rbgAssignable, beamSym), assigned);
-                }
             }
         }
 
@@ -284,53 +451,34 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 NrFhControl::FhControlMethod::OptimizeMcs)
             {
                 GetFirst GetUe;
-                auto schedInfoIt = GetUeVector(el).begin();
-                while (schedInfoIt != GetUeVector(el).end()) // over all UEs with data
+                for (auto& schedInfoIt : GetUeVector(el)) // over all UEs with data
                 {
-                    if (GetUe(*schedInfoIt)->m_dlRBG > 0) // UEs with an actual allocation
+                    if (!GetUe(schedInfoIt)->m_dlRBG.empty()) // UEs with an actual allocation
                     {
                         uint8_t maxMcsAssignable = m_nrFhSchedSapProvider->GetMaxMcsAssignable(
                             GetBwpId(),
-                            GetUe(*schedInfoIt)->m_dlRBG,
-                            GetUe(*schedInfoIt)->m_rnti,
-                            GetUe(*schedInfoIt)->m_dlRank); // max MCS index assignable
+                            GetUe(schedInfoIt)->m_dlRBG.size(),
+                            GetUe(schedInfoIt)->m_rnti,
+                            GetUe(schedInfoIt)->m_dlRank); // max MCS index assignable
 
-                        NS_LOG_DEBUG("UE " << GetUe(*schedInfoIt)->m_rnti
-                                           << " MCS form sched: " << +GetUe(*schedInfoIt)->m_dlMcs
-                                           << " FH max MCS: " << +maxMcsAssignable);
+                        NS_LOG_DEBUG("UE " << GetUe(schedInfoIt)->m_rnti
+                                           << " MCS from sched: " << GetUe(schedInfoIt)->GetDlMcs()
+                                           << " FH max MCS: " << maxMcsAssignable);
 
-                        GetUe(*schedInfoIt)->m_dlMcs =
-                            std::min(GetUe(*schedInfoIt)->m_dlMcs, maxMcsAssignable);
+                        GetUe(schedInfoIt)->m_fhMaxMcsAssignable =
+                            std::min(GetUe(schedInfoIt)->GetDlMcs(), maxMcsAssignable);
                     }
-                    schedInfoIt++;
                 }
             }
+
             if (GetFhControlMethod() == NrFhControl::FhControlMethod::Postponing ||
                 GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeMcs ||
                 GetFhControlMethod() == NrFhControl::FhControlMethod::OptimizeRBs)
             {
-                GetFirst GetUe;
-                std::vector<UePtrAndBufferReq> fhUeVector;
-                fhUeVector = ueVector;
-                auto rng = std::default_random_engine{};
-                std::shuffle(std::begin(fhUeVector), std::end(fhUeVector), rng);
-                auto schedInfoIt = fhUeVector.begin();
-                while (schedInfoIt != fhUeVector.end())
-                {
-                    if (GetUe(*schedInfoIt)->m_dlRBG > 0) // UEs with an actual allocation
-                    {
-                        if (DoesFhAllocationFit(GetBwpId(),
-                                                GetUe(*schedInfoIt)->m_dlMcs,
-                                                GetUe(*schedInfoIt)->m_dlRBG,
-                                                GetUe(*schedInfoIt)->m_dlRank) == 0)
-                        {
-                            GetUe(*schedInfoIt)->m_dlRBG =
-                                0; // remove allocation if the UE does not fit in the available FH
-                                   // capacity
-                        }
-                    }
-                    schedInfoIt++;
-                }
+                DeallocateResourcesDueToFronthaulConstraint(ueVector,
+                                                            beamSym,
+                                                            assignedResources,
+                                                            availableRbgs);
             }
         }
     }
@@ -354,7 +502,6 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
     {
         // Distribute the RBG evenly among UEs of the same beam
         uint32_t beamSym = symPerBeam.at(GetBeamId(el));
-        uint32_t rbgAssignable = 1 * beamSym;
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assigned(0, 0);
         const std::vector<bool> ulNotchedRBGsMask = GetUlNotchedRbgMask();
@@ -370,7 +517,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
 
         for (auto& ue : ueVector)
         {
-            BeforeUlSched(ue, FTResources(rbgAssignable, beamSym));
+            BeforeUlSched(ue, FTResources(beamSym * beamSym, beamSym));
         }
 
         while (resources > 0)
@@ -389,7 +536,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
                 uint32_t bufQueueSize = schedInfoIt->second;
                 if (GetUe(*schedInfoIt)->m_ulTbSize >= std::max(bufQueueSize, 12U))
                 {
-                    schedInfoIt++;
+                    std::advance(schedInfoIt, 1);
                 }
                 else
                 {
@@ -406,18 +553,24 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
 
             // Assign 1 RBG for each available symbols for the beam,
             // and then update the count of available resources
-            GetUe(*schedInfoIt)->m_ulRBG += rbgAssignable;
-            assigned.m_rbg += rbgAssignable;
+            auto& assignedRbgs = GetUe(*schedInfoIt)->m_ulRBG;
+            auto existingRbgs = assignedRbgs.size();
+            assignedRbgs.resize(assignedRbgs.size() + beamSym);
+            std::fill(assignedRbgs.begin() + existingRbgs, assignedRbgs.end(), resources - 1);
+            assigned.m_rbg++;
 
-            GetUe(*schedInfoIt)->m_ulSym = beamSym;
+            auto& assignedSymbols = GetUe(*schedInfoIt)->m_ulSym;
+            auto existingSymbols = assignedSymbols.size();
+            assignedSymbols.resize(assignedSymbols.size() + beamSym);
+            std::iota(assignedSymbols.begin() + existingSymbols, assignedSymbols.end(), 0);
             assigned.m_sym = beamSym;
 
             resources -= 1; // Resources are RBG, so they do not consider the beamSym
 
             // Update metrics
-            NS_LOG_DEBUG("Assigned " << rbgAssignable << " UL RBG, spanned over " << beamSym
+            NS_LOG_DEBUG("Assigned " << assigned.m_rbg << " UL RBG, spanned over " << beamSym
                                      << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
-            AssignedUlResources(*schedInfoIt, FTResources(rbgAssignable, beamSym), assigned);
+            AssignedUlResources(*schedInfoIt, FTResources(beamSym, beamSym), assigned);
 
             // Update metrics for the unsuccessful UEs (who did not get any resource in this
             // iteration)
@@ -425,7 +578,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
             {
                 if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
                 {
-                    NotAssignedUlResources(ue, FTResources(rbgAssignable, beamSym), assigned);
+                    NotAssignedUlResources(ue, FTResources(beamSym, beamSym), assigned);
                 }
             }
         }
@@ -450,60 +603,29 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
 {
     NS_LOG_FUNCTION(this);
 
-    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs,
+    auto dlMcs = ueInfo->GetDlMcs();
+    ueInfo->m_fhMaxMcsAssignable.reset(); // Erase value assigned when fronthaul control is enabled
+    uint32_t tbs = m_dlAmc->CalculateTbSize(dlMcs,
                                             ueInfo->m_dlRank,
-                                            ueInfo->m_dlRBG * GetNumRbPerRbg());
-    NS_ASSERT_MSG(ueInfo->m_dlRBG % maxSym == 0,
-                  " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG);
-    NS_ASSERT(ueInfo->m_dlRBG <= maxSym * GetBandwidthInRbg());
+                                            ueInfo->m_dlRBG.size() * GetNumRbPerRbg());
+    // NS_ASSERT_MSG(ueInfo->m_dlRBG.size() % maxSym == 0,
+    //               " MaxSym " << maxSym << " RBG: " << ueInfo->m_dlRBG.size());
+    NS_ASSERT(ueInfo->m_dlRBG.size() <= maxSym * GetBandwidthInRbg());
     NS_ASSERT(spoint->m_rbg < GetBandwidthInRbg());
     NS_ASSERT(maxSym <= UINT8_MAX);
 
     // 5 bytes for headers (3 mac header, 2 rlc header)
     if (tbs < 10)
     {
-        NS_LOG_DEBUG("While creating DCI for UE " << ueInfo->m_rnti << " assigned "
-                                                  << ueInfo->m_dlRBG << " DL RBG, but TBS < 10");
+        NS_LOG_DEBUG("While creating DCI for UE "
+                     << ueInfo->m_rnti << " assigned "
+                     << std::set<uint32_t>(ueInfo->m_dlRBG.begin(), ueInfo->m_dlRBG.end()).size()
+                     << " DL RBG, but TBS < 10");
         ueInfo->m_dlTbSize = 0;
         return nullptr;
     }
 
-    uint32_t RBGNum = ueInfo->m_dlRBG / maxSym;
-    std::vector<bool> rbgBitmask = GetDlNotchedRbgMask();
-
-    if (rbgBitmask.empty())
-    {
-        rbgBitmask = std::vector<bool>(GetBandwidthInRbg(), true);
-    }
-
-    // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
-
-    NS_ASSERT(rbgBitmask.size() == GetBandwidthInRbg());
-
-    uint32_t lastRbg = spoint->m_rbg;
-
-    // Limit the places in which we can transmit following the starting point
-    // and the number of RBG assigned to the UE
-    for (uint32_t i = 0; i < GetBandwidthInRbg(); ++i)
-    {
-        if (i >= spoint->m_rbg && RBGNum > 0 && rbgBitmask[i] == 1)
-        {
-            // assigned! Decrement RBGNum and continue the for
-            RBGNum--;
-            lastRbg = i;
-        }
-        else
-        {
-            // Set to 0 the position < spoint->m_rbg OR the remaining RBG when
-            // we already assigned the number of requested RBG
-            rbgBitmask[i] = false;
-        }
-    }
-
-    NS_ASSERT_MSG(
-        RBGNum == 0,
-        "If you see this message, it means that the AssignRBG and CreateDci method are unaligned");
-
+    const auto rbgBitmask = CreateRbgBitmaskFromAllocatedRbgs(ueInfo->m_dlRBG);
     std::ostringstream oss;
     for (const auto& x : rbgBitmask)
     {
@@ -518,7 +640,7 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
                                              DciInfoElementTdma::DL,
                                              spoint->m_sym,
                                              maxSym,
-                                             ueInfo->m_dlMcs,
+                                             dlMcs,
                                              ueInfo->m_dlRank,
                                              ueInfo->m_dlPrecMats,
                                              tbs,
@@ -533,8 +655,6 @@ NrMacSchedulerOfdma::CreateDlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     NS_ASSERT(std::count(dci->m_rbgBitmask.begin(), dci->m_rbgBitmask.end(), 0) !=
               GetBandwidthInRbg());
 
-    spoint->m_rbg = lastRbg + 1;
-
     return dci;
 }
 
@@ -547,56 +667,24 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
 
     uint32_t tbs = m_ulAmc->CalculateTbSize(ueInfo->m_ulMcs,
                                             ueInfo->m_ulRank,
-                                            ueInfo->m_ulRBG * GetNumRbPerRbg());
+                                            ueInfo->m_ulRBG.size() * GetNumRbPerRbg());
 
     // If is less than 12, i.e., 7 (3 mac header, 2 rlc header, 2 data) + 5 bytes for
     // the SHORT_BSR. then we can't transmit any new data, so don't create dci.
     if (tbs < 12)
     {
-        NS_LOG_DEBUG("While creating UL DCI for UE " << ueInfo->m_rnti << " assigned "
-                                                     << ueInfo->m_ulRBG << " UL RBG, but TBS < 12");
+        NS_LOG_DEBUG("While creating UL DCI for UE "
+                     << ueInfo->m_rnti << " assigned "
+                     << std::set<uint32_t>(ueInfo->m_ulRBG.begin(), ueInfo->m_ulRBG.end()).size()
+                     << " UL RBG, but TBS < 12");
         return nullptr;
     }
 
-    uint32_t RBGNum = ueInfo->m_ulRBG / maxSym;
-    std::vector<bool> rbgBitmask = GetUlNotchedRbgMask();
-
-    if (rbgBitmask.empty())
-    {
-        rbgBitmask = std::vector<bool>(GetBandwidthInRbg(), true);
-    }
-
-    // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
-
-    NS_ASSERT(rbgBitmask.size() == GetBandwidthInRbg());
-
-    uint32_t lastRbg = spoint->m_rbg;
-    uint32_t assigned = RBGNum;
-
-    // Limit the places in which we can transmit following the starting point
-    // and the number of RBG assigned to the UE
-    for (uint32_t i = 0; i < GetBandwidthInRbg(); ++i)
-    {
-        if (i >= spoint->m_rbg && RBGNum > 0 && rbgBitmask[i])
-        {
-            // assigned! Decrement RBGNum and continue the for
-            RBGNum--;
-            lastRbg = i;
-        }
-        else
-        {
-            // Set to 0 the position < spoint->m_rbg OR the remaining RBG when
-            // we already assigned the number of requested RBG
-            rbgBitmask[i] = false;
-        }
-    }
-
-    NS_ASSERT_MSG(
-        RBGNum == 0,
-        "If you see this message, it means that the AssignRBG and CreateDci method are unaligned");
+    uint32_t RBGNum = ueInfo->m_ulRBG.size() / maxSym;
+    const auto rbgBitmask = CreateRbgBitmaskFromAllocatedRbgs(ueInfo->m_ulRBG);
 
     NS_LOG_INFO("UE " << ueInfo->m_rnti << " assigned RBG from " << spoint->m_rbg << " to "
-                      << spoint->m_rbg + assigned << " for " << static_cast<uint32_t>(maxSym)
+                      << spoint->m_rbg + RBGNum << " for " << static_cast<uint32_t>(maxSym)
                       << " SYM.");
 
     NS_ASSERT(spoint->m_sym >= maxSym);
@@ -627,8 +715,6 @@ NrMacSchedulerOfdma::CreateUlDci(PointInFTPlane* spoint,
     NS_ASSERT(std::count(dci->m_rbgBitmask.begin(), dci->m_rbgBitmask.end(), 0) !=
               GetBandwidthInRbg());
 
-    spoint->m_rbg = lastRbg + 1;
-
     return dci;
 }
 
@@ -650,8 +736,31 @@ uint8_t
 NrMacSchedulerOfdma::GetTpc() const
 {
     NS_LOG_FUNCTION(this);
-    return 1; // 1 is mapped to 0 for Accumulated mode, and to -1 in Absolute mode TS38.213 Table
+    return 1; // 1 is mapped to 0 for Accumulated mode, and to -1 in Absolute mode TS38.213
               // Table 7.1.1-1
+}
+
+std::vector<bool>
+NrMacSchedulerOfdma::CreateRbgBitmaskFromAllocatedRbgs(
+    const std::vector<uint16_t>& allocatedRbgs) const
+{
+    std::vector<bool> rbgNotchedBitmask = GetDlNotchedRbgMask();
+    if (rbgNotchedBitmask.empty())
+    {
+        rbgNotchedBitmask = std::vector<bool>(GetBandwidthInRbg(), true);
+    }
+    std::vector<bool> rbgBitmask = std::vector<bool>(GetBandwidthInRbg(), false);
+
+    NS_ASSERT(rbgNotchedBitmask.size() == rbgBitmask.size());
+
+    // rbgBitmask is all 1s or have 1s in the place we are allowed to transmit.
+
+    for (auto rbg : allocatedRbgs)
+    {
+        NS_ASSERT_MSG(rbgNotchedBitmask.at(rbg), "Scheduled notched resource");
+        rbgBitmask.at(rbg) = true;
+    }
+    return rbgBitmask;
 }
 
 } // namespace ns3

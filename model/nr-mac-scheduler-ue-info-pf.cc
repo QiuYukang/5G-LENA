@@ -58,7 +58,7 @@ NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl(
     NS_LOG_FUNCTION(this);
 
     uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg();
-    m_potentialTputDl = m_dlAmc->GetPayloadSize(m_dlMcs, m_dlRank, rbsAssignable);
+    m_potentialTputDl = m_dlAmc->GetPayloadSize(GetDlMcs(), m_dlRank, rbsAssignable);
     m_potentialTputDl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputDl " << m_potentialTputDl << " lastAvgThDl "

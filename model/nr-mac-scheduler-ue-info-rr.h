@@ -49,7 +49,7 @@ class NrMacSchedulerUeInfoRR : public NrMacSchedulerUeInfo
     static bool CompareUeWeightsDl(const NrMacSchedulerNs3::UePtrAndBufferReq& lue,
                                    const NrMacSchedulerNs3::UePtrAndBufferReq& rue)
     {
-        return (lue.first->m_dlRBG < rue.first->m_dlRBG);
+        return (lue.first->m_dlRBG.size() < rue.first->m_dlRBG.size());
     }
 
     /**
@@ -68,7 +68,7 @@ class NrMacSchedulerUeInfoRR : public NrMacSchedulerUeInfo
     static bool CompareUeWeightsUl(const NrMacSchedulerNs3::UePtrAndBufferReq& lue,
                                    const NrMacSchedulerNs3::UePtrAndBufferReq& rue)
     {
-        return (lue.first->m_ulRBG < rue.first->m_ulRBG);
+        return (lue.first->m_ulRBG.size() < rue.first->m_ulRBG.size());
     }
 };
 

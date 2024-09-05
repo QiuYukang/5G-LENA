@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <numeric>
 
 namespace ns3
 {
@@ -174,10 +175,16 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
 
         // Assign 1 entire symbol (full RBG) to the selected UE and to the total
         // resources assigned count
-        GetRBGFn(GetUe(*schedInfoIt)) += numOfAssignableRbgs;
+        auto& assignedRbgs = GetRBGFn(GetUe(*schedInfoIt));
+        auto existingRbgs = assignedRbgs.size();
+        assignedRbgs.resize(assignedRbgs.size() + numOfAssignableRbgs);
+        std::iota(assignedRbgs.begin() + existingRbgs, assignedRbgs.end(), 0);
         assigned.m_rbg += numOfAssignableRbgs;
 
-        GetSymFn(GetUe(*schedInfoIt)) += 1;
+        auto& assignedSymbols = GetSymFn(GetUe(*schedInfoIt));
+        auto existingSymbols = assignedSymbols.size();
+        assignedSymbols.resize(assignedSymbols.size() + numOfAssignableRbgs);
+        std::fill(assignedSymbols.begin() + existingSymbols, assignedSymbols.end(), resources);
         assigned.m_sym += 1;
 
         // subtract 1 SYM from the number of sym available for the while loop
@@ -185,9 +192,9 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
 
         // Update metrics for the successful UE
         NS_LOG_DEBUG("Assigned " << numOfAssignableRbgs << " " << type << " RBG (= 1 SYM) to UE "
-                                 << GetUe(*schedInfoIt)->m_rnti
-                                 << " total assigned up to now: " << GetRBGFn(GetUe(*schedInfoIt))
-                                 << " that corresponds to " << assigned.m_rbg);
+                                 << GetUe(*schedInfoIt)->m_rnti << " total assigned up to now: "
+                                 << GetRBGFn(GetUe(*schedInfoIt)).size() << " that corresponds to "
+                                 << assigned.m_rbg);
         SuccessfulAssignmentFn(*schedInfoIt, FTResources(numOfAssignableRbgs, 1), assigned);
 
         // Update metrics for the unsuccessful UEs (who did not get any resource in this iteration)
@@ -207,7 +214,7 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
         uint32_t symOfBeam = 0;
         for (const auto& ue : el.second)
         {
-            symOfBeam += GetRBGFn(ue.first) / numOfAssignableRbgs;
+            symOfBeam += GetRBGFn(ue.first).size() / numOfAssignableRbgs;
         }
         ret.insert(std::make_pair(el.first, symOfBeam));
     }
@@ -328,15 +335,16 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
                                 [[maybe_unused]] uint32_t maxSym) const
 {
     NS_LOG_FUNCTION(this);
-    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->m_dlMcs,
+    uint32_t tbs = m_dlAmc->CalculateTbSize(ueInfo->GetDlMcs(),
                                             ueInfo->m_dlRank,
-                                            ueInfo->m_dlRBG * GetNumRbPerRbg());
+                                            ueInfo->m_dlRBG.size() * GetNumRbPerRbg());
     // If is less than 10 (3 mac header, 2 rlc header, 5 data), then we can't
     // transmit any new data, so don't create dci.
     if (tbs < 10)
     {
         NS_LOG_DEBUG("While creating DL DCI for UE " << ueInfo->m_rnti << " assigned "
-                                                     << ueInfo->m_dlRBG << " DL RBG, but TBS < 10");
+                                                     << ueInfo->m_dlRBG.size()
+                                                     << " DL RBG, but TBS < 10");
         ueInfo->m_dlTbSize = 0;
         return nullptr;
     }
@@ -345,13 +353,13 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
     int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
     uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
 
-    uint8_t numSym = static_cast<uint8_t>(ueInfo->m_dlRBG / numOfAssignableRbgs);
+    uint8_t numSym = static_cast<uint8_t>(ueInfo->m_dlRBG.size() / numOfAssignableRbgs);
 
     auto dci = CreateDci(spoint,
                          ueInfo,
                          tbs,
                          DciInfoElementTdma::DL,
-                         ueInfo->m_dlMcs,
+                         ueInfo->GetDlMcs(),
                          ueInfo->m_dlRank,
                          ueInfo->m_dlPrecMats,
                          std::max(numSym, static_cast<uint8_t>(1)));
@@ -382,15 +390,15 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     NS_LOG_FUNCTION(this);
     uint32_t tbs = m_ulAmc->CalculateTbSize(ueInfo->m_ulMcs,
                                             ueInfo->m_ulRank,
-                                            ueInfo->m_ulRBG * GetNumRbPerRbg());
+                                            ueInfo->m_ulRBG.size() * GetNumRbPerRbg());
 
     // If is less than 12, 7 (3 mac header, 2 rlc header, 2 data) + SHORT_BSR (5),
     // then we can't transmit any new data, so don't create dci.
     if (tbs < 12)
     {
         NS_LOG_DEBUG("While creating UL DCI for UE " << ueInfo->m_rnti << " assigned "
-                                                     << ueInfo->m_ulRBG << " UL RBG, but TBS "
-                                                     << tbs << " < 12");
+                                                     << ueInfo->m_ulRBG.size()
+                                                     << " UL RBG, but TBS " << tbs << " < 12");
         return nullptr;
     }
 
@@ -398,7 +406,8 @@ NrMacSchedulerTdma::CreateUlDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
     uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
 
-    uint8_t numSym = static_cast<uint8_t>(std::max(ueInfo->m_ulRBG / numOfAssignableRbgs, 1U));
+    uint8_t numSym =
+        static_cast<uint8_t>(std::max<size_t>(ueInfo->m_ulRBG.size() / numOfAssignableRbgs, 1));
     numSym = std::min(numSym, static_cast<uint8_t>(maxSym));
 
     NS_ASSERT(spoint->m_sym >= numSym);

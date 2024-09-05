@@ -251,9 +251,10 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
      */
     typedef std::function<void(const UePtrAndBufferReq&, const FTResources&, const FTResources&)>
         AfterUnsuccessfulAssignmentFn;
-    typedef std::function<uint32_t&(const UePtr& ue)> GetRBGFn; //!< Getter for the RBG of an UE
+    typedef std::function<std::vector<uint16_t>&(const UePtr& ue)>
+        GetRBGFn;                                               //!< Getter for the RBG of an UE
     typedef std::function<uint32_t&(const UePtr& ue)> GetTBSFn; //!< Getter for the TBS of an UE
-    typedef std::function<uint8_t&(const UePtr& ue)>
+    typedef std::function<std::vector<uint8_t>&(const UePtr& ue)>
         GetSymFn; //!< Getter for the number of symbols of an UE
     typedef std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
                                const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>

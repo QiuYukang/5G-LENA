@@ -20,16 +20,6 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("NrMacSchedulerCQIManagement");
 
 void
-NrMacSchedulerCQIManagement::DlSBCQIReported(
-    [[maybe_unused]] const DlCqiInfo& info,
-    [[maybe_unused]] const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo) const
-{
-    NS_LOG_FUNCTION(this);
-    // TODO
-    NS_ABORT_MSG("SB CQI Type is not supported");
-}
-
-void
 NrMacSchedulerCQIManagement::UlSBCQIReported(
     uint32_t expirationTime,
     [[maybe_unused]] uint32_t tbs,
@@ -133,20 +123,48 @@ NrMacSchedulerCQIManagement::InstallGetNrAmcUlFn(const std::function<Ptr<const N
 }
 
 void
-NrMacSchedulerCQIManagement::DlWBCQIReported(const DlCqiInfo& info,
-                                             const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
-                                             uint32_t expirationTime,
-                                             int8_t maxDlMcs) const
+NrMacSchedulerCQIManagement::DlCqiReported(const DlCqiInfo& info,
+                                           const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+                                           uint32_t expirationTime,
+                                           int8_t maxDlMcs,
+                                           uint16_t bandwidthInRbgs) const
 {
     NS_LOG_FUNCTION(this);
 
-    ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
-    ueInfo->m_dlCqi.m_wbCqi = info.m_wbCqi;
     ueInfo->m_dlCqi.m_timer = expirationTime;
+    ueInfo->m_dlCqi.m_cqiType = NrMacSchedulerUeInfo::CqiInfo::WB;
     ueInfo->m_dlCqi.m_wbCqi = info.m_wbCqi;
     ueInfo->m_dlMcs =
         std::min(static_cast<uint8_t>(GetAmcDl()->GetMcsFromCqi(ueInfo->m_dlCqi.m_wbCqi)),
                  static_cast<uint8_t>(maxDlMcs));
+
+    ueInfo->m_dlCqi.m_sbCqi = info.m_sbCqis;
+    ueInfo->m_rbgDlMcs.clear();
+    if (!info.m_sbCqis.empty())
+    {
+        // Map sub-band CQI to MCS per RBG
+        ueInfo->m_rbgDlMcs.resize(bandwidthInRbgs);
+        size_t rbgsPerSb = 1;
+        while (static_cast<std::size_t>(bandwidthInRbgs / rbgsPerSb) >
+               ueInfo->m_dlCqi.m_sbCqi.size())
+        {
+            rbgsPerSb <<= 1;
+        }
+
+        size_t sb = 0;
+        for (auto sbCqi : ueInfo->m_dlCqi.m_sbCqi)
+        {
+            auto mcs = GetAmcDl()->GetMcsFromCqi(sbCqi);
+            for (auto rbg = sb * rbgsPerSb;
+                 rbg < std::min<size_t>(bandwidthInRbgs, (sb + 1) * rbgsPerSb);
+                 rbg++)
+            {
+                ueInfo->m_rbgDlMcs[rbg] = {sbCqi, mcs};
+            }
+            sb++;
+        }
+    }
+
     NS_LOG_INFO("Calculated MCS for UE " << ueInfo->m_rnti << " is "
                                          << static_cast<uint32_t>(ueInfo->m_dlMcs));
 

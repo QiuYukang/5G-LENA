@@ -393,10 +393,7 @@ struct PmCqiInfo
     uint8_t m_wbCqi{0};            //!< Wideband CQI
     std::vector<uint8_t> m_sbCqis; //!< Subband CQI values
     std::vector<size_t> m_sbPmis;  //!< Subband PMI values (i2, indices of W2 matrices)
-    Ptr<const ComplexMatrixArray> m_optPrecMat{}; ///< Precoding matrix for each RB
-
-    // TODO: Fix/remove empty DlSBCQIReported, then change default type to SB.
-
+    Ptr<const ComplexMatrixArray> m_optPrecMat{};  ///< Precoding matrix for each RB
     DlCqiInfo::DlCqiType m_cqiType{DlCqiInfo::WB}; ///< CQI type (WB or SB)
     size_t m_tbSize{}; //!< Expected TB size when allocating all resources
 };
