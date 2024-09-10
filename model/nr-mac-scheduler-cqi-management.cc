@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #define NS_LOG_APPEND_CONTEXT                                                                      \
-    do                                                                                             \
+    if (m_getCellId)                                                                               \
     {                                                                                              \
         std::clog << " [ CellId " << GetCellId() << ", bwpId " << GetBwpId() << "] ";              \
-    } while (false);
+    }
 #include "nr-mac-scheduler-cqi-management.h"
 
 #include "nr-amc.h"
