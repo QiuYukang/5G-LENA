@@ -739,10 +739,7 @@ NrHelper::InstallSingleUeDevice(
         }
     }
 
-    NS_ABORT_MSG_IF(m_imsiCounter >= 0xFFFFFFFF, "max num UEs exceeded");
-    uint64_t imsi = ++m_imsiCounter;
-
-    dev->SetAttribute("Imsi", UintegerValue(imsi));
+    dev->SetAttribute("Imsi", UintegerValue(n->GetId()));
     dev->SetCcMap(ueCcMap);
     dev->SetAttribute("nrUeRrc", PointerValue(rrc));
     dev->SetAttribute("EpcUeNas", PointerValue(nas));

@@ -973,7 +973,6 @@ class NrHelper : public Object
     ObjectFactory m_gnbBeamManagerFactory;          //!< gNb Beam manager factory
     ObjectFactory m_ueBeamManagerFactory;           //!< UE beam manager factory
 
-    uint64_t m_imsiCounter{0};   //!< Imsi counter
     uint16_t m_cellIdCounter{1}; //!< CellId Counter
 
     Ptr<EpcHelper> m_epcHelper{nullptr};                     //!< Ptr to the EPC helper (optional)
