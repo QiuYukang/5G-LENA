@@ -48,6 +48,17 @@ the cracks, unfortunately.  If you, as a user, can suggest improvements
 to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
+
+## Changes from NR-v3.2 to v3.3
+
+### New API:
+
+### Changes to existing API:
+
+### Changed behavior:
+- In the OFDMA access mode, allocate, at least, the number of RBs necessary
+  to transmit the minimum TBS.
+
 ---
 
 ## Changes from NR-v3.1 to v3.2
