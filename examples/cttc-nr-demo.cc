@@ -438,21 +438,12 @@ main(int argc, char* argv[])
     }
 
     // When all the configuration is done, explicitly call UpdateConfig ()
-
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = ueLowLatNetDev.Begin(); it != ueLowLatNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
-    for (auto it = ueVoiceNetDev.Begin(); it != ueVoiceNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
+    // Instead of calling individually for each netDevice, we can call
+    // NrHelper::UpdateDeviceConfigs() to update a NetDeviceContainer with a single call. This was
+    // introduced with the v.3.2 Release.
+    nrHelper->UpdateDeviceConfigs(gnbNetDev);
+    nrHelper->UpdateDeviceConfigs(ueLowLatNetDev);
+    nrHelper->UpdateDeviceConfigs(ueVoiceNetDev);
 
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.
