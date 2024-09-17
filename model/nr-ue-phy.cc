@@ -407,7 +407,7 @@ NrUePhy::ComputeAvgSinr(const SpectrumValue& sinr)
 {
     // averaged SINR among RBs
     double sum = 0.0;
-    uint8_t rbNum = 0;
+    uint16_t rbNum = 0;
     Values::const_iterator it;
 
     for (it = sinr.ConstValuesBegin(); it != sinr.ConstValuesEnd(); it++)
