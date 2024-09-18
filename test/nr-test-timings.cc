@@ -570,7 +570,7 @@ NrTimingsTest::UePhyRx(SfnSf sfn,
         {
             4,
             {
-                {NrControlMessage::RAR, SfnSf(1, 6, 5, 4).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 6, 4, 4).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 0, 2, 4).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
             },
@@ -578,7 +578,7 @@ NrTimingsTest::UePhyRx(SfnSf sfn,
         {
             3,
             {
-                {NrControlMessage::RAR, SfnSf(1, 6, 5, 3).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 6, 4, 3).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 0, 2, 3).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
             },
@@ -586,7 +586,7 @@ NrTimingsTest::UePhyRx(SfnSf sfn,
         {
             2,
             {
-                {NrControlMessage::RAR, SfnSf(1, 7, 1, 2).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 7, 0, 2).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 0, 2, 2).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
             },
@@ -594,7 +594,7 @@ NrTimingsTest::UePhyRx(SfnSf sfn,
         {
             1,
             {
-                {NrControlMessage::RAR, SfnSf(1, 8, 1, 1).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 8, 0, 1).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 1, 0, 1).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
             },
@@ -602,7 +602,7 @@ NrTimingsTest::UePhyRx(SfnSf sfn,
         {
             0,
             {
-                {NrControlMessage::RAR, SfnSf(2, 1, 0, 0).Normalize()},
+                {NrControlMessage::RAR, SfnSf(2, 0, 0, 0).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 2, 0, 0).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
             },
@@ -734,7 +734,7 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
         {
             4,
             {
-                {NrControlMessage::RAR, SfnSf(1, 6, 5, 4).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 6, 4, 4).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 0, 2, 4).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 4).Normalize () },
             },
@@ -742,7 +742,7 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
         {
             3,
             {
-                {NrControlMessage::RAR, SfnSf(1, 6, 5, 3).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 6, 4, 3).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 0, 2, 3).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 3).Normalize () },
             },
@@ -750,7 +750,7 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
         {
             2,
             {
-                {NrControlMessage::RAR, SfnSf(1, 7, 1, 2).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 7, 0, 2).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 0, 2, 2).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 2).Normalize () },
             },
@@ -758,14 +758,14 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
         {
             1,
             {
-                {NrControlMessage::RAR, SfnSf(1, 8, 1, 1).Normalize()},
+                {NrControlMessage::RAR, SfnSf(1, 8, 0, 1).Normalize()},
                 {NrControlMessage::DL_DCI, SfnSf(40, 1, 0, 1).Normalize()},
                 //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 1).Normalize () },
             },
         },
         {0,
          {
-             {NrControlMessage::RAR, SfnSf(2, 1, 0, 0).Normalize()},
+             {NrControlMessage::RAR, SfnSf(2, 0, 0, 0).Normalize()},
              {NrControlMessage::DL_DCI, SfnSf(40, 2, 0, 0).Normalize()},
              //{ NrControlMessage::DCI, SfnSf (80, 0, 2, 0).Normalize () },
          }},
