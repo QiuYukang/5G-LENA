@@ -188,7 +188,7 @@ class TrafficGenerator : public Application
      */
     virtual void GenerateNextPacketBurstSize();
     /**
-     * \brief Returns what is the next packet size. OVerriden by child classes
+     * \brief Returns what is the next packet size. Overridden by child classes
      * that generate variable packet sizes
      */
     virtual uint32_t GetNextPacketSize() const = 0;

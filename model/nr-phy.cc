@@ -325,7 +325,7 @@ NrPhy::DoSetCellId(uint16_t cellId)
 void
 NrPhy::SendRachPreamble(uint32_t PreambleId, uint32_t Rnti)
 {
-    NS_LOG_FUNCTION(this); // overriden only in nr-ue-phy
+    NS_LOG_FUNCTION(this); // overridden only in nr-ue-phy
 }
 
 void

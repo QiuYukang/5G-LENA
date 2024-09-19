@@ -271,7 +271,7 @@ struct VarTtiAllocInfo
 struct NrBuildRarListElement_s
 {
     std::shared_ptr<DciInfoElementTdma>
-        ulMsg3Dci;             //!< UL MSG3 DCI that will be sent throuhg RAR message
+        ulMsg3Dci;             //!< UL MSG3 DCI that will be sent through RAR message
     uint8_t raPreambleId{255}; //!< RA preamble ID, initialize with out of range values
     uint32_t k2Delay{100}; //!< delay (in slots) between DL/UL DCI reception and subframe to which
                            //!< it applies for reception/transmission of Data (k0/k2)
