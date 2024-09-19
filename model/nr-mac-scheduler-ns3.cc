@@ -91,7 +91,6 @@ NrMacSchedulerNs3::AssignStreams(int64_t stream)
 {
     NS_LOG_FUNCTION(this << stream);
     return m_schedulerSrs->AssignStreams(stream);
-    ;
 }
 
 TypeId
