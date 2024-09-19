@@ -1100,7 +1100,7 @@ NrGnbPhy::RetrieveDciFromAllocation(const SlotAllocInfo& alloc,
         Ptr<NrRarMessage> ulMsg3DciMsg = Create<NrRarMessage>();
         for (const auto& rarIt : alloc.m_buildRarList)
         {
-            NrRarMessage::Rar rar;
+            NrRarMessage::Rar rar{};
             // RA preamble and RNTI should be set before by MAC/scheduler
             NS_ASSERT(rarIt.raPreambleId != 255);
             rar.rarPayload = rarIt;
