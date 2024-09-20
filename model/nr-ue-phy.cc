@@ -587,8 +587,8 @@ NrUePhy::ProcessRar(const Ptr<NrRarMessage>& rarMsg)
     {
         for (auto it = rarMsg->RarListBegin(); it != rarMsg->RarListEnd(); ++it)
         {
-            NS_LOG_INFO("Received RAR in slot"
-                        << m_currentSlot << " with RA premble ID:" << it->rarPayload.raPreambleId);
+            NS_LOG_INFO("Received RAR in slot" << m_currentSlot << " with RA preamble ID: "
+                                               << std::to_string(it->rarPayload.raPreambleId));
             if (it->rarPayload.raPreambleId == m_raPreambleId)
             {
                 NS_LOG_INFO("Received RAR with RA preamble ID:" << +it->rarPayload.raPreambleId
@@ -612,10 +612,10 @@ NrUePhy::ProcessRar(const Ptr<NrRarMessage>& rarMsg)
         if (!myRar)
         {
             NS_LOG_DEBUG("Skipping RAR, does not contain preamble ID."
-                         << "\n My preamble id: " << m_raPreambleId << " found:");
+                         << "\n My preamble id: " << std::to_string(m_raPreambleId) << " found:");
             for (auto it = rarMsg->RarListBegin(); it != rarMsg->RarListEnd(); ++it)
             {
-                NS_LOG_DEBUG("rapId: " << (unsigned)it->rarPayload.raPreambleId);
+                NS_LOG_DEBUG("rapId: " << std::to_string(it->rapId));
             }
         }
     }
