@@ -1351,7 +1351,7 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
                                   dci->m_numSym,
                                   m_currentSlot});
 
-    // bool found = false;
+    bool found = false;
     for (auto& i : m_deviceMap)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
@@ -1362,11 +1362,16 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
             ChangeBeamformingVector(i); // assume the control signal is omni
-            // found = true;
+            found = true;
             break;
         }
     }
-    // NS_ASSERT(found);
+    // In case UE was not attached via NrHelper::AttachToGnb(),
+    // assume quasi omni beamforming until we have the opportunity to scan for a beam
+    if (!found)
+    {
+        ChangeBeamformingVector(nullptr);
+    }
 
     NS_LOG_INFO("GNB RXing UL DATA frame "
                 << m_currentSlot << " symbols " << static_cast<uint32_t>(dci->m_symStart) << "-"
@@ -1400,18 +1405,13 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
     m_spectrumPhy->AddExpectedSrsRnti(dci->m_rnti);
 
     bool found = false;
-    [[maybe_unused]] uint16_t notValidRntiCounter =
-        0; // count if there are in the list of devices without initialized RNTI (rnti = 0)
+
     // if yes, and the rnti for the current SRS is not found in the list,
     // the code will not abort
     for (auto& i : m_deviceMap)
     {
         Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
         uint64_t ueRnti = (DynamicCast<NrUePhy>(ueDev->GetPhy(0)))->GetRnti();
-        if (ueRnti == 0)
-        {
-            notValidRntiCounter++;
-        }
         if (dci->m_rnti == ueRnti)
         {
             // Even if we change the beamforming vector, we hope that the scheduler
@@ -1423,12 +1423,11 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
         }
     }
 
-    // NS_ABORT_MSG_IF(!found && (notValidRntiCounter == 0),
-    //                 "All RNTIs are already set (all UEs received RAR message), "
-    //                 "but the RNTI for this SRS was not found");
-
+    // In case UE was not attached via NrHelper::AttachToGnb(),
+    // assume quasi omni beamforming until we have the opportunity to scan for a beam
     if (!found)
     {
+        ChangeBeamformingVector(nullptr);
         NS_LOG_WARN("The UE for which is scheduled this SRS does not have yet initialized RNTI. "
                     "RAR message was not received yet.");
     }
@@ -1524,7 +1523,7 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
         NS_ASSERT_MSG(!m_spectrumPhy->IsTransmitting(),
                       "Cannot change analog BF after TX has started");
         m_lastBfChange = Simulator::Now();
-        // bool found = false;
+        bool found = false;
         for (auto& i : m_deviceMap)
         {
             Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(i);
@@ -1532,11 +1531,16 @@ NrGnbPhy::SendDataChannels(const Ptr<PacketBurst>& pb,
             if (dci->m_rnti == ueRnti)
             {
                 ChangeBeamformingVector(i);
-                // found = true;
+                found = true;
                 break;
             }
         }
-        // NS_ABORT_IF(!found);
+        // In case UE was not attached via NrHelper::AttachToGnb(),
+        // assume quasi omni beamforming until we have the opportunity to scan for a beam
+        if (!found)
+        {
+            ChangeBeamformingVector(nullptr);
+        }
     }
 
     // in the map we stored the RBG allocated by the MAC for this symbol.
