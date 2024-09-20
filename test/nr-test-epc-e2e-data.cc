@@ -28,6 +28,10 @@
 #include "ns3/uinteger.h"
 #include <ns3/ipv4-static-routing-helper.h>
 #include <ns3/ipv4-static-routing.h>
+#include <ns3/nr-ue-net-device.h>
+#include <ns3/ptr.h>
+
+#include <cstdint>
 
 using namespace ns3;
 
@@ -121,6 +125,8 @@ NrEpcE2eDataTestCase::DoRun()
     Config::Reset();
     Config::SetDefault("ns3::NrSpectrumPhy::DataErrorModelEnabled", BooleanValue(false));
     Config::SetDefault("ns3::NrHelper::UseIdealRrc", BooleanValue(true));
+    Config::SetDefault("ns3::NrGnbPhy::TxPower", DoubleValue(30.0));
+    Config::SetDefault("ns3::NrUePhy::TxPower", DoubleValue(23.0));
 
     Config::SetDefault("ns3::NrBearerStatsCalculator::DlPdcpOutputFilename",
                        StringValue(CreateTempDirFilename("DlPdcpStats.txt")));
@@ -305,15 +311,15 @@ NrEpcE2eDataTestCase::DoRun()
     Simulator::Stop(Seconds(statsStartTime + statsDuration - 0.0001));
     Simulator::Run();
 
-    uint64_t imsiCounter = 0;
-
     for (auto gnbit = m_gnbTestData.begin(); gnbit < m_gnbTestData.end(); ++gnbit)
     {
         for (auto ueit = gnbit->ues.begin(); ueit < gnbit->ues.end(); ++ueit)
         {
-            uint64_t imsi = ++imsiCounter;
             for (uint32_t b = 0; b < ueit->bearers.size(); ++b)
             {
+                // Since IMSIs now match NodeId, we can use this shortcut to retrieve the IMSI
+                uint64_t imsi = ueit->bearers.at(b).dlServerApp->GetNode()->GetId();
+
                 // LCID 0, 1, 2 are for SRBs
                 // LCID 3 is (at the moment) the Default EPS bearer, and is unused in this test
                 // program
