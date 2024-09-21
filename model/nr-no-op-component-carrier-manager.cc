@@ -312,7 +312,7 @@ NrNoOpComponentCarrierManager::DoUlReceiveMacCe(nr::MacCeListElement_s bsr,
         newBsr.m_macCeType = bsr.m_macCeType;
         newBsr.m_macCeValue.m_phr = bsr.m_macCeValue.m_phr;
         newBsr.m_macCeValue.m_crnti = bsr.m_macCeValue.m_crnti;
-        newBsr.m_macCeValue.m_bufferStatus.resize(4);
+        newBsr.m_macCeValue.m_bufferStatus = std::vector<uint8_t>(4, 0);
         for (uint16_t i = 0; i < 4; i++)
         {
             uint8_t bsrId = bsr.m_macCeValue.m_bufferStatus.at(i);
@@ -434,7 +434,7 @@ NrRrComponentCarrierManager::DoUlReceiveMacCe(nr::MacCeListElement_s bsr,
         // indicates that the CRNTI MAC CE was received. The value is not used.
         newBsr.m_macCeValue.m_crnti = bsr.m_macCeValue.m_crnti;
         // and value 64 means that the buffer status should not be updated
-        newBsr.m_macCeValue.m_bufferStatus.resize(4);
+        newBsr.m_macCeValue.m_bufferStatus = std::vector<uint8_t>(4, 0);
         // always all 4 LCGs are present see 6.1.3.1 of 3GPP TS 36.321.
         for (uint16_t i = 0; i < 4; i++)
         {
