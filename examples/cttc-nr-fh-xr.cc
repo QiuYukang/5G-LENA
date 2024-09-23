@@ -414,6 +414,7 @@ main(int argc, char* argv[])
     mimoPmiParams.pmSearchMethod = "ns3::NrPmSearchFull";
     mimoPmiParams.fullSearchCb = "ns3::NrCbTwoPort";
     mimoPmiParams.rankLimit = 2;
+    mimoPmiParams.subbandSize=8;
 
     bool enableOfdma = true;
     std::string schedulerType = "RR";
@@ -694,6 +695,8 @@ main(int argc, char* argv[])
 
         if (enableMimoFeedback)
         {
+            Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
+
             isGnbDualPolarized = true;
             gnbHorizPorts = 1;
             gnbVertPorts = 1;
@@ -703,6 +706,11 @@ main(int argc, char* argv[])
             ueHorizPorts = 2;
             ueVertPorts = 1;
             polSlantAngleUe = 0.0;
+
+            if (bandwidth==400e6)
+            {
+                mimoPmiParams.subbandSize=16;
+            }
         }
 
         downtiltAngle = 90.0;
