@@ -143,4 +143,10 @@ BwpManagerUe::RouteIngoingCtrlMsg(const Ptr<NrControlMessage>& msg, uint8_t sour
     return msg->GetSourceBwp();
 }
 
+Ptr<const BwpManagerAlgorithm>
+BwpManagerUe::GetAlgorithm() const
+{
+    return m_algorithm;
+}
+
 } // namespace ns3

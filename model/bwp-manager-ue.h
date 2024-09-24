@@ -98,6 +98,11 @@ class BwpManagerUe : public NrSimpleUeComponentCarrierManager
     NrMacSapUser* DoConfigureSignalBearer(uint8_t lcId,
                                           NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
                                           NrMacSapUser* msu) override;
+    /**
+     * Allow subclasses to access BwpManagerAlgorithm
+     * \return const pointer to the algorithm
+     */
+    Ptr<const BwpManagerAlgorithm> GetAlgorithm() const;
 
   private:
     Ptr<BwpManagerAlgorithm> m_algorithm;
