@@ -391,7 +391,7 @@ class NrGnbMac : public Object
      *
      */
     std::map<uint8_t, NcRaPreambleInfo> m_allocatedNcRaPreambleMap;
-    std::unordered_map<uint8_t, uint32_t> m_receivedRachPreambleCount;
+    std::map<uint8_t, uint32_t> m_receivedRachPreambleCount;
     // end of RACH related member variables
 
     std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>> m_rlcAttached;
