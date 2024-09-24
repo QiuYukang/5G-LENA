@@ -881,6 +881,7 @@ NrGnbPhy::RetrievePrepareEncodeCtrlMsgs()
 {
     NS_LOG_FUNCTION(this);
     auto ctrlMsgs = PopCurrentSlotCtrlMsgs();
+    ctrlMsgs.sort();
     ctrlMsgs.merge(RetrieveMsgsFromDCIs(m_currentSlot));
 
     if (m_netDevice != nullptr)
@@ -1162,7 +1163,7 @@ NrGnbPhy::RetrieveDciFromAllocation(const SlotAllocInfo& alloc,
             ctrlMsgs.push_back(msg);
         }
     }
-
+    ctrlMsgs.sort();
     return ctrlMsgs;
 }
 
@@ -1234,7 +1235,7 @@ NrGnbPhy::RetrieveMsgsFromDCIs(const SfnSf& currentSlot)
             NS_LOG_DEBUG("No allocation found for slot " << targetSlot);
         }
     }
-
+    ctrlMsgs.sort();
     return ctrlMsgs;
 }
 
