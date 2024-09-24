@@ -140,7 +140,7 @@ NrMacSchedulerTdma::AssignRBGTDMA(
 
         auto schedInfoIt = ueVector.begin();
 
-        std::sort(ueVector.begin(), ueVector.end(), GetCompareFn());
+        std::stable_sort(ueVector.begin(), ueVector.end(), GetCompareFn());
 
         // Ensure fairness: pass over UEs which already has enough resources to transmit
         while (schedInfoIt != ueVector.end())

@@ -1183,8 +1183,8 @@ void
 NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind)
 {
     NS_ASSERT(ind.m_sfnSf.GetNumerology() == m_currentSlot.GetNumerology());
-    std::sort(ind.m_slotAllocInfo.m_varTtiAllocInfo.begin(),
-              ind.m_slotAllocInfo.m_varTtiAllocInfo.end());
+    std::stable_sort(ind.m_slotAllocInfo.m_varTtiAllocInfo.begin(),
+                     ind.m_slotAllocInfo.m_varTtiAllocInfo.end());
 
     if (ind.m_slotAllocInfo.ContainsDataAllocation())
     {

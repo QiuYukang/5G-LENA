@@ -447,8 +447,8 @@ NrUePhy::InsertAllocation(const std::shared_ptr<DciInfoElementTdma>& dci)
 
     VarTtiAllocInfo varTtiInfo(dci);
     m_currSlotAllocInfo.m_varTtiAllocInfo.push_back(varTtiInfo);
-    std::sort(m_currSlotAllocInfo.m_varTtiAllocInfo.begin(),
-              m_currSlotAllocInfo.m_varTtiAllocInfo.end());
+    std::stable_sort(m_currSlotAllocInfo.m_varTtiAllocInfo.begin(),
+                     m_currSlotAllocInfo.m_varTtiAllocInfo.end());
 }
 
 void
@@ -461,7 +461,7 @@ NrUePhy::InsertFutureAllocation(const SfnSf& sfnSf, const std::shared_ptr<DciInf
     {
         auto& ulSlot = PeekSlotAllocInfo(sfnSf);
         ulSlot.m_varTtiAllocInfo.push_back(varTtiInfo);
-        std::sort(ulSlot.m_varTtiAllocInfo.begin(), ulSlot.m_varTtiAllocInfo.end());
+        std::stable_sort(ulSlot.m_varTtiAllocInfo.begin(), ulSlot.m_varTtiAllocInfo.end());
     }
     else
     {

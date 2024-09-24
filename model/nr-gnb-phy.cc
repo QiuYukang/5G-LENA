@@ -385,12 +385,12 @@ NrGnbPhy::GenerateStructuresFromPattern(const std::vector<LteNrTddSlotType>& pat
 
     for (auto& list : (*generateUl))
     {
-        std::sort(list.second.begin(), list.second.end());
+        std::stable_sort(list.second.begin(), list.second.end());
     }
 
     for (auto& list : (*generateDl))
     {
-        std::sort(list.second.begin(), list.second.end());
+        std::stable_sort(list.second.begin(), list.second.end());
     }
 }
 

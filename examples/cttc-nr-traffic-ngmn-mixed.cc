@@ -2009,7 +2009,7 @@ main(int argc, char* argv[])
         }
         // outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
-    std::sort(delayValues.begin(), delayValues.end());
+    std::stable_sort(delayValues.begin(), delayValues.end());
     // for (uint32_t i = 0; i < stats.size(); i++)
     //   {
     //     std::cout << delayValues[i] << " ";

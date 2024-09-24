@@ -36,7 +36,7 @@ SlotAllocInfo::Merge(const SlotAllocInfo& other)
     }
 
     // Sort over the symStart of the DCI (VarTtiAllocInfo::operator <)
-    std::sort(m_varTtiAllocInfo.begin(), m_varTtiAllocInfo.end());
+    std::stable_sort(m_varTtiAllocInfo.begin(), m_varTtiAllocInfo.end());
 }
 
 bool

@@ -336,7 +336,7 @@ NrMacSchedulerHarqRr::SortDlHarq(NrMacSchedulerNs3::ActiveHarqMap* activeDlHarq)
 
     for (auto& it : *activeDlHarq)
     {
-        std::sort(it.second.begin(), it.second.end(), CompareNumSym);
+        std::stable_sort(it.second.begin(), it.second.end(), CompareNumSym);
     }
 }
 

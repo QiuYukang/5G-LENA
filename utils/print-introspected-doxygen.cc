@@ -348,7 +348,7 @@ StaticInformation::Get(TypeId tid) const
  * which, among the STL containers, limits this to
  * \c std::vector, \c std::dequeue and \c std::list.
  *
- * The container elements must support \c operator< (for \c std::sort)
+ * The container elements must support \c operator< (for \c std::stable_sort)
  * and \c operator== (for \c std::unique).
  *
  * \tparam T \deduced The container type.
@@ -358,7 +358,7 @@ template <typename T>
 void
 Uniquefy(T t)
 {
-    std::sort(t.begin(), t.end());
+    std::stable_sort(t.begin(), t.end());
     t.erase(std::unique(t.begin(), t.end()), t.end());
 }
 
