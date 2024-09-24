@@ -1143,6 +1143,9 @@ NrUeMac::SendRaPreamble(bool contention)
     {
         // m_raPreambleId = m_raPreambleUniformVariable->GetInteger (0, 64 - 1);
         m_raPreambleId = g_raPreambleId++;
+        bool preambleOverflow = m_raPreambleId == 255;
+        m_raPreambleId += preambleOverflow;
+        g_raPreambleId += preambleOverflow;
     }
     /*raRnti should be subframeNo -1 */
     m_raRnti = 1;
