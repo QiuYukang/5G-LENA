@@ -56,7 +56,11 @@ us a note on ns-developers mailing list.
 
 
 ### Changes to existing API:
-
+- Removed the ``NrHelper::HarqEnabled`` flag because it was considered a misleading
+feature. Unlike the feature available in the ns-3 LTE module, which completely
+disables/enables HARQ logic, this feature solely disables HARQ feedback.
+Currently, the only similar option available in the NR module is
+``ns3::NrMacSchedulerNs3::EnableHarqReTx`` which enables/disables HARQ retransmissions.
 
 ### Changed behavior:
 

@@ -1371,10 +1371,7 @@ NrSpectrumPhy::SendUlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
     }
 
     // Send the feedback
-    if (!m_phyUlHarqFeedbackCallback.IsNull())
-    {
-        m_phyUlHarqFeedbackCallback(harqUlInfo);
-    }
+    m_phyUlHarqFeedbackCallback(harqUlInfo);
 
     // Arrange the history
     if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
@@ -1408,10 +1405,7 @@ NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
     }
 
     // Send the feedback
-    if (!m_phyDlHarqFeedbackCallback.IsNull())
-    {
-        m_phyDlHarqFeedbackCallback(harqDlInfo);
-    }
+    m_phyDlHarqFeedbackCallback(harqDlInfo);
 
     // Arrange the history
     if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
@@ -1497,7 +1491,7 @@ NrSpectrumPhy::ProcessReceivedPacketBurst()
             if (!tbInfo.m_harqFeedbackSent)
             {
                 tbInfo.m_harqFeedbackSent = true;
-                if (tbInfo.m_expected.m_isDownlink) // UPLINK TB
+                if (tbInfo.m_expected.m_isDownlink) // DL TB
                 {
                     NS_ASSERT(harqDlInfoMap.find(rnti) == harqDlInfoMap.end());
                     auto harqDlInfo = SendDlHarqFeedback(rnti, tbInfo);

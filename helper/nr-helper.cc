@@ -117,11 +117,6 @@ NrHelper::GetTypeId()
                           TypeIdValue(NrPmSearchFull::GetTypeId()),
                           MakeTypeIdAccessor(&NrHelper::SetPmSearchTypeId),
                           MakeTypeIdChecker())
-            .AddAttribute("HarqEnabled",
-                          "Enable Hybrid ARQ",
-                          BooleanValue(true),
-                          MakeBooleanAccessor(&NrHelper::m_harqEnabled),
-                          MakeBooleanChecker())
             .AddAttribute("UseIdealRrc",
                           "If true, NrRrcProtocolIdeal will be used for RRC signaling. "
                           "If false, NrRrcProtocolReal will be used.",
@@ -497,18 +492,6 @@ NrHelper::GetScheduler(const Ptr<NetDevice>& gnbDevice, uint32_t bwpIndex)
 }
 
 void
-NrHelper::SetHarqEnabled(bool harqEnabled)
-{
-    m_harqEnabled = harqEnabled;
-}
-
-bool
-NrHelper::GetHarqEnabled() const
-{
-    return m_harqEnabled;
-}
-
-void
 NrHelper::SetSnrTest(bool snrTest)
 {
     m_snrTest = snrTest;
@@ -612,12 +595,10 @@ NrHelper::CreateUePhy(const Ptr<Node>& n,
     Ptr<NrSpectrumPhy> channelPhy =
         m_ueSpectrumFactory.Create<NrSpectrumPhy>(); // Create NrSpectrumPhy
 
-    if (m_harqEnabled)
-    {
-        Ptr<NrHarqPhy> harq = Create<NrHarqPhy>(); // Create HARQ instance
-        channelPhy->InstallHarqPhyModule(harq);
-        channelPhy->SetPhyDlHarqFeedbackCallback(dlHarqCallback);
-    }
+    Ptr<NrHarqPhy> harq = Create<NrHarqPhy>(); // Create HARQ instance
+    channelPhy->InstallHarqPhyModule(harq);
+    channelPhy->SetPhyDlHarqFeedbackCallback(dlHarqCallback);
+
     channelPhy->SetIsGnb(false);
     channelPhy->SetDevice(dev); // each NrSpectrumPhy should have a pointer to device
 
