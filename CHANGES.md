@@ -61,9 +61,13 @@ feature. Unlike the feature available in the ns-3 LTE module, which completely
 disables/enables HARQ logic, this feature solely disables HARQ feedback.
 Currently, the only similar option available in the NR module is
 ``ns3::NrMacSchedulerNs3::EnableHarqReTx`` which enables/disables HARQ retransmissions.
+- All previously ``Lte`` prefixed configuration paths, classes and functions should now be use the ``Nr``
+prefix. All configuration paths, classes and functions containing ``Enb`` should now use ``Gnb``.
+  - Before: ``Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/NewUeContext", MakeBoundCallback(&NrBearerStatsConnector::NotifyNewUeContextEnb, this));``
+  - After: ``Config::Connect("/NodeList/*/DeviceList/*/NrGnbRrc/NewUeContext", MakeBoundCallback(&NrBearerStatsConnector::NotifyNewUeContextGnb, this));``
 
 ### Changed behavior:
-
+- ``IMSI``s are now aligned with ``NodeId``, instead of using an independent counter.
 
 ---
 
