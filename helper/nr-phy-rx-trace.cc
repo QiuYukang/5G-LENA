@@ -858,8 +858,8 @@ NrPhyRxTrace::RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
                         << (unsigned)params.m_bwpId << "\t" << params.m_rnti << "\t"
                         << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
                         << (unsigned)params.m_rank << "\t" << (unsigned)params.m_rv << "\t"
-                        << 10 * log10(params.m_sinr) << "\t" << params.m_corrupt << "\t"
-                        << params.m_tbler << "\t" << std::endl;
+                        << 10 * log10(params.m_sinr) << "\t" << std::to_string(params.m_cqi) << "\t"
+                        << params.m_corrupt << "\t" << params.m_tbler << std::endl;
 
     if (params.m_corrupt)
     {
@@ -869,7 +869,8 @@ NrPhyRxTrace::RxPacketTraceUeCallback(Ptr<NrPhyRxTrace> phyStats,
                      << (unsigned)params.m_numSym << "\t" << params.m_rnti << "\t"
                      << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
                      << (unsigned)params.m_rank << "\t" << (unsigned)params.m_rv << "\t"
-                     << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t"
+                     << params.m_sinr << "\t" << params.m_tbler << "\t"
+                     << std::to_string(params.m_cqi) << "\t" << params.m_corrupt << "\t"
                      << (unsigned)params.m_bwpId);
     }
 }
@@ -916,6 +917,8 @@ NrPhyRxTrace::RxPacketTraceGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                             << "\t"
                             << "SINR(dB)"
                             << "\t"
+                            << "CQI"
+                            << "\t"
                             << "corrupt"
                             << "\t"
                             << "TBler" << std::endl;
@@ -933,8 +936,8 @@ NrPhyRxTrace::RxPacketTraceGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                         << (unsigned)params.m_bwpId << "\t" << params.m_rnti << "\t"
                         << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
                         << (unsigned)params.m_rank << "\t" << (unsigned)params.m_rv << "\t"
-                        << 10 * log10(params.m_sinr) << "\t" << params.m_corrupt << "\t"
-                        << params.m_tbler << "\t" << std::endl;
+                        << 10 * log10(params.m_sinr) << "\t" << std::to_string(params.m_cqi) << "\t"
+                        << params.m_corrupt << "\t" << params.m_tbler << std::endl;
 
     if (params.m_corrupt)
     {
@@ -944,7 +947,8 @@ NrPhyRxTrace::RxPacketTraceGnbCallback(Ptr<NrPhyRxTrace> phyStats,
                      << (unsigned)params.m_numSym << "\t" << params.m_rnti << "\t"
                      << params.m_tbSize << "\t" << (unsigned)params.m_mcs << "\t"
                      << (unsigned)params.m_rank << "\t" << (unsigned)params.m_rv << "\t"
-                     << params.m_sinr << "\t" << params.m_tbler << "\t" << params.m_corrupt << "\t"
+                     << params.m_sinr << "\t" << params.m_tbler << "\t"
+                     << std::to_string(params.m_cqi) << "\t" << params.m_corrupt << "\t"
                      << params.m_sinrMin << "\t" << params.m_bwpId);
     }
 }
