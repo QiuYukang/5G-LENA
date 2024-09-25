@@ -48,6 +48,7 @@ main(int argc, char* argv[])
 {
     Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
     Config::SetDefault("ns3::NrPmSearch::SubbandSize", UintegerValue(16));
+    bool useMimoPmiParams = false;
 
     NrHelper::AntennaParams apUe;
     NrHelper::AntennaParams apGnb;
@@ -211,6 +212,7 @@ main(int argc, char* argv[])
                  simTag);
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
     cmd.AddValue("logging", "Enable logging", logging);
+    cmd.AddValue("useMimoPmiParams", "Configure via the MimoPmiParams structure", useMimoPmiParams);
     // Parse the command line
     cmd.Parse(argc, argv);
 
@@ -323,6 +325,16 @@ main(int argc, char* argv[])
                                          TypeIdValue(TypeId::LookupByName(beamformingMethod)));
     // Core latency
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+
+    // We can configure not only via Configure::SetDefault, but also via the MimoPmiParams structure
+    if (useMimoPmiParams)
+    {
+        ns3::NrHelper::MimoPmiParams params;
+        params.subbandSize = 8;
+        params.fullSearchCb = "ns3::NrCbTypeOneSp";
+        params.pmSearchMethod = "ns3::NrPmSearchFull";
+        nrHelper->SetupMimoPmi(params);
+    }
 
     /**
      * Configure gNb antenna

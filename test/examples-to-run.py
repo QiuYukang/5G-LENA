@@ -230,6 +230,11 @@ cpp_examples = [
         "True",
     ),
     (
+        "cttc-nr-mimo-demo --bandwidth=10e6 --useMimoPmiParams=true",
+        "True",
+        "True",
+    ),
+    (
         "cttc-nr-mimo-demo --fullSearchCb=ns3::NrCbTypeOneSp --pmSearchMethod=ns3::NrPmSearchFull --bandwidth=20e6 --subbandSize=16 --downsamplingTechnique=AveragePRB",
         "True",
         "True",

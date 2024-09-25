@@ -2035,8 +2035,7 @@ NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
     SetPmSearchAttribute("DownsamplingTechnique", StringValue(mp.downsamplingTechnique));
     if (searchTypeId == NrPmSearchFull::GetTypeId())
     {
-        SetPmSearchAttribute("NrPmSearchFull::CodebookType",
-                             TypeIdValue(TypeId::LookupByName(mp.fullSearchCb)));
+        SetPmSearchAttribute("CodebookType", TypeIdValue(TypeId::LookupByName(mp.fullSearchCb)));
     }
 }
 
