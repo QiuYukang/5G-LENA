@@ -151,6 +151,7 @@ for each nr release.
 
 | nr version     | ns-3 version | Build system  | Release date       |
 | :------------: | :-----------:| :-----------: |--------------------|
+| 5g-lena-v3.2.y | ns-3.42      | cmake         | September 25, 2024 |
 | 5g-lena-v3.1.y | ns-3.42      | cmake         | July 19, 2024      |
 | 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |
 | 5g-lena-v2.6.y | ns-3.40      | cmake         | November 30, 2023  |
