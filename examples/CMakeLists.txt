@@ -46,21 +46,31 @@ build_lib_example(
 )
 
 if(${ENABLE_EIGEN})
-  set(eigen_dependent_examples
-      cttc-nr-mimo-demo
-      cttc-nr-fh-xr
-  )
-  foreach(
-    example
-    ${eigen_dependent_examples}
-  )
-    build_lib_example(
-      NAME ${example}
-      SOURCE_FILES ${example}.cc
-      LIBRARIES_TO_LINK ${libnr}
-                        ${libflow-monitor}
+    set(eigen_dependent_examples
+            cttc-nr-fh-xr
     )
-  endforeach()
+    foreach(
+            example
+            ${eigen_dependent_examples}
+    )
+        build_lib_example(
+                NAME ${example}
+                SOURCE_FILES ${example}.cc
+                LIBRARIES_TO_LINK ${libnr}
+                ${libflow-monitor}
+        )
+    endforeach()
+    set(source_files
+            cttc-nr-mimo-demo.cc
+            mimo-sim-helpers/cttc-mimo-simple-db-helper.cc
+    )
+    build_lib_example(
+            NAME cttc-nr-mimo-demo
+            SOURCE_FILES ${source_files}
+            LIBRARIES_TO_LINK ${libnr}
+            ${libflow-monitor}
+            ${SQLite3_LIBRARIES}
+    )
 endif()
 
 if(NOT

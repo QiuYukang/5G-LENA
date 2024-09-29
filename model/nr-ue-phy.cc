@@ -203,6 +203,10 @@ NrUePhy::GetTypeId()
                             "Power Spectral Density data.",
                             MakeTraceSourceAccessor(&NrUePhy::m_reportPowerSpectralDensity),
                             "ns3::NrUePhy::PowerSpectralDensityTracedCallback")
+            .AddTraceSource("CqiFeedbackTrace",
+                            "Mimo CQI feedback traces containing RNTI, WB CQI, MCS, and RI ",
+                            MakeTraceSourceAccessor(&NrUePhy::m_cqiFeedbackTrace),
+                            "ns3::NrUePhy::CqiFeedbackTracedCallback")
             .AddTraceSource("ReportUeMeasurements",
                             "Report UE measurements RSRP (dBm) and RSRQ (dB).",
                             MakeTraceSourceAccessor(&NrUePhy::m_reportUeMeasurements),
@@ -1222,8 +1226,10 @@ NrUePhy::CreateDlCqiFeedbackMessage(const SpectrumValue& sinr)
     dlcqi.m_cqiType = DlCqiInfo::WB;
 
     std::vector<int> cqi;
-    dlcqi.m_wbCqi = ComputeCqi(sinr);
+    dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma(sinr, dlcqi.m_mcs);
     msg->SetDlCqi(dlcqi);
+
+    m_cqiFeedbackTrace(m_rnti, dlcqi.m_wbCqi, dlcqi.m_mcs, 1);
     return msg;
 }
 
@@ -1827,6 +1833,8 @@ NrUePhy::GenerateDlCqiReportMimo(const NrMimoSignal& rxSignal,
         .m_mcs = cqi.m_mcs,
         .m_optPrecMat = cqi.m_optPrecMat,
     };
+
+    m_cqiFeedbackTrace(m_rnti, cqi.m_wbCqi, cqi.m_mcs, cqi.m_rank);
 
     auto msg = Create<NrDlCqiMessage>();
     msg->SetSourceBwp(GetBwpId());

@@ -292,6 +292,16 @@ class NrUePhy : public NrPhy
     typedef void (*DlDataSinrTracedCallback)(uint16_t, uint16_t, double, uint16_t);
 
     /**
+     *  TracedCallback signature for CqiFeedback trace callback
+     *
+     * \param [in] rnti
+     * \param [in] CQI
+     * \param [in] MCS
+     * \param [in] RI (rank indicator)
+     */
+    typedef void (*CqiFeedbackTracedCallback)(uint16_t, uint8_t, uint8_t, uint8_t);
+
+    /**
      *  TracedCallback signature for Ue Phy Received Control Messages.
      *
      * \param [in] frame Frame number.
@@ -962,6 +972,12 @@ class NrUePhy : public NrPhy
                    uint16_t,
                    uint16_t>
         m_reportPowerSpectralDensity; //!< Report the Tx power
+
+    /**
+     * The `CqiFeedbackTrace` trace source (CqiFeedbackTracedCallback). Trace
+     * information regarding the MIMO feedback, including RNTI, CQI, MCS and RI.
+     */
+    TracedCallback<uint16_t, uint8_t, uint8_t, uint8_t> m_cqiFeedbackTrace;
 
     /**
      * Trace information regarding RSRP

@@ -29,26 +29,111 @@ $  ./ns3 run cttc-nr-mimo-demo -- --enableMimoFeedback=0
  *
  */
 
+#include "mimo-sim-helpers/cttc-mimo-simple-db-helper.h"
+
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/basic-data-calculators.h"
 #include "ns3/config-store-module.h"
 #include "ns3/core-module.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/internet-apps-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
+#include "ns3/network-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/stats-module.h"
+#include "ns3/traffic-generator-helper.h"
+
+#include <map>
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("CttcNrMimoDemo");
 
+struct CqiFeedbackTraceStats
+{
+    Ptr<MinMaxAvgTotalCalculator<uint8_t>> m_ri;
+    Ptr<MinMaxAvgTotalCalculator<uint8_t>> m_mcs;
+
+    CqiFeedbackTraceStats()
+    {
+        m_ri = CreateObject<MinMaxAvgTotalCalculator<uint8_t>>();
+        m_mcs = CreateObject<MinMaxAvgTotalCalculator<uint8_t>>();
+    }
+
+    CqiFeedbackTraceStats(uint8_t rank, uint8_t mcs)
+    {
+        m_ri = CreateObject<MinMaxAvgTotalCalculator<uint8_t>>();
+        m_ri->Update(rank);
+        m_mcs = CreateObject<MinMaxAvgTotalCalculator<uint8_t>>();
+        m_mcs->Update(mcs);
+    }
+};
+
+void
+CqiFeedbackTracedCallback(std::map<uint16_t, CqiFeedbackTraceStats>* stats,
+                          uint16_t rnti,
+                          [[maybe_unused]] uint8_t cqi,
+                          uint8_t mcs,
+                          uint8_t rank)
+{
+    auto it = stats->find(rnti);
+    if (it != stats->end())
+    {
+        it->second.m_ri->Update(rank);
+        it->second.m_mcs->Update(mcs);
+    }
+    else
+    {
+        (*stats)[rnti] = CqiFeedbackTraceStats(rank, mcs);
+    }
+}
+
+namespace ns3
+{
+class FastFadingTestingMobilityModel : public ConstantPositionMobilityModel
+{
+  public:
+    static TypeId GetTypeId();
+    Vector m_fakeVelocity{0.0, 0.0, 0.0};
+
+  private:
+    Vector DoGetVelocity() const override;
+};
+
+NS_OBJECT_ENSURE_REGISTERED(FastFadingTestingMobilityModel);
+
+TypeId
+FastFadingTestingMobilityModel::GetTypeId()
+{
+    static TypeId tid =
+        TypeId("ns3::FastFadingTestingMobilityModel")
+            .SetParent<ConstantPositionMobilityModel>()
+            .SetGroupName("Mobility")
+            .AddConstructor<FastFadingTestingMobilityModel>()
+            .AddAttribute("FakeVelocity",
+                          "The current velocity of the mobility model.",
+                          VectorValue(Vector(0.0, 0.0, 0.0)), // ignored initial value.
+                          MakeVectorAccessor(&FastFadingTestingMobilityModel::m_fakeVelocity),
+                          MakeVectorChecker());
+    return tid;
+}
+
+Vector
+FastFadingTestingMobilityModel::DoGetVelocity() const
+{
+    return m_fakeVelocity;
+}
+} // namespace ns3
+
 int
 main(int argc, char* argv[])
 {
-    Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
-    Config::SetDefault("ns3::NrPmSearch::SubbandSize", UintegerValue(16));
-    bool useMimoPmiParams = false;
+    auto startExecTime = std::chrono::system_clock::now();
+    bool enableMimoFeedback = true;
+    bool useConfigSetDefault = false;
+    uint8_t csiFlags = 1;
 
     NrHelper::AntennaParams apUe;
     NrHelper::AntennaParams apGnb;
@@ -64,6 +149,7 @@ main(int argc, char* argv[])
     apGnb.nHorizPorts = 2;
     apGnb.nVertPorts = 1;
     apGnb.isDualPolarized = false;
+    double downtiltAngleGnb = 10;
 
     // The polarization slant angle in degrees in case of x-polarized
     double polSlantAngleGnb = 0.0;
@@ -72,18 +158,19 @@ main(int argc, char* argv[])
     double bearingAngleGnb = 0.0;
     double bearingAngleUe = 180.0;
 
+    std::string trafficType = "cbr";
     // Traffic parameters
     uint32_t udpPacketSize = 1000;
-    // For 2x2 MIMO and NR MCS table 2, packet interval is 40000 ns to
-    // reach 200 mb/s
-    Time packetInterval = NanoSeconds(40000);
+    // Packet interval is 40000 ns to reach 200 Mbps
+    // For MCS Table 2, and 10 MHz BW, 200 Mbps can be achieved by using 4 MIMO streams
+    Time packetInterval = MilliSeconds(30);
     Time udpAppStartTime = MilliSeconds(400);
 
     // Interference
-    bool enableInterfNode = false; // if true an additional pair of gNB and UE will be created
-                                   // to create an interference towards the original pair
-    double interfDistance = 100.0; // the distance in meters between the original node pair, and the
-                                   // interfering node pair
+    bool enableInterfNode = false; // if true an additional pair of gNB and UE will be created to
+                                   // create an interference towards the original pair
+    double interfDistance =
+        1000.0; // the distance in meters between the gNB1 and the interfering gNB2
     double interfPolSlantDelta = 0; // the difference between the pol. slant angle between the
                                     // original node and the interfering one
 
@@ -92,22 +179,22 @@ main(int argc, char* argv[])
     uint16_t gnbUeDistance = 20; // meters
     uint16_t numerology = 0;
     double centralFrequency = 3.5e9;
-    double bandwidth = 20e6;
-    double txPowerGnb = 30; // dBm
+    double bandwidth = 10e6;
+    double txPowerGnb = 23; // dBm
     double txPowerUe = 23;  // dBm
-    uint16_t updatePeriodMs = 100;
+    uint16_t updatePeriodMs = 0;
     std::string errorModel = "ns3::NrEesmIrT2";
     std::string scheduler = "ns3::NrMacSchedulerTdmaRR";
     std::string beamformingMethod = "ns3::DirectPathBeamforming";
-    /**
-     *   UMi_StreetCanyon,      //!< UMi_StreetCanyon
-     *   UMi_StreetCanyon_LoS,  //!< UMi_StreetCanyon where all the nodes will be in Line-of-Sight
-     *   UMi_StreetCanyon_nLoS, //!< UMi_StreetCanyon where all the nodes will not be in
-     *
-     */
+
+    uint32_t wbPmiUpdateIntervalMs = 10; // Wideband PMI update interval in ms
+    uint32_t sbPmiUpdateIntervalMs = 2;  // Subband PMI update interval in ms
 
     // Default channel condition
     std::string losCondition = "Default";
+    NrHelper::MimoPmiParams mimoPmiParams;
+    mimoPmiParams.subbandSize = 8;
+    double xyVelocity = 0;
 
     // Where the example stores the output files.
     std::string simTag = "default";
@@ -118,12 +205,24 @@ main(int argc, char* argv[])
     /**
      * The main parameters for testing MIMO
      */
-    cmd.AddValue("enableMimoFeedback", "ns3::NrHelper::EnableMimoFeedback");
-    cmd.AddValue("pmSearchMethod", "ns3::NrHelper::PmSearchMethod");
-    cmd.AddValue("fullSearchCb", "ns3::NrPmSearchFull::CodebookType");
-    cmd.AddValue("rankLimit", "ns3::NrPmSearch::RankLimit");
-    cmd.AddValue("subbandSize", "ns3::NrPmSearch::SubbandSize");
-    cmd.AddValue("downsamplingTechnique", "ns3::NrPmSearch::DownsamplingTechnique");
+    cmd.AddValue("enableMimoFeedback", "Enables MIMO feedback", enableMimoFeedback);
+    cmd.AddValue(
+        "pmSearchMethod",
+        "Precoding matrix search method, currently implemented only exhaustive search method"
+        "(ns3::NrPmSearchFull)",
+        mimoPmiParams.pmSearchMethod);
+    cmd.AddValue("fullSearchCb",
+                 "The codebook to be used for the full search. Available codebooks are "
+                 "a) ns3::NrCbTwoPort, the two-port codebook defined in 3GPP TS 38.214 Table "
+                 "5.2.2.2.1-1, and"
+                 "b) ns3::NrCbTypeOneSp, Type-I Single-Panel Codebook 3GPP TS 38.214 Rel. 15, "
+                 "Sec. 5.2.2.2.1 supporting codebook mode 1 only, and limited to rank 4.",
+                 mimoPmiParams.fullSearchCb);
+    cmd.AddValue("rankLimit", "The maximum rank number to be used.", mimoPmiParams.rankLimit);
+    cmd.AddValue("subbandSize", "Sub-band size for downsampling", mimoPmiParams.subbandSize);
+    cmd.AddValue("downsamplingTechnique",
+                 "Sub-band downsampling technique",
+                 mimoPmiParams.downsamplingTechnique);
     cmd.AddValue("numRowsGnb", "Number of antenna rows at the gNB", apGnb.nAntRows);
     cmd.AddValue("numRowsUe", "Number of antenna rows at the UE", apUe.nAntRows);
     cmd.AddValue("numColumnsGnb", "Number of antenna columns at the gNB", apGnb.nAntCols);
@@ -154,19 +253,27 @@ main(int argc, char* argv[])
     cmd.AddValue("polSlantAngleUe", "Polarization slant angle of UE in degrees", polSlantAngleUe);
     cmd.AddValue("bearingAngleGnb", "Bearing angle of gNB in degrees", bearingAngleGnb);
     cmd.AddValue("bearingAngleUe", "Bearing angle of UE in degrees", bearingAngleUe);
+    cmd.AddValue("downtiltAngleGnb", "Downtilt angle of gNB in degrees", downtiltAngleGnb);
     cmd.AddValue("enableInterfNode", "Whether to enable an interfering node", enableInterfNode);
-    cmd.AddValue(
-        "interfDistance",
-        "The distance between the pairs of gNB and UE (the original and the interfering one)",
-        interfDistance);
+    cmd.AddValue("wbPmiUpdateInterval",
+                 "Wideband PMI update interval in ms",
+                 wbPmiUpdateIntervalMs);
+    cmd.AddValue("sbPmiUpdateInterval", "Subband PMI update interval in ms", sbPmiUpdateIntervalMs);
+    cmd.AddValue("interfDistance",
+                 "The distance between the gNB1 and the interfering gNB2 (the original and the "
+                 "interfering one)",
+                 interfDistance);
     cmd.AddValue("interfPolSlantDelta",
                  "The difference between the pol. slant angles of the original pairs of gNB and UE "
                  "and the interfering one",
                  interfPolSlantDelta);
-
+    cmd.AddValue("csiFlags", "CsiFlags to be configured. See NrHelper::CsiFlags", csiFlags);
     /**
      * Other simulation parameters
      */
+    cmd.AddValue("trafficType",
+                 "Traffic type to be installed at the source: cbr or ftp.",
+                 trafficType);
     cmd.AddValue("packetSize",
                  "packet size in bytes to be used by best effort traffic",
                  udpPacketSize);
@@ -213,7 +320,12 @@ main(int argc, char* argv[])
                  simTag);
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
     cmd.AddValue("logging", "Enable logging", logging);
-    cmd.AddValue("useMimoPmiParams", "Configure via the MimoPmiParams structure", useMimoPmiParams);
+    cmd.AddValue("useConfigSetDefault",
+                 "Configure via Config::SetDefault instead of the MimoPmiParams structure",
+                 useConfigSetDefault);
+    cmd.AddValue("xyVelocity",
+                 "Velocity in X and Y directions m/s for fake fading model.",
+                 xyVelocity);
     // Parse the command line
     cmd.Parse(argc, argv);
 
@@ -251,32 +363,37 @@ main(int argc, char* argv[])
      * We configure the mobility model to ConstantPositionMobilityModel.
      * The default topology is the following:
      *
-     *         gNB .........(20 m) .........UE
-     *    (0.0, h, 10.0)              (d, h, 1.5)
-     *
-     *
-     *         gNB..........(20 m)..........UE
-     *   (0.0, 0.0, 10.0)               (d, 0.0, 1.5)
+     * gNB1.................UE1................UE2........................gNB2(interferer)
+     *(0.0, 0.0, 25.0)  (d, 0.0, 1.5)    (interfDistance/2, 0.0, 1.5)    (interfDistance,0.0, 25.0)
+     * bearingAngle=0   bearingAngle=180 bearingAngle=0                   bearingAngle=180
      */
-    MobilityHelper mobility;
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
-    positionAlloc->Add(Vector(0.0, 0.0, 10.0));
-    positionAlloc->Add(Vector(gnbUeDistance, 0.0, 1.5));
+    MobilityHelper gnbMobility;
+    gnbMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    Ptr<ListPositionAllocator> gnbPositionAlloc = CreateObject<ListPositionAllocator>();
+    gnbPositionAlloc->Add(Vector(0.0, 0.0, 25.0));
+
+    MobilityHelper ueMobility;
+    ueMobility.SetMobilityModel("ns3::FastFadingTestingMobilityModel",
+                                "FakeVelocity",
+                                VectorValue(Vector{xyVelocity, xyVelocity, 0}));
+    Ptr<ListPositionAllocator> uePositionAlloc = CreateObject<ListPositionAllocator>();
+    uePositionAlloc->Add(Vector(gnbUeDistance, 0.0, 1.5));
     // the positions for the second interfering pair of gNB and UE
     if (enableInterfNode)
     {
-        positionAlloc->Add(Vector(0.0, interfDistance, 10.0));
-        positionAlloc->Add(Vector(gnbUeDistance, interfDistance, 1.5));
+        gnbPositionAlloc->Add(Vector(interfDistance / 2, 0.0, 25.0)); // gNB2 position
+        uePositionAlloc->Add(Vector(interfDistance, 0.0, 1.5));       // UE2 position
     }
-    mobility.SetPositionAllocator(positionAlloc);
-    mobility.Install(gnbContainer.Get(0));
-    mobility.Install(ueContainer.Get(0));
+    gnbMobility.SetPositionAllocator(gnbPositionAlloc);
+    ueMobility.SetPositionAllocator(uePositionAlloc);
+
+    gnbMobility.Install(gnbContainer.Get(0));
+    ueMobility.Install(ueContainer.Get(0));
     // install mobility of the second pair of gNB and UE
     if (enableInterfNode)
     {
-        mobility.Install(gnbContainer.Get(1));
-        mobility.Install(ueContainer.Get(1));
+        gnbMobility.Install(gnbContainer.Get(1));
+        ueMobility.Install(ueContainer.Get(1));
     }
 
     /**
@@ -285,10 +402,8 @@ main(int argc, char* argv[])
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
-
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);
     nrHelper->SetEpcHelper(nrEpcHelper);
-
     /**
      * Prepare spectrum. Prepare one operational band, containing
      * one component carrier, and a single bandwidth part
@@ -308,7 +423,7 @@ main(int argc, char* argv[])
     // Create the channel helper
     Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
     // Set the channel using the scenario and user input
-    channelHelper->ConfigureFactories("UMi", losCondition, "ThreeGpp");
+    channelHelper->ConfigureFactories("UMa", losCondition, "ThreeGpp");
     // Set the channel update period and shadowing
     channelHelper->SetChannelConditionModelAttribute("UpdatePeriod",
                                                      TimeValue(MilliSeconds(updatePeriodMs)));
@@ -317,6 +432,7 @@ main(int argc, char* argv[])
     channelHelper->AssignChannelsToBands({band});
 
     // Configure NrHelper, prepare most of the parameters that will be used in the simulation.
+    nrHelper->SetAttribute("CsiFeedbackFlags", UintegerValue(csiFlags));
     nrHelper->SetDlErrorModel(errorModel);
     nrHelper->SetUlErrorModel(errorModel);
     nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
@@ -327,20 +443,28 @@ main(int argc, char* argv[])
     // Core latency
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
-    // We can configure not only via Configure::SetDefault, but also via the MimoPmiParams structure
-    if (useMimoPmiParams)
+    // We can configure via Config::SetDefault
+    if (enableMimoFeedback)
     {
-        ns3::NrHelper::MimoPmiParams params;
-        params.subbandSize = 8;
-        params.fullSearchCb = "ns3::NrCbTypeOneSp";
-        params.pmSearchMethod = "ns3::NrPmSearchFull";
-        nrHelper->SetupMimoPmi(params);
+        // We can configure not only via Config::SetDefault, but also via the MimoPmiParams
+        // structure
+        if (useConfigSetDefault)
+        {
+            Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
+            Config::SetDefault("ns3::NrPmSearch::SubbandSize", UintegerValue(16));
+        }
+        else
+        {
+            nrHelper->SetupMimoPmi(mimoPmiParams);
+        }
     }
 
     /**
      * Configure gNb antenna
      */
     nrHelper->SetupGnbAntennas(apGnb);
+    // TODO consider adding DowntiltAngle to AntennaParams
+    nrHelper->SetGnbAntennaAttribute("DowntiltAngle", DoubleValue(downtiltAngleGnb * M_PI / 180.0));
     /**
      * Configure UE antenna
      */
@@ -349,6 +473,10 @@ main(int argc, char* argv[])
     nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(numerology));
     nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPowerGnb));
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPowerUe));
+    nrHelper->SetUePhyAttribute("WbPmiUpdateInterval",
+                                TimeValue(MilliSeconds(wbPmiUpdateIntervalMs)));
+    nrHelper->SetUePhyAttribute("SbPmiUpdateInterval",
+                                TimeValue(MilliSeconds(sbPmiUpdateIntervalMs)));
 
     uint32_t bwpId = 0;
     // gNb routing between bearer type and bandwidth part
@@ -364,19 +492,31 @@ main(int argc, char* argv[])
     NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gnbContainer, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueContainer, allBwps);
 
-    if (enableInterfNode && interfPolSlantDelta != 0)
+    if (enableInterfNode)
     {
-        // reconfigure the polarization slant angle of the interferer
         nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)
             ->GetSpectrumPhy()
             ->GetAntenna()
-            ->SetAttribute("PolSlantAngle",
-                           DoubleValue((polSlantAngleGnb + interfPolSlantDelta) * (M_PI / 180)));
+            ->SetAttribute("BearingAngle", DoubleValue(0));
         nrHelper->GetUePhy(ueNetDev.Get(1), 0)
             ->GetSpectrumPhy()
             ->GetAntenna()
-            ->SetAttribute("PolSlantAngle",
-                           DoubleValue((polSlantAngleUe + interfPolSlantDelta) * (M_PI / 180)));
+            ->SetAttribute("BearingAngle", DoubleValue(M_PI));
+        if (interfPolSlantDelta)
+        {
+            // reconfigure the polarization slant angle of the interferer
+            nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)
+                ->GetSpectrumPhy()
+                ->GetAntenna()
+                ->SetAttribute(
+                    "PolSlantAngle",
+                    DoubleValue((polSlantAngleGnb + interfPolSlantDelta) * (M_PI / 180)));
+            nrHelper->GetUePhy(ueNetDev.Get(1), 0)
+                ->GetSpectrumPhy()
+                ->GetAntenna()
+                ->SetAttribute("PolSlantAngle",
+                               DoubleValue((polSlantAngleUe + interfPolSlantDelta) * (M_PI / 180)));
+        }
     }
 
     /**
@@ -396,9 +536,12 @@ main(int argc, char* argv[])
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
 
+    std::map<uint16_t, CqiFeedbackTraceStats> cqiTraces;
     for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
     {
         DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
+        auto cqiCb = MakeBoundCallback(&CqiFeedbackTracedCallback, &cqiTraces);
+        nrHelper->GetUePhy(*it, 0)->TraceConnectWithoutContext("CqiFeedbackTrace", cqiCb);
     }
 
     // create the Internet and install the IP stack on the UEs
@@ -447,15 +590,6 @@ main(int argc, char* argv[])
     UdpServerHelper dlPacketSink(dlPort);
     // The server, that is the application which is listening, is installed in the UE
     serverApps.Add(dlPacketSink.Install(ueContainer));
-    /**
-     * Configure attributes for the CBR traffic generator, using user-provided
-     * parameters
-     */
-    UdpClientHelper dlClient;
-    dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
-    dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
-    dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
-    dlClient.SetAttribute("Interval", TimeValue(packetInterval));
 
     // The bearer that will carry the traffic
     NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
@@ -471,20 +605,60 @@ main(int argc, char* argv[])
      * Let's install the applications!
      */
     ApplicationContainer clientApps;
-
-    for (uint32_t i = 0; i < ueContainer.GetN(); ++i)
+    if (trafficType == "cbr")
     {
-        Ptr<Node> ue = ueContainer.Get(i);
-        Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
-        Address ueAddress = ueIpIface.GetAddress(i);
-
+        UdpClientHelper dlClient;
+        /**
+         * Configure attributes for the CBR traffic generator, using user-provided
+         * parameters
+         */
+        dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
+        dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
+        dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
+        dlClient.SetAttribute("Interval", TimeValue(packetInterval));
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClient.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClient.SetAttribute("RemoteAddress", AddressValue(ueIpIface.GetAddress(0)));
         clientApps.Add(dlClient.Install(remoteHost));
-
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlTft);
+    }
+    else if (trafficType == "ftp")
+    {
+        // configure FTP clients with file transfer application that generates multiple file
+        // transfers
+        TrafficGeneratorHelper ftpHelper =
+            TrafficGeneratorHelper("ns3::UdpSocketFactory",
+                                   Address(),
+                                   TrafficGeneratorNgmnFtpMulti::GetTypeId());
+        ftpHelper.SetAttribute("PacketSize", UintegerValue(512));
+        ftpHelper.SetAttribute("MaxFileSize", UintegerValue(5e6));
+        ftpHelper.SetAttribute("FileSizeMu", DoubleValue(14.45));
+
+        ftpHelper.SetAttribute("Remote",
+                               AddressValue(InetSocketAddress(ueIpIface.GetAddress(0, 0), dlPort)));
+        clientApps.Add(ftpHelper.Install(remoteHost));
+        // Activate a dedicated bearer for the traffic
+        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlTft);
+    }
+
+    if (enableInterfNode)
+    {
+        UdpClientHelper dlClient;
+        /**
+         * Configure attributes for the CBR traffic generator, using user-provided
+         * parameters
+         */
+        dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
+        dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
+        dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
+        dlClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
+        // The client, who is transmitting, is installed in the remote host,
+        // with destination address set to the address of the UE
+        dlClient.SetAttribute("RemoteAddress", AddressValue(ueIpIface.GetAddress(1)));
+        clientApps.Add(dlClient.Install(remoteHost));
+        // Activate a dedicated bearer for the traffic
+        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(1), epsBearer, dlTft);
     }
 
     // start UDP server and client apps
@@ -529,6 +703,69 @@ main(int argc, char* argv[])
 
     outFile.setf(std::ios_base::fixed);
 
+    CttcMimoSimpleDbHelper dbHelper;
+    dbHelper.SetResultsDirPath(outputDir);
+    dbHelper.SetDbName("MimoSimple.db");
+    dbHelper.PrepareTable();
+
+    CttcMimoSimpleResults dbResults;
+    // set the parameters
+    dbResults.simTime = simTime.GetSeconds();
+    dbResults.enableMimoFeedback = enableMimoFeedback;
+    dbResults.gnbUeDistance = gnbUeDistance;
+    dbResults.rngRun = SeedManager::GetRun();
+    dbResults.pmSearchMethod = mimoPmiParams.pmSearchMethod;
+    dbResults.fullSearchCb = mimoPmiParams.fullSearchCb;
+    dbResults.rankLimit = mimoPmiParams.rankLimit;
+    // gnb antenna params
+    dbResults.numRowsGnb = apGnb.nAntRows;
+    dbResults.numColumnsGnb = apGnb.nAntCols;
+    dbResults.numVPortsGnb = apGnb.nVertPorts;
+    dbResults.numHPortsGnb = apGnb.nHorizPorts;
+    dbResults.isXPolGnb = apGnb.isDualPolarized;
+    // ue antenna params
+    dbResults.numRowsUe = apUe.nAntRows;
+    dbResults.numColumnsUe = apUe.nAntCols;
+    dbResults.numVPortsUe = apUe.nVertPorts;
+    dbResults.numHPortsUe = apUe.nHorizPorts;
+    dbResults.isXPolUe = apUe.isDualPolarized;
+    dbResults.schedulerType = scheduler;
+    dbResults.sbPmiUpdateIntervalMs = sbPmiUpdateIntervalMs;
+    dbResults.wbPmiUpdateIntervalMs = wbPmiUpdateIntervalMs;
+    dbResults.enableInterfNode = enableInterfNode;
+    dbResults.csiFlags = csiFlags;
+    dbResults.trafficType = trafficType;
+    dbResults.xyVelocity = xyVelocity;
+
+    // calculate the execution time
+    auto endExecTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = endExecTime - startExecTime;
+    dbResults.execTimeSec = elapsed_seconds.count();
+
+    double averageMcsForAllUes = 0.0;
+    double averageRiForAllUes = 0.0;
+    for (const auto& ue : cqiTraces)
+    {
+        averageRiForAllUes += ue.second.m_ri->getMean();
+        averageMcsForAllUes += ue.second.m_mcs->getMean();
+    }
+
+    if (ueNetDev.GetN() != cqiTraces.size())
+    {
+        NS_LOG_WARN("Not all UEs have generated CQI feedback.");
+    }
+
+    if (!cqiTraces.empty())
+    {
+        dbResults.rank = averageRiForAllUes / cqiTraces.size();
+        dbResults.mcs = averageMcsForAllUes / cqiTraces.size();
+    }
+    else
+    {
+        dbResults.rank = 1;
+        dbResults.mcs = 0;
+    }
+
     double flowDuration = (simTime - udpAppStartTime).GetSeconds();
     for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
          i != stats.end();
@@ -559,14 +796,26 @@ main(int argc, char* argv[])
             averageFlowThroughput += i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000;
             averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
 
-            outFile << "  Throughput: " << i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000
-                    << " Mbps\n";
-            outFile << "  Mean delay:  "
-                    << 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets << " ms\n";
-            // outFile << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 << "
-            // Mbps \n";
-            outFile << "  Mean jitter:  "
-                    << 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets << " ms\n";
+            double thr = i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000;
+            double delay = 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
+            double jitter = 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets;
+            double packetLoss = 1 - ((double)(i->second.rxPackets) / (double)i->second.txPackets);
+
+            outFile << "  Throughput: " << thr << " Mbps\n";
+            outFile << "  Mean delay:  " << delay << " ms\n";
+            outFile << "  Mean jitter:  " << jitter << " ms\n";
+
+            // we want to save to the database only the flow stats from the first flow
+            // from the first gNB-UE pair
+            if (i == stats.begin())
+            {
+                dbResults.throughputMbps = thr;
+                dbResults.delayMs = delay;
+                dbResults.jitterMs = jitter;
+                dbResults.bytesReceived = i->second.rxBytes;
+                dbResults.bytesTransmitted = i->second.txBytes;
+                dbResults.packetLoss = packetLoss;
+            }
         }
         else
         {
@@ -575,10 +824,15 @@ main(int argc, char* argv[])
             outFile << "  Mean jitter: 0 ms\n";
         }
         outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
+
+        dbHelper.InsertResults(dbResults);
     }
 
     outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
     outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
+    outFile << " Mean rank: " << dbResults.rank << "\n";
+    outFile << " Mean MCS: " << dbResults.mcs << "\n";
+
     outFile.close();
     std::ifstream f(filename.c_str());
     if (f.is_open())
