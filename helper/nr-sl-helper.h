@@ -126,6 +126,14 @@ class NrSlHelper : public Object
                                        uint16_t tddPatternLen,
                                        uint16_t numUlTddPattern);
     /**
+     * \brief Activate NR sidelink bearer
+     *
+     * \param ueDevice The device of the UE
+     * \param slTft The sidelink traffic flow template for the new bearer
+     */
+    void ActivateNrSlBearerForUe(const Ptr<NetDevice>& ueDevice, const Ptr<LteSlTft>& slTft) const;
+
+    /**
      * \brief Assign a fixed random variable stream number to the random variables used.
      *
      * The InstallUeDevice and PrepareUeForSidelink method should have previously

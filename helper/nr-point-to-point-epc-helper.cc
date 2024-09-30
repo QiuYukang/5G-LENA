@@ -9,7 +9,6 @@
 #include <ns3/epc-x2.h>
 #include <ns3/log.h>
 #include <ns3/lte-enb-rrc.h>
-#include <ns3/lte-sl-tft.h>
 #include <ns3/net-device-container.h>
 #include <ns3/node-container.h>
 #include <ns3/nr-gnb-net-device.h>
@@ -88,21 +87,6 @@ NrPointToPointEpcHelper::DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice
     if (ueNetDevice)
     {
         Simulator::ScheduleNow(&EpcUeNas::ActivateEpsBearer, ueNetDevice->GetNas(), bearer, tft);
-    }
-    else
-    {
-        NS_FATAL_ERROR("What kind of device are you trying to pass to the NR helper?");
-    }
-}
-
-void
-NrPointToPointEpcHelper::ActivateNrSlBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                                 const Ptr<LteSlTft>& slTft) const
-{
-    Ptr<NrUeNetDevice> nrUeNetDevice = ueDevice->GetObject<NrUeNetDevice>();
-    if (nrUeNetDevice)
-    {
-        Simulator::ScheduleNow(&EpcUeNas::ActivateNrSlBearer, nrUeNetDevice->GetNas(), slTft);
     }
     else
     {

@@ -10,6 +10,7 @@
 
 #include <ns3/abort.h>
 #include <ns3/bandwidth-part-ue.h>
+#include <ns3/epc-ue-nas.h>
 #include <ns3/fatal-error.h>
 #include <ns3/log.h>
 #include <ns3/lte-rrc-sap.h>
@@ -117,7 +118,7 @@ NrSlHelper::DoActivateNrSlBearer(NetDeviceContainer ues, const Ptr<LteSlTft> tft
     {
         NS_LOG_DEBUG("Activating SL bearer at " << Simulator::Now() << " destination L2 id "
                                                 << tft->GetSidelinkInfo().m_dstL2Id);
-        m_epcHelper->ActivateNrSlBearerForUe(*i, Create<LteSlTft>(tft));
+        ActivateNrSlBearerForUe(*i, Create<LteSlTft>(tft));
     }
 }
 
@@ -346,6 +347,21 @@ NrSlHelper::GetPhySlPoolLength(uint16_t slBitmapLen,
                     "SL bit map size should be greater than or equal to the TDD pattern size");
     uint16_t poolLen = (slBitmapLen / numUlTddPattern) * tddPatternLen;
     return poolLen;
+}
+
+void
+NrSlHelper::ActivateNrSlBearerForUe(const Ptr<NetDevice>& ueDevice,
+                                    const Ptr<LteSlTft>& slTft) const
+{
+    Ptr<NrUeNetDevice> nrUeNetDevice = ueDevice->GetObject<NrUeNetDevice>();
+    if (nrUeNetDevice)
+    {
+        Simulator::ScheduleNow(&EpcUeNas::ActivateNrSlBearer, nrUeNetDevice->GetNas(), slTft);
+    }
+    else
+    {
+        NS_FATAL_ERROR("Invalid device type: " << ueDevice->GetTypeId().GetName());
+    }
 }
 
 int64_t
