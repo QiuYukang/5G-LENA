@@ -1506,7 +1506,6 @@ NrSlUeMac::DoRemoveNrSlLc(uint8_t slLcId, uint32_t srcL2Id, uint32_t dstL2Id)
             if (foundBytes > 0)
             {
                 NS_LOG_INFO("Erasing grant to " << dstL2Id << " LC ID " << +slLcId);
-                m_nrSlGrantDrop(GetImsi(), GetRnti(), dstL2Id, slLcId, foundBytes);
                 itNrSlGrant = itNrSlGrantMap->second.erase(itNrSlGrant);
             }
             else
