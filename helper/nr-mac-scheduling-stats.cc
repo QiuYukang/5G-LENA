@@ -19,7 +19,7 @@ NrMacSchedulingStats::NrMacSchedulingStats()
 {
     NS_LOG_FUNCTION(this);
     SetDlOutputFilename(GetDlOutputFilename());
-    SetUlOutputFilename(GetDlOutputFilename());
+    SetUlOutputFilename(GetUlOutputFilename());
 }
 
 NrMacSchedulingStats::~NrMacSchedulingStats()
