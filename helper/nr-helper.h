@@ -703,7 +703,7 @@ class NrHelper : public Object
      * If enabled, the MAC scheduler operation is constrained by the
      * FH Capacity.
      */
-    void EnablebleFhControl();
+    void EnableFhControl();
 
     /**
      * \brief Configure FH Control of each cell

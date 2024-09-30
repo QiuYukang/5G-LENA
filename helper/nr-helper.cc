@@ -1533,7 +1533,7 @@ NrHelper::SetDlErrorModel(const std::string& errorModelTypeId)
 }
 
 void
-NrHelper::EnablebleFhControl()
+NrHelper::EnableFhControl()
 {
     m_fhEnabled = true;
 }
