@@ -29,10 +29,10 @@
 
 #include <algorithm>
 #include <functional>
+#include <random>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <random>
 
 namespace ns3
 {
@@ -1611,7 +1611,7 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
         m_nrFhPhySapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Dropping)
     {
         std::vector<Ptr<NrControlMessage>> fhCtrlMsgs(m_ctrlMsgs.begin(), m_ctrlMsgs.end());
-        auto rng = std::default_random_engine {};
+        auto rng = std::default_random_engine{};
         std::shuffle(std::begin(fhCtrlMsgs), std::end(fhCtrlMsgs), rng);
 
         for (auto ctrlIt = fhCtrlMsgs.begin(); ctrlIt != fhCtrlMsgs.end(); /* no incr */)

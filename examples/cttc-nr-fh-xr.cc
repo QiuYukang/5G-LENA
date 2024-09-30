@@ -1,21 +1,6 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-/*
- *   Copyright (c) 2022 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License version 2 as
- *   published by the Free Software Foundation;
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+// Copyright (c) 2023 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+//
+// SPDX-License-Identifier: GPL-2.0-only
 
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
@@ -26,9 +11,9 @@
 #include "ns3/flow-monitor-module.h"
 #include "ns3/internet-apps-module.h"
 #include "ns3/internet-module.h"
-#include "ns3/nr-gnb-rrc.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
+#include "ns3/nr-gnb-rrc.h"
 #include "ns3/nr-module.h"
 #include "ns3/packet-sink.h"
 #include "ns3/point-to-point-module.h"
@@ -74,7 +59,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("CttcNrFhXr");
 
-std::string m_limitModel;
+std::string m_fhControlMethod;
 uint16_t m_fhCapacity;
 std::ofstream m_fhTraceFile;
 std::string m_fhTraceFileName;
@@ -316,7 +301,7 @@ ReportFhTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint64_t re
     if (!m_fhTraceFile.is_open())
     {
         std::stringstream fileName;
-        fileName << m_outputDir << "fh-trace_" << m_limitModel.c_str() << "_"
+        fileName << m_outputDir << "fh-trace_" << m_fhControlMethod.c_str() << "_"
                  << std::to_string(m_fhCapacity) << ".txt";
         m_fhTraceFileName = fileName.str();
         m_fhTraceFile.open(m_fhTraceFileName.c_str());
@@ -342,7 +327,7 @@ ReportAiTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint32_t ai
     if (!m_aiTraceFile.is_open())
     {
         std::stringstream fileName;
-        fileName << m_outputDir << "air-trace_" << m_limitModel.c_str() << "_"
+        fileName << m_outputDir << "air-trace_" << m_fhControlMethod.c_str() << "_"
                  << std::to_string(m_fhCapacity) << ".txt";
         m_aiTraceFileName = fileName.str();
         m_aiTraceFile.open(m_aiTraceFileName.c_str());
@@ -434,9 +419,9 @@ main(int argc, char* argv[])
     std::string errorModel = "ns3::NrEesmIrT1";
 
     // modulation compression parameters:
-    uint16_t fhCapacity = 10000;            // in Mbps
-    uint8_t ohDyn = 100;                    // in bits
-    std::string limitModel = "OptimizeMcs"; // The limit model to be applied
+    uint16_t fhCapacity = 10000;                 // in Mbps
+    uint8_t ohDyn = 100;                         // in bits
+    std::string fhControlMethod = "OptimizeMcs"; // The FH Control Method to be applied
     // (Dropping, Postponing, OptimmizeMcs, OptimizeRBs)
 
     bool isMx1 = true;
@@ -595,10 +580,11 @@ main(int argc, char* argv[])
     cmd.AddValue("progressInterval", "Progress reporting interval", progressIntervalInSeconds);
     cmd.AddValue("fhCapacity", "Fronthaul capacity (Mbps)", fhCapacity);
     cmd.AddValue("ohDyn", "Overhead for dynamic modulation compression (bits)", ohDyn);
-    cmd.AddValue("limitModel",
-                 "The limit model to be applied. Choose among: Dropping, Postponing, OptimmizeMcs, "
-                 "OptimizeRBs",
-                 limitModel);
+    cmd.AddValue(
+        "fhControlMethod",
+        "The FH Control Method to be applied. Choose among: Dropping, Postponing, OptimmizeMcs, "
+        "OptimizeRBs",
+        fhControlMethod);
 
     cmd.Parse(argc, argv);
 
@@ -609,7 +595,7 @@ main(int argc, char* argv[])
     NS_ABORT_MSG_IF(deployment == "SIMPLE" && (nrConfigurationScenario == "RuralA"),
                     "SIMPLE can be used only with default DenseA configuration");
 
-    m_limitModel = limitModel;
+    m_fhControlMethod = fhControlMethod;
     m_fhCapacity = fhCapacity;
     m_outputDir = outputDir;
 
@@ -949,7 +935,7 @@ main(int argc, char* argv[])
 
     /********************************************************************/
     nrHelper->EnableFhControl();
-    nrHelper->SetFhControlAttribute("LimitModel", StringValue(limitModel));
+    nrHelper->SetFhControlAttribute("FhControlMethod", StringValue(fhControlMethod));
     nrHelper->SetFhControlAttribute("FhCapacity", UintegerValue(fhCapacity));
     nrHelper->SetFhControlAttribute("OverheadDyn", UintegerValue(ohDyn));
     nrHelper->SetFhControlAttribute("ErrorModelType", StringValue(errorModel));
@@ -1249,8 +1235,7 @@ main(int argc, char* argv[])
     gnbSector1NetDev = nrHelper->InstallGnbDevice(gnbSector1Container, sector1Bwps);
     NetDeviceContainer gnbNetDevs(gnbSector1NetDev);
 
-    ueVoiceSector1NetDev =
-        nrHelper->InstallUeDevice(ueVoiceSector1Container, sector1Bwps);
+    ueVoiceSector1NetDev = nrHelper->InstallUeDevice(ueVoiceSector1Container, sector1Bwps);
     ueArSector1NetDev = nrHelper->InstallUeDevice(ueArSector1Container, sector1Bwps);
     ueVrSector1NetDev = nrHelper->InstallUeDevice(ueVrSector1Container, sector1Bwps);
     ueCgSector1NetDev = nrHelper->InstallUeDevice(ueCgSector1Container, sector1Bwps);
@@ -1262,34 +1247,24 @@ main(int argc, char* argv[])
 
     if (deployment == "HEX")
     {
-        gnbSector2NetDev =
-            nrHelper->InstallGnbDevice(gnbSector2Container, sector2Bwps);
+        gnbSector2NetDev = nrHelper->InstallGnbDevice(gnbSector2Container, sector2Bwps);
         gnbNetDevs.Add(gnbSector2NetDev);
-        gnbSector3NetDev =
-            nrHelper->InstallGnbDevice(gnbSector3Container, sector3Bwps);
+        gnbSector3NetDev = nrHelper->InstallGnbDevice(gnbSector3Container, sector3Bwps);
         gnbNetDevs.Add(gnbSector3NetDev);
 
-        ueVoiceSector2NetDev =
-            nrHelper->InstallUeDevice(ueVoiceSector2Container, sector2Bwps);
-        ueArSector2NetDev =
-            nrHelper->InstallUeDevice(ueArSector2Container, sector2Bwps);
-        ueVrSector2NetDev =
-            nrHelper->InstallUeDevice(ueVrSector2Container, sector2Bwps);
-        ueCgSector2NetDev =
-            nrHelper->InstallUeDevice(ueCgSector2Container, sector2Bwps);
+        ueVoiceSector2NetDev = nrHelper->InstallUeDevice(ueVoiceSector2Container, sector2Bwps);
+        ueArSector2NetDev = nrHelper->InstallUeDevice(ueArSector2Container, sector2Bwps);
+        ueVrSector2NetDev = nrHelper->InstallUeDevice(ueVrSector2Container, sector2Bwps);
+        ueCgSector2NetDev = nrHelper->InstallUeDevice(ueCgSector2Container, sector2Bwps);
         ueNetDevs.Add(ueVoiceSector2NetDev);
         ueNetDevs.Add(ueArSector2NetDev);
         ueNetDevs.Add(ueVrSector2NetDev);
         ueNetDevs.Add(ueCgSector2NetDev);
 
-        ueVoiceSector3NetDev =
-            nrHelper->InstallUeDevice(ueVoiceSector3Container, sector3Bwps);
-        ueArSector3NetDev =
-            nrHelper->InstallUeDevice(ueArSector3Container, sector3Bwps);
-        ueVrSector3NetDev =
-            nrHelper->InstallUeDevice(ueVrSector3Container, sector3Bwps);
-        ueCgSector3NetDev =
-            nrHelper->InstallUeDevice(ueCgSector3Container, sector3Bwps);
+        ueVoiceSector3NetDev = nrHelper->InstallUeDevice(ueVoiceSector3Container, sector3Bwps);
+        ueArSector3NetDev = nrHelper->InstallUeDevice(ueArSector3Container, sector3Bwps);
+        ueVrSector3NetDev = nrHelper->InstallUeDevice(ueVrSector3Container, sector3Bwps);
+        ueCgSector3NetDev = nrHelper->InstallUeDevice(ueCgSector3Container, sector3Bwps);
         ueNetDevs.Add(ueVoiceSector3NetDev);
         ueNetDevs.Add(ueArSector3NetDev);
         ueNetDevs.Add(ueVrSector3NetDev);

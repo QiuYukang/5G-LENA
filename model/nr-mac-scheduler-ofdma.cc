@@ -304,7 +304,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                 GetFirst GetUe;
                 std::vector<UePtrAndBufferReq> fhUeVector;
                 fhUeVector = ueVector;
-                auto rng = std::default_random_engine {};
+                auto rng = std::default_random_engine{};
                 std::shuffle(std::begin(fhUeVector), std::end(fhUeVector), rng);
                 auto schedInfoIt = fhUeVector.begin();
                 while (schedInfoIt != fhUeVector.end())
