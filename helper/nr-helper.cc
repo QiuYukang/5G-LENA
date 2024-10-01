@@ -85,9 +85,6 @@ NrHelper::NrHelper()
     m_channelConditionModelFactory.SetTypeId(ThreeGppChannelConditionModel::GetTypeId());
 
     Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(18));
-
-    m_phyStats = CreateObject<NrPhyRxTrace>();
-    m_macSchedStats = CreateObject<NrMacSchedulingStats>();
 }
 
 NrHelper::~NrHelper()
@@ -1747,113 +1744,131 @@ NrHelper::EnableTraces()
 Ptr<NrPhyRxTrace>
 NrHelper::GetPhyRxTrace()
 {
+    if (!m_phyStats)
+    {
+        m_phyStats = CreateObject<NrPhyRxTrace>();
+    }
     return m_phyStats;
+}
+
+Ptr<NrMacRxTrace>
+NrHelper::GetMacRxTrace()
+{
+    if (!m_macStats)
+    {
+        m_macStats = CreateObject<NrMacRxTrace>();
+    }
+    return m_macStats;
 }
 
 void
 NrHelper::EnableDlDataPhyTraces()
 {
-    // NS_LOG_FUNCTION_NOARGS ();
+    NS_LOG_FUNCTION(this);
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlDataSinr",
-                    MakeBoundCallback(&NrPhyRxTrace::DlDataSinrCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::DlDataSinrCallback, GetPhyRxTrace()));
 
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/RxPacketTraceUe",
-        MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceUeCallback, m_phyStats));
+        MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceUeCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableDlCtrlPhyTraces()
 {
-    // NS_LOG_FUNCTION_NOARGS ();
+    NS_LOG_FUNCTION(this);
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/DlCtrlSinr",
-                    MakeBoundCallback(&NrPhyRxTrace::DlCtrlSinrCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::DlCtrlSinrCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableGnbPhyCtrlMsgsTraces()
 {
+    NS_LOG_FUNCTION(this);
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/GnbPhyRxedCtrlMsgsTrace",
-                    MakeBoundCallback(&NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::RxedGnbPhyCtrlMsgsCallback, GetPhyRxTrace()));
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/GnbPhyTxedCtrlMsgsTrace",
-                    MakeBoundCallback(&NrPhyRxTrace::TxedGnbPhyCtrlMsgsCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::TxedGnbPhyCtrlMsgsCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableGnbMacCtrlMsgsTraces()
 {
+    NS_LOG_FUNCTION(this);
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/GnbMacRxedCtrlMsgsTrace",
-                    MakeBoundCallback(&NrMacRxTrace::RxedGnbMacCtrlMsgsCallback, m_macStats));
-
+                    MakeBoundCallback(&NrMacRxTrace::RxedGnbMacCtrlMsgsCallback, GetMacRxTrace()));
     Config::Connect("/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/GnbMacTxedCtrlMsgsTrace",
-                    MakeBoundCallback(&NrMacRxTrace::TxedGnbMacCtrlMsgsCallback, m_macStats));
+                    MakeBoundCallback(&NrMacRxTrace::TxedGnbMacCtrlMsgsCallback, GetMacRxTrace()));
 }
 
 void
 NrHelper::EnableUePhyCtrlMsgsTraces()
 {
+    NS_LOG_FUNCTION(this);
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/UePhyRxedCtrlMsgsTrace",
-        MakeBoundCallback(&NrPhyRxTrace::RxedUePhyCtrlMsgsCallback, m_phyStats));
+        MakeBoundCallback(&NrPhyRxTrace::RxedUePhyCtrlMsgsCallback, GetPhyRxTrace()));
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/UePhyTxedCtrlMsgsTrace",
-        MakeBoundCallback(&NrPhyRxTrace::TxedUePhyCtrlMsgsCallback, m_phyStats));
+        MakeBoundCallback(&NrPhyRxTrace::TxedUePhyCtrlMsgsCallback, GetPhyRxTrace()));
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/UePhyRxedDlDciTrace",
-                    MakeBoundCallback(&NrPhyRxTrace::RxedUePhyDlDciCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::RxedUePhyDlDciCallback, GetPhyRxTrace()));
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/UePhyTxedHarqFeedbackTrace",
-        MakeBoundCallback(&NrPhyRxTrace::TxedUePhyHarqFeedbackCallback, m_phyStats));
+        MakeBoundCallback(&NrPhyRxTrace::TxedUePhyHarqFeedbackCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableUeMacCtrlMsgsTraces()
 {
+    NS_LOG_FUNCTION(this);
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUeMac/UeMacRxedCtrlMsgsTrace",
-        MakeBoundCallback(&NrMacRxTrace::RxedUeMacCtrlMsgsCallback, m_macStats));
+        MakeBoundCallback(&NrMacRxTrace::RxedUeMacCtrlMsgsCallback, GetMacRxTrace()));
     Config::Connect(
         "/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUeMac/UeMacTxedCtrlMsgsTrace",
-        MakeBoundCallback(&NrMacRxTrace::TxedUeMacCtrlMsgsCallback, m_macStats));
+        MakeBoundCallback(&NrMacRxTrace::TxedUeMacCtrlMsgsCallback, GetMacRxTrace()));
 }
 
 void
 NrHelper::EnableUlPhyTraces()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
     Config::Connect(
         "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/RxPacketTraceGnb",
-        MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceGnbCallback, m_phyStats));
+        MakeBoundCallback(&NrPhyRxTrace::RxPacketTraceGnbCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableGnbPacketCountTrace()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
     Config::Connect(
         "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbPhy/SpectrumPhy/ReportGnbTxRxPacketCount",
-        MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountGnbCallback, m_phyStats));
+        MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountGnbCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableUePacketCountTrace()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/SpectrumPhy/"
                     "ReportUeTxRxPacketCount",
-                    MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountUeCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::ReportPacketCountUeCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableTransportBlockTrace()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/ReportDownlinkTbSize",
-                    MakeBoundCallback(&NrPhyRxTrace::ReportDownLinkTBSize, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::ReportDownLinkTBSize, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableRlcSimpleTraces()
 {
+    NS_LOG_FUNCTION(this);
     Ptr<NrBearerStatsSimple> rlcStats = CreateObject<NrBearerStatsSimple>("RLC");
     m_radioBearerStatsConnectorSimpleTraces.EnableRlcStats(rlcStats);
 }
@@ -1861,6 +1876,7 @@ NrHelper::EnableRlcSimpleTraces()
 void
 NrHelper::EnablePdcpSimpleTraces()
 {
+    NS_LOG_FUNCTION(this);
     Ptr<NrBearerStatsSimple> pdcpStats = CreateObject<NrBearerStatsSimple>("PDCP");
     m_radioBearerStatsConnectorSimpleTraces.EnablePdcpStats(pdcpStats);
 }
@@ -1868,6 +1884,7 @@ NrHelper::EnablePdcpSimpleTraces()
 void
 NrHelper::EnableRlcE2eTraces()
 {
+    NS_LOG_FUNCTION(this);
     Ptr<NrBearerStatsCalculator> rlcStats = CreateObject<NrBearerStatsCalculator>("RLC");
     m_radioBearerStatsConnectorCalculator.EnableRlcStats(rlcStats);
 }
@@ -1875,6 +1892,7 @@ NrHelper::EnableRlcE2eTraces()
 void
 NrHelper::EnablePdcpE2eTraces()
 {
+    NS_LOG_FUNCTION(this);
     Ptr<NrBearerStatsCalculator> pdcpStats = CreateObject<NrBearerStatsCalculator>("PDCP");
     m_radioBearerStatsConnectorCalculator.EnablePdcpStats(pdcpStats);
 }
@@ -1896,7 +1914,11 @@ NrHelper::GetPdcpStatsCalculator()
 void
 NrHelper::EnableDlMacSchedTraces()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
+    if (!m_macSchedStats)
+    {
+        m_macSchedStats = CreateObject<NrMacSchedulingStats>();
+    }
     Config::Connect(
         "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/DlScheduling",
         MakeBoundCallback(&NrMacSchedulingStats::DlSchedulingCallback, m_macSchedStats));
@@ -1905,7 +1927,11 @@ NrHelper::EnableDlMacSchedTraces()
 void
 NrHelper::EnableUlMacSchedTraces()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
+    if (!m_macSchedStats)
+    {
+        m_macSchedStats = CreateObject<NrMacSchedulingStats>();
+    }
     Config::Connect(
         "/NodeList/*/DeviceList/*/BandwidthPartMap/*/NrGnbMac/UlScheduling",
         MakeBoundCallback(&NrMacSchedulingStats::UlSchedulingCallback, m_macSchedStats));
@@ -1914,15 +1940,15 @@ NrHelper::EnableUlMacSchedTraces()
 void
 NrHelper::EnablePathlossTraces()
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
     Config::Connect("/ChannelList/*/$ns3::SpectrumChannel/PathLoss",
-                    MakeBoundCallback(&NrPhyRxTrace::PathlossTraceCallback, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::PathlossTraceCallback, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableDlCtrlPathlossTraces(NetDeviceContainer& ueDevs)
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
 
     for (uint32_t i = 0; i < ueDevs.GetN(); i++)
     {
@@ -1940,13 +1966,13 @@ NrHelper::EnableDlCtrlPathlossTraces(NetDeviceContainer& ueDevs)
 
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhy/"
                     "DlCtrlPathloss",
-                    MakeBoundCallback(&NrPhyRxTrace::ReportDlCtrlPathloss, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::ReportDlCtrlPathloss, GetPhyRxTrace()));
 }
 
 void
 NrHelper::EnableDlDataPathlossTraces(NetDeviceContainer& ueDevs)
 {
-    NS_LOG_FUNCTION_NOARGS();
+    NS_LOG_FUNCTION(this);
 
     NS_ASSERT_MSG(ueDevs.GetN(),
                   "Passed an empty UE net device container EnableDlDataPathlossTraces function");
@@ -1967,7 +1993,7 @@ NrHelper::EnableDlDataPathlossTraces(NetDeviceContainer& ueDevs)
 
     Config::Connect("/NodeList/*/DeviceList/*/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhy/"
                     "DlDataPathloss",
-                    MakeBoundCallback(&NrPhyRxTrace::ReportDlDataPathloss, m_phyStats));
+                    MakeBoundCallback(&NrPhyRxTrace::ReportDlDataPathloss, GetPhyRxTrace()));
 }
 
 void

@@ -714,9 +714,20 @@ class NrHelper : public Object
     /**
      * \brief Get the phy traces object
      *
+     * Creates the NrPhyRxTrace object upon first call.
+     *
      * \return The NrPhyRxTrace object to write PHY traces
      */
     Ptr<NrPhyRxTrace> GetPhyRxTrace();
+
+    /**
+     * \brief Get the mac stats trace object
+     *
+     * Creates the NrMacRxTrace object upon first call.
+     *
+     * \return The NrMacRxTrace object to write MAC traces
+     */
+    Ptr<NrMacRxTrace> GetMacRxTrace();
 
     /**
      * \brief Enable gNB packet count trace
