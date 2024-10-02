@@ -83,15 +83,15 @@ NS_LOG_COMPONENT_DEFINE("SlHarqExample");
  * Global variables
  */
 
-double g_delayMin = 1e9; //!< Global varible to store delay min value
-double g_delayMax = 0;   //!< Global varible to store delay max value
-bool g_verbose = false;  //!< Global variable to store verbose mode
-std::ofstream delaySamples("sl-harq-example-delay.dat",
-                           std::ofstream::out); //!< Global variable to save latency
-uint32_t rxByteCounter = 0;                     //!< Global variable to count RX bytes
-uint32_t txByteCounter = 0;                     //!< Global variable to count TX bytes
-uint32_t rxPktCounter = 0;                      //!< Global variable to count RX packets
-uint32_t txPktCounter = 0;                      //!< Global variable to count TX packets
+double g_delayMin = 1e9;      //!< Global varible to store delay min value
+double g_delayMax = 0;        //!< Global varible to store delay max value
+bool g_verbose = false;       //!< Global variable to store verbose mode
+bool g_writeTraces = true;    //!< Flag to control writing traces
+std::ofstream g_delaySamples; //!< File stream object to save latency trace
+uint32_t rxByteCounter = 0;   //!< Global variable to count RX bytes
+uint32_t txByteCounter = 0;   //!< Global variable to count TX bytes
+uint32_t rxPktCounter = 0;    //!< Global variable to count RX packets
+uint32_t txPktCounter = 0;    //!< Global variable to count TX packets
 
 uint64_t pirCounter = 0;        //!< counter to count PIR samples
 Time lastPktRxTime(Seconds(0)); //!< Global variable to store the RX time of a packet
@@ -208,6 +208,7 @@ main(int argc, char* argv[])
                  interUeDistance);
     cmd.AddValue("numPackets", "Number of packets to send", numPackets);
     cmd.AddValue("logging", "Enable logging (if logging is enabled in the build)", logging);
+    cmd.AddValue("writeTraces", "Flag to control the writing of output traces", g_writeTraces);
     cmd.Parse(argc, argv);
 
     // Final simulation time is the sum of start up time, data transfer time,
@@ -834,6 +835,11 @@ main(int argc, char* argv[])
         }
     }
 
+    if (g_writeTraces)
+    {
+        g_delaySamples.open("sl-harq-example-delay.dat", std::ofstream::out);
+    }
+
     Simulator::Stop(finalSimTime);
     Simulator::Run();
 
@@ -852,7 +858,10 @@ main(int argc, char* argv[])
     std::cout << "Min/max delay (us) " << g_delayMin * 1e6 << " " << g_delayMax * 1e6 << std::endl;
 
     Simulator::Destroy();
-    delaySamples.close();
+    if (g_writeTraces)
+    {
+        g_delaySamples.close();
+    }
     return 0;
 }
 
@@ -1014,8 +1023,8 @@ TraceRxRlcPduWithTxRnti(uint64_t imsi,
     {
         g_delayMin = delay;
     }
-    delaySamples << std::fixed << std::showpoint << std::setprecision(6)
-                 << Now().GetMicroSeconds() / 1000000.0 << " " << delay << std::endl;
+    g_delaySamples << std::fixed << std::showpoint << std::setprecision(6)
+                   << Now().GetMicroSeconds() / 1000000.0 << " " << delay << std::endl;
 }
 
 /**

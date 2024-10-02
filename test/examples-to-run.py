@@ -235,10 +235,11 @@ cpp_examples = [
         "True",
         "True",
     ),
-    ("nr-v2x-west-to-east-highway --enableSensing=1 --simTag=testpy-sensing", "True", "True"),
-    ("nr-v2x-west-to-east-highway --enableSensing=0 --simTag=testpy-nosensing", "True", "True"),
-    ("cttc-nr-v2x-demo-simple --simTag=testpy", "True", "True"),
-    ("sl-harq-example", "True", "True"),
+    ("nr-v2x-west-to-east-highway --enableSensing=1 --simTag=testpy-sensing --saveDb=0", "True", "True"),
+    ("nr-v2x-west-to-east-highway --enableSensing=0 --simTag=testpy-nosensing --saveDb=0", "True", "True"),
+    ("cttc-nr-v2x-demo-simple --simTag=testpy --saveDb=0", "True", "True"),
+    ("sl-harq-example --writeTraces=0", "True", "True"),
+    ("sl-multi-lc-example --testing=1 --writeTraces=0", "True", "True"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain

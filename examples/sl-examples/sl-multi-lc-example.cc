@@ -156,7 +156,8 @@ std::list<double> g_delays;             //!< Global list to store packet delays 
 std::ofstream g_fileGrantCreated;       //!< File stream for saving scheduling output
 std::ofstream g_fileGrantPublished;     //!< File stream for saving scheduling output
 std::ostringstream g_firstGrantCreated; //!< String stream for saving first scheduling output
-bool g_firstGrant = true; //!< Flag to control writing first grant to g_firstGrantCreated
+bool g_firstGrant = true;  //!< Flag to control writing first grant to g_firstGrantCreated
+bool g_writeTraces = true; //!< Flag to control writing traces
 
 /*
  * Structure to keep track of the transmission time of the packets at the
@@ -285,8 +286,7 @@ main(int argc, char* argv[])
     // Simulation parameters.
     Time trafficTime = Seconds(2.0);
 
-    // Testing flag
-    bool testing = false;
+    bool testing = false; // Basic validation check
 
     // NR parameters
     uint16_t numerologyBwpSl = 2;
@@ -324,6 +324,7 @@ main(int argc, char* argv[])
         "testing",
         "Testing flag to do verification that the example is working as expected (if set to True)",
         testing);
+    cmd.AddValue("writeTraces", "Flag to control the writing of output traces", g_writeTraces);
 
     // Parse the command line
     cmd.Parse(argc, argv);
@@ -822,11 +823,14 @@ main(int argc, char* argv[])
     /************************ END Traffic flows configuration ******************/
 
     /******************** Application packet tracing ***************************/
-    AsciiTraceHelper ascii;
-    Ptr<OutputStreamWrapper> PacketTraceForDelayStream =
-        ascii.CreateFileStream("NrSlAppRxPacketDelayTrace.txt");
-    *PacketTraceForDelayStream->GetStream()
-        << "time(s)\trxNodeId\tsrcIp\tdstIp\tseqNum\tdelay(ms)" << std::endl;
+    if (g_writeTraces)
+    {
+        AsciiTraceHelper ascii;
+        Ptr<OutputStreamWrapper> PacketTraceForDelayStream =
+            ascii.CreateFileStream("NrSlAppRxPacketDelayTrace.txt");
+        *PacketTraceForDelayStream->GetStream()
+            << "time(s)\trxNodeId\tsrcIp\tdstIp\tseqNum\tdelay(ms)" << std::endl;
+    }
 
     for (uint16_t ac = 0; ac < allClientApps.GetN(); ac++)
     {
@@ -840,8 +844,11 @@ main(int argc, char* argv[])
     }
     /******************** END Application packet  tracing **********************/
 
-    g_fileGrantCreated.open("sl-multi-lc-scheduling.dat", std::ofstream::out);
-    g_fileGrantPublished.open("sl-multi-lc-scheduling-published.dat", std::ofstream::out);
+    if (g_writeTraces)
+    {
+        g_fileGrantCreated.open("sl-multi-lc-scheduling.dat", std::ofstream::out);
+        g_fileGrantPublished.open("sl-multi-lc-scheduling-published.dat", std::ofstream::out);
+    }
     auto ueDevice0 = ueNetDev.Get(0)->GetObject<NrUeNetDevice>();
     auto ueMac0 = ueDevice0->GetMac(0)->GetObject<NrSlUeMac>();
     PointerValue v;
@@ -853,8 +860,11 @@ main(int argc, char* argv[])
     Simulator::Stop(finalSimTime);
     Simulator::Run();
 
-    g_fileGrantCreated.close();
-    g_fileGrantPublished.close();
+    if (g_writeTraces)
+    {
+        g_fileGrantCreated.close();
+        g_fileGrantPublished.close();
+    }
     std::cout << "schedTypeConfig = " << schedTypeConfig << "; dstL2IdConfig = " << dstL2IdConfig;
     std::cout << " priorityConfig = " << priorityConfig << "; rriConfig = " << rriConfig
               << std::endl;
@@ -891,11 +901,10 @@ TraceGrantCreated(std::string context,
 {
     if (g_firstGrant)
     {
-        WriteGrantCreated(g_fileGrantCreated, context, grantInfo, psfchPeriod);
         WriteGrantCreated(g_firstGrantCreated, context, grantInfo, psfchPeriod);
         g_firstGrant = false;
     }
-    else
+    if (g_writeTraces)
     {
         WriteGrantCreated(g_fileGrantCreated, context, grantInfo, psfchPeriod);
     }
@@ -906,7 +915,10 @@ TraceGrantPublished(std::string context,
                     const struct NrSlUeMac::NrSlGrant& grant,
                     uint16_t psfchPeriod)
 {
-    WriteGrantPublished(g_fileGrantPublished, context, grant, psfchPeriod);
+    if (g_writeTraces)
+    {
+        WriteGrantPublished(g_fileGrantPublished, context, grant, psfchPeriod);
+    }
 }
 
 void

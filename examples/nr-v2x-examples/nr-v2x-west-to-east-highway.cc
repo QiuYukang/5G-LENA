@@ -498,6 +498,7 @@ main(int argc, char* argv[])
     // Where we will store the output files.
     std::string simTag = "default";
     std::string outputDir = "./";
+    bool saveDb = true;
 
     /*
      * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -584,6 +585,7 @@ main(int argc, char* argv[])
     cmd.AddValue("mcs", "The MCS to used for sidelink", mcs);
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
     cmd.AddValue("simTag", "tag identifying the simulation campaigns", simTag);
+    cmd.AddValue("saveDb", "Flag to control the saving of database file", saveDb);
     cmd.AddValue("generateInitialPosGnuScript",
                  "generate gnuplot script to plot initial positions of the UEs",
                  generateInitialPosGnuScript);
@@ -1278,5 +1280,9 @@ main(int argc, char* argv[])
     //  config.ConfigureAttributes ();
 
     Simulator::Destroy();
+    if (!saveDb)
+    {
+        std::remove((outputDir + exampleName + ".db").c_str());
+    }
     return 0;
 }

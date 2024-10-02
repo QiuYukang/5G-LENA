@@ -17,7 +17,7 @@
 static ns3::ExampleAsTestSuite g_slMultiLcDynGcastHarq("sl-multi-lc-dyn-gcast-harq",
                                                        "sl-multi-lc-example",
                                                        "contrib/nr/test/sl-test-data",
-                                                       "");
+                                                       "--writeTraces=0");
 
 // The next test is dynamic grants, groupcast, HARQ disabled.  The output
 // demonstrates that all three LCs are scheduled in the same grant, but only
@@ -26,7 +26,7 @@ static ns3::ExampleAsTestSuite g_slMultiLcDynGcastHarq("sl-multi-lc-dyn-gcast-ha
 static ns3::ExampleAsTestSuite g_slMultiLcDynGcastNoHarq("sl-multi-lc-dyn-gcast-no-harq",
                                                          "sl-multi-lc-example",
                                                          "contrib/nr/test/sl-test-data",
-                                                         "--harqEnabled=0");
+                                                         "--harqEnabled=0 --writeTraces=0");
 
 // The next test is dynamic grants, groupcast, blind retransmissions.  The output
 // demonstrates that all three LCs are scheduled in the same grant, and five
@@ -36,7 +36,7 @@ static ns3::ExampleAsTestSuite g_slMultiLcDynGcastNoHarq("sl-multi-lc-dyn-gcast-
 static ns3::ExampleAsTestSuite g_slMultiLcDynGcastBlind("sl-multi-lc-dyn-gcast-blind",
                                                         "sl-multi-lc-example",
                                                         "contrib/nr/test/sl-test-data",
-                                                        "--psfchPeriod=0");
+                                                        "--psfchPeriod=0 --writeTraces=0");
 
 // The following two configurations demonstrate the prioritization operation when
 // there is no LC prioritization configured.  schedTypeConfig 3 configures dynamic
@@ -47,39 +47,42 @@ static ns3::ExampleAsTestSuite g_slMultiLcDynGcastBlind("sl-multi-lc-dyn-gcast-b
 static ns3::ExampleAsTestSuite g_slMultiLcPrioDyn("sl-multi-lc-prio-dyn",
                                                   "sl-multi-lc-example",
                                                   "contrib/nr/test/sl-test-data",
-                                                  "--schedTypeConfig=3");
+                                                  "--schedTypeConfig=3 --writeTraces=0");
 
 // When the 'prioToSps' flag is set to true, the SPS grant (LC 6) is scheduled first.
-static ns3::ExampleAsTestSuite g_slMultiLcPrioSps("sl-multi-lc-prio-sps",
-                                                  "sl-multi-lc-example",
-                                                  "contrib/nr/test/sl-test-data",
-                                                  "--schedTypeConfig=3 --prioToSps=1");
+static ns3::ExampleAsTestSuite g_slMultiLcPrioSps(
+    "sl-multi-lc-prio-sps",
+    "sl-multi-lc-example",
+    "contrib/nr/test/sl-test-data",
+    "--schedTypeConfig=3 --prioToSps=1 --writeTraces=0");
 
 // When the 'dstL2IdConfg is set to 3, the first flow to dstL2Id=2 will be sent as
 // unicast, the second to dstL2Id=254 will be sent as groupcast, and the third to
 // dstL2Id=255 will be sent as broadcast.  This will cause all flows to have to
 // use a separate LC.  The priorityConfig value of 2 will cause the broadcast flow
 // to be scheduled with highest priority.
-static ns3::ExampleAsTestSuite g_slMultiLcPrioBcast("sl-multi-lc-prio-bcast",
-                                                    "sl-multi-lc-example",
-                                                    "contrib/nr/test/sl-test-data",
-                                                    "--dstL2IdConfig=3 --priorityConfig=2");
+static ns3::ExampleAsTestSuite g_slMultiLcPrioBcast(
+    "sl-multi-lc-prio-bcast",
+    "sl-multi-lc-example",
+    "contrib/nr/test/sl-test-data",
+    "--dstL2IdConfig=3 --priorityConfig=2 --writeTraces=0");
 
 // When the 'dstL2IdConfg is set to 3 again, and the priorityConfig value set to 3,
 // the groupcast and unicast flow will have equal priority value of 2, above that
 // of the broadcast (1).  Which one is selected will depend on a random variable
 // draw.  With RngRun=1, the groupcast (dstL2Id 254) will be scheduled first,
 // while with RngRun=2, the unicast one (dstL2Id 4) will be scheduled first.
-static ns3::ExampleAsTestSuite g_slMultiLcPrioGcast("sl-multi-lc-prio-gcast",
-                                                    "sl-multi-lc-example",
-                                                    "contrib/nr/test/sl-test-data",
-                                                    "--dstL2IdConfig=3 --priorityConfig=3");
+static ns3::ExampleAsTestSuite g_slMultiLcPrioGcast(
+    "sl-multi-lc-prio-gcast",
+    "sl-multi-lc-example",
+    "contrib/nr/test/sl-test-data",
+    "--dstL2IdConfig=3 --priorityConfig=3 --writeTraces=0");
 // Repeat with RngRun=2
 static ns3::ExampleAsTestSuite g_slMultiLcPrioUni(
     "sl-multi-lc-prio-uni",
     "sl-multi-lc-example",
     "contrib/nr/test/sl-test-data",
-    "--dstL2IdConfig=3 --priorityConfig=3 --RngRun=2");
+    "--dstL2IdConfig=3 --priorityConfig=3 --RngRun=2 --writeTraces=0");
 
 // This test illustrates that use of a non-uniform RRI prevents all LCs from
 // being scheduled in the same grant.  rriConfig=2 and schedTypeConfig=2 will allow
@@ -89,4 +92,4 @@ static ns3::ExampleAsTestSuite g_slMultiLcPrioUni(
 static ns3::ExampleAsTestSuite g_slMultiLcRri("sl-multi-lc-rri",
                                               "sl-multi-lc-example",
                                               "contrib/nr/test/sl-test-data",
-                                              "--rriConfig=2 --schedTypeConfig=2");
+                                              "--rriConfig=2 --schedTypeConfig=2 --writeTraces=0");

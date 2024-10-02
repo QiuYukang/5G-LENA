@@ -252,6 +252,7 @@ main(int argc, char* argv[])
     // Where we will store the output files.
     std::string simTag = "default";
     std::string outputDir = "./";
+    bool saveDb = true;
 
     /*
      * From here, we instruct the ns3::CommandLine class of all the input parameters
@@ -287,6 +288,7 @@ main(int argc, char* argv[])
                  "tag to be appended to output filenames to distinguish simulation campaigns",
                  simTag);
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
+    cmd.AddValue("saveDb", "Flag to control the saving of database file", saveDb);
 
     // Parse the command line
     cmd.Parse(argc, argv);
@@ -927,5 +929,9 @@ main(int argc, char* argv[])
     psschPhyStats.EmptyCache();
 
     Simulator::Destroy();
+    if (!saveDb)
+    {
+        std::remove((outputDir + exampleName + ".db").c_str());
+    }
     return 0;
 }
