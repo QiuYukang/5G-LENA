@@ -401,7 +401,7 @@ NrUeMac::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters par
         it = m_ulBsrReceived.insert(std::make_pair(params.lcid, params)).first;
     }
 
-    if (m_srState == INACTIVE)
+    if (m_srState == INACTIVE || (params.expRbsTimer && m_srState == ACTIVE))
     {
         NS_LOG_INFO("INACTIVE -> TO_SEND, bufSize " << GetTotalBufSize());
         m_srState = TO_SEND;

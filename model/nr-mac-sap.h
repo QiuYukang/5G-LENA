@@ -62,6 +62,7 @@ class NrMacSapProvider
         uint16_t retxQueueHolDelay; /**<  the Head Of Line delay of the retransmission queue */
         uint16_t
             statusPduSize; /**< the current size of the pending STATUS RLC  PDU message in bytes */
+        bool expRbsTimer;
     };
 
     /**

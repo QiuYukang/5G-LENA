@@ -1197,6 +1197,9 @@ NrRlcUm::DoReportBufferStatus()
     r.retxQueueSize = 0;
     r.retxQueueHolDelay = 0;
     r.statusPduSize = 0;
+    r.expRbsTimer = m_expRbsTimer;
+
+    m_expRbsTimer = false;
 
     NS_LOG_LOGIC("Send ReportBufferStatus = " << r.txQueueSize << ", " << r.txQueueHolDelay);
     m_macSapProvider->ReportBufferStatus(r);
@@ -1248,6 +1251,7 @@ NrRlcUm::ExpireRbsTimer()
 
     if (!m_txBuffer.empty())
     {
+        m_expRbsTimer = true;
         DoReportBufferStatus();
         m_rbsTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcUm::ExpireRbsTimer, this);
     }

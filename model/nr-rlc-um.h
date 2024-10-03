@@ -158,6 +158,8 @@ class NrRlcUm : public NrRlc
      * Expected Sequence Number
      */
     nr::SequenceNumber10 m_expectedSeqNumber;
+
+    bool m_expRbsTimer{false};
 };
 
 } // namespace ns3
