@@ -188,6 +188,11 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-ngmn-video.cc
     utils/traffic-generators/model/traffic-generator-ngmn-voip.cc
     utils/traffic-generators/model/traffic-generator.cc
+    utils/channels/nyu/nyu-channel-condition-model.cc
+    utils/channels/nyu/nyu-spectrum-propagation-loss-model.cc
+    utils/channels/nyu/nyu-propagation-loss-model.cc
+    utils/channels/nyu/nyu-channel-model.cc
+
 )
 
 set(header_files
@@ -388,6 +393,10 @@ set(header_files
     utils/traffic-generators/model/traffic-generator-ngmn-video.h
     utils/traffic-generators/model/traffic-generator-ngmn-voip.h
     utils/traffic-generators/model/traffic-generator.h
+    utils/channels/nyu/nyu-channel-condition-model.h
+    utils/channels/nyu/nyu-spectrum-propagation-loss-model.h
+    utils/channels/nyu/nyu-propagation-loss-model.h
+    utils/channels/nyu/nyu-channel-model.h
 )
 
 set(test_sources
