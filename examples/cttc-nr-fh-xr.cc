@@ -5,17 +5,13 @@
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/boolean.h"
-#include "ns3/config-store-module.h"
 #include "ns3/config-store.h"
 #include "ns3/core-module.h"
 #include "ns3/flow-monitor-module.h"
-#include "ns3/internet-apps-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
-#include "ns3/nr-gnb-rrc.h"
 #include "ns3/nr-module.h"
-#include "ns3/packet-sink.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/xr-traffic-mixer-helper.h"
 #include <ns3/radio-environment-map-helper.h>
@@ -25,26 +21,40 @@
 /**
  * \file cttc-nr-fh-xr.cc
  * \ingroup examples
- * \brief This example allows the testing with different traffic generators and
- *        traffic mixer helper of either a simple topology consisting of 1 GNB
- *        and 1 UE or a hexagonal deployment, where the number of cells depends
- *        on the number of rings set. Notice that different UE traffic types can
- *        be set by defining the corresponding number of UEs, e.g. AR traffic type
- *        UEs would require to define x arUeNum. The propagation scenario and overall
- *        configuration depends on the nrConfigurationScenario parameter that can
- *        be set through the cmd line. Please check the possibilities provided.
+ * \brief An example to study Fronthaul limitations on XR traffic
  *
- *        The example also allows the generation of UL AR and VoIP traffic through
- *        the boolean enableUl (set it to true) parameter. Have a look at the rest
- *        of the example parameters to check all the possible options offered by
- *        this example.
- *        Notice that REM maps can also be generated although with the restriction
- *        of defining at least one VoIP UE.
+ * This example has been implemented in order to study the Fronthaul (FH) Control feature
+ * implemented in the NrFhControl class. It allows for simulations of single- or multi-cell
+ * deployments with variable number of UEs with XR traffic per cell. Each UE can be configured
+ * with AR, VR, CG and VoIP traffic. Moreover, a variety of parameters can be configured by
+ * the user, such as the propagation scenario, the data rate, the frame per seconds (FPS),
+ * the transmit power, and the antenna parameters. You can have a look at the rest of the
+ * parameters to check all the possible options offered using the following command:
  *
- * To run the simulation with the default configuration one shall run the
- * following in the command line:
+ * \code{.unparsed}
+$ ./ns3 run "cttc-nr-fh-xr --PrintHelp"
+    \endcode
  *
- * ./ns3 run cttc-nr-fh-xr
+ * The basic command to study a single-cell FH schenario with XR traffic and evaluate the impact
+ * that the FH limitation can have on the end-to-end throughput and latency, looks as follows:
+ *
+ *./ns3 run cttc-nr-fh-xr -- --fhCapacity=5000 --fhControlMethod=OptimizeRBs --frequency=30e9
+ * --bandwidth=400e6 --numerology=3 --deployment=SIMPLE --arUeNum=3 --vrUeNum=3 --cgUeNum=3
+ * --voiceUeNum=3 --appDuration=5000 --enableTDD4_1=1 --enableMimoFeedback=1 --txPower=30
+ * --distance=2 --channelUpdatePeriod=0 --channelConditionUpdatePeriod=0 --enableShadowing=0
+ * --isLos=1 --enableHarqRetx=1 --useFixedMcs=0 --enableInterServ=0 --enablePdcpDiscarding=1
+ * --schedulerType=PF --reorderingTimerMs=10
+ *
+ * The configuration used in this command is based on the 3GPP R1-2111046 specification for
+ * for performance evaluations for XR traffic.
+ * Varying the fhCapacity and the fhControlMethod you can reproduce the results presented in
+ * the paper "On the impact of Open RAN Fronthaul Control in scenarios with XR Traffic",
+ * K. Koutlia, S. Lagen, Computer Networks, Volume 253, August 2024, where you can find
+ * a detailed description of the FH Control implementation and an explanation of the results.
+ *
+ * Notice that the hexagonal deployment is not updated to latest versions of ns-3 and 5G-LENA
+ * therefore errors might por-up. If you are interested on working on it, you will have first
+ * to ensure its proper operation.
  *
  * For the REM generation use:
  *
@@ -67,278 +77,62 @@ std::ofstream m_aiTraceFile;
 std::string m_aiTraceFileName;
 std::string m_outputDir;
 
-static void
-PrintUePosition(NodeContainer ueNodes)
+struct VoiceApplicationSettings
 {
-    std::ofstream outUePositionsFile;
-    std::string filenameUePositions = "uePositions.txt";
+    Ptr<Node> ue;
+    uint32_t i;
+    Ipv4Address ueIp;
+    uint16_t uePort;
+    std::string transportProtocol;
+    Ptr<Node> remoteHost;
+    Ptr<NetDevice> ueNetDev;
+    Ptr<NrHelper> nrHelper;
+    NrEpsBearer& bearer;
+    Ptr<NrEpcTft> tft;
+    ApplicationContainer& serverApps;
+    ApplicationContainer& clientApps;
+    ApplicationContainer& pingApps;
+    std::string direction;
+    Ipv4Address remoteHostAddress;
+    uint16_t remoteHostPort;
+};
 
-    outUePositionsFile.open(filenameUePositions.c_str());
-    outUePositionsFile.setf(std::ios_base::fixed);
+static void PrintUePosition(NodeContainer ueNodes);
+void ConfigureBwpTo(BandwidthPartInfoPtr& bwp, double centerFreq, double bwpBw);
+void ReportFhTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint64_t reqFh);
+void ReportAiTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint32_t airRbs);
 
-    if (!outUePositionsFile.is_open())
-    {
-        NS_ABORT_MSG("Can't open file " << filenameUePositions);
-    }
+void ConfigurePhy(Ptr<NrHelper> nrHelper,
+                  Ptr<NetDevice> gnb,
+                  double orientationRads,
+                  uint16_t beamConfSector,
+                  double beamConfElevation);
 
-    for (uint32_t ueId = 0; ueId < ueNodes.GetN(); ++ueId)
-    {
-        Vector uepos = ueNodes.Get(ueId)->GetObject<MobilityModel>()->GetPosition();
-        outUePositionsFile << "ueId: " << ueId << ", at " << uepos << std::endl;
-    }
-
-    outUePositionsFile.close();
-}
-
-void
-ConfigureBwpTo(BandwidthPartInfoPtr& bwp, double centerFreq, double bwpBw)
-{
-    bwp->m_centralFrequency = centerFreq;
-    bwp->m_higherFrequency = centerFreq + (bwpBw / 2);
-    bwp->m_lowerFrequency = centerFreq - (bwpBw / 2);
-    bwp->m_channelBandwidth = bwpBw;
-}
-
-void
-ConfigurePhy(Ptr<NrHelper>& nrHelper,
-             Ptr<NetDevice> gnb,
-             double orientationRads,
-             uint16_t beamConfSector,
-             double beamConfElevation)
-{
-    // Change the antenna orientation
-    Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0); // BWP 0
-    Ptr<UniformPlanarArray> antenna0 = ConstCast<UniformPlanarArray>(
-        phy0->GetSpectrumPhy()->GetAntenna()->GetObject<UniformPlanarArray>());
-    antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
-
-    // configure the beam that points toward the center of hexagonal
-    // In case of beamforming, it will be overwritten.
-    phy0->GetSpectrumPhy()->GetBeamManager()->SetPredefinedBeam(beamConfSector, beamConfElevation);
-}
-
-void
-ConfigureXrApp(NodeContainer& ueContainer,
-               uint32_t i,
-               Ipv4InterfaceContainer& ueIpIface,
-               enum NrXrConfig config,
-               uint16_t uePort,
-               std::string transportProtocol,
-               NodeContainer& remoteHostContainer,
-               NetDeviceContainer& ueNetDev,
-               Ptr<NrHelper> nrHelper,
-               NrEpsBearer& bearer,
-               Ptr<NrEpcTft> tft,
-               bool isMx1,
-               std::vector<Ptr<NrEpcTft>>& tfts,
-               ApplicationContainer& serverApps,
-               ApplicationContainer& clientApps,
-               ApplicationContainer& pingApps,
-               std::string direction,
-               double arDataRate,
-               uint16_t arFps,
-               double vrDataRate,
-               uint16_t vrFps,
-               double cgDataRate,
-               Ipv4Address remoteHostAddress,
-               uint16_t remoteHostPort)
-{
-    XrTrafficMixerHelper trafficMixerHelper;
-    Ipv4Address ipAddress = ueIpIface.GetAddress(i, 0);
-    trafficMixerHelper.ConfigureXr(config);
-    auto it = XrPreconfig.find(config);
-
-    Ipv4Address address = direction == "UL" ? remoteHostAddress : ipAddress;
-    uint16_t port = direction == "UL" ? remoteHostPort : uePort;
-
-    std::vector<Address> addresses;
-    std::vector<InetSocketAddress> localAddresses;
-
-    for (uint j = 0; j < it->second.size(); j++)
-    {
-        addresses.push_back(InetSocketAddress(address, port + j));
-        // The sink will always listen to the specified ports
-        localAddresses.emplace_back(Ipv4Address::GetAny(), port + j);
-    }
-
-    ApplicationContainer currentUeClientApps;
-
-    // Seed the ARP cache by pinging early in the simulation
-    // This is a workaround until a static ARP capability is provided
-    PingHelper ping(address);
-
-    if (direction == "UL")
-    {
-        pingApps.Add(ping.Install(ueContainer.Get(i)));
-        currentUeClientApps.Add(
-            trafficMixerHelper.Install(transportProtocol, addresses, ueContainer.Get(i)));
-    }
-    else
-    {
-        pingApps.Add(ping.Install(remoteHostContainer));
-        currentUeClientApps.Add(
-            trafficMixerHelper.Install(transportProtocol, addresses, remoteHostContainer.Get(0)));
-    }
-
-    Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
-
-    // Activate a dedicated bearer for the traffic type per node
-    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
-
-    // Activate a dedicated bearer for the traffic type per node
-    if (isMx1)
-    {
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
-    }
-    else
-    {
-        NS_ASSERT(tfts.size() >= currentUeClientApps.GetN());
-        for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
-        {
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tfts[j]);
-        }
-    }
-
-    for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
-    {
-        PacketSinkHelper dlPacketSinkHelper(transportProtocol, localAddresses.at(j));
-        Ptr<Application> packetSink;
-        if (direction == "UL")
-        {
-            packetSink = dlPacketSinkHelper.Install(remoteHostContainer.Get(0)).Get(0);
-        }
-        else
-        {
-            packetSink = dlPacketSinkHelper.Install(ueContainer.Get(i)).Get(0);
-        }
-
-        serverApps.Add(packetSink);
-
-        Ptr<TrafficGenerator3gppGenericVideo> app =
-            DynamicCast<TrafficGenerator3gppGenericVideo>(currentUeClientApps.Get(j));
-        if (app && config == NrXrConfig::AR_M3)
-        {
-            app->SetAttribute("DataRate", DoubleValue(arDataRate));
-            app->SetAttribute("Fps", UintegerValue(arFps));
-        }
-        else if (app && config == NrXrConfig::VR_DL1)
-        {
-            app->SetAttribute("DataRate", DoubleValue(vrDataRate));
-            app->SetAttribute("Fps", UintegerValue(vrFps));
-        }
-        else if (app && config == NrXrConfig::CG_DL1)
-        {
-            app->SetAttribute("DataRate", DoubleValue(cgDataRate));
-        }
-    }
-    clientApps.Add(currentUeClientApps);
-}
-
-void
-ConfigureVoiceApp(NodeContainer& ueContainer,
-                  uint32_t i,
-                  Ipv4InterfaceContainer& ueIpIface,
-                  uint16_t uePort,
-                  std::string transportProtocol,
-                  NodeContainer& remoteHostContainer,
-                  NetDeviceContainer& ueNetDev,
-                  Ptr<NrHelper> nrHelper,
-                  NrEpsBearer& bearer,
-                  Ptr<NrEpcTft> tft,
-                  ApplicationContainer& serverApps,
-                  ApplicationContainer& clientApps,
-                  ApplicationContainer& pingApps,
-                  std::string direction,
-                  Ipv4Address remoteHostAddress,
-                  uint16_t remoteHostPort)
-{
-    Ipv4Address ipAddress = ueIpIface.GetAddress(i, 0);
-
-    Ipv4Address address = direction == "UL" ? remoteHostAddress : ipAddress;
-    uint16_t port = direction == "UL" ? remoteHostPort : uePort;
-
-    TrafficGeneratorHelper trafficGeneratorHelper(transportProtocol,
-                                                  InetSocketAddress(address, port),
-                                                  TrafficGeneratorNgmnVoip::GetTypeId());
-
-    // Seed the ARP cache by pinging early in the simulation
-    // This is a workaround until a static ARP capability is provided
-    PingHelper ping(ipAddress);
-
-    if (direction == "UL")
-    {
-        clientApps.Add(trafficGeneratorHelper.Install(ueContainer.Get(i)));
-        pingApps.Add(ping.Install(ueContainer.Get(i)));
-    }
-    else
-    {
-        clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
-        pingApps.Add(ping.Install(remoteHostContainer));
-    }
-
-    Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
-    // Activate a dedicated bearer for the traffic type per node
-    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
-
-    InetSocketAddress localAddress(Ipv4Address::GetAny(), port);
-    PacketSinkHelper dlPacketSinkHelper(transportProtocol, localAddress);
-    Ptr<Application> packetSink;
-    if (direction == "UL")
-    {
-        packetSink = dlPacketSinkHelper.Install(remoteHostContainer).Get(0);
-    }
-    else
-    {
-        packetSink = dlPacketSinkHelper.Install(ueContainer.Get(i)).Get(0);
-    }
-
-    serverApps.Add(packetSink);
-}
-
-void
-ReportFhTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint64_t reqFh)
-{
-    if (!m_fhTraceFile.is_open())
-    {
-        std::stringstream fileName;
-        fileName << m_outputDir << "fh-trace_" << m_fhControlMethod.c_str() << "_"
-                 << std::to_string(m_fhCapacity) << ".txt";
-        m_fhTraceFileName = fileName.str();
-        m_fhTraceFile.open(m_fhTraceFileName.c_str());
-
-        if (!m_fhTraceFile.is_open())
-        {
-            NS_FATAL_ERROR("Could not open FH tracefile");
-        }
-
-        m_fhTraceFile << "CellId"
-                      << "\t"
-                      << "BwpId"
-                      << "\t"
-                      << "FhThroughput"
-                      << "\n";
-    }
-    m_fhTraceFile << physCellId << "\t" << bwpId << "\t" << reqFh << std::endl;
-}
-
-void
-ReportAiTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint32_t airRbs)
-{
-    if (!m_aiTraceFile.is_open())
-    {
-        std::stringstream fileName;
-        fileName << m_outputDir << "air-trace_" << m_fhControlMethod.c_str() << "_"
-                 << std::to_string(m_fhCapacity) << ".txt";
-        m_aiTraceFileName = fileName.str();
-        m_aiTraceFile.open(m_aiTraceFileName.c_str());
-
-        if (!m_aiTraceFile.is_open())
-        {
-            NS_FATAL_ERROR("Could not open Air tracefile");
-        }
-    }
-    m_aiTraceFile << physCellId << "\t" << bwpId << "\t" << airRbs << std::endl;
-}
+void ConfigureVoiceApp(VoiceApplicationSettings& voiceAppSettings);
+void ConfigureXrApp(NodeContainer& ueContainer,
+                    uint32_t i,
+                    Ipv4InterfaceContainer& ueIpIface,
+                    enum NrXrConfig config,
+                    uint16_t uePort,
+                    std::string transportProtocol,
+                    NodeContainer& remoteHostContainer,
+                    NetDeviceContainer& ueNetDev,
+                    Ptr<NrHelper> nrHelper,
+                    NrEpsBearer& bearer,
+                    Ptr<NrEpcTft> tft,
+                    bool isMx1,
+                    std::vector<Ptr<NrEpcTft>>& tfts,
+                    ApplicationContainer& serverApps,
+                    ApplicationContainer& clientApps,
+                    ApplicationContainer& pingApps,
+                    std::string direction,
+                    double arDataRate,
+                    uint16_t arFps,
+                    double vrDataRate,
+                    uint16_t vrFps,
+                    double cgDataRate,
+                    Ipv4Address remoteHostAddress,
+                    uint16_t remoteHostPort);
 
 int
 main(int argc, char* argv[])
@@ -351,9 +145,8 @@ main(int argc, char* argv[])
     uint32_t freqScenario = 0; // 0 is NON-OVERLAPPING, 1 OVERLAPPING
 
     // set simulation time and mobility
-    uint32_t appDuration = 10000;
-    uint32_t appStartTimeMs = 400;
-    uint32_t rngRun = 1;
+    uint32_t appDurationParam = 10000;
+    Time appStartTimeMs = MilliSeconds(400);
 
     uint16_t arUeNum = 0;
     uint16_t vrUeNum = 0;
@@ -414,7 +207,7 @@ main(int argc, char* argv[])
     mimoPmiParams.pmSearchMethod = "ns3::NrPmSearchFull";
     mimoPmiParams.fullSearchCb = "ns3::NrCbTwoPort";
     mimoPmiParams.rankLimit = 2;
-    mimoPmiParams.subbandSize=8;
+    mimoPmiParams.subbandSize = 8;
 
     bool enableOfdma = true;
     std::string schedulerType = "RR";
@@ -567,8 +360,7 @@ main(int argc, char* argv[])
         "enableFading",
         "Used to enable/disable fading. By default is enabled. Used for the testing purposes.",
         enableFading);
-    cmd.AddValue("rngRun", "Rng run random number.", rngRun);
-    cmd.AddValue("appDuration", "Duration of the application in milliseconds.", appDuration);
+    cmd.AddValue("appDuration", "Duration of the application in milliseconds.", appDurationParam);
     cmd.AddValue("enableHarqRetx",
                  "If set to false HARQ retransmissions are disabled. Default value is true",
                  enableHarqRetx);
@@ -612,10 +404,11 @@ main(int argc, char* argv[])
 
     cmd.Parse(argc, argv);
 
+    Time appDuration = MilliSeconds(appDurationParam);
     NS_ABORT_MSG_IF(deployment == "HEX",
                     "HEX deployment needs to be updated for proper operation."
                     "Currently, only SIMPLE deployment can be tested.");
-    NS_ABORT_MSG_IF(appDuration < 1000, "The appDuration should be at least 1000ms.");
+    NS_ABORT_MSG_IF(appDuration < MilliSeconds(1000), "The appDuration should be at least 1000ms.");
     NS_ABORT_MSG_IF(!voiceUeNum && !vrUeNum && !arUeNum && !cgUeNum,
                     "Activate at least one type of traffic");
     NS_ABORT_MSG_IF(dlRem && !voiceUeNum, "For REM generation please declare a VoIP UE.");
@@ -707,9 +500,9 @@ main(int argc, char* argv[])
             ueVertPorts = 1;
             polSlantAngleUe = 0.0;
 
-            if (bandwidth==400e6)
+            if (bandwidth == 400e6)
             {
-                mimoPmiParams.subbandSize=16;
+                mimoPmiParams.subbandSize = 32;
             }
         }
 
@@ -731,7 +524,7 @@ main(int argc, char* argv[])
 
     ShowProgress spinner(Seconds(progressIntervalInSeconds));
 
-    uint32_t simTimeMs = appStartTimeMs + appDuration + 10;
+    Time simTimeMs = appStartTimeMs + appDuration + MilliSeconds(10);
     std::cout << "Start example" << std::endl;
 
     if (deployment == "HEX")
@@ -752,11 +545,11 @@ main(int argc, char* argv[])
 
     if (logging)
     {
-        // LogLevel logLevel1 =
-        //    (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO);
-        LogLevel logLevel2 =
-            (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
-        LogComponentEnable("NrFhControl", logLevel2);
+        LogLevel logLevel1 =
+            (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO);
+        // LogLevel logLevel2 =
+        //     (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
+        LogComponentEnable("NrFhControl", logLevel1);
         // LogComponentEnable("NrGnbPhy", logLevel1);
         // LogComponentEnable("NrMacSchedulerNs3", logLevel2);
         // LogComponentEnable("NrMacSchedulerOfdma", logLevel2);
@@ -773,9 +566,6 @@ main(int argc, char* argv[])
     Config::SetDefault("ns3::NrGnbRrc::EpsBearerToRlcMapping",
                        EnumValue(useUdp ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-
-    // Set simulation run number
-    SeedManager::SetRun(rngRun);
 
     // Create Hex Deployment
     ScenarioParameters scenarioParams;
@@ -1664,127 +1454,59 @@ main(int argc, char* argv[])
     ApplicationContainer clientApps;
     ApplicationContainer pingApps;
 
-    for (uint32_t i = 0; i < ueVoiceSector1Container.GetN(); ++i)
+    auto sectorContainers =
+        std::vector<std::tuple<NodeContainer, NetDeviceContainer, Ipv4InterfaceContainer>>{
+            {ueVoiceSector1Container, ueVoiceSector1NetDev, ueVoiceSector1IpIface},
+            {ueVoiceSector2Container, ueVoiceSector2NetDev, ueVoiceSector2IpIface},
+            {ueVoiceSector3Container, ueVoiceSector3NetDev, ueVoiceSector3IpIface}};
+
+    VoiceApplicationSettings voiceAppSettings = {
+        .uePort = dlPortVoiceStart,
+        .transportProtocol = transportProtocol,
+        .nrHelper = nrHelper,
+        .bearer = voiceBearer,
+        .tft = voiceTft,
+        .serverApps = serverApps,
+        .clientApps = clientApps,
+        .pingApps = pingApps,
+        .direction = "DL",
+
+    };
+    for (auto [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
     {
-        ConfigureVoiceApp(ueVoiceSector1Container,
-                          i,
-                          ueVoiceSector1IpIface,
-                          dlPortVoiceStart,
-                          transportProtocol,
-                          remoteHostContainer,
-                          ueVoiceSector1NetDev,
-                          nrHelper,
-                          voiceBearer,
-                          voiceTft,
-                          serverApps,
-                          clientApps,
-                          pingApps,
-                          "DL",
-                          internetIpIfaces.GetAddress(1),
-                          0);
-    }
-    for (uint32_t i = 0; i < ueVoiceSector2Container.GetN(); ++i)
-    {
-        ConfigureVoiceApp(ueVoiceSector2Container,
-                          i,
-                          ueVoiceSector2IpIface,
-                          dlPortVoiceStart,
-                          transportProtocol,
-                          remoteHostContainer,
-                          ueVoiceSector2NetDev,
-                          nrHelper,
-                          voiceBearer,
-                          voiceTft,
-                          serverApps,
-                          clientApps,
-                          pingApps,
-                          "DL",
-                          internetIpIfaces.GetAddress(1),
-                          0);
-    }
-    for (uint32_t i = 0; i < ueVoiceSector3Container.GetN(); ++i)
-    {
-        ConfigureVoiceApp(ueVoiceSector3Container,
-                          i,
-                          ueVoiceSector3IpIface,
-                          dlPortVoiceStart,
-                          transportProtocol,
-                          remoteHostContainer,
-                          ueVoiceSector3NetDev,
-                          nrHelper,
-                          voiceBearer,
-                          voiceTft,
-                          serverApps,
-                          clientApps,
-                          pingApps,
-                          "DL",
-                          internetIpIfaces.GetAddress(1),
-                          0);
+        for (uint32_t i = 0; i < nodeContainer.GetN(); ++i)
+        {
+            voiceAppSettings.ue = nodeContainer.Get(i);
+            voiceAppSettings.ueNetDev = netDevContainer.Get(i);
+            voiceAppSettings.ueIp = ipIfaceContainer.GetAddress(i, 0);
+            voiceAppSettings.remoteHost = remoteHostContainer.Get(0);
+            ConfigureVoiceApp(voiceAppSettings);
+        }
     }
 
     uint16_t remoteHostPort = 3254;
-
     if (enableUl)
     {
-        for (uint32_t i = 0; i < ueVoiceSector1Container.GetN(); ++i)
+        voiceAppSettings.bearer = voiceUlBearer;
+        voiceAppSettings.tft = voiceUlTft;
+        voiceAppSettings.direction = "UL";
+        for (auto [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
         {
-            ConfigureVoiceApp(ueVoiceSector1Container,
-                              i,
-                              ueVoiceSector1IpIface,
-                              ulPortVoiceStart,
-                              transportProtocol,
-                              remoteHostContainer,
-                              ueVoiceSector1NetDev,
-                              nrHelper,
-                              voiceUlBearer,
-                              voiceUlTft,
-                              serverApps,
-                              clientApps,
-                              pingApps,
-                              "UL",
-                              internetIpIfaces.GetAddress(1),
-                              remoteHostPort++);
-        }
-        for (uint32_t i = 0; i < ueVoiceSector2Container.GetN(); ++i)
-        {
-            ConfigureVoiceApp(ueVoiceSector2Container,
-                              i,
-                              ueVoiceSector2IpIface,
-                              ulPortVoiceStart,
-                              transportProtocol,
-                              remoteHostContainer,
-                              ueVoiceSector2NetDev,
-                              nrHelper,
-                              voiceUlBearer,
-                              voiceUlTft,
-                              serverApps,
-                              clientApps,
-                              pingApps,
-                              "UL",
-                              internetIpIfaces.GetAddress(1),
-                              remoteHostPort++);
-        }
-        for (uint32_t i = 0; i < ueVoiceSector3Container.GetN(); ++i)
-        {
-            ConfigureVoiceApp(ueVoiceSector3Container,
-                              i,
-                              ueVoiceSector3IpIface,
-                              ulPortVoiceStart,
-                              transportProtocol,
-                              remoteHostContainer,
-                              ueVoiceSector3NetDev,
-                              nrHelper,
-                              voiceUlBearer,
-                              voiceUlTft,
-                              serverApps,
-                              clientApps,
-                              pingApps,
-                              "UL",
-                              internetIpIfaces.GetAddress(1),
-                              remoteHostPort++);
+            for (uint32_t i = 0; i < nodeContainer.GetN(); ++i)
+            {
+                voiceAppSettings.uePort = remoteHostPort++;
+                ConfigureVoiceApp(voiceAppSettings);
+            }
         }
     }
-
+    /*std::map<NrXrConfig, std::pair<double, std::optional<uint32_t>>> xrconfigs{
+            {AR_M3, {arDataRate, arFps}},
+            {VR_DL1, {vrDataRate, vrFps}},
+            {CG_DL1, {cgDataRate, {}}},
+            };
+     for (auto config: xrconfigs)
+     {
+    */
     for (uint32_t i = 0; i < ueArSector1Container.GetN(); ++i)
     {
         ConfigureXrApp(ueArSector1Container,
@@ -1811,6 +1533,15 @@ main(int argc, char* argv[])
                        cgDataRate,
                        internetIpIfaces.GetAddress(1),
                        0);
+
+        /* Ptr<TrafficGenerator3gppGenericVideo> app =
+         DynamicCast<TrafficGenerator3gppGenericVideo>(currentUeClientApps.Get(j));
+
+         app->SetAttribute("DataRate", DoubleValue(xrconfigs.at(config).first));
+         if(!xrconfigs.at(config).second.empty())
+         {
+         app->SetAttribute("Fps", DoubleValue(xrconfigs.at(config).second));
+         }*/
     }
     for (uint32_t i = 0; i < ueArSector2Container.GetN(); ++i)
     {
@@ -2121,13 +1852,13 @@ main(int argc, char* argv[])
     }
 
     pingApps.Start(MilliSeconds(100));
-    pingApps.Stop(MilliSeconds(appStartTimeMs));
+    pingApps.Stop(appStartTimeMs);
 
     // start server and client apps
-    serverApps.Start(MilliSeconds(appStartTimeMs));
-    clientApps.Start(MilliSeconds(appStartTimeMs));
-    serverApps.Stop(MilliSeconds(simTimeMs));
-    clientApps.Stop(MilliSeconds(appStartTimeMs + appDuration));
+    serverApps.Start(appStartTimeMs);
+    clientApps.Start(appStartTimeMs);
+    serverApps.Stop(simTimeMs);
+    clientApps.Stop(appStartTimeMs + appDuration);
 
     // enable the traces provided by the nr module
     if (enableNrHelperTraces)
@@ -2235,7 +1966,7 @@ main(int argc, char* argv[])
     monitor->SetAttribute("JitterBinWidth", DoubleValue(0.001));
     monitor->SetAttribute("PacketSizeBinWidth", DoubleValue(20));
 
-    Simulator::Stop(MilliSeconds(simTimeMs));
+    Simulator::Stop(simTimeMs);
 
     std::cout << "Run simulation" << std::endl;
 
@@ -2349,7 +2080,7 @@ main(int argc, char* argv[])
             protoStream.str("UDP");
         }
 
-        Time txDuration = MilliSeconds(appDuration);
+        const Time& txDuration = appDuration;
         std::cout << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> "
                   << t.destinationAddress << ":" << t.destinationPort << ") proto "
                   << protoStream.str() << "\n";
@@ -2365,12 +2096,12 @@ main(int argc, char* argv[])
             Time rxDuration = Seconds(0);
             if (t.protocol == 6) // tcp
             {
-                rxDuration = MilliSeconds(appDuration);
+                rxDuration = appDuration;
             }
             else if (t.protocol == 17) // udp
             {
                 // rxDuration = i->second.timeLastRxPacket - i->second.timeFirstTxPacket;
-                rxDuration = MilliSeconds(appDuration + 10);
+                rxDuration = appDuration + MilliSeconds(10);
             }
             else
             {
@@ -2420,4 +2151,266 @@ main(int argc, char* argv[])
 
     Simulator::Destroy();
     return 0;
+}
+
+static void
+PrintUePosition(NodeContainer ueNodes)
+{
+    std::ofstream outUePositionsFile;
+    std::string filenameUePositions = "uePositions.txt";
+
+    outUePositionsFile.open(filenameUePositions.c_str());
+    outUePositionsFile.setf(std::ios_base::fixed);
+
+    if (!outUePositionsFile.is_open())
+    {
+        NS_ABORT_MSG("Can't open file " << filenameUePositions);
+    }
+
+    for (uint32_t ueId = 0; ueId < ueNodes.GetN(); ++ueId)
+    {
+        Vector uepos = ueNodes.Get(ueId)->GetObject<MobilityModel>()->GetPosition();
+        outUePositionsFile << "ueId: " << ueId << ", at " << uepos << std::endl;
+    }
+
+    outUePositionsFile.close();
+}
+
+void
+ConfigureBwpTo(BandwidthPartInfoPtr& bwp, double centerFreq, double bwpBw)
+{
+    bwp->m_centralFrequency = centerFreq;
+    bwp->m_higherFrequency = centerFreq + (bwpBw / 2);
+    bwp->m_lowerFrequency = centerFreq - (bwpBw / 2);
+    bwp->m_channelBandwidth = bwpBw;
+}
+
+void
+ConfigurePhy(Ptr<NrHelper> nrHelper,
+             Ptr<NetDevice> gnb,
+             double orientationRads,
+             uint16_t beamConfSector,
+             double beamConfElevation)
+{
+    // Change the antenna orientation
+    Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0); // BWP 0
+    Ptr<UniformPlanarArray> antenna0 = ConstCast<UniformPlanarArray>(
+        phy0->GetSpectrumPhy()->GetAntenna()->GetObject<UniformPlanarArray>());
+    antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
+
+    // configure the beam that points toward the center of hexagonal
+    // In case of beamforming, it will be overwritten.
+    phy0->GetSpectrumPhy()->GetBeamManager()->SetPredefinedBeam(beamConfSector, beamConfElevation);
+}
+
+void
+ConfigureXrApp(NodeContainer& ueContainer,
+               uint32_t i,
+               Ipv4InterfaceContainer& ueIpIface,
+               enum NrXrConfig config,
+               uint16_t uePort,
+               std::string transportProtocol,
+               NodeContainer& remoteHostContainer,
+               NetDeviceContainer& ueNetDev,
+               Ptr<NrHelper> nrHelper,
+               NrEpsBearer& bearer,
+               Ptr<NrEpcTft> tft,
+               bool isMx1,
+               std::vector<Ptr<NrEpcTft>>& tfts,
+               ApplicationContainer& serverApps,
+               ApplicationContainer& clientApps,
+               ApplicationContainer& pingApps,
+               std::string direction,
+               double arDataRate,
+               uint16_t arFps,
+               double vrDataRate,
+               uint16_t vrFps,
+               double cgDataRate,
+               Ipv4Address remoteHostAddress,
+               uint16_t remoteHostPort)
+{
+    XrTrafficMixerHelper trafficMixerHelper;
+    Ipv4Address ipAddress = ueIpIface.GetAddress(i, 0);
+    trafficMixerHelper.ConfigureXr(config);
+    auto it = XrPreconfig.find(config);
+
+    Ipv4Address address = direction == "UL" ? remoteHostAddress : ipAddress;
+    uint16_t port = direction == "UL" ? remoteHostPort : uePort;
+
+    std::vector<Address> addresses;
+    std::vector<InetSocketAddress> localAddresses;
+
+    for (uint j = 0; j < it->second.size(); j++)
+    {
+        addresses.push_back(InetSocketAddress(address, port + j));
+        // The sink will always listen to the specified ports
+        localAddresses.emplace_back(Ipv4Address::GetAny(), port + j);
+    }
+
+    ApplicationContainer currentUeClientApps;
+
+    // Seed the ARP cache by pinging early in the simulation
+    // This is a workaround until a static ARP capability is provided
+    PingHelper ping(address);
+
+    if (direction == "UL")
+    {
+        pingApps.Add(ping.Install(ueContainer.Get(i)));
+        currentUeClientApps.Add(
+            trafficMixerHelper.Install(transportProtocol, addresses, ueContainer.Get(i)));
+    }
+    else
+    {
+        pingApps.Add(ping.Install(remoteHostContainer));
+        currentUeClientApps.Add(
+            trafficMixerHelper.Install(transportProtocol, addresses, remoteHostContainer.Get(0)));
+    }
+
+    Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
+
+    // Activate a dedicated bearer for the traffic type per node
+    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+
+    // Activate a dedicated bearer for the traffic type per node
+    if (isMx1)
+    {
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+    }
+    else
+    {
+        NS_ASSERT(tfts.size() >= currentUeClientApps.GetN());
+        for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
+        {
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tfts[j]);
+        }
+    }
+
+    for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
+    {
+        PacketSinkHelper dlPacketSinkHelper(transportProtocol, localAddresses.at(j));
+        Ptr<Application> packetSink;
+        if (direction == "UL")
+        {
+            packetSink = dlPacketSinkHelper.Install(remoteHostContainer.Get(0)).Get(0);
+        }
+        else
+        {
+            packetSink = dlPacketSinkHelper.Install(ueContainer.Get(i)).Get(0);
+        }
+
+        serverApps.Add(packetSink);
+
+        Ptr<TrafficGenerator3gppGenericVideo> app =
+            DynamicCast<TrafficGenerator3gppGenericVideo>(currentUeClientApps.Get(j));
+        if (app && config == NrXrConfig::AR_M3)
+        {
+            app->SetAttribute("DataRate", DoubleValue(arDataRate));
+            app->SetAttribute("Fps", UintegerValue(arFps));
+        }
+        else if (app && config == NrXrConfig::VR_DL1)
+        {
+            app->SetAttribute("DataRate", DoubleValue(vrDataRate));
+            app->SetAttribute("Fps", UintegerValue(vrFps));
+        }
+        else if (app && config == NrXrConfig::CG_DL1)
+        {
+            app->SetAttribute("DataRate", DoubleValue(cgDataRate));
+        }
+    }
+    clientApps.Add(currentUeClientApps);
+}
+
+void
+ConfigureVoiceApp(VoiceApplicationSettings& voiceAppSettings)
+{
+    Ipv4Address ipAddress = voiceAppSettings.ueIp;
+    Ipv4Address address =
+        voiceAppSettings.direction == "UL" ? voiceAppSettings.remoteHostAddress : ipAddress;
+    uint16_t port = voiceAppSettings.direction == "UL" ? voiceAppSettings.remoteHostPort
+                                                       : voiceAppSettings.uePort;
+
+    TrafficGeneratorHelper trafficGeneratorHelper(voiceAppSettings.transportProtocol,
+                                                  InetSocketAddress(address, port),
+                                                  TrafficGeneratorNgmnVoip::GetTypeId());
+
+    // Seed the ARP cache by pinging early in the simulation
+    // This is a workaround until a static ARP capability is provided
+    PingHelper ping(ipAddress);
+
+    if (voiceAppSettings.direction == "UL")
+    {
+        voiceAppSettings.clientApps.Add(trafficGeneratorHelper.Install(voiceAppSettings.ue).Get(0));
+        voiceAppSettings.pingApps.Add(ping.Install(voiceAppSettings.ue));
+    }
+    else
+    {
+        voiceAppSettings.clientApps.Add(
+            trafficGeneratorHelper.Install(voiceAppSettings.remoteHost));
+        voiceAppSettings.pingApps.Add(ping.Install(voiceAppSettings.remoteHost));
+    }
+
+    Ptr<NetDevice> ueDevice = voiceAppSettings.ueNetDev;
+    // Activate a dedicated bearer for the traffic type per node
+    voiceAppSettings.nrHelper->ActivateDedicatedEpsBearer(ueDevice,
+                                                          voiceAppSettings.bearer,
+                                                          voiceAppSettings.tft);
+
+    InetSocketAddress localAddress(Ipv4Address::GetAny(), port);
+    PacketSinkHelper dlPacketSinkHelper(voiceAppSettings.transportProtocol, localAddress);
+    Ptr<Application> packetSink;
+    if (voiceAppSettings.direction == "UL")
+    {
+        packetSink = dlPacketSinkHelper.Install(voiceAppSettings.remoteHost).Get(0);
+    }
+    else
+    {
+        packetSink = dlPacketSinkHelper.Install(voiceAppSettings.ue).Get(0);
+    }
+
+    voiceAppSettings.serverApps.Add(packetSink);
+}
+
+void
+ReportFhTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint64_t reqFh)
+{
+    if (!m_fhTraceFile.is_open())
+    {
+        std::stringstream fileName;
+        fileName << m_outputDir << "fh-trace_" << m_fhControlMethod.c_str() << "_"
+                 << std::to_string(m_fhCapacity) << ".txt";
+        m_fhTraceFileName = fileName.str();
+        m_fhTraceFile.open(m_fhTraceFileName.c_str());
+
+        if (!m_fhTraceFile.is_open())
+        {
+            NS_FATAL_ERROR("Could not open FH tracefile");
+        }
+
+        m_fhTraceFile << "CellId"
+                      << "\t"
+                      << "BwpId"
+                      << "\t"
+                      << "FhThroughput"
+                      << "\n";
+    }
+    m_fhTraceFile << physCellId << "\t" << bwpId << "\t" << reqFh << std::endl;
+}
+
+void
+ReportAiTrace(const SfnSf& sfn, uint16_t physCellId, uint16_t bwpId, uint32_t airRbs)
+{
+    if (!m_aiTraceFile.is_open())
+    {
+        std::stringstream fileName;
+        fileName << m_outputDir << "air-trace_" << m_fhControlMethod.c_str() << "_"
+                 << std::to_string(m_fhCapacity) << ".txt";
+        m_aiTraceFileName = fileName.str();
+        m_aiTraceFile.open(m_aiTraceFileName.c_str());
+
+        if (!m_aiTraceFile.is_open())
+        {
+            NS_FATAL_ERROR("Could not open Air tracefile");
+        }
+    }
+    m_aiTraceFile << physCellId << "\t" << bwpId << "\t" << airRbs << std::endl;
 }

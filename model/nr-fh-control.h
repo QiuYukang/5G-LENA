@@ -319,7 +319,7 @@ class NrFhControl : public Object
      *
      * \return the max MCS
      */
-    uint8_t GetMaxMcs(uint8_t mcsTable, uint16_t modOrder);
+    uint8_t GetMaxMcs(uint8_t mcsTable, uint16_t modOrder) const;
 
     /**
      * \brief Returns the modulation order of a specific mcs of MCS Table1.
@@ -363,14 +363,16 @@ class NrFhControl : public Object
     std::unordered_map<uint32_t, uint32_t>
         m_rntiQueueSize; //!< Map for the number of bytes in RLC queues of a specific UE (bwpId,
                          //!< rnti, bytes)
-    std::unordered_map<uint16_t, uint16_t>
-        m_activeUesPerBwp; //!< Map of active UEs (with new data) per BWP (rnti, bwpId)
-    std::unordered_map<uint16_t, uint16_t>
-        m_activeBwps; //!< Map of active BWPs - with UEs with new data (bwpId, number of UEs)
-    std::unordered_map<uint16_t, uint16_t>
-        m_activeHarqUesPerBwp; //!< Map of UEs with active HARQ per BWP (rnti, bwpId)
-    std::unordered_map<uint16_t, uint16_t>
-        m_activeHarqBwps; //!< Map of active BWPs - with UEs with active HARQ (bwpId, number of UEs)
+    // std::unordered_map<uint16_t, uint16_t>
+    std::unordered_map<uint16_t, std::set<uint16_t>>
+        m_activeUesPerBwp; //!< Map of active UEs (with new data) per BWP (bwpId, set of rntis)
+    // std::unordered_map<uint16_t, uint16_t>
+    //     m_activeBwps; //!< Map of active BWPs - with UEs with new data (bwpId, number of UEs)
+    std::unordered_map<uint16_t, std::set<uint16_t>>
+        m_activeHarqUesPerBwp; //!< Map of UEs with active HARQ per BWP (bwpId, set of rntis)
+    // std::unordered_map<uint16_t, uint16_t>
+    //     m_activeHarqBwps; //!< Map of active BWPs - with UEs with active HARQ (bwpId, number of
+    //     UEs)
 
     uint64_t m_allocThrPerCell{0}; //!< the allocated fronthaul throughput after scheduling (in DL)
     std::unordered_map<uint16_t, uint64_t>

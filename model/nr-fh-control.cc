@@ -230,11 +230,13 @@ NrFhControl::SetFhNumerology(uint16_t bwpId, uint16_t num)
 void
 NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 {
-    if (m_activeUesPerBwp.find(rnti) == m_activeUesPerBwp.end()) // UE not in the map
+    if (m_activeUesPerBwp.find(bwpId) == m_activeUesPerBwp.end())
     {
-        NS_LOG_DEBUG("Creating pair for rnti: " << rnti << " and bwpId: " << bwpId);
-        m_activeUesPerBwp.insert(std::make_pair(rnti, bwpId));
+        NS_LOG_DEBUG("Creating m_activeUesPerBwp entry for bwpId: " << bwpId);
+        m_activeUesPerBwp[bwpId] = {};
     }
+    NS_LOG_DEBUG("Creating m_activeUesPerBwp entry for bwpId: " << bwpId << " and rnti: " << rnti);
+    m_activeUesPerBwp.at(bwpId).emplace(rnti);
 
     uint32_t c1 = Cantor(bwpId, rnti);
     if (m_rntiQueueSize.find(c1) == m_rntiQueueSize.end()) // UE not in the map
@@ -243,18 +245,6 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
                               << bwpId << " and rnti: " << rnti << " with bytes: " << bytes);
 
         m_rntiQueueSize.insert(std::make_pair(c1, bytes));
-
-        if (m_activeBwps.find(bwpId) == m_activeBwps.end())
-        {
-            NS_LOG_DEBUG("Creating activeBWPs pair for bwp: " << bwpId << " with 1 UE");
-            m_activeBwps.insert((std::make_pair(bwpId, 1)));
-        }
-        else
-        {
-            m_activeBwps.at(bwpId)++;
-            NS_LOG_DEBUG("Update activeBWPs pair for bwp: " << bwpId << " with: "
-                                                            << m_activeBwps.at(bwpId) << " UEs");
-        }
     }
     else
     {
@@ -267,24 +257,14 @@ NrFhControl::DoSetActiveUe(uint16_t bwpId, uint16_t rnti, uint32_t bytes)
 void
 NrFhControl::DoSetActiveHarqUes(uint16_t bwpId, uint16_t rnti)
 {
-    if (m_activeHarqUesPerBwp.find(rnti) == m_activeHarqUesPerBwp.end()) // UE not in the map
+    if (m_activeHarqUesPerBwp.find(bwpId) == m_activeHarqUesPerBwp.end()) // UE not in the map
     {
-        NS_LOG_DEBUG("Creating m_activeHarqUesPerBwp pair for rnti: " << rnti
-                                                                      << " and bwpId: " << bwpId);
-        m_activeHarqUesPerBwp.insert(std::make_pair(rnti, bwpId));
-
-        if (m_activeHarqBwps.find(bwpId) == m_activeHarqBwps.end())
-        {
-            NS_LOG_DEBUG("Creating m_activeHarqBwps pair for bwp: " << bwpId << " with 1 UE");
-            m_activeHarqBwps.insert((std::make_pair(bwpId, 1)));
-        }
-        else
-        {
-            m_activeHarqBwps.at(bwpId)++;
-            NS_LOG_DEBUG("Update m_activeHarqBwps pair for bwp: "
-                         << bwpId << " with: " << m_activeHarqBwps.at(bwpId) << " UEs");
-        }
+        NS_LOG_DEBUG("Creating m_activeHarqUesPerBwp entry for bwpId: " << bwpId);
+        m_activeHarqUesPerBwp[bwpId] = {};
     }
+    NS_LOG_DEBUG("Creating m_activeHarqUesPerBwp entry for bwpId: " << bwpId
+                                                                    << " and rnti: " << rnti);
+    m_activeHarqUesPerBwp.at(bwpId).emplace(rnti);
 }
 
 void
@@ -318,46 +298,37 @@ NrFhControl::DoUpdateActiveUesMap(
                                     alloc.m_dci->m_rank);
         if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
         {
-            m_reqFhDlThrTracedValuePerBwp.insert(std::make_pair(bwpId, fhDlThr));
             NS_LOG_DEBUG("Create pair for m_reqFhDlThrTracedValuePerBwp.at("
                          << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
         }
-        else
-        {
-            m_reqFhDlThrTracedValuePerBwp.at(bwpId) += fhDlThr;
-            NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
-                         << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
-        }
+        m_reqFhDlThrTracedValuePerBwp[bwpId] += fhDlThr;
+        NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
+                     << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
 
         // Create/Update used RBs of the air of a specific bwpId (AI Trace)
         if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwp not in the map
         {
-            m_rbsAirTracedValue.insert(std::make_pair(bwpId, numRbs));
             NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at("
                          << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
         }
-        else // bwpId already in the map: increase traced value
-        {
-            m_rbsAirTracedValue[bwpId] += numRbs;
-            NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << ")"
-                                                          << m_rbsAirTracedValue[bwpId] << " RBs");
-        }
+        m_rbsAirTracedValue[bwpId] += numRbs;
+        NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << ")" << m_rbsAirTracedValue[bwpId]
+                                                      << " RBs");
+
         if (alloc.m_dci->m_ndi == 0) // retx
         {
             NS_LOG_DEBUG("Retransmission, update only m_activeHarqUesPerBwp");
             if (m_activeHarqUesPerBwp.find(rnti) != m_activeHarqUesPerBwp.end())
             {
-                m_activeHarqUesPerBwp.erase(rnti);
-                m_activeHarqBwps.at(bwpId)--;
-                NS_ASSERT_MSG(m_activeHarqBwps.at(bwpId) >= 0,
-                              "m_activeHarqBwps map negative, sth is wrong");
+                m_activeHarqUesPerBwp.at(bwpId).erase(rnti);
                 NS_LOG_DEBUG("Update m_activeHarqBwps map for bwpId: "
-                             << bwpId << " with: " << m_activeHarqBwps.at(bwpId) << " UEs");
-                if (m_activeHarqBwps.at(bwpId) == 0)
+                             << bwpId << " with: " << m_activeHarqUesPerBwp.at(bwpId).size()
+                             << " UEs");
+                if (m_activeHarqUesPerBwp.at(bwpId).empty())
                 {
                     NS_LOG_DEBUG(
                         "Remove BWP from m_activeHarqBwps because we served all its HARQ UEs");
-                    m_activeHarqBwps.erase(bwpId);
+                    m_activeHarqUesPerBwp.erase(bwpId);
                 }
             }
             continue;
@@ -367,20 +338,14 @@ NrFhControl::DoUpdateActiveUesMap(
         if (m_rntiQueueSize.empty())
         {
             NS_LOG_DEBUG("empty MAP");
-            NS_ABORT_MSG_IF(!m_activeUesPerBwp.empty(),
+            NS_ABORT_MSG_IF(!m_activeUesPerBwp.at(bwpId).empty(),
                             "No UE in map, but something in activeUes map");
             continue;
         }
 
         if (ueMap.find(rnti) != ueMap.end())
         {
-            uint32_t totBuffer = 0;
-            // compute total DL bytes buffered
-            for (const auto& lcgInfo : ueMap.at(rnti)->m_dlLCG)
-            {
-                const auto& lcg = lcgInfo.second;
-                totBuffer += lcg->GetTotalSize();
-            }
+            uint32_t totBuffer = ueMap.at(rnti)->GetTotalDlBuffer();
             if (totBuffer > 0)
             {
                 m_rntiQueueSize.at(c1) = totBuffer;
@@ -393,16 +358,14 @@ NrFhControl::DoUpdateActiveUesMap(
                 NS_LOG_INFO(
                     "Removing UE because we served it. RLC queue size: " << m_rntiQueueSize.at(c1));
                 m_rntiQueueSize.erase(c1);
-                m_activeUesPerBwp.erase(rnti);
-                m_activeBwps.at(bwpId)--;
-                NS_ASSERT_MSG(m_activeBwps.at(bwpId) >= 0, "ActiveBwps map negative, sth is wrong");
+                m_activeUesPerBwp.at(bwpId).erase(rnti);
                 NS_LOG_DEBUG("Update ActiveBwps map for bwpId: "
-                             << bwpId << " with: " << m_activeBwps.at(bwpId) << " UEs");
+                             << bwpId << " with: " << m_activeUesPerBwp.at(bwpId).size() << " UEs");
 
-                if (m_activeBwps.at(bwpId) == 0)
+                if (m_activeUesPerBwp.at(bwpId).empty())
                 {
                     NS_LOG_DEBUG("Remove BWP from Active BWPs because we served all its UEs");
-                    m_activeBwps.erase(bwpId);
+                    m_activeUesPerBwp.erase(bwpId);
                 }
             }
         }
@@ -416,27 +379,19 @@ NrFhControl::DoUpdateActiveUesMap(
 uint16_t
 NrFhControl::GetNumberActiveUes(uint16_t bwpId) const
 {
-    uint16_t numActiveUes = 0;
-    for (auto& it : m_activeUesPerBwp)
-    {
-        if (it.second == bwpId)
-        {
-            numActiveUes++;
-        }
-    }
-    return numActiveUes;
+    return m_activeUesPerBwp.at(bwpId).size();
 }
 
 uint16_t
 NrFhControl::GetNumberActiveBwps() const
 {
     // BWPs with active UEs with new data
-    uint16_t numActiveBwps = m_activeBwps.size();
-    for (auto& it : m_activeHarqBwps)
+    uint16_t numActiveBwps = m_activeUesPerBwp.size();
+    for (auto& it : m_activeHarqUesPerBwp)
     {
         // If there is an active BWP with active HARQ UE(s)
         // and it is not included in the active BWPs list
-        if (m_activeBwps.find(it.first) == m_activeBwps.end())
+        if (m_activeUesPerBwp.find(it.first) == m_activeUesPerBwp.end())
         {
             numActiveBwps++; // increment the number of active BWPs
         }
@@ -476,26 +431,19 @@ NrFhControl::DoGetDoesAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs
                          << m_allocThrPerBwp.at(bwpId));
             return true;
         }
-        else
-        {
-            NS_LOG_DEBUG("BWP not in the map, Allocation cannot be included");
-            return false;
-        }
+        NS_LOG_DEBUG("BWP not in the map, Allocation cannot be included");
+        return false;
     } // bwp in the map & we can store the allocation
-    else if ((m_allocThrPerBwp[bwpId] + thr) <
-             (m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps) * 1e6))
+    if ((m_allocThrPerBwp[bwpId] + thr) <
+        (m_fhCapacity / static_cast<uint32_t>(numOfActiveBwps) * 1e6))
     {
         m_allocThrPerBwp[bwpId] += thr;
         NS_LOG_DEBUG(
             "BWP in the map, Allocation can be included. BWP Thr: " << m_allocThrPerBwp.at(bwpId));
-
         return true;
     }
-    else // we cannot include the allocation
-    {
-        NS_LOG_INFO("BWP in the map, Allocation cannot be included");
-        return false;
-    }
+    NS_LOG_INFO("BWP in the map, Allocation cannot be included");
+    return false;
 }
 
 uint8_t
@@ -615,31 +563,22 @@ NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
     // bwpId not in the map
     if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
     {
-        m_reqFhDlThrTracedValuePerBwp.insert(
-            std::make_pair(bwpId, GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank)));
         NS_LOG_DEBUG("Create pair for"
                      << " m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
                      << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
     }
-    else // bwpId already in the map: increase traced value
-    {
-        m_reqFhDlThrTracedValuePerBwp.at(bwpId) += GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank);
-        NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
-                     << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
-    }
+    m_reqFhDlThrTracedValuePerBwp[bwpId] += GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank);
+    NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
+                 << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
 
     if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwpId not in the map
     {
-        m_rbsAirTracedValue.insert(std::make_pair(bwpId, numRbs));
         NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at("
                      << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
     }
-    else // bwpId already in the map: increase traced value
-    {
-        m_rbsAirTracedValue[bwpId] += numRbs;
-        NS_LOG_DEBUG("Update m_rbsAirTracedValue.at("
-                     << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
-    }
+    m_rbsAirTracedValue[bwpId] += numRbs;
+    NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << "): " << m_rbsAirTracedValue.at(bwpId)
+                                                  << " RBs");
 }
 
 void
@@ -722,7 +661,7 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRa
 }
 
 uint8_t
-NrFhControl::GetMaxMcs(uint8_t mcsTable, uint16_t modOrder)
+NrFhControl::GetMaxMcs(uint8_t mcsTable, uint16_t modOrder) const
 {
     uint8_t mcsMax = 0;
     if (mcsTable == 1)

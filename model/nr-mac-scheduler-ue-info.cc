@@ -158,6 +158,18 @@ NrMacSchedulerUeInfo::ResetUlMetric()
 }
 
 uint32_t
+NrMacSchedulerUeInfo::GetTotalDlBuffer() const
+{
+    uint32_t totBuffer = 0;
+    for (const auto& lcgInfo : m_dlLCG)
+    {
+        const auto& lcg = lcgInfo.second;
+        totBuffer += lcg->GetTotalSize();
+    }
+    return totBuffer;
+}
+
+uint32_t
 NrMacSchedulerUeInfo::GetNumRbPerRbg() const
 {
     return m_getNumRbPerRbg();

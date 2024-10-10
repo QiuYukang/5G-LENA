@@ -44,19 +44,15 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
     m_schedHarq->InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
     m_schedHarq->InstallGetFhControlMethodFn(
         std::bind(&NrMacSchedulerNs3::GetFhControlMethod, this));
-    m_schedHarq->InstallDoesFhAllocationFitFn(std::bind(&NrMacSchedulerNs3::DoesFhAllocationFit,
-                                                        this,
-                                                        std::placeholders::_1,
-                                                        std::placeholders::_2,
-                                                        std::placeholders::_3,
-                                                        std::placeholders::_4));
+    m_schedHarq->InstallDoesFhAllocationFitFn(
+        std::bind_front(&NrMacSchedulerNs3::DoesFhAllocationFit, this));
 
     m_cqiManagement.InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_cqiManagement.InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
-    m_cqiManagement.InstallGetNrAmcDlFn(std::bind([this]() { return m_dlAmc; }));
-    m_cqiManagement.InstallGetNrAmcUlFn(std::bind([this]() { return m_ulAmc; }));
-    m_cqiManagement.InstallGetStartMcsDlFn(std::bind([this]() { return m_startMcsDl; }));
-    m_cqiManagement.InstallGetStartMcsUlFn(std::bind([this]() { return m_startMcsUl; }));
+    m_cqiManagement.InstallGetNrAmcDlFn([this]() { return m_dlAmc; });
+    m_cqiManagement.InstallGetNrAmcUlFn([this]() { return m_ulAmc; });
+    m_cqiManagement.InstallGetStartMcsDlFn([this]() { return m_startMcsDl; });
+    m_cqiManagement.InstallGetStartMcsUlFn([this]() { return m_startMcsUl; });
 
     // If more Srs allocators will be created, then we will add an attribute
     m_schedulerSrs = CreateObject<NrMacSchedulerSrsDefault>();
@@ -2298,12 +2294,6 @@ NrMacSchedulerNs3::CallNrFhControlForMapUpdate(
     const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap)
 {
     m_nrFhSchedSapProvider->UpdateActiveUesMap(GetBwpId(), allocation, ueMap);
-}
-
-uint64_t
-NrMacSchedulerNs3::DoGetRbPerRbgForNrFhControl()
-{
-    return GetNumRbPerRbg();
 }
 
 /**

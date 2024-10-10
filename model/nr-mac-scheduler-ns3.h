@@ -344,7 +344,6 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         const NrMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
     uint8_t GetDlCtrlSyms() const override;
     uint8_t GetUlCtrlSyms() const override;
-    uint64_t DoGetRbPerRbgForNrFhControl();
 
     /**
      * \brief Assign a fixed random variable stream number to the random variables
@@ -707,6 +706,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
 
     virtual LCPtr CreateLC(const nr::LogicalChannelConfigListElement_s& config) const;
 
+  public:
     /**
      * \brief Private function that is used to get the number of resource
      * blocks per resource block group and also to check whether this value is

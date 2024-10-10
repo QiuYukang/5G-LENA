@@ -215,6 +215,8 @@ class NrMacSchedulerUeInfo
      */
     virtual void ResetUlMetric();
 
+    uint32_t GetTotalDlBuffer() const;
+
     /**
      * \brief Received CQI information
      */

@@ -214,7 +214,7 @@ template <class C>
 uint64_t
 MemberNrFhSchedSapUser<C>::GetNumRbPerRbgFromSched()
 {
-    return m_owner->DoGetRbPerRbgForNrFhControl();
+    return m_owner->GetNumRbPerRbg();
 }
 
 } // namespace ns3
