@@ -232,9 +232,6 @@ NrPhyPatternTestCase::CreatePhy(const Ptr<NrGnbMac>& mac) const
     cam->SetNrGnbMac(mac);
     phy->SetCam(cam);
 
-    Ptr<NrHarqPhy> harq = Create<NrHarqPhy>();
-    channelPhy->InstallHarqPhyModule(harq);
-
     Ptr<NrChunkProcessor> pData = Create<NrChunkProcessor>();
     channelPhy->AddDataSinrChunkProcessor(pData);
 

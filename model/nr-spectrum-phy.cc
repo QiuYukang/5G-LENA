@@ -870,13 +870,6 @@ NrSpectrumPhy::UpdateSinrPerceived(const SpectrumValue& sinr)
 }
 
 void
-NrSpectrumPhy::InstallHarqPhyModule(const Ptr<NrHarqPhy>& harq)
-{
-    NS_ABORT_IF(m_harqPhyModule != nullptr);
-    m_harqPhyModule = harq;
-}
-
-void
 NrSpectrumPhy::InstallPhy(const Ptr<NrPhy>& phyModel)
 {
     m_phy = phyModel;
@@ -898,12 +891,6 @@ Ptr<SpectrumChannel>
 NrSpectrumPhy::GetSpectrumChannel() const
 {
     return m_channel;
-}
-
-Ptr<NrHarqPhy>
-NrSpectrumPhy::GetHarqPhyModule() const
-{
-    return m_harqPhyModule;
 }
 
 Ptr<NrInterference>
@@ -1335,9 +1322,9 @@ NrSpectrumPhy::CheckTransportBlockCorruptionStatus()
         }
 
         const NrErrorModel::NrErrorModelHistory& harqInfoList =
-            m_harqPhyModule->GetHarqProcessInfoDlUl(tbInfo.m_expected.m_isDownlink,
-                                                    rnti,
-                                                    tbInfo.m_expected.m_harqProcessId);
+            m_harqPhyModule.GetHarqProcessInfoDlUl(tbInfo.m_expected.m_isDownlink,
+                                                   rnti,
+                                                   tbInfo.m_expected.m_harqProcessId);
 
         NS_ABORT_MSG_IF(!m_errorModelType.IsChildOf(NrErrorModel::GetTypeId()),
                         "The error model must be a child of NrErrorModel");
@@ -1420,13 +1407,13 @@ NrSpectrumPhy::SendUlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
     // Arrange the history
     if (!tbInfo.m_isCorrupted || tbInfo.m_expected.m_rv == 3)
     {
-        m_harqPhyModule->ResetUlHarqProcessStatus(rnti, tbInfo.m_expected.m_harqProcessId);
+        m_harqPhyModule.ResetUlHarqProcessStatus(rnti, tbInfo.m_expected.m_harqProcessId);
     }
     else
     {
-        m_harqPhyModule->UpdateUlHarqProcessStatus(rnti,
-                                                   tbInfo.m_expected.m_harqProcessId,
-                                                   tbInfo.m_outputOfEM);
+        m_harqPhyModule.UpdateUlHarqProcessStatus(rnti,
+                                                  tbInfo.m_expected.m_harqProcessId,
+                                                  tbInfo.m_outputOfEM);
     }
 }
 
@@ -1456,15 +1443,15 @@ NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
     {
         NS_LOG_DEBUG("Reset Dl process: " << +tbInfo.m_expected.m_harqProcessId << " for RNTI "
                                           << rnti);
-        m_harqPhyModule->ResetDlHarqProcessStatus(rnti, tbInfo.m_expected.m_harqProcessId);
+        m_harqPhyModule.ResetDlHarqProcessStatus(rnti, tbInfo.m_expected.m_harqProcessId);
     }
     else
     {
         NS_LOG_DEBUG("Update Dl process: " << +tbInfo.m_expected.m_harqProcessId << " for RNTI "
                                            << rnti);
-        m_harqPhyModule->UpdateDlHarqProcessStatus(rnti,
-                                                   tbInfo.m_expected.m_harqProcessId,
-                                                   tbInfo.m_outputOfEM);
+        m_harqPhyModule.UpdateDlHarqProcessStatus(rnti,
+                                                  tbInfo.m_expected.m_harqProcessId,
+                                                  tbInfo.m_outputOfEM);
     }
     return harqDlInfo;
 }

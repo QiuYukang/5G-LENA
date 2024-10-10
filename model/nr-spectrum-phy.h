@@ -343,11 +343,6 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void UpdateSrsSnrPerceived(const double srsSnr);
     /**
-     * \brief Install HARQ phy module of this spectrum phy
-     * \param harq Harq module of this spectrum phy
-     */
-    void InstallHarqPhyModule(const Ptr<NrHarqPhy>& harq);
-    /**
      * \brief Set NrPhy of this spectrum phy in order to be able
      * to obtain information such as cellId, bwpId, etc.
      */
@@ -364,10 +359,6 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Returns spectrum channel object to which is attached this spectrum phy instance
      */
     Ptr<SpectrumChannel> GetSpectrumChannel() const;
-    /**
-     * \return HARQ module of this spectrum phy
-     */
-    Ptr<NrHarqPhy> GetHarqPhyModule() const;
     /**
      * \return NrInterference instance of this spectrum phy
      */
@@ -623,7 +614,6 @@ class NrSpectrumPhy : public SpectrumPhy
     Ptr<NrErrorModel> m_errorModel{nullptr}; //!< a pointer to the error model instance
     Ptr<Object> m_antenna{nullptr}; //!< antenna object of this NrSpectrumPhy, currently supported
                                     //!< UniformPlannarArray type of antenna
-    Ptr<NrHarqPhy> m_harqPhyModule{nullptr}; //!< the HARQ module of this spectrum phy instance
     Ptr<NrInterference> m_interferenceData{nullptr}; //!< the interference object used to calculate
                                                      //!< the interference for this spectrum phy
     Ptr<NrInterference> m_interferenceCtrl{nullptr}; //!< the interference object used to calculate
@@ -633,6 +623,8 @@ class NrSpectrumPhy : public SpectrumPhy
                   //!< phy, exists only at gNB phy
     Ptr<SpectrumValue> m_txPsd{nullptr};          //!< tx power spectral density
     Ptr<UniformRandomVariable> m_random{nullptr}; //!< the random variable used for TB decoding
+
+    NrHarqPhy m_harqPhyModule; //!< the HARQ module of this spectrum phy instance
 
     std::unordered_map<uint16_t, TransportBlockInfo>
         m_transportBlocks; //!< Transport block map per RNTI of TBs which are expected to be
