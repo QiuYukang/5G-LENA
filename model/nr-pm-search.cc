@@ -4,6 +4,7 @@
 
 #include "nr-pm-search.h"
 
+#include "ns3/boolean.h"
 #include "ns3/enum.h"
 
 namespace ns3
@@ -38,7 +39,13 @@ NrPmSearch::GetTypeId()
                                 DownsamplingTechnique::RandomPRB,
                                 "RandomPRB",
                                 DownsamplingTechnique::AveragePRB,
-                                "AveragePRB"));
+                                "AveragePRB"))
+            .AddAttribute("SubbandCqiClamping",
+                          "Clamp sub-band CQI range to wideband CQI [-1,+2], according to 3GPP "
+                          "2-bit information overhead limit",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrPmSearch::m_subbandCqiClamping),
+                          MakeBooleanChecker());
     return tid;
 }
 

@@ -116,7 +116,9 @@ class NrPmSearch : public Object
                              ///< capacity / SINR / CQI / TB size) used to find optimal precoding
     };
 
-    size_t m_subbandSize{1};                            ///< Size of each subband (in number of RBs)
+    size_t m_subbandSize{1};   ///< Size of each subband (in number of RBs)
+    bool m_subbandCqiClamping; ///< Clamp sub-band CQI range to wideband CQI [-1,+2], according to
+                               ///< 3GPP
     enum DownsamplingTechnique m_downsamplingTechnique; ///< Technique used to downsample PRBs
     Ptr<UniformRandomVariable>
         m_downsamplingUniRand; ///< Uniform variable stream used to downsample PRBs

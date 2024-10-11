@@ -179,6 +179,23 @@ NrPmSearchFull::CreateCqiForRank(uint8_t rank, const NrIntfNormChanMat& rbNormCh
     // For the optimal precoding matrix, determine the achievable TB size and TBLER.
     auto mcsParams = m_amc->GetMaxMcsParams(sinrMat, m_subbandSize);
 
+    // Clamp sub-band CQI according to 3GPP 2-bit overhead limit
+    if (m_subbandCqiClamping)
+    {
+        for (auto& sbCqi : mcsParams.sbCqis)
+        {
+            auto diff = (int)sbCqi - (int)mcsParams.wbCqi;
+            if (diff > 2)
+            {
+                sbCqi = mcsParams.wbCqi + 2;
+            }
+            else if (diff < -1)
+            {
+                sbCqi = mcsParams.wbCqi - 1;
+            }
+        }
+    }
+
     // Store parameters for this rank
     auto cqiMsg = PmCqiInfo{
         .m_mcs = mcsParams.mcs,
