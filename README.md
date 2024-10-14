@@ -62,6 +62,8 @@ In alphabetical order:
 - Ana Larranaga
 - Natale Patriciello
 
+Contributors: Tom Henderson, Giovanni Grieco, Carlos Herranz, André Apitzsch
+
 Inspired by [mmWave module by NYU/UniPD](https://github.com/nyuwireless-unipd/ns3-mmwave)
 
 ## Contributing to 5G-LENA
@@ -151,7 +153,7 @@ for each nr release.
 
 | nr version     | ns-3 version | Build system  | Release date       |
 | :------------: | :-----------:| :-----------: |--------------------|
-| 5g-lena-v3.3.y | ns-3.42      | cmake         | October TBC, 2024  |
+| 5g-lena-v3.3.y | ns-3.42      | cmake         | October 15, 2024   |
 | 5g-lena-v3.2.y | ns-3.42      | cmake         | September 25, 2024 |
 | 5g-lena-v3.1.y | ns-3.42      | cmake         | July 19, 2024      |
 | 5g-lena-v3.0.y | ns-3.41      | cmake         | February 16, 2024  |

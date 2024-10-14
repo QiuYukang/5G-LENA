@@ -30,5 +30,5 @@ project = "NR Module"
 copyright = "2024"
 author = "OpenSim CTTC/CERCA"
 
-version = "3.2"
-release = "3.2"
+version = "3.3"
+release = "3.3"

@@ -1859,9 +1859,9 @@ When the Fronthaul Control is activated, an instance of the NrFhControl is creat
 cell. Notice, that if a cell is configured with more than 1 BWPs, the available fronthaul
 capacity will be shared among the active BWPs.
 
-NrFhControl gets as inputs the available fronthaul capacity, the limit model to be applied
-(i.e., Dropping, Postponing, OptimizeMcs and OptimizeRBs) that will restrict user allocations,
-and the dynamic overhead to implement modulation compression.
+NrFhControl gets as inputs the available fronthaul capacity, the frontahul control method
+to be applied (i.e., Dropping, Postponing, OptimizeMcs and OptimizeRBs) that will restrict
+user allocations, and the dynamic overhead to implement modulation compression.
 
 The ``NrHelper`` is responsible for the creation of the ``NrFhControl`` instance, while a set
 of SAPs (``NrFhSchedSapProvider``, ``NrFhSchedSapUser``, ``NrFhPhySapProvider``, ``NrFhPhySapUser``)

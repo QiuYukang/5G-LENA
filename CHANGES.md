@@ -48,17 +48,6 @@ the cracks, unfortunately.  If you, as a user, can suggest improvements
 to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
-
-## Changes from NR-v3.2 to v3.3
-
-### New API:
-
-### Changes to existing API:
-
-### Changed behavior:
-- In the OFDMA access mode, allocate, at least, the number of RBs necessary
-  to transmit the minimum TBS.
-
 ---
 
 ## Changes from NR-v3.2 to v3.3
@@ -69,6 +58,8 @@ us a note on ns-developers mailing list.
   allows the simulation of a limited-capacity fronthaul (FH) link. This class interacts
   with the PHY and MAC layers through the ``NrFhPhySapProvider``, ``NrFhPhySapUser``,
   ``NrFhSchedSapProvider`` and ``NrFhSchedSapUser`` SAPs.
+
+- Added ``BwpManagerAlgorithm::GetAlgorithm()`` to retrieve the ``BwpManagerAlgorithm``. 
 
 ### Changes to existing API:
 
@@ -82,7 +73,10 @@ us a note on ns-developers mailing list.
 
 ### Changed behavior:
 
-- None
+- (37dea723) In the OFDMA access mode, allocate, at least, the number of RBs necessary
+  to transmit the minimum TBS.
+
+- (2dd513a7) Delay the shuffling of the SRS offset until the stream assignment.
 
 ---
 

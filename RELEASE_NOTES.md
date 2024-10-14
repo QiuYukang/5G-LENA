@@ -21,11 +21,11 @@ Release NR-v3.3
 
 Availability
 ------------
-Available since October TBC, 2024
+Available since October 15, 2024
 
 Cite this version
 -----------------
-DOI: TBC
+DOI: 10.5281/zenodo.13929095
 
 Supported platforms
 -------------------
@@ -36,7 +36,7 @@ This release has been tested on the following platforms:
 - Ubuntu 23.04 with g++13.
 - Ubuntu 23.10 (Mantic Minotaur) with clang-16.
 
-This release will be compatible with ns-3.4x.
+This release is compatible with ns-3.42.
 
 Important news
 --------------
@@ -71,7 +71,7 @@ New user-visible features
 
 Bugs fixed
 ----------
-None.
+- (2b84532c) Set the correct UL output file name for the ``NrMacSchedulingStats``.
 
 Known issues
 ------------

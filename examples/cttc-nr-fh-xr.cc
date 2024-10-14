@@ -1507,6 +1507,7 @@ main(int argc, char* argv[])
      for (auto config: xrconfigs)
      {
     */
+
     for (uint32_t i = 0; i < ueArSector1Container.GetN(); ++i)
     {
         ConfigureXrApp(ueArSector1Container,
