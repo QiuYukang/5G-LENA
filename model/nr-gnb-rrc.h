@@ -91,9 +91,18 @@ class NrUeManager : public Object
 
     ~NrUeManager() override;
 
-    // inherited from Object
+    /**
+     * \brief Perform post-creation configuration steps
+     *
+     * This method is called after the NrUeManager is created and added
+     * to the NrGnbRrc's UE map.  This method configures the gNB side of
+     * the SRB0 and SRB1, the SAP objects, and propagates some information
+     * to the MAC and PHY layers.
+     */
+    void Configure();
+
   protected:
-    void DoInitialize() override;
+    // inherited from Object
     void DoDispose() override;
 
   public:
@@ -124,6 +133,32 @@ class NrUeManager : public Object
      * It triggers RRC connection reconfiguration.
      */
     void InitialContextSetupRequest();
+
+    /**
+     * \brief Initialize the SAP objects
+     */
+    void ConfigureSap();
+
+    /**
+     * \brief Initialize the gNB side of SRB0
+     */
+    void ConfigureSrb0();
+
+    /**
+     * \brief Initialize the gNB side of SRB1
+     */
+    void ConfigureSrb1();
+
+    /**
+     * \brief Configure MAC and PHY aspects
+     *
+     * Generate UeUpdateConfigurationReq() towards the MAC, with RNTI and
+     * transmission mode. Generate SetSrsConfigurationIndex() towards
+     * the PHY.  Schedule this NrUeManager instance to be deleted if the
+     * UE does not give any sign of life by the RRC connection request
+     * timeout duration.
+     */
+    void ConfigureMacPhy();
 
     /**
      * Setup a new data radio bearer, including both the configuration

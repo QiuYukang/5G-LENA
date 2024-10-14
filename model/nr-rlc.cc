@@ -189,13 +189,6 @@ NrRlcSm::GetTypeId()
 }
 
 void
-NrRlcSm::DoInitialize()
-{
-    NS_LOG_FUNCTION(this);
-    ReportBufferStatus();
-}
-
-void
 NrRlcSm::DoDispose()
 {
     NS_LOG_FUNCTION(this);

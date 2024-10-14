@@ -540,7 +540,7 @@ NrUeRrc::GetPrimaryDlIndex() const
 }
 
 void
-NrUeRrc::DoInitialize()
+NrUeRrc::InitializeSrb0()
 {
     NS_LOG_FUNCTION(this);
 
@@ -574,6 +574,7 @@ NrUeRrc::DoInitialize()
 void
 NrUeRrc::InitializeSap()
 {
+    NS_LOG_FUNCTION(this);
     if (m_numberOfComponentCarriers < nr::MIN_NO_CC || m_numberOfComponentCarriers > nr::MAX_NO_CC)
     {
         // this check is needed in order to maintain backward compatibility with scripts and tests
@@ -1633,8 +1634,6 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
                                                    lcConfigFromCcm,
                                                    msu);
             }
-
-            rlc->Initialize();
         }
         else
         {

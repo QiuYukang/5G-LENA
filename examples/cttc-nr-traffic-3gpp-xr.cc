@@ -219,9 +219,6 @@ main(int argc, char* argv[])
     nrHelper->SetEpcHelper(nrEpcHelper);
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
-    // Initialize nrHelper
-    nrHelper->Initialize();
-
     NodeContainer gNbNodes;
     NodeContainer ueNodes;
     MobilityHelper mobility;

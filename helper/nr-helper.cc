@@ -291,7 +291,6 @@ NrHelper::InstallUeDevice(const NodeContainer& c,
                           const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>>& allBwps)
 {
     NS_LOG_FUNCTION(this);
-    Initialize(); // Run DoInitialize (), if necessary
     NetDeviceContainer devices;
     for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
@@ -308,7 +307,6 @@ NrHelper::InstallGnbDevice(const NodeContainer& c,
                            const std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> allBwps)
 {
     NS_LOG_FUNCTION(this);
-    Initialize(); // Run DoInitialize (), if necessary
     NetDeviceContainer devices;
     for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
     {
@@ -579,11 +577,11 @@ NrHelper::InstallSingleUeDevice(
         }
     }
 
-    dev->SetAttribute("Imsi", UintegerValue(n->GetId()));
     dev->SetCcMap(ueCcMap);
     dev->SetAttribute("nrUeRrc", PointerValue(rrc));
     dev->SetAttribute("NrEpcUeNas", PointerValue(nas));
     dev->SetAttribute("NrUeComponentCarrierManager", PointerValue(ccmUe));
+    dev->SetAttribute("Imsi", UintegerValue(n->GetId()));
 
     n->AddDevice(dev);
 
@@ -592,7 +590,7 @@ NrHelper::InstallSingleUeDevice(
         m_nrEpcHelper->AddUe(dev, dev->GetImsi());
     }
 
-    dev->Initialize();
+    rrc->InitializeSrb0();
     return dev;
 }
 
@@ -899,7 +897,6 @@ NrHelper::InstallSingleGnbDevice(
     dev->SetAttribute("NrGnbComponentCarrierManager", PointerValue(ccmGnbManager));
     dev->SetCcMap(ccMap);
     dev->SetAttribute("NrGnbRrc", PointerValue(rrc));
-    dev->Initialize();
 
     n->AddDevice(dev);
 

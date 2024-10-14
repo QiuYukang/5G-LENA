@@ -152,7 +152,17 @@ NrUeManager::NrUeManager(Ptr<NrGnbRrc> rrc, uint16_t rnti, State s, uint8_t comp
 }
 
 void
-NrUeManager::DoInitialize()
+NrUeManager::Configure()
+{
+    NS_LOG_FUNCTION(this);
+    ConfigureSap();
+    ConfigureSrb0();
+    ConfigureSrb1();
+    ConfigureMacPhy();
+}
+
+void
+NrUeManager::ConfigureSap()
 {
     NS_LOG_FUNCTION(this);
     m_drbPdcpSapUser = new NrPdcpSpecificNrPdcpSapUser<NrUeManager>(this);
@@ -173,7 +183,12 @@ NrUeManager::DoInitialize()
         m_rrc->m_cmacSapProvider.at(i)->AddUe(m_rnti);
         m_rrc->m_cphySapProvider.at(i)->AddUe(m_rnti);
     }
+}
 
+void
+NrUeManager::ConfigureSrb0()
+{
+    NS_LOG_FUNCTION(this);
     // setup the gNB side of SRB0
     {
         uint8_t lcid = 0;
@@ -209,7 +224,12 @@ NrUeManager::DoInitialize()
         m_rrc->m_cmacSapProvider.at(m_componentCarrierId)->AddLc(lcinfo, nrMacSapUser);
         m_rrc->m_ccmRrcSapProvider->AddLc(lcinfo, nrMacSapUser);
     }
+}
 
+void
+NrUeManager::ConfigureSrb1()
+{
+    NS_LOG_FUNCTION(this);
     // setup the gNB side of SRB1; the UE side will be set up upon RRC connection establishment
     {
         uint8_t lcid = 1;
@@ -258,7 +278,12 @@ NrUeManager::DoInitialize()
     ueParams.srb0SapProvider = m_srb0->m_rlc->GetNrRlcSapProvider();
     ueParams.srb1SapProvider = m_srb1->m_pdcp->GetNrPdcpSapProvider();
     m_rrc->m_rrcSapUser->SetupUe(m_rnti, ueParams);
+}
 
+void
+NrUeManager::ConfigureMacPhy()
+{
+    NS_LOG_FUNCTION(this);
     // configure MAC (and scheduler)
     NrGnbCmacSapProvider::UeConfig req;
     req.m_rnti = m_rnti;
@@ -524,11 +549,6 @@ NrUeManager::StartDataRadioBearers()
     {
         auto drbIt = m_drbMap.find(*drbIdIt);
         NS_ASSERT(drbIt != m_drbMap.end());
-        drbIt->second->m_rlc->Initialize();
-        if (drbIt->second->m_pdcp)
-        {
-            drbIt->second->m_pdcp->Initialize();
-        }
     }
     m_drbsToBeStarted.clear();
 }
@@ -3138,7 +3158,7 @@ NrGnbRrc::AddUe(NrUeManager::State state, uint8_t componentCarrierId)
     Ptr<NrUeManager> ueManager = CreateObject<NrUeManager>(this, rnti, state, componentCarrierId);
     m_ccmRrcSapProvider->AddUe(rnti, (uint8_t)state);
     m_ueMap.insert(std::pair<uint16_t, Ptr<NrUeManager>>(rnti, ueManager));
-    ueManager->Initialize();
+    ueManager->Configure();
     const uint16_t cellId = ComponentCarrierToCellId(componentCarrierId);
     NS_LOG_DEBUG(this << " New UE RNTI " << rnti << " cellId " << cellId << " srs CI "
                       << ueManager->GetSrsConfigurationIndex());

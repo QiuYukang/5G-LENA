@@ -134,9 +134,6 @@ void
 NrGnbNetDevice::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
-    m_rrc->Initialize();
-
-    NrNetDevice::DoInitialize();
 }
 
 void

@@ -212,9 +212,6 @@ main(int argc, char* argv[])
     uint32_t bwpIdForBearer = 0;
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForBearer));
 
-    // Initialize nrHelper
-    nrHelper->Initialize();
-
     /*
      *  Create the gNB and UE nodes according to the network topology
      */

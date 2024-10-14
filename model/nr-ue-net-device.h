@@ -82,6 +82,16 @@ class NrUeNetDevice : public NrNetDevice
     Ptr<BwpManagerUe> GetBwpManager() const;
 
     /**
+     * \brief Set the IMSI
+     *
+     * This propagates to the device's RRC and EpcUeNas, if present.
+     * This is also called at device Initialization time.
+     *
+     * \param imsi The device's IMSI
+     */
+    void SetImsi(uint64_t imsi);
+
+    /**
      * \brief Get the Imsi
      * \return UE imsi
      */

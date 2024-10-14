@@ -45,7 +45,7 @@ NrUeNetDevice::GetTypeId()
             .AddAttribute("Imsi",
                           "International Mobile Subscriber Identity assigned to this UE",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&NrUeNetDevice::m_imsi),
+                          MakeUintegerAccessor(&NrUeNetDevice::SetImsi, &NrUeNetDevice::GetImsi),
                           MakeUintegerChecker<uint64_t>())
             .AddAttribute(
                 "PrimaryDlIndex",
@@ -92,8 +92,12 @@ void
 NrUeNetDevice::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
-
-    m_rrc->Initialize();
+    // While these may have been previously set, the values may not
+    // have propagated to the other objects depending on whether they
+    // had been created upon the previous setting time.
+    m_nas->SetImsi(m_imsi);
+    m_rrc->SetImsi(m_imsi);
+    m_nas->SetCsgId(m_csgId); // this also handles propagation to RRC
 }
 
 void
@@ -196,7 +200,10 @@ NrUeNetDevice::SetCsgId(uint32_t csgId)
 {
     NS_LOG_FUNCTION(this << csgId);
     m_csgId = csgId;
-    UpdateConfig(); // propagate the change down to NAS and RRC
+    if (m_nas)
+    {
+        m_nas->SetCsgId(m_csgId); // this also handles propagation to RRC
+    }
 }
 
 Ptr<NrUeMac>
@@ -252,6 +259,21 @@ NrUeNetDevice::GetRrc() const
 {
     NS_LOG_FUNCTION(this);
     return m_rrc;
+}
+
+void
+NrUeNetDevice::SetImsi(uint64_t imsi)
+{
+    NS_LOG_FUNCTION(this << imsi);
+    m_imsi = imsi;
+    if (m_nas)
+    {
+        m_nas->SetImsi(imsi);
+    }
+    if (m_rrc)
+    {
+        m_rrc->SetImsi(imsi);
+    }
 }
 
 uint64_t

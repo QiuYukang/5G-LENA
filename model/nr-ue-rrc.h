@@ -113,7 +113,6 @@ class NrUeRrc : public Object
 
     // inherited from Object
   private:
-    void DoInitialize() override;
     void DoDispose() override;
 
   public:
@@ -125,6 +124,11 @@ class NrUeRrc : public Object
 
     /// Initialize SAP
     void InitializeSap();
+
+    /**
+     * \brief Initialize the UE side of SRB0
+     */
+    void InitializeSrb0();
 
     /**
      * set the CPHY SAP this RRC should use to interact with the PHY
