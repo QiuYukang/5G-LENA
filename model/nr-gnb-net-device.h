@@ -110,7 +110,22 @@ class NrGnbNetDevice : public NrNetDevice
                                uint8_t sourceBwpId);
 
     /**
-     * \brief Update the RRC config. Must be called only once.
+     * \brief Update the RRC configuration after installation
+     *
+     * This method finishes cell configuration in the RRC once PHY
+     * configuration is finished.  It must be called exactly once
+     * for each NrGnbNetDevice.
+     *
+     * After NrHelper::Install() is called on gNB nodes, either this method
+     * or the NrHelper::UpdateDeviceConfigs() method (which, in turn, calls
+     * this method) must be called exactly once, @b after any post-install
+     * PHY configuration is done (if any), and @b before any call is made
+     * (if any) to attach UEs to gNBs, such as AttachToGnb() and
+     * AttachToClosestGnb().
+     *
+     * This method will assert if called twice on the same device.
+     *
+     * \param netDevs NetDevice container with the gNBs
      */
     void UpdateConfig();
 

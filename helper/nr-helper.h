@@ -898,8 +898,24 @@ class NrHelper : public Object
         const std::string& channelModel = "ThreeGpp");
 
     /**
-     * \brief Update netdevice configuration of one or more  gNBs
-     * \param netDevs NetDevice container with the GNBs
+     * \brief Update NetDevice configuration of one or more gNBs
+     *
+     * This method finishes cell configuration in the RRC once PHY
+     * configuration is finished.
+     *
+     * After NrHelper::Install() is called on gNB nodes, either this method
+     * or the NrGnbNetDevice::UpdateConfig() method must be called exactly
+     * once, @b after any post-install PHY configuration is done (if any),
+     * and @b before any call is made (if any) to attach UEs to gNBs
+     * such as AttachToGnb() and AttachToClosestGnb().
+     *
+     * This method will assert if called twice on the same container.
+     *
+     * This method will cause a deprecation warning to be emitted if
+     * called on NrUeNetDevice types, and will have no effect on other
+     * ns-3 NetDevice types.
+     *
+     * \param netDevs NetDevice container with the gNBs
      */
     void UpdateDeviceConfigs(const NetDeviceContainer& netDevs);
 
