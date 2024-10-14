@@ -1572,6 +1572,12 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
             rlc->SetNrMacSapProvider(m_macSapProvider);
             rlc->SetRnti(m_rnti);
             rlc->SetLcId(dtamIt->logicalChannelIdentity);
+            if (m_useRlcSm)
+            {
+                // Starts the chain of calls:
+                // DoReportBufferStatus->DoNotifyTxOpp->DoReportBufferStatus...
+                Simulator::ScheduleNow(&NrRlcSm::Initialize, rlc);
+            }
 
             Ptr<NrDataRadioBearerInfo> drbInfo = CreateObject<NrDataRadioBearerInfo>();
             drbInfo->m_rlc = rlc;

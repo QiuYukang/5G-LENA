@@ -283,11 +283,6 @@ TestAntenna3gppModelConf::DoRun()
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
 
-    for (auto it = ueNetDevs.Begin(); it != ueNetDevs.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();

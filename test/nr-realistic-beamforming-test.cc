@@ -198,11 +198,6 @@ NrRealisticBeamformingTestCase::DoRun()
                         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
                     }
 
-                    for (auto it = ueDevs.Begin(); it != ueDevs.End(); ++it)
-                    {
-                        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-                    }
-
                     Ptr<NrUePhy> uePhy = nrHelper->GetUePhy(ueDevs.Get(0), 0);
 
                     Ptr<NrSpectrumPhy> txSpectrumPhy =

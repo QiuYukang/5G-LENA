@@ -355,7 +355,6 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
     }
 
     m_nrHelper->UpdateDeviceConfigs(gnbDevs);
-    m_nrHelper->UpdateDeviceConfigs(ueDevs);
     // m_nrHelper->AttachToClosestGnb(ueDevs, gnbDevs);
 
     // custom code used for testing purposes

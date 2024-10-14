@@ -898,8 +898,8 @@ class NrHelper : public Object
         const std::string& channelModel = "ThreeGpp");
 
     /**
-     * \brief Update netdevice configuration of one or more UEs and/or gNBs
-     * \param netDevs NetDevice container with the UEs and GNBs
+     * \brief Update netdevice configuration of one or more  gNBs
+     * \param netDevs NetDevice container with the GNBs
      */
     void UpdateDeviceConfigs(const NetDeviceContainer& netDevs);
 

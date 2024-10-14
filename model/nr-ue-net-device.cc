@@ -217,9 +217,6 @@ void
 NrUeNetDevice::UpdateConfig()
 {
     NS_LOG_FUNCTION(this);
-    m_nas->SetImsi(m_imsi);
-    m_rrc->SetImsi(m_imsi);
-    m_nas->SetCsgId(m_csgId); // this also handles propagation to RRC
 }
 
 bool

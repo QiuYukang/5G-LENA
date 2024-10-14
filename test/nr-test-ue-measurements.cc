@@ -308,8 +308,6 @@ NrUeMeasurementsTestCase::DoRun()
     ueDevs1 = nrHelper->InstallUeDevice(ueNodes1, bandwidthAndBWPPair.second);
     ueDevs2 = nrHelper->InstallUeDevice(ueNodes2, bandwidthAndBWPPair.second);
     nrHelper->UpdateDeviceConfigs(nrDevs);
-    nrHelper->UpdateDeviceConfigs(ueDevs1);
-    nrHelper->UpdateDeviceConfigs(ueDevs2);
 
     // Attach UEs to eNodeBs
     for (uint32_t i = 0; i < ueDevs1.GetN(); i++)
@@ -792,7 +790,6 @@ NrUeMeasurementsPiecewiseTestCase1::DoRun()
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     nrHelper->UpdateDeviceConfigs(nrDevs);
-    nrHelper->UpdateDeviceConfigs(ueDevs);
 
     // Setup UE measurement configuration
     Ptr<NrGnbRrc> nrRrc = nrDevs.Get(0)->GetObject<NrGnbNetDevice>()->GetRrc();
@@ -1495,7 +1492,6 @@ NrUeMeasurementsPiecewiseTestCase2::DoRun()
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     nrHelper->UpdateDeviceConfigs(nrDevs);
-    nrHelper->UpdateDeviceConfigs(ueDevs);
 
     // Setup UE measurement configuration in serving cell
     Ptr<NrGnbRrc> nrRrc1 = nrDevs.Get(0)->GetObject<NrGnbNetDevice>()->GetRrc();
@@ -1816,7 +1812,6 @@ NrUeMeasurementsPiecewiseTestCase3::DoRun()
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     nrHelper->UpdateDeviceConfigs(nrDevs);
-    nrHelper->UpdateDeviceConfigs(ueDevs);
 
     // Setup UE measurement configuration in serving cell
     Ptr<NrGnbRrc> nrRrc1 = nrDevs.Get(0)->GetObject<NrGnbNetDevice>()->GetRrc();
@@ -2406,7 +2401,6 @@ NrUeMeasurementsHandoverTestCase::DoRun()
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     nrHelper->UpdateDeviceConfigs(nrDevs);
-    nrHelper->UpdateDeviceConfigs(ueDevs);
 
     // Setup UE measurement configuration in eNodeBs
     uint8_t measId;

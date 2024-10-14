@@ -194,6 +194,7 @@ class NrRlcSm : public NrRlc
      * \return the object TypeId
      */
     static TypeId GetTypeId();
+    void DoInitialize() override;
     void DoDispose() override;
 
     void DoTransmitPdcpPdu(Ptr<Packet> p) override;

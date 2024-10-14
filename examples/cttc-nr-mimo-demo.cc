@@ -531,8 +531,6 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
     // When all the configuration is done, explicitly call UpdateConfig ()
-    // TODO: Check if this is necessary to call when we do not reconfigure anything after devices
-    // have been created
     for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
@@ -541,7 +539,6 @@ main(int argc, char* argv[])
     std::map<uint16_t, CqiFeedbackTraceStats> cqiTraces;
     for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
     {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
         auto cqiCb = MakeBoundCallback(&CqiFeedbackTracedCallback, &cqiTraces);
         nrHelper->GetUePhy(*it, 0)->TraceConnectWithoutContext("CqiFeedbackTrace", cqiCb);
     }

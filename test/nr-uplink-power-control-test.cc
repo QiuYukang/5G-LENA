@@ -357,11 +357,6 @@ NrUplinkPowerControlTestCase::DoRun()
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
 
-    for (auto it = ueDevs.Begin(); it != ueDevs.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
     // traffic configuration
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;

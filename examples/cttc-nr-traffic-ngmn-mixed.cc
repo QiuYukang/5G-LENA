@@ -590,18 +590,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
-    for (auto it = ueSector1NetDev.Begin(); it != ueSector1NetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = ueSector2NetDev.Begin(); it != ueSector2NetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = ueSector3NetDev.Begin(); it != ueSector3NetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
 }
 
 enum TrafficTypeConf

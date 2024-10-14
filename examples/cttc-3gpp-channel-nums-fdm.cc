@@ -328,11 +328,6 @@ main(int argc, char* argv[])
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
 
-    for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.
 

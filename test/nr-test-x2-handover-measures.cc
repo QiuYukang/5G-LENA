@@ -344,7 +344,6 @@ NrX2HandoverMeasuresTestCase::DoRun()
     stream += m_nrHelper->AssignStreams(ueDevices, stream);
 
     m_nrHelper->UpdateDeviceConfigs(gnbDevices);
-    m_nrHelper->UpdateDeviceConfigs(ueDevices);
 
     Ipv4Address remoteHostAddr;
     Ipv4StaticRoutingHelper ipv4RoutingHelper;

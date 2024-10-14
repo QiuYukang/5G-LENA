@@ -858,9 +858,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     nrHelper->UpdateDeviceConfigs(gnbSector1NetDev);
     nrHelper->UpdateDeviceConfigs(gnbSector2NetDev);
     nrHelper->UpdateDeviceConfigs(gnbSector3NetDev);
-    nrHelper->UpdateDeviceConfigs(ueSector1NetDev);
-    nrHelper->UpdateDeviceConfigs(ueSector2NetDev);
-    nrHelper->UpdateDeviceConfigs(ueSector3NetDev);
 }
 
 template <typename T>

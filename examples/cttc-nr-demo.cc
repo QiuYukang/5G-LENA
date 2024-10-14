@@ -439,8 +439,6 @@ main(int argc, char* argv[])
     // NrHelper::UpdateDeviceConfigs() to update a NetDeviceContainer with a single call. This was
     // introduced with the v.3.2 Release.
     nrHelper->UpdateDeviceConfigs(gnbNetDev);
-    nrHelper->UpdateDeviceConfigs(ueLowLatNetDev);
-    nrHelper->UpdateDeviceConfigs(ueVoiceNetDev);
 
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.

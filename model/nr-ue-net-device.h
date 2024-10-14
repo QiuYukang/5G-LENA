@@ -7,6 +7,8 @@
 
 #include "nr-net-device.h"
 
+#include <ns3/deprecated.h>
+
 namespace ns3
 {
 
@@ -178,7 +180,11 @@ class NrUeNetDevice : public NrNetDevice
 
     /**
      * \brief Update the RRC config. Must be called only once.
+     *
+     * This method is deprecated and no longer needed and will be removed
+     * from future versions of this model.
      */
+    NS_DEPRECATED("Obsolete method")
     void UpdateConfig();
 
   protected:

@@ -327,7 +327,8 @@ NrHelper::UpdateDeviceConfigs(const NetDeviceContainer& netDevs)
         auto gnbNetDev = DynamicCast<NrGnbNetDevice>(netDevs.Get(i));
         if (ueNetDev)
         {
-            ueNetDev->UpdateConfig();
+            std::cerr << "Deprecation warning: UpdateConfig is obsolete for UE device types"
+                      << std::endl;
         }
         if (gnbNetDev)
         {

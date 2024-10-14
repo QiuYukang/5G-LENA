@@ -962,11 +962,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
 
         DynamicCast<NrGnbNetDevice>(*nd)->UpdateConfig();
     }
-
-    for (auto nd = ueNetDevs.Begin(); nd != ueNetDevs.End(); ++nd)
-    {
-        DynamicCast<NrUeNetDevice>(*nd)->UpdateConfig();
-    }
 }
 
 } // namespace ns3

@@ -286,18 +286,6 @@ main(int argc, char* argv[])
     {
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
-    for (auto it = ueArNetDev.Begin(); it != ueArNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = ueVrNetDev.Begin(); it != ueVrNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = ueCgNetDev.Begin(); it != ueCgNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost

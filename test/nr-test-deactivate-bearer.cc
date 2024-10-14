@@ -188,7 +188,6 @@ NrDeactivateBearerTestCase::DoRun()
     stream += nrHelper->AssignStreams(ueDevs, stream);
 
     nrHelper->UpdateDeviceConfigs(gnbDevs);
-    nrHelper->UpdateDeviceConfigs(ueDevs);
 
     Ptr<NrGnbNetDevice> nrGnbDev = gnbDevs.Get(0)->GetObject<NrGnbNetDevice>();
     Ptr<NrGnbPhy> gnbPhy = nrGnbDev->GetPhy(0);

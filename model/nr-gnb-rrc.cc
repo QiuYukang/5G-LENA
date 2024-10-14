@@ -451,6 +451,12 @@ NrUeManager::SetupDataRadioBearer(NrEpsBearer bearer,
     rlc->SetNrMacSapProvider(m_rrc->m_macSapProvider);
     rlc->SetRnti(m_rnti);
     rlc->SetPacketDelayBudgetMs(bearer.GetPacketDelayBudgetMs());
+    if (rlcTypeId == NrRlcSm::GetTypeId())
+    {
+        // Starts the chain of calls:
+        // DoReportBufferStatus->DoNotifyTxOpp->DoReportBufferStatus...
+        Simulator::ScheduleNow(&NrRlcSm::Initialize, rlc);
+    }
 
     drbInfo->m_rlc = rlc;
 

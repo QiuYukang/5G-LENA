@@ -229,11 +229,6 @@ main(int argc, char* argv[])
         DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
     }
 
-    for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
     InternetStackHelper internet;
     internet.Install(gridScenario.GetUserTerminals());
     Ipv4InterfaceContainer ueIpIface;

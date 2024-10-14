@@ -214,7 +214,6 @@ NrEpcE2eDataTestCase::DoRun()
         ueMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         ueMobility.Install(ues);
         NetDeviceContainer ueNrDevs = nrHelper->InstallUeDevice(ues, bandwidthAndBWPPair.second);
-        nrHelper->UpdateDeviceConfigs(ueNrDevs);
 
         // we install the IP stack on the UEs
         internet.Install(ues);

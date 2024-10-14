@@ -155,7 +155,6 @@ main(int argc, char* argv[])
 
     // this is probably not necessary, since we did not update configuration after installation
     DynamicCast<NrGnbNetDevice>(gnbNetDev.Get(0))->UpdateConfig();
-    DynamicCast<NrUeNetDevice>(ueNetDev.Get(0))->UpdateConfig();
 
     // install the IP stack on the UEs, this is needed to allow attachment
     InternetStackHelper internet;
