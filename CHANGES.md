@@ -59,7 +59,7 @@ us a note on ns-developers mailing list.
   with the PHY and MAC layers through the ``NrFhPhySapProvider``, ``NrFhPhySapUser``,
   ``NrFhSchedSapProvider`` and ``NrFhSchedSapUser`` SAPs.
 
-- Added ``BwpManagerAlgorithm::GetAlgorithm()`` to retrieve the ``BwpManagerAlgorithm``. 
+- Added ``BwpManagerAlgorithm::GetAlgorithm()`` to retrieve the ``BwpManagerAlgorithm``.
 
 ### Changes to existing API:
 
