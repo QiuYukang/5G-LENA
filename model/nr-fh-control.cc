@@ -90,6 +90,8 @@ NrFhControl::NrFhControl()
 
 NrFhControl::~NrFhControl()
 {
+    delete m_fhPhySapProvider;
+    delete m_fhSchedSapProvider;
 }
 
 void
