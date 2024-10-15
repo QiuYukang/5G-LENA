@@ -24,7 +24,6 @@ set(base_examples
     traffic-generator-example
     cttc-nr-simple-qos-sched
     cttc-nr-multi-flow-qos-sched
-    cttc-nr-fh-xr
 )
 foreach(
   example
@@ -46,12 +45,21 @@ build_lib_example(
 )
 
 if(${ENABLE_EIGEN})
-  build_lib_example(
-    NAME cttc-nr-mimo-demo
-    SOURCE_FILES cttc-nr-mimo-demo.cc
-    LIBRARIES_TO_LINK ${libnr}
-                      ${libflow-monitor}
+  set(eigen_dependent_examples
+      cttc-nr-mimo-demo
+      cttc-nr-fh-xr
   )
+  foreach(
+    example
+    ${eigen_dependent_examples}
+  )
+    build_lib_example(
+      NAME ${example}
+      SOURCE_FILES ${example}.cc
+      LIBRARIES_TO_LINK ${libnr}
+                        ${libflow-monitor}
+    )
+  endforeach()
 endif()
 
 if(NOT
