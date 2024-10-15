@@ -101,7 +101,7 @@ weekly-build-clang-14-optimized:
       ssh
   variables:
     COMPILER: clang++
-    LIBGSL: libgsl27
+    LIBGSL: libgsl28
 
 weekly-build-clang-rolling-debug:
   extends: .weekly-build-clang-ubuntu-rolling
