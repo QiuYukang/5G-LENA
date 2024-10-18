@@ -148,7 +148,7 @@ documentation:
     - ./ns3 run nr-print-introspected-doxygen --quiet > contrib/nr/doc/introspected-doxygen.h
     - popd
     # Export nr version for documentation
-    - export NRVERSION="nr-`git describe`"
+    - export NRVERSION="nr-`git describe --tags`"
     - mkdir -p public/
     # Build NR manual
     - pushd doc
