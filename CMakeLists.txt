@@ -115,17 +115,20 @@ set(source_files
     model/nr-mac-scheduler-lc-rr.cc
     model/nr-mac-scheduler-lcg.cc
     model/nr-mac-scheduler-ns3.cc
+    model/nr-mac-scheduler-ofdma-ai.cc
     model/nr-mac-scheduler-ofdma-mr.cc
     model/nr-mac-scheduler-ofdma-pf.cc
     model/nr-mac-scheduler-ofdma-qos.cc
     model/nr-mac-scheduler-ofdma-rr.cc
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-srs-default.cc
+    model/nr-mac-scheduler-tdma-ai.cc
     model/nr-mac-scheduler-tdma-mr.cc
     model/nr-mac-scheduler-tdma-pf.cc
     model/nr-mac-scheduler-tdma-qos.cc
     model/nr-mac-scheduler-tdma-rr.cc
     model/nr-mac-scheduler-tdma.cc
+    model/nr-mac-scheduler-ue-info-ai.cc
     model/nr-mac-scheduler-ue-info-pf.cc
     model/nr-mac-scheduler-ue-info-qos.cc
     model/nr-mac-scheduler-ue-info.cc
@@ -301,6 +304,7 @@ set(header_files
     model/nr-mac-scheduler-lc-rr.h
     model/nr-mac-scheduler-lcg.h
     model/nr-mac-scheduler-ns3.h
+    model/nr-mac-scheduler-ofdma-ai.h
     model/nr-mac-scheduler-ofdma-mr.h
     model/nr-mac-scheduler-ofdma-pf.h
     model/nr-mac-scheduler-ofdma-qos.h
@@ -308,11 +312,13 @@ set(header_files
     model/nr-mac-scheduler-ofdma.h
     model/nr-mac-scheduler-srs-default.h
     model/nr-mac-scheduler-srs.h
+    model/nr-mac-scheduler-tdma-ai.h
     model/nr-mac-scheduler-tdma-mr.h
     model/nr-mac-scheduler-tdma-pf.h
     model/nr-mac-scheduler-tdma-qos.h
     model/nr-mac-scheduler-tdma-rr.h
     model/nr-mac-scheduler-tdma.h
+    model/nr-mac-scheduler-ue-info-ai.h
     model/nr-mac-scheduler-ue-info-mr.h
     model/nr-mac-scheduler-ue-info-pf.h
     model/nr-mac-scheduler-ue-info-qos.h

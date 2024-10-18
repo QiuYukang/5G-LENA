@@ -185,6 +185,10 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
 
         while (resources > 0)
         {
+            if (m_activeDlAi)
+            {
+                CallNotifyDlFn(ueVector);
+            }
             GetFirst GetUe;
             std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareDlFn());
             auto schedInfoIt = ueVector.begin();
@@ -371,6 +375,10 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
 
         while (resources > 0)
         {
+            if (m_activeUlAi)
+            {
+                CallNotifyUlFn(ueVector);
+            }
             GetFirst GetUe;
             std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareUlFn());
             auto schedInfoIt = ueVector.begin();

@@ -100,17 +100,17 @@ NrMacSchedulerTdma::GetUeVectorFromActiveUeMap(const NrMacSchedulerNs3::ActiveUe
  * \see BeforeDlSched
  */
 NrMacSchedulerTdma::BeamSymbolMap
-NrMacSchedulerTdma::AssignRBGTDMA(
-    uint32_t symAvail,
-    const ActiveUeMap& activeUe,
-    const std::string& type,
-    const BeforeSchedFn& BeforeSchedFn,
-    const GetCompareUeFn& GetCompareFn,
-    const GetTBSFn& GetTBSFn,
-    const GetRBGFn& GetRBGFn,
-    const GetSymFn& GetSymFn,
-    const AfterSuccessfulAssignmentFn& SuccessfulAssignmentFn,
-    const AfterUnsuccessfulAssignmentFn& UnSuccessfulAssignmentFn) const
+NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
+                                  const ActiveUeMap& activeUe,
+                                  const std::string& type,
+                                  const BeforeSchedFn& BeforeSchedFn,
+                                  const GetCompareUeFn& GetCompareFn,
+                                  const GetTBSFn& GetTBSFn,
+                                  const GetRBGFn& GetRBGFn,
+                                  const GetSymFn& GetSymFn,
+                                  const AfterSuccessfulAssignmentFn& SuccessfulAssignmentFn,
+                                  const AfterUnsuccessfulAssignmentFn& UnSuccessfulAssignmentFn,
+                                  const CallNotifyFn& callNotifyFn) const
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("Assigning RBG in " << type << ", # beams active flows: " << activeUe.size()
@@ -136,6 +136,10 @@ NrMacSchedulerTdma::AssignRBGTDMA(
 
     while (resources > 0)
     {
+        if (m_activeDlAi || m_activeUlAi)
+        {
+            callNotifyFn(ueVector);
+        }
         GetFirst GetUe;
 
         auto schedInfoIt = ueVector.begin();
@@ -244,6 +248,9 @@ NrMacSchedulerTdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) 
     GetRBGFn GetRBG = &NrMacSchedulerUeInfo::GetDlRBG;
     GetSymFn GetSym = &NrMacSchedulerUeInfo::GetDlSym;
 
+    CallNotifyFn callNotifyFn =
+        std::bind(&NrMacSchedulerTdma::CallNotifyDlFn, this, std::placeholders::_1);
+
     return AssignRBGTDMA(symAvail,
                          activeDl,
                          "DL",
@@ -253,7 +260,8 @@ NrMacSchedulerTdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) 
                          GetRBG,
                          GetSym,
                          SuccFn,
-                         UnSuccFn);
+                         UnSuccFn,
+                         callNotifyFn);
 }
 
 /**
@@ -288,6 +296,9 @@ NrMacSchedulerTdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) 
     GetRBGFn GetRBG = &NrMacSchedulerUeInfo::GetUlRBG;
     GetSymFn GetSym = &NrMacSchedulerUeInfo::GetUlSym;
 
+    CallNotifyFn callNotifyFn =
+        std::bind(&NrMacSchedulerTdma::CallNotifyUlFn, this, std::placeholders::_1);
+
     return AssignRBGTDMA(symAvail,
                          activeUl,
                          "UL",
@@ -297,7 +308,8 @@ NrMacSchedulerTdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) 
                          GetRBG,
                          GetSym,
                          SuccFn,
-                         UnSuccFn);
+                         UnSuccFn,
+                         callNotifyFn);
 }
 
 /**
