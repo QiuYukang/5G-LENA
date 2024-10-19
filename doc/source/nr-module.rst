@@ -1499,6 +1499,62 @@ performs the assignment by taking into account the resource type and the
 ``e_rabGuaranteedBitRate`` of a flow. More details with respect to the algorithm
 considered for the QoS LC Assignment can found in [WNS3-QosSchedulers]_.
 
+.. _RLScheduler:
+
+RL-based Scheduler
+===================
+The 'NR' module includes Reinforcement Learning (RL)-based schedulers, namely
+the ``NrMacSchedulerTdmaAi`` and the ``NrMacSchedulerOfdmaAi``, that allocate
+available resources (i.e., symbols and Physical Resource Blocks (PRBs)) based on the RL model.
+The RL model is implemented using Python scripts and receives data from the RL-based scheduler
+to determine the actions for the current state. To communicate with the RL model, the RL-based
+scheduler uses the ``OpenGymEnv`` class, which sends the data to the RL model through the ``OpenGymInterface`` class.
+The data sent to the RL model includes the following fields:
+
+* observation
+* reward
+* isGameOver
+* extraInfo
+
+The fields are following the data format defined in the ns3-gym module.
+
+The observation for a UE includes information for each of its active flows. Each flow's information
+is contained in an LcObservation structure, which contains the following fields:
+
+* ``rnti``
+* ``lcgId``
+* ``lcId``
+* ``qci``
+* ``priority``
+* ``holDelay``
+
+This structure represents the observation of the Logical Channel (LC).
+
+The RL-based scheduler sends data to the OpenGymEnv class for each resource unit through a callback,
+collecting observations for all UEs and calculating the reward based on the outcomes of the previous actions.
+Additionally, the RL-based scheduler passes a function to retrieve the selected actions for the current state.
+
+Next, the RL model selects the actions for the current state and sends them back to the RL-based scheduler.
+The actions represent the weights for all active LC flows of all active UEs. After receiving the actions
+through the provided function, the RL-based scheduler sorts the UEs by the sum of the weights of their active LC flows.
+The scheduler then allocates resources to the UE with the highest sum of weights, and the process repeats for each resource unit.
+
+The goal of the RL-based scheduler is to allocate resources in a way that minimizes the total delay of the UEs
+considering the priority of the LCs. Additionally, the RL-based scheduler can be used to allocate resources in a way
+that maximizes the throughput of the UEs. To achieve this, the reward of a UE is calculated as:
+
+.. math::
+   :nowrap:
+
+   \[
+   \text{reward} = \sum_{i=1}^{N} \frac{r^{\gamma}}{R(\tau) \times P_i \times {HOL}_i}
+   \]
+
+where :math:`N` is the number of active LCs of the UE, :math:`P_i` is the priority of the LC,
+:math:`HOL_i` is the HOL delay of the LC. The total reward of the scheduler is the sum of
+the rewards of all active UEs, :math:`r` is the instantaneous achievable data rate calculated by
+the spectrum efficiency and the channel bandwidth, :math:`\gamma` is a configurable parameter, and :math:`R(\tau)`
+is the past average data rate of the UE.
 
 Timing relations
 ================
@@ -2429,6 +2485,41 @@ end-to-end throughput and delay.
 The complete details of the simulation script are provided in
 https://cttc-lena.gitlab.io/nr/html/cttc-nr-fh-xr_8cc.html.
 
+gsoc-nr-rl-based-sched
+=========================
+
+The program ``examples/gsoc-nr-rl-based-sched`` provides a example for evaluating
+the performance of RL-based schedulers (see :ref:`RLScheduler`). It is designed to assess
+E2E delay and throughput in a single-cell scenario with two UEs.
+One UE has a single flow with NON-GBR traffic (5QI=80), while the second UE has multiple flows
+with NON-GBR traffic (5QI=80) and delay-critical (DC)-GBR traffic (5QI=87).
+
+Using this program, users can compare the performance of RL-based schedulers with other schedulers,
+such as the QoS schedulers (see :ref:`QosSchedulers`) set up with either LC QoS Assignment (see :ref:`LcAssignment`)
+or LC RR assignment, by configuring the ``schedulerType`` parameter.
+
+To enable the RL-based scheduler, the ns3-gym module must be installed and the enableAi
+parameter must be set to true.
+
+The complete details of the simulation script are provided in
+https://cttc-lena.gitlab.io/nr/html/gsoc-nr-rl-based-sched_8cc.html.
+
+rl-sched-gym-env-intro.py
+#########################
+
+Simple script for testing ``gsoc-nr-rl-based-sched`` example. The script runs the example
+with the default ``Ns3Env`` environment without any specific RL model. In the script, the
+action is sampled using the ``sample`` method of the action space, and the selected action
+is sent to the simulator through the ``Ns3Env`` environment.
+
+rl-sched-gym-env-ppo.py
+########################
+
+Proximal Policy Optimization (PPO) script for testing ``gsoc-nr-rl-based-sched`` example.
+The script runs the example with the PPO model under the ``Ns3Env`` environment. For each
+iteration, the model is trained with the collected data from the simulation and send the
+selected actions to the simulator through the ``Ns3Env`` environment.
+
 .. _Validation:
 
 Validation
@@ -2537,6 +2628,13 @@ load saturates the system, i.e.:
 
 Let us point out that the test for the case of DC-GBR flows is envisioned to be
 included in the short-term future.
+
+Test for NR RL-based schedulers
+===============================
+To verify the correct functionality of the callback used for invoking the ns3-gym module
+during the resource assignment process, we have implemented a unit test called ``nr-test-scheduler-ai``.
+This test checks whether the callback is properly invoked during the resource assignment process
+by comparing the passed observation with the details of the UEs and the installed flows in the UEs.
 
 Test for NR error model
 =======================
