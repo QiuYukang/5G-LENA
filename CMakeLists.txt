@@ -108,6 +108,7 @@ set(source_files
     model/nr-mac-header-vs-dl.cc
     model/nr-mac-header-vs-ul.cc
     model/nr-mac-header-vs.cc
+    model/nr-mac-scheduler-ai-ns3-gym-env.cc
     model/nr-mac-scheduler-cqi-management.cc
     model/nr-mac-scheduler-harq-rr.cc
     model/nr-mac-scheduler-lc-alg.cc
@@ -297,6 +298,7 @@ set(header_files
     model/nr-mac-pdu-info.h
     model/nr-mac-sap.h
     model/nr-mac-sched-sap.h
+    model/nr-mac-scheduler-ai-ns3-gym-env.h
     model/nr-mac-scheduler-cqi-management.h
     model/nr-mac-scheduler-harq-rr.h
     model/nr-mac-scheduler-lc-alg.h
@@ -468,6 +470,7 @@ build_lib(
     ${libapplications}
     ${libcsma}
     ${libconfig-store}
+    ${libopengym}
   TEST_SOURCES ${test_sources}
 )
 
