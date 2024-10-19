@@ -393,6 +393,7 @@ set(test_sources
     test/nr-test-numerology-delay.cc
     test/nr-test-fdm-of-numerologies.cc
     test/nr-test-sched.cc
+    test/nr-test-scheduler-ai.cc
     test/nr-system-test-schedulers-tdma-rr.cc
     test/nr-system-test-schedulers-tdma-pf.cc
     test/nr-system-test-schedulers-tdma-mr.cc
