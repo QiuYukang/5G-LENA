@@ -139,3 +139,10 @@ else()
     LIBRARIES_TO_LINK ${libraries_to_link}
   )
 endif()
+
+build_lib_example(
+  NAME gsoc-nr-rl-based-sched
+  SOURCE_FILES gsoc-nr-rl-based-sched/gsoc-nr-rl-based-sched.cc
+  LIBRARIES_TO_LINK ${libnr}
+                    ${libflow-monitor}
+)
