@@ -1862,6 +1862,7 @@ NrHelper::SetupGnbAntennas(const NrHelper::AntennaParams& ap)
     SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(ap.nVertPorts));
     SetGnbAntennaAttribute("BearingAngle", DoubleValue(ap.bearingAngle));
     SetGnbAntennaAttribute("PolSlantAngle", DoubleValue(ap.polSlantAngle));
+    SetGnbAntennaAttribute("DowntiltAngle", DoubleValue(ap.downtiltAngle));
 }
 
 void
@@ -1882,6 +1883,7 @@ NrHelper::SetupUeAntennas(const NrHelper::AntennaParams& ap)
     SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(ap.nVertPorts));
     SetUeAntennaAttribute("BearingAngle", DoubleValue(ap.bearingAngle));
     SetUeAntennaAttribute("PolSlantAngle", DoubleValue(ap.polSlantAngle));
+    SetUeAntennaAttribute("DowntiltAngle", DoubleValue(ap.downtiltAngle));
 }
 
 void

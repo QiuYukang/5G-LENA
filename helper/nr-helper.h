@@ -846,6 +846,7 @@ class NrHelper : public Object
         size_t nVertPorts{1};        ///< Number of antenna ports in vertical direction
         double bearingAngle{0.0};    ///< Bearing angle in radians
         double polSlantAngle{0.0};   ///< Polarization slant angle in radians
+        double downtiltAngle{0.0};   ///<  Downtilt angle in radians
     };
 
     /// \brief parameters for the search of optimal rank and precoding matrix indicator (RI, PMI)
