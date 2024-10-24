@@ -208,12 +208,6 @@ class NrErrorModel : public Object
     /// \return A 2D matrix of the average SINR for this TB reception, dimensions nMimoLayers x nRbs
     virtual NrSinrMatrix ComputeAvgSinrMimo(const std::vector<MimoSinrChunk>& sinrChunks);
 
-    /// \brief Linearize a 2D matrix into a vector, and convert that vector to a SpectrumValue
-    /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
-    /// \param sinrMat A 2D matrix of average SINR values, dimensions nMimoLayers x nRbs
-    /// \return A SpectrumValue with the (nRB * nMimoLayers) SINR values
-    SpectrumValue CreateVectorizedSpecVal(const NrSinrMatrix& sinrMat);
-
     /// \brief Create an equivalent RB index map for vectorized SINR values
     /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
     /// If map contains index "j", the output vectorized map contains

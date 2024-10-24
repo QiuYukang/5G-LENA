@@ -6,6 +6,7 @@
 #define NR_MIMO_MATRICES_H
 
 #include <ns3/matrix-array.h>
+#include <ns3/spectrum-value.h>
 
 namespace ns3
 {
@@ -98,6 +99,10 @@ class NrSinrMatrix : public DoubleMatrixArray
 
     uint8_t GetRank() const;
     size_t GetNumRbs() const;
+    /// \brief Linearize a 2D matrix into a vector, and convert that vector to a SpectrumValue
+    /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
+    /// \return A SpectrumValue with the (nRB * nMimoLayers) SINR values
+    SpectrumValue GetVectorizedSpecVal() const;
 };
 
 } // namespace ns3

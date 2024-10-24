@@ -50,7 +50,11 @@ NrErrorModel::GetTbDecodificationStatsMimo(const std::vector<MimoSinrChunk>& sin
     NS_ASSERT(avgSinrMat.GetNumRows() == rank);
 
     // Vectorize SINR matrix and convert to SpectrumValue
-    auto vectorizedSinr = CreateVectorizedSpecVal(avgSinrMat);
+    /// Linearize a 2D matrix into a vector, and convert that vector to a SpectrumValue
+    /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
+    /// avgSinrMat(NrSinrMatrix) is A 2D matrix of average SINR values, dimensions nMimoLayers x
+    /// nRbs vectorizedSinr(SpectrumValue) contains the (nRB * nMimoLayers) SINR values
+    auto vectorizedSinr = avgSinrMat.GetVectorizedSpecVal();
 
     // Create a new RB map that fits the vectorized SINR values
     auto vectorizedMap = CreateVectorizedRbMap(map, rank);
@@ -79,24 +83,6 @@ NrErrorModel::ComputeAvgSinrMimo(const std::vector<MimoSinrChunk>& sinrChunks)
         totDur += chunk.dur.GetDouble();
     }
     return NrSinrMatrix{avgSinrMat * (1.0 / totDur)};
-}
-
-SpectrumValue
-NrErrorModel::CreateVectorizedSpecVal(const NrSinrMatrix& sinrMat)
-{
-    // Convert the 2D SINR matrix into a one-dimensional SpectrumValue
-    auto tempSinr = NrSinrMatrix{sinrMat.GetValues()};
-    auto bands = std::vector<BandInfo>(tempSinr.GetNumRows());
-    auto specModel = Create<SpectrumModel>(bands);
-    auto vectorizedSinr = SpectrumValue{specModel};
-    auto idx = size_t{0};
-    for (auto it = vectorizedSinr.ValuesBegin(); it != vectorizedSinr.ValuesEnd(); it++)
-    {
-        auto& itVal = *it;
-        itVal = tempSinr[idx];
-        idx++;
-    }
-    return vectorizedSinr;
 }
 
 std::vector<int>

@@ -93,4 +93,20 @@ NrSinrMatrix::GetNumRbs() const
     return GetNumCols();
 }
 
+SpectrumValue
+NrSinrMatrix::GetVectorizedSpecVal() const
+{
+    // Convert the 2D SINR matrix into a one-dimensional SpectrumValue
+    auto bands = std::vector<BandInfo>(GetNumRows() * GetNumCols());
+    auto specModel = Create<SpectrumModel>(bands);
+    auto vectorizedSinr = SpectrumValue{specModel};
+    auto idx = size_t{0};
+    for (auto it = vectorizedSinr.ValuesBegin(); it != vectorizedSinr.ValuesEnd(); it++)
+    {
+        auto& itVal = *it;
+        itVal = m_values[idx];
+        idx++;
+    }
+    return vectorizedSinr;
+}
 } // namespace ns3
