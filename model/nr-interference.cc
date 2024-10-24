@@ -394,6 +394,12 @@ NrInterference::AddMimoChunkProcessor(Ptr<NrMimoChunkProcessor> cp)
     m_mimoChunkProcessors.push_back(cp);
 }
 
+bool
+NrInterference::IsChunkProcessorSet()
+{
+    return (!m_mimoChunkProcessors.empty());
+}
+
 NrCovMat
 NrInterference::CalcOutOfCellInterfCov() const
 {

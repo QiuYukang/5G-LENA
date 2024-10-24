@@ -120,6 +120,12 @@ class NrInterference : public NrInterferenceBase
     /// \param cp The NrMimoChunkProcessor to be added
     virtual void AddMimoChunkProcessor(Ptr<NrMimoChunkProcessor> cp);
 
+    /**
+     * @return Returns a flag that indicates whether at least one chunk processor is set. Returns
+     * true if chunk processor list is not empty.
+     */
+    bool IsChunkProcessorSet();
+
   private:
     /// \brief Calculate interference-plus-noise covariance matrix for signals not in m_rxSignals
     /// This function computes the interference signals from all out-of-cell interferers. The
