@@ -16,6 +16,7 @@ namespace ns3
 /// \brief Helper struct for processing and storing received signals for use in CSI feedback
 struct NrMimoSignal : public SimpleRefCount<NrMimoSignal>
 {
+    NrMimoSignal() = default;
     /// \brief Constructor that consolidates the different signals in a vector of received chunks.
     /// \param mimoChunks the signal chunks with channel and interference covariance matrices
     NrMimoSignal(const std::vector<MimoSignalChunk>& mimoChunks);
