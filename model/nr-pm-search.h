@@ -55,6 +55,14 @@ class NrPmSearch : public Object
     /// \brief Parameters that define if PMI should be updated or if previous PMI values are used.
     struct PmiUpdate
     {
+        PmiUpdate() = default;
+
+        PmiUpdate(bool uWb, bool uSb)
+        {
+            updateWb = uWb;
+            updateSb = uSb;
+        }
+
         bool updateWb{false}; ///< Defines whether to update WB PMI
         bool updateSb{false}; ///< Defines whether to update SB PMI
     };
