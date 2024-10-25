@@ -458,6 +458,17 @@ class NrGnbPhy : public NrPhy
      */
     void DoDispose() override;
 
+    /**
+     * \brief Returns a boolean indicating whether the current allocation can
+     *        fit in the available FH bandwidth.
+     *
+     * \param bwpId the BWP ID
+     * \param mcs the allocated MCS
+     * \param nRegs the number of allocated REGs (1 REG = 1 RB (12 subcarriers) x 1 symbol)
+     * \param dlRank the DL rank (number of MIMO layers)
+     *
+     * \return true if the current allocation can fit, false if not
+     */
     bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const;
 
     // FFR SAPs
