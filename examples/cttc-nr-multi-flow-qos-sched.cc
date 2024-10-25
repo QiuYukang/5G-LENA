@@ -106,27 +106,27 @@ main(int argc, char* argv[])
     cmd.AddValue("outputDir", "directory where to store simulation results", outputDir);
     cmd.AddValue("enableOfdma",
                  "If set to true it enables Ofdma scheduler. Default value is false (Tdma)",
-                 enableOfdma),
-        cmd.AddValue("schedulerType",
-                     "PF: Proportional Fair (default), RR: Round-Robin, Qos",
-                     schedulerType),
-        cmd.AddValue("enableQoSLcScheduler",
-                     "If set to true, it enables the QoS LC scheduler. Default is RR (false)",
-                     enableQoSLcScheduler),
-        cmd.AddValue("enableNrHelperTraces",
-                     "If true, it enables the generation of the NrHelper traces, otherwise"
-                     "NrHelper traces will not be generated. Default value is false",
-                     enableNrHelperTraces),
-        cmd.AddValue("enableQosTrafficTraces",
-                     "If true, it enables the generation of the the Delay and Throughput"
-                     "traces, otherwise these traces will not be generated. Default value is true",
-                     enableQosTrafficTraces),
-        cmd.AddValue("enablePdcpDiscarding",
-                     "Whether to enable PDCP TX discarding",
-                     enablePdcpDiscarding),
-        cmd.AddValue("discardTimerMs",
-                     "Discard timer value in milliseconds to use for all the flows",
-                     discardTimerMs);
+                 enableOfdma);
+    cmd.AddValue("schedulerType",
+                 "PF: Proportional Fair (default), RR: Round-Robin, Qos",
+                 schedulerType);
+    cmd.AddValue("enableQoSLcScheduler",
+                 "If set to true, it enables the QoS LC scheduler. Default is RR (false)",
+                 enableQoSLcScheduler);
+    cmd.AddValue("enableNrHelperTraces",
+                 "If true, it enables the generation of the NrHelper traces, otherwise"
+                 "NrHelper traces will not be generated. Default value is false",
+                 enableNrHelperTraces);
+    cmd.AddValue("enableQosTrafficTraces",
+                 "If true, it enables the generation of the the Delay and Throughput"
+                 "traces, otherwise these traces will not be generated. Default value is true",
+                 enableQosTrafficTraces);
+    cmd.AddValue("enablePdcpDiscarding",
+                 "Whether to enable PDCP TX discarding",
+                 enablePdcpDiscarding);
+    cmd.AddValue("discardTimerMs",
+                 "Discard timer value in milliseconds to use for all the flows",
+                 discardTimerMs);
 
     cmd.Parse(argc, argv);
 

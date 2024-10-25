@@ -38,8 +38,7 @@ const Time NR_DEFAULT_PMI_INTERVAL_SB{MilliSeconds(2)};  // Subband PMI update i
 NS_LOG_COMPONENT_DEFINE("NrUePhy");
 NS_OBJECT_ENSURE_REGISTERED(NrUePhy);
 
-NrUePhy::
-NrUePhy()
+NrUePhy::NrUePhy()
 {
     NS_LOG_FUNCTION(this);
     m_wbCqiLast = Simulator::Now();
@@ -49,8 +48,7 @@ NrUePhy()
     Simulator::Schedule(m_ueMeasurementsFilterPeriod, &NrUePhy::ReportUeMeasurements, this);
 }
 
-NrUePhy::~
-NrUePhy()
+NrUePhy::~NrUePhy()
 {
     NS_LOG_FUNCTION(this);
 }

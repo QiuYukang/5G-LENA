@@ -22,10 +22,10 @@
 #include <ns3/names.h>
 #include <ns3/nr-ch-access-manager.h>
 #include <ns3/nr-chunk-processor.h>
+#include <ns3/nr-csi-rs-filter.h>
 #include <ns3/nr-epc-gnb-application.h>
 #include <ns3/nr-epc-ue-nas.h>
 #include <ns3/nr-epc-x2.h>
-#include <ns3/nr-csi-rs-filter.h>
 #include <ns3/nr-fh-control.h>
 #include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-gnb-net-device.h>
@@ -593,7 +593,6 @@ NrHelper::InstallSingleUeDevice(
     }
 
     dev->Initialize();
-
     return dev;
 }
 
@@ -639,6 +638,7 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         Create<NrChunkProcessor>(); // create pData chunk processor per NrSpectrumPhy
     Ptr<NrChunkProcessor> pSrs =
         Create<NrChunkProcessor>(); // create pSrs per processor per NrSpectrumPhy
+    auto phasedChannel = bwp->GetChannel()->GetPhasedArraySpectrumPropagationLossModel();
     if (!m_snrTest)
     {
         // TODO: rename to GeneratePuschCqiReport, replace when enabling uplink MIMO
@@ -651,7 +651,6 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         pSrs->AddCallback(MakeCallback(&NrSpectrumPhy::UpdateSrsSinrPerceived,
                                        channelPhy)); // connect SRS chunk processor that will
                                                      // call UpdateSrsSinrPerceived function
-        auto phasedChannel = bwp->GetChannel()->GetPhasedArraySpectrumPropagationLossModel();
         if (phasedChannel)
         {
             auto pDataMimo = Create<NrMimoChunkProcessor>();
@@ -678,7 +677,7 @@ NrHelper::CreateGnbPhy(const Ptr<Node>& n,
         channelPhy->SetBeamManager(beamManager);
     }
     phy->InstallSpectrumPhy(channelPhy); // finally let know phy that there is this spectrum phy
-    if (m_csiFeedbackFlags & CQI_CSI_RS)
+    if ((m_csiFeedbackFlags & CQI_CSI_RS) && phasedChannel)
     {
         phy->EnableCsiRs();
     }

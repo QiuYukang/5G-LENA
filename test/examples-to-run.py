@@ -230,7 +230,7 @@ cpp_examples = [
         "True",
     ),
     (
-        "cttc-nr-mimo-demo --bandwidth=10e6 --useMimoPmiParams=true",
+        "cttc-nr-mimo-demo --bandwidth=10e6 --useConfigSetDefault=false",
         "True",
         "True",
     ),

@@ -1,5 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2024 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -340,8 +338,7 @@ CttcMimoSimpleDbHelper::DeleteFromTableIfAlreadyExist(CttcMimoSimpleResults& res
         "Could not correctly execute the statement. Db error:" << sqlite3_errmsg(m_db));
 }
 
-CttcMimoSimpleDbHelper::~
-CttcMimoSimpleDbHelper()
+CttcMimoSimpleDbHelper::~CttcMimoSimpleDbHelper()
 {
     // Failed to close the database
     int rc = SQLITE_FAIL;

@@ -17,8 +17,7 @@ NS_LOG_COMPONENT_DEFINE("NrCsiRsFilter");
 
 NS_OBJECT_ENSURE_REGISTERED(NrCsiRsFilter);
 
-NrCsiRsFilter::
-NrCsiRsFilter()
+NrCsiRsFilter::NrCsiRsFilter()
 {
     NS_LOG_FUNCTION(this);
 }

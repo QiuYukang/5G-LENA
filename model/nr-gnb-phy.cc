@@ -1300,6 +1300,7 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
     // TX control period
     Time varTtiPeriod = GetSymbolPeriod() * dci->m_numSym;
 
+    bool transmitCsiRs = false;
     if (m_enableCsiRs)
     {
         // Check whether it is time to transmit CSI-RS
@@ -1307,10 +1308,12 @@ NrGnbPhy::DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
         if (TimeToTransmitCsiRs(currentCsiRsOffset))
         {
             varTtiPeriod = ScheduleCsiRs(varTtiPeriod, currentCsiRsOffset);
+            transmitCsiRs = true;
         }
     }
+
     // The function that is filling m_ctrlMsgs is NrPhy::encodeCtrlMsgs
-    if (!m_ctrlMsgs.empty())
+    if (!m_ctrlMsgs.empty() || transmitCsiRs)
     {
         NS_LOG_DEBUG("gNB TXing DL CTRL with "
                      << m_ctrlMsgs.size() << " msgs, frame " << m_currentSlot << " symbols "

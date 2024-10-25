@@ -1,5 +1,3 @@
-/* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
-
 // Copyright (c) 2024 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -7,9 +5,9 @@
 
 #include <ns3/sqlite-output.h>
 
-const uint32_t DB_ATTEMPT_LIMIT =
-    500; // how many times to try to perform DB query before giving up,
+const uint32_t DB_ATTEMPT_LIMIT = 500;
 
+// how many times to try to perform DB query before giving up,
 // we dont want to enter into an infinite loop
 
 namespace ns3

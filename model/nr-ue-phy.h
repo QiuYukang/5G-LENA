@@ -104,7 +104,7 @@ class NrUePhy : public NrPhy
      */
     void SetEnableUplinkPowerControl(bool enable);
     /**
-     * \brief Set alpha parameter for the calculation of the CSI inteference covariance matrix
+     * \brief Set alpha parameter for the calculation of the CSI interference covariance matrix
      * moving average
      * @param alpha the alpha parameter for the computation of the moving average
      */
@@ -520,7 +520,7 @@ class NrUePhy : public NrPhy
      * that occurred during the duration of the UE's PDSCH signal.
      * @param pdschMimoChunks Chunks of the signals received by this UE from its cell, containing
      * not only its own signals, but also towards other UEs of the same cell. This function triggers
-     * the generation of the CQI feedback if there was CSI-RS in the curren slot, or in the case
+     * the generation of the CQI feedback if there was CSI-RS in the current slot, or in the case
      * that CSI-RS is disabled, so CQI feedback is only based on PDSCH.
      */
     void PdschMimoReceived(const std::vector<MimoSignalChunk>& pdschMimoChunks);
