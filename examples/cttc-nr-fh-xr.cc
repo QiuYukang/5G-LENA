@@ -14,7 +14,6 @@
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/xr-traffic-mixer-helper.h"
-#include <ns3/radio-environment-map-helper.h>
 
 #include <vector>
 

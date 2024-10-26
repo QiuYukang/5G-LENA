@@ -8,7 +8,6 @@
 #include "nr-component-carrier.h"
 #include "nr-ue-phy.h"
 
-#include <ns3/component-carrier.h>
 #include <ns3/nstime.h>
 #include <ns3/object.h>
 

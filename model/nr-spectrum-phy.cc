@@ -58,8 +58,7 @@ operator<<(std::ostream& os, const enum NrSpectrumPhy::State state)
     return os;
 }
 
-NrSpectrumPhy::
-NrSpectrumPhy()
+NrSpectrumPhy::NrSpectrumPhy()
     : SpectrumPhy()
 {
     m_interferenceData = CreateObject<NrInterference>();
@@ -69,8 +68,7 @@ NrSpectrumPhy()
     m_random->SetAttribute("Max", DoubleValue(1.0));
 }
 
-NrSpectrumPhy::~
-NrSpectrumPhy()
+NrSpectrumPhy::~NrSpectrumPhy()
 {
 }
 
