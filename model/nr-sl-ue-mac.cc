@@ -593,7 +593,6 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
                                                  << +itReservedResourceProjection.sbChLength
                                                  << " subchannels index "
                                                  << +itReservedResourceProjection.sbChStart);
-                                    itCandidate = remainingCandidates.erase(itCandidate);
                                     NS_LOG_DEBUG("Resource "
                                                  << itCandidate->sfn.Normalize() << ":["
                                                  << itCandidate->slSubchannelStart << ","
@@ -602,6 +601,7 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
                                                  << "] erased. Its rsrp : "
                                                  << itReservedResourceProjection.slRsrp
                                                  << " Threshold : " << rsrpThreshold);
+                                    itCandidate = remainingCandidates.erase(itCandidate);
                                     erased = true; // Used to break out of outer for loop of sensed
                                                    // data projections
                                     break; // Stop further evaluation because candidate is erased
@@ -609,7 +609,7 @@ NrSlUeMac::GetCandidateResourcesPrivate(const SfnSf& sfn,
                                 else
                                 {
                                     // Although not overlapping in frequency, overlapped in time
-                                    itFutureCand.SetSlotBusy(true);
+                                    itCandidate->SetSlotBusy(true);
                                 }
                             }
                         }
