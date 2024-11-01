@@ -13,6 +13,7 @@
 namespace ns3
 {
 
+class ErrorModel;
 class Node;
 class Packet;
 
@@ -75,8 +76,9 @@ class NrNetDevice : public NetDevice
     void DoDispose() override;
 
     TracedCallback<Ptr<const Packet>, const Address&>
-        m_txTrace;                               ///< Traced Callback for transmitted packets
-    TracedCallback<Ptr<const Packet>> m_rxTrace; ///< Traced Callback for received packets
+        m_txTrace;                                 ///< Traced Callback for transmitted packets
+    TracedCallback<Ptr<const Packet>> m_rxTrace;   ///< Traced Callback for received packets
+    TracedCallback<Ptr<const Packet>> m_dropTrace; ///< Traced Callback for dropped packets
     NetDevice::ReceiveCallback m_rxCallback;
 
     virtual bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) = 0;
@@ -84,6 +86,7 @@ class NrNetDevice : public NetDevice
   private:
     Mac48Address m_macaddress;
     Ptr<Node> m_node;
+    Ptr<ErrorModel> m_receiveErrorModel; ///< Error model for receive packet events
     mutable uint16_t m_mtu;
     bool m_linkUp;
     uint32_t m_ifIndex;

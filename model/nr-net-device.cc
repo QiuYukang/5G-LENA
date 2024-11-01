@@ -5,11 +5,13 @@
 #include "nr-net-device.h"
 
 #include <ns3/channel.h>
+#include <ns3/error-model.h>
 #include <ns3/ipv4-l3-protocol.h>
 #include <ns3/ipv6-header.h>
 #include <ns3/ipv6-l3-protocol.h>
 #include <ns3/log.h>
 #include <ns3/node.h>
+#include <ns3/pointer.h>
 #include <ns3/uinteger.h>
 
 namespace ns3
@@ -30,6 +32,11 @@ NrNetDevice::GetTypeId()
                           UintegerValue(30000),
                           MakeUintegerAccessor(&NrNetDevice::SetMtu, &NrNetDevice::GetMtu),
                           MakeUintegerChecker<uint16_t>())
+            .AddAttribute("ReceiveErrorModel",
+                          "An optional packet error model to simulate packet loss",
+                          PointerValue(),
+                          MakePointerAccessor(&NrNetDevice::m_receiveErrorModel),
+                          MakePointerChecker<ErrorModel>())
             .AddTraceSource("Tx",
                             "A packet has been transmitted with the Address as the recipient",
                             MakeTraceSourceAccessor(&NrNetDevice::m_txTrace),
@@ -37,6 +44,10 @@ NrNetDevice::GetTypeId()
             .AddTraceSource("Rx",
                             "A packet has been received",
                             MakeTraceSourceAccessor(&NrNetDevice::m_rxTrace),
+                            "ns3::Packet::TracedCallback")
+            .AddTraceSource("Drop",
+                            "A packet has been dropped by the receive error model",
+                            MakeTraceSourceAccessor(&NrNetDevice::m_dropTrace),
                             "ns3::Packet::TracedCallback");
 
     return tid;
@@ -211,6 +222,12 @@ NrNetDevice::Receive(Ptr<Packet> p)
     Ipv4Header ipv4Header;
     Ipv6Header ipv6Header;
 
+    if (m_receiveErrorModel && m_receiveErrorModel->IsCorrupt(p))
+    {
+        NS_LOG_INFO("Dropping " << p->GetSize() << " bytes on " << m_macaddress);
+        m_dropTrace(p);
+        return;
+    }
     if (p->PeekHeader(ipv4Header) != 0)
     {
         NS_LOG_INFO("Received " << p->GetSize() << " bytes on " << m_macaddress
