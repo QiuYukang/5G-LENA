@@ -300,8 +300,8 @@ NrFhControl::DoUpdateActiveUesMap(
                                     alloc.m_dci->m_rank);
         if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
         {
-            NS_LOG_DEBUG("Create pair for m_reqFhDlThrTracedValuePerBwp.at("
-                         << bwpId << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+            NS_LOG_DEBUG("Create pair for m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
+                                                                             << "): " << fhDlThr);
         }
         m_reqFhDlThrTracedValuePerBwp[bwpId] += fhDlThr;
         NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
@@ -310,8 +310,8 @@ NrFhControl::DoUpdateActiveUesMap(
         // Create/Update used RBs of the air of a specific bwpId (AI Trace)
         if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwp not in the map
         {
-            NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at("
-                         << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
+            NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at(" << bwpId << "): " << numRbs
+                                                                   << " RBs");
         }
         m_rbsAirTracedValue[bwpId] += numRbs;
         NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << ")" << m_rbsAirTracedValue[bwpId]
@@ -567,7 +567,7 @@ NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
     {
         NS_LOG_DEBUG("Create pair for"
                      << " m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
-                     << "): " << m_reqFhDlThrTracedValuePerBwp.at(bwpId));
+                     << "): " << GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank));
     }
     m_reqFhDlThrTracedValuePerBwp[bwpId] += GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank);
     NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("
@@ -575,8 +575,8 @@ NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
 
     if (m_rbsAirTracedValue.find(bwpId) == m_rbsAirTracedValue.end()) // bwpId not in the map
     {
-        NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at("
-                     << bwpId << "): " << m_rbsAirTracedValue.at(bwpId) << " RBs");
+        NS_LOG_DEBUG("Create pair for m_rbsAirTracedValue.at(" << bwpId << "): " << numRbs
+                                                               << " RBs");
     }
     m_rbsAirTracedValue[bwpId] += numRbs;
     NS_LOG_DEBUG("Update m_rbsAirTracedValue.at(" << bwpId << "): " << m_rbsAirTracedValue.at(bwpId)
