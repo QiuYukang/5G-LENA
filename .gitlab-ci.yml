@@ -118,6 +118,16 @@ per-commit-gcc-optimized:
     MODE: optimized
     COMPILER: g++
 
+per-commit-gcc-optimized-sanitizers:
+  extends: .base-per-commit-compile
+  variables:
+    MODE: optimized
+    COMPILER: g++
+    EXTRAS: --enable-sanitizers
+  tags:
+    - CTTC
+  allow_failure: true
+
 reuse:
   stage: reuse
   image:
