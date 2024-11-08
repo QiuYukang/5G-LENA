@@ -508,7 +508,13 @@ NrNoBackhaulEpcHelper::DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
     }
     else
     {
-        Simulator::ScheduleNow(&NrEpcUeNas::ActivateEpsBearer, ueNrDevice->GetNas(), bearer, tft);
+        // Schedule with context so that logging statements have Node ID
+        Simulator::ScheduleWithContext(ueNrDevice->GetNode()->GetId(),
+                                       Time(),
+                                       &NrEpcUeNas::ActivateEpsBearer,
+                                       ueNrDevice->GetNas(),
+                                       bearer,
+                                       tft);
     }
 }
 
