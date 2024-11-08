@@ -499,10 +499,9 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         exit(1);
     }
     Ptr<NrChannelHelper> channelHelper = CreateObject<NrChannelHelper>();
-    channelHelper->ConfigureFactories(scenario, "Default", "ThreeGpp");
+    channelHelper->ConfigureFactories(scenario, "LOS", "ThreeGpp");
     // Set attributes for all the channels
     channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(!calibration));
-    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
 
     // Omit fading from calibration mode
