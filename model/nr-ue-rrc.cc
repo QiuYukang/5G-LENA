@@ -313,7 +313,7 @@ void
 NrUeRrc::SetNrUeCphySapProvider(NrUeCphySapProvider* s)
 {
     NS_LOG_FUNCTION(this << s);
-    m_cphySapProvider.at(0) = s;
+    m_cphySapProvider.at(GetPrimaryDlIndex()) = s;
 }
 
 void
@@ -327,7 +327,7 @@ NrUeCphySapUser*
 NrUeRrc::GetNrUeCphySapUser()
 {
     NS_LOG_FUNCTION(this);
-    return m_cphySapUser.at(0);
+    return m_cphySapUser.at(GetPrimaryDlIndex());
 }
 
 NrUeCphySapUser*
@@ -341,7 +341,7 @@ void
 NrUeRrc::SetNrUeCmacSapProvider(NrUeCmacSapProvider* s)
 {
     NS_LOG_FUNCTION(this << s);
-    m_cmacSapProvider.at(0) = s;
+    m_cmacSapProvider.at(GetPrimaryDlIndex()) = s;
 }
 
 void
@@ -355,7 +355,7 @@ NrUeCmacSapUser*
 NrUeRrc::GetNrUeCmacSapUser()
 {
     NS_LOG_FUNCTION(this);
-    return m_cmacSapUser.at(0);
+    return m_cmacSapUser.at(GetPrimaryDlIndex());
 }
 
 NrUeCmacSapUser*
@@ -516,6 +516,30 @@ NrUeRrc::SetUseRlcSm(bool val)
 }
 
 void
+NrUeRrc::SetPrimaryUlIndex(uint16_t ulIndex)
+{
+    m_primaryUlIndex = ulIndex;
+}
+
+uint16_t
+NrUeRrc::GetPrimaryUlIndex() const
+{
+    return m_primaryUlIndex;
+}
+
+void
+NrUeRrc::SetPrimaryDlIndex(uint16_t dlIndex)
+{
+    m_primaryDlIndex = dlIndex;
+}
+
+uint16_t
+NrUeRrc::GetPrimaryDlIndex() const
+{
+    return m_primaryDlIndex;
+}
+
+void
 NrUeRrc::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
@@ -544,7 +568,7 @@ NrUeRrc::DoInitialize()
     lcConfig.logicalChannelGroup = 0;        // all SRBs mapped to LCG 0
     NrMacSapUser* msu =
         m_ccmRrcSapProvider->ConfigureSignalBearer(lcid, lcConfig, rlc->GetNrMacSapUser());
-    m_cmacSapProvider.at(0)->AddLc(lcid, lcConfig, msu);
+    m_cmacSapProvider.at(GetPrimaryUlIndex())->AddLc(lcid, lcConfig, msu);
 }
 
 void
@@ -641,7 +665,10 @@ NrUeRrc::DoSetTemporaryCellRnti(uint16_t rnti)
     NS_LOG_FUNCTION(this << rnti);
     m_rnti = rnti;
     m_srb0->m_rlc->SetRnti(m_rnti);
-    m_cphySapProvider.at(0)->SetRnti(m_rnti);
+    m_cphySapProvider.at(GetPrimaryUlIndex())->SetRnti(m_rnti);
+    m_cphySapProvider.at(GetPrimaryDlIndex())->SetRnti(m_rnti);
+    m_cmacSapProvider.at(GetPrimaryUlIndex())->SetRnti(m_rnti);
+    m_cmacSapProvider.at(GetPrimaryDlIndex())->SetRnti(m_rnti);
 }
 
 void
@@ -677,7 +704,8 @@ NrUeRrc::DoNotifyRandomAccessSuccessful()
         }
 
         SwitchToState(CONNECTED_NORMALLY);
-        m_cmacSapProvider.at(0)->NotifyConnectionSuccessful(); // RA successful during handover
+        m_cmacSapProvider.at(GetPrimaryUlIndex())
+            ->NotifyConnectionSuccessful(); // RA successful during handover
         m_handoverEndOkTrace(m_imsi, m_cellId, m_rnti);
     }
     break;
@@ -742,7 +770,7 @@ NrUeRrc::DoStartCellSelection(uint32_t dlEarfcn)
     NS_ASSERT_MSG(m_state == IDLE_START,
                   "cannot start cell selection from state " << ToString(m_state));
     m_dlEarfcn = dlEarfcn;
-    m_cphySapProvider.at(0)->StartCellSearch(dlEarfcn);
+    m_cphySapProvider.at(GetPrimaryDlIndex())->StartCellSearch(dlEarfcn);
     SwitchToState(IDLE_CELL_SEARCH);
 }
 
@@ -756,7 +784,7 @@ NrUeRrc::DoForceCampedOnGnb(uint16_t cellId, uint32_t dlEarfcn)
     case IDLE_START:
         m_cellId = cellId;
         m_dlEarfcn = dlEarfcn;
-        m_cphySapProvider.at(0)->SynchronizeWithGnb(m_cellId, m_dlEarfcn);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(m_cellId, m_dlEarfcn);
         SwitchToState(IDLE_WAIT_MIB);
         break;
 
@@ -834,7 +862,8 @@ void
 NrUeRrc::DoRecvMasterInformationBlock(uint16_t cellId, NrRrcSap::MasterInformationBlock msg)
 {
     m_dlBandwidth = msg.dlBandwidth;
-    m_cphySapProvider.at(0)->SetDlBandwidth(msg.dlBandwidth);
+    m_cphySapProvider.at(GetPrimaryDlIndex())->SetDlBandwidth(msg.dlBandwidth);
+    m_cphySapProvider.at(GetPrimaryUlIndex())->SetDlBandwidth(msg.dlBandwidth);
     m_hasReceivedMib = true;
     m_mibReceivedTrace(m_imsi, m_cellId, m_rnti, cellId);
 
@@ -986,10 +1015,16 @@ NrUeRrc::DoRecvSystemInformation(NrRrcSap::SystemInformation msg)
             NS_ASSERT_MSG(m_connEstFailCountLimit > 0 && m_connEstFailCountLimit < 5,
                           "SIB2 msg contains wrong value " << m_connEstFailCountLimit
                                                            << "of connEstFailCount");
-            m_cmacSapProvider.at(0)->ConfigureRach(rc);
-            m_cphySapProvider.at(0)->ConfigureUplink(m_ulEarfcn, m_ulBandwidth);
-            m_cphySapProvider.at(0)->ConfigureReferenceSignalPower(
-                msg.sib2.radioResourceConfigCommon.pdschConfigCommon.referenceSignalPower);
+            m_cmacSapProvider.at(GetPrimaryUlIndex())->ConfigureRach(rc);
+            m_cphySapProvider.at(GetPrimaryUlIndex())->ConfigureUplink(m_ulEarfcn, m_ulBandwidth);
+            m_cphySapProvider.at(GetPrimaryDlIndex())
+                ->ConfigureUplink(m_ulEarfcn,
+                                  m_ulBandwidth); // also needs to know that UL is configured, e.g.,
+            // when FDD used it is necessary, otherwise CQI
+            // will not be generated and routed to UL UE PHY
+            m_cphySapProvider.at(GetPrimaryUlIndex())
+                ->ConfigureReferenceSignalPower(
+                    msg.sib2.radioResourceConfigCommon.pdschConfigCommon.referenceSignalPower);
             if (m_state == IDLE_WAIT_SIB2)
             {
                 NS_ASSERT(m_connectionPending);
@@ -1020,7 +1055,7 @@ NrUeRrc::DoRecvRrcConnectionSetup(NrRrcSap::RrcConnectionSetup msg)
         msg2.rrcTransactionIdentifier = msg.rrcTransactionIdentifier;
         m_rrcSapUser->SendRrcConnectionSetupCompleted(msg2);
         m_asSapUser->NotifyConnectionSuccessful();
-        m_cmacSapProvider.at(0)->NotifyConnectionSuccessful();
+        m_cmacSapProvider.at(GetPrimaryUlIndex())->NotifyConnectionSuccessful();
         m_connectionEstablishedTrace(m_imsi, m_cellId, m_rnti);
         NS_ABORT_MSG_IF(m_noOfSyncIndications > 0,
                         "Sync indications should be zero "
@@ -1068,20 +1103,28 @@ NrUeRrc::DoRecvRrcConnectionReconfiguration(NrRrcSap::RrcConnectionReconfigurati
             m_cellId = mci.targetPhysCellId;
             NS_ASSERT(mci.haveCarrierFreq);
             NS_ASSERT(mci.haveCarrierBandwidth);
-            m_cphySapProvider.at(0)->SynchronizeWithGnb(m_cellId, mci.carrierFreq.dlCarrierFreq);
-            m_cphySapProvider.at(0)->SetDlBandwidth(mci.carrierBandwidth.dlBandwidth);
-            m_cphySapProvider.at(0)->ConfigureUplink(mci.carrierFreq.ulCarrierFreq,
-                                                     mci.carrierBandwidth.ulBandwidth);
+            m_cphySapProvider.at(GetPrimaryDlIndex())
+                ->SynchronizeWithGnb(m_cellId, mci.carrierFreq.dlCarrierFreq);
+            m_cphySapProvider.at(GetPrimaryDlIndex())
+                ->SetDlBandwidth(mci.carrierBandwidth.dlBandwidth);
+            m_cphySapProvider.at(GetPrimaryUlIndex())
+                ->SetDlBandwidth(mci.carrierBandwidth.dlBandwidth);
+            m_cphySapProvider.at(GetPrimaryUlIndex())
+                ->ConfigureUplink(mci.carrierFreq.ulCarrierFreq, mci.carrierBandwidth.ulBandwidth);
             m_rnti = msg.mobilityControlInfo.newUeIdentity;
             m_srb0->m_rlc->SetRnti(m_rnti);
             NS_ASSERT_MSG(
                 mci.haveRachConfigDedicated,
                 "handover is only supported with non-contention-based random access procedure");
-            m_cmacSapProvider.at(0)->StartNonContentionBasedRandomAccessProcedure(
-                m_rnti,
-                mci.rachConfigDedicated.raPreambleIndex,
-                mci.rachConfigDedicated.raPrachMaskIndex);
-            m_cphySapProvider.at(0)->SetRnti(m_rnti);
+            m_cmacSapProvider.at(GetPrimaryUlIndex())
+                ->StartNonContentionBasedRandomAccessProcedure(
+                    m_rnti,
+                    mci.rachConfigDedicated.raPreambleIndex,
+                    mci.rachConfigDedicated.raPrachMaskIndex);
+            m_cphySapProvider.at(GetPrimaryUlIndex())->SetRnti(m_rnti);
+            m_cphySapProvider.at(GetPrimaryDlIndex())->SetRnti(m_rnti);
+            m_cmacSapProvider.at(GetPrimaryUlIndex())->SetRnti(m_rnti);
+            m_cmacSapProvider.at(GetPrimaryDlIndex())->SetRnti(m_rnti);
             m_lastRrcTransactionIdentifier = msg.rrcTransactionIdentifier;
             NS_ASSERT(msg.haveRadioResourceConfigDedicated);
 
@@ -1256,7 +1299,7 @@ NrUeRrc::SynchronizeToStrongestCell()
     {
         NS_LOG_LOGIC(this << " cell " << maxRsrpCellId
                           << " is the strongest untried surrounding cell");
-        m_cphySapProvider.at(0)->SynchronizeWithGnb(maxRsrpCellId, m_dlEarfcn);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(maxRsrpCellId, m_dlEarfcn);
         SwitchToState(IDLE_WAIT_MIB_SIB1);
     }
 
@@ -1301,8 +1344,8 @@ NrUeRrc::EvaluateCellForSelection()
     if (isSuitableCell)
     {
         m_cellId = cellId;
-        m_cphySapProvider.at(0)->SynchronizeWithGnb(cellId, m_dlEarfcn);
-        m_cphySapProvider.at(0)->SetDlBandwidth(m_dlBandwidth);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(cellId, m_dlEarfcn);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SetDlBandwidth(m_dlBandwidth);
         m_initialCellSelectionEndOkTrace(m_imsi, cellId);
         // Once the UE is connected, m_connectionPending is
         // set to false. So, when RLF occurs and UE performs
@@ -1402,12 +1445,13 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
 
     if (pcd.haveAntennaInfoDedicated)
     {
-        m_cphySapProvider.at(0)->SetTransmissionMode(pcd.antennaInfo.transmissionMode);
+        m_cphySapProvider.at(GetPrimaryUlIndex())
+            ->SetTransmissionMode(pcd.antennaInfo.transmissionMode);
     }
     if (pcd.haveSoundingRsUlConfigDedicated)
     {
-        m_cphySapProvider.at(0)->SetSrsConfigurationIndex(
-            pcd.soundingRsUlConfigDedicated.srsConfigIndex);
+        m_cphySapProvider.at(GetPrimaryUlIndex())
+            ->SetSrsConfigurationIndex(pcd.soundingRsUlConfigDedicated.srsConfigIndex);
     }
 
     if (pcd.havePdschConfigDedicated)
@@ -1415,7 +1459,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
         // update PdschConfigDedicated (i.e. P_A value)
         m_pdschConfigDedicated = pcd.pdschConfigDedicated;
         double paDouble = NrRrcSap::ConvertPdschConfigDedicated2Double(m_pdschConfigDedicated);
-        m_cphySapProvider.at(0)->SetPa(paDouble);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SetPa(paDouble);
     }
 
     auto stamIt = rrcd.srbToAddModList.begin();
@@ -1463,7 +1507,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
             lcConfig.logicalChannelGroup = stamIt->logicalChannelConfig.logicalChannelGroup;
             NrMacSapUser* msu =
                 m_ccmRrcSapProvider->ConfigureSignalBearer(lcid, lcConfig, rlc->GetNrMacSapUser());
-            m_cmacSapProvider.at(0)->AddLc(lcid, lcConfig, msu);
+            m_cmacSapProvider.at(GetPrimaryUlIndex())->AddLc(lcid, lcConfig, msu);
             ++stamIt;
             NS_ASSERT_MSG(stamIt == rrcd.srbToAddModList.end(), "at most one SrbToAdd supported");
 
@@ -3117,7 +3161,7 @@ NrUeRrc::StartConnection()
     NS_ASSERT(m_hasReceivedSib2);
     m_connectionPending = false; // reset the flag
     SwitchToState(IDLE_RANDOM_ACCESS);
-    m_cmacSapProvider.at(0)->StartContentionBasedRandomAccessProcedure();
+    m_cmacSapProvider.at(GetPrimaryUlIndex())->StartContentionBasedRandomAccessProcedure();
 }
 
 void
@@ -3310,7 +3354,7 @@ NrUeRrc::DoNotifyOutOfSync()
         {
             NS_LOG_INFO("t310 started");
         }
-        m_cphySapProvider.at(0)->StartInSyncDetection();
+        m_cphySapProvider.at(GetPrimaryDlIndex())->StartInSyncDetection();
         m_noOfSyncIndications = 0;
     }
 }
@@ -3331,7 +3375,7 @@ NrUeRrc::ResetRlfParams()
     NS_LOG_FUNCTION(this << m_imsi);
     m_radioLinkFailureDetected.Cancel();
     m_noOfSyncIndications = 0;
-    m_cphySapProvider.at(0)->ResetRlfParams();
+    m_cphySapProvider.at(GetPrimaryDlIndex())->ResetRlfParams();
 }
 
 const std::string

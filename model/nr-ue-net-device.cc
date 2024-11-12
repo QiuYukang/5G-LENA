@@ -47,6 +47,20 @@ NrUeNetDevice::GetTypeId()
                           UintegerValue(0),
                           MakeUintegerAccessor(&NrUeNetDevice::m_imsi),
                           MakeUintegerChecker<uint64_t>())
+            .AddAttribute(
+                "PrimaryDlIndex",
+                "The index of DL PHY/MAC that will be used as the primary DL PHY/MAC."
+                "This is needed because UE RRC needs to know which DL PHY/MAC pair is primary.",
+                UintegerValue(0),
+                MakeUintegerAccessor(&NrUeNetDevice::m_primaryDlIndex),
+                MakeUintegerChecker<uint16_t>())
+            .AddAttribute(
+                "PrimaryUlIndex",
+                "The index of UL PHY/MAC that will be used as the primary UL PHY/MAC."
+                "This is needed because UE RRC needs to know which UL PHY/MAC pair is primary.",
+                UintegerValue(0),
+                MakeUintegerAccessor(&NrUeNetDevice::m_primaryUlIndex),
+                MakeUintegerChecker<uint16_t>())
             .AddAttribute("NrUeRrc",
                           "The RRC layer associated with the gNB",
                           PointerValue(),

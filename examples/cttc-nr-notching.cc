@@ -363,6 +363,8 @@ main(int argc, char* argv[])
         // For FDD we have 2 BWPs so the BW must be doubled (e.g. for BW of 10MHz we
         // need 20MHz --> 10MHz for the DL BWP and 10MHz for the UL BWP)
         bandwidth = bandwidth * 2;
+        // First CC (index 0) will be DL, and second CC (index 1) will be UL
+        Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
     }
 
     // Create the configuration for the CcBwpHelper
@@ -722,6 +724,10 @@ main(int argc, char* argv[])
         }
         else
         {
+            if ((validationValue1 && (i->first == 1)) || (validationValue2 && (i->first == 2)))
+            {
+                NS_FATAL_ERROR("Expected packets, but they never arrived");
+            }
             outFile << "  Throughput:  0 Mbps\n";
             outFile << "  Mean delay:  0 ms\n";
             outFile << "  Mean jitter: 0 ms\n";

@@ -154,12 +154,8 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
         NS_ABORT_UNLESS(ret);
         ret = m_db->Bind(stmt, 11, static_cast<uint32_t>(RngSeedManager::GetRun()));
         NS_ABORT_UNLESS(ret);
-
-        if (flowStat.second.rxPackets > 0)
-        {
-            ret = m_db->SpinExec(stmt);
-            NS_ABORT_UNLESS(ret);
-        }
+        ret = m_db->SpinExec(stmt);
+        NS_ABORT_UNLESS(ret);
     }
 
     outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / flowStats.size() << "\n";

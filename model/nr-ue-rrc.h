@@ -308,6 +308,28 @@ class NrUeRrc : public Object
     void SetUseRlcSm(bool val);
 
     /**
+     * @brief Sets the index of the UE PHY/MAC that will be used as the primary UL PHY/MAC
+     * @param primaryIndex Sets the primaryIndex
+     */
+    void SetPrimaryUlIndex(uint16_t primaryIndex);
+
+    /**
+     * @brief Returns the primary index
+     */
+    uint16_t GetPrimaryUlIndex() const;
+
+    /**
+     * @brief Sets the index of the UE PHY/MAC that will be used as the primary UL PHY/MAC
+     * @param primaryIndex Sets the primaryIndex
+     */
+    void SetPrimaryDlIndex(uint16_t primaryIndex);
+
+    /**
+     * @brief Returns the primary index
+     */
+    uint16_t GetPrimaryDlIndex() const;
+
+    /**
      * \param s The UE RRC state.
      * \return The string representation of the given state.
      */
@@ -776,6 +798,16 @@ class NrUeRrc : public Object
      * The `CellId` attribute. Serving cell identifier.
      */
     uint16_t m_cellId;
+
+    /**
+     * The index of primary UL PHY/MAC instances
+     */
+    uint16_t m_primaryUlIndex{0};
+
+    /**
+     * The index of primary DL PHY/MAC instances
+     */
+    uint16_t m_primaryDlIndex{0};
 
     /**
      * The `Srb0` attribute. SignalingRadioBearerInfo for SRB0.

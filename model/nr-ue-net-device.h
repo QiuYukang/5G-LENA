@@ -185,6 +185,8 @@ class NrUeNetDevice : public NrNetDevice
     Ptr<NrEpcUeNas> m_nas;           //!< NAS pointer
     uint64_t m_imsi;                 //!< UE IMSI
     uint32_t m_csgId;                //!< ?_?
+    uint16_t m_primaryDlIndex;       //!< UE primary DL PHY/MAC index
+    uint16_t m_primaryUlIndex;       //!< UE primary UL PHY/MAC index
 
     std::map<uint8_t, Ptr<BandwidthPartUe>> m_ccMap;            ///< component carrier map
     Ptr<NrUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager
