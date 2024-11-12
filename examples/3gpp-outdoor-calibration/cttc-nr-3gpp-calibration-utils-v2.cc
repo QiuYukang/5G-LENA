@@ -459,6 +459,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
             NS_LOG_LOGIC("band0[0][1]: " << bandCenter << " " << bandwidthBwp);
             ConfigureBwpTo(band0.m_cc[0]->m_bwp[1], bandCenter, bandwidthBwp);
             bandCenter += bandwidthBwp;
+            Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
         }
 
         NS_LOG_LOGIC("band1[0][0]: " << bandCenter << " " << bandwidthBwp);

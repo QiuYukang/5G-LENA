@@ -968,7 +968,10 @@ Nr3gppCalibration(Parameters& params)
                    // destroyed, and when simulation starts the object does not exist anymore, but
                    // the scheduled REM events do (exist). So, REM events would be called with
                    // invalid pointer to remHelper ...
-
+    if (params.operationMode == "FDD")
+    {
+        Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
+    }
     if (params.dlRem || params.ulRem)
     {
         std::cout << "  rem helper\n";

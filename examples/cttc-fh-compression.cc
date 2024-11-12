@@ -376,6 +376,7 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     if (operationMode == "FDD")
     {
         numBwpPerCc = 2; // FDD will have 2 BWPs per CC
+        Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
     }
 
     CcBwpCreator::SimpleOperationBandConf bandConf1(centralFrequencyBand1,
