@@ -18,6 +18,10 @@ workflow:
       when: never
     - if: $CI_COMMIT_BRANCH
 
+variables:
+  NS3_RELEASE_VERSION: ns-3.42
+  NS3_REPOSITORY_URL: https://gitlab.com/nsnam/ns-3-dev
+
 ###################### BUILD STAGE #############################################
 
 # Defines the steps to run the tests
@@ -27,7 +31,7 @@ workflow:
 .base-build:
   stage: build
   script:
-    - git clone --branch=$NS3_RELEASE_VERSION --depth=1 https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - mkdir -p $CCACHE_BASEDIR_VALUE
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
@@ -61,7 +65,6 @@ workflow:
   interruptible: true
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
-    NS3_RELEASE_VERSION: "ns-3.42"
 
 # Defines the per-commit jobs. They are executed for any branch
 .base-per-commit-compile:
@@ -151,7 +154,7 @@ documentation:
     - export CCACHE_BASEDIR=${PWD}
     - export CCACHE_DIR=${PWD}/$CCACHE_BASEDIR_VALUE
     # Clone ns-3 and configure then extract introspected doxygen
-    - git clone --branch=$NS3_RELEASE_VERSION --depth=1 https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - ./ns3 configure
