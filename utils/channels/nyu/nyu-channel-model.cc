@@ -208,12 +208,12 @@ NYUChannelModel::GetNYUTable(Ptr<const ChannelCondition> channelCondition) const
     // XPD Values generated from NYU Channel Model is not based on scenario.
     if (los)
     {
-        tablenyu->xpdMean = 11.5 + (freq)*0.10; // frequency dependent XPD Mean value
+        tablenyu->xpdMean = 11.5 + freq * 0.10; // frequency dependent XPD Mean value
         tablenyu->xpdSd = 1.6;                  // XPD standard deviation
     }
     else
     {
-        tablenyu->xpdMean = 5.5 + (freq)*0.13; // frequency dependent XPD Mean value
+        tablenyu->xpdMean = 5.5 + freq * 0.13; // frequency dependent XPD Mean value
         tablenyu->xpdSd = 1.6;                 // XPD standard deviation
     }
     if ((m_scenario == "UMi-StreetCanyon" || m_scenario == "UMa") && los)

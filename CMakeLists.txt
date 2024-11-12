@@ -193,7 +193,6 @@ set(source_files
     utils/channels/nyu/nyu-spectrum-propagation-loss-model.cc
     utils/channels/nyu/nyu-propagation-loss-model.cc
     utils/channels/nyu/nyu-channel-model.cc
-
 )
 
 set(header_files
