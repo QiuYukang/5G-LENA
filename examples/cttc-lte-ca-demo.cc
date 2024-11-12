@@ -430,6 +430,7 @@ main(int argc, char* argv[])
         bwpul->m_centralFrequency = bwpul->m_lowerFrequency + bwpul->m_channelBandwidth / 2;
 
         cc2->AddBwp(std::move(bwpul));
+        Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
     }
 
     band38.AddCc(std::move(cc1));
