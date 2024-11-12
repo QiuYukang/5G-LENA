@@ -17,7 +17,7 @@ check-style-clang-format:
       clang-format-15
       git
   script:
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - python3 utils/check-style-clang-format.py contrib/nr/model
@@ -38,7 +38,7 @@ cmake-format:
   before_script:
     - pip install pyyaml cmake cmake-format ninja
   script:
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - mkdir -p ns-3-dev/contrib/nr/
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
@@ -89,7 +89,7 @@ clang-tidy-17:
       clang-tidy clang-tidy-17
       git libsqlite3-dev libeigen3-dev
   script:
-    - git clone https://gitlab.com/nsnam/ns-3-dev.git
+    - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - ./ns3 configure -d debug --enable-examples --enable-tests --enable-asserts --disable-precompiled-headers
