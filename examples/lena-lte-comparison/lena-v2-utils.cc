@@ -356,6 +356,10 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     band1.m_bandId = 1;
     band2.m_bandId = 2;
 
+    if (operationMode == "FDD")
+    {
+        Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
+    }
     if (freqScenario == 0) // NON_OVERLAPPING
     {
         uint8_t numBwp;
