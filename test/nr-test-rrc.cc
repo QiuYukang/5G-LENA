@@ -333,6 +333,27 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
     ueDevs = m_nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     stream += m_nrHelper->AssignStreams(ueDevs, stream);
 
+    if (m_isFdd)
+    {
+        for (uint32_t i = 0; i < gnbDevs.GetN(); i++)
+        {
+            m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 0)
+                ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+
+            m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 1)
+                ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+
+            // Link the two FDD BWPs at gNBs
+            m_nrHelper->GetBwpManagerGnb(gnbDevs.Get(i))->SetOutputLink(1, 0);
+        }
+
+        // Link the two FDD BWPs at UEs
+        for (uint32_t i = 0; i < ueDevs.GetN(); i++)
+        {
+            m_nrHelper->GetBwpManagerUe(ueDevs.Get(i))->SetOutputLink(0, 1);
+        }
+    }
+
     m_nrHelper->UpdateDeviceConfigs(gnbDevs);
     m_nrHelper->UpdateDeviceConfigs(ueDevs);
     // m_nrHelper->AttachToClosestGnb(ueDevs, gnbDevs);
