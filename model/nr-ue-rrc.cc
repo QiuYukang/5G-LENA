@@ -1024,6 +1024,7 @@ NrUeRrc::DoRecvSystemInformation(NrRrcSap::SystemInformation msg)
             m_cphySapProvider.at(GetPrimaryUlIndex())
                 ->ConfigureReferenceSignalPower(
                     msg.sib2.radioResourceConfigCommon.pdschConfigCommon.referenceSignalPower);
+            m_cphySapProvider.at(GetPrimaryUlIndex())->SetDlBandwidth(m_ulBandwidth);
             if (m_state == IDLE_WAIT_SIB2)
             {
                 NS_ASSERT(m_connectionPending);
@@ -1107,7 +1108,7 @@ NrUeRrc::DoRecvRrcConnectionReconfiguration(NrRrcSap::RrcConnectionReconfigurati
             m_cphySapProvider.at(GetPrimaryDlIndex())
                 ->SetDlBandwidth(mci.carrierBandwidth.dlBandwidth);
             m_cphySapProvider.at(GetPrimaryUlIndex())
-                ->SetDlBandwidth(mci.carrierBandwidth.dlBandwidth);
+                ->SetDlBandwidth(mci.carrierBandwidth.ulBandwidth);
             m_cphySapProvider.at(GetPrimaryUlIndex())
                 ->ConfigureUplink(mci.carrierFreq.ulCarrierFreq, mci.carrierBandwidth.ulBandwidth);
             m_rnti = msg.mobilityControlInfo.newUeIdentity;
