@@ -54,6 +54,25 @@ NrMacSchedulerUeInfo::GetDlMcs(const UePtr& ue)
     return ue->m_dlMcs;
 }
 
+template <typename T>
+uint8_t
+ComputeMcs(const NrMacSchedulerUeInfo* ueInfo,
+           T NrMacSchedulerUeInfo::SbMcsInfo::*field,
+           std::function<uint8_t(double)> postProcessing)
+{
+    // Compute average field of allocated RBGs
+    const auto sum = std::transform_reduce(
+        ueInfo->m_dlRBG.begin(),
+        ueInfo->m_dlRBG.end(),
+        0.0,
+        [](auto a, auto b) { return a + b; },
+        [ueInfo, field](auto a) {
+            return ueInfo->m_dlSbMcsInfo.at(ueInfo->m_rbgToSb.at(a)).*field;
+        });
+    const auto avg = sum / ueInfo->m_dlRBG.size();
+    return postProcessing(avg);
+}
+
 uint8_t
 NrMacSchedulerUeInfo::GetDlMcs() const
 {
@@ -63,19 +82,34 @@ NrMacSchedulerUeInfo::GetDlMcs() const
         return m_fhMaxMcsAssignable.value();
     }
 
-    // Otherwise, return the wideband MCS or the average of the allocated sub-band MCSs
-    uint8_t dlMcs = m_dlMcs;
-    if (!m_rbgDlMcs.empty() && !m_dlRBG.empty())
+    // In case there is no sub-band info or no RBG has been allocated, return the wideband MCS
+    if (m_dlSbMcsInfo.empty() || m_dlRBG.empty() || (m_mcsCsiSource == McsCsiSource::WIDEBAND_MCS))
     {
-        auto sum = std::transform_reduce(
-            m_dlRBG.begin(),
-            m_dlRBG.end(),
-            0,
-            [](auto a, auto b) { return (uint32_t)a + (uint32_t)b; },
-            [this](auto rbg) { return m_rbgDlMcs[rbg][1]; });
-        dlMcs = (uint8_t)(sum / m_dlRBG.size());
+        return m_dlMcs;
     }
-    return dlMcs;
+
+    // Otherwise, compute the SINR of allocated RBGs
+    switch (m_mcsCsiSource)
+    {
+    // Estimate MCS based on the average MCS of allocated RBGs
+    case McsCsiSource::AVG_MCS: {
+        return ComputeMcs(this, &SbMcsInfo::mcs, [](double avg) { return (uint8_t)floor(avg); });
+    }
+    // Estimate MCS based on the average spectral efficiency of allocated RBGs
+    case McsCsiSource::AVG_SPEC_EFF: {
+        return ComputeMcs(this,
+                          &SbMcsInfo::specEff,
+                          std::bind_front(&NrAmc::GetMcsFromSpectralEfficiency, m_dlAmc));
+    }
+    // Estimate MCS based on the average SINR of allocated RBGs
+    case McsCsiSource::AVG_SINR: {
+        return ComputeMcs(this, &SbMcsInfo::sinr, [amc = m_dlAmc](double avgSinr) {
+            return amc->GetMcsFromSpectralEfficiency(amc->GetSpectralEfficiencyForSinr(avgSinr));
+        });
+    }
+    default:
+        NS_ABORT_MSG("Invalid csi source for MCS computation");
+    }
 }
 
 uint8_t&

@@ -234,7 +234,8 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
     uint32_t currentRbgPos = std::numeric_limits<uint32_t>::max();
 
     // Use wideband information in case there is no sub-band feedback yet
-    if (currentUe->m_rbgDlMcs.empty())
+    if (currentUe->m_dlSbMcsInfo.empty() ||
+        m_mcsCsiSource == NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS)
     {
         currentRbgPos = *remainingRbgSet.begin();
     }
@@ -244,10 +245,11 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
         int maxCqi = 0;
         for (auto resourcePos : remainingRbgSet)
         {
-            if (currentUe->m_rbgDlMcs.at(resourcePos)[0] > maxCqi)
+            const auto resourceSb = currentUe->m_rbgToSb.at(resourcePos);
+            if (currentUe->m_dlSbMcsInfo.at(resourceSb).cqi > maxCqi)
             {
                 currentRbgPos = resourcePos;
-                maxCqi = currentUe->m_rbgDlMcs.at(resourcePos)[0];
+                maxCqi = currentUe->m_dlSbMcsInfo.at(resourceSb).cqi;
             }
         }
 

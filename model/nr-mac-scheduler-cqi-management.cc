@@ -139,11 +139,14 @@ NrMacSchedulerCQIManagement::DlCqiReported(const DlCqiInfo& info,
                  static_cast<uint8_t>(maxDlMcs));
 
     ueInfo->m_dlCqi.m_sbCqi = info.m_sbCqis;
-    ueInfo->m_rbgDlMcs.clear();
+    ueInfo->m_dlSbMcsInfo.clear();
     if (!info.m_sbCqis.empty())
     {
         // Map sub-band CQI to MCS per RBG
-        ueInfo->m_rbgDlMcs.resize(bandwidthInRbgs);
+        ueInfo->m_dlSbMcsInfo.resize(info.m_sbCqis.size());
+        ueInfo->m_rbgToSb.resize(bandwidthInRbgs);
+
+        // Determine sub-band size
         size_t rbgsPerSb = 1;
         while (static_cast<std::size_t>(bandwidthInRbgs / rbgsPerSb) >
                ueInfo->m_dlCqi.m_sbCqi.size())
@@ -151,15 +154,26 @@ NrMacSchedulerCQIManagement::DlCqiReported(const DlCqiInfo& info,
             rbgsPerSb <<= 1;
         }
 
+        // Precompute MCS, spectral efficiency and SINR, which can be used later to determine which
+        // MCS we should use for a given set of allocated RBGs
         size_t sb = 0;
         for (auto sbCqi : ueInfo->m_dlCqi.m_sbCqi)
         {
-            auto mcs = GetAmcDl()->GetMcsFromCqi(sbCqi);
+            auto mcs = m_getAmcDl()->GetMcsFromCqi(sbCqi);
+            auto specEff = m_getAmcDl()->GetSpectralEfficiencyForCqi(sbCqi);
+            auto sinr = m_getAmcDl()->GetSinrFromSpectralEfficiency(specEff);
+
+            // Divide estimated SINR by the rank number, to get the equivalent at rank 1
+            sinr /= info.m_ri;
+
+            // We don't need double precision for this
+            ueInfo->m_dlSbMcsInfo[sb] = {sbCqi, mcs, (float)specEff, (float)sinr};
+
             for (auto rbg = sb * rbgsPerSb;
                  rbg < std::min<size_t>(bandwidthInRbgs, (sb + 1) * rbgsPerSb);
                  rbg++)
             {
-                ueInfo->m_rbgDlMcs[rbg] = {sbCqi, mcs};
+                ueInfo->m_rbgToSb[rbg] = sb;
             }
             sb++;
         }

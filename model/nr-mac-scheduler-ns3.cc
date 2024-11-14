@@ -17,6 +17,7 @@
 #include "nr-mac-short-bsr-ce.h"
 
 #include "ns3/boolean.h"
+#include "ns3/enum.h"
 #include "ns3/integer.h"
 #include "ns3/log.h"
 #include "ns3/pointer.h"
@@ -205,7 +206,22 @@ NrMacSchedulerNs3::GetTypeId()
                           "The MCS of the RACH UL grant, must be [0..15] (default 0)",
                           UintegerValue(0),
                           MakeUintegerAccessor(&NrMacSchedulerNs3::SetRachUlGrantMcs),
-                          MakeUintegerChecker<uint8_t>());
+                          MakeUintegerChecker<uint8_t>())
+            .AddAttribute(
+                "McsCsiSource",
+                "Choose which CSI information is used to estimate DL MCS(default AVG_MCS)",
+                EnumValue(NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS),
+                MakeEnumAccessor<NrMacSchedulerUeInfo::McsCsiSource>(
+                    &NrMacSchedulerNs3::m_mcsCsiSource),
+                MakeEnumChecker<NrMacSchedulerUeInfo::McsCsiSource>(
+                    NrMacSchedulerUeInfo::McsCsiSource::AVG_MCS,
+                    "AVG_MCS",
+                    NrMacSchedulerUeInfo::McsCsiSource::AVG_SPEC_EFF,
+                    "AVG_SPEC_EFF",
+                    NrMacSchedulerUeInfo::McsCsiSource::AVG_SINR,
+                    "AVG_SINR",
+                    NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS,
+                    "WIDEBAND_MCS"));
 
     return tid;
 }
@@ -565,6 +581,7 @@ NrMacSchedulerNs3::DoCschedUeConfigReq(
         UeInfoOf(*itUe)->m_ulMcs = m_startMcsUl;
         UeInfoOf(*itUe)->m_dlAmc = m_dlAmc;
         UeInfoOf(*itUe)->m_ulAmc = m_ulAmc;
+        UeInfoOf(*itUe)->m_mcsCsiSource = m_mcsCsiSource;
 
         NrMacSchedulerSrs::SrsPeriodicityAndOffset srs = m_schedulerSrs->AddUe();
 

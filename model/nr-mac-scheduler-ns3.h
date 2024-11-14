@@ -720,6 +720,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
   protected:
     Ptr<NrAmc> m_dlAmc; //!< AMC pointer
     Ptr<NrAmc> m_ulAmc; //!< AMC pointer
+    NrMacSchedulerUeInfo::McsCsiSource
+        m_mcsCsiSource; //!< CSI information source for DL MCS estimation
 
     bool m_activeDlAi{false}; //!< Flag for activating AI for downlink
     bool m_activeUlAi{false}; //!< Flag for activating AI for uplink

@@ -224,6 +224,30 @@ class NrAmc : public Object
                                   const size_t subbandSize,
                                   const NrSinrMatrix& sinrMat) const;
 
+    /**
+     * @brief Compute spectral efficient for a given CQI according to the error model
+     * @param cqi CQI
+     * @return the spectral efficiency
+     */
+    double GetSpectralEfficiencyForCqi(uint8_t cqi) const
+    {
+        return m_errorModel->GetSpectralEfficiencyForCqi(cqi);
+    }
+
+    /**
+     * @brief Compute spectral efficient for a given SINR according to Shannon's capacity
+     * @param sinr Linear SINR
+     * @return the spectral efficiency
+     */
+    double GetSpectralEfficiencyForSinr(double sinr) const;
+
+    /**
+     * @brief Compute SINR for a given spectral efficiency according to Shannon's capacity
+     * @param spectralEff Spectral efficiency (bits/Hz)
+     * @return the linear sinr
+     */
+    double GetSinrFromSpectralEfficiency(double spectralEff) const;
+
   private:
     /// @brief Find maximum MCS supported for this channel, using the NR error model
     /// @param sinrMat the MIMO SINR matrix (rank * nRbs)

@@ -95,6 +95,14 @@ class NrMacSchedulerUeInfo
      * @return
      */
     static std::vector<uint8_t>& GetUlSym(const UePtr& ue);
+
+    enum class McsCsiSource
+    {
+        AVG_MCS,      //!< Estimate MCS based on the average MCS of allocated RBGs
+        AVG_SPEC_EFF, //!< Estimate MCS based on the average spectral efficiency of allocated RBGs
+        AVG_SINR,     //!< Estimate MCS based on the average SINR of allocated RBGs
+        WIDEBAND_MCS  //!< Wideband MCS
+    };
     /**
      * @brief Get the downlink MCS, given by the wideband CQI, or
      *        the sub-band CQIs of the currently allocated RBGs, if available
@@ -266,7 +274,18 @@ class NrMacSchedulerUeInfo
     std::optional<uint8_t>
         m_fhMaxMcsAssignable; //!< Maximum DL MCS assignable due to FH limitations
     uint8_t m_ulMcs{0};       //!< UL MCS
-    std::vector<std::array<uint8_t, 2>> m_rbgDlMcs; //!< DL MCS for RBG based on sub-band CQI
+
+    struct SbMcsInfo
+    {
+        uint8_t cqi;
+        uint8_t mcs;
+        float specEff;
+        float sinr;
+    };
+
+    std::vector<SbMcsInfo> m_dlSbMcsInfo; //!< Precomputed MCS, Spectral Efficiency and estimated
+                                          //!< SINR for a sub-band CQI associated with a RBG
+    std::vector<uint8_t> m_rbgToSb;       //!< Precomputed RBG to SB mapping
 
     uint32_t m_dlTbSize{0}; //!< DL Transport Block Size, depends on MCS and RBG,
                             //!< updated in UpdateDlMetric()
@@ -290,6 +309,7 @@ class NrMacSchedulerUeInfo
     // Settings from the scheduler, that affects MCS, TBS and throughput computation
     Ptr<NrAmc> m_dlAmc;          //!< AMC instance of scheduler associated with DL
     Ptr<NrAmc> m_ulAmc;          //!< AMC instance of scheduler associated with UL
+    McsCsiSource m_mcsCsiSource; //!< Source of MCS computation based on CSI feedback
 
   protected:
     /**

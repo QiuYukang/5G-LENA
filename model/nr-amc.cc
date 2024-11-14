@@ -185,15 +185,7 @@ NrAmc::CreateCqiFeedbackWbTdma(const SpectrumValue& sinr, uint8_t& mcs) const
             }
             else
             {
-                /*
-                 * Compute the spectral efficiency from the SINR
-                 *                                        SINR
-                 * spectralEfficiency = log2 (1 + -------------------- )
-                 *                                    -ln(5*BER)/1.5
-                 * NB: SINR must be expressed in linear units
-                 */
-
-                double s = log2(1 + (sinr_ / ((-std::log(5.0 * m_ber)) / 1.5)));
+                auto s = GetSpectralEfficiencyForSinr(sinr_);
                 seAvg += s;
 
                 int cqi_ = GetCqiFromSpectralEfficiency(s);
@@ -381,16 +373,11 @@ NrAmc::GetSbMcs(const size_t subbandSize, const NrSinrMatrix& sinrMat) const
     auto nSbs = (nRbs + subbandSize - 1) / subbandSize;
     auto sbMcs = std::vector<uint8_t>(nSbs, 0);
 
+    size_t lastSubbandSize = sinrMat.GetNumCols() % subbandSize;
     for (size_t i = 0; i < sbMcs.size(); i++)
     {
-        auto avgSinrSb = ExtractSbFromMat(i, subbandSize, sinrMat);
-        // Assume MCS 0 when SINR is zero (CQI 0 actually)
-        if (avgSinrSb(0, 0) == 0.0)
-        {
-            continue;
-        }
-        auto sinrTmp = CreateSinrMatForSb(avgSinrSb, sinrMat);
-        sbMcs[i] = GetMcs(sinrTmp);
+        auto sinrSb = ExtractSbFromMat(i, i != (nSbs - 1) ? subbandSize : lastSubbandSize, sinrMat);
+        sbMcs[i] = GetMcs(sinrSb);
     }
     return sbMcs;
 }
@@ -401,26 +388,14 @@ NrAmc::ExtractSbFromMat(const uint8_t sbIndex,
                         const NrSinrMatrix& sinrMat) const
 {
     const auto rank = sinrMat.GetNumRows();
-    DoubleMatrixArray sinrSb(rank, 1);
-    size_t subbandSizeActual = 0;
+    DoubleMatrixArray sinrSb(rank, sinrMat.GetNumCols());
     for (uint8_t r = 0; r < rank; r++)
     {
         for (size_t iRb = sbIndex * subbandSize; iRb < (sbIndex + 1) * subbandSize; iRb++)
         {
-            sinrSb(r, 0) += sinrMat(r, iRb);
-            subbandSizeActual += 1;
-            if (iRb >= sinrMat.GetNumCols() - 1)
-            {
-                break;
-            }
+            sinrSb(r, iRb) = sinrMat(r, iRb);
         }
     }
-    subbandSizeActual /= rank;
-    for (uint8_t r = 0; r < rank; r++)
-    {
-        sinrSb(r, 0) /= subbandSizeActual;
-    }
-
     return sinrSb;
 }
 
@@ -529,6 +504,11 @@ NrAmc::CalcTblerForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const
         }
     }
 
+    if (rbMap.empty())
+    {
+        return 1.0;
+    }
+
     auto tbSize = CalcTbSizeForMimoMatrix(mcs, sinrMat);
     auto dummyHistory = NrErrorModel::NrErrorModelHistory{}; // Create empty HARQ history
     auto outputOfEm = m_errorModel->GetTbDecodificationStatsMimo(mimoChunks,
@@ -547,6 +527,32 @@ NrAmc::CalcTbSizeForMimoMatrix(uint8_t mcs, const NrSinrMatrix& sinrMat) const
     auto nRbSyms = nRbs * NR_AMC_NUM_SYMBOLS_DEFAULT;
     auto rank = sinrMat.GetRank();
     return CalculateTbSize(mcs, rank, nRbSyms);
+}
+
+double
+NrAmc::GetSpectralEfficiencyForSinr(double sinr) const
+{
+    /*
+     * Compute the spectral efficiency from the SINR
+     *                                        SINR
+     * spectralEfficiency = log2 (1 + -------------------- )
+     *                                    -ln(5*BER)/1.5
+     * NB: SINR must be expressed in linear units
+     */
+    double s = log2(1 + (sinr / ((-std::log(5.0 * GetBer())) / 1.5)));
+    return s;
+}
+
+double
+NrAmc::GetSinrFromSpectralEfficiency(double spectralEff) const
+{
+    /*
+     * Compute the spectral efficiency from the SINR
+     * SINR = ((2^spectralEff)-1) * -ln(5*BER)/1.5
+     * NB: SINR must be expressed in linear units
+     */
+    double sinr = (pow(2, spectralEff) - 1) * (-std::log(5.0 * GetBer())) / 1.5;
+    return sinr;
 }
 
 } // namespace ns3
