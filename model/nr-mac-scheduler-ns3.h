@@ -13,6 +13,8 @@
 #include "nr-mac-scheduler.h"
 #include "nr-phy-mac-common.h"
 
+#include "ns3/traced-callback.h"
+
 #include <functional>
 #include <list>
 #include <memory>
@@ -959,6 +961,9 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     friend NrSchedGeneralTestCase;
 
     bool m_enableHarqReTx{true}; //!< Flag to enable or disable HARQ ReTx (attribute)
+
+    TracedCallback<uint16_t, uint16_t, const std::shared_ptr<NrMacSchedulerUeInfo>&>
+        m_csiFeedbackReceived; //!< Traced callback to access CSI feedback
 };
 
 } // namespace ns3

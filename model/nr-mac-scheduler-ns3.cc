@@ -221,7 +221,11 @@ NrMacSchedulerNs3::GetTypeId()
                     NrMacSchedulerUeInfo::McsCsiSource::AVG_SINR,
                     "AVG_SINR",
                     NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS,
-                    "WIDEBAND_MCS"));
+                    "WIDEBAND_MCS"))
+            .AddTraceSource("CsiFeedbackReceived",
+                            "Received CSI feedback post-processed by the scheduler CQI management",
+                            MakeTraceSourceAccessor(&NrMacSchedulerNs3::m_csiFeedbackReceived),
+                            "ns3::NrMacSchedulerNs3::CsiFeedbackReceived::TracedCallback");
 
     return tid;
 }
@@ -912,6 +916,7 @@ NrMacSchedulerNs3::DoSchedDlCqiInfoReq(
         NS_ASSERT(m_ueMap.find(cqi.m_rnti) != m_ueMap.end());
         const std::shared_ptr<NrMacSchedulerUeInfo>& ue = m_ueMap.find(cqi.m_rnti)->second;
         m_cqiManagement.DlCqiReported(cqi, ue, expirationTime, m_maxDlMcs, GetBandwidthInRbg());
+        m_csiFeedbackReceived(GetCellId(), GetBwpId(), ue);
     }
 }
 

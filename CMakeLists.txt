@@ -480,6 +480,7 @@ set(test_sources
     test/nr-test-deactivate-bearer.cc
     test/nr-channel-setup-test.cc
     test/nr-test-ri-pmi.cc
+    test/nr-test-csi.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
