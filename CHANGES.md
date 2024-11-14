@@ -54,7 +54,12 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
-We introduced a new helper class, `NrChannelHelper`, simplifying the implementation, configuration, and assignment of different spectrum channels with various channel models to create bands. This class extends our module to support NYUSIM, Fluctuating Two-Ray, and 3GPP channel models.
+- We introduced a new helper class, `NrChannelHelper`, simplifying the implementation, configuration, and assignment of different spectrum channels with various channel models to create bands. This class extends our module to support NYUSIM, Fluctuating Two-Ray, and 3GPP channel models.
+- Channel state information (CSI) can now be obtained by leveraging periodic CSI-RS signalling and CSI-IM measurements.
+New `NrSpectrumSignalParametersCsiRs` type of NR signals is introduced to represent CSI-RS signals. The type of CSI feedback
+can be configured through `NrHelper::CsiFeedbackFlags` attribute.
+- New spectrum filter called `NrCsiRsFilter` is introduced to minimize the computational complexity of CSI-RS signalling,
+by filtering it for the receiving `SpectrumPhy` instances that should not receive such signals.
 
 ### Changes to existing API:
 

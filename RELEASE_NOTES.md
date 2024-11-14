@@ -55,6 +55,10 @@ authors of the NYUSIM channel model code implementation in ns-3. (Original code:
   compatibility with the corresponding ns-3 release branch is stated in the
   `README.md` file.
 
+- Previously, CSI feedback was based only on PDSCH. Now, the module is extended to support period CSI-RS and CSI-IM based CSI-feedback.
+Additional combinations of these modes are available for testing purposes and can be configured through `NrHelper::CsiFeedbackFlags` attribute.
+Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
+
 New user-visible features
 -------------------------
 In the new version of the module, we have created a simple interface for configuring spectrum channels for use in simulations. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels.

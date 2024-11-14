@@ -1939,10 +1939,12 @@ NR Channel Helper
 *****************
 
 This class consolidates the configuration of channel models in 5G-LENA.
-It also prevents unaware users from inadvertently mixing incompatible channel conditions, scenarios and models.
+It also prevents users from inadvertently mixing incompatible channel conditions, scenarios and models.
 Currently, the class supports the NYUSIM and Fluctuating Two-Ray (FTR) models and the previously supported 3GPP channel model and their scenarios and conditions.
 Moreover, the class allows for potential extensions to support legacy models already present in ns-3 (e.g., Friis, Constant), for faster but less realistic channel models.
-
+Notice that SU-MIMO implementation is currently supported only by 3GPP channel model. Other models, like NYU and FTR would need to be extended in order to be used
+in SU-MIMO simulations. For example, these models do not generate frequency domain spectrum channel matrix (whose dimensions are the number of RX ports,
+the number of TX Ports, and the number of resource blocks (RBs)), which is needed by 5G-LENA SU-MIMO model to calculate the SINR.
 
 **Scenarios:**
 - Rural Macro (RMa)
@@ -2638,6 +2640,37 @@ Proximal Policy Optimization (PPO) script for testing ``gsoc-nr-rl-based-sched``
 The script runs the example with the PPO model under the ``Ns3Env`` environment. For each
 iteration, the model is trained with the collected data from the simulation and send the
 selected actions to the simulator through the ``Ns3Env`` environment.
+
+cttc-nr-mimo-demo.cc
+=====================
+The program ``examples/cttc-nr-mimo-demo`` is an example that shows how to setup and
+use SU-MIMO. The scenario consists of a simple topology, in which there is one gNB and one UE.
+An additional pair of gNB and UE can be enabled to simulate the interference (see enableInterfNode).
+Example creates one DL flow that goes through only BWP. The example prints on-screen and
+into the database the end-to-end result of the flow of interest.
+
+Configuring SU-MIMO
+###################
+
+The example shows how to configure some of the main parameters to enable SU-MIMO in the
+simulation, such as: ``NrHelper::EnableMimoFeedback``, and how to setup most of the MIMO related parameters
+through a structure ``NrHelper::MimoPmiParams`` that is being passed to ``NrHelper``.
+Some of the SU-MIMO related parameters that are being configured through this structure are: the type of the
+precoding matrix search, i.e., the type of ``NrPmSearch`` algorithm; ``RankLimit`` which is the parameter of ``PmSearch``
+algorithm; ``SubbandSize`` and ``DownsamplingTechnique``. If the search algorithm is of type ``NrPmSearchFull`` then
+the additional parameter that can be set is ``CodebookType``. The codebook to be used for the full search can be:
+a) ``ns3::NrCbTwoPort``, the two-port codebook defined in 3GPP TS 38.214 Table 5.2.2.2.1-1, or
+b) ``ns3::NrCbTypeOneSp``, Type-I Single-Panel Codebook 3GPP TS 38.214 Rel. 15, Sec. 5.2.2.2.1 supporting codebook mode 1 only,
+and limited to rank 4. The other parameters to play with in this example are: ``NrUePhy::WbPmiUpdateInterval``,
+the wideband PMI update interval in ms, and ``NrUePhy::SbPmiUpdateInterval``, the subband PMI update interval in ms.
+
+Configuring CSI feedback type
+#############################
+Finally, ``NrHelper::CsiFeedbackFlags`` parameter defines the type of the CSI feedback. For example, the CSI feedback can
+be based only on DATA, and thus is aperiodic and might not contain the information of all the RBGs. Also, the CSI
+feedback can be based on CSI-RS and CSI-IM, and hence is periodic and provides the information over all the bandwidth.
+This parameter can take the following values: ``CQI_PDSCH_MIMO = 1``, ``CQI_CSI_RS = 2``, ``CQI_PDSCH_MIMO|CQI_CSI_RS = 3``,
+``CQI_CSI_RS|CQI_CSI_IM = 6``, ``CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM = 7``, and ``CQI_PDSCH_SISO = 8``.
 
 .. _Validation:
 
