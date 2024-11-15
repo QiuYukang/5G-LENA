@@ -14,7 +14,9 @@
 #include <ns3/nyu-spectrum-propagation-loss-model.h>
 #include <ns3/object-factory.h>
 #include <ns3/pointer.h>
+#include <ns3/simulator.h>
 #include <ns3/string.h>
+#include <ns3/three-gpp-channel-model.h>
 #include <ns3/three-gpp-propagation-loss-model.h>
 #include <ns3/three-gpp-spectrum-propagation-loss-model.h>
 #include <ns3/three-gpp-v2v-channel-condition-model.h>
@@ -115,6 +117,17 @@ NrChannelHelper::CreateChannel(uint8_t flags)
         {
             channelObject = matrixChannelClassPtr.Get<MatrixBasedChannelModel>();
             channelObject->AggregateObject(spectrumLossModel);
+
+            // Break the circular dependency between channel and spectrumLoss objects
+            // before disposing the objects to avoid a memory leak until ns-3.44
+            auto threeGppSpecProp =
+                DynamicCast<ThreeGppSpectrumPropagationLossModel>(spectrumLossModel);
+            if (threeGppSpecProp)
+            {
+                Simulator::ScheduleDestroy(&ThreeGppSpectrumPropagationLossModel::SetChannelModel,
+                                           threeGppSpecProp,
+                                           CreateObject<ThreeGppChannelModel>());
+            }
         }
         else
         {
