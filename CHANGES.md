@@ -65,7 +65,11 @@ by filtering it for the receiving `SpectrumPhy` instances that should not receiv
 
 The existing scenario configuration was removed from band creation. Additionally, band initialization and channel attribute setting methods were removed from `NrHelper`.
 
+A new attribute, ``NrRlcUm::OutOfOrderDelivery`` was added to correspond to TS 36.322 Section 5.1.2.2.3 ``rlc-OutOfOrderDelivery`` variable; it defaults to true.
+
 ### Changed behavior:
+
+By default, RLC SDUs received out of order will be delivered without waiting for a reordering timer to expire.  The observed latency of applications such as voice should be lower as a result.
 
 ---
 

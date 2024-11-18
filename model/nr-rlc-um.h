@@ -139,6 +139,7 @@ class NrRlcUm : public NrRlc
     bool m_enablePdcpDiscarding{false}; //!< whether to use the PDCP discarding (perform discarding
                                         //!< at the moment of passing the PDCP SDU to RLC)
     uint32_t m_discardTimerMs{0};       //!< the discard timer value in milliseconds
+    bool m_outOfOrderDelivery{true};    //!< whether to deliver RLC SDUs without reordering timer
 
     /**
      * Reassembling state

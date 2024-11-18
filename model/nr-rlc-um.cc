@@ -70,7 +70,13 @@ NrRlcUm::GetTypeId()
                           "timer value, otherwise it will be used this value.",
                           UintegerValue(0),
                           MakeUintegerAccessor(&NrRlcUm::m_discardTimerMs),
-                          MakeUintegerChecker<uint32_t>());
+                          MakeUintegerChecker<uint32_t>())
+            .AddAttribute("OutOfOfOrderDelivery",
+                          "Whether to deliver RLC SDUs out of order without waiting for a "
+                          "reordering timer to expire",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrRlcUm::m_outOfOrderDelivery),
+                          MakeBooleanChecker());
     return tid;
 }
 
@@ -507,6 +513,16 @@ NrRlcUm::DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams)
     // 5.1.2.2.3 Actions when an UMD PDU is placed in the reception buffer
     // When an UMD PDU with SN = x is placed in the reception buffer, the receiving UM RLC entity
     // shall:
+    // - if rlc-OutOfOrderDelivery is configured:
+    //   - if all byte segments of the UMD PDU are received:
+    //   - reassemble the RLC SDU using the byte segments of the UMD PDU,
+    //     remove RLC headers when doing so and deliver the reassembled RLC
+    //     SDU to upper layer if not delivered before;
+
+    if (m_outOfOrderDelivery)
+    {
+        ReassembleOutsideWindow();
+    }
 
     // - if x falls outside of the reordering window:
     //    - update VR(UH) to x + 1;
