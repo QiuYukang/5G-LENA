@@ -41,38 +41,43 @@ class NrFhControl;
 
 /**
  * \ingroup helper
- * \brief Helper for a correct setup of every NR simulation
- *
- * This class will help you in setting up a single- or multi-cell scenario
- * with NR. Most probably, you will interact with the NR module only through
- * this class, so make sure everything that is written in the following is
- * clear enough to start creating your own scenario.
+ * \brief Helper to set up single- or multi-cell scenarios with NR
  *
  * \section helper_pre Pre-requisite: Node creation and placement
  *
- * We assume that you read the ns-3 tutorials, and you're able to create
- * your own node placement, as well as the mobility model that you prefer
- * for your scenario. For simple cases, we provide a class that can help you
- * in setting up a grid-like scenario. Please take a look at the
- * GridScenarioHelper documentation in that case.
+ * The `NrHelper` installation API accepts an `ns3::NodeContainer`.
+ * Users are advised to create gNB nodes in one or more node containers,
+ * and UE nodes in one or more additional node containers, because the
+ * installation method is different for gNB and UE nodes. Additionally,
+ * any position or mobility models must be installed on the nodes
+ * outside of the NrHelper. For simple cases, we provide helpers that
+ * position nodes on rectangular and hexagonal grids. Please take a look at
+ * the GridScenarioHelper documentation in that case.
  *
  * \section helper_creating Creating the helper
  *
- * Usually, the helper is created on the heap, and have to live till the end
- * of the simulation program:
+ * The NrHelper inherits from `ns3::Object` and therefore should be created
+ * with `CreateObject()`.  The helper should remain in scope until the
+ * simulation program ends.  More than one `NrHelper` can be created.
  *
 \verbatim
   Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper> ();
+\endverbatim
+ *
+ * \section helper_additional Adding additional helpers
+ *
+ * The `NrHelper` accepts two other optional helpers, a beamforming helper
+ * and an Evolved Packet Core (EPC) helper.  Both of these helpers have
+ * different subclasses (the `Ideal` and `Realistic` beamforming helpers,
+ * and several EPC helpers that vary on the basis of backhaul technology.
+ * The following code shows an example of these additional helpers.
+ *
+\verbatim
   Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
   Ptr<NrHelper> nrHelper = CreateObject<NrHelper> ();
-
   nrHelper->SetBeamformingHelper (idealBeamformingHelper);
   nrHelper->SetEpcHelper (nrEpcHelper);
 \endverbatim
- *
- * As you can see, we have created two other object that can help this class:
- * the IdealBeamformingHelper and the NrPointToPointEpcHelper. Please refer to
- * the documentation of such classes if you need more information about them.
  *
  * \section helper_dividing Dividing the spectrum and creating the channels
  *
@@ -193,7 +198,7 @@ class NrFhControl;
  * the control messages transmitted and received from/at the gNB and UE side,
  * the SINR, as well as RLC and PDCP statistics such as the packet size.
  * Please refer to their documentation for more information.
- * Enabling the traces is done by simply adding the method enableTraces() in the
+ * Enabling the traces is done by simply calling the method `EnableTraces()` in the
  * scenario.
  *
  */
