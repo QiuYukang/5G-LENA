@@ -144,7 +144,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * set the callback for the reception of the PSS as part
      * of the interconnections between the NrSpectrumPhy and the UE PHY
      *
-     * @param c the callback
+     * \param c the callback
      */
     void SetPhyRxPssCallback(const NrPhyRxPssCallback& c);
 
@@ -417,7 +417,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Keeps track of when DL CTRL should finish. Needed for CSI-RS and
      * CSI-IM implementation to be able to schedule CSI-IM just at the beginning
      * of the PDSCH.
-     * @param ctrlEndTime Expected time when DL CTRL will end
+     * \param ctrlEndTime Expected time when DL CTRL will end
      */
     void AddExpectedDlCtrlEnd(Time ctrlEndTime);
     /*
@@ -527,7 +527,7 @@ class NrSpectrumPhy : public SpectrumPhy
     void StartRxUlCtrl(const Ptr<NrSpectrumSignalParametersUlCtrlFrame>& params);
     /**
      * \brief Function that is called when is being received CSI-RS signal
-     * @param csiRsParams holds CSI-RS signal parameters
+     * \param csiRsParams holds CSI-RS signal parameters
      */
     void StartRxCsiRs(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams);
     /**
@@ -539,7 +539,7 @@ class NrSpectrumPhy : public SpectrumPhy
     /**
      * \brief Checks if CSI-IM measurement is needed, if not, then it checks if needed to
      * call directly the generation of CSI feedback
-     * @param csiRsParams CSI-RS parameters that will be reused for CSI-IM measurement
+     * \param csiRsParams CSI-RS parameters that will be reused for CSI-IM measurement
      */
     void CheckIfCsiImNeeded(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams);
     /**
@@ -574,7 +574,7 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void ScheduleCsiIm(Ptr<SpectrumSignalParameters> csiRsParams) const;
     /**
-     * @return Whether this UE has scheduled DL DATA in this slot
+     * \return Whether this UE has scheduled DL DATA in this slot
      */
     bool IsUeScheduled() const;
     /**
@@ -713,7 +713,7 @@ class NrSpectrumPhy : public SpectrumPhy
     std::list<SrsSinrReportCallback> m_srsSinrReportCallback; //!< list of SRS SINR callbacks
     std::list<SrsSnrReportCallback> m_srsSnrReportCallback;   //!< list of SRS SNR callbacks
     uint16_t m_currentSrsRnti{0};
-    Time m_ctrlEndTime{0};        //!< Needed to schedule the interference measurements CSI-IM
+    Time m_ctrlEndTime;           //!< Needed to schedule the interference measurements CSI-IM
     EventId m_checkIfIsIdleEvent; //!< Event used to check if state should be switched from CCA_BUSY
                                   //!< to IDLE.
     Time m_busyTimeEnds{
