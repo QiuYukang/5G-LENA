@@ -1260,58 +1260,83 @@ The ``EnableMimoFeedback`` enables MIMO feedback including PMI/RI/CQI, while ``R
 CSI-RS and CSI-IM
 =================
 5G-LENA simulated CSI-RS and CSI-IM in order to allow for CSI feedback that is similar to the one explained in 3GPP
-standard.
-CSI-RS signal cannot be modeled realistically as the minimum granularity in the frequency domain is a physical resource
-block. For this reason, this signal cannot be simulated in PDSCH channel since then we would have unrealistic overhead
-that does not exist in real implementation. To avoid this issue, we have simulate CSI-RS in PDCCH, i.e., at the end
-of the PDCCH duration. CSI-RS signal is being transmitted towards each UE with the best analog beam towards that UE,
-by using the configured beamforming algorithm (e.g. direct path beamforming, cell scan, etc). To implement CSI-RS
-signal it is created a new type of the signal parameters representation called ``NrSpectrumSignalParametersCsiRs``.
-Since CSI-RS should not ne with other transmissions, it should be ignored by the receiving ``NrSpectrumPhy``.
+standard, in addition to the existing PDSCH-based CSI feedback. The CSI-RS signal cannot be modeled realistically
+as the minimum granularity in the frequency domain is a physical resource block. For this reason, this signal cannot
+be simulated in PDSCH channel since then we would have unrealistic overhead that does not exist in real implementation.
+To avoid this issue, we have simulate CSI-RS in PDCCH, i.e., at the end of the PDCCH duration. CSI-RS signal is being
+transmitted towards each UE with the best analog beam towards that UE, by using the configured beamforming algorithm
+(e.g. direct path beamforming, cell scan, etc).
 
-To reduce the computational complexity of this implementation and to avoid that the spectrum and propagation loss
-models are being called for the CSI-RS signals that are not intended for the specific devices, it is created a new
-spectrum filter called ``NrCsiRsFilter``, that will directly discard such signals inside of spectrum, and they will not
-reach ``NrSpectrumPhy`` objects of the devices for which they were not intended. ``NrCsiRsFilter`` filters
-the signal being received if the receiving SpectrumPhy is not of type ``NrSpectrumPhy``, which can happen e.g., when
-two technologies coexist (e.g. NR and Wi-Fi). Additionally, ``NrCsiRsFilter`` filters out the signal if the receiving
-device is not a UE device. ``NrCsiRsFilter`` determines whether CSI-RS signal is intended for a specific UE device
-thanks to holding RNTI of the UE for which it was intended.
+A side effect of relying on the existing PDSCH-based feedback is that it is aperiodic, meaning interference
+can only be measured on scheduled resources for a given UE. These resources are allocated based on availability and
+data-plane traffic, which severely impacts the quality of CSI feedback under high load and multiple UEs.
+To address this, current schedulers allocate RBGs to UEs reporting wide-band CQI 0 (out-of-range), allowing
+them to update their CSI feedback on allocated bands and avoid being starved of resources throughout the
+simulation due to a single poor report.
+
+CSI-RS/CSI-IM resolves this issue by periodically transmitting a non-precoded channel state information
+reference signal (CSI-RS) as described in Section 7.4.1.5 of [TS38211]_. CSI-RS measurements are used to
+obtain the **frequency domain spectrum channel matrix** (whose dimensions are the number of RX ports,
+the number of TX Ports, and the number of resource blocks (RBs)). After receiving the CSI-RS,
+CSI-IM interference measurements can be performed on the PDSCH to produce the **interference covariance
+matrix**, detailed in Section 5.2.2.4 of [TS38214]_. These measurements, combined with the channel matrix,
+are used to generate CSI feedback, including wide-band and sub-band CQI, as well as digital precoding
+information like Rank Indicator (RI) and Precoding Matrix Indicator (PMI) (Section 5.2.2 in [TS38214]_).
+However, CSI-RS and CSI-IM add computational complexity due to the extra spectrum and propagation model
+calculations required.
+
+A new type of the signal parameters representation called ``NrSpectrumSignalParametersCsiRs``
+implements the CSI-RS signal. To reduce the computational complexity of this implementation and to avoid that the
+spectrum and propagation loss models are being called for the CSI-RS signals that are not intended for the specific
+devices, it is created a new spectrum filter called ``NrCsiRsFilter``, that will directly discard such signals
+inside of spectrum, and they will not reach ``NrSpectrumPhy`` objects of the devices for which they were not intended.
+``NrCsiRsFilter`` filters the signal being received if the receiving SpectrumPhy is not of type ``NrSpectrumPhy``,
+which can happen e.g., when two technologies coexist (e.g. NR and Wi-Fi). Additionally, ``NrCsiRsFilter`` filters
+out the signal if the receiving device is not a UE device. ``NrCsiRsFilter`` determines whether CSI-RS signal is
+intended for a specific UE device thanks to holding RNTI of the UE for which it was intended.
 
 CSI-RS is being transmitted periodically, and the configured period should be a multiply of gNB PHY TDD pattern.
 This is because it can be transmitted only during the slots that contain the DL CTRL (these slot types are downlink,
-flexible, and special). Periodicity is configured per gNB by using the attribute ``CsiRsPeriodicity`` of ``NrGnbPhy``, and by default
-is 10 slots, which for numerology 0 corresponds to having CSI-RS transmitted each 10 ms. Apart from ``CsiRsPeriodicity``,
-there is CSI-RS offset, which is automatically assigned in a round robin fashion to all UEs attached to a specific
-gNB, by skipping the UL slots, and by taking value from 0 to ``CsiRsPeriodicity``, and then when all offset values
-are assigned for the following users it start again from the 0 value. This means that if we have more users then
-slots in the CSI-RS periodicity period, some of the UEs will receive their CSI-RS in the same slot, in the PDCCH.
-CSI-RS is being transmitted for each UE by using the best analog beam toward that UE and it is being transmitted over
-all the bandwidth.
+flexible, and special). Periodicity is configured per gNB by using the attribute ``CsiRsPeriodicity`` of ``NrGnbPhy``,
+and by default is 10 slots, which for numerology 0 corresponds to having CSI-RS transmitted each 10 ms.
+Apart from ``CsiRsPeriodicity``, there is CSI-RS offset, which is automatically assigned in a round robin fashion
+to all UEs attached to a specific gNB, by skipping the UL slots, and by taking value from 0 to ``CsiRsPeriodicity``,
+and then when all offset values are assigned for the following users it start again from the 0 value. This means that
+if we have more users then slots in the CSI-RS periodicity period, some of the UEs will receive their CSI-RS in
+the same slot, in the PDCCH. CSI-RS is being transmitted for each UE by using the best analog beam toward that UE
+and it is being transmitted over all the bandwidth.
 
-CSI-RS measurements are used to obtain the frequency domain spectrum channel matrix (whose
-dimensions are the number of RX ports, the number of TX Ports, and the number of
-resource blocks (RBs)).
-
-In order to obtain the interference CSI-IM is modeled in PDSCH. The duration of CSI-IM can
+In order to obtain the interference, the CSI-IM is modeled in PDSCH. The duration of CSI-IM can
 be configured by using the attribute ``CsiImDuration`` of ``NrUePhy``. By default, its duration is
 OFDM symbol. The measured interference can be averaged by using a moving average by configuring the
-alpha parameter through ``AlphaCovMat`` attribute of ``NrUePhy``.
+alpha parameter through ``AlphaCovMat`` attribute of ``NrUePhy``. Increasing the ``CsiImDuration``
+potentially increases the number and power of received interferers, by listening the channel for more time,
+giving time to neighboring cells to change the direction of their beams.
 
-CSI-RS/CSI-IM based CSI feedback provides a period CSI feedback but at the cost of additional
-computation complexity due to additional signals for which spectrum and propagation models calculations
-need to be performed. The model also supports obtaining CSI feedback based on only on PDSCH but such feedback
-is aperiodic and may not provide the information over all the bandwidth since it depends on the
-scheduled RBs by the gNB to its UEs. To configure the type of CSI feedback to be used by UE, there is
-and attribute ``CsiFeedbackFlags`` of ``NrHelper``. This attribute allows multiple different
-configurations by enabling different flags (each of the flags define a single bit): 0 which means that
-no CSI feedback will be provided, ``CQI_PDSCH_MIMO`` flag which corresponds to 1,
-``CQI_CSI_RS`` which corresponds to 2, ``CQI_PDSCH_MIMO|CQI_CSI_RS`` which corresponds to 3,
-``CQI_CSI_RS|CQI_CSI_IM`` which corresponds to 6, ``CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM`` which
-corresponds to 7, and ``CQI_PDSCH_SISO`` which corresponds to value 8 can be used when no spatial
-channel model is used. ``CSI_IM`` corresponding to value 4, and ``CSI_IM|PDSCH`` which corresponds
-to value 5 are not supported. All supported configurations for CSI feedback are compatible with
-both cases, when SU-MIMO is enabled and when SU-MIMO is disabled.
+To configure the CSI feedback type, use the attribute ``NrHelper::CsiFeedbackFlags``, which supports
+multiple configurations through a combination of flags. Each flag is defined by a single bit, as follows:
+
+- 0b0000 means that no CSI feedback will be provided;
+- 0b0001 (or ``CQI_PDSCH_MIMO``) enables existing PDSCH-based CSI;
+- 0b0010 (or ``CQI_CSI_RS``) enables CSI-RS-based channel matrix estimation;
+- 0b0100 (or ``CSI_IM``) enables CSI-IM interference covariant matrix measurements;
+- 0b1000 (or ``CQI_PDSCH_SISO``) legacy PDSCH-based CSI without spatial channel models.
+
+Valid configurations, **requiring data-plane traffic to the measuring UE** to measure interference:
+
+- ``CQI_PDSCH_SISO``, legacy PDSCH-based CSI for non-spatial models;
+- ``CQI_PDSCH_MIMO``, existing PDSCH-based CSI feedback;
+- ``CQI_PDSCH_MIMO|CQI_CSI_RS``, combines PDSCH-based feedback with CSI-RS for a more frequently updated channel matrix.
+
+Valid configurations, **not requiring data-plane traffic to the measuring UE** to measure interference:
+
+- ``CQI_CSI_RS|CQI_CSI_IM``, CSI-IM measurements on PDSCH, as triggered by CSI-RS, independent of resource allocation;
+- ``CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM``, combines PDSCH-based feedback with CSI-IM measurements on unallocated
+  resources triggered by CSI-RS.
+
+Invalid configurations include:
+
+- ``CSI_IM`` and ``CSI_IM|CQI_PDSCH_MIMO``, because CSI-IM relies on CSI-RS signals to trigger measurements.
 
 MAC layer
 *********
@@ -2948,11 +2973,13 @@ Open issues and future work
 
 .. [TS38300] 3GPP TS 38.300, TSG RAN; NR; Overall description; Stage 2 (Release 16), v16.0.0, Dec. 2019
 
-.. [TS38214] 3GPP  TS  38.214, TSG  RAN;  NR;  Physical  layer  procedures  for  data (Release 16), v16.0.0, Dec. 2019.
+.. [TS38211] 3GPP  TS  38.211, TSG  RAN;  NR;  Physical channels and modulation (Release 18), v18.4.0, Sep. 2024.
+
+.. [TS38212] 3GPP  TS  38.212, TSG  RAN;  NR;  Multiplexing  and  channel  coding (Release 16), v16.0.0, Dec. 2019.
 
 .. [TS38213] 3GPP  TS  38.213, TSG  RAN;  NR;  Physical  layer  procedures  for  control (Release 16), v16.0.0, Dec. 2019.
 
-.. [TS38212] 3GPP  TS  38.212, TSG  RAN;  NR;  Multiplexing  and  channel  coding (Release 16), v16.0.0, Dec. 2019.
+.. [TS38214] 3GPP  TS  38.214, TSG  RAN;  NR;  Physical  layer  procedures  for  data (Release 16), v16.0.0, Dec. 2019.
 
 .. [calibration-l2sm] A.-M. Cipriano,  R.  Visoz,  and  T.  Salzer,  "Calibration  issues  of  PHY layer  abstractions  for  wireless  broadband  systems", IEEE  Vehicular Technology Conference, Sept. 2008.
 
