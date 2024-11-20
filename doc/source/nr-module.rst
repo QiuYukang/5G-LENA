@@ -231,7 +231,7 @@ CQI feedback
 ============
 NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB for DL data transmissions. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table. In the simulator, we support CQI Table1 and CQI Table2 (i.e., Table 5.2.2.1-1 and Table 5.2.2.1-2), which are defined based on the configured error model and corresponding MCS Table.
 
-At the moment, we support the generation of a *wideband* CQI that is computed based on the data channel (PDSCH). Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the gNB transmission (neglecting RBs with 0 transmitted power).
+At the moment, we support the generation of a *wide-band* CQI that is computed based on the data channel (PDSCH). Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the gNB transmission (neglecting RBs with 0 transmitted power).
 
 The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index. Such value is computed for each PDSCH reception and reported after it.
 
@@ -1128,7 +1128,7 @@ while analog processing (beamforming) is applied for the antenna elements within
 
 The MIMO model adopted in 5G-LENA can combine spatial multiplexing (with up to four streams per user, and 32 antenna ports)
 and beamforming (which applies for each of the streams). Up to four streams are encoded in the same TB. PMI, RI and CQI
-are implemented and included as part of the CSI feedback. It follows the 3GPP codebook-based Type I model for precoding [TS38214]
+are implemented and included as part of the CSI feedback. It follows the 3GPP codebook-based Type I model for precoding [TS38214]_
 and assumes MMSE-IRC receiver. For precoding and rank selection, an exhaustive search is implemented. The number of streams is
 called the rank in the code, which affects the TBS and other performance characteristics. The inter-stream interference is correctly
 computed through matrix processing, and this is why the use of more than 2 streams requires the Eigen library to compute operations
@@ -1232,14 +1232,14 @@ The optimal WB/SB PMI values are periodically updated based on the configured up
 two attributes in NrUePhy class: ``WbPmiUpdateInterval`` and ``SbPmiUpdateInterval``.
 When a PMI update is requested, the optimal precoding matrices are updated using exhaustive search over all possible
 precoding matrices specified in a codebook that is compatible with 3GPP TS 38.214 Type-I. The procedure based on exhaustive search
-loops over all possible subband precoding matrices and computes the SINR that would be achieved by each precoding matrix,
+loops over all possible sub-band precoding matrices and computes the SINR that would be achieved by each precoding matrix,
 and selects the precoder resulting in the highest average SINR.
 Finally, the feedback message is created that includes the optimal rank, the corresponding optimal precoding matrix and CQI.
 
 ``NrPmSearch`` is the base class and ``NrPmSearchFull`` is one possible specialization that finds PMI, RI and CQI. One could create
 another specialization of ``NrPmSearch`` that would implement a different algorithm to find PMI and RI values.
 
-The size of the subbands depends on the channel bandwidth, both in numbers of PRBs. It should be set accordingly to 3GPP
+The size of the sub-bands depends on the channel bandwidth, both in numbers of PRBs. It should be set accordingly to 3GPP
 TS 38.214 Table 5.2.1.4-2 via the attribute ``NrPmSearch::SubbandSize``.
 
 MIMO activation
@@ -2052,7 +2052,7 @@ When the Fronthaul Control is activated, an instance of the NrFhControl is creat
 cell. Notice, that if a cell is configured with more than 1 BWPs, the available fronthaul
 capacity will be shared among the active BWPs.
 
-NrFhControl gets as inputs the available fronthaul capacity, the frontahul control method
+NrFhControl gets as inputs the available fronthaul capacity, the fronthaul control method
 to be applied (i.e., Dropping, Postponing, OptimizeMcs and OptimizeRBs) that will restrict
 user allocations, and the dynamic overhead to implement modulation compression.
 
@@ -2687,7 +2687,7 @@ the additional parameter that can be set is ``CodebookType``. The codebook to be
 a) ``ns3::NrCbTwoPort``, the two-port codebook defined in 3GPP TS 38.214 Table 5.2.2.2.1-1, or
 b) ``ns3::NrCbTypeOneSp``, Type-I Single-Panel Codebook 3GPP TS 38.214 Rel. 15, Sec. 5.2.2.2.1 supporting codebook mode 1 only,
 and limited to rank 4. The other parameters to play with in this example are: ``NrUePhy::WbPmiUpdateInterval``,
-the wideband PMI update interval in ms, and ``NrUePhy::SbPmiUpdateInterval``, the subband PMI update interval in ms.
+the wide-band PMI update interval in ms, and ``NrUePhy::SbPmiUpdateInterval``, the sub-band PMI update interval in ms.
 
 Configuring CSI feedback type
 #############################
