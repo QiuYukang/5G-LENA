@@ -1905,7 +1905,7 @@ NrSpectrumPhy::ScheduleCsiIm(Ptr<SpectrumSignalParameters> csiRsParams) const
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_interferenceCsiIm);
     // add fake signal to trigger NrInterference calculation for the duration of the fake CSI-IM
-    // signal
+    // signal, simulating device wake-up triggered by CSI-RS for interference measurement of channel
     Ptr<SpectrumSignalParameters> fakeCsiImSignal = Create<SpectrumSignalParameters>();
     fakeCsiImSignal->duration =
         m_phy->GetSymbolPeriod() * (DynamicCast<NrUePhy>(m_phy))->GetCsiImDuration();
