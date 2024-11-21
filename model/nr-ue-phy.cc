@@ -453,6 +453,13 @@ NrUePhy::SetPattern(const std::string& pattern)
     }
 
     m_tddPattern = vector;
+    // Check if pure UL BWP
+    const auto ulSlots = std::count(m_tddPattern.begin(), m_tddPattern.end(), LteNrTddSlotType::UL);
+    if (static_cast<size_t>(ulSlots) == m_tddPattern.size())
+    {
+        // In case Downlink CSI feedback is enabled, disable it
+        m_csiFeedbackType = 0;
+    }
 }
 
 uint32_t
