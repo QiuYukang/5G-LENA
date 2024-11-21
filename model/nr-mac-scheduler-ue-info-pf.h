@@ -46,7 +46,6 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
     void ResetDlSchedInfo() override
     {
         m_lastAvgTputDl = m_avgTputDl;
-        m_avgTputDl = 0.0;
         m_currTputDl = 0.0;
         m_potentialTputDl = 0.0;
         NrMacSchedulerUeInfo::ResetDlSchedInfo();
@@ -63,7 +62,6 @@ class NrMacSchedulerUeInfoPF : public NrMacSchedulerUeInfo
     void ResetUlSchedInfo() override
     {
         m_lastAvgTputUl = m_avgTputUl;
-        m_avgTputUl = 0.0;
         m_currTputUl = 0.0;
         m_potentialTputUl = 0.0;
         NrMacSchedulerUeInfo::ResetUlSchedInfo();
