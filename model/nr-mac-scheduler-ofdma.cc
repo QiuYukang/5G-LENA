@@ -253,6 +253,17 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
             }
         }
 
+        // Do not schedule RBGs that are lower than 4 CQI than maximum
+        if (!currentUe->m_dlRBG.empty())
+        {
+            const auto bestCqi =
+                currentUe->m_dlSbMcsInfo.at(currentUe->m_rbgToSb.at(currentUe->m_dlRBG.at(0))).cqi;
+            if (maxCqi < bestCqi - 4)
+            {
+                return false;
+            }
+        }
+
         // Do not schedule RBGs with sub-band CQI equals to zero
         if (currentRbgPos == std::numeric_limits<uint32_t>::max())
         {
@@ -273,7 +284,7 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
 
     // Check if the allocated RBG had a bad MCS and lowered our overall tbsize
     const auto currentTbSize = currentUe->m_dlTbSize;
-    if (currentTbSize < previousTbSize * 0.975)
+    if (currentTbSize < previousTbSize * 0.99)
     {
         // Undo allocation
         DeallocateCurrentResourceFromUe(currentUe,
