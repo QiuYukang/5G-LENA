@@ -9,6 +9,9 @@
 #include "ns3/stats-module.h"
 #include <ns3/sqlite-output.h>
 
+#include <chrono>
+#include <thread>
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("CttcMimoSimpleDbHelper");
@@ -81,6 +84,7 @@ CttcMimoSimpleDbHelper::PrepareTable()
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(
@@ -98,6 +102,7 @@ CttcMimoSimpleDbHelper::PrepareTable()
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(
@@ -114,6 +119,7 @@ CttcMimoSimpleDbHelper::PrepareTable()
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(
@@ -148,6 +154,7 @@ CttcMimoSimpleDbHelper::InsertResults(CttcMimoSimpleResults& results)
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK || rc == SQLITE_DONE,
@@ -207,6 +214,7 @@ CttcMimoSimpleDbHelper::InsertResults(CttcMimoSimpleResults& results)
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(
@@ -220,6 +228,7 @@ CttcMimoSimpleDbHelper::InsertResults(CttcMimoSimpleResults& results)
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     NS_ABORT_MSG_UNLESS(
         rc == SQLITE_OK || rc == SQLITE_DONE,
@@ -268,6 +277,7 @@ CttcMimoSimpleDbHelper::DeleteFromTableIfAlreadyExist(CttcMimoSimpleResults& res
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(rc == SQLITE_OK || rc == SQLITE_DONE,
@@ -319,6 +329,7 @@ CttcMimoSimpleDbHelper::DeleteFromTableIfAlreadyExist(CttcMimoSimpleResults& res
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     // check if it went correctly
     NS_ABORT_MSG_UNLESS(
@@ -332,6 +343,7 @@ CttcMimoSimpleDbHelper::DeleteFromTableIfAlreadyExist(CttcMimoSimpleResults& res
                         "Waiting too much for sqlite3 database to be ready. "
                         "Check if you have the database/table open with another program. "
                         "If yes, close it before running again your program.\n\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } while (rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
     NS_ABORT_MSG_UNLESS(
         rc == SQLITE_OK || rc == SQLITE_DONE,
