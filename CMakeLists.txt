@@ -413,6 +413,7 @@ set(header_files
     model/realistic-bf-manager.h
     model/sfnsf.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
+    utils/nr-json.hpp
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
     utils/traffic-generators/model/traffic-generator-3gpp-audio-data.h

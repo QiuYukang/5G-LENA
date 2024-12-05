@@ -8,3 +8,5 @@ InheritParentConfig: true
 Checks: >
   -modernize-use-auto,
   -modernize-use-emplace,
+
+HeaderFilterRegex: ".*(ns|NS).*/(contrib|examples|src|scratch|utils)/*/^((?!nr-json).)*h"
