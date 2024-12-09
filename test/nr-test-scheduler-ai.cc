@@ -5,9 +5,9 @@
 
 #include <ns3/beam-id.h>
 #include <ns3/callback.h>
-#include <ns3/eps-bearer.h>
 #include <ns3/node.h>
 #include <ns3/nr-control-messages.h>
+#include <ns3/nr-eps-bearer.h>
 #include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-mac-sched-sap.h>
 #include <ns3/nr-mac-scheduler-ns3.h>
@@ -202,10 +202,10 @@ class NrTestSchedulerAiCase : public TestCase
     bool m_verbose = false;
     std::string m_schedulerType;
     TestSchedulerAiPhySapProvider* m_phySapProvider;
-    const std::unordered_map<uint8_t, EpsBearer> m_epsBearerMap = {
-        {1, static_cast<EpsBearer::Qci>(1)},
-        {2, static_cast<EpsBearer::Qci>(3)},
-        {3, static_cast<EpsBearer::Qci>(9)}};
+    const std::unordered_map<uint8_t, NrEpsBearer> m_epsBearerMap = {
+        {1, static_cast<NrEpsBearer::Qci>(1)},
+        {2, static_cast<NrEpsBearer::Qci>(3)},
+        {3, static_cast<NrEpsBearer::Qci>(9)}};
 };
 
 void
@@ -305,7 +305,7 @@ NrTestSchedulerAiCase::DoRun()
     sched->InstallDlAmc(amc);
 
     uint8_t rnti;
-    EpsBearer bearer;
+    NrEpsBearer bearer;
     for (auto& pair : m_epsBearerMap)
     {
         rnti = pair.first;
