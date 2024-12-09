@@ -187,7 +187,8 @@ class NrFhControl;
  *
  * \section helper_attachment Attachment of UEs to GNBs
  *
- * We provide two methods to attach a set of UE to a GNB: AttachToClosestGnb()
+ * We provide three methods to attach a set of UE to a GNB: AttachToClosestGnb(),
+AttachToMaxRsrpGnb(),
  * and AttachToGnb(). Through these function, you will manually attach one or
  * more UEs to a specified GNB.
  *
@@ -295,11 +296,19 @@ class NrHelper : public Object
     static Ptr<NrMacScheduler> GetScheduler(const Ptr<NetDevice>& gnbDevice, uint32_t bwpIndex);
 
     /**
+     * \brief Attach the UE specified to the max RSRP associated GNB
+     * \param ueDevices UE devices to attach
+     * \param gnbDevices GNB devices from which the algorithm has to select the RSRP
+     */
+    void AttachToMaxRsrpGnb(const NetDeviceContainer& ueDevices,
+                            const NetDeviceContainer& gnbDevices);
+    /**
      * \brief Attach the UE specified to the closest GNB
      * \param ueDevices UE devices to attach
      * \param gnbDevices GNB devices from which the algorithm has to select the closest
      */
-    void AttachToClosestGnb(NetDeviceContainer ueDevices, NetDeviceContainer gnbDevices);
+    void AttachToClosestGnb(const NetDeviceContainer& ueDevices,
+                            const NetDeviceContainer& gnbDevices);
     /**
      * \brief Attach a UE to a particular GNB
      * \param ueDevice the UE device
@@ -864,6 +873,15 @@ class NrHelper : public Object
         std::string downsamplingTechnique{"FirstPRB"}; ///< Sub-band compression technique
     };
 
+    /// \brief Parameters for initial attachment association
+    struct InitialAssocParams
+    {
+        std::vector<double> rowAngles{0, 90}; ///< vector of angles to set in initial assocc
+        std::vector<double> colAngles{0, 90}; ///< vector of angles to set in initial assocc
+        double handoffMargin{0};              ///< Handoff margin for Initial assocc
+        double primaryCarrierIndex{0};        ///< primary carrier index for Initial assocc
+    };
+
     /// \brief Set TypeId of the precoding matrix search algorithm
     /// \param typeId Class TypeId
     void SetPmSearchTypeId(const TypeId& typeId);
@@ -872,6 +890,15 @@ class NrHelper : public Object
     /// \param name attribute to set
     /// \param value value of the attribute
     void SetPmSearchAttribute(const std::string& name, const AttributeValue& value);
+
+    /// \brief Set TypeId of the initial attachment algorithm
+    /// \param typeId Class TypeId
+    void SetInitialAssocTypeId(const TypeId& typeId);
+
+    /// \brief Set attribute of the initial attachment algorithm
+    /// \param name attribute to set
+    /// \param value value of the attribute
+    void SetInitialAssocAttribute(const std::string& name, const AttributeValue& value);
 
     /// \brief Set parameters for gNB and UE antenna arrays
     /// \param ap the struct with antenna parameters
@@ -884,6 +911,10 @@ class NrHelper : public Object
     /// \brief Set parameters for PMI search in MIMO operation
     /// \param mp the struct with MIMO PMI parameters
     void SetupMimoPmi(const MimoPmiParams& mp);
+
+    /// \brief Set parameters for max RSRP based Initial Association
+    /// \param params the struct with initial association parameters
+    void SetupInitialAssoc(const InitialAssocParams& params);
 
     /// \brief Create BandwidthParts from a vector of band configurations
     /// \param bandConfs the vector with operation band configurations
@@ -1008,7 +1039,9 @@ class NrHelper : public Object
     void DoHandoverRequest(Ptr<NetDevice> ueDev,
                            Ptr<NetDevice> sourceGnbDev,
                            uint16_t targetCellId);
-    void AttachToClosestGnb(Ptr<NetDevice> ueDevice, NetDeviceContainer gnbDevices);
+    void AttachToClosestGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceContainer& gnbDevices);
+
+    void AttachToMaxRsrpGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceContainer& gnbDevices);
 
     ObjectFactory m_gnbNetDeviceFactory;            //!< NetDevice factory for gnb
     ObjectFactory m_ueNetDeviceFactory;             //!< NetDevice factory for ue
@@ -1035,6 +1068,7 @@ class NrHelper : public Object
     ObjectFactory m_ueBeamManagerFactory;           //!< UE beam manager factory
     ObjectFactory m_handoverAlgorithmFactory;       //!< Handover algorithm factory
     ObjectFactory m_fhControlFactory;
+    ObjectFactory m_initialAttachmentFactory; //!< initial attachment factory
 
     uint16_t m_cellIdCounter{1}; //!< CellId Counter
 
@@ -1062,6 +1096,9 @@ class NrHelper : public Object
     Ptr<NrMacSchedulingStats> m_macSchedStats; //!<< Pointer to NrMacStatsCalculator
     bool m_useIdealRrc;
     std::vector<OperationBandInfo> m_bands;
+
+    InitialAssocParams
+        m_initialParams; //!<< Initial attachment parameters to pass from example to setup
 };
 
 } // namespace ns3

@@ -23,6 +23,7 @@ class NrUeRrc;
 class NrGnbNetDevice;
 class BandwidthPartUe;
 class BwpManagerUe;
+class NrInitialAssociation;
 
 /**
  * \ingroup ue
@@ -118,6 +119,12 @@ class NrUeNetDevice : public NrNetDevice
     Ptr<NrUeRrc> GetRrc() const;
 
     /**
+     * \brief Set the Nr Initial Association
+     * \param initAssoc initial assoc to attach
+     */
+    void SetInitAssoc(Ptr<NrInitialAssociation> initAssoc);
+
+    /**
      * \brief Set the GNB to which this UE is attached to
      * \param gnb GNB to attach to
      *
@@ -196,13 +203,14 @@ class NrUeNetDevice : public NrNetDevice
     bool DoSend(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber) override;
 
   private:
-    Ptr<NrGnbNetDevice> m_targetGnb; //!< GNB pointer
-    Ptr<NrUeRrc> m_rrc;              //!< RRC pointer
-    Ptr<NrEpcUeNas> m_nas;           //!< NAS pointer
-    uint64_t m_imsi;                 //!< UE IMSI
-    uint32_t m_csgId;                //!< ?_?
-    uint16_t m_primaryDlIndex;       //!< UE primary DL PHY/MAC index
-    uint16_t m_primaryUlIndex;       //!< UE primary UL PHY/MAC index
+    Ptr<NrGnbNetDevice> m_targetGnb;       //!< GNB pointer
+    Ptr<NrUeRrc> m_rrc;                    //!< RRC pointer
+    Ptr<NrEpcUeNas> m_nas;                 //!< NAS pointer
+    Ptr<NrInitialAssociation> m_nrInitAcc; // Initial Assoc pointer
+    uint64_t m_imsi;                       //!< UE IMSI
+    uint32_t m_csgId;                      //!< ?_?
+    uint16_t m_primaryDlIndex;             //!< UE primary DL PHY/MAC index
+    uint16_t m_primaryUlIndex;             //!< UE primary UL PHY/MAC index
 
     std::map<uint8_t, Ptr<BandwidthPartUe>> m_ccMap;            ///< component carrier map
     Ptr<NrUeComponentCarrierManager> m_componentCarrierManager; ///< the component carrier manager

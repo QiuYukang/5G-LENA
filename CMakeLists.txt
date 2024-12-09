@@ -98,6 +98,7 @@ set(source_files
     model/nr-gnb-rrc.cc
     model/nr-handover-algorithm.cc
     model/nr-harq-phy.cc
+    model/nr-initial-association.cc
     model/nr-interference-base.cc
     model/nr-interference.cc
     model/nr-lte-amc.cc
@@ -199,6 +200,7 @@ set(source_files
 set(header_files
     helper/beamforming-helper-base.h
     helper/cc-bwp-helper.h
+    model/nr-initial-association.h
     helper/file-scenario-helper.h
     helper/grid-scenario-helper.h
     helper/hexagonal-grid-scenario-helper.h

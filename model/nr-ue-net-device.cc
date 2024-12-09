@@ -8,6 +8,7 @@
 #include "bwp-manager-ue.h"
 #include "nr-epc-ue-nas.h"
 #include "nr-gnb-net-device.h"
+#include "nr-initial-association.h"
 #include "nr-ue-component-carrier-manager.h"
 #include "nr-ue-mac.h"
 #include "nr-ue-phy.h"
@@ -75,7 +76,12 @@ NrUeNetDevice::GetTypeId()
                           "List of all component Carrier.",
                           ObjectMapValue(),
                           MakeObjectMapAccessor(&NrUeNetDevice::m_ccMap),
-                          MakeObjectMapChecker<BandwidthPartUe>());
+                          MakeObjectMapChecker<BandwidthPartUe>())
+            .AddAttribute("InitAssoc",
+                          "Pointer to nr Initial Accos",
+                          PointerValue(),
+                          MakePointerAccessor(&NrUeNetDevice::m_nrInitAcc),
+                          MakePointerChecker<NrInitialAssociation>());
     return tid;
 }
 
@@ -292,6 +298,13 @@ NrUeNetDevice::GetCellId() const
     {
         return UINT16_MAX;
     }
+}
+
+void
+NrUeNetDevice::SetInitAssoc(Ptr<NrInitialAssociation> initAssoc)
+{
+    NS_LOG_FUNCTION(this);
+    m_nrInitAcc = initAssoc;
 }
 
 void

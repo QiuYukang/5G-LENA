@@ -31,6 +31,7 @@
 #include <ns3/nr-gnb-mac.h>
 #include <ns3/nr-gnb-net-device.h>
 #include <ns3/nr-gnb-phy.h>
+#include <ns3/nr-initial-association.h>
 #include <ns3/nr-mac-scheduler-tdma-rr.h>
 #include <ns3/nr-pm-search-full.h>
 #include <ns3/nr-rrc-protocol-ideal.h>
@@ -81,6 +82,7 @@ NrHelper::NrHelper()
     m_gnbBeamManagerFactory.SetTypeId(BeamManager::GetTypeId());
     m_ueBeamManagerFactory.SetTypeId(BeamManager::GetTypeId());
     m_spectrumPropagationFactory.SetTypeId(ThreeGppSpectrumPropagationLossModel::GetTypeId());
+    m_initialAttachmentFactory.SetTypeId(NrInitialAssociation::GetTypeId());
 
     // Initialization that is there just because the user can configure attribute
     // through the helper methods without making it sad that no TypeId is set.
@@ -1019,7 +1021,43 @@ NrHelper::DoHandoverRequest(Ptr<NetDevice> ueDev,
 }
 
 void
-NrHelper::AttachToClosestGnb(NetDeviceContainer ueDevices, NetDeviceContainer gnbDevices)
+NrHelper::AttachToMaxRsrpGnb(const NetDeviceContainer& ueDevices,
+                             const NetDeviceContainer& enbDevices)
+{
+    NS_LOG_FUNCTION(this);
+
+    for (auto i = ueDevices.Begin(); i != ueDevices.End(); i++)
+    {
+        AttachToMaxRsrpGnb(*i, enbDevices);
+    }
+}
+
+void
+NrHelper::AttachToMaxRsrpGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceContainer& enbDevices)
+{
+    NS_LOG_FUNCTION(this);
+
+    NS_ASSERT_MSG(enbDevices.GetN() > 0, "empty enb device container");
+
+    auto nrInitAssoc = m_initialAttachmentFactory.Create<NrInitialAssociation>();
+    ueDevice->GetObject<NrUeNetDevice>()->SetInitAssoc(nrInitAssoc);
+
+    nrInitAssoc->SetUeDevice(ueDevice);
+    nrInitAssoc->SetGnbDevices(enbDevices);
+    nrInitAssoc->SetColBeamAngles(m_initialParams.colAngles);
+    nrInitAssoc->SetRowBeamAngles(m_initialParams.rowAngles);
+    nrInitAssoc->FindAssociatedGnb();
+    NS_ASSERT_MSG(nrInitAssoc->CheckNumBeamsAllowed(),
+                  "Number of gNB beams in this frequency is not supported");
+    auto maxRsrpEnbDevice = nrInitAssoc->GetAssociatedGnb();
+    NS_ASSERT(maxRsrpEnbDevice);
+
+    AttachToGnb(ueDevice, maxRsrpEnbDevice);
+}
+
+void
+NrHelper::AttachToClosestGnb(const NetDeviceContainer& ueDevices,
+                             const NetDeviceContainer& gnbDevices)
 {
     NS_LOG_FUNCTION(this);
 
@@ -1030,7 +1068,7 @@ NrHelper::AttachToClosestGnb(NetDeviceContainer ueDevices, NetDeviceContainer gn
 }
 
 void
-NrHelper::AttachToClosestGnb(Ptr<NetDevice> ueDevice, NetDeviceContainer gnbDevices)
+NrHelper::AttachToClosestGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceContainer& gnbDevices)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(gnbDevices.GetN() > 0, "empty gnb device container");
@@ -1875,10 +1913,23 @@ NrHelper::SetPmSearchTypeId(const TypeId& typeId)
 }
 
 void
+NrHelper::SetInitialAssocTypeId(const TypeId& typeId)
+{
+    m_initialAttachmentFactory.SetTypeId(typeId);
+}
+
+void
 NrHelper::SetPmSearchAttribute(const std::string& name, const AttributeValue& value)
 {
     NS_LOG_FUNCTION(this);
     m_pmSearchFactory.Set(name, value);
+}
+
+void
+NrHelper::SetInitialAssocAttribute(const std::string& name, const AttributeValue& value)
+{
+    NS_LOG_FUNCTION(this);
+    m_initialAttachmentFactory.Set(name, value);
 }
 
 void
@@ -1963,6 +2014,15 @@ NrHelper::AddNrCsiRsFilter(Ptr<SpectrumChannel> channel)
         channel->AddSpectrumTransmitFilter(pCsiRsFilter);
         NS_LOG_DEBUG("Adding NrCsiRsFilter to channel " << channel);
     }
+}
+
+void
+NrHelper::SetupInitialAssoc(const NrHelper::InitialAssocParams& params)
+{
+    // Set parameters for Initial Association Params
+    m_initialParams = params;
+    SetInitialAssocAttribute("HandoffMargin", DoubleValue(params.handoffMargin));
+    SetInitialAssocAttribute("PrimaryCarrierIndex", DoubleValue(params.primaryCarrierIndex));
 }
 
 } // namespace ns3
