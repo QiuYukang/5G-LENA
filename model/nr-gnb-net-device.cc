@@ -134,6 +134,10 @@ void
 NrGnbNetDevice::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
+    if (!m_isCellConfigured)
+    {
+        ConfigureCell();
+    }
 }
 
 void
@@ -244,17 +248,23 @@ void
 NrGnbNetDevice::UpdateConfig()
 {
     NS_LOG_FUNCTION(this);
+    // No longer does anything; replaced by ConfigureCell()
+}
 
-    NS_ASSERT(!m_ccMap.empty());
+void
+NrGnbNetDevice::ConfigureCell()
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(!m_isCellConfigured, "ConfigureCell() has already been called");
+    NS_ASSERT_MSG(!m_ccMap.empty(), "Component carrier map is empty");
+    m_isCellConfigured = true;
+    m_rrc->ConfigureCell(m_ccMap);
+}
 
-    std::map<uint8_t, Ptr<BandwidthPartGnb>> ccPhyConfMap;
-    for (const auto& i : m_ccMap)
-    {
-        Ptr<BandwidthPartGnb> c = i.second;
-        ccPhyConfMap.insert(std::pair<uint8_t, Ptr<BandwidthPartGnb>>(i.first, c));
-    }
-
-    m_rrc->ConfigureCell(ccPhyConfMap);
+bool
+NrGnbNetDevice::IsCellConfigured() const
+{
+    return m_isCellConfigured;
 }
 
 uint16_t

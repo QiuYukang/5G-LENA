@@ -530,12 +530,6 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     std::map<uint16_t, CqiFeedbackTraceStats> cqiTraces;
     for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
     {

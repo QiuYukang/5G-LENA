@@ -917,7 +917,7 @@ class NrGnbRrc : public Object
      *
      * \param ccPhyConf the component carrier configuration
      */
-    void ConfigureCell(std::map<uint8_t, Ptr<BandwidthPartGnb>> ccPhyConf);
+    void ConfigureCell(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccPhyConf);
 
     /**
      * \brief Configure carriers.

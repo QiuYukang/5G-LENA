@@ -207,11 +207,6 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(gNbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    for (auto it = gNbNetDev.Begin(); it != gNbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     Ptr<Node> pgw = epcHelper->GetPgwNode();

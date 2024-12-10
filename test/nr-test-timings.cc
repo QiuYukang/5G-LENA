@@ -905,13 +905,6 @@ NrTimingsTest::DoRun()
     GET_UE_MAC(0, 0)->TraceConnectWithoutContext("UeMacRxedCtrlMsgsTrace",
                                                  MakeCallback(&NrTimingsTest::UeMacRx, this));
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
-
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     InternetStackHelper internet;
     internet.Install(ueNode);
     Ipv4InterfaceContainer ueIpIface;

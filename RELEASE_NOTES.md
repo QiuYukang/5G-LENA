@@ -59,6 +59,8 @@ authors of the NYUSIM channel model code implementation in ns-3. (Original code:
 Additional combinations of these modes are available for testing purposes and can be configured through `NrHelper::CsiFeedbackFlags` attribute.
 Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
 
+- It is no longer necessary to call NrHelper::UpdateDeviceConfigs(); please remove from any examples or tests.
+
 New user-visible features
 -------------------------
 In the new version of the module, we have created a simple interface for configuring spectrum channels for use in simulations. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels.

@@ -680,11 +680,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
         nrHelper->GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("NoiseFigure", DoubleValue(10));
     }
 
-    for (auto it = gNbDevs.Begin(); it != gNbDevs.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();

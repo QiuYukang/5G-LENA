@@ -351,12 +351,6 @@ NrUplinkPowerControlTestCase::DoRun()
         spectrumLossModel == nullptr,
         "3GPP spectrum model should be disabled in this test to have deterministic behaviour.");
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
-    for (auto it = gnbDevs.Begin(); it != gnbDevs.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // traffic configuration
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
     NodeContainer remoteHostContainer;

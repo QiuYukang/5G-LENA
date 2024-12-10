@@ -191,7 +191,6 @@ NrEpcE2eDataTestCase::DoRun()
                                      StringValue("RowFirst"));
     gnbMobility.Install(gnbs);
     NetDeviceContainer nrGnbDevs = nrHelper->InstallGnbDevice(gnbs, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrGnbDevs);
     auto nrGnbDevIt = nrGnbDevs.Begin();
 
     uint16_t ulPort = 1000;

@@ -264,11 +264,6 @@ NrTestNumerologyDelayCase1::DoRun()
     m_l1l2 = nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->GetL1L2CtrlLatency();
     m_tbDecodeLatency = nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->GetTbDecodeLatency();
 
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     InternetStackHelper internet;
     internet.Install(ueNode);
     Ipv4InterfaceContainer ueIpIface;

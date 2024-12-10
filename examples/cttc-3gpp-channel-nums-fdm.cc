@@ -321,13 +321,6 @@ main(int argc, char* argv[])
         nrHelper->GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(1, 2);
     }
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
-
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.
 

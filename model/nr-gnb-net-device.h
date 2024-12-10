@@ -8,6 +8,7 @@
 #include "nr-fh-control.h"
 #include "nr-net-device.h"
 
+#include "ns3/deprecated.h"
 #include "ns3/traced-callback.h"
 
 namespace ns3
@@ -125,9 +126,41 @@ class NrGnbNetDevice : public NrNetDevice
      *
      * This method will assert if called twice on the same device.
      *
-     * \param netDevs NetDevice container with the gNBs
+     * This method is deprecated and no longer needed and will be removed
+     * from future versions of this model.  It is replaced by ConfigureCell().
      */
+    NS_DEPRECATED("Obsolete method")
     void UpdateConfig();
+
+    /**
+     * \brief Update the RRC configuration after installation
+     *
+     * This method calls ConfigureCell() on the RRC using the component
+     * carrier map that has already been installed on this net device.
+     *
+     * This method finishes cell configuration in the RRC once PHY
+     * configuration is finished.  It must be called exactly once
+     * for each NrGnbNetDevice.
+     *
+     * After NrHelper::Install() is called on gNB nodes, either this method
+     * or the NrHelper::AttachToGnb() method (or AttachToClosestGnb() method),
+     * which, in turn, calls this method, must be called exactly once,
+     * @b after any post-install PHY configuration is done (if any).
+     *
+     * If AttachToGnb() is not called by initialization time, this
+     * method will be called by DoInitialize().
+     *
+     * This method will assert if called twice on the same device.  Users
+     * may check whether it has been called already by calling the
+     * IsCellConfigured() method.
+     */
+    void ConfigureCell();
+
+    /**
+     * \brief Return true if ConfigureCell() has been called
+     * \return whether ConfigureCell() has been called
+     */
+    bool IsCellConfigured() const;
 
     /**
      * \brief Get downlink bandwidth for a given physical cell Id
@@ -173,6 +206,8 @@ class NrGnbNetDevice : public NrNetDevice
     Ptr<NrGnbComponentCarrierManager>
         m_componentCarrierManager; ///< the component carrier manager of this gNB
     Ptr<NrFhControl> m_nrFhControl;
+
+    bool m_isCellConfigured{false}; ///< variable to check whether the RRC has been configured
 };
 
 } // namespace ns3

@@ -747,7 +747,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                                                 MakeBoundCallback(&ReportPowerNr, ueTxPowerStats));
     }
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
     for (auto nd = gnbNetDevs.Begin(); nd != gnbNetDevs.End(); ++nd)
     {
         uint32_t bwpId = 0;
@@ -763,8 +762,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         gnbPhy->GetSpectrumPhy()->TraceConnectWithoutContext(
             "RxDataTrace",
             MakeBoundCallback(&ReportGnbRxDataNr, gnbRxPowerStats));
-
-        DynamicCast<NrGnbNetDevice>(*nd)->UpdateConfig();
     }
 }
 

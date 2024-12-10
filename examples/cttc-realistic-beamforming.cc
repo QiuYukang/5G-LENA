@@ -815,12 +815,6 @@ CttcRealisticBeamforming::RunSimulation()
         nrHelper->GetUePhy(ueNetDev.Get(j), 0)->SetAttribute("TxPower", DoubleValue(m_ueTxPower));
     }
 
-    // Update configuration
-    for (auto it = gNbDev.Begin(); it != gNbDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // Create the internet and install the IP stack on the UEs, get SGW/PGW and create a single
     // RemoteHost
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();

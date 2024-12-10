@@ -270,7 +270,6 @@ NrIpv6RoutingTestCase::DoRun()
     // Install NR Devices to the nodes
     NetDeviceContainer nrGnbDevs = nrHelper->InstallGnbDevice(gnbNodes, bandwidthAndBWPPair.second);
     NetDeviceContainer ueNrDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrGnbDevs);
 
     // Assign IP address to UEs, and install applications
     m_ueIpIface = nrEpcHelper->AssignUeIpv6Address(NetDeviceContainer(ueNrDevs));

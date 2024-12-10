@@ -898,7 +898,7 @@ class NrHelper : public Object
         const std::string& channelModel = "ThreeGpp");
 
     /**
-     * \brief Update NetDevice configuration of one or more gNBs
+     * \brief Update NetDevice configuration of one or more devices
      *
      * This method finishes cell configuration in the RRC once PHY
      * configuration is finished.
@@ -916,7 +916,11 @@ class NrHelper : public Object
      * ns-3 NetDevice types.
      *
      * \param netDevs NetDevice container with the gNBs
+     *
+     * This method is deprecated and no longer needed and will be removed
+     * from future versions of this helper.
      */
+    NS_DEPRECATED("Obsolete method")
     void UpdateDeviceConfigs(const NetDeviceContainer& netDevs);
 
     // Handover related functions

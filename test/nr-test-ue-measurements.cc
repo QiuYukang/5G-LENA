@@ -307,7 +307,6 @@ NrUeMeasurementsTestCase::DoRun()
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs1 = nrHelper->InstallUeDevice(ueNodes1, bandwidthAndBWPPair.second);
     ueDevs2 = nrHelper->InstallUeDevice(ueNodes2, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrDevs);
 
     // Attach UEs to eNodeBs
     for (uint32_t i = 0; i < ueDevs1.GetN(); i++)
@@ -789,7 +788,6 @@ NrUeMeasurementsPiecewiseTestCase1::DoRun()
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaRR"));
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrDevs);
 
     // Setup UE measurement configuration
     Ptr<NrGnbRrc> nrRrc = nrDevs.Get(0)->GetObject<NrGnbNetDevice>()->GetRrc();
@@ -1491,7 +1489,6 @@ NrUeMeasurementsPiecewiseTestCase2::DoRun()
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaRR"));
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrDevs);
 
     // Setup UE measurement configuration in serving cell
     Ptr<NrGnbRrc> nrRrc1 = nrDevs.Get(0)->GetObject<NrGnbNetDevice>()->GetRrc();
@@ -1811,7 +1808,6 @@ NrUeMeasurementsPiecewiseTestCase3::DoRun()
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaRR"));
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrDevs);
 
     // Setup UE measurement configuration in serving cell
     Ptr<NrGnbRrc> nrRrc1 = nrDevs.Get(0)->GetObject<NrGnbNetDevice>()->GetRrc();
@@ -2400,7 +2396,6 @@ NrUeMeasurementsHandoverTestCase::DoRun()
     NetDeviceContainer ueDevs;
     nrDevs = nrHelper->InstallGnbDevice(nrNodes, bandwidthAndBWPPair.second);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
-    nrHelper->UpdateDeviceConfigs(nrDevs);
 
     // Setup UE measurement configuration in eNodeBs
     uint8_t measId;

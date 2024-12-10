@@ -18,6 +18,7 @@
 #include <ns3/bwp-manager-gnb.h>
 #include <ns3/bwp-manager-ue.h>
 #include <ns3/config.h>
+#include <ns3/deprecated.h>
 #include <ns3/multi-model-spectrum-channel.h>
 #include <ns3/names.h>
 #include <ns3/nr-ch-access-manager.h>
@@ -327,12 +328,14 @@ NrHelper::UpdateDeviceConfigs(const NetDeviceContainer& netDevs)
         auto gnbNetDev = DynamicCast<NrGnbNetDevice>(netDevs.Get(i));
         if (ueNetDev)
         {
-            std::cerr << "Deprecation warning: UpdateConfig is obsolete for UE device types"
+            std::cerr << "Deprecation warning: UpdateConfig is no longer needed for UE device types"
                       << std::endl;
         }
         if (gnbNetDev)
         {
-            gnbNetDev->UpdateConfig();
+            std::cerr
+                << "Deprecation warning: UpdateConfig is no longer needed for gNB device types"
+                << std::endl;
         }
     }
 }
@@ -1057,6 +1060,10 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
 
     NS_ABORT_IF(gnbNetDev == nullptr || ueNetDev == nullptr);
 
+    if (!gnbNetDev->IsCellConfigured())
+    {
+        gnbNetDev->ConfigureCell();
+    }
     for (uint32_t i = 0; i < gnbNetDev->GetCcMapSize(); ++i)
     {
         gnbNetDev->GetPhy(i)->RegisterUe(ueNetDev->GetImsi(), ueNetDev);

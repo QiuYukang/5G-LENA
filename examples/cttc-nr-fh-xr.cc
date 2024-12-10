@@ -1307,15 +1307,6 @@ main(int argc, char* argv[])
         nrHelper->ConfigureFhControl(gnbSector3NetDev);
     }
 
-    for (auto it = gnbNetDevs.Begin(); it != gnbNetDevs.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = ueNetDevs.Begin(); it != ueNetDevs.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
-
     PrintUePosition(ueNodes);
 
     // create the internet and install the IP stack on the UEs

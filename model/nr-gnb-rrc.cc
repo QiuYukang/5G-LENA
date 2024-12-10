@@ -2389,7 +2389,7 @@ NrGnbRrc::AddUeMeasReportConfig(NrRrcSap::ReportConfigEutra config)
 }
 
 void
-NrGnbRrc::ConfigureCell(std::map<uint8_t, Ptr<BandwidthPartGnb>> ccPhyConf)
+NrGnbRrc::ConfigureCell(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccPhyConf)
 {
     auto it = ccPhyConf.begin();
     NS_ASSERT(it != ccPhyConf.end());
@@ -2398,7 +2398,7 @@ NrGnbRrc::ConfigureCell(std::map<uint8_t, Ptr<BandwidthPartGnb>> ccPhyConf)
     uint32_t ulEarfcn = it->second->GetUlEarfcn();
     uint32_t dlEarfcn = it->second->GetDlEarfcn();
     NS_LOG_FUNCTION(this << ulBandwidth << dlBandwidth << ulEarfcn << dlEarfcn);
-    NS_ASSERT(!m_configured);
+    NS_ASSERT_MSG(!m_configured, "NrGnbRrc::ConfigureCell called more than once");
 
     for (const auto& it : ccPhyConf)
     {

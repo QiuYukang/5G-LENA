@@ -193,9 +193,14 @@ NrRealisticBeamformingTestCase::DoRun()
                     gnbDevs = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
                     ueDevs = nrHelper->InstallUeDevice(ueNodes, allBwps);
 
+                    // This test requires that the NrGnbNetDevice::ConfigureCell()
+                    // is called before GetBeamformingVectors() is called below.
+                    // Usually NrHelper::AttachToGnb() or NrGnbNetDevice::DoInitialize()
+                    // takes care of this, but in this test we need to manually
+                    // call it here.
                     for (auto it = gnbDevs.Begin(); it != gnbDevs.End(); ++it)
                     {
-                        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
+                        DynamicCast<NrGnbNetDevice>(*it)->ConfigureCell();
                     }
 
                     Ptr<NrUePhy> uePhy = nrHelper->GetUePhy(ueDevs.Get(0), 0);

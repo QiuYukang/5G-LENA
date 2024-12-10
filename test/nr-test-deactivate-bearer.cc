@@ -187,8 +187,6 @@ NrDeactivateBearerTestCase::DoRun()
     ueDevs = nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     stream += nrHelper->AssignStreams(ueDevs, stream);
 
-    nrHelper->UpdateDeviceConfigs(gnbDevs);
-
     Ptr<NrGnbNetDevice> nrGnbDev = gnbDevs.Get(0)->GetObject<NrGnbNetDevice>();
     Ptr<NrGnbPhy> gnbPhy = nrGnbDev->GetPhy(0);
     gnbPhy->SetAttribute("TxPower", DoubleValue(30.0));

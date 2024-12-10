@@ -287,8 +287,6 @@ NrX2HandoverTestCase::DoRun()
         {bandwidthAndBWPPair.second.front(), bandwidthAndBWPPair2.second.front()});
     stream += m_nrHelper->AssignStreams(ueDevices, stream);
 
-    m_nrHelper->UpdateDeviceConfigs(gnbDevices);
-
     Ipv4Address remoteHostAddr;
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
     Ipv4InterfaceContainer ueIpIfaces;

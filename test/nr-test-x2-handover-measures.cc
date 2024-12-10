@@ -343,8 +343,6 @@ NrX2HandoverMeasuresTestCase::DoRun()
     ueDevices = m_nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     stream += m_nrHelper->AssignStreams(ueDevices, stream);
 
-    m_nrHelper->UpdateDeviceConfigs(gnbDevices);
-
     Ipv4Address remoteHostAddr;
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
     Ipv4InterfaceContainer ueIpIfaces;

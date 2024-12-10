@@ -228,11 +228,6 @@ SystemSchedulerTest::DoRun()
     randomStream += nrHelper->AssignStreams(gNbNetDevs, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDevs, randomStream);
 
-    for (auto it = gNbNetDevs.Begin(); it != gNbNetDevs.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();

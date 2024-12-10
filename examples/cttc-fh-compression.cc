@@ -853,11 +853,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             nrHelper->GetBwpManagerUe(ueSector3NetDev.Get(i))->SetOutputLink(0, 1);
         }
     }
-
-    // When all the configuration is done, explicitly call UpdateConfig ()
-    nrHelper->UpdateDeviceConfigs(gnbSector1NetDev);
-    nrHelper->UpdateDeviceConfigs(gnbSector2NetDev);
-    nrHelper->UpdateDeviceConfigs(gnbSector3NetDev);
 }
 
 template <typename T>

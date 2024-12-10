@@ -354,9 +354,6 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
         }
     }
 
-    m_nrHelper->UpdateDeviceConfigs(gnbDevs);
-    // m_nrHelper->AttachToClosestGnb(ueDevs, gnbDevs);
-
     // custom code used for testing purposes
     // instead of nrHelper->Attach () and nrHelper->ActivateXxx
 
@@ -726,9 +723,6 @@ NrRrcConnectionEstablishmentErrorTestCase::DoRun()
     NetDeviceContainer ueDevs;
     ueDevs = m_nrHelper->InstallUeDevice(ueNodes, bandwidthAndBWPPair.second);
     stream += m_nrHelper->AssignStreams(ueDevs, stream);
-
-    m_nrHelper->UpdateDeviceConfigs(gnbDevs);
-    m_nrHelper->UpdateDeviceConfigs(ueDevs);
 
     m_nrHelper->AttachToClosestGnb(ueDevs, gnbDevs);
     /*

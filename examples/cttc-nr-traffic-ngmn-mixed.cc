@@ -575,21 +575,6 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
             nrHelper->GetBwpManagerUe(ueSector3NetDev.Get(i))->SetOutputLink(0, 1);
         }
     }
-
-    // When all the configuration is done, explicitly call UpdateConfig ()
-
-    for (auto it = gnbSector1NetDev.Begin(); it != gnbSector1NetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = gnbSector2NetDev.Begin(); it != gnbSector2NetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-    for (auto it = gnbSector3NetDev.Begin(); it != gnbSector3NetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
 }
 
 enum TrafficTypeConf

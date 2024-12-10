@@ -217,12 +217,6 @@ main(int argc, char* argv[])
     nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPower);
     nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)->SetTxPower(txPower);
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
     Ptr<Node> pgw = nrEpcHelper->GetPgwNode();

@@ -260,11 +260,6 @@ main(int argc, char* argv[])
     nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPowerPerBwp);
     nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetTxPower(txPowerPerBwp);
 
-    for (auto it = gnbNetDev.Begin(); it != gnbNetDev.End(); ++it)
-    {
-        DynamicCast<NrGnbNetDevice>(*it)->UpdateConfig();
-    }
-
     InternetStackHelper internet;
     internet.Install(gridScenario.GetUserTerminals());
     Ipv4InterfaceContainer ueIpIface;

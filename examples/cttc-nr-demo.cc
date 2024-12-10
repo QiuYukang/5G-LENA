@@ -434,12 +434,6 @@ main(int argc, char* argv[])
             ->SetTxPower(10 * log10((bandwidthBand2 / totalBandwidth) * x));
     }
 
-    // When all the configuration is done, explicitly call UpdateConfig ()
-    // Instead of calling individually for each netDevice, we can call
-    // NrHelper::UpdateDeviceConfigs() to update a NetDeviceContainer with a single call. This was
-    // introduced with the v.3.2 Release.
-    nrHelper->UpdateDeviceConfigs(gnbNetDev);
-
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.
 
