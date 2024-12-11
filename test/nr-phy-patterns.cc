@@ -240,6 +240,7 @@ NrPhyPatternTestCase::CreatePhy(const Ptr<NrGnbMac>& mac) const
     phy->InstallSpectrumPhy(channelPhy);
     Ptr<BeamManager> beamManager = CreateObject<BeamManager>();
     beamManager->Configure(antenna);
+    channelPhy->SetAntenna(antenna);
     channelPhy->SetBeamManager(beamManager);
     return phy;
 }

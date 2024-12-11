@@ -166,9 +166,32 @@ class NrSpectrumPhy : public SpectrumPhy
     Ptr<const SpectrumModel> GetRxSpectrumModel() const override;
     /*
      * @brief Sets the beam manager of this spectrum phy, and that beam manager
-     * is responsible of the antena array of this spectrum phy
+     * is responsible for the antenna array of this spectrum phy
      */
     void SetBeamManager(Ptr<BeamManager> b);
+
+    /// @brief Adds the beam manager of corresponds spectrum phy of antenna panel, and that beam
+    /// manager is responsible of the antenna array of this spectrum phy
+    /// @param b Beam manager
+    void AddBeamManager(Ptr<BeamManager> b);
+
+    /// @brief Either initialize the bearing angles of panels in install step or update all bearing
+    /// angles based on proper method, if no parameter pass it would get first antenna bearing angle
+    /// and set other panels based on proper approach
+    void ConfigPanelsBearingAngles();
+
+    /// @brief Either initialize the bearing angles of panels in install step or update all bearing
+    /// angles based on proper method, if no parameter pass it would get first antenna bearing angle
+    /// and set other panels based on proper approach
+    /// @param firstPanelBearingAngleRad Bearing angle of first panel
+    void ConfigPanelsBearingAngles(double firstPanelBearingAngleRad);
+
+    /// @brief  initialize the bearing angles of panels in to cover 360 Degree
+    /// @param firstPanelBearingAngleRad Bearing angle of first panel
+    /// @param panelIndex Index of corresponding panel
+    /// @return Bearing angle for corresponding set for panel
+    double CircularBearingAnglesForPanels(double firstPanelBearingAngleRad,
+                                          uint8_t panelIndex) const;
 
     /*
      * @brief Gets the beam manager of this spectrum phy.
@@ -222,10 +245,26 @@ class NrSpectrumPhy : public SpectrumPhy
     /**
      * @brief Inherited from SpectrumPhy
      * Note: Implements GetRxAntenna function from SpectrumPhy.
-     * @return Antenna of this NrSpectrumPhy
+     * @return Active antenna panel of this NrSpectrumPhy
      */
     Ptr<Object> GetAntenna() const override;
 
+    /**
+     * @brief Interface enable to access all panels using proper index
+     * @return index's Antenna panel of this NrSpectrumPhy
+     */
+    Ptr<Object> GetPanelByIndex(const uint8_t index) const;
+
+    /**
+     * @brief Set the number of panels in this NrSpectrumPhy
+     */
+    void SetNumPanels(const uint8_t numPanel);
+
+    /**
+     * @brief Get the number of panels in this NrSpectrumPhy
+     * @return The number Antenna panel of this NrSpectrumPhy
+     */
+    uint8_t GetNumPanels() const;
     /*
      * @brief Used to enable generation and triggering of DL DATA pathloss trace
      */
@@ -404,6 +443,19 @@ class NrSpectrumPhy : public SpectrumPhy
      * @param antenna the antenna to be set to this NrSpectrumPhy instance
      */
     void SetAntenna(Ptr<Object> antenna);
+
+    /**
+     * @brief Add the antenna panel to this NrSpectrumPhy,
+     * currently in NR module it is expected to be of type UniformPlannarArray
+     * @param antenna the antenna panel to be add to this NrSpectrumPhy instance
+     */
+    void AddPanel(const Ptr<Object> antenna);
+
+    /**
+     * @brief Set the active antenna panel to this NrSpectrumPhy,
+     * @param panelIndex Index of active panel of this NrSpectrumPhy
+     */
+    void SetActivePanel(const u_int8_t panelIndex);
     /**
      * @brief Returns spectrum channel object to which is attached this spectrum phy instance
      */
@@ -746,16 +798,17 @@ class NrSpectrumPhy : public SpectrumPhy
         nullptr}; //!< channel is needed to be able to connect listener spectrum phy (AddRx) or to
                   //!< start transmission StartTx
     Ptr<const SpectrumModel> m_rxSpectrumModel{
-        nullptr}; //!< the spectrum model of this spectrum phy
-    Ptr<BeamManager> m_beamManager{
-        nullptr}; //!< the beam manager corresponding to the antenna of this spectrum phy
+        nullptr};                                 //!< the spectrum model of this spectrum phy
+    std::vector<Ptr<BeamManager>> m_beamManagers; //!< the beam manager container corresponding to
+                                                  //!< the antenna of this spectrum phy
     Ptr<MobilityModel> m_mobility{
         nullptr}; //!< the mobility model of the node to which belongs this spectrum phy
     Ptr<NetDevice> m_device{nullptr}; //!< the device to which belongs this spectrum phy
     Ptr<NrPhy> m_phy{nullptr}; //!< a pointer to phy instance to which belongs this spectrum phy
     Ptr<NrErrorModel> m_errorModel{nullptr}; //!< a pointer to the error model instance
-    Ptr<Object> m_antenna{nullptr}; //!< antenna object of this NrSpectrumPhy, currently supported
-                                    //!< UniformPlannarArray type of antenna
+    std::vector<Ptr<Object>>
+        m_antennaPanels; //!< antenna panels object of this NrSpectrumPhy, currently
+                         //!< supported UniformPlannarArray type of antenna
     Ptr<NrInterference> m_interferenceData{nullptr}; //!< the interference object used to calculate
                                                      //!< the interference for this spectrum phy
     Ptr<NrInterference> m_interferenceCtrl{nullptr}; //!< the interference object used to calculate
@@ -862,6 +915,8 @@ class NrSpectrumPhy : public SpectrumPhy
     double m_dlDataPathloss = 0; // DL data pathloss calculated in StartRx, and used in trace in
                                  // EndRxData, i.e., when ProcessReceivedPacketBurst is called
     bool m_isGnb = false;
+    uint8_t m_numPanels{1};        //!< Number of panels in this spectrum
+    uint8_t m_activePanelIndex{0}; //!< Active panel's index
 };
 
 } // namespace ns3

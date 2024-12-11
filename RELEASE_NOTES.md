@@ -61,6 +61,7 @@ New user-visible features
 - We introduced sub-band CQI reporting, in addition to additional Rank Indicators (RI)/Precoding Matrix Indicator (PMI) selection techniques, as alternatives to the `NrPmSearchFull`, such as `NrPmSearchIdeal`, `NrPmSearchFast`, `NrPmSearchSasaoka` and `NrPmSearchMaleki`.
 - We introduced sub-band awareness to the MAC schedulers, which can be controlled via the attribute `NrMacSchedulerNs3::McsCsiSource`.
 - We introduced new symbols per beam scheduling options, which can be controlled via  the attribute ``NrMacSchedulerOfdma::SymPerBeamType``.
+- We introduce a multi panel antenna approach in spectrum phy which allows UE to have more than 1 panels which could be 1 of them activated at time. This feature is included in `AttachToMaxRsrpGnb` and `KroneckerQuasiOmniBeamforming`.
 
 
 Bugs fixed

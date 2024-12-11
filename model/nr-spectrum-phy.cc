@@ -159,6 +159,12 @@ NrSpectrumPhy::GetTypeId()
                           MakeDoubleAccessor(&NrSpectrumPhy::SetCcaMode1Threshold,
                                              &NrSpectrumPhy::GetCcaMode1Threshold),
                           MakeDoubleChecker<double>())
+            .AddAttribute(
+                "NumAntennaPanel",
+                "number of panels to install on UE/ gNB device",
+                UintegerValue(1),
+                MakeUintegerAccessor(&NrSpectrumPhy::SetNumPanels, &NrSpectrumPhy::GetNumPanels),
+                MakeUintegerChecker<uint8_t>())
             .AddTraceSource("RxPacketTraceGnb",
                             "The no. of packets received and transmitted by the Base Station",
                             MakeTraceSourceAccessor(&NrSpectrumPhy::m_rxPacketTraceGnb),
@@ -384,7 +390,30 @@ NrSpectrumPhy::GetRxSpectrumModel() const
 Ptr<Object>
 NrSpectrumPhy::GetAntenna() const
 {
-    return m_antenna;
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(m_numPanels == m_antennaPanels.size(), "mismatch of number of Panels");
+
+    return m_antennaPanels.at(m_activePanelIndex);
+}
+
+Ptr<Object>
+NrSpectrumPhy::GetPanelByIndex(const uint8_t index) const
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(m_numPanels == m_antennaPanels.size(), "mismatch of number of Panels");
+    return m_antennaPanels.at(index);
+}
+
+void
+NrSpectrumPhy::SetNumPanels(const uint8_t numPanel)
+{
+    m_numPanels = numPanel;
+}
+
+uint8_t
+NrSpectrumPhy::GetNumPanels() const
+{
+    return m_numPanels;
 }
 
 // set/get attributes
@@ -393,13 +422,62 @@ void
 NrSpectrumPhy::SetBeamManager(Ptr<BeamManager> b)
 {
     NS_LOG_FUNCTION(this << b);
-    m_beamManager = b;
+    m_beamManagers.resize(1);
+    m_beamManagers[0] = b;
+}
+
+void
+NrSpectrumPhy::AddBeamManager(Ptr<BeamManager> b)
+{
+    NS_LOG_FUNCTION(this << b);
+    m_beamManagers.emplace_back(b);
 }
 
 Ptr<BeamManager>
 NrSpectrumPhy::GetBeamManager()
 {
-    return m_beamManager;
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(m_numPanels == m_antennaPanels.size(), "mismatch of number of Panels");
+    return m_beamManagers.at(m_activePanelIndex);
+}
+
+void
+NrSpectrumPhy::ConfigPanelsBearingAngles()
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(m_numPanels == m_antennaPanels.size(), "mismatch of number of Panels");
+
+    auto firstPanelBearingAngleRad =
+        (DynamicCast<UniformPlanarArray>(m_antennaPanels[0]))->GetAlpha();
+
+    for (auto i = 0; i < m_numPanels; i++)
+
+    {
+        m_antennaPanels[i]->GetObject<UniformPlanarArray>()->SetAlpha(
+            CircularBearingAnglesForPanels(firstPanelBearingAngleRad, i));
+    }
+}
+
+void
+NrSpectrumPhy::ConfigPanelsBearingAngles(double firstPanelBearingAngleRad)
+{
+    NS_LOG_FUNCTION(this);
+    NS_ASSERT_MSG(m_numPanels == m_antennaPanels.size(), "mismatch of number of Panels");
+
+    for (auto i = 0; i < m_numPanels; i++)
+
+    {
+        m_antennaPanels[i]->GetObject<UniformPlanarArray>()->SetAlpha(
+            CircularBearingAnglesForPanels(firstPanelBearingAngleRad, i));
+    }
+}
+
+double
+NrSpectrumPhy::CircularBearingAnglesForPanels(double firstPanelBearingAngleRad,
+                                              u_int8_t panelIndex) const
+{
+    // to cover 360 based on number of ue antenna panels
+    return firstPanelBearingAngleRad + 2 * M_PI * (panelIndex) / m_numPanels;
 }
 
 void
@@ -1057,7 +1135,20 @@ NrSpectrumPhy::GetPhy() const
 void
 NrSpectrumPhy::SetAntenna(const Ptr<Object> antenna)
 {
-    m_antenna = antenna;
+    m_antennaPanels.resize(1);
+    m_antennaPanels[0] = antenna;
+}
+
+void
+NrSpectrumPhy::AddPanel(const Ptr<Object> antenna)
+{
+    m_antennaPanels.emplace_back(antenna);
+}
+
+void
+NrSpectrumPhy::SetActivePanel(const u_int8_t panelIndex)
+{
+    m_activePanelIndex = panelIndex;
 }
 
 Ptr<SpectrumChannel>

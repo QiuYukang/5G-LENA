@@ -700,51 +700,61 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
     Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
 
     double maxPower = 0;
+    u_int8_t activePanelIndex = 0;
     BeamformingVector gnbBfv;
     BeamformingVector ueBfv;
-    // configure gNB and ue beamforming vectors to be Kronecker
-    for (size_t k = 0; k < m_colTxBeamAngles.size(); k++)
+    // configure gNB and ue beamforming vectors to be Kronecer
+    for (uint8_t b = 0; b < ueSpectrumPhy->GetNumPanels(); b++)
     {
-        for (size_t m = 0; m < m_rowTxBeamAngles.size(); m++)
+        for (size_t k = 0; k < m_colTxBeamAngles.size(); k++)
         {
-            for (size_t i = 0; i < m_colRxBeamAngles.size(); i++)
+            for (size_t m = 0; m < m_rowTxBeamAngles.size(); m++)
             {
-                for (size_t j = 0; j < m_rowRxBeamAngles.size(); j++)
+                for (size_t i = 0; i < m_colRxBeamAngles.size(); i++)
                 {
-                    auto bfUe = CreateKroneckerBfv(
-                        ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
-                        m_rowTxBeamAngles[m],
-                        m_colTxBeamAngles[k]);
-                    ueSpectrumPhy->GetAntenna()
-                        ->GetObject<UniformPlanarArray>()
-                        ->SetBeamformingVector(bfUe);
-                    auto bf = CreateKroneckerBfv(
-                        gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
-                        m_rowRxBeamAngles[j],
-                        m_colRxBeamAngles[i]);
-                    gnbSpectrumPhy->GetAntenna()
-                        ->GetObject<UniformPlanarArray>()
-                        ->SetBeamformingVector(bf);
-                    fakeParams->psd = Copy<SpectrumValue>(fakePsd);
-                    auto rxParams = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
-                        fakeParams,
-                        gnbSpectrumPhy->GetMobility(),
-                        ueSpectrumPhy->GetMobility(),
-                        gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
-                        ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>());
-
-                    size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
-                    double power = Sum(*(rxParams->psd)) / nbands;
-                    if (power > maxPower)
+                    for (size_t j = 0; j < m_rowRxBeamAngles.size(); j++)
                     {
-                        maxPower = power;
-                        gnbBfv = {bf, BeamId::GetEmptyBeamId()};
-                        ueBfv = {bfUe, BeamId::GetEmptyBeamId()};
+                        auto bfUe = CreateKroneckerBfv(
+                            ueSpectrumPhy->GetPanelByIndex(b)->GetObject<UniformPlanarArray>(),
+                            m_rowTxBeamAngles[m],
+                            m_colTxBeamAngles[k]);
+
+                        ueSpectrumPhy->GetPanelByIndex(b)
+                            ->GetObject<UniformPlanarArray>()
+                            ->SetBeamformingVector(bfUe);
+
+                        auto bf = CreateKroneckerBfv(
+                            gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                            m_rowRxBeamAngles[j],
+                            m_colRxBeamAngles[i]);
+                        gnbSpectrumPhy->GetAntenna()
+                            ->GetObject<UniformPlanarArray>()
+                            ->SetBeamformingVector(bf);
+                        fakeParams->psd = Copy<SpectrumValue>(fakePsd);
+                        auto rxParams = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
+                            fakeParams,
+                            gnbSpectrumPhy->GetMobility(),
+                            ueSpectrumPhy->GetMobility(),
+                            gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
+                            ueSpectrumPhy->GetPanelByIndex(b)->GetObject<UniformPlanarArray>());
+
+                        size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
+                        double power = Sum(*(rxParams->psd)) / nbands;
+                        if (power > maxPower)
+                        {
+                            maxPower = power;
+                            gnbBfv = {bf, BeamId::GetEmptyBeamId()};
+                            ueBfv = {bfUe, BeamId::GetEmptyBeamId()}; // for the best Panel
+                            activePanelIndex =
+                                b; // active panel has to be update to K as better beam has found
+                        }
                     }
                 }
             }
         }
     }
+
+    ueSpectrumPhy->SetActivePanel(activePanelIndex);
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
 }
 

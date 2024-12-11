@@ -54,6 +54,7 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
+- We introduced multi panel antenna in `SpectrumPhy`.
 - We introduced a new attachment algorithm `AttachToMaxRsrpGnb`.
 
 - We introduced a new beamforming algorithms, `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming`.
