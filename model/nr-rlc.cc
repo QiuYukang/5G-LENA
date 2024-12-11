@@ -271,6 +271,7 @@ NrRlcSm::ReportBufferStatus()
     p.retxQueueSize = 0;
     p.retxQueueHolDelay = 0;
     p.statusPduSize = 0;
+    p.expRbsTimer = false;
     m_macSapProvider->ReportBufferStatus(p);
 }
 
