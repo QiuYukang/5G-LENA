@@ -129,7 +129,6 @@ per-commit-gcc-optimized-sanitizers:
     EXTRAS: --enable-sanitizers
   tags:
     - CTTC
-  allow_failure: true
 
 reuse:
   stage: reuse
