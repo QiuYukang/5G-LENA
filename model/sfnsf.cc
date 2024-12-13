@@ -106,7 +106,7 @@ SfnSf::Normalize() const
 }
 
 SfnSf
-SfnSf::GetFutureSfnSf(uint32_t slotN)
+SfnSf::GetFutureSfnSf(uint32_t slotN) const
 {
     SfnSf ret = *this;
     ret.Add(slotN);
@@ -138,6 +138,18 @@ SfnSf::operator<(const SfnSf& rhs) const
     }
     return (((m_frameNum == rhs.m_frameNum) && (m_subframeNum == rhs.m_subframeNum)) &&
             (m_slotNum < rhs.m_slotNum));
+}
+
+bool
+SfnSf::operator<=(const SfnSf& rhs) const
+{
+    NS_ASSERT_MSG(rhs.m_numerology == m_numerology, "Numerology does not match");
+    SfnSf thisSfnSf(*this);
+    if (thisSfnSf < rhs)
+    {
+        return true;
+    }
+    return (thisSfnSf == rhs);
 }
 
 bool

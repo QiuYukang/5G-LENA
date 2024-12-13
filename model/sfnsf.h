@@ -112,7 +112,7 @@ class SfnSf : public SimpleRefCount<SfnSf>
      * \param slotN slot to sum
      * \return the SfnSf that results from the operation (*this) + slotN
      */
-    SfnSf GetFutureSfnSf(uint32_t slotN);
+    SfnSf GetFutureSfnSf(uint32_t slotN) const;
 
     /**
      * \brief operator < (less than)
@@ -123,6 +123,15 @@ class SfnSf : public SimpleRefCount<SfnSf>
      * The program will assert if numerologies do not match (and asserts are enabled)
      */
     bool operator<(const SfnSf& rhs) const;
+
+    /**
+     * \brief operator <= (less than or equal to)
+     * \param rhs other SfnSf to compare
+     * \return true if this SfnSf is less than or equal to rhs
+     *
+     * The comparison is done on m_frameNum, m_subframeNum, and m_slotNum: not on varTti
+     */
+    bool operator<=(const SfnSf& rhs) const;
 
     /**
      * \brief operator ==, compares frame, subframe, and slot
