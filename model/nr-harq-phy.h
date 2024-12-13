@@ -102,7 +102,7 @@ class NrHarqPhy
      */
     void ResetUlHarqProcessStatus(uint16_t rnti, uint8_t id);
 
-  private:
+  protected:
     /**
      * \brief Map between a process id and its HARQ history (a vector of pointers)
      *
@@ -157,6 +157,7 @@ class NrHarqPhy
                                                                 uint16_t rnti,
                                                                 uint8_t harqProcId) const;
 
+  private:
     HistoryMap m_dlHistory; //!< HARQ history map for DL
     HistoryMap m_ulHistory; //!< HARQ history map for UL
 };
