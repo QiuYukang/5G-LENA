@@ -95,13 +95,13 @@ class NrSpectrumPhy : public SpectrumPhy
         IDLE = 0,   //!< IDLE state (no action in progress)
         TX,         //!< Transmitting state (data or ctrl)
         RX_DATA,    //!< Receiving data
-        RX_DL_CTRL, //!< receiving DL CTRL
+        RX_DL_CTRL, //!< Receiving DL CTRL
         RX_UL_CTRL, //!< Receiving UL CTRL
         RX_UL_SRS,  //!< Receiving SRS
         CCA_BUSY    //!< BUSY state (channel occupied by another entity)
     };
 
-    // callbacks typefefs and setters
+    // callbacks typedefs and setters
     /**
      * \brief This callback method type is used to notify that DATA is received
      */
@@ -185,12 +185,43 @@ class NrSpectrumPhy : public SpectrumPhy
 
     /*
      * \brief Gets a pointer to the error model (if instantiated)
+     * \return Pointer to the error model
      */
     Ptr<NrErrorModel> GetErrorModel() const;
 
+    /*
+     * \brief Gets a pointer to the NrPhy instance
+     * \return Pointer to the NrPhy instance
+     */
+    Ptr<NrPhy> GetNrPhy() const;
+
+    /*
+     * \brief Get the time of the most recent start of reception
+     * \return The time value of the most recent start of reception
+     */
+    Time GetFirstRxStart() const;
+
+    /*
+     * \brief Set the time of the most recent start of reception
+     * \param startTime The time value of the most recent start of reception
+     */
+    void SetFirstRxStart(Time startTime);
+
+    /*
+     * \brief Get the duration of the most recent start of reception
+     * \return The time value of the duration of the most recent start of reception
+     */
+    Time GetFirstRxDuration() const;
+
+    /*
+     * \brief Set the duration of the most recent start of reception
+     * \param duration The time value of the duration of the most recent start of reception
+     */
+    void SetFirstRxDuration(Time duration);
+
     /**
      * \brief Inherited from SpectrumPhy
-     * Note: Implements GetAntenna function from SpectrumPhy.
+     * Note: Implements GetRxAntenna function from SpectrumPhy.
      * \return Antenna of this NrSpectrumPhy
      */
     Ptr<Object> GetAntenna() const override;
@@ -236,7 +267,7 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     double GetCcaMode1Threshold() const;
     /**
-     * \brief Sets whether to perform in unclicensed mode in which the channel monitoring is enabled
+     * \brief Sets whether to perform in unlicensed mode in which the channel monitoring is enabled
      * \param unlicensedMode if true the unlicensed mode is enabled
      */
     void SetUnlicensedMode(bool unlicensedMode);
@@ -255,7 +286,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * \brief Sets noise power spectral density to be used by this device
      * \param noisePsd SpectrumValue object holding noise PSD
      */
-    void SetNoisePowerSpectralDensity(const Ptr<const SpectrumValue>& noisePsd);
+    virtual void SetNoisePowerSpectralDensity(const Ptr<const SpectrumValue>& noisePsd);
     /**
      * \brief Sets transmit power spectral density
      * \param txPsd transmit power spectral density to be used for the upcoming transmissions by
@@ -263,7 +294,7 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void SetTxPowerSpectralDensity(const Ptr<SpectrumValue>& txPsd);
     /*
-     * \brief Returns the TX PSD
+     * \brief Returns a const pointer to the TX PSD
      * \return the TX PSD
      */
     Ptr<const SpectrumValue> GetTxPowerSpectralDensity();
@@ -317,7 +348,7 @@ class NrSpectrumPhy : public SpectrumPhy
     void AddDataSinrChunkProcessor(const Ptr<NrChunkProcessor>& p);
 
     /*
-     * \brief Adds the chunk processort that will process the interference for SRS signals at gNBs
+     * \brief Adds the chunk processor that will process the interference for SRS signals at gNBs
      * \param p the chunk processor
      */
     void AddSrsSinrChunkProcessor(const Ptr<NrChunkProcessor>& p);
@@ -505,6 +536,69 @@ class NrSpectrumPhy : public SpectrumPhy
      */
     void DoDispose() override;
 
+    /**
+     * \brief Get current state
+     * \return current state
+     */
+    State GetState() const;
+
+    /**
+     * \brief Get pointer to SpectrumChannel
+     * \return Pointer to spectrum channel
+     */
+    Ptr<SpectrumChannel> GetChannel() const;
+
+    /**
+     * \brief Get pointer to error model random variable
+     * \return Pointer to error model random variable
+     */
+    Ptr<UniformRandomVariable> GetErrorModelRv() const;
+
+    /**
+     * \brief Update the state of the spectrum phy. The states are:
+     *  IDLE, TX, RX_DATA, RX_DL_CTRL, RX_UL_CTRL, CCA_BUSY.
+     * \param newState the new state
+     * \param duration how much time the spectrum phy will be in the new state
+     */
+    void ChangeState(State newState, Time duration);
+
+    /**
+     * \brief Function that is called when the transmission has ended. It is
+     * used to update spectrum phy state.
+     */
+    void EndTx();
+
+    /**
+     * \brief Increase the counter of active transmissions
+     */
+    void IncrementActiveTransmissions();
+
+    /**
+     * \brief call RxDataTrace from subclass
+     * \param sfnSf SfnSf
+     * \param spectrumValue rxPsd values
+     * \param duration duration of the reception
+     * \param bwpId BWP ID
+     * \param cellId Cell ID
+     */
+    void NotifyRxDataTrace(const SfnSf& sfn,
+                           Ptr<const SpectrumValue> spectrumValue,
+                           const Time& duration,
+                           uint16_t bwpId,
+                           uint16_t cellId) const;
+
+    /**
+     * \brief call TxCtrlTrace from subclass
+     * \param duration Duration that the transmitter will occupy channel with control transmission
+     */
+    void NotifyTxCtrlTrace(Time duration) const;
+
+    /**
+     * \brief call TxDataTrace from subclass
+     * \param duration Duration that the transmitter will occupy channel with data transmission
+     */
+    void NotifyTxDataTrace(Time duration) const;
+
   private:
     std::vector<MimoSinrChunk>
         m_mimoSinrPerceived; //!< received SINR values during data reception for TB decoding, to
@@ -542,18 +636,6 @@ class NrSpectrumPhy : public SpectrumPhy
      * \param csiRsParams CSI-RS parameters that will be reused for CSI-IM measurement
      */
     void CheckIfCsiImNeeded(const Ptr<NrSpectrumSignalParametersCsiRs>& csiRsParams);
-    /**
-     * \brief Update the state of the spectrum phy. The states are:
-     *  IDLE, TX, RX_DATA, RX_DL_CTRL, RX_UL_CTRL, CCA_BUSY.
-     * \param newState the new state
-     * \param duration how much time the spectrum phy will be in the new state
-     */
-    void ChangeState(State newState, Time duration);
-    /**
-     * \brief Function that is called when the transmission has ended. It is
-     * used to update spectrum phy state.
-     */
-    void EndTx();
 
     /// \brief Filter the received SINR chunks for a particular DL or UL signal
     /// \param rnti The RNTI for the expected receive signal (transmitting or receiving UE)
@@ -731,7 +813,6 @@ class NrSpectrumPhy : public SpectrumPhy
     NrPhyUlHarqFeedbackCallback
         m_phyUlHarqFeedbackCallback; //!< callback that is notified when the UL HARQ feedback is
                                      //!< being generated
-
     // traces
     TracedCallback<Time>
         m_channelOccupied; //!< trace callback that is notifying of total time that this spectrum

@@ -61,6 +61,7 @@ operator<<(std::ostream& os, const enum NrSpectrumPhy::State state)
 NrSpectrumPhy::NrSpectrumPhy()
     : SpectrumPhy()
 {
+    NS_LOG_FUNCTION(this);
     m_interferenceData = CreateObject<NrInterference>();
     m_interferenceCtrl = CreateObject<NrInterference>();
     m_random = CreateObject<UniformRandomVariable>();
@@ -200,8 +201,77 @@ NrSpectrumPhy::GetTypeId()
                             "Pathloss calculated for CTRL",
                             MakeTraceSourceAccessor(&NrSpectrumPhy::m_dlDataPathlossTrace),
                             "ns3::NrSpectrumPhy::DlPathlossTrace");
-
     return tid;
+}
+
+NrSpectrumPhy::State
+NrSpectrumPhy::GetState() const
+{
+    return m_state;
+}
+
+Ptr<UniformRandomVariable>
+NrSpectrumPhy::GetErrorModelRv() const
+{
+    return m_random;
+}
+
+Ptr<NrPhy>
+NrSpectrumPhy::GetNrPhy() const
+{
+    return m_phy;
+}
+
+Time
+NrSpectrumPhy::GetFirstRxStart() const
+{
+    return m_firstRxStart;
+}
+
+void
+NrSpectrumPhy::SetFirstRxStart(Time startTime)
+{
+    m_firstRxStart = startTime;
+}
+
+Time
+NrSpectrumPhy::GetFirstRxDuration() const
+{
+    return m_firstRxDuration;
+}
+
+void
+NrSpectrumPhy::SetFirstRxDuration(Time duration)
+{
+    m_firstRxDuration = duration;
+}
+
+void
+NrSpectrumPhy::IncrementActiveTransmissions()
+{
+    m_activeTransmissions++;
+}
+
+void
+NrSpectrumPhy::NotifyRxDataTrace(const SfnSf& sfn,
+                                 Ptr<const SpectrumValue> spectrumValue,
+                                 const Time& duration,
+                                 uint16_t bwpId,
+                                 uint16_t cellId) const
+{
+    m_rxDataTrace(sfn, spectrumValue, duration, bwpId, cellId);
+}
+
+void
+NrSpectrumPhy::NotifyTxCtrlTrace(Time duration) const
+{
+    m_txCtrlTrace(duration);
+}
+
+void
+NrSpectrumPhy::NotifyTxDataTrace(Time duration) const
+{
+    m_txDataTrace(duration);
 }
 
 // set callbacks
@@ -245,6 +315,7 @@ NrSpectrumPhy::SetPhyUlHarqFeedbackCallback(const NrPhyUlHarqFeedbackCallback& c
 void
 NrSpectrumPhy::SetDevice(Ptr<NetDevice> d)
 {
+    NS_LOG_FUNCTION(this << d);
     m_device = d;
     // It would be appropriate that the creation of interference for SRS is in the constructor.
     // But, in the constructor since the device is yet not configured we don't know if we
@@ -281,6 +352,7 @@ NrSpectrumPhy::GetDevice() const
 void
 NrSpectrumPhy::SetMobility(Ptr<MobilityModel> m)
 {
+    NS_LOG_FUNCTION(this << m);
     m_mobility = m;
 }
 
@@ -293,7 +365,14 @@ NrSpectrumPhy::GetMobility() const
 void
 NrSpectrumPhy::SetChannel(Ptr<SpectrumChannel> c)
 {
+    NS_LOG_FUNCTION(this << c);
     m_channel = c;
+}
+
+Ptr<SpectrumChannel>
+NrSpectrumPhy::GetChannel() const
+{
+    return m_channel;
 }
 
 Ptr<const SpectrumModel>
@@ -305,7 +384,6 @@ NrSpectrumPhy::GetRxSpectrumModel() const
 Ptr<Object>
 NrSpectrumPhy::GetAntenna() const
 {
-    NS_LOG_FUNCTION(this);
     return m_antenna;
 }
 
@@ -314,6 +392,7 @@ NrSpectrumPhy::GetAntenna() const
 void
 NrSpectrumPhy::SetBeamManager(Ptr<BeamManager> b)
 {
+    NS_LOG_FUNCTION(this << b);
     m_beamManager = b;
 }
 
@@ -339,18 +418,21 @@ NrSpectrumPhy::GetErrorModel() const
 void
 NrSpectrumPhy::EnableDlDataPathlossTrace()
 {
+    NS_LOG_FUNCTION(this);
     m_enableDlDataPathlossTrace = true;
 }
 
 void
 NrSpectrumPhy::EnableDlCtrlPathlossTrace()
 {
+    NS_LOG_FUNCTION(this);
     m_enableDlCtrlPathlossTrace = true;
 }
 
 void
 NrSpectrumPhy::SetRnti(uint16_t rnti)
 {
+    NS_LOG_FUNCTION(this << rnti);
     m_rnti = rnti;
     m_hasRnti = true;
 }
@@ -386,12 +468,14 @@ NrSpectrumPhy::SetUnlicensedMode(bool unlicensedMode)
 void
 NrSpectrumPhy::SetDataErrorModelEnabled(bool dataErrorModelEnabled)
 {
+    NS_LOG_FUNCTION(this << dataErrorModelEnabled);
     m_dataErrorModelEnabled = dataErrorModelEnabled;
 }
 
 void
 NrSpectrumPhy::SetErrorModelType(TypeId errorModelType)
 {
+    NS_LOG_FUNCTION(this << errorModelType.GetName());
     m_errorModelType = errorModelType;
 }
 
@@ -419,6 +503,7 @@ NrSpectrumPhy::SetNoisePowerSpectralDensity(const Ptr<const SpectrumValue>& nois
 void
 NrSpectrumPhy::SetTxPowerSpectralDensity(const Ptr<SpectrumValue>& TxPsd)
 {
+    NS_LOG_FUNCTION(this << TxPsd);
     m_txPsd = TxPsd;
 }
 
@@ -732,6 +817,7 @@ void
 NrSpectrumPhy::StartTxDlControlFrames(const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
                                       const Time& duration)
 {
+    NS_LOG_FUNCTION(this << duration.As(Time::S));
     NS_LOG_LOGIC(this << " state: " << m_state);
 
     switch (m_state)
@@ -832,6 +918,7 @@ void
 NrSpectrumPhy::StartTxUlControlFrames(const std::list<Ptr<NrControlMessage>>& ctrlMsgList,
                                       const Time& duration)
 {
+    NS_LOG_FUNCTION(this << duration.As(Time::S));
     NS_LOG_LOGIC(this << " state: " << m_state);
 
     switch (m_state)
@@ -880,7 +967,7 @@ NrSpectrumPhy::StartTxUlControlFrames(const std::list<Ptr<NrControlMessage>>& ct
 void
 NrSpectrumPhy::AddDataPowerChunkProcessor(const Ptr<NrChunkProcessor>& p)
 {
-    NS_LOG_FUNCTION(this);
+    NS_LOG_FUNCTION(this << p);
     m_interferenceData->AddRsPowerChunkProcessor(p);
 }
 
@@ -1551,6 +1638,7 @@ NrSpectrumPhy::SendDlHarqFeedback(uint16_t rnti, TransportBlockInfo& tbInfo)
 void
 NrSpectrumPhy::ProcessReceivedPacketBurst()
 {
+    NS_LOG_FUNCTION(this);
     Ptr<NrGnbNetDevice> gnbRx = DynamicCast<NrGnbNetDevice>(GetDevice());
     Ptr<NrUeNetDevice> ueRx = DynamicCast<NrUeNetDevice>(GetDevice());
     std::map<uint16_t, DlHarqInfo> harqDlInfoMap;
