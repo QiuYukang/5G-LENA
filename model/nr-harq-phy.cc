@@ -68,8 +68,6 @@ NrHarqPhy::ResetUlHarqProcessStatus(uint16_t rnti, uint8_t id)
 NrHarqPhy::HistoryMap::iterator
 NrHarqPhy::GetHistoryMapOf(NrHarqPhy::HistoryMap* map, uint16_t rnti) const
 {
-    NS_LOG_FUNCTION(this);
-
     NrHarqPhy::HistoryMap::iterator it = map->find(rnti);
     if (it == map->end())
     {
@@ -85,8 +83,6 @@ NrHarqPhy::GetHistoryMapOf(NrHarqPhy::HistoryMap* map, uint16_t rnti) const
 NrHarqPhy::ProcIdHistoryMap::iterator
 NrHarqPhy::GetProcIdHistoryMapOf(NrHarqPhy::ProcIdHistoryMap* map, uint16_t procId) const
 {
-    NS_LOG_FUNCTION(this);
-
     NrHarqPhy::ProcIdHistoryMap::iterator it = map->find(procId);
     if (it == map->end())
     {
@@ -131,8 +127,6 @@ NrHarqPhy::UpdateHarqProcessStatus(NrHarqPhy::HistoryMap* map,
 const NrErrorModel::NrErrorModelHistory&
 NrHarqPhy::GetHarqProcessInfo(NrHarqPhy::HistoryMap* map, uint16_t rnti, uint8_t harqProcId) const
 {
-    NS_LOG_FUNCTION(this);
-
     NrHarqPhy::HistoryMap::iterator historyMap = GetHistoryMapOf(map, rnti);
 
     ProcIdHistoryMap* procIdMap = &(historyMap->second);
