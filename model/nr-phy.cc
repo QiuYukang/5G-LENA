@@ -215,6 +215,16 @@ NrPhy::DoDispose()
 }
 
 void
+NrPhy::DoInitialize()
+{
+    NS_LOG_FUNCTION(this);
+    if (m_spectrumPhy)
+    {
+        m_spectrumPhy->Initialize();
+    }
+}
+
+void
 NrPhy::SetDevice(Ptr<NrNetDevice> d)
 {
     NS_LOG_FUNCTION(this);

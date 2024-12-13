@@ -403,6 +403,10 @@ class NrPhy : public Object
      */
     void DoDispose() override;
     /**
+     * \brief DoInitialize method inherited from Object
+     */
+    void DoInitialize() override;
+    /**
      * \brief Update the number of RB. Usually called after bandwidth changes
      */
     void DoUpdateRbNum();
