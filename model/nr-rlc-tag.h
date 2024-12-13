@@ -63,8 +63,27 @@ class NrRlcTag : public Tag
         this->m_senderTimestamp = senderTimestamp;
     }
 
+    /**
+     * Get the RNTI of the transmitting UE
+     * @return the RNTI of the transmitting UE
+     */
+    uint16_t GetTxRnti() const
+    {
+        return m_txRnti;
+    }
+
+    /**
+     * Set the RNTI of the transmitting UE
+     * @param rnti the RNTI of the transmitting UE
+     */
+    void SetTxRnti(uint16_t rnti)
+    {
+        this->m_txRnti = rnti;
+    }
+
   private:
-    Time m_senderTimestamp; ///< sender timestamp
+    Time m_senderTimestamp;                                  ///< sender timestamp
+    uint16_t m_txRnti{std::numeric_limits<uint16_t>::max()}; ///< rnti of transmitting UE
 };
 
 } // namespace ns3
