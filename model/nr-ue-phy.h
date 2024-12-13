@@ -304,32 +304,26 @@ class NrUePhy : public NrPhy
     /**
      *  TracedCallback signature for Ue Phy Received Control Messages.
      *
-     * \param [in] frame Frame number.
-     * \param [in] subframe Subframe number.
-     * \param [in] slot number.
-     * \param [in] VarTti
+     * \param [in] sfnSf Frame, subframe, slot number, numerology object
      * \param [in] nodeId
      * \param [in] rnti
      * \param [in] bwpId
-     * \param [in] pointer to msg to get the msg type
+     * \param [in] ptr pointer to msg to get the msg type
      */
     typedef void (*RxedUePhyCtrlMsgsTracedCallback)(const SfnSf sfnSf,
                                                     const uint16_t nodeId,
                                                     const uint16_t rnti,
                                                     const uint8_t bwpId,
-                                                    Ptr<NrControlMessage>);
+                                                    Ptr<NrControlMessage> ptr);
 
     /**
      *  TracedCallback signature for Ue Phy Transmitted Control Messages.
      *
-     * \param [in] frame Frame number.
-     * \param [in] subframe Subframe number.
-     * \param [in] slot number.
-     * \param [in] VarTti
+     * \param [in] sfnSf Frame, subframe, slot number, numerology object
      * \param [in] nodeId
      * \param [in] rnti
      * \param [in] bwpId
-     * \param [in] pointer to msg to get the msg type
+     * \param [in] ptr pointer to msg to get the msg type
      */
     typedef void (*TxedUePhyCtrlMsgsTracedCallback)(const SfnSf sfnSf,
                                                     const uint16_t nodeId,
@@ -559,6 +553,49 @@ class NrUePhy : public NrPhy
      */
     uint32_t GetNumRbPerRbg() const override;
 
+    /**
+     * \brief Set current SfnSf
+     * \param currentSfnSf the current SfnSf
+     */
+    void SetCurrentSfnSf(const SfnSf& currentSfnSf);
+
+    /**
+     * \brief Set last slot start
+     * \param startTime the last slot start time
+     */
+    void SetLastSlotStart(Time startTime);
+
+    /**
+     * \brief Get Time of last slot start
+     * \return the time of last slot start
+     */
+    Time GetLastSlotStart() const;
+
+    /**
+     * \brief Get pointer to PhySapUser
+     * \return Pointer to PhySapUser
+     */
+    NrUePhySapUser* GetPhySapUser() const;
+
+    /**
+     * \brief Set the Tx power spectral density based on the RB index vector
+     * \param mask vector of the index of the RB (in SpectrumValue array)
+     * in which there is a transmission
+     * \param numSym number of symbols of the transmission
+     */
+    void SetSubChannelsForTransmission(const std::vector<int>& mask, uint32_t numSym);
+
+    /**
+     * \brief Finish the StartSlot processing
+     *
+     * Update the current slot object, insert DL/UL CTRL allocations
+     * depending on the TDD pattern, and schedule the next StartVarTti
+     *
+     * \param s the slot number
+     * \param nrAllocationExists whether an NR allocation exists for the slot
+     */
+    void FinishSlotProcessing(const SfnSf& s, bool nrAllocationExists);
+
   private:
     /**
      * \brief Layer-1 filtering of RSRP measurements and reporting to the RRC entity.
@@ -659,7 +696,7 @@ class NrUePhy : public NrPhy
      * \brief Start the slot processing
      * \param s the slot number
      */
-    void StartSlot(const SfnSf& s);
+    virtual void StartSlot(const SfnSf& s);
 
     /**
      * \brief Start the processing of a variable TTI
@@ -692,13 +729,6 @@ class NrUePhy : public NrPhy
      */
     void EndVarTti(const std::shared_ptr<DciInfoElementTdma>& dci);
 
-    /**
-     * \brief Set the Tx power spectral density based on the RB index vector
-     * \param mask vector of the index of the RB (in SpectrumValue array)
-     * in which there is a transmission
-     * \param numSym number of symbols of the transmission
-     */
-    void SetSubChannelsForTransmission(const std::vector<int>& mask, uint32_t numSym);
     /**
      * \brief Send ctrl msgs considering L1L2CtrlLatency
      * \param msg The ctrl msg to be sent
@@ -747,7 +777,7 @@ class NrUePhy : public NrPhy
     void SendCtrlChannels(Time duration);
 
     // SAP methods
-    void DoReset();
+    virtual void DoReset();
     void DoStartCellSearch(uint16_t dlEarfcn);
     void DoSynchronizeWithGnb(uint16_t cellId);
     void DoSynchronizeWithGnb(uint16_t cellId, uint16_t dlEarfcn);

@@ -468,6 +468,30 @@ NrUePhy::GetNumRbPerRbg() const
     return m_numRbPerRbg;
 }
 
+void
+NrUePhy::SetCurrentSfnSf(const SfnSf& currentSfnSf)
+{
+    m_currentSlot = currentSfnSf;
+}
+
+void
+NrUePhy::SetLastSlotStart(Time startTime)
+{
+    m_lastSlotStart = startTime;
+}
+
+Time
+NrUePhy::GetLastSlotStart() const
+{
+    return m_lastSlotStart;
+}
+
+NrUePhySapUser*
+NrUePhy::GetPhySapUser() const
+{
+    return m_phySapUser;
+}
+
 double
 NrUePhy::ComputeAvgSinr(const SpectrumValue& sinr)
 {
@@ -743,7 +767,7 @@ NrUePhy::TryToPerformLbt()
     }
     else
     {
-        NS_LOG_INFO("Not scheduling LBT; the UE has no UL CTRL symbols available");
+        NS_LOG_DEBUG("Not scheduling LBT; the UE has no UL CTRL symbols available");
     }
 }
 
@@ -819,7 +843,15 @@ NrUePhy::StartSlot(const SfnSf& s)
 
     // update the current slot object, and insert DL/UL CTRL allocations depending on the TDD
     // pattern
-    if (SlotAllocInfoExists(m_currentSlot))
+    bool nrAllocationExists = SlotAllocInfoExists(m_currentSlot);
+    FinishSlotProcessing(s, nrAllocationExists);
+}
+
+void
+NrUePhy::FinishSlotProcessing(const SfnSf& s, bool nrAllocationExists)
+{
+    NS_LOG_FUNCTION(this << s);
+    if (nrAllocationExists)
     {
         m_currSlotAllocInfo = RetrieveSlotAllocInfo(m_currentSlot);
     }
@@ -829,7 +861,6 @@ NrUePhy::StartSlot(const SfnSf& s)
     }
 
     PushCtrlAllocations(m_currentSlot);
-
     NS_ASSERT(m_currSlotAllocInfo.m_sfnSf == m_currentSlot);
 
     NS_LOG_DEBUG("UE " << m_rnti << " start slot " << m_currSlotAllocInfo.m_sfnSf
