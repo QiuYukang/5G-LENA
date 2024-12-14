@@ -195,6 +195,30 @@ class NrUeMac : public Object
     uint8_t GetNumHarqProcess() const;
 
     /**
+     * \brief Get the bwp id of this MAC
+     * \return the bwp id
+     */
+    uint16_t GetBwpId() const;
+
+    /**
+     * \brief Get the cell id of this MAC
+     * \return the cell id
+     */
+    uint16_t GetCellId() const;
+
+    /**
+     * \brief Get the RNTI
+     * \return the RNTI
+     */
+    uint16_t GetRnti() const;
+
+    /**
+     * \brief Get the IMSI
+     * \return the IMSI
+     */
+    uint64_t GetImsi() const;
+
+    /**
      * \brief Assign a fixed random variable stream number to the random variables
      * used by this model. Returns the number of streams (possibly zero) that
      * have been assigned.
@@ -209,17 +233,23 @@ class NrUeMac : public Object
      * \brief DoDispose method inherited from Object
      */
     void DoDispose() override;
-    /**
-     * \brief Get the bwp id of this MAC
-     * \return the bwp id
-     */
-    uint16_t GetBwpId() const;
 
     /**
-     * \brief Get the cell id of this MAC
-     * \return the cell id
+     * \brief Set the frame/subframe/slot counter
+     * \param sfn the SfnSf
      */
-    uint16_t GetCellId() const;
+    void SetCurrentSlot(const SfnSf& sfn);
+
+    /**
+     * Assign a fixed random variable stream number to the random variables used by this model.
+     *
+     * Subclasses that override this method are expected to chain up to
+     * their parent's implementation and then set their own streams
+     *
+     * \param stream first stream index to use
+     * \return the number of stream indices assigned by this model
+     */
+    virtual int64_t DoAssignStreams(int64_t stream);
 
   private:
     /**
@@ -235,7 +265,7 @@ class NrUeMac : public Object
      * \brief Do some work, we begin a new slot
      * \param sfn the new slot
      */
-    void DoSlotIndication(const SfnSf& sfn);
+    virtual void DoSlotIndication(const SfnSf& sfn);
 
     /**
      * \brief Get the total size of the RLC buffers.
@@ -443,8 +473,8 @@ class NrUeMac : public Object
         NrMacSapUser* macSapUser;
     };
 
-    std::unordered_map<uint8_t, LcInfo> m_lcInfoMap;
-    uint16_t m_rnti{0};
+    std::unordered_map<uint8_t, LcInfo> m_lcInfoMap;       //!< Map of logical channel ID to LcInfo
+    uint16_t m_rnti{std::numeric_limits<uint16_t>::max()}; //!< RNTI assigned by the RRC
 
     bool m_waitingForRaResponse{true}; //!< Indicates if we are waiting for a RA response
     static uint8_t g_raPreambleId;     //!< Preamble ID, fixed, the UEs will not have any collision

@@ -303,6 +303,24 @@ NrUeMac::GetCellId() const
     }
 }
 
+uint16_t
+NrUeMac::GetRnti() const
+{
+    return m_rnti;
+}
+
+uint64_t
+NrUeMac::GetImsi() const
+{
+    return m_imsi;
+}
+
+void
+NrUeMac::SetCurrentSlot(const SfnSf& sfn)
+{
+    m_currentSlot = sfn;
+}
+
 uint32_t
 NrUeMac::GetTotalBufSize() const
 {
@@ -1266,6 +1284,12 @@ NrUeMac::DoReset()
 
 int64_t
 NrUeMac::AssignStreams(int64_t stream)
+{
+    return DoAssignStreams(stream);
+}
+
+int64_t
+NrUeMac::DoAssignStreams(int64_t stream)
 {
     NS_LOG_FUNCTION(this << stream);
     m_raPreambleUniformVariable->SetStream(stream);
