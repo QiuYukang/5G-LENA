@@ -131,7 +131,7 @@ class NrInitialAssociation : public Object
     /// @param numIntfs Number of interferer in the interfering set
     /// @param useRelRsrp If true use relative RSRP to form interfering set
     /// @param relRsrpThreshold Threshold of the ratio RSRP of the remaining interferers to main
-    /// interferers, i.e., intereferer whose energy sum is below the threshold are not main
+    /// interferers, i.e., interferer whose power sum is below the threshold are not main
     /// interferers
     void InitializeIntfSet(uint16_t numIntfs, bool useRelRsrp, double relRsrpThreshold);
 
@@ -226,8 +226,8 @@ class NrInitialAssociation : public Object
 
     /// @brief Compute sum of received power of UE antenna ports
     /// @param spectrumSigParam spectral signal parameters
-    /// @return Sum of power in Watts at UE antennas ports
-    double ComputeRxEnergy(Ptr<const SpectrumSignalParameters> spectrumSigParam) const;
+    /// @return Sum of power in Watts/Hz at UE antennas ports
+    double ComputeRxPsd(Ptr<const SpectrumSignalParameters> spectrumSigParam) const;
 
     /// @brief Generate beamforming vector of a given angle pair
     /// @param angRow Angle of beam direction in degrees for the row vector

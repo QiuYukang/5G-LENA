@@ -272,28 +272,28 @@ NrInitialAssociation::GenBeamforming(double angRow,
 }
 
 double
-NrInitialAssociation::ComputeRxEnergy(Ptr<const SpectrumSignalParameters> spectrumSigParam) const
+NrInitialAssociation::ComputeRxPsd(Ptr<const SpectrumSignalParameters> spectrumSigParam) const
 {
     auto& spectrumChannelMatrix = spectrumSigParam->spectrumChannelMatrix;
     auto numUePorts = spectrumChannelMatrix->GetNumRows();
-    auto energyTotal{0.0};
+    double totalPsd = 0;
     for (size_t iRb = m_startSsb; iRb < m_startSsb + m_numBandsSsb; iRb++)
     {
-        auto energyPerRb{0.0};
+        auto psdPerRb{0.0};
         // Compute the PSD from the MIMO channel matrix.
         for (size_t idxAnt = 0; idxAnt < numUePorts; idxAnt++)
         {
-            energyPerRb += norm(spectrumChannelMatrix->Elem(idxAnt, 0, iRb));
+            psdPerRb += norm(spectrumChannelMatrix->Elem(idxAnt, 0, iRb));
         }
-        energyTotal += energyPerRb;
+        totalPsd += psdPerRb;
     }
-    return energyTotal;
+    return totalPsd;
 }
 
 double
 NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearchParams& lsps)
 {
-    double maxEng = 0;
+    double maxPsd = 0;
     auto& chParams = lsps.chParams;
     auto& mobility = lsps.mobility;
     auto& antennas = lsps.antennaArrays;
@@ -329,10 +329,10 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
                                                                          mobility.ueMobility,
                                                                          antennas.gnbArrayModel,
                                                                          antennas.ueArrayModel);
-            auto eng = ComputeRxEnergy(rxParam);
-            if (eng > maxEng)
+            auto eng = ComputeRxPsd(rxParam);
+            if (eng > maxPsd)
             {
-                maxEng = eng;
+                maxPsd = eng;
                 bfAngles = {m_rowBeamAngles[j], m_colBeamAngles[i]};
             }
         }
@@ -340,7 +340,7 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
     auto attenuation =
         chParams.pathLossModel->CalcRxPower(0, mobility.gnbMobility, mobility.ueMobility);
     m_bestBfVectors.push_back(bfAngles);
-    return pow(10.0, attenuation / 10.0) * maxEng;
+    return pow(10.0, attenuation / 10.0) * maxPsd;
 }
 
 double
@@ -385,7 +385,7 @@ NrInitialAssociation::InitializeIntfSet(uint16_t numIntf, bool useRelRsrp, doubl
     auto cumSumIntf = GetInterference(idxVal);
     auto totalInterference = GetTotalInterference(cumSumIntf);
     NS_ASSERT_MSG(totalInterference > 0,
-                  "Initial detected energy of interferer should be greater than 0");
+                  "Initial detected power of interferer should be greater than 0");
 
     m_numIntfGnbs = useRelRsrp
                         ? GetNumIntfGnbsByRelRsrp(cumSumIntf, relRsrpThreshold, totalInterference)
@@ -412,10 +412,10 @@ NrInitialAssociation::GetTotalInterference(const std::vector<double>& cumSumIntf
     auto totalInterference =
         cumSumIntf[m_maxRsrps.size() - 1] -
         std::pow(10.0,
-                 m_rsrpAsscGnb /
-                     10.0); // subtract the energy of the associated gNB to get overall
-                            // interference. Note that because hand off margin, the associated gNB
-                            // may not be the one with highest received energy
+                 m_rsrpAsscGnb / 10.0); // subtract the power of the associated gNB to get
+                                        // overall interference. Note that because hand off
+                                        // margin, the associated gNB may not be the one with
+                                        // highest received power
     return totalInterference;
 }
 
@@ -427,8 +427,8 @@ NrInitialAssociation::GetNumIntfGnbsByRelRsrp(const std::vector<double> cumSumIn
     auto numIntfGnbs = m_maxRsrps.size() - 1;
     for (size_t i = 0; i < m_maxRsrps.size(); ++i)
     {
-        // This line is equivalent to  cumSumIntf[i] < relEng * Main Interference. Note that
-        // main interference is totalInterference - cumSumIntf[i]
+        // This line is equivalent to  cumSumIntf[i] < relPsd * Main Interference.
+        // Note that main interference is totalInterference - cumSumIntf[i]
         if ((1 + relRsrpThreshold) * cumSumIntf[i] > relRsrpThreshold * totalInterference)
         {
             numIntfGnbs -= i; // -1 for the associated gNB
