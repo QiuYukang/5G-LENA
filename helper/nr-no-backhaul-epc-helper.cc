@@ -286,12 +286,6 @@ NrNoBackhaulEpcHelper::GetTypeId()
     return tid;
 }
 
-TypeId
-NrNoBackhaulEpcHelper::GetInstanceTypeId() const
-{
-    return GetTypeId();
-}
-
 void
 NrNoBackhaulEpcHelper::DoDispose()
 {

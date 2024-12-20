@@ -75,12 +75,6 @@ NrAmc::GetTypeId()
     return tid;
 }
 
-TypeId
-NrAmc::GetInstanceTypeId() const
-{
-    return NrAmc::GetTypeId();
-}
-
 uint8_t
 NrAmc::GetMcsFromCqi(uint8_t cqi) const
 {

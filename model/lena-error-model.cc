@@ -89,10 +89,4 @@ LenaErrorModel::GetTypeId()
     return tid;
 }
 
-TypeId
-LenaErrorModel::GetInstanceTypeId() const
-{
-    return LenaErrorModel::GetTypeId();
-}
-
 } // namespace ns3

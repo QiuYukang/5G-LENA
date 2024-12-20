@@ -917,12 +917,6 @@ NrLteMiErrorModel::GetTypeId()
     return tid;
 }
 
-TypeId
-NrLteMiErrorModel::GetInstanceTypeId() const
-{
-    return NrLteMiErrorModel::GetTypeId();
-}
-
 double
 NrLteMiErrorModel::Mib(const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs)
 {

@@ -70,12 +70,6 @@ class NrFhControl : public Object
     static TypeId GetTypeId();
 
     /**
-     * \brief GetInstanceTypeId
-     * \return the instance typeid
-     */
-    // TypeId GetInstanceTypeId() const override;
-
-    /**
      * \brief Set the Fh control - PHY SAP User
      *        PHY is per bwp as such we store in a map the bwpId
      *        and the corresponding NrFhPhySapUser ptr.

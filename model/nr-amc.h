@@ -43,12 +43,6 @@ class NrAmc : public Object
     static TypeId GetTypeId();
 
     /**
-     * \brief GetInstanceTypeId
-     * \return the instance typeid
-     */
-    TypeId GetInstanceTypeId() const override;
-
-    /**
      * \brief NrAmc constructor
      */
     NrAmc();

@@ -80,12 +80,6 @@ NrPointToPointEpcHelper::GetTypeId()
     return tid;
 }
 
-TypeId
-NrPointToPointEpcHelper::GetInstanceTypeId() const
-{
-    return GetTypeId();
-}
-
 void
 NrPointToPointEpcHelper::DoDispose()
 {

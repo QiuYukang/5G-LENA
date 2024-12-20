@@ -43,12 +43,6 @@ class NrMacSchedulerLcAlgorithm : public Object
     static TypeId GetTypeId();
 
     /**
-     * \brief Get the type ID of this instance
-     * \return the Type ID of this instance
-     */
-    TypeId GetInstanceTypeId() const override;
-
-    /**
      * \brief NrMacSchedulerLcAlgorithm constructor
      */
     NrMacSchedulerLcAlgorithm();

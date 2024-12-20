@@ -29,10 +29,4 @@ NrMacSchedulerLcAlgorithm::GetTypeId()
     return tid;
 }
 
-TypeId
-NrMacSchedulerLcAlgorithm::GetInstanceTypeId() const
-{
-    return NrMacSchedulerLcAlgorithm::GetTypeId();
-}
-
 } // namespace ns3

@@ -29,12 +29,6 @@ NrErrorModel::GetTypeId()
     return tid;
 }
 
-TypeId
-NrErrorModel::GetInstanceTypeId() const
-{
-    return NrErrorModel::GetTypeId();
-}
-
 Ptr<NrErrorModelOutput>
 NrErrorModel::GetTbDecodificationStatsMimo(const std::vector<MimoSinrChunk>& sinrChunks,
                                            const std::vector<int>& map,

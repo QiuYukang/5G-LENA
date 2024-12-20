@@ -85,12 +85,6 @@ class NrEesmErrorModel : public NrErrorModel
     static TypeId GetTypeId();
 
     /**
-     * \brief Get the type ID of this instance
-     * \return the Type ID of this instance
-     */
-    TypeId GetInstanceTypeId() const override;
-
-    /**
      * \brief NrEesmErrorModel constructor
      */
     NrEesmErrorModel();

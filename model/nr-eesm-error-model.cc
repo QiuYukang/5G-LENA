@@ -48,12 +48,6 @@ NrEesmErrorModel::GetTypeId()
     return tid;
 }
 
-TypeId
-NrEesmErrorModel::GetInstanceTypeId() const
-{
-    return NrEesmErrorModel::GetTypeId();
-}
-
 double
 NrEesmErrorModel::SinrEff(const SpectrumValue& sinr,
                           const std::vector<int>& map,

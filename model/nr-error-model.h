@@ -51,8 +51,7 @@ struct NrErrorModelOutput : public SimpleRefCount<NrErrorModelOutput>
  * \brief Interface for calculating the error probability for a transport block
  *
  * Any error model that wishes to work in Spectrum or in AMC should use
- * this class as a base class. Please implement The GetInstanceTypeId method
- * in your subclasses.
+ * this class as a base class.
  *
  * \section nr_error_model_conf Configuration
  *
@@ -77,12 +76,6 @@ class NrErrorModel : public Object
      * \return the TypeId of the class
      */
     static TypeId GetTypeId();
-
-    /**
-     * \brief Get the type ID of this instance
-     * \return the Type ID of this instance
-     */
-    TypeId GetInstanceTypeId() const override;
 
     /**
      * \brief NrErrorModel default constructor

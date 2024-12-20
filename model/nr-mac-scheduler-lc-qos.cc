@@ -36,12 +36,6 @@ NrMacSchedulerLcQos::GetTypeId()
     return tid;
 }
 
-TypeId
-NrMacSchedulerLcQos::GetInstanceTypeId() const
-{
-    return NrMacSchedulerLcQos::GetTypeId();
-}
-
 std::vector<NrMacSchedulerLcAlgorithm::Assignation>
 NrMacSchedulerLcQos::AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                        uint32_t tbs,
