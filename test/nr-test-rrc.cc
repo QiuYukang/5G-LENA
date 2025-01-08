@@ -292,6 +292,7 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
 
     // normal code
     m_nrHelper = CreateObject<NrHelper>();
+    m_nrHelper->SetAttribute("CsiFeedbackFlags", UintegerValue(CsiFeedbackFlag::CQI_PDSCH_SISO));
     m_nrHelper->SetAttribute("UseIdealRrc", BooleanValue(m_useIdealRrc));
     auto bandwidthAndBWPPair =
         m_nrHelper->CreateBandwidthParts({{2.8e9, 10e6, static_cast<uint8_t>(m_isFdd ? 2 : 1)}},
@@ -686,6 +687,7 @@ NrRrcConnectionEstablishmentErrorTestCase::DoRun()
 
     // normal code
     m_nrHelper = CreateObject<NrHelper>();
+    m_nrHelper->SetAttribute("CsiFeedbackFlags", UintegerValue(CsiFeedbackFlag::CQI_PDSCH_SISO));
     m_nrHelper->SetAttribute("UseIdealRrc", BooleanValue(m_useIdealRrc));
 
     auto bandwidthAndBWPPair =
