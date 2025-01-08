@@ -43,7 +43,7 @@ variables:
     - ccache -z
     - ./ns3 build
     - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
-        ./test.py --no-build --verbose-failed;
+        ./test.py --no-build --verbose-failed -f TAKES_FOREVER;
       fi
     - ccache -s
     - ./ns3 clean
