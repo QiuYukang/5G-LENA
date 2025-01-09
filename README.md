@@ -154,7 +154,7 @@ For managing Python packages in a virtual environment, install `./model/ns3gym` 
 python3 -m venv ./myenv
 source ./myenv/bin/activate
 pip install ns3-gym/model/ns3gym
-``
+```
 
 To run `test-ppo.py`, install the following additional Python packages:
 
