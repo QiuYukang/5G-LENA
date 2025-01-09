@@ -98,7 +98,7 @@ main(int argc, char* argv[])
                  "for all sectors)",
                  params.freqScenario);
     cmd.AddValue("downtiltAngle",
-                 "Base station antenna down tilt angle (deg)",
+                 "Base station antenna downtilt angle (deg)",
                  params.downtiltAngle);
     cmd.AddValue("enableUlPc", "Whether to enable or disable UL power control", params.enableUlPc);
     cmd.AddValue("powerAllocation",

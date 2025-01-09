@@ -2413,7 +2413,7 @@ the numerology, the traffic direction (DL or UL), operation mode (TDD or FDD),
 the TDD pattern,  the error model type, calibration, traffic scenario, scheduler
 (proportional fair, round robin, etc,), enable/disable uplink power control,
 configure power allocation mode for NR LTE ( uniform per RB used or uniform per bandwidth),
-base station antenna down tilt angle (deg).
+base station antenna downtilt angle (deg).
 Parameter ``calibration`` can be used to configure the simulation
 in such a way that it is possible to compare LENA and 5GLENA simulators.
 

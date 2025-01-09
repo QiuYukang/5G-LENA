@@ -926,7 +926,7 @@ operator<<(std::ostream& os, const Parameters& parameters)
         MSG("Number of outer rings") << p.numOuterRings;
     }
     MSG("Number of UEs per sector") << p.ueNumPergNb;
-    MSG("Antenna down tilt angle (deg)") << p.downtiltAngle;
+    MSG("Antenna downtilt angle (deg)") << p.downtiltAngle;
 
     MSG("");
     MSG("Network loading") << p.trafficScenario;
