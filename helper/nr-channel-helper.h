@@ -193,7 +193,7 @@ class NrChannelHelper : public Object
 
     /**
      * \brief Retrieve a string version of the scenario
-     * \return the string-fied version of the scenario
+     * \return the string version of the scenario
      */
     std::string GetScenario() const;
 
