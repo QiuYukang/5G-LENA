@@ -74,7 +74,7 @@ NrRlcUm::GetTypeId()
             .AddAttribute("OutOfOfOrderDelivery",
                           "Whether to deliver RLC SDUs out of order without waiting for a "
                           "reordering timer to expire",
-                          BooleanValue(true),
+                          BooleanValue(false),
                           MakeBooleanAccessor(&NrRlcUm::m_outOfOrderDelivery),
                           MakeBooleanChecker());
     return tid;
