@@ -6,6 +6,7 @@
 
 #include "ns3/constant-velocity-mobility-model.h"
 #include "ns3/double.h"
+#include "ns3/hexagonal-wraparound-model.h"
 #include "ns3/mobility-helper.h"
 
 #include <cmath>
@@ -373,6 +374,18 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter(const Vector& sitePos, uint1
 }
 
 void
+HexagonalGridScenarioHelper::EnableWraparound()
+{
+    m_wraparound = true;
+}
+
+void
+HexagonalGridScenarioHelper::DisableWraparound()
+{
+    m_wraparound = false;
+}
+
+void
 HexagonalGridScenarioHelper::CreateScenario()
 {
     m_hexagonalRadius = m_isd / 3;
@@ -394,6 +407,12 @@ HexagonalGridScenarioHelper::CreateScenario()
     Ptr<ListPositionAllocator> sitePosVector = CreateObject<ListPositionAllocator>();
     Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator>();
 
+    Ptr<HexagonalWraparoundModel> wraparound = nullptr;
+    if (m_wraparound)
+    {
+        wraparound = CreateObject<HexagonalWraparoundModel>(m_isd, GetNumSites());
+    }
+
     // BS position
     for (std::size_t cellId = 0; cellId < m_numBs; cellId++)
     {
@@ -408,6 +427,10 @@ HexagonalGridScenarioHelper::CreateScenario()
         if (GetSectorIndex(cellId) == 0)
         {
             sitePosVector->Add(sitePos);
+            if (wraparound)
+            {
+                wraparound->AddSitePosition(sitePos);
+            }
         }
 
         // FIXME: Until sites can have more than one antenna array, it is necessary to apply some
@@ -462,7 +485,17 @@ HexagonalGridScenarioHelper::CreateScenario()
 
     mobility.SetPositionAllocator(utPosVector);
     mobility.Install(m_ut);
-
+    if (wraparound)
+    {
+        for (std::size_t i = 0; i < m_bs.GetN(); i++)
+        {
+            m_bs.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
+        }
+        for (std::size_t i = 0; i < m_ut.GetN(); i++)
+        {
+            m_ut.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
+        }
+    }
     PlotHexagonalDeployment(sitePosVector,
                             bsCenterVector,
                             utPosVector,
@@ -497,6 +530,12 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed, dou
     Ptr<ListPositionAllocator> sitePosVector = CreateObject<ListPositionAllocator>();
     Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator>();
 
+    Ptr<HexagonalWraparoundModel> wraparound = nullptr;
+    if (m_wraparound)
+    {
+        wraparound = CreateObject<HexagonalWraparoundModel>(m_isd, GetNumSites());
+    }
+
     // BS position
     for (std::size_t cellId = 0; cellId < m_numBs; cellId++)
     {
@@ -510,7 +549,12 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed, dou
 
         if (GetSectorIndex(cellId) == 0)
         {
+            // std::cout << GetSectorIndex(cellId) << std::endl;
             sitePosVector->Add(sitePos);
+            if (wraparound)
+            {
+                wraparound->AddSitePosition(sitePos);
+            }
         }
 
         // FIXME: Until sites can have more than one antenna array, it is necessary to apply some
@@ -627,7 +671,17 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed, dou
         mobility.SetPositionAllocator(utPosVector);
         mobility.Install(m_ut);
     }
-
+    if (wraparound)
+    {
+        for (std::size_t i = 0; i < m_bs.GetN(); i++)
+        {
+            m_bs.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
+        }
+        for (std::size_t i = 0; i < m_ut.GetN(); i++)
+        {
+            m_ut.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
+        }
+    }
     PlotHexagonalDeployment(sitePosVector,
                             bsCenterVector,
                             utPosVector,

@@ -5,6 +5,8 @@
 #include "beamforming-vector.h"
 
 #include "ns3/angles.h"
+#include "ns3/hexagonal-wraparound-model.h"
+#include "ns3/node.h"
 #include "ns3/uinteger.h"
 
 namespace ns3
@@ -117,6 +119,11 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
     // retrieve the position of the two devices
     Vector aPos = a->GetPosition();
     Vector bPos = b->GetPosition();
+    auto wraparoundModel = b->GetObject<Node>()->GetObject<HexagonalWraparoundModel>();
+    if (wraparoundModel)
+    {
+        bPos = wraparoundModel->GetRelativeVirtualPosition(aPos, bPos);
+    }
 
     // compute the azimuth and the elevation angles
     Angles completeAngle(bPos, aPos);

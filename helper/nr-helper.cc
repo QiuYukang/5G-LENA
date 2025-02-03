@@ -1091,12 +1091,19 @@ NrHelper::AttachToClosestGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceCont
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(gnbDevices.GetN() > 0, "empty gnb device container");
-    Vector uepos = ueDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
     double minDistance = std::numeric_limits<double>::infinity();
     Ptr<NetDevice> closestGnbDevice;
     for (NetDeviceContainer::Iterator i = gnbDevices.Begin(); i != gnbDevices.End(); ++i)
     {
         Vector gnbpos = (*i)->GetNode()->GetObject<MobilityModel>()->GetPosition();
+        Vector uepos = ueDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
+        auto wraparoundModel =
+            ueDevice->GetNode()->GetObject<MobilityModel>()->GetObject<HexagonalWraparoundModel>();
+        if (wraparoundModel)
+        {
+            uepos = wraparoundModel->GetRelativeVirtualPosition(gnbpos, uepos);
+        }
+
         double distance = CalculateDistance(uepos, gnbpos);
         if (distance < minDistance)
         {

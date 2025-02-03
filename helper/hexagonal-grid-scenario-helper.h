@@ -10,6 +10,8 @@
 #include "ns3/random-variable-stream.h"
 #include "ns3/vector.h"
 
+#include <optional>
+
 namespace ns3
 {
 
@@ -84,6 +86,16 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
      */
     Vector GetHexagonalCellCenter(const Vector& sitePos, uint16_t cellId) const;
 
+    /**
+     * @brief Enable wraparound
+     */
+    void EnableWraparound();
+
+    /**
+     * @brief Disable wraparound
+     */
+    void DisableWraparound();
+
     // inherited
     void CreateScenario() override;
 
@@ -128,6 +140,8 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
 
     std::string m_resultsDir; //!< results directory for the gnuplot file
     std::string m_simTag;     //!< simTag for the gnuplot file
+
+    bool m_wraparound{false}; //!< Enable wraparound
 };
 
 } // namespace ns3
