@@ -58,10 +58,10 @@ BeamId::GetEmptyBeamId()
 }
 
 /**
- * \brief Calculate the Cantor function for two unsigned int
- * \param x1 first value max value 65535
- * \param x2 second value max value 65535
- * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
+ * @brief Calculate the Cantor function for two unsigned int
+ * @param x1 first value max value 65535
+ * @param x2 second value max value 65535
+ * @return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
  */
 static constexpr uint32_t
 Cantor(uint16_t x1_16, uint16_t x2_16)

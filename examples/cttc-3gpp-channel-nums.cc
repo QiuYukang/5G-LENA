@@ -14,9 +14,9 @@
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
 /**
- * \file cttc-3gpp-channel-nums.cc
- * \ingroup examples
- * \brief Simple topology numerologies example.
+ * @file cttc-3gpp-channel-nums.cc
+ * @ingroup examples
+ * @brief Simple topology numerologies example.
  *
  * This example allows users to configure the numerology and test the end-to-end
  * performance for different numerologies. In the following figure we illustrate

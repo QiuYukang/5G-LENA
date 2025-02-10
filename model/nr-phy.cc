@@ -14,9 +14,9 @@
 #include "nr-net-device.h"
 #include "nr-spectrum-phy.h"
 
+#include "ns3/boolean.h"
 #include "ns3/pointer.h"
 #include "ns3/uniform-planar-array.h"
-#include <ns3/boolean.h>
 
 #include <algorithm>
 

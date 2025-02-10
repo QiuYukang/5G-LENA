@@ -4,31 +4,31 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \file traffic-generator.cc
- * \ingroup examples
- * \brief Traffic generator example
+ * @file traffic-generator.cc
+ * @ingroup examples
+ * @brief Traffic generator example
  */
 
+#include "ns3/abort.h"
+#include "ns3/config.h"
 #include "ns3/core-module.h"
-#include <ns3/abort.h>
-#include <ns3/config.h>
-#include <ns3/inet-socket-address.h>
-#include <ns3/internet-stack-helper.h>
-#include <ns3/ipv4-address-helper.h>
-#include <ns3/ipv4-global-routing-helper.h>
-#include <ns3/log.h>
-#include <ns3/packet-sink-helper.h>
-#include <ns3/packet-sink.h>
-#include <ns3/ping-helper.h>
-#include <ns3/simple-channel.h>
-#include <ns3/simple-net-device.h>
-#include <ns3/simulator.h>
-#include <ns3/traffic-generator-ftp-single.h>
-#include <ns3/traffic-generator-helper.h>
-#include <ns3/traffic-generator-ngmn-ftp-multi.h>
-#include <ns3/traffic-generator-ngmn-gaming.h>
-#include <ns3/traffic-generator-ngmn-video.h>
-#include <ns3/traffic-generator-ngmn-voip.h>
+#include "ns3/inet-socket-address.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/log.h"
+#include "ns3/packet-sink-helper.h"
+#include "ns3/packet-sink.h"
+#include "ns3/ping-helper.h"
+#include "ns3/simple-channel.h"
+#include "ns3/simple-net-device.h"
+#include "ns3/simulator.h"
+#include "ns3/traffic-generator-ftp-single.h"
+#include "ns3/traffic-generator-helper.h"
+#include "ns3/traffic-generator-ngmn-ftp-multi.h"
+#include "ns3/traffic-generator-ngmn-gaming.h"
+#include "ns3/traffic-generator-ngmn-video.h"
+#include "ns3/traffic-generator-ngmn-voip.h"
 
 #include <fstream>
 #include <ostream>

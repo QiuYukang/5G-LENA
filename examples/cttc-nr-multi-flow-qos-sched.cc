@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-nr-multi-flow-qos-sched.cc
- * \brief This example allows testing the performance of the QoS scheduler
+ * @ingroup examples
+ * @file cttc-nr-multi-flow-qos-sched.cc
+ * @brief This example allows testing the performance of the QoS scheduler
  *        (nr-mac-scheduler-ofdma/tdma-qos) in conjunction with the LC QoS
  *        scheduler versus other schedulers, such as the RR and PF in
  *        conjunction with the LC RR scheduler.

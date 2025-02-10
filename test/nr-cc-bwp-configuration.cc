@@ -2,18 +2,18 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "ns3/cc-bwp-helper.h"
 #include "ns3/nr-module.h"
-#include <ns3/cc-bwp-helper.h>
-#include <ns3/object-factory.h>
-#include <ns3/test.h>
+#include "ns3/object-factory.h"
+#include "ns3/test.h"
 
 #include <memory>
 
 /**
- * \file nr-cc-bwp-configuration.cc
- * \ingroup test
+ * @file nr-cc-bwp-configuration.cc
+ * @ingroup test
  *
- * \brief The test aims at proving that the creation of operation bands, component carriers
+ * @brief The test aims at proving that the creation of operation bands, component carriers
  * (CC) and bandwidth parts (BWP) is correct within the limitations of the NR
  * implementation. The main limitation of BWPs is that they do not overlap,
  * because in such case, the interference calculation would be erroneous. This test
@@ -34,8 +34,8 @@ class CcBwpTestCase : public TestCase
     };
 
     /**
-     * \brief Create NrPatternTestCase
-     * \param name Name of the test
+     * @brief Create NrPatternTestCase
+     * @param name Name of the test
      */
     CcBwpTestCase(const std::string& name)
         : TestCase(name)
@@ -46,15 +46,15 @@ class CcBwpTestCase : public TestCase
     void DoRun() override;
 
     /**
-     * \brief Test the automatic creation of a single operation band
+     * @brief Test the automatic creation of a single operation band
      *
      * This test gets a frequency band configuration and determines whether it is a
      * valid a configuration or not. The validation of the configuration is
      * performed at band, carrier and bandwidth part level. All BWPs are either
      * TDD or FDD.
      *
-     * \param bandConfig The band properties (operation frequency, bandwidth, numCcs and numBwps)
-     * \param mode The operation mode: [TDD,FDD]
+     * @param bandConfig The band properties (operation frequency, bandwidth, numCcs and numBwps)
+     * @param mode The operation mode: [TDD,FDD]
      */
     void TestBandConfiguration(double centralFrequency,
                                uint32_t bandwidth,
@@ -62,22 +62,22 @@ class CcBwpTestCase : public TestCase
                                OperationMode mode);
 
     /**
-     * \brief Test the created operation bands
+     * @brief Test the created operation bands
      *
      * This test gets all the operation band configuration descriptors containing
      * all the configured BWPs and validates them. Validation is done one band at
      * a time
      *
-     * \param operationBands Operation band vector (operation frequency, bandwidth, CCs and BWPs)
+     * @param operationBands Operation band vector (operation frequency, bandwidth, CCs and BWPs)
      */
     void TestMultiBandConfiguration(
         const std::vector<std::reference_wrapper<OperationBandInfo>>& operationBands);
 
     /**
-     * \brief Test that the automatic creation of OperationBandInfo is consistent
+     * @brief Test that the automatic creation of OperationBandInfo is consistent
      * with the configuration information in each element of the operationBandConfigs
      *
-     * \param operationBandConfigs Operation band configurations (operation frequency, bandwidth and
+     * @param operationBandConfigs Operation band configurations (operation frequency, bandwidth and
      * CCs)
      */
     void TestCcBwpNumbers(
@@ -92,40 +92,40 @@ class CcBwpTestCase : public TestCase
                     std::vector<uint8_t> activeBwp);
 
     /**
-     * \brief Validates a number of created operation bands
+     * @brief Validates a number of created operation bands
      *
      * This test aims at determining if the created operation bands are correct.
      * The configured bands are correct if they do not overlap and their individual
      * CC information is consistent (all of them inside the band bounds)
      *
-     * \return Whether the test passed or failed
+     * @return Whether the test passed or failed
      */
     bool ValidateCaBwpConfiguration(
         const std::vector<std::reference_wrapper<OperationBandInfo>>& operationBands);
 
     /**
-     * \brief Validates a configured operation band
+     * @brief Validates a configured operation band
      *
      * This test aims at determining if the band's CC information is consistent
      * (CCs do not overlap and all CCs are inside the band's bounds)
      *
-     * \return Whether the test passed or failed
+     * @return Whether the test passed or failed
      */
     bool ValidateOperationBand(const OperationBandInfo& band);
 
     /**
-     * \brief Validates a list of configured component carriers
+     * @brief Validates a list of configured component carriers
      *
      * This test aims at determining if BWPs contained in the CC are correctly
      * configured (BWPs do not overlap and go out of CC bounds)
      *
-     * \return Whether the test passed or failed
+     * @return Whether the test passed or failed
      */
     bool CheckBwpsInCc(const ComponentCarrierInfoPtr& cc);
 };
 
 /**
- * \brief The NrCcBwpTestSuite class
+ * @brief The NrCcBwpTestSuite class
  */
 class NrCcBwpTestSuite : public TestSuite
 {

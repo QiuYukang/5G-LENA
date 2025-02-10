@@ -8,14 +8,14 @@
 #include "nr-mac-scheduler-ofdma-qos.h"
 #include "nr-mac-scheduler-ue-info-ai.h"
 
-#include <ns3/traced-value.h>
+#include "ns3/traced-value.h"
 
 namespace ns3
 {
 
 /**
- * \ingroup scheduler
- * \brief The OFDMA scheduler with AI implementation
+ * @ingroup scheduler
+ * @brief The OFDMA scheduler with AI implementation
  *
  * This class extends the NrMacSchedulerOfdmaQos class and implements the AI
  * scheduler for the downlink and uplink. If the AI model is activated, the scheduler
@@ -39,28 +39,28 @@ class NrMacSchedulerOfdmaAi : public NrMacSchedulerOfdmaQos
 
   public:
     /**
-     * \brief GetTypeId
-     * \return The TypeId of the class
+     * @brief GetTypeId
+     * @return The TypeId of the class
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrMacSchedulerOfdmaAi constructor
+     * @brief NrMacSchedulerOfdmaAi constructor
      */
     NrMacSchedulerOfdmaAi();
 
   protected:
     /**
-     * \brief Create an UE representation of the type NrMacSchedulerUeInfoAi
-     * \param params parameters
-     * \return NrMacSchedulerUeInfo instance
+     * @brief Create an UE representation of the type NrMacSchedulerUeInfoAi
+     * @param params parameters
+     * @return NrMacSchedulerUeInfo instance
      */
     std::shared_ptr<NrMacSchedulerUeInfo> CreateUeRepresentation(
         const NrMacCschedSapProvider::CschedUeConfigReqParameters& params) const override;
 
     /**
-     * \brief Return the comparison function to sort DL UEs according to the scheduler policy
-     * \return A pointer to NrMacSchedulerUeInfoAi::CompareUeWeightsDl if the AI model is activated,
+     * @brief Return the comparison function to sort DL UEs according to the scheduler policy
+     * @return A pointer to NrMacSchedulerUeInfoAi::CompareUeWeightsDl if the AI model is activated,
      * otherwise, a pointer to NrMacSchedulerUeInfoQos::CompareUeWeightsDl
      */
     std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
@@ -68,8 +68,8 @@ class NrMacSchedulerOfdmaAi : public NrMacSchedulerOfdmaQos
     GetUeCompareDlFn() const override;
 
     /**
-     * \brief Return the comparison function to sort UL UEs according to the scheduler policy
-     * \return A pointer to NrMacSchedulerUeInfoAi::CompareUeWeightsUl if the AI model is activated,
+     * @brief Return the comparison function to sort UL UEs according to the scheduler policy
+     * @return A pointer to NrMacSchedulerUeInfoAi::CompareUeWeightsUl if the AI model is activated,
      * otherwise, a pointer to NrMacSchedulerUeInfoQos::CompareUeWeightsUl
      */
     std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
@@ -77,86 +77,86 @@ class NrMacSchedulerOfdmaAi : public NrMacSchedulerOfdmaQos
     GetUeCompareUlFn() const override;
 
     /**
-     * \brief Set the notify callback function for downlink
-     * \param notifyCb The callback function to be set
+     * @brief Set the notify callback function for downlink
+     * @param notifyCb The callback function to be set
      */
     void SetNotifyCbDl(NrMacSchedulerUeInfoAi::NotifyCb notifyCb);
 
     /**
-     * \brief Set the notify callback function for uplink
-     * \param notifyCb The callback function to be set
+     * @brief Set the notify callback function for uplink
+     * @param notifyCb The callback function to be set
      */
     void SetNotifyCbUl(NrMacSchedulerUeInfoAi::NotifyCb notifyCb);
 
     /**
-     * \brief Get UE observations for downlink
-     * \param ueVector A vector containing pointers to active UEs and their corresponding buffer
+     * @brief Get UE observations for downlink
+     * @param ueVector A vector containing pointers to active UEs and their corresponding buffer
      * requests
-     * \return An Observation object representing the observations for all UEs
+     * @return An Observation object representing the observations for all UEs
      */
     std::vector<NrMacSchedulerUeInfoAi::LcObservation> GetUeObservationsDl(
         const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const;
 
     /**
-     * \brief Get UE observations for uplink
-     * \param ueVector A vector containing pointers to active UEs and their corresponding buffer
+     * @brief Get UE observations for uplink
+     * @param ueVector A vector containing pointers to active UEs and their corresponding buffer
      * requests
-     * \return An Observation object representing the observations for all UEs
+     * @return An Observation object representing the observations for all UEs
      */
     std::vector<NrMacSchedulerUeInfoAi::LcObservation> GetUeObservationsUl(
         const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const;
 
     /**
-     * \brief Check if the downlink game is over
-     * \return A boolean value indicating whether the downlink game is over (true) or not (false)
+     * @brief Check if the downlink game is over
+     * @return A boolean value indicating whether the downlink game is over (true) or not (false)
      */
     bool GetIsGameOverDl() const;
 
     /**
-     * \brief Check if the uplink game is over
-     * \return A boolean value indicating whether the downlink game is over (true) or not (false)
+     * @brief Check if the uplink game is over
+     * @return A boolean value indicating whether the downlink game is over (true) or not (false)
      */
     bool GetIsGameOverUl() const;
 
     /**
-     * \brief Get rewards for downlink
-     * \param ueVector A vector containing pointers to active UEs and their corresponding buffer
+     * @brief Get rewards for downlink
+     * @param ueVector A vector containing pointers to active UEs and their corresponding buffer
      * requests
-     * \return A float value representing the calculated rewards
+     * @return A float value representing the calculated rewards
      */
     float GetUeRewardsDl(const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const;
 
     /**
-     * \brief Get rewards for uplink
-     * \param ueVector A vector containing pointers to active UEs and their corresponding buffer
+     * @brief Get rewards for uplink
+     * @param ueVector A vector containing pointers to active UEs and their corresponding buffer
      * requests
-     * \return A float value representing the calculated rewards
+     * @return A float value representing the calculated rewards
      */
     float GetUeRewardsUl(const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const;
 
     /**
-     * \brief Call the notify callback function in the OpenGymEnv class
+     * @brief Call the notify callback function in the OpenGymEnv class
      * in the ns3-gym module for downlink
-     * \param ueVector A vector containing pointers to active UEs and their corresponding buffer
+     * @param ueVector A vector containing pointers to active UEs and their corresponding buffer
      * requests
      */
     void CallNotifyDlFn(
         const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const override;
 
     /**
-     * \brief Call the notify callback function in the OpenGymEnv class
+     * @brief Call the notify callback function in the OpenGymEnv class
      * in the ns3-gym module for uplink
-     * \param ueVector A vector containing pointers to active UEs and their corresponding buffer
+     * @param ueVector A vector containing pointers to active UEs and their corresponding buffer
      * requests
      */
     void CallNotifyUlFn(
         const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const override;
 
     /**
-     * \brief Update weights of all UEs for downlink
-     * \param ueWeights An unordered map where the key is the UE's RNTI (Radio Network Temporary
+     * @brief Update weights of all UEs for downlink
+     * @param ueWeights An unordered map where the key is the UE's RNTI (Radio Network Temporary
      * Identifier) and the value is the UE's weights for all flows
-     * \param ueVector A vector
+     * @param ueVector A vector
      * containing pointers to active UEs and their corresponding buffer requests
      */
     void UpdateAllUeWeightsDl(
@@ -164,10 +164,10 @@ class NrMacSchedulerOfdmaAi : public NrMacSchedulerOfdmaQos
         const std::vector<NrMacSchedulerNs3::UePtrAndBufferReq>& ueVector) const;
 
     /**
-     * \brief Update weights of all UEs for uplink
-     * \param ueWeights An unordered map where the key is the UE's RNTI (Radio Network Temporary
+     * @brief Update weights of all UEs for uplink
+     * @param ueWeights An unordered map where the key is the UE's RNTI (Radio Network Temporary
      * Identifier) and the value is the UE's weights for all flows
-     * \param ueVector A vector
+     * @param ueVector A vector
      * containing pointers to active UEs and their corresponding buffer requests
      */
     void UpdateAllUeWeightsUl(

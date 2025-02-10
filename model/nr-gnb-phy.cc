@@ -17,14 +17,14 @@
 #include "nr-ue-net-device.h"
 #include "nr-ue-phy.h"
 
-#include <ns3/double.h>
-#include <ns3/enum.h>
-#include <ns3/log.h>
-#include <ns3/node-list.h>
-#include <ns3/node.h>
-#include <ns3/object-vector.h>
-#include <ns3/pointer.h>
-#include <ns3/uinteger.h>
+#include "ns3/double.h"
+#include "ns3/enum.h"
+#include "ns3/log.h"
+#include "ns3/node-list.h"
+#include "ns3/node.h"
+#include "ns3/object-vector.h"
+#include "ns3/pointer.h"
+#include "ns3/uinteger.h"
 
 #include <algorithm>
 #include <functional>
@@ -220,10 +220,10 @@ NrGnbPhy::GetCurrentSfnSf() const
 }
 
 /**
- * \brief An intelligent way to calculate the modulo
- * \param n Number
- * \param m Modulo
- * \return n+=m until n < 0
+ * @brief An intelligent way to calculate the modulo
+ * @param n Number
+ * @param m Modulo
+ * @return n+=m until n < 0
  */
 static uint32_t
 modulo(int n, uint32_t m)
@@ -243,7 +243,7 @@ modulo(int n, uint32_t m)
 }
 
 /**
- * \brief Return the slot in which the DL HARQ Feedback should be sent, according to the parameter
+ * @brief Return the slot in which the DL HARQ Feedback should be sent, according to the parameter
  * N1 \param pattern The TDD pattern \param pos The position of the data inside the pattern for
  * which we want to find where the feedback should be sent \param n1 The N1 parameter \return k1
  * (after how many slots the DL HARQ Feedback should be sent)
@@ -279,10 +279,10 @@ struct DciKPair
 };
 
 /**
- * \brief Return the slot in which the DCI should be send, according to the parameter n,
+ * @brief Return the slot in which the DCI should be send, according to the parameter n,
  * along with the number of slots required to add to the current slot to get the slot of DCI (k0/k2)
- * \param pattern The TDD pattern
- * \param pos The position inside the pattern for which we want to check where the DCI should be
+ * @param pattern The TDD pattern
+ * @param pos The position inside the pattern for which we want to check where the DCI should be
  * sent \param n The N parameter (equal to N0 or N2, depending if it is DL or UL) \return The slot
  * position in which the DCI for the position specified should be sent and the k0/k2
  */
@@ -306,12 +306,12 @@ ReturnDciSlot(const std::vector<LteNrTddSlotType>& pattern, uint32_t pos, uint32
 }
 
 /**
- * \brief Generates the map tosendDl/Ul that holds the information of the DCI Slot and the
+ * @brief Generates the map tosendDl/Ul that holds the information of the DCI Slot and the
  * corresponding k0/k2 value, and the generateDl/Ul that includes the L1L2CtrlLatency.
- * \param pattern The TDD pattern, the pattern to analyze
- * \param toSend The structure toSendDl/tosendUl to fill
- * \param generate The structure generateDl/generateUl to fill
- * \param pos The position inside the pattern for which we want to check where the DCI should be
+ * @param pattern The TDD pattern, the pattern to analyze
+ * @param toSend The structure toSendDl/tosendUl to fill
+ * @param generate The structure generateDl/generateUl to fill
+ * @param pos The position inside the pattern for which we want to check where the DCI should be
  * sent \param n The N parameter (equal to N0 or N2, depending if it is DL or UL) \param
  * l1l2CtrlLatency L1L2CtrlLatency of the system
  */

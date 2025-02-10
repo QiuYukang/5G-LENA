@@ -29,9 +29,9 @@ class NrFhPhySapProvider;
 
 /**
  *
- * \ingroup gnb-phy
+ * @ingroup gnb-phy
  *
- * \brief The gNb physical layer
+ * @brief The gNb physical layer
  *
  * This class represent the gNb physical layer, and is the main class for
  * what regards the gNb. It has different features, that spans from the
@@ -39,7 +39,7 @@ class NrFhPhySapProvider;
  * slot timings and settings (including numerology, pattern...), and the
  * channel access in unlicensed spectrum.
  *
- * \section gnb_phy_spectrum Spectrum transmission
+ * @section gnb_phy_spectrum Spectrum transmission
  *
  * The PHY has a pointer to NrSpectrumPhy class, which is the entry point
  * in the spectrum transmission domain, and the connection point with the channel.
@@ -52,7 +52,7 @@ class NrFhPhySapProvider;
  * symbols in which the transmission will be done, but the list of the messages
  * will be passed to the UE without any interference or error model applied.
  *
- * \section gnb_phy_timings Slot Timings, and event processing
+ * @section gnb_phy_timings Slot Timings, and event processing
  *
  * The node works as a state-machine where all the processing is done at the
  * beginning of the slot boundary. The slot duration is dictated by the
@@ -67,13 +67,13 @@ class NrFhPhySapProvider;
  * MAC will require two slot before going in the air. For this reason, MAC always
  * work "in the future".
  *
- * \section gnb_phy_unlicensed Unlicensed access
+ * @section gnb_phy_unlicensed Unlicensed access
  *
  * The PHY is prepared to postpone its processing if the channel access manager
  * (an interface specified in the NrChAccessManager class) indicates that
  * the channel is busy, hence not available for the transmission.
  *
- * \section gnb_phy_conf Configuration
+ * @section gnb_phy_conf Configuration
  *
  * The initialization of the class in done through NrHelper; the user
  * can interact with it through the various attribute that are present, trying
@@ -82,9 +82,9 @@ class NrFhPhySapProvider;
  * creation) through the helper method NrHelper::SetGnbPhyAttribute().
  *
  *
- * \see NrPhy::SetSpectrumPhy
- * \see NrPhy::StartEventLoop
- * \see NrPhy::StartSlot
+ * @see NrPhy::SetSpectrumPhy
+ * @see NrPhy::StartEventLoop
+ * @see NrPhy::StartSlot
  */
 class NrGnbPhy : public NrPhy
 {
@@ -94,7 +94,7 @@ class NrGnbPhy : public NrPhy
 
   public:
     /**
-     * \brief CSI-RS model to be used
+     * @brief CSI-RS model to be used
      */
     enum CsiRsModel
     {
@@ -103,29 +103,29 @@ class NrGnbPhy : public NrPhy
     };
 
     /**
-     * \brief Get Type id
-     * \return the type id of the NrGnbPhy
+     * @brief Get Type id
+     * @return the type id of the NrGnbPhy
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrGnbPhy constructor. Please use the other one.
+     * @brief NrGnbPhy constructor. Please use the other one.
      */
     NrGnbPhy();
 
     /**
-     * \brief ~NrGnbPhy
+     * @brief ~NrGnbPhy
      */
     ~NrGnbPhy() override;
 
     /**
-     * \brief Set the C PHY SAP user
-     * \param s the C PHY SAP user
+     * @brief Set the C PHY SAP user
+     * @param s the C PHY SAP user
      */
     void SetGnbCphySapUser(NrGnbCphySapUser* s);
     /**
-     * \brief Get the C PHY SAP provider
-     * \return the C PHY SAP provider pointer
+     * @brief Get the C PHY SAP provider
+     * @return the C PHY SAP provider pointer
      */
     NrGnbCphySapProvider* GetGnbCphySapProvider();
 
@@ -151,7 +151,7 @@ class NrGnbPhy : public NrPhy
      * flexible K1 timing that is measured in slots. For UE Capability 1,
      * it can take 1 or 2 slots. For UE Capability 2, it is not
      * larger than 1 slot.
-     * \param delay the N1 delay
+     * @param delay the N1 delay
      */
     void SetN1Delay(uint32_t delay);
 
@@ -166,7 +166,7 @@ class NrGnbPhy : public NrPhy
      * flexible K2 timing that is measured in slots. For UE Capability 1,
      * it can take 1, 2 or 3 slots. For UE Capability 2, it is not
      * larger than 1 slot.
-     * \param delay the N2 delay
+     * @param delay the N2 delay
      */
     void SetN2Delay(uint32_t delay);
 
@@ -189,119 +189,119 @@ class NrGnbPhy : public NrPhy
     uint32_t GetN2Delay() const;
 
     /**
-     * \brief Get the BeamId for the selected user
-     * \param rnti the selected UE
-     * \return the beam id of the UE
+     * @brief Get the BeamId for the selected user
+     * @param rnti the selected UE
+     * @return the beam id of the UE
      */
     BeamId GetBeamId(uint16_t rnti) const override;
 
     /**
-     * \brief Set the channel access manager interface for this instance of the PHY
-     * \param s the pointer to the interface
+     * @brief Set the channel access manager interface for this instance of the PHY
+     * @param s the pointer to the interface
      */
     void SetCam(const Ptr<NrChAccessManager>& s);
 
     /**
-     * \brief Get the channel access manager for the PHY
-     * \return the CAM of the PHY
+     * @brief Get the channel access manager for the PHY
+     * @return the CAM of the PHY
      */
     Ptr<NrChAccessManager> GetCam() const;
 
     /**
-     * \brief Set the transmission power for the UE
+     * @brief Set the transmission power for the UE
      *
      * Please note that there is also an attribute ("NrUePhy::TxPower")
-     * \param pow power
+     * @param pow power
      */
     void SetTxPower(double pow);
 
     /**
-     * \brief Retrieve the TX power of the gNB
+     * @brief Retrieve the TX power of the gNB
      *
      * Please note that there is also an attribute ("NrUePhy::TxPower")
-     * \return the TX power of the gNB
+     * @return the TX power of the gNB
      */
     double GetTxPower() const override;
 
     /**
-     * \brief Set the Tx power spectral density based on the RB index vector
-     * \param rbIndexVector vector of the index of the RB (in SpectrumValue array)
+     * @brief Set the Tx power spectral density based on the RB index vector
+     * @param rbIndexVector vector of the index of the RB (in SpectrumValue array)
      * in which there is a transmission for the current allocation (towards a specific UE)
-     * \param nTotalAllocRbs total number of RBs which are occupied for any transmission/allocation
+     * @param nTotalAllocRbs total number of RBs which are occupied for any transmission/allocation
      * (includes allocations towards other UEs in OFDMA DL)
      */
     void SetSubChannels(const std::vector<int>& rbIndexVector, size_t nTotalAllocRbs);
 
     /**
-     * \brief Add the UE to the list of this gnb UEs.
+     * @brief Add the UE to the list of this gnb UEs.
      *
      * Usually called by the helper when a UE register to this gnb.
-     * \param imsi IMSI of the device
-     * \param ueDevice Device
-     * \return
+     * @param imsi IMSI of the device
+     * @param ueDevice Device
+     * @return
      */
     bool RegisterUe(uint64_t imsi, const Ptr<NrUeNetDevice>& ueDevice);
 
     /**
      * Assign CSI-RS offset of a user
-     * \param ueDevice the user device for which will be assign an offset value
+     * @param ueDevice the user device for which will be assign an offset value
      */
     void AssignCsiRsOffset(const Ptr<NrUeNetDevice>& ueDevice);
 
     /**
-     * \brief Receive a PHY data packet
+     * @brief Receive a PHY data packet
      *
      * Connected by the helper to a callback of the spectrum.
      *
-     * \param p Received packet
+     * @param p Received packet
      */
     void PhyDataPacketReceived(const Ptr<Packet>& p);
 
     /**
-     * \brief Generate a DL CQI report
+     * @brief Generate a DL CQI report
      *
      * Connected by the helper to a callback in corresponding ChunkProcessor
      *
-     * \param sinr the SINR
+     * @param sinr the SINR
      */
     void GenerateDataCqiReport(const SpectrumValue& sinr);
 
     /**
-     * \brief Receive a list of CTRL messages
+     * @brief Receive a list of CTRL messages
      *
      * Connected by the helper to a callback of the spectrum.
      *
-     * \param msg the message
+     * @param msg the message
      */
     void PhyCtrlMessagesReceived(const Ptr<NrControlMessage>& msg);
 
     /**
-     * \brief Get the power of the gnb
-     * \return the power
+     * @brief Get the power of the gnb
+     * @return the power
      */
     int8_t DoGetReferenceSignalPower() const;
 
     /**
-     * \brief Install the PHY SAP user (which is in this case the MAC)
+     * @brief Install the PHY SAP user (which is in this case the MAC)
      *
-     * \param ptr the PHY SAP user pointer to install
+     * @param ptr the PHY SAP user pointer to install
      */
     void SetPhySapUser(NrGnbPhySapUser* ptr);
 
     /**
-     * \brief Get the HARQ feedback from NrSpectrumPhy
+     * @brief Get the HARQ feedback from NrSpectrumPhy
      * and forward it to the scheduler
      *
      * Connected by the helper to a spectrum phy callback
      *
-     * \param mes the HARQ feedback
+     * @param mes the HARQ feedback
      */
     void ReportUlHarqFeedback(const UlHarqInfo& mes);
 
     /**
-     * \brief Set the pattern that the gnb will utilize.
+     * @brief Set the pattern that the gnb will utilize.
      *
-     * \param pattern A string containing slot types separated by the character '|'.
+     * @param pattern A string containing slot types separated by the character '|'.
      *
      * For example, a valid pattern would be "DL|DL|UL|UL|DL|DL|UL|UL|". The slot
      * types allowed are:
@@ -314,47 +314,47 @@ class NrGnbPhy : public NrPhy
     void SetPattern(const std::string& pattern);
 
     /**
-     * \brief Retrieve the currently installed pattern
-     * \return the installed pattern
+     * @brief Retrieve the currently installed pattern
+     * @return the installed pattern
      */
     std::string GetPattern() const;
 
     /**
-     * \brief Set the CSI-RS model
-     * \param csiRsModel to be used
+     * @brief Set the CSI-RS model
+     * @param csiRsModel to be used
      */
     void SetCsiRsModel(enum CsiRsModel csiRsModel);
 
     /**
-     * \brief Gets the CSI-RS model in use
+     * @brief Gets the CSI-RS model in use
      */
     enum CsiRsModel GetCsiRsModel() const;
 
     /**
      * Set CSI-RS periodicity
-     * \param csiRsPeriodicity the periodicity to be set for CSI-RS
+     * @param csiRsPeriodicity the periodicity to be set for CSI-RS
      */
     void SetCsiRsPeriodicity(uint16_t csiRsPeriodicity);
 
     /**
-     * \brief Retrieve CSI-RS periodicity
-     * \return the configured CSI-RS periodicity
+     * @brief Retrieve CSI-RS periodicity
+     * @return the configured CSI-RS periodicity
      */
     uint16_t GetCsiRsPeriodicity() const;
 
     /**
-     * \brief Set this PHY as primary
+     * @brief Set this PHY as primary
      *
      * A primary PHY will send MIB and SIB1. By default, a PHY is "non-primary".
      */
     void SetPrimary();
 
     /**
-     * \brief Start the ue Event Loop
-     * \param nodeId the UE nodeId
-     * \param frame Frame
-     * \param subframe SubF.
-     * \param slot Slot
+     * @brief Start the ue Event Loop
+     * @param nodeId the UE nodeId
+     * @param frame Frame
+     * @param subframe SubF.
+     * @param slot Slot
      */
     void ScheduleStartEventLoop(uint32_t nodeId,
                                 uint16_t frame,
@@ -364,14 +364,14 @@ class NrGnbPhy : public NrPhy
     /**
      *  TracedCallback signature for Received Control Messages.
      *
-     * \param [in] frame Frame number.
-     * \param [in] subframe Subframe number.
-     * \param [in] slot number.
-     * \param [in] VarTti
-     * \param [in] nodeId
-     * \param [in] rnti
-     * \param [in] bwpId
-     * \param [in] pointer to msg to get the msg type
+     * @param [in] frame Frame number.
+     * @param [in] subframe Subframe number.
+     * @param [in] slot number.
+     * @param [in] VarTti
+     * @param [in] nodeId
+     * @param [in] rnti
+     * @param [in] bwpId
+     * @param [in] pointer to msg to get the msg type
      */
     typedef void (*RxedGnbPhyCtrlMsgsTracedCallback)(const SfnSf sfn,
                                                      const uint16_t nodeId,
@@ -382,14 +382,14 @@ class NrGnbPhy : public NrPhy
     /**
      *  TracedCallback signature for Transmitted Control Messages.
      *
-     * \param [in] frame Frame number.
-     * \param [in] subframe Subframe number.
-     * \param [in] slot number.
-     * \param [in] VarTti
-     * \param [in] nodeId
-     * \param [in] rnti
-     * \param [in] bwpId
-     * \param [in] pointer to msg to get the msg type
+     * @param [in] frame Frame number.
+     * @param [in] subframe Subframe number.
+     * @param [in] slot number.
+     * @param [in] VarTti
+     * @param [in] nodeId
+     * @param [in] rnti
+     * @param [in] bwpId
+     * @param [in] pointer to msg to get the msg type
      */
     typedef void (*TxedGnbPhyCtrlMsgsTracedCallback)(const SfnSf sfn,
                                                      const uint16_t nodeId,
@@ -398,16 +398,16 @@ class NrGnbPhy : public NrPhy
                                                      Ptr<NrControlMessage>);
 
     /**
-     * \brief TracedCallback signature for slot statistics
+     * @brief TracedCallback signature for slot statistics
      *
-     * \param [in] sfnSf Slot number
-     * \param [in] scheduledUe The number of scheduled UE in the slot
-     * \param [in] usedReg Used Resource Element Group (1 sym x 1 RB)
-     * \param [in] usedSym Used symbols
-     * \param [in] availableRb Available RBs
-     * \param [in] availableSym Available symbols
-     * \param [in] bwpId BWP ID
-     * \param [in] cellId Cell ID
+     * @param [in] sfnSf Slot number
+     * @param [in] scheduledUe The number of scheduled UE in the slot
+     * @param [in] usedReg Used Resource Element Group (1 sym x 1 RB)
+     * @param [in] usedSym Used symbols
+     * @param [in] availableRb Available RBs
+     * @param [in] availableSym Available symbols
+     * @param [in] bwpId BWP ID
+     * @param [in] cellId Cell ID
      */
     typedef void (*SlotStatsTracedCallback)(const SfnSf& sfnSf,
                                             uint32_t scheduledUe,
@@ -419,13 +419,13 @@ class NrGnbPhy : public NrPhy
                                             uint16_t cellId);
 
     /**
-     * \brief TracedCallback signature for RB statistics
+     * @brief TracedCallback signature for RB statistics
      *
-     * \param [in] sfnSf Slot number
-     * \param [in] sym Symbol
-     * \param [in] rbMap RB Map, in the spectrum format (vector of indexes of the active RB)
-     * \param [in] bwpId BWP ID
-     * \param [in] cellId Cell ID
+     * @param [in] sfnSf Slot number
+     * @param [in] sym Symbol
+     * @param [in] rbMap RB Map, in the spectrum format (vector of indexes of the active RB)
+     * @param [in] bwpId BWP ID
+     * @param [in] cellId Cell ID
      */
     typedef void (*RBStatsTracedCallback)(const SfnSf& sfnSf,
                                           uint8_t sym,
@@ -434,8 +434,8 @@ class NrGnbPhy : public NrPhy
                                           uint16_t cellId);
 
     /**
-     * \brief Retrieve the number of RB per RBG
-     * \return the number of RB per RBG
+     * @brief Retrieve the number of RB per RBG
+     * @return the number of RB per RBG
      *
      * The method will ask the MAC for the value. Don't store it as it may change.
      */
@@ -454,20 +454,20 @@ class NrGnbPhy : public NrPhy
 
   protected:
     /**
-     * \brief DoDispose method inherited from Object
+     * @brief DoDispose method inherited from Object
      */
     void DoDispose() override;
 
     /**
-     * \brief Returns a boolean indicating whether the current allocation can
+     * @brief Returns a boolean indicating whether the current allocation can
      *        fit in the available FH bandwidth.
      *
-     * \param bwpId the BWP ID
-     * \param mcs the allocated MCS
-     * \param nRegs the number of allocated REGs (1 REG = 1 RB (12 subcarriers) x 1 symbol)
-     * \param dlRank the DL rank (number of MIMO layers)
+     * @param bwpId the BWP ID
+     * @param mcs the allocated MCS
+     * @param nRegs the number of allocated REGs (1 REG = 1 RB (12 subcarriers) x 1 symbol)
+     * @param dlRank the DL rank (number of MIMO layers)
      *
-     * \return true if the current allocation can fit, false if not
+     * @return true if the current allocation can fit, false if not
      */
     bool DoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const;
 
@@ -477,43 +477,43 @@ class NrGnbPhy : public NrPhy
 
   private:
     /**
-     * \brief Whether to enable CSI-RS, called from the NrHelper during the creation of the gNB,
+     * @brief Whether to enable CSI-RS, called from the NrHelper during the creation of the gNB,
      * in function CreateGnbPhy if CSI-RS flag is being set in the NrHelper configuration
      */
     void EnableCsiRs();
     /**
-     * \brief Set the current slot pattern (better to call it only once..)
-     * \param pattern the pattern
+     * @brief Set the current slot pattern (better to call it only once..)
+     * @param pattern the pattern
      *
      * It does not support dynamic change of pattern during the simulation
      */
     void SetTddPattern(const std::vector<LteNrTddSlotType>& pattern);
 
     /**
-     * \brief Start the slot processing.
-     * \param startSlot slot number
+     * @brief Start the slot processing.
+     * @param startSlot slot number
      *
      * The method will look at the channel status, and if applicable, will start
      * the MAC processing. If the channel is available, it will start the real
      * slot processing in the method DoStartSlot().
      *
-     * \see DoStartSlot
+     * @see DoStartSlot
      */
     void StartSlot(const SfnSf& startSlot);
 
     /**
-     * \brief End the slot processing
+     * @brief End the slot processing
      *
      * It will close the slot processing, calling then StartSlot for the next
      * slot that is coming.
      *
-     * \see StartSlot
+     * @see StartSlot
      */
     void EndSlot();
 
     /**
-     * \brief Start the processing of a variable TTI
-     * \param dci the DCI of the variable TTI
+     * @brief Start the processing of a variable TTI
+     * @param dci the DCI of the variable TTI
      *
      * This time can be a DL CTRL, a DL data, a UL data, or UL CTRL, with
      * any number of symbols (limited to the number of symbols per slot).
@@ -521,104 +521,104 @@ class NrGnbPhy : public NrPhy
      * At the end of processing, schedule the method EndVarTtti that will finish
      * the processing of the variable tti allocation.
      *
-     * \see DlCtrl
-     * \see UlCtrl
-     * \see DlData
-     * \see UlData
+     * @see DlCtrl
+     * @see UlCtrl
+     * @see DlData
+     * @see UlData
      */
     void StartVarTti(const std::shared_ptr<DciInfoElementTdma>& dci);
 
     /**
-     * \brief End the processing of a variable tti
-     * \param lastDci the DCI of the variable TTI that has just passed
+     * @brief End the processing of a variable tti
+     * @param lastDci the DCI of the variable TTI that has just passed
      *
      * The end of the variable tti indicates that the allocation has been
      * transmitted/received. Depending on the variable tti left, the method
      * will schedule another var tti (StartVarTti()) or will wait until the
      * end of the slot (EndSlot()).
      *
-     * \see StartVarTti
-     * \see EndSlot
+     * @see StartVarTti
+     * @see EndSlot
      */
     void EndVarTti(const std::shared_ptr<DciInfoElementTdma>& lastDci);
 
     /**
-     * \brief Transmit to the spectrum phy the data stored in pb
+     * @brief Transmit to the spectrum phy the data stored in pb
      *
-     * \param pb Data to transmit
-     * \param varTtiPeriod period of transmission
-     * \param dci DCI of the transmission
+     * @param pb Data to transmit
+     * @param varTtiPeriod period of transmission
+     * @param dci DCI of the transmission
      */
     void SendDataChannels(const Ptr<PacketBurst>& pb,
                           const Time& varTtiPeriod,
                           const std::shared_ptr<DciInfoElementTdma>& dci);
 
     /**
-     * \brief Transmit the control channel
+     * @brief Transmit the control channel
      *
-     * \param varTtiPeriod the period of transmission
+     * @param varTtiPeriod the period of transmission
      *
      * Call the NrSpectrumPhy class, indicating the control message to transmit.
      */
     void SendCtrlChannels(const Time& varTtiPeriod);
 
     /**
-     * \brief Create a list of messages that contains the DCI to send in the slot specified
-     * \param sfn Slot from which take all the DCI
-     * \return a list of DCI
+     * @brief Create a list of messages that contains the DCI to send in the slot specified
+     * @param sfn Slot from which take all the DCI
+     * @return a list of DCI
      */
     std::list<Ptr<NrControlMessage>> RetrieveMsgsFromDCIs(const SfnSf& sfn)
         __attribute__((warn_unused_result));
 
     /**
-     * \brief Channel access granted, invoked after the LBT
+     * @brief Channel access granted, invoked after the LBT
      *
-     * \param time Time of the grant
+     * @param time Time of the grant
      */
     void ChannelAccessGranted(const Time& time);
 
     /**
-     * \brief Channel access lost, the grant has expired or the LBT denied the access
+     * @brief Channel access lost, the grant has expired or the LBT denied the access
      */
     void ChannelAccessLost();
 
     /**
-     * \brief Function that checks whether it is time to transmit CSI-RS
+     * @brief Function that checks whether it is time to transmit CSI-RS
      * according to the configured model and configured periodicity
-     *\param currentOffset current CSI-RS offset
-     * \return a boolean indicator that tells whether it is time to transmit the CSI-RS
+     *@param currentOffset current CSI-RS offset
+     * @return a boolean indicator that tells whether it is time to transmit the CSI-RS
      */
     bool TimeToTransmitCsiRs(uint16_t currentOffset) const;
 
     /**
-     * \brief Transmit CSI-RS towards a specific UE
-     * \param ueDev the UE towards which CSI-RS is being transmitted
+     * @brief Transmit CSI-RS towards a specific UE
+     * @param ueDev the UE towards which CSI-RS is being transmitted
      */
     void TransmitCsiRsPerUe(Ptr<NrUeNetDevice> ueDev);
 
     /**
      * Schedules CSI-RS transmission events
-     * \param varTtti the duration of CTRL varTti that will be used for transmitting
+     * @param varTtti the duration of CTRL varTti that will be used for transmitting
      * the CSI-RS signals
-     * \param currentOffset current CSI-RS offset
-     * \return the duration of the CTRL varTti that is left after transmitting all CSI-RS signals
+     * @param currentOffset current CSI-RS offset
+     * @return the duration of the CTRL varTti that is left after transmitting all CSI-RS signals
      */
     Time ScheduleCsiRs(Time varTti, uint16_t currentOffset);
 
     /**
-     * \brief Transmit DL CTRL and return the time at which the transmission will end
-     * \param dci the current DCI
-     * \return the time at which the transmission of DL CTRL will end
+     * @brief Transmit DL CTRL and return the time at which the transmission will end
+     * @param dci the current DCI
+     * @return the time at which the transmission of DL CTRL will end
      *
      * The method will get the messages to transmit, and call SendCtrlChannels.
      *
-     * \see SendCtrlChannels
+     * @see SendCtrlChannels
      */
     Time DlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci) __attribute__((warn_unused_result));
     /**
-     * \brief Receive UL CTRL and return the time at which the transmission will end
-     * \param dci the current DCI
-     * \return the time at which the reception of UL CTRL will end
+     * @brief Receive UL CTRL and return the time at which the transmission will end
+     * @param dci the current DCI
+     * @return the time at which the reception of UL CTRL will end
      *
      * The method will put the PHY in the listening mode, to get any control message
      * sent by the UEs.
@@ -626,20 +626,20 @@ class NrGnbPhy : public NrPhy
     Time UlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci) __attribute__((warn_unused_result));
 
     /**
-     * \brief Transmit DL data and return the time at which the transmission will end
-     * \param varTtiInfo the current varTti
-     * \return the time at which the transmission of DL data will end
+     * @brief Transmit DL data and return the time at which the transmission will end
+     * @param varTtiInfo the current varTti
+     * @return the time at which the transmission of DL data will end
      *
      * The method will get the data to transmit, and call SendDataChannels.
      *
-     * \see SendDataChannels
+     * @see SendDataChannels
      */
     Time DlData(const std::shared_ptr<DciInfoElementTdma>& dci) __attribute__((warn_unused_result));
 
     /**
-     * \brief Receive UL data and return the time at which the transmission will end
-     * \param dci the current DCI
-     * \return the time at which the reception of UL data will end
+     * @brief Receive UL data and return the time at which the transmission will end
+     * @param dci the current DCI
+     * @return the time at which the reception of UL data will end
      *
      * The method will put the PHY in listening mode, to get any data sent by
      * the UEs.
@@ -647,9 +647,9 @@ class NrGnbPhy : public NrPhy
     Time UlData(const std::shared_ptr<DciInfoElementTdma>& dci) __attribute__((warn_unused_result));
 
     /**
-     * \brief Receive UL SRS and return the time at which the transmission will end
-     * \param dci the current DCI
-     * \return the time at which the reception of UL data will end
+     * @brief Receive UL SRS and return the time at which the transmission will end
+     * @param dci the current DCI
+     * @return the time at which the reception of UL data will end
      *
      * The method will put the PHY in listening mode, to get any data sent by
      * the UEs. This data would be a CTRL message (e.g., a SRS)
@@ -657,24 +657,24 @@ class NrGnbPhy : public NrPhy
     Time UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci) __attribute__((warn_unused_result));
 
     /**
-     * \brief Queue a MIB message, to be sent (hopefully) in this slot
+     * @brief Queue a MIB message, to be sent (hopefully) in this slot
      *
      * Only "primary" PHY will send the message.
      */
     void QueueMib();
     /**
-     * \brief Queue a SIB message, to be sent (hopefully) in this slot
+     * @brief Queue a SIB message, to be sent (hopefully) in this slot
      *
      * Only "primary" PHY will send the message.
      */
     void QueueSib();
 
     /**
-     * \brief Effectively start the slot, as we have the channel.
+     * @brief Effectively start the slot, as we have the channel.
      *
      * For each variable TTI, schedule a call to StartVarTti.
      *
-     * \see StartVarTti.
+     * @see StartVarTti.
      */
     void DoStartSlot();
 
@@ -693,26 +693,26 @@ class NrGnbPhy : public NrPhy
     void DoSetEarfcn(uint16_t Earfcn);
 
     /**
-     * \brief Store the RBG allocation in the symStart, rbg map.
-     * \param map the MAP
-     * \param dci DCI
+     * @brief Store the RBG allocation in the symStart, rbg map.
+     * @param map the MAP
+     * @param dci DCI
      *
      */
     void StoreRBGAllocation(std::unordered_map<uint8_t, std::vector<bool>>* map,
                             const std::shared_ptr<DciInfoElementTdma>& dci) const;
 
     /**
-     * \brief Generate the generate/send DCI structures from a pattern
-     * \param pattern The pattern to analyze
-     * \param toSendDl The structure toSendDl to fill
-     * \param toSendUl The structure toSendUl to fill
-     * \param generateDl The structure generateDl to fill
-     * \param generateUl The structure generateUl to fill
-     * \param dlHarqfbPosition The structure dlHarqfbPosition to fill
-     * \param n0 N0 parameter
-     * \param n2 N2 parameter
-     * \param n1 N1 parameter
-     * \param l1l2CtrlLatency L1L2CtrlLatency of the system
+     * @brief Generate the generate/send DCI structures from a pattern
+     * @param pattern The pattern to analyze
+     * @param toSendDl The structure toSendDl to fill
+     * @param toSendUl The structure toSendUl to fill
+     * @param generateDl The structure generateDl to fill
+     * @param generateUl The structure generateUl to fill
+     * @param dlHarqfbPosition The structure dlHarqfbPosition to fill
+     * @param n0 N0 parameter
+     * @param n2 N2 parameter
+     * @param n1 N1 parameter
+     * @param l1l2CtrlLatency L1L2CtrlLatency of the system
      */
     static void GenerateStructuresFromPattern(const std::vector<LteNrTddSlotType>& pattern,
                                               std::map<uint32_t, std::vector<uint32_t>>* toSendDl,
@@ -726,17 +726,17 @@ class NrGnbPhy : public NrPhy
                                               uint32_t l1l2CtrlLatency);
 
     /**
-     * \brief Call MAC for retrieve the slot indication. Currently calls UL and DL.
-     * \param currentSlot Current slot
+     * @brief Call MAC for retrieve the slot indication. Currently calls UL and DL.
+     * @param currentSlot Current slot
      */
     void CallMacForSlotIndication(const SfnSf& currentSlot);
 
     /**
-     * \brief Retrieve a DCI list for the allocation passed as parameter
-     * \param alloc The allocation we are searching in
-     * \param format The format of the DCI (UL or DL)
-     * \param kDelay The K0 or K2 delay
-     * \return A list of control messages that can be sent
+     * @brief Retrieve a DCI list for the allocation passed as parameter
+     * @param alloc The allocation we are searching in
+     * @param format The format of the DCI (UL or DL)
+     * @param kDelay The K0 or K2 delay
+     * @return A list of control messages that can be sent
      *
      * PS: This function ignores CTRL allocations.
      */
@@ -747,8 +747,8 @@ class NrGnbPhy : public NrPhy
         uint32_t k1Delay);
 
     /**
-     * \brief Insert a fake DL allocation in the allocation list
-     * \param sfnSf The sfnSf to which we need a fake allocation
+     * @brief Insert a fake DL allocation in the allocation list
+     * @param sfnSf The sfnSf to which we need a fake allocation
      *
      * Usually called at the beginning of the simulation to fill
      * the slot allocation queue until the generation take place
@@ -756,8 +756,8 @@ class NrGnbPhy : public NrPhy
     void PushDlAllocation(const SfnSf& sfnSf) const;
 
     /**
-     * \brief Insert a fake UL allocation in the allocation list
-     * \param sfnSf The sfnSf to which we need a fake allocation
+     * @brief Insert a fake UL allocation in the allocation list
+     * @param sfnSf The sfnSf to which we need a fake allocation
      *
      * Usually called at the beginning of the simulation to fill
      * the slot allocation queue until the generation take place
@@ -765,15 +765,15 @@ class NrGnbPhy : public NrPhy
     void PushUlAllocation(const SfnSf& sfnSf) const;
 
     /**
-     * \brief Start the processing event loop
-     * \param frame Frame number
-     * \param subframe Subframe number
-     * \param slot Slot number
+     * @brief Start the processing event loop
+     * @param frame Frame number
+     * @param subframe Subframe number
+     * @param slot Slot number
      */
     void StartEventLoop(uint16_t frame, uint8_t subframe, uint16_t slot);
 
     /**
-     * \brief See if the channel should be released at the end of the slot
+     * @brief See if the channel should be released at the end of the slot
      *
      * If the channel has to be released, then m_channelStatus will be
      * TO_LOSE.
@@ -781,7 +781,7 @@ class NrGnbPhy : public NrPhy
     void DoCheckOrReleaseChannel();
 
     /**
-     * \brief Check the control messages, and route them to the NetDevice
+     * @brief Check the control messages, and route them to the NetDevice
      *
      * For FDD, we route the CTRL messages to the netdevice (maybe we are in a
      * UL bwp, and our ctrl messages have to be sent from the DL bwp).
@@ -789,14 +789,14 @@ class NrGnbPhy : public NrPhy
     void RetrievePrepareEncodeCtrlMsgs();
 
     /**
-     * \brief Prepare the RBG power distribution map for the allocations.
+     * @brief Prepare the RBG power distribution map for the allocations.
      *
-     * \param allocations scheduler allocation for this slot.
+     * @param allocations scheduler allocation for this slot.
      */
     void PrepareRbgAllocationMap(const std::deque<VarTtiAllocInfo>& allocations);
 
     /**
-     * \brief Prepare and schedule all the events needed for the current slot.
+     * @brief Prepare and schedule all the events needed for the current slot.
      */
     void FillTheEvent();
 
@@ -842,7 +842,7 @@ class NrGnbPhy : public NrPhy
         m_phyTxedCtrlMsgsTrace;
 
     /**
-     * \brief Trace information for the ctrl slot statistics
+     * @brief Trace information for the ctrl slot statistics
      */
     TracedCallback<const SfnSf&,
                    uint32_t,
@@ -854,7 +854,7 @@ class NrGnbPhy : public NrPhy
                    uint16_t>
         m_phySlotCtrlStats;
     /**
-     * \brief Trace information for the data slot statistics
+     * @brief Trace information for the data slot statistics
      */
     TracedCallback<const SfnSf&,
                    uint32_t,
@@ -882,7 +882,7 @@ class NrGnbPhy : public NrPhy
                                                      //!< where the UE has to send the Harq Feedback
 
     /**
-     * \brief Status of the channel for the PHY
+     * @brief Status of the channel for the PHY
      */
     enum ChannelStatus
     {

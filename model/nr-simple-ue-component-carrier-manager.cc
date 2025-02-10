@@ -8,7 +8,7 @@
 
 #include "nr-simple-ue-component-carrier-manager.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 namespace ns3
 {
@@ -32,7 +32,7 @@ class NrSimpleUeCcmMacSapProvider : public NrMacSapProvider
     /**
      * Constructor
      *
-     * \param mac the component carrier manager
+     * @param mac the component carrier manager
      */
     NrSimpleUeCcmMacSapProvider(NrSimpleUeComponentCarrierManager* mac);
 
@@ -72,7 +72,7 @@ class NrSimpleUeCcmMacSapUser : public NrMacSapUser
     /**
      * Constructor
      *
-     * \param mac the component carrier manager
+     * @param mac the component carrier manager
      */
     NrSimpleUeCcmMacSapUser(NrSimpleUeComponentCarrierManager* mac);
 

@@ -11,9 +11,9 @@ namespace ns3
 {
 
 /**
- * \ingroup ue-mac
- * \ingroup gnb-mac
- * \brief Mac variable-size Header for UL
+ * @ingroup ue-mac
+ * @ingroup gnb-mac
+ * @brief Mac variable-size Header for UL
  *
  * This header performs some sanity check for the LCID value, but the functionality
  * is almost the same as NrMacHeaderVs. Please note that, by standard, only
@@ -23,7 +23,7 @@ namespace ns3
  *
  * <b>Users, don't use this header directly: you've been warned.</b>
  *
- * \internal
+ * @internal
  *
  * This header must be used to report some variable-sized CE to the GNB. At
  * the moment, we don't use it.
@@ -32,23 +32,23 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return the type id of the object
+     * @brief GetTypeId
+     * @return the type id of the object
      */
     static TypeId GetTypeId();
     /**
-     * \brief GetInstanceTypeId
-     * \return the instance type id
+     * @brief GetInstanceTypeId
+     * @return the instance type id
      */
     TypeId GetInstanceTypeId() const override;
 
     /**
-     * \brief NrMacHeaderVsUl constructor
+     * @brief NrMacHeaderVsUl constructor
      */
     NrMacHeaderVsUl();
 
     /**
-     * \brief ~NrMacHeaderVsUl
+     * @brief ~NrMacHeaderVsUl
      */
     ~NrMacHeaderVsUl() override;
 
@@ -62,8 +62,8 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
     static const uint8_t LONG_BSR = 62;                     //!< Long BSR
 
     /**
-     * \brief Set the LC ID
-     * \param lcId LC ID
+     * @brief Set the LC ID
+     * @param lcId LC ID
      *
      * It will assert if the value is not inside the vector of allowed one.
      * To not make any error, please use one of the pre-defined const values in
@@ -72,8 +72,8 @@ class NrMacHeaderVsUl : public NrMacHeaderVs
     void SetLcId(uint8_t lcId) override;
 
     /**
-     * \brief Check if it really a variable-size header
-     * \return true if the lcId value stored internally matches with a variable-size header
+     * @brief Check if it really a variable-size header
+     * @return true if the lcId value stored internally matches with a variable-size header
      */
     bool IsVariableSizeHeader() const;
 };

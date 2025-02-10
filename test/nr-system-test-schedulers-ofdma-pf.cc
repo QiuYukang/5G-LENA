@@ -9,16 +9,16 @@
 using namespace ns3;
 
 /**
- * \file nr-system-test-schedulers-ofdma-pf.cc
- * \ingroup test
+ * @file nr-system-test-schedulers-ofdma-pf.cc
+ * @ingroup test
  *
- * \brief System test for OFDMA - Proportional Fair scheduler. It checks that all the
+ * @brief System test for OFDMA - Proportional Fair scheduler. It checks that all the
  * packets sent are delivered correctly.
  */
 
 /**
- * \brief The OFDMA PF scheduler system test suite
- * \ingroup test
+ * @brief The OFDMA PF scheduler system test suite
+ * @ingroup test
  *
  * It will check OFDMA PF with:
  *
@@ -31,7 +31,7 @@ class NrSystemTestSchedulerOfdmaPfSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerOfdmaPfSuite();
 };

@@ -9,15 +9,15 @@
 using namespace ns3;
 
 /**
- * \file nr-system-test-schedulers-tdma-mr.cc
- * \ingroup test
+ * @file nr-system-test-schedulers-tdma-mr.cc
+ * @ingroup test
  *
- * \brief System test for TDMA - Max Rate scheduler. It checks that all the
+ * @brief System test for TDMA - Max Rate scheduler. It checks that all the
  * packets sent are delivered correctly.
  */
 
 /**
- * \brief The TDMA MR scheduler system test suite
+ * @brief The TDMA MR scheduler system test suite
  *
  * It will check Tdma MR with:
  *
@@ -30,7 +30,7 @@ class NrSystemTestSchedulerTdmaMrSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerTdmaMrSuite();
 };

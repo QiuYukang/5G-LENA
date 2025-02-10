@@ -4,7 +4,7 @@
 
 #include "nr-mimo-matrices.h"
 
-#include <ns3/fatal-error.h>
+#include "ns3/fatal-error.h"
 
 namespace ns3
 {

@@ -24,14 +24,14 @@
 #include "nr-rlc-um.h"
 #include "nr-rlc.h"
 
-#include <ns3/abort.h>
-#include <ns3/fatal-error.h>
-#include <ns3/log.h>
-#include <ns3/object-factory.h>
-#include <ns3/object-map.h>
-#include <ns3/packet.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
+#include "ns3/abort.h"
+#include "ns3/fatal-error.h"
+#include "ns3/log.h"
+#include "ns3/object-factory.h"
+#include "ns3/object-map.h"
+#include "ns3/packet.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
 
 namespace ns3
 {
@@ -43,7 +43,7 @@ NS_LOG_COMPONENT_DEFINE("NrGnbRrc");
 ///////////////////////////////////////////
 
 /**
- * \brief Class for forwarding CMAC SAP User functions.
+ * @brief Class for forwarding CMAC SAP User functions.
  */
 class GnbRrcMemberNrGnbCmacSapUser : public NrGnbCmacSapUser
 {
@@ -51,8 +51,8 @@ class GnbRrcMemberNrGnbCmacSapUser : public NrGnbCmacSapUser
     /**
      * Constructor
      *
-     * \param rrc gNB RRC
-     * \param componentCarrierId
+     * @param rrc gNB RRC
+     * @param componentCarrierId
      */
     GnbRrcMemberNrGnbCmacSapUser(NrGnbRrc* rrc, uint8_t componentCarrierId);
 
@@ -117,8 +117,8 @@ static const std::string g_ueManagerStateName[NrUeManager::NUM_STATES] = {
 };
 
 /**
- * \param s The UE manager state.
- * \return The string representation of the given state.
+ * @param s The UE manager state.
+ * @return The string representation of the given state.
  */
 static const std::string&
 ToString(NrUeManager::State s)

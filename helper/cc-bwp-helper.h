@@ -5,10 +5,10 @@
 #ifndef CC_BWP_HELPER_H
 #define CC_BWP_HELPER_H
 
-#include <ns3/propagation-loss-model.h>
-#include <ns3/ptr.h>
-#include <ns3/spectrum-channel.h>
-#include <ns3/spectrum-propagation-loss-model.h>
+#include "ns3/propagation-loss-model.h"
+#include "ns3/ptr.h"
+#include "ns3/spectrum-channel.h"
+#include "ns3/spectrum-propagation-loss-model.h"
 
 #include <memory>
 #include <vector>
@@ -28,8 +28,8 @@ static const uint8_t MAX_CC_INTER_BAND =
         //!< one operation band)
 
 /**
- * \ingroup helper
- * \brief Spectrum part
+ * @ingroup helper
+ * @brief Spectrum part
  *
  * This is the minimum unit of usable spectrum by a PHY class. For creating
  * any GNB or UE, you will be asked to provide a list of BandwidthPartInfo
@@ -53,14 +53,14 @@ struct BandwidthPartInfo
     BandwidthPartInfo() = default;
 
     /**
-     * \brief Set the spectrum channel for the BWP
-     * \param channel The spectrum channel to be set for the BWP
+     * @brief Set the spectrum channel for the BWP
+     * @param channel The spectrum channel to be set for the BWP
      */
     void SetChannel(Ptr<SpectrumChannel> channel);
 
     /**
-     * \brief Get the spectrum channel associated with the BWP
-     * \return The spectrum channel associated with the BWP
+     * @brief Get the spectrum channel associated with the BWP
+     * @return The spectrum channel associated with the BWP
      */
     Ptr<SpectrumChannel> GetChannel() const;
 
@@ -70,26 +70,26 @@ struct BandwidthPartInfo
 };
 
 /**
- * \ingroup utils
- * \brief unique_ptr of BandwidthPartInfo
+ * @ingroup utils
+ * @brief unique_ptr of BandwidthPartInfo
  */
 typedef std::unique_ptr<BandwidthPartInfo> BandwidthPartInfoPtr;
 /**
- * \ingroup utils
- * \brief unique_ptr of a const BandwidthPartInfo
+ * @ingroup utils
+ * @brief unique_ptr of a const BandwidthPartInfo
  */
 typedef std::unique_ptr<const BandwidthPartInfo> BandwidthPartInfoConstPtr;
 /**
- * \ingroup utils
- * \brief vector of unique_ptr of BandwidthPartInfo
+ * @ingroup utils
+ * @brief vector of unique_ptr of BandwidthPartInfo
  */
 typedef std::vector<std::reference_wrapper<BandwidthPartInfoPtr>> BandwidthPartInfoPtrVector;
 
 std::ostream& operator<<(std::ostream& os, const BandwidthPartInfo& item);
 
 /**
- * \ingroup helper
- * \brief Component carrier configuration element
+ * @ingroup helper
+ * @brief Component carrier configuration element
  */
 struct ComponentCarrierInfo
 {
@@ -102,24 +102,24 @@ struct ComponentCarrierInfo
     std::vector<BandwidthPartInfoPtr> m_bwp; //!< Space for BWP
 
     /**
-     * \brief Adds a bandwidth part configuration to the carrier
+     * @brief Adds a bandwidth part configuration to the carrier
      *
-     * \param bwp Description of the BWP to be added
+     * @param bwp Description of the BWP to be added
      */
     bool AddBwp(BandwidthPartInfoPtr&& bwp);
 };
 
 /**
- * \ingroup utils
- * \brief unique_ptr of ComponentCarrierInfo
+ * @ingroup utils
+ * @brief unique_ptr of ComponentCarrierInfo
  */
 typedef std::unique_ptr<ComponentCarrierInfo> ComponentCarrierInfoPtr;
 
 std::ostream& operator<<(std::ostream& os, const ComponentCarrierInfo& item);
 
 /**
- * \ingroup utils
- * \brief Operation band information structure
+ * @ingroup utils
+ * @brief Operation band information structure
  *
  * Defines the range of frequencies of an operation band and includes a list of
  * component carriers (CC) and their contiguousness
@@ -135,24 +135,24 @@ struct OperationBandInfo
     std::vector<ComponentCarrierInfoPtr> m_cc; //!< Operation band component carriers
 
     /**
-     * \brief Adds the component carrier definition given as an input reference
+     * @brief Adds the component carrier definition given as an input reference
      * to the current operation band configuration
      *
-     * \param cc The information of the component carrier to be created
+     * @param cc The information of the component carrier to be created
      */
     bool AddCc(ComponentCarrierInfoPtr&& cc);
 
     /**
-     * \brief Get the BWP at the cc/bwp specified
-     * \param ccId Component carrier Index
-     * \param bwpId Bandwidth Part index
-     * \return a pointer to the BWP
+     * @brief Get the BWP at the cc/bwp specified
+     * @param ccId Component carrier Index
+     * @param bwpId Bandwidth Part index
+     * @return a pointer to the BWP
      */
     BandwidthPartInfoPtr& GetBwpAt(uint32_t ccId, uint32_t bwpId) const;
 
     /**
-     * \brief Get the list of all the BWPs to pass to NrHelper
-     * \return a list of BWP to pass to NrHelper::InitializeOperationBand()
+     * @brief Get the list of all the BWPs to pass to NrHelper
+     * @return a list of BWP to pass to NrHelper::InitializeOperationBand()
      */
     BandwidthPartInfoPtrVector GetBwps() const;
 };
@@ -160,8 +160,8 @@ struct OperationBandInfo
 std::ostream& operator<<(std::ostream& os, const OperationBandInfo& item);
 
 /**
- * \ingroup helper
- * \brief Manages the correct creation of operation bands, component carriers and bandwidth parts
+ * @ingroup helper
+ * @brief Manages the correct creation of operation bands, component carriers and bandwidth parts
  *
  * This class can be used to setup in an easy way the operational bands needed
  * for a simple scenario. The first thing is to setup a simple configuration,
@@ -172,8 +172,8 @@ class CcBwpCreator
 {
   public:
     /**
-     * \ingroup helper
-     * \brief Minimum configuration requirements for a OperationBand
+     * @ingroup helper
+     * @brief Minimum configuration requirements for a OperationBand
      *
      * For instance, here is the simple configuration for a single operation band
      * at 28 GHz and 100 MHz of width:
@@ -186,10 +186,10 @@ class CcBwpCreator
     struct SimpleOperationBandConf
     {
         /**
-         * \brief Default constructor
-         * \param centralFreq Central Frequency
-         * \param channelBw Bandwidth
-         * \param numCc number of component carriers in this operation band
+         * @brief Default constructor
+         * @param centralFreq Central Frequency
+         * @param channelBw Bandwidth
+         * @param numCc number of component carriers in this operation band
          */
         SimpleOperationBandConf(double centralFreq = 28e9,
                                 double channelBw = 400e6,
@@ -207,8 +207,8 @@ class CcBwpCreator
     };
 
     /**
-     * \brief Create an operation band with the CC specified
-     * \param conf Minimum configuration
+     * @brief Create an operation band with the CC specified
+     * @param conf Minimum configuration
      *
      * Creates an operation band by splitting the available bandwidth into
      * equally-large contiguous carriers. Carriers will have common parameters like numerology.
@@ -218,36 +218,36 @@ class CcBwpCreator
     OperationBandInfo CreateOperationBandContiguousCc(const SimpleOperationBandConf& conf);
 
     /**
-     * \brief Creates an operation band with non-contiguous CC.
+     * @brief Creates an operation band with non-contiguous CC.
      *
-     * \param configuration Minimum configuration for every CC.
+     * @param configuration Minimum configuration for every CC.
      */
     OperationBandInfo CreateOperationBandNonContiguousCc(
         const std::vector<SimpleOperationBandConf>& configuration);
 
     /**
-     * \brief Get all the BWP pointers from the specified vector of operation bands
-     * \param operationBands the operation bands
-     * \return the pointers to the BWP to be passed to NrHelper
+     * @brief Get all the BWP pointers from the specified vector of operation bands
+     * @param operationBands the operation bands
+     * @return the pointers to the BWP to be passed to NrHelper
      *
      */
     static BandwidthPartInfoPtrVector GetAllBwps(
         const std::vector<std::reference_wrapper<OperationBandInfo>>& operationBands);
 
     /**
-     * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
+     * @brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
      * configuration
      *
-     * \param filename The path to write the output gnuplot file
+     * @param filename The path to write the output gnuplot file
      */
     static void PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& bands,
                                          const std::string& filename);
 
     /**
-     * \brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
+     * @brief Plots the CA/BWP configuration using GNUPLOT. There must be a valid
      * configuration
      *
-     * \param filename The path to write the output gnuplot file
+     * @param filename The path to write the output gnuplot file
      */
     static void PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& bands,
                                        const std::string& filename);
@@ -269,15 +269,15 @@ class CcBwpCreator
                                                    uint8_t ccId,
                                                    uint8_t bwpNumber);
     /**
-     * \brief Plots a 2D rectangle defined by the input points and places a label
+     * @brief Plots a 2D rectangle defined by the input points and places a label
      *
-     * \param outFile The output
-     * \param index The drawn rectangle id
-     * \param xmin The minimum value of the rectangle in the horizontal (x) axis
-     * \param xmax The maximum value of the rectangle in the horizontal (x) axis
-     * \param ymin The minimum value of the rectangle in the vertical (y) axis
-     * \param ymax The minimum value of the rectangle in the vertical (y) axis
-     * \param label The text to be printed inside the rectangle
+     * @param outFile The output
+     * @param index The drawn rectangle id
+     * @param xmin The minimum value of the rectangle in the horizontal (x) axis
+     * @param xmax The maximum value of the rectangle in the horizontal (x) axis
+     * @param ymin The minimum value of the rectangle in the vertical (y) axis
+     * @param ymax The minimum value of the rectangle in the vertical (y) axis
+     * @param label The text to be printed inside the rectangle
      */
     static void PlotFrequencyBand(std::ofstream& outFile,
                                   uint16_t index,

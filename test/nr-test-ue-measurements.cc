@@ -10,34 +10,34 @@
 
 #include "nr-test-ue-measurements.h"
 
-#include <ns3/boolean.h>
-#include <ns3/callback.h>
-#include <ns3/config.h>
-#include <ns3/double.h>
-#include <ns3/enum.h>
-#include <ns3/ff-mac-scheduler.h>
-#include <ns3/internet-stack-helper.h>
-#include <ns3/ipv4-address-helper.h>
-#include <ns3/ipv4-interface-container.h>
-#include <ns3/ipv4-static-routing-helper.h>
-#include <ns3/log.h>
-#include <ns3/mobility-helper.h>
-#include <ns3/net-device-container.h>
-#include <ns3/node-container.h>
-#include <ns3/nr-common.h>
-#include <ns3/nr-epc-helper.h>
-#include <ns3/nr-gnb-net-device.h>
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/nr-gnb-rrc.h>
-#include <ns3/nr-helper.h>
-#include <ns3/nr-point-to-point-epc-helper.h>
-#include <ns3/nr-ue-net-device.h>
-#include <ns3/nr-ue-phy.h>
-#include <ns3/nr-ue-rrc.h>
-#include <ns3/point-to-point-epc-helper.h>
-#include <ns3/point-to-point-helper.h>
-#include <ns3/simulator.h>
-#include <ns3/string.h>
+#include "ns3/boolean.h"
+#include "ns3/callback.h"
+#include "ns3/config.h"
+#include "ns3/double.h"
+#include "ns3/enum.h"
+#include "ns3/ff-mac-scheduler.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-interface-container.h"
+#include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/log.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/net-device-container.h"
+#include "ns3/node-container.h"
+#include "ns3/nr-common.h"
+#include "ns3/nr-epc-helper.h"
+#include "ns3/nr-gnb-net-device.h"
+#include "ns3/nr-gnb-phy.h"
+#include "ns3/nr-gnb-rrc.h"
+#include "ns3/nr-helper.h"
+#include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-ue-net-device.h"
+#include "ns3/nr-ue-phy.h"
+#include "ns3/nr-ue-rrc.h"
+#include "ns3/point-to-point-epc-helper.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/simulator.h"
+#include "ns3/string.h"
 
 using namespace ns3;
 
@@ -223,7 +223,7 @@ NrUeMeasurementsTestSuite::NrUeMeasurementsTestSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrUeMeasurementsTestSuite nrUeMeasurementsTestSuite;
@@ -700,7 +700,7 @@ NrUeMeasurementsPiecewiseTestSuite1::NrUeMeasurementsPiecewiseTestSuite1()
 } // end of NrUeMeasurementsPiecewiseTestSuite1::NrUeMeasurementsPiecewiseTestSuite1
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrUeMeasurementsPiecewiseTestSuite1 nrUeMeasurementsPiecewiseTestSuite1;
@@ -1401,7 +1401,7 @@ NrUeMeasurementsPiecewiseTestSuite2::NrUeMeasurementsPiecewiseTestSuite2()
 } // end of NrUeMeasurementsPiecewiseTestSuite2::NrUeMeasurementsPiecewiseTestSuite2
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrUeMeasurementsPiecewiseTestSuite2 nrUeMeasurementsPiecewiseTestSuite2;
@@ -1726,7 +1726,7 @@ NrUeMeasurementsPiecewiseTestSuite3::NrUeMeasurementsPiecewiseTestSuite3()
 } // end of NrUeMeasurementsPiecewiseTestSuite3::NrUeMeasurementsPiecewiseTestSuite3
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrUeMeasurementsPiecewiseTestSuite3 nrUeMeasurementsPiecewiseTestSuite3;
@@ -2278,7 +2278,7 @@ NrUeMeasurementsHandoverTestSuite::NrUeMeasurementsHandoverTestSuite()
 } // end of NrUeMeasurementsHandoverTestSuite::NrUeMeasurementsHandoverTestSuite
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrUeMeasurementsHandoverTestSuite nrUeMeasurementsHandoverTestSuite;

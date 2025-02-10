@@ -3,25 +3,25 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/command-line.h>
-#include <ns3/constant-velocity-mobility-model.h>
-#include <ns3/flow-monitor-module.h>
-#include <ns3/isotropic-antenna-model.h>
-#include <ns3/multi-model-spectrum-channel.h>
-#include <ns3/nr-module.h>
-#include <ns3/parabolic-antenna-model.h>
-#include <ns3/point-to-point-helper.h>
-#include <ns3/pointer.h>
-#include <ns3/udp-client-server-helper.h>
+#include "ns3/command-line.h"
+#include "ns3/constant-velocity-mobility-model.h"
+#include "ns3/flow-monitor-module.h"
+#include "ns3/isotropic-antenna-model.h"
+#include "ns3/multi-model-spectrum-channel.h"
+#include "ns3/nr-module.h"
+#include "ns3/parabolic-antenna-model.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/pointer.h"
+#include "ns3/udp-client-server-helper.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("GsocNrChannelModels");
 
 /**
- * \ingroup examples
- * \file gsoc-nr-channel-models.cc
- * \brief A simple NR example demonstrating the simulation of different spectrum channels.
+ * @ingroup examples
+ * @file gsoc-nr-channel-models.cc
+ * @brief A simple NR example demonstrating the simulation of different spectrum channels.
  * This example showcases configuration of the spectrum channel with antenna and propagation
  * models that explicitly model multiple antenna elements (phased arrays), and with antenna
  * and propagation models that abstract away the individual elements (called 'non-phased' herein).
@@ -41,7 +41,7 @@ NS_LOG_COMPONENT_DEFINE("GsocNrChannelModels");
  * Each SpectrumChannel produces distinct pathloss traces, which may or may not affect the
  * statistical results.
  *
- * \note This example was produced during the Google Summer of Code 2024 program. The main author is
+ * @note This example was produced during the Google Summer of Code 2024 program. The main author is
  * João Albuquerque, under the supervision of Biljana Bojovic, Amir Ashtari, Gabriel Ferreira, in
  * project: 5G NR Module Benchmark and Analysis for Distinct Channel Models
  *

@@ -26,8 +26,8 @@ class BwpManagerGnb;
 class NrMacScheduler;
 
 /**
- * \ingroup gnb
- * \brief The NrGnbNetDevice class
+ * @ingroup gnb
+ * @brief The NrGnbNetDevice class
  *
  * This class represent the GNB NetDevice.
  */
@@ -51,18 +51,18 @@ class NrGnbNetDevice : public NrNetDevice
     uint16_t GetBwpId(uint8_t index) const;
 
     /**
-     * \return the cell id
+     * @return the cell id
      */
     uint16_t GetCellId() const;
 
     /**
-     * \return the cell ids belonging to this gNB
+     * @return the cell ids belonging to this gNB
      */
     std::vector<uint16_t> GetCellIds() const;
 
     /**
-     * \brief Set this gnb cell id
-     * \param cellId the cell id
+     * @brief Set this gnb cell id
+     * @param cellId the cell id
      */
     void SetCellId(uint16_t cellId);
 
@@ -75,43 +75,43 @@ class NrGnbNetDevice : public NrNetDevice
     void SetCcMap(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccm);
 
     /**
-     * \brief Get the size of the component carriers map
-     * \return the number of cc that we have
+     * @brief Get the size of the component carriers map
+     * @return the number of cc that we have
      */
     uint32_t GetCcMapSize() const;
 
     /**
-     * \brief Set the NrFhControl for this cell
-     * \param nrFh The ptr to the NrFhControl
+     * @brief Set the NrFhControl for this cell
+     * @param nrFh The ptr to the NrFhControl
      */
     void SetNrFhControl(Ptr<NrFhControl> nrFh);
 
     /**
-     * \brief Get the NrFhControl for this cell
-     * \return the ptr to NrFhControl
+     * @brief Get the NrFhControl for this cell
+     * @return the ptr to NrFhControl
      */
     Ptr<NrFhControl> GetNrFhControl();
 
     /**
-     * \brief The gNB received a CTRL message list.
+     * @brief The gNB received a CTRL message list.
      *
      * The gNB should divide the messages to the BWP they pertain to.
      *
-     * \param msgList Message list
-     * \param sourceBwpId BWP Id from which the list originated
+     * @param msgList Message list
+     * @param sourceBwpId BWP Id from which the list originated
      */
     void RouteIngoingCtrlMsgs(const std::list<Ptr<NrControlMessage>>& msgList, uint8_t sourceBwpId);
 
     /**
-     * \brief Route the outgoing messages to the right BWP
-     * \param msgList the list of messages
-     * \param sourceBwpId the source bwp of the messages
+     * @brief Route the outgoing messages to the right BWP
+     * @param msgList the list of messages
+     * @param sourceBwpId the source bwp of the messages
      */
     void RouteOutgoingCtrlMsgs(const std::list<Ptr<NrControlMessage>>& msgList,
                                uint8_t sourceBwpId);
 
     /**
-     * \brief Update the RRC configuration after installation
+     * @brief Update the RRC configuration after installation
      *
      * This method finishes cell configuration in the RRC once PHY
      * configuration is finished.  It must be called exactly once
@@ -133,7 +133,7 @@ class NrGnbNetDevice : public NrNetDevice
     void UpdateConfig();
 
     /**
-     * \brief Update the RRC configuration after installation
+     * @brief Update the RRC configuration after installation
      *
      * This method calls ConfigureCell() on the RRC using the component
      * carrier map that has already been installed on this net device.
@@ -157,36 +157,36 @@ class NrGnbNetDevice : public NrNetDevice
     void ConfigureCell();
 
     /**
-     * \brief Return true if ConfigureCell() has been called
-     * \return whether ConfigureCell() has been called
+     * @brief Return true if ConfigureCell() has been called
+     * @return whether ConfigureCell() has been called
      */
     bool IsCellConfigured() const;
 
     /**
-     * \brief Get downlink bandwidth for a given physical cell Id
-     * \param cellId Physical cell Id
-     * \return number of RBs
+     * @brief Get downlink bandwidth for a given physical cell Id
+     * @param cellId Physical cell Id
+     * @return number of RBs
      */
     uint16_t GetCellIdDlBandwidth(uint16_t cellId) const;
 
     /**
-     * \brief Get uplink bandwidth for a given physical cell Id
-     * \param cellId Physical cell Id
-     * \return number of RBs
+     * @brief Get uplink bandwidth for a given physical cell Id
+     * @param cellId Physical cell Id
+     * @return number of RBs
      */
     uint16_t GetCellIdUlBandwidth(uint16_t cellId) const;
 
     /**
-     * \brief Get uplink earfcn for a given physical cell Id
-     * \param cellId Physical cell Id
-     * \return downlink earfcn
+     * @brief Get uplink earfcn for a given physical cell Id
+     * @param cellId Physical cell Id
+     * @return downlink earfcn
      */
     uint32_t GetCellIdDlEarfcn(uint16_t cellId) const;
 
     /**
-     * \brief Get uplink earfcn for a given physical cell Id
-     * \param cellId Physical cell Id
-     * \return uplink earfcn
+     * @brief Get uplink earfcn for a given physical cell Id
+     * @param cellId Physical cell Id
+     * @return uplink earfcn
      */
     uint32_t GetCellIdUlEarfcn(uint16_t cellId) const;
 

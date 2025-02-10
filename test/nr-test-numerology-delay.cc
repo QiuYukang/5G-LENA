@@ -17,10 +17,10 @@
 using namespace ns3;
 
 /**
- * \file nr-test-numerology-delay.cc
- * \ingroup test
+ * @file nr-test-numerology-delay.cc
+ * @ingroup test
  *
- * \brief In this test case we want to observe delays of a single UDP packet, and to track its
+ * @brief In this test case we want to observe delays of a single UDP packet, and to track its
  * gNB processing time, air time, UE time depending on the numerology.
  */
 

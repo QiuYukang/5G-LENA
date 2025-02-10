@@ -11,8 +11,8 @@
 
 #include "nr-amc.h"
 
-#include <ns3/log.h>
-#include <ns3/nr-spectrum-value-helper.h>
+#include "ns3/log.h"
+#include "ns3/nr-spectrum-value-helper.h"
 
 namespace ns3
 {

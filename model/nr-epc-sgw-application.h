@@ -19,7 +19,7 @@ namespace ns3
 {
 
 /**
- * \ingroup nr
+ * @ingroup nr
  *
  * This application implements the Serving Gateway Entity (SGW)
  * according to the 3GPP TS 23.401 document.
@@ -39,8 +39,8 @@ class NrEpcSgwApplication : public Application
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -48,10 +48,10 @@ class NrEpcSgwApplication : public Application
     /**
      * Constructor that binds callback methods of sockets.
      *
-     * \param s1uSocket socket used to send/receive GTP-U packets to/from the gNBs
-     * \param s5Addr IPv4 address of the S5 interface
-     * \param s5uSocket socket used to send/receive GTP-U packets to/from the PGW
-     * \param s5cSocket socket used to send/receive GTP-C packets to/from the PGW
+     * @param s1uSocket socket used to send/receive GTP-U packets to/from the gNBs
+     * @param s5Addr IPv4 address of the S5 interface
+     * @param s5uSocket socket used to send/receive GTP-U packets to/from the PGW
+     * @param s5cSocket socket used to send/receive GTP-C packets to/from the PGW
      */
     NrEpcSgwApplication(const Ptr<Socket> s1uSocket,
                         Ipv4Address s5Addr,
@@ -64,24 +64,24 @@ class NrEpcSgwApplication : public Application
     /**
      * Let the SGW be aware of an MME
      *
-     * \param mmeS11Addr the address of the MME
-     * \param s11Socket the socket to send/receive messages from the MME
+     * @param mmeS11Addr the address of the MME
+     * @param s11Socket the socket to send/receive messages from the MME
      */
     void AddMme(Ipv4Address mmeS11Addr, Ptr<Socket> s11Socket);
 
     /**
      * Let the SGW be aware of a PGW
      *
-     * \param pgwAddr the address of the PGW
+     * @param pgwAddr the address of the PGW
      */
     void AddPgw(Ipv4Address pgwAddr);
 
     /**
      * Let the SGW be aware of a new gNB
      *
-     * \param cellId the cell identifier
-     * \param gnbAddr the address of the gNB
-     * \param sgwAddr the address of the SGW
+     * @param cellId the cell identifier
+     * @param gnbAddr the address of the gNB
+     * @param sgwAddr the address of the SGW
      */
     void AddGnb(uint16_t cellId, Ipv4Address gnbAddr, Ipv4Address sgwAddr);
 
@@ -90,7 +90,7 @@ class NrEpcSgwApplication : public Application
      * Method to be assigned to the recv callback of the S11 socket.
      * It is called when the SGW receives a control packet from the MME.
      *
-     * \param socket pointer to the S11 socket
+     * @param socket pointer to the S11 socket
      */
     void RecvFromS11Socket(Ptr<Socket> socket);
 
@@ -99,7 +99,7 @@ class NrEpcSgwApplication : public Application
      * It is called when the SGW receives a data packet from the PGW
      * that is to be forwarded to an gNB.
      *
-     * \param socket pointer to the S5-U socket
+     * @param socket pointer to the S5-U socket
      */
     void RecvFromS5uSocket(Ptr<Socket> socket);
 
@@ -107,7 +107,7 @@ class NrEpcSgwApplication : public Application
      * Method to be assigned to the recv callback of the S5-C socket.
      * It is called when the SGW receives a control packet from the PGW.
      *
-     * \param socket pointer to the S5-C socket
+     * @param socket pointer to the S5-C socket
      */
     void RecvFromS5cSocket(Ptr<Socket> socket);
 
@@ -116,25 +116,25 @@ class NrEpcSgwApplication : public Application
      * It is called when the SGW receives a data packet from the gNB
      * that is to be forwarded to the PGW.
      *
-     * \param socket pointer to the S1-U socket
+     * @param socket pointer to the S1-U socket
      */
     void RecvFromS1uSocket(Ptr<Socket> socket);
 
     /**
      * Send a data packet to the PGW via the S5 interface
      *
-     * \param packet packet to be sent
-     * \param pgwAddr the address of the PGW
-     * \param teid the Tunnel Endpoint Identifier
+     * @param packet packet to be sent
+     * @param pgwAddr the address of the PGW
+     * @param teid the Tunnel Endpoint Identifier
      */
     void SendToS5uSocket(Ptr<Packet> packet, Ipv4Address pgwAddr, uint32_t teid);
 
     /**
      * Send a data packet to an gNB via the S1-U interface
      *
-     * \param packet packet to be sent
-     * \param gnbS1uAddress the address of the gNB
-     * \param teid the Tunnel Endpoint Identifier
+     * @param packet packet to be sent
+     * @param gnbS1uAddress the address of the gNB
+     * @param teid the Tunnel Endpoint Identifier
      */
     void SendToS1uSocket(Ptr<Packet> packet, Ipv4Address gnbS1uAddress, uint32_t teid);
 
@@ -142,25 +142,25 @@ class NrEpcSgwApplication : public Application
 
     /**
      * Process GTP-C Create Session Request message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvCreateSessionRequest(Ptr<Packet> packet);
 
     /**
      * Process GTP-C Modify Bearer Request message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvModifyBearerRequest(Ptr<Packet> packet);
 
     /**
      * Process GTP-C Delete Bearer Command message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvDeleteBearerCommand(Ptr<Packet> packet);
 
     /**
      * Process GTP-C Delete Bearer Response message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvDeleteBearerResponse(Ptr<Packet> packet);
 
@@ -168,19 +168,19 @@ class NrEpcSgwApplication : public Application
 
     /**
      * Process GTP-C Create Session Response message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvCreateSessionResponse(Ptr<Packet> packet);
 
     /**
      * Process GTP-C Modify Bearer Response message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvModifyBearerResponse(Ptr<Packet> packet);
 
     /**
      * Process GTP-C Delete Bearer Request message
-     * \param packet the packet containing the message
+     * @param packet the packet containing the message
      */
     void DoRecvDeleteBearerRequest(Ptr<Packet> packet);
 

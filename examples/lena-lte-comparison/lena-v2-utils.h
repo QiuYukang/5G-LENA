@@ -7,8 +7,8 @@
 
 #include "sinr-output-stats.h"
 
-#include <ns3/hexagonal-grid-scenario-helper.h>
-#include <ns3/nr-module.h>
+#include "ns3/hexagonal-grid-scenario-helper.h"
+#include "ns3/nr-module.h"
 
 namespace ns3
 {

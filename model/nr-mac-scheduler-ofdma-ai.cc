@@ -5,8 +5,8 @@
 
 #include "nr-mac-scheduler-ofdma-ai.h"
 
-#include <ns3/boolean.h>
-#include <ns3/log.h>
+#include "ns3/boolean.h"
+#include "ns3/log.h"
 
 #include <algorithm>
 #include <functional>

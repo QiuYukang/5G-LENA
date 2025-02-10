@@ -11,12 +11,12 @@
 #include "nr-gnb-phy.h"
 #include "nr-gnb-rrc.h"
 
-#include <ns3/abort.h>
-#include <ns3/ipv4-l3-protocol.h>
-#include <ns3/ipv6-l3-protocol.h>
-#include <ns3/log.h>
-#include <ns3/object-map.h>
-#include <ns3/pointer.h>
+#include "ns3/abort.h"
+#include "ns3/ipv4-l3-protocol.h"
+#include "ns3/ipv6-l3-protocol.h"
+#include "ns3/log.h"
+#include "ns3/object-map.h"
+#include "ns3/pointer.h"
 
 namespace ns3
 {

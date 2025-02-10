@@ -11,9 +11,9 @@ namespace ns3
 {
 
 /**
- * \ingroup ue-mac
- * \ingroup gnb-mac
- * \brief Mac fixed-size Header for DL
+ * @ingroup ue-mac
+ * @ingroup gnb-mac
+ * @brief Mac fixed-size Header for DL
  *
  * This header performs some sanity check for the LCID value, but the functionality
  * is almost the same as NrMacHeaderFs. Please note that, by standard, only
@@ -23,7 +23,7 @@ namespace ns3
  *
  * <b>Users, don't use this header directly: you've been warned.</b>
  *
- * \internal
+ * @internal
  *
  * This header must be used to report some fixed-sized CE to the UE. At
  * the moment, we don't use it.
@@ -32,23 +32,23 @@ class NrMacHeaderFsDl : public NrMacHeaderFs
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return the type id of the object
+     * @brief GetTypeId
+     * @return the type id of the object
      */
     static TypeId GetTypeId();
     /**
-     * \brief GetInstanceTypeId
-     * \return the instance type id
+     * @brief GetInstanceTypeId
+     * @return the instance type id
      */
     TypeId GetInstanceTypeId() const override;
 
     /**
-     * \brief NrMacHeaderFsDl constructor
+     * @brief NrMacHeaderFsDl constructor
      */
     NrMacHeaderFsDl();
 
     /**
-     * \brief ~NrMacHeaderFsDl
+     * @brief ~NrMacHeaderFsDl
      */
     ~NrMacHeaderFsDl() override;
 
@@ -69,8 +69,8 @@ class NrMacHeaderFsDl : public NrMacHeaderFs
     static const uint8_t UE_CONTENTION_RESOLUTION = 62; //!< UE Contention resolution identity
 
     /**
-     * \brief Set the LC ID
-     * \param lcId LC ID
+     * @brief Set the LC ID
+     * @param lcId LC ID
      *
      * It will assert if the value is not inside the vector of allowed one.
      * To not make any error, please use one of the pre-defined const values in
@@ -79,8 +79,8 @@ class NrMacHeaderFsDl : public NrMacHeaderFs
     void SetLcId(uint8_t lcId) override;
 
     /**
-     * \brief Check if it really a fixed-size header
-     * \return true if the lcId value stored internally matches with a fixed-size header
+     * @brief Check if it really a fixed-size header
+     * @return true if the lcId value stored internally matches with a fixed-size header
      */
     bool IsFixedSizeHeader() const;
 };

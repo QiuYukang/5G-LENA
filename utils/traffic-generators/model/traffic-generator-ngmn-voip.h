@@ -8,7 +8,7 @@
 
 #include "traffic-generator.h"
 
-#include <ns3/random-variable-stream.h>
+#include "ns3/random-variable-stream.h"
 
 namespace ns3
 {
@@ -44,8 +44,8 @@ class TrafficGeneratorNgmnVoip : public TrafficGenerator
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -64,8 +64,8 @@ class TrafficGeneratorNgmnVoip : public TrafficGenerator
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream) override;
 
@@ -75,7 +75,7 @@ class TrafficGeneratorNgmnVoip : public TrafficGenerator
 
   private:
     /*
-     * \brief Inherited from Application base class.
+     * @brief Inherited from Application base class.
      *  In its implementation it calculates the transition probabilities between
      *  active and inactive VOIP states
      *  // Called at time specified by Start by the DoInitialize method
@@ -84,26 +84,26 @@ class TrafficGeneratorNgmnVoip : public TrafficGenerator
     void StopApplication() override;
 
     /*
-     * \brief Updates the model state (ACTIVE/INACTIVE).
+     * @brief Updates the model state (ACTIVE/INACTIVE).
      * The model is assumed updated at the speech encoder frame rate R=1/T,
      * where T is the encoder frame duration (typically, 20ms)
      */
     void UpdateState();
 
     /**
-     * \brief Generates the packet burst size in bytes
+     * @brief Generates the packet burst size in bytes
      */
     void GenerateNextPacketBurstSize() override;
 
     /**
-     * \brief Get the amount of data to transfer
-     * \return the amount of data to transfer
+     * @brief Get the amount of data to transfer
+     * @return the amount of data to transfer
      */
     uint32_t GetNextPacketSize() const override;
 
     /**
-     * \brief Get the relative time when the next packet should be sent
-     * \return the relative time when the next packet will be sent
+     * @brief Get the relative time when the next packet should be sent
+     * @return the relative time when the next packet will be sent
      */
     Time GetNextPacketTime() const override;
 

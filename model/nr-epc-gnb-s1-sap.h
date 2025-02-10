@@ -9,7 +9,7 @@
 
 #include "nr-eps-bearer.h"
 
-#include <ns3/ipv4-address.h>
+#include "ns3/ipv4-address.h"
 
 #include <list>
 
@@ -30,16 +30,16 @@ class NrEpcGnbS1SapProvider
     /**
      * Initial UE message.
      *
-     * \param imsi IMSI
-     * \param rnti RNTI
+     * @param imsi IMSI
+     * @param rnti RNTI
      */
     virtual void InitialUeMessage(uint64_t imsi, uint16_t rnti) = 0;
 
     /**
-     * \brief Triggers epc-gnb-application to send ERAB Release Indication message towards MME
-     * \param imsi the UE IMSI
-     * \param rnti the UE RNTI
-     * \param bearerId Bearer Identity which is to be de-activated
+     * @brief Triggers epc-gnb-application to send ERAB Release Indication message towards MME
+     * @param imsi the UE IMSI
+     * @param rnti the UE RNTI
+     * @param bearerId Bearer Identity which is to be de-activated
      */
     virtual void DoSendReleaseIndication(uint64_t imsi, uint16_t rnti, uint8_t bearerId) = 0;
 
@@ -62,7 +62,7 @@ class NrEpcGnbS1SapProvider
     /**
      * Path Switch Request
      *
-     * \param params
+     * @param params
      */
     virtual void PathSwitchRequest(PathSwitchRequestParameters params) = 0;
 
@@ -71,7 +71,7 @@ class NrEpcGnbS1SapProvider
      * reception of the UE CONTEXT RELEASE X2 message from the target gNB
      * during X2-based handover
      *
-     * \param rnti RNTI
+     * @param rnti RNTI
      */
     virtual void UeContextRelease(uint16_t rnti) = 0;
 };
@@ -98,7 +98,7 @@ class NrEpcGnbS1SapUser
     /**
      * Initial context setup request
      *
-     * \param params Parameters
+     * @param params Parameters
      */
     virtual void InitialContextSetupRequest(InitialContextSetupRequestParameters params) = 0;
 
@@ -118,7 +118,7 @@ class NrEpcGnbS1SapUser
     /**
      * Request the setup of a DataRadioBearer
      *
-     * \param params Parameters
+     * @param params Parameters
      */
     virtual void DataRadioBearerSetupRequest(DataRadioBearerSetupRequestParameters params) = 0;
 
@@ -131,7 +131,7 @@ class NrEpcGnbS1SapUser
     /**
      * Request a path switch acknowledge
      *
-     * \param params Parameters
+     * @param params Parameters
      */
     virtual void PathSwitchRequestAcknowledge(PathSwitchRequestAcknowledgeParameters params) = 0;
 };
@@ -147,7 +147,7 @@ class NrMemberEpcGnbS1SapProvider : public NrEpcGnbS1SapProvider
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     NrMemberEpcGnbS1SapProvider(C* owner);
 
@@ -212,7 +212,7 @@ class NrMemberEpcGnbS1SapUser : public NrEpcGnbS1SapUser
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     NrMemberEpcGnbS1SapUser(C* owner);
 

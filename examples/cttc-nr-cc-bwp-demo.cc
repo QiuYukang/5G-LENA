@@ -21,10 +21,10 @@
 #include "ns3/point-to-point-module.h"
 
 /**
- * \file cttc-nr-cc-bwp-demo.cc
- * \ingroup examples
+ * @file cttc-nr-cc-bwp-demo.cc
+ * @ingroup examples
  *
- * \brief Creates a NR TDD deployment with a configurable number of sites, UEs, downlink and uplink
+ * @brief Creates a NR TDD deployment with a configurable number of sites, UEs, downlink and uplink
 flows.
  *
  * This example describes how to setup a simulation using the 3GPP channel model

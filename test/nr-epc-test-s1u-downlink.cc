@@ -14,6 +14,8 @@
 #include "ns3/inet-socket-address.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/ipv4-static-routing.h"
 #include "ns3/log.h"
 #include "ns3/nr-epc-gnb-application.h"
 #include "ns3/nr-eps-bearer.h"
@@ -25,25 +27,23 @@
 #include "ns3/test.h"
 #include "ns3/udp-echo-helper.h"
 #include "ns3/uinteger.h"
-#include <ns3/ipv4-static-routing-helper.h>
-#include <ns3/ipv4-static-routing.h>
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("NrEpcTestS1uDownlink");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Custom structure for testing UE downlink data
+ * @brief Custom structure for testing UE downlink data
  */
 struct UeDlTestData
 {
     /**
      * Constructor
      *
-     * \param n number of packets
-     * \param s packet size
+     * @param n number of packets
+     * @param s packet size
      */
     UeDlTestData(uint32_t n, uint32_t s);
 
@@ -61,9 +61,9 @@ UeDlTestData::UeDlTestData(uint32_t n, uint32_t s)
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Custom structure for testing eNodeB downlink data, contains
+ * @brief Custom structure for testing eNodeB downlink data, contains
  * the list of data structures for UEs
  */
 struct GnbDlTestData
@@ -72,9 +72,9 @@ struct GnbDlTestData
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief NrEpcS1uDlTestCase class
+ * @brief NrEpcS1uDlTestCase class
  */
 class NrEpcS1uDlTestCase : public TestCase
 {
@@ -82,8 +82,8 @@ class NrEpcS1uDlTestCase : public TestCase
     /**
      * Constructor
      *
-     * \param name the name of the test case instance
-     * \param v list of eNodeB downlink test data information
+     * @param name the name of the test case instance
+     * @param v list of eNodeB downlink test data information
      */
     NrEpcS1uDlTestCase(std::string name, std::vector<GnbDlTestData> v);
     ~NrEpcS1uDlTestCase() override;

@@ -20,8 +20,8 @@ class Address;
 class Socket;
 
 /**
- * \ingroup applications
- * \defgroup traffic TrafficGenerator
+ * @ingroup applications
+ * @defgroup traffic TrafficGenerator
  *
  * This traffic generator simply sends data
  * as fast as possible up to FileSize or until
@@ -39,8 +39,8 @@ class TrafficGenerator : public Application
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -49,7 +49,7 @@ class TrafficGenerator : public Application
     ~TrafficGenerator() override;
 
     /**
-     * \brief Get the total number of bytes that have been sent during this
+     * @brief Get the total number of bytes that have been sent during this
      *        object's lifetime.
      *
      * return the total number of bytes that have been sent
@@ -57,7 +57,7 @@ class TrafficGenerator : public Application
     uint64_t GetTotalBytes() const;
 
     /**
-     * \brief Get the total number of packets that have been sent during this
+     * @brief Get the total number of packets that have been sent during this
      *        object's lifetime.
      *
      * return the total number of packets that have been sent
@@ -65,7 +65,7 @@ class TrafficGenerator : public Application
     uint64_t GetTotalPackets() const;
 
     /**
-     * \brief Send another packet burst, which can be e.g., a file, or a video frame
+     * @brief Send another packet burst, which can be e.g., a file, or a video frame
      *
      * return true if another packet burst was started; false if the request
      *        didn't succeed (possibly because another transfer is ongoing)
@@ -73,21 +73,21 @@ class TrafficGenerator : public Application
     bool SendPacketBurst();
 
     /**
-     * \brief Get the socket this application is attached to.
-     * \return pointer to associated socket
+     * @brief Get the socket this application is attached to.
+     * @return pointer to associated socket
      */
     Ptr<Socket> GetSocket() const;
 
     /**
-     * \brief Sets the packet size
+     * @brief Sets the packet size
      */
     void SetPacketSize(uint32_t packetSize);
     /**
-     * \brief Sets the remote address
+     * @brief Sets the remote address
      */
     void SetRemote(Address remote);
     /**
-     * \brief Sets the protocol
+     * @brief Sets the protocol
      */
     void SetProtocol(TypeId protocol);
 
@@ -100,8 +100,8 @@ class TrafficGenerator : public Application
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream) override;
 
@@ -109,39 +109,39 @@ class TrafficGenerator : public Application
     void DoDispose() override;
     void DoInitialize() override;
     /*
-     * \brief Used by child classes to configure the burst size in the number
+     * @brief Used by child classes to configure the burst size in the number
      * of bytes when GenerateNextPucketBurstSize is called
      */
     void SetPacketBurstSizeInBytes(uint32_t burstSize);
     /*
-     * \brief Used by child classes to configure the burst size in the number
+     * @brief Used by child classes to configure the burst size in the number
      * of packets when GenerateNextPucketBurstSize is called
      */
     void SetPacketBurstSizeInPackets(uint32_t burstSize);
     /*
-     * \brief Returns the latest generated packet burst size in the number
+     * @brief Returns the latest generated packet burst size in the number
      * of bytes
      */
     uint32_t GetPacketBurstSizeInBytes() const;
     /*
-     * \brief Returns the latest generated packet burst size in the number
+     * @brief Returns the latest generated packet burst size in the number
      * of bytes
      */
     uint32_t GetPacketBurstSizeInPackets() const;
     /*
-     * \brief Called at the time specified by the Stop.
+     * @brief Called at the time specified by the Stop.
      * Notice that we want to allow that child classes can call stop of this class,
      * which is why we change its default access level from private to protected.
      */
     void StopApplication() override; // Called at time specified by Stop
     /*
-     * \return Traffic generator ID
+     * @return Traffic generator ID
      */
     uint16_t GetTgId() const;
 
     /*
-     * \brief Returns peer address
-     * \return the peer address
+     * @brief Returns peer address
+     * @return the peer address
      */
     Address GetPeer() const;
 
@@ -149,53 +149,53 @@ class TrafficGenerator : public Application
     // inherited from Application base class.
     void StartApplication() override; // Called at time specified by Start
     /**
-     * \brief Send next packet.
+     * @brief Send next packet.
      * Send packet until the L4 transmission buffer is full, or all
      * scheduled packets are sent, or all packet burst is being sent.
      */
     void SendNextPacket();
     /**
-     * \brief Connection Succeeded (called by Socket through a callback)
-     * \param socket the connected socket
+     * @brief Connection Succeeded (called by Socket through a callback)
+     * @param socket the connected socket
      */
     void ConnectionSucceeded(Ptr<Socket> socket);
     /**
-     * \brief Connection Failed (called by Socket through a callback)
-     * \param socket the connected socket
+     * @brief Connection Failed (called by Socket through a callback)
+     * @param socket the connected socket
      */
     void ConnectionFailed(Ptr<Socket> socket);
     /**
-     * \brief Close Succeeded (called by Socket through a callback)
-     * \param socket the closed socket
+     * @brief Close Succeeded (called by Socket through a callback)
+     * @param socket the closed socket
      */
     void CloseSucceeded(Ptr<Socket> socket);
     /**
-     * \brief Close Failed (called by Socket through a callback)
-     * \param socket the closed socket
+     * @brief Close Failed (called by Socket through a callback)
+     * @param socket the closed socket
      */
     void CloseFailed(Ptr<Socket> socket);
     /**
-     * \brief Send more data as soon as some has been transmitted.
+     * @brief Send more data as soon as some has been transmitted.
      */
     void SendNextPacketIfConnected(Ptr<Socket>, uint32_t);
     /**
-     * \brief This function can be used by child classes to schedule some event
+     * @brief This function can be used by child classes to schedule some event
      * after sending the file
      */
     virtual void PacketBurstSent();
     /**
-     * \brief Generate the next packet burst size in bytes or packets
+     * @brief Generate the next packet burst size in bytes or packets
      */
     virtual void GenerateNextPacketBurstSize();
     /**
-     * \brief Returns what is the next packet size. Overridden by child classes
+     * @brief Returns what is the next packet size. Overridden by child classes
      * that generate variable packet sizes
      */
     virtual uint32_t GetNextPacketSize() const = 0;
     /**
-     * \brief Get the relative time when the next packet should be sent. Override
+     * @brief Get the relative time when the next packet should be sent. Override
      * this function if there is some specific inter packet interval time.
-     * \return the relative time when the next packet will be sent
+     * @return the relative time when the next packet will be sent
      */
     virtual Time GetNextPacketTime() const;
 

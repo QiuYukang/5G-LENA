@@ -11,9 +11,9 @@ namespace ns3
 {
 
 /**
- *\ingroup scheduler
+ *@ingroup scheduler
  *
- * \brief Algorithm for distributing the assigned bytes to the different
+ * @brief Algorithm for distributing the assigned bytes to the different
  * LCGs/LCs of a UE based on the resource type and the ERAB guaranteed bit rate
  *
  */
@@ -21,22 +21,22 @@ class NrMacSchedulerLcQos : public NrMacSchedulerLcAlgorithm
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrMacSchedulerLcQos constructor
+     * @brief NrMacSchedulerLcQos constructor
      */
     NrMacSchedulerLcQos();
     /**
-     * \brief NrMacSchedulerLcQos deconstructor
+     * @brief NrMacSchedulerLcQos deconstructor
      */
     ~NrMacSchedulerLcQos() override;
 
     /**
-     * \brief Method to decide how to distribute the assigned bytes to the different LCs
+     * @brief Method to decide how to distribute the assigned bytes to the different LCs
      *        for the DL direction. This algorithm is based on the resource type and the
      *        guaranteed bitrate information of an LC.
      *        In particular, the operation is divided in 4 parts:
@@ -53,21 +53,21 @@ class NrMacSchedulerLcQos : public NrMacSchedulerLcAlgorithm
      *        4. The rest of the bytes, if any, are assigned in the rest of the LCs in RR
      *        fashion.
      *
-     * \param ueLCG LCG of an UE
-     * \param tbs TBS to divide between the LCG/LC
-     * \return A vector of Assignation
+     * @param ueLCG LCG of an UE
+     * @param tbs TBS to divide between the LCG/LC
+     * @return A vector of Assignation
      */
     std::vector<Assignation> AssignBytesToDlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                                uint32_t tbs,
                                                Time slotPeriod) const override;
 
     /**
-     * \brief Method to decide how to distribute the assigned bytes to the different LCs
+     * @brief Method to decide how to distribute the assigned bytes to the different LCs
      *        for the UL direction. Due to the scheduler limitation the applied algorithm
      *        distributes bytes in a RR fashion (see NrMacSchedulerLcAlgorithm).
-     * \param ueLCG LCG of an UE
-     * \param tbs TBS to divide between the LCG/LC
-     * \return A vector of Assignation
+     * @param ueLCG LCG of an UE
+     * @param tbs TBS to divide between the LCG/LC
+     * @return A vector of Assignation
      */
     std::vector<Assignation> AssignBytesToUlLC(const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
                                                uint32_t tbs) const override;

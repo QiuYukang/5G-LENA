@@ -22,9 +22,9 @@
 #include "nr-phy-mac-common.h"
 #include "nr-radio-bearer-tag.h"
 
-#include <ns3/log.h>
-#include <ns3/spectrum-model.h>
-#include <ns3/uinteger.h>
+#include "ns3/log.h"
+#include "ns3/spectrum-model.h"
+#include "ns3/uinteger.h"
 
 #include <algorithm>
 
@@ -536,7 +536,7 @@ NrGnbMac::SetNumHarqProcess(uint8_t numHarqProcess)
 }
 
 /**
- * \return number of HARQ processes
+ * @return number of HARQ processes
  */
 uint8_t
 NrGnbMac::GetNumHarqProcess() const

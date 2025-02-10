@@ -5,8 +5,8 @@
 #ifndef NR_CB_TYPE_ONE_H
 #define NR_CB_TYPE_ONE_H
 
-#include <ns3/matrix-array.h>
-#include <ns3/object.h>
+#include "ns3/matrix-array.h"
+#include "ns3/object.h"
 
 namespace ns3
 {
@@ -20,30 +20,30 @@ constexpr size_t NR_CB_TYPE_ONE_INIT_NI1 = 1;
 constexpr size_t NR_CB_TYPE_ONE_INIT_NI2 = 1;
 constexpr size_t NR_CB_TYPE_ONE_INIT_NPORTS = 1;
 
-/// \brief Wrapper class for implementations of Type-I precoding matrices in 3GPP TS 38.214.
+/// @brief Wrapper class for implementations of Type-I precoding matrices in 3GPP TS 38.214.
 /// A separate object must be instantiated for each MIMO rank.
 class NrCbTypeOne : public Object
 {
   public:
-    /// \brief Get TypeId
-    /// \return the TypeId
+    /// @brief Get TypeId
+    /// @return the TypeId
     static TypeId GetTypeId();
 
-    /// \brief Initialize the codebook parameters after construction, based on attribute values.
+    /// @brief Initialize the codebook parameters after construction, based on attribute values.
     virtual void Init() = 0;
 
-    /// \brief Get number of i1 values.
-    /// \return the number of wideband precoding indices i1
+    /// @brief Get number of i1 values.
+    /// @return the number of wideband precoding indices i1
     size_t GetNumI1() const;
 
-    /// \brief Get number of i2 values.
-    /// \return the number of subband precoding indices i2
+    /// @brief Get number of i2 values.
+    /// @return the number of subband precoding indices i2
     size_t GetNumI2() const;
 
-    /// \brief Get the 2D precoding matrix.
-    /// \param i1 the index of the wideband precoding
-    /// \param i2 the index of the subband precoding
-    /// \return the precoding matrix of size m_nPorts x m_rank
+    /// @brief Get the 2D precoding matrix.
+    /// @param i1 the index of the wideband precoding
+    /// @param i2 the index of the subband precoding
+    /// @return the precoding matrix of size m_nPorts x m_rank
     virtual ComplexMatrixArray GetBasePrecMat(size_t i1, size_t i2) const = 0;
 
   protected:

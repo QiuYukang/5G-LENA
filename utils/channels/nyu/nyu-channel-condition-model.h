@@ -19,9 +19,9 @@ namespace ns3
 {
 
 /**
- * \ingroup propagation
+ * @ingroup propagation
  *
- * \brief Base class for the NYU channel condition models
+ * @brief Base class for the NYU channel condition models
  *
  */
 class NYUChannelConditionModel : public ChannelConditionModel
@@ -29,8 +29,8 @@ class NYUChannelConditionModel : public ChannelConditionModel
   public:
     /**
      * Get the type ID.
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -45,15 +45,15 @@ class NYUChannelConditionModel : public ChannelConditionModel
     ~NYUChannelConditionModel() override;
 
     /**
-     * \brief Retrieve the condition of the channel between a and b.
+     * @brief Retrieve the condition of the channel between a and b.
      *
      * If the channel condition does not exists, the method computes it by calling
      * ComputeChannelCondition and stores it in a local cache, that will be updated
      * following the "UpdatePeriod" parameter.
      *
-     * \param a mobility model
-     * \param b mobility model
-     * \return the condition of the channel between a and b
+     * @param a mobility model
+     * @param b mobility model
+     * @return the condition of the channel between a and b
      */
     Ptr<ChannelCondition> GetChannelCondition(Ptr<const MobilityModel> a,
                                               Ptr<const MobilityModel> b) const override;
@@ -63,8 +63,8 @@ class NYUChannelConditionModel : public ChannelConditionModel
      * 'stream'. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream the offset used to set the stream numbers
-     * \return the number of stream indices assigned by this model
+     * @param stream the offset used to set the stream numbers
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream) override;
 
@@ -72,10 +72,10 @@ class NYUChannelConditionModel : public ChannelConditionModel
     void DoDispose() override;
 
     /**
-     * \brief Computes the 2D distance between two 3D vectors
-     * \param a the first 3D vector
-     * \param b the second 3D vector
-     * \return the 2D distance between a and b
+     * @brief Computes the 2D distance between two 3D vectors
+     * @param a the first 3D vector
+     * @param b the second 3D vector
+     * @return the 2D distance between a and b
      */
     static double Calculate2dDistance(const Vector& a, const Vector& b);
 
@@ -86,9 +86,9 @@ class NYUChannelConditionModel : public ChannelConditionModel
      * This method computes the channel condition based on a probabilistic model
      * that is specific for the scenario of interest
      *
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the channel condition
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the channel condition
      */
     Ptr<ChannelCondition> ComputeChannelCondition(Ptr<const MobilityModel> a,
                                                   Ptr<const MobilityModel> b) const;
@@ -96,17 +96,17 @@ class NYUChannelConditionModel : public ChannelConditionModel
     /**
      * Compute the LOS probability.
      *
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the LOS probability
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the LOS probability
      */
     virtual double ComputePlos(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const = 0;
 
     /**
-     * \brief Returns a unique and reciprocal key for the channel between a and b.
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return channel key
+     * @brief Returns a unique and reciprocal key for the channel between a and b.
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return channel key
      */
     static uint32_t GetKey(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b);
 
@@ -125,9 +125,9 @@ class NYUChannelConditionModel : public ChannelConditionModel
 };
 
 /**
- * \ingroup propagation
+ * @ingroup propagation
  *
- * \brief Computes the channel condition for the RMa Scenario
+ * @brief Computes the channel condition for the RMa Scenario
  *
  * Computes the channel condition following the specifications for the RMa
  * scenario reported in Table 7.4.2-1 of 3GPP TR 38.901
@@ -137,8 +137,8 @@ class NYURmaChannelConditionModel : public NYUChannelConditionModel
   public:
     /**
      * Get the type ID.
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -156,17 +156,17 @@ class NYURmaChannelConditionModel : public NYUChannelConditionModel
     /**
      * Compute the LOS probability for 0.5-150 GHz for the RMa scenario.
      *
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the LOS probability
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the LOS probability
      */
     double ComputePlos(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const override;
 };
 
 /**
- * \ingroup propagation
+ * @ingroup propagation
  *
- * \brief Computes the channel condition for the UMa Scenario
+ * @brief Computes the channel condition for the UMa Scenario
  *
  * Computes the channel condition(LOS/NLOS) for UMa in NYU Channel Model
  * as specified in https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7999294&tag=1
@@ -177,8 +177,8 @@ class NYUUmaChannelConditionModel : public NYUChannelConditionModel
   public:
     /**
      * Get the type ID.
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -196,17 +196,17 @@ class NYUUmaChannelConditionModel : public NYUChannelConditionModel
     /**
      * Compute the LOS probability for 0.5-150 GHz for the UMa scenario.
      *
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the LOS probability
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the LOS probability
      */
     double ComputePlos(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const override;
 };
 
 /**
- * \ingroup propagation
+ * @ingroup propagation
  *
- * \brief Computes the channel condition for the UMi Scenario
+ * @brief Computes the channel condition for the UMi Scenario
  *
  * Computes the channel condition(LOS/NLOS) for the UMi scenario  in NYU Channel Model
  * as specified in https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7999294&tag=1
@@ -217,8 +217,8 @@ class NYUUmiChannelConditionModel : public NYUChannelConditionModel
   public:
     /**
      * Get the type ID.
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -235,17 +235,17 @@ class NYUUmiChannelConditionModel : public NYUChannelConditionModel
   private:
     /**
      * Compute the LOS probability for 0.5 - 150 GHz for the UMi scenario.
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the LOS probability
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the LOS probability
      */
     double ComputePlos(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const override;
 };
 
 /**
- * \ingroup propagation
+ * @ingroup propagation
  *
- * \brief Computes the channel condition for the InH Scenario
+ * @brief Computes the channel condition for the InH Scenario
  *
  * Computes the channel condition(LOS/NLOS) for InH in NYU Channel Model
  * as specified in https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7999294 (table III, row 2)
@@ -255,8 +255,8 @@ class NYUInHChannelConditionModel : public NYUChannelConditionModel
   public:
     /**
      * Get the type ID.
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -274,17 +274,17 @@ class NYUInHChannelConditionModel : public NYUChannelConditionModel
     /**
      * Compute the LOS probability for 0.5-150 GHz for the InH scenario.
      *
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the LOS probability
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the LOS probability
      */
     double ComputePlos(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const override;
 };
 
 /**
- * \ingroup propagation
+ * @ingroup propagation
  *
- * \brief Computes the channel condition for the InF Scenario
+ * @brief Computes the channel condition for the InF Scenario
  *
  * Computes the channel condition(LOS/NLOS) for InF in NYU Channel Model
  * by generating a random value between 0 and 1.
@@ -294,8 +294,8 @@ class NYUInFChannelConditionModel : public NYUChannelConditionModel
   public:
     /**
      * Get the type ID.
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -314,9 +314,9 @@ class NYUInFChannelConditionModel : public NYUChannelConditionModel
      * Compute the LOS probability for 0.5-150 GHz for the InF scenario.
      * To be extended in future with the NYU LOS Probability model for above 100 GHz
      *
-     * \param a tx mobility model
-     * \param b rx mobility model
-     * \return the LOS probability
+     * @param a tx mobility model
+     * @param b rx mobility model
+     * @return the LOS probability
      */
     double ComputePlos(Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const override;
 };

@@ -7,10 +7,10 @@
 #include "nr-ue-mac.h"
 #include "nr-ue-phy.h"
 
-#include <ns3/abort.h>
-#include <ns3/boolean.h>
-#include <ns3/log.h>
-#include <ns3/pointer.h>
+#include "ns3/abort.h"
+#include "ns3/boolean.h"
+#include "ns3/log.h"
+#include "ns3/pointer.h"
 
 namespace ns3
 {

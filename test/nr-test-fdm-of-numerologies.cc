@@ -17,10 +17,10 @@
 using namespace ns3;
 
 /**
- * \file nr-test-fdm-of-numerologies.cc
- * \ingroup test
+ * @file nr-test-fdm-of-numerologies.cc
+ * @ingroup test
  *
- * \brief This test case checks if the throughput achieved over certain bandwidth part
+ * @brief This test case checks if the throughput achieved over certain bandwidth part
  * is proportional to the bandwidth of that bandwidth part.
  * The test scenario consists of a scenario in which two UEs are attached to a
  * gNB, and perform UDP full buffer downlink traffic.

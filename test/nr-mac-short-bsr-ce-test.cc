@@ -2,27 +2,27 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/nr-mac-short-bsr-ce.h>
-#include <ns3/test.h>
+#include "ns3/nr-mac-short-bsr-ce.h"
+#include "ns3/test.h"
 
 /**
- * \file test-nr-mac-vs-header.cc
- * \ingroup test
- * \brief Unit-testing for the variable-size MAC header, DL and UL
+ * @file test-nr-mac-vs-header.cc
+ * @ingroup test
+ * @brief Unit-testing for the variable-size MAC header, DL and UL
  *
  */
 namespace ns3
 {
 
 /**
- * \brief
+ * @brief
  */
 class NrMacShortBsrCeTest : public TestCase
 {
   public:
     /**
-     * \brief Constructor
-     * \param name Name of the test
+     * @brief Constructor
+     * @param name Name of the test
      */
     NrMacShortBsrCeTest(const std::string& name)
         : TestCase(name)

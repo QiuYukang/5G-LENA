@@ -8,7 +8,7 @@
 
 #include "traffic-generator.h"
 
-#include <ns3/random-variable-stream.h>
+#include "ns3/random-variable-stream.h"
 
 namespace ns3
 {
@@ -40,20 +40,20 @@ class TrafficGeneratorNgmnFtpMulti : public TrafficGenerator
 
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     /*
-     * \brief Constructor
+     * @brief Constructor
      */
     TrafficGeneratorNgmnFtpMulti();
     /*
-     * \brief Destructor
+     * @brief Destructor
      */
     ~TrafficGeneratorNgmnFtpMulti() override;
     /**
-     * \brief Sets the packet size
+     * @brief Sets the packet size
      */
     void SetPacketSize(uint32_t packetSize);
 
@@ -62,8 +62,8 @@ class TrafficGeneratorNgmnFtpMulti : public TrafficGenerator
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream) override;
 
@@ -78,22 +78,22 @@ class TrafficGeneratorNgmnFtpMulti : public TrafficGenerator
     // Called at time specified by Start by the DoInitialize method
     void StartApplication() override;
     /**
-     * \brief Generates reading time using exponential distribution
+     * @brief Generates reading time using exponential distribution
      *
      */
     void PacketBurstSent() override;
     /**
-     * \brief Generate the next file size to transfer
+     * @brief Generate the next file size to transfer
      */
     void GenerateNextPacketBurstSize() override;
     /**
-     * \brief Get next reading time
-     * \return the next reading time
+     * @brief Get next reading time
+     * @return the next reading time
      */
     Time GetNextReadingTime();
     /**
-     * \brief Get the amount of data to transfer
-     * \return the amount of data to transfer
+     * @brief Get the amount of data to transfer
+     * @return the amount of data to transfer
      */
     uint32_t GetNextPacketSize() const override;
 

@@ -5,39 +5,39 @@
 
 #include "nr-test-deactivate-bearer.h"
 
+#include "ns3/boolean.h"
+#include "ns3/config.h"
+#include "ns3/constant-position-mobility-model.h"
 #include "ns3/double.h"
+#include "ns3/enum.h"
 #include "ns3/internet-module.h"
 #include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/log.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/net-device-container.h"
 #include "ns3/network-module.h"
+#include "ns3/node-container.h"
+#include "ns3/nr-bearer-stats-calculator.h"
+#include "ns3/nr-eps-bearer.h"
+#include "ns3/nr-gnb-net-device.h"
+#include "ns3/nr-gnb-phy.h"
+#include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-ue-net-device.h"
+#include "ns3/nr-ue-phy.h"
+#include "ns3/nr-ue-rrc.h"
+#include "ns3/object.h"
 #include "ns3/packet-sink-helper.h"
+#include "ns3/packet.h"
 #include "ns3/point-to-point-helper.h"
+#include "ns3/ptr.h"
 #include "ns3/radio-bearer-stats-calculator.h"
+#include "ns3/rng-seed-manager.h"
+#include "ns3/simulator.h"
 #include "ns3/string.h"
+#include "ns3/test.h"
+#include "ns3/type-id.h"
 #include "ns3/udp-client-server-helper.h"
-#include <ns3/boolean.h>
-#include <ns3/config.h>
-#include <ns3/constant-position-mobility-model.h>
-#include <ns3/enum.h>
-#include <ns3/log.h>
-#include <ns3/mobility-helper.h>
-#include <ns3/net-device-container.h>
-#include <ns3/node-container.h>
-#include <ns3/nr-bearer-stats-calculator.h>
-#include <ns3/nr-eps-bearer.h>
-#include <ns3/nr-gnb-net-device.h>
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/nr-helper.h>
-#include <ns3/nr-ue-net-device.h>
-#include <ns3/nr-ue-phy.h>
-#include <ns3/nr-ue-rrc.h>
-#include <ns3/object.h>
-#include <ns3/packet.h>
-#include <ns3/ptr.h>
-#include <ns3/rng-seed-manager.h>
-#include <ns3/simulator.h>
-#include <ns3/test.h>
-#include <ns3/type-id.h>
 
 #include <iostream>
 #include <sstream>
@@ -74,7 +74,7 @@ NrTestBearerDeactivateSuite::NrTestBearerDeactivateSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrTestBearerDeactivateSuite lenaTestBearerDeactivateSuite;

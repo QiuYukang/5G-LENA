@@ -23,8 +23,8 @@ class NrRlcTag : public Tag
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     TypeId GetInstanceTypeId() const override;
@@ -35,7 +35,7 @@ class NrRlcTag : public Tag
     NrRlcTag();
     /**
      * Create an RLC tag with the given senderTimestamp
-     * \param senderTimestamp the time
+     * @param senderTimestamp the time
      */
     NrRlcTag(Time senderTimestamp);
 

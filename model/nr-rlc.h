@@ -12,11 +12,11 @@
 
 #include "ns3/nstime.h"
 #include "ns3/object.h"
+#include "ns3/packet.h"
+#include "ns3/simple-ref-count.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/traced-value.h"
 #include "ns3/uinteger.h"
-#include <ns3/packet.h>
-#include <ns3/simple-ref-count.h>
 
 namespace ns3
 {
@@ -43,8 +43,8 @@ class NrRlc : public Object // SimpleRefCount<NrRlc>
     NrRlc();
     ~NrRlc() override;
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -52,75 +52,75 @@ class NrRlc : public Object // SimpleRefCount<NrRlc>
     /**
      *
      *
-     * \param rnti
+     * @param rnti
      */
     void SetRnti(uint16_t rnti);
 
     /**
      *
      *
-     * \param lcId
+     * @param lcId
      */
     void SetLcId(uint8_t lcId);
 
     /**
-     * \param packetDelayBudget
+     * @param packetDelayBudget
      */
     void SetPacketDelayBudgetMs(uint16_t packetDelayBudget);
 
     /**
      *
      *
-     * \param s the RLC SAP user to be used by this NR_RLC
+     * @param s the RLC SAP user to be used by this NR_RLC
      */
     void SetNrRlcSapUser(NrRlcSapUser* s);
 
     /**
      *
      *
-     * \return the RLC SAP Provider interface offered to the PDCP by this NR_RLC
+     * @return the RLC SAP Provider interface offered to the PDCP by this NR_RLC
      */
     NrRlcSapProvider* GetNrRlcSapProvider();
 
     /**
      *
      *
-     * \param s the MAC SAP Provider to be used by this NR_RLC
+     * @param s the MAC SAP Provider to be used by this NR_RLC
      */
     void SetNrMacSapProvider(NrMacSapProvider* s);
 
     /**
      *
      *
-     * \return the MAC SAP User interface offered to the MAC by this NR_RLC
+     * @return the MAC SAP User interface offered to the MAC by this NR_RLC
      */
     NrMacSapUser* GetNrMacSapUser();
 
     /**
      * TracedCallback signature for NotifyTxOpportunity events.
      *
-     * \param [in] rnti C-RNTI scheduled.
-     * \param [in] lcid The logical channel id corresponding to
+     * @param [in] rnti C-RNTI scheduled.
+     * @param [in] lcid The logical channel id corresponding to
      *             the sending RLC instance.
-     * \param [in] bytes The number of bytes to transmit
+     * @param [in] bytes The number of bytes to transmit
      */
     typedef void (*NotifyTxTracedCallback)(uint16_t rnti, uint8_t lcid, uint32_t bytes);
 
     /**
      * TracedCallback signature for
      *
-     * \param [in] rnti C-RNTI scheduled.
-     * \param [in] lcid The logical channel id corresponding to
+     * @param [in] rnti C-RNTI scheduled.
+     * @param [in] lcid The logical channel id corresponding to
      *             the sending RLC instance.
-     * \param [in] bytes The packet size.
-     * \param [in] delay Delay since sender timestamp, in ns.
+     * @param [in] bytes The packet size.
+     * @param [in] delay Delay since sender timestamp, in ns.
      */
     typedef void (*ReceiveTracedCallback)(uint16_t rnti,
                                           uint8_t lcid,
                                           uint32_t bytes,
                                           uint64_t delay);
 
-    /// \todo MRE What is the sense to duplicate all the interfaces here???
+    /// @todo MRE What is the sense to duplicate all the interfaces here???
     // NB to avoid the use of multiple inheritance
 
   protected:
@@ -128,7 +128,7 @@ class NrRlc : public Object // SimpleRefCount<NrRlc>
     /**
      * Transmit PDCP PDU
      *
-     * \param p packet
+     * @param p packet
      */
     virtual void DoTransmitPdcpPdu(Ptr<Packet> p) = 0;
 
@@ -139,7 +139,7 @@ class NrRlc : public Object // SimpleRefCount<NrRlc>
     /**
      * Notify transmit opportunity
      *
-     * \param params NrMacSapUser::TxOpportunityParameters
+     * @param params NrMacSapUser::TxOpportunityParameters
      */
     virtual void DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters params) = 0;
     /**
@@ -149,7 +149,7 @@ class NrRlc : public Object // SimpleRefCount<NrRlc>
     /**
      * Receive PDU function
      *
-     * \param params the NrMacSapUser::ReceivePduParameters
+     * @param params the NrMacSapUser::ReceivePduParameters
      */
     virtual void DoReceivePdu(NrMacSapUser::ReceivePduParameters params) = 0;
 
@@ -190,8 +190,8 @@ class NrRlcSm : public NrRlc
     NrRlcSm();
     ~NrRlcSm() override;
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoInitialize() override;

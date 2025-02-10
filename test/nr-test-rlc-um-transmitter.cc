@@ -42,7 +42,7 @@ NrRlcUmTransmitterTestSuite::NrRlcUmTransmitterTestSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrRlcUmTransmitterTestSuite nrRlcUmTransmitterTestSuite;

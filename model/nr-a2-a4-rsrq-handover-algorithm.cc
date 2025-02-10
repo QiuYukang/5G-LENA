@@ -13,8 +13,8 @@
 
 #include "nr-a2-a4-rsrq-handover-algorithm.h"
 
-#include <ns3/log.h>
-#include <ns3/uinteger.h>
+#include "ns3/log.h"
+#include "ns3/uinteger.h"
 
 #include <algorithm>
 
@@ -212,7 +212,7 @@ NrA2A4RsrqHandoverAlgorithm::IsValidNeighbour(uint16_t cellId)
     NS_LOG_FUNCTION(this << cellId);
 
     /**
-     * \todo In the future, this function can be expanded to validate whether the
+     * @todo In the future, this function can be expanded to validate whether the
      *       neighbour cell is a valid target cell, e.g., taking into account the
      *       NRT in ANR and whether it is a CSG cell with closed access.
      */

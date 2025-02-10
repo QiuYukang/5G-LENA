@@ -6,10 +6,10 @@
 
 #include "nr-component-carrier.h"
 
-#include <ns3/abort.h>
-#include <ns3/boolean.h>
-#include <ns3/log.h>
-#include <ns3/uinteger.h>
+#include "ns3/abort.h"
+#include "ns3/boolean.h"
+#include "ns3/log.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

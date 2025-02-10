@@ -5,11 +5,11 @@
 #include "grid-scenario-helper.h"
 
 #include "ns3/core-module.h"
+#include "ns3/double.h"
+#include "ns3/log.h"
+#include "ns3/mobility-helper.h"
 #include "ns3/mobility-model.h"
-#include <ns3/double.h>
-#include <ns3/log.h>
-#include <ns3/mobility-helper.h>
-#include <ns3/position-allocator.h>
+#include "ns3/position-allocator.h"
 
 namespace ns3
 {

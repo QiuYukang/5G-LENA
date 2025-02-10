@@ -4,8 +4,8 @@
 
 #include "file-scenario-helper.h"
 
-#include <ns3/core-module.h>
-#include <ns3/mobility-module.h>
+#include "ns3/core-module.h"
+#include "ns3/mobility-module.h"
 
 #include <cmath> // M_PI (but non-standard)
 #include <sstream>
@@ -17,15 +17,15 @@ namespace
 {
 
 /**
- * \brief Creates a GNUPLOT with the deployment including base stations
+ * @brief Creates a GNUPLOT with the deployment including base stations
  * (BS) and user terminals (UT). Positions and cell
  * radius must be given in meters
  *
- * \param sitePositioner Site position allocator
- * \param utPositioner Vector of user terminals positions
- * \param numSectors the plot deployment sector parameter
- * \param maxRadius the plot deployment max radius
- * \param effIsd the plot deployment ISD
+ * @param sitePositioner Site position allocator
+ * @param utPositioner Vector of user terminals positions
+ * @param numSectors the plot deployment sector parameter
+ * @param maxRadius the plot deployment max radius
+ * @param effIsd the plot deployment ISD
  */
 void
 PlotDeployment(const Ptr<const ListPositionAllocator>& sitePositioner,

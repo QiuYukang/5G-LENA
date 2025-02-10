@@ -8,12 +8,12 @@
 #include "nr-chunk-processor.h"
 #include "nr-interference-base.h"
 
-#include <ns3/nstime.h>
-#include <ns3/object.h>
-#include <ns3/spectrum-signal-parameters.h>
-#include <ns3/spectrum-value.h>
-#include <ns3/traced-callback.h>
-#include <ns3/vector.h>
+#include "ns3/nstime.h"
+#include "ns3/object.h"
+#include "ns3/spectrum-signal-parameters.h"
+#include "ns3/spectrum-value.h"
+#include "ns3/traced-callback.h"
+#include "ns3/vector.h"
 
 namespace ns3
 {
@@ -27,9 +27,9 @@ class NrErrorModel;
 class NrMimoChunkProcessor;
 
 /**
- * \ingroup spectrum
+ * @ingroup spectrum
  *
- * \brief The NrInterference class inherits LteInterference which
+ * @brief The NrInterference class inherits LteInterference which
  * implements a gaussian interference model, i.e., all
  * incoming signals are added to the total interference.
  * NrInterference class extends this functionality to support
@@ -40,51 +40,51 @@ class NrInterference : public NrInterferenceBase
 {
   public:
     /**
-     * \brief NrInterference constructor
+     * @brief NrInterference constructor
      */
     NrInterference();
     /**
-     * \brief ~NrInterference
+     * @brief ~NrInterference
      */
     ~NrInterference() override;
     /**
-     * \brief Get the object TypeId
-     * \return the object TypeId
+     * @brief Get the object TypeId
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
     void AddSignal(Ptr<const SpectrumValue> spd, Time duration) override;
 
     /**
-     * \brief Checks if the sum of the energy, including the energies that start
+     * @brief Checks if the sum of the energy, including the energies that start
      * at this moment is greater than provided energy detection threshold.
      * If yes it returns true, otherwise false.
-     * \param energyW energy detection threshold used to evaluate if the channel
+     * @param energyW energy detection threshold used to evaluate if the channel
      * is busy
-     * \return Returns true if the energy is above provided threshold. Otherwise
+     * @return Returns true if the energy is above provided threshold. Otherwise
      * false.
      */
     bool IsChannelBusyNow(double energyW);
 
     /**
-     * \brief Returns the duration of the energy that is above the energy
+     * @brief Returns the duration of the energy that is above the energy
      * provided detection threshold
-     * \param energyW energy detection threshold used to evaluate if the channel
+     * @param energyW energy detection threshold used to evaluate if the channel
      * is busy
-     * \return Duration of the energy that is above provided energy detection
+     * @return Duration of the energy that is above provided energy detection
      * threshold.
      */
     Time GetEnergyDuration(double energyW);
 
     /**
-     * \brief Crates events corresponding to the new energy. One event corresponds
+     * @brief Crates events corresponding to the new energy. One event corresponds
      * to the moment when the energy starts, and another to the moment that energy
      * ends and in that event the energy is negative, or it is being subtracted.
      * This function also updates the list of events, i.e. it removed the events
      * belonging to the signals that have finished.
-     * \param startTime Energy start time
-     * \param endTime Energy end time
-     * \param rxPowerW Power of the energy in Watts
+     * @param startTime Energy start time
+     * @param endTime Energy end time
+     * @param rxPowerW Power of the energy in Watts
      */
     void AppendEvent(Time startTime, Time endTime, double rxPowerW);
     /**
@@ -95,29 +95,29 @@ class NrInterference : public NrInterferenceBase
     // inherited from LteInterference
     void EndRx() override;
 
-    /// \brief Notify that a new signal is being perceived in the medium.
+    /// @brief Notify that a new signal is being perceived in the medium.
     /// This method is to be called for all incoming signals, including interference.
     /// This method handles MIMO signals and also calls LteInterference to cover SISO signals.
-    /// \param params The spectrum signal parameters of the new signal
-    /// \param duration The duration of the new signal
+    /// @param params The spectrum signal parameters of the new signal
+    /// @param duration The duration of the new signal
     virtual void AddSignalMimo(Ptr<const SpectrumSignalParameters> params, const Time& duration);
 
-    /// \brief Notify the intended receiver that a new signal is being received.
+    /// @brief Notify the intended receiver that a new signal is being received.
     /// This method is to be called only for the useful signal-of-interest.
     /// This method handles MIMO signals and also calls LteInterference to cover SISO signals.
-    /// \param params The spectrum signal parameters of the new signal
+    /// @param params The spectrum signal parameters of the new signal
     virtual void StartRxMimo(Ptr<const SpectrumSignalParameters> params);
 
-    /// \brief Notify that a signals transmission is ending.
+    /// @brief Notify that a signals transmission is ending.
     /// This means that the signal will be removed from the lists of RX and interfering signals.
     /// This method handles MIMO signals and also calls LteInterference to cover SISO signals.
-    /// \param params The spectrum signal parameters of the ending signal
-    /// \param signalId The LteInterference signalId
+    /// @param params The spectrum signal parameters of the ending signal
+    /// @param signalId The LteInterference signalId
     virtual void DoSubtractSignalMimo(Ptr<const SpectrumSignalParameters> params,
                                       uint32_t signalId);
 
-    /// \brief Add a chunk processor for MIMO signals
-    /// \param cp The NrMimoChunkProcessor to be added
+    /// @brief Add a chunk processor for MIMO signals
+    /// @param cp The NrMimoChunkProcessor to be added
     virtual void AddMimoChunkProcessor(Ptr<NrMimoChunkProcessor> cp);
 
     /**
@@ -127,30 +127,30 @@ class NrInterference : public NrInterferenceBase
     bool IsChunkProcessorSet();
 
   private:
-    /// \brief Calculate interference-plus-noise covariance matrix for signals not in m_rxSignals
+    /// @brief Calculate interference-plus-noise covariance matrix for signals not in m_rxSignals
     /// This function computes the interference signals from all out-of-cell interferers. The
     /// intra-cell interference signals that are part of m_rxSignals are skipped.
-    /// \return the interference+noise covariance matrix for out-of-cell interference
+    /// @return the interference+noise covariance matrix for out-of-cell interference
     NrCovMat CalcOutOfCellInterfCov() const;
 
-    /// \brief Add the remaining interference to the interference-and-noise covariance matrix
+    /// @brief Add the remaining interference to the interference-and-noise covariance matrix
     /// This function is required for MU-MIMO UL, where the signal from a different UE within the
     /// same cell can act as interference towards the current signal.
-    /// \param rxSignal the parameters of the received signal-of-interest
-    /// \param outOfCellInterfCov the covariance matrix of out-of-cell signals, plus noise
-    /// \return the interference+noise covariance matrix for the current signal
+    /// @param rxSignal the parameters of the received signal-of-interest
+    /// @param outOfCellInterfCov the covariance matrix of out-of-cell signals, plus noise
+    /// @return the interference+noise covariance matrix for the current signal
     NrCovMat CalcCurrInterfCov(Ptr<const SpectrumSignalParameters> rxSignal,
                                const NrCovMat& outOfCellInterfCov) const;
 
-    /// \brief Add the covariance of the signal to an existing covariance matrix
-    /// \param covMat the existing interference-and-noise covariance matrix
-    /// \param signal the signal to be added
+    /// @brief Add the covariance of the signal to an existing covariance matrix
+    /// @param covMat the existing interference-and-noise covariance matrix
+    /// @param signal the signal to be added
     void AddInterference(NrCovMat& covMat, Ptr<const SpectrumSignalParameters> signal) const;
 
-    /// \brief Compute the SINR of the current receive signal
-    /// \param outOfCellInterfCov the covariance matrix of out-of-cell signals, plus noise
-    /// \param rxSignal the receive signal
-    /// \return the SINR of the receive signal
+    /// @brief Compute the SINR of the current receive signal
+    /// @param outOfCellInterfCov the covariance matrix of out-of-cell signals, plus noise
+    /// @param rxSignal the receive signal
+    /// @return the SINR of the receive signal
     NrSinrMatrix ComputeSinr(NrCovMat& outOfCellInterfCov,
                              Ptr<const SpectrumSignalParameters> rxSignal) const;
 
@@ -172,27 +172,27 @@ class NrInterference : public NrInterferenceBase
         /**
          * Create a NiChange at the given time and the amount of NI change.
          *
-         * \param time time of the event
-         * \param delta the power
+         * @param time time of the event
+         * @param delta the power
          */
         NiChange(Time time, double delta);
         /**
          * Return the event time.
          *
-         * \return the event time.
+         * @return the event time.
          */
         Time GetTime() const;
         /**
          * Return the power
          *
-         * \return the power
+         * @return the power
          */
         double GetDelta() const;
         /**
          * Compare the event time of two NiChange objects (a < o).
          *
-         * \param o
-         * \return true if a < o.time, false otherwise
+         * @param o
+         * @return true if a < o.time, false otherwise
          */
         bool operator<(const NiChange& o) const;
 
@@ -207,7 +207,7 @@ class NrInterference : public NrInterferenceBase
     typedef std::vector<NiChange> NiChanges;
 
     /**
-     * \brief Find a position in event list that corresponds to a given
+     * @brief Find a position in event list that corresponds to a given
      * moment. Note that all events are saved when they start and when
      * they end. When they start, the energy the signal brings is saved as
      * the positive value, and the event when the energy finish is
@@ -223,13 +223,13 @@ class NrInterference : public NrInterferenceBase
 
     /**
      * Add NiChange to the list at the appropriate position.
-     * \param change
+     * @param change
      */
     void AddNiChangeEvent(NiChange change);
 
   protected:
     /**
-     * \brief DoDispose method inherited from Object
+     * @brief DoDispose method inherited from Object
      */
     void DoDispose() override;
 

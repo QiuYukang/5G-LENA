@@ -5,8 +5,8 @@
 #ifndef SYSTEM_SCHEDULER_TEST_H
 #define SYSTEM_SCHEDULER_TEST_H
 
-#include <ns3/ptr.h>
-#include <ns3/test.h>
+#include "ns3/ptr.h"
+#include "ns3/test.h"
 
 namespace ns3
 {
@@ -14,10 +14,10 @@ namespace ns3
 class Packet;
 
 /**
- * \file system-scheduler-test.h
- * \ingroup test
+ * @file system-scheduler-test.h
+ * @ingroup test
  *
- * \brief This test case checks if the throughput obtained per UE is as expected for
+ * @brief This test case checks if the throughput obtained per UE is as expected for
  * the specified scheduling logic.
  * The test scenario consists of a scenario in which various UEs are attached to a single gNB.
  * UEs transmit a fixed amount of packets, at a certain rate, and the test
@@ -27,24 +27,24 @@ class Packet;
  */
 
 /**
- * \ingroup test
- * \brief Main class for testing a scheduler, system-wise
+ * @ingroup test
+ * @brief Main class for testing a scheduler, system-wise
  */
 class SystemSchedulerTest : public TestCase
 {
   public:
     /**
-     * \brief SystemSchedulerTest is a test constructor which is used to initialise
+     * @brief SystemSchedulerTest is a test constructor which is used to initialise
      *        the test parameters.
-     * \param name A unique test configuration name
-     * \param usersPerBeamNum How many users will be installed per beam
-     * \param numOfBeams Into how many beams of gNB will be distributed UEs attached to it.
+     * @param name A unique test configuration name
+     * @param usersPerBeamNum How many users will be installed per beam
+     * @param numOfBeams Into how many beams of gNB will be distributed UEs attached to it.
      *        The maximum for this test case is 4.
-     * \param numerology The numerology to be used in the simulation
-     * \param bw1 The system bandwidth (Hz)
-     * \param isDownlink Is the downlink traffic going to be present in the test case
-     * \param isUplink Is the uplink traffic going to be present in the test case
-     * \param schedulerType Which scheduler is going to be used in the test case
+     * @param numerology The numerology to be used in the simulation
+     * @param bw1 The system bandwidth (Hz)
+     * @param isDownlink Is the downlink traffic going to be present in the test case
+     * @param isUplink Is the uplink traffic going to be present in the test case
+     * @param schedulerType Which scheduler is going to be used in the test case
      *        Ofdma/Tdma" and the scheduling logic RR, PF, of MR
      */
     SystemSchedulerTest(const std::string& name,
@@ -56,7 +56,7 @@ class SystemSchedulerTest : public TestCase
                         bool isUplink,
                         const std::string& schedulerType);
     /**
-     * \brief ~SystemSchedulerTest
+     * @brief ~SystemSchedulerTest
      */
     ~SystemSchedulerTest() override;
 

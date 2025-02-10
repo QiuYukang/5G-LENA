@@ -11,9 +11,9 @@
 #ifndef NR_TEST_UE_MEASUREMENTS_H
 #define NR_TEST_UE_MEASUREMENTS_H
 
-#include <ns3/nr-rrc-sap.h>
-#include <ns3/nstime.h>
-#include <ns3/test.h>
+#include "ns3/nr-rrc-sap.h"
+#include "ns3/nstime.h"
+#include "ns3/test.h"
 
 #include <list>
 #include <set>
@@ -31,9 +31,9 @@ using namespace ns3;
 // ===== NR-UE-MEASUREMENTS TEST SUITE ==================================== //
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test that UE Measurements (see 36.214) calculation works fine in a
+ * @brief Test that UE Measurements (see 36.214) calculation works fine in a
  * multi-cell interference scenario.
  */
 class NrUeMeasurementsTestSuite : public TestSuite
@@ -43,9 +43,9 @@ class NrUeMeasurementsTestSuite : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test that UE measurements calculation works properly in a scenario
+ * @brief Test that UE measurements calculation works properly in a scenario
  * with 2 eNodeBs and 2UEs. Test that RSRP and RSRQ of the serving cell and of
  * the neighbor cell correspond to the reference values.
  */
@@ -55,13 +55,13 @@ class NrUeMeasurementsTestCase : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
-     * \param d1 distance between UE and gNB node pair
-     * \param d2 distance between UE and other gNB node
-     * \param rsrpDbmUe1 RSRP in dBm UE 1
-     * \param rsrpDbmUe2 RSRP in dBm UE 2
-     * \param rsrqDbUe1 RSRQ in dBm UE 1
-     * \param rsrqDbUe2 RSRQ in dBm UE 2
+     * @param name the reference name
+     * @param d1 distance between UE and gNB node pair
+     * @param d2 distance between UE and other gNB node
+     * @param rsrpDbmUe1 RSRP in dBm UE 1
+     * @param rsrpDbmUe2 RSRP in dBm UE 2
+     * @param rsrqDbUe1 RSRQ in dBm UE 1
+     * @param rsrqDbUe2 RSRQ in dBm UE 2
      */
     NrUeMeasurementsTestCase(std::string name,
                              double d1,
@@ -74,11 +74,11 @@ class NrUeMeasurementsTestCase : public TestCase
 
     /**
      * Report UE measurements function
-     * \param rnti the RNTI
-     * \param cellId the cell ID
-     * \param rsrp the RSRP
-     * \param rsrq the RSRQ
-     * \param servingCell the serving cell
+     * @param rnti the RNTI
+     * @param cellId the cell ID
+     * @param rsrp the RSRP
+     * @param rsrq the RSRQ
+     * @param servingCell the serving cell
      */
     void ReportUeMeasurements(uint16_t rnti,
                               uint16_t cellId,
@@ -88,10 +88,10 @@ class NrUeMeasurementsTestCase : public TestCase
 
     /**
      * Reeive measurement report function
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti the RNTI
-     * \param meas NrRrcSap::MeasurementReport
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti the RNTI
+     * @param meas NrRrcSap::MeasurementReport
      */
     void RecvMeasurementReport(uint64_t imsi,
                                uint16_t cellId,
@@ -112,9 +112,9 @@ class NrUeMeasurementsTestCase : public TestCase
 // ===== NR-UE-MEASUREMENTS-PIECEWISE-1 TEST SUITE ======================== //
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test suite for generating calls to UE measurements test case
+ * @brief Test suite for generating calls to UE measurements test case
  *        ns3::NrUeMeasurementsPiecewiseTestCase1.
  */
 class NrUeMeasurementsPiecewiseTestSuite1 : public TestSuite
@@ -124,9 +124,9 @@ class NrUeMeasurementsPiecewiseTestSuite1 : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Testing UE measurements in NR with simulation of 1 eNodeB and 1 UE in
+ * @brief Testing UE measurements in NR with simulation of 1 eNodeB and 1 UE in
  *        piecewise configuration and 120 ms report interval. During the simulation
  *        the placement of UE is being changed several times. Four different
  *        cases are considered: UE is very near to eNodeB, UE is near to eNodeB,
@@ -146,10 +146,10 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
-     * \param config NrRrcSap::ReportConfigEutra
-     * \param expectedTime the expected time
-     * \param expectedRsrp the expected RSRP
+     * @param name the reference name
+     * @param config NrRrcSap::ReportConfigEutra
+     * @param expectedTime the expected time
+     * @param expectedRsrp the expected RSRP
      */
     NrUeMeasurementsPiecewiseTestCase1(std::string name,
                                        NrRrcSap::ReportConfigEutra config,
@@ -159,7 +159,7 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
     ~NrUeMeasurementsPiecewiseTestCase1() override;
 
     /**
-     * \brief Triggers when eNodeB receives measurement report from UE, then
+     * @brief Triggers when eNodeB receives measurement report from UE, then
      *        perform verification on it.
      *
      * The trigger is set up beforehand by connecting to the
@@ -168,11 +168,11 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
      * Verification consists of checking whether the report carries the right
      * value of RSRP or not, and whether it occurs at the expected time or not.
      *
-     * \param context the context
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti  the RNTI
-     * \param report NrRrcSap::MeasurementReport
+     * @param context the context
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti  the RNTI
+     * @param report NrRrcSap::MeasurementReport
      */
     void RecvMeasurementReportCallback(std::string context,
                                        uint64_t imsi,
@@ -182,7 +182,7 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
 
   private:
     /**
-     * \brief Setup the simulation with the intended UE measurement reporting
+     * @brief Setup the simulation with the intended UE measurement reporting
      *        configuration, run it, and connect the
      *        `RecvMeasurementReportCallback` function to the
      *        `NrUeRrc::RecvMeasurementReport` trace source.
@@ -190,7 +190,7 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
     void DoRun() override;
 
     /**
-     * \brief Runs at the end of the simulation, verifying that all expected
+     * @brief Runs at the end of the simulation, verifying that all expected
      *        measurement reports have been examined.
      */
     void DoTeardown() override;
@@ -205,36 +205,36 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
     void TeleportVeryFar();
 
     /**
-     * \brief The active report triggering configuration.
+     * @brief The active report triggering configuration.
      */
     NrRrcSap::ReportConfigEutra m_config;
 
     /**
-     * \brief The list of expected time when measurement reports are received by
+     * @brief The list of expected time when measurement reports are received by
      *        eNodeB.
      */
     std::vector<Time> m_expectedTime;
 
     /**
-     * \brief The list of expected values of RSRP (in 3GPP range unit) from the
+     * @brief The list of expected values of RSRP (in 3GPP range unit) from the
      *        measurement reports received.
      */
     std::vector<uint8_t> m_expectedRsrp;
 
     /**
-     * \brief Pointer to the element of `m_expectedTime` which is expected to
+     * @brief Pointer to the element of `m_expectedTime` which is expected to
      *        occur next in the simulation.
      */
     std::vector<Time>::iterator m_itExpectedTime;
 
     /**
-     * \brief Pointer to the element of `m_expectedRsrp` which is expected to
+     * @brief Pointer to the element of `m_expectedRsrp` which is expected to
      *        occur next in the simulation.
      */
     std::vector<uint8_t>::iterator m_itExpectedRsrp;
 
     /**
-     * \brief The measurement identity being tested. Measurement reports with
+     * @brief The measurement identity being tested. Measurement reports with
      *        different measurement identity (e.g. from handover algorithm) will
      *        be ignored.
      */
@@ -247,9 +247,9 @@ class NrUeMeasurementsPiecewiseTestCase1 : public TestCase
 // ===== NR-UE-MEASUREMENTS-PIECEWISE-2 TEST SUITE ======================== //
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test suite for generating calls to UE measurements test case
+ * @brief Test suite for generating calls to UE measurements test case
  *        ns3::NrUeMeasurementsPiecewiseTestCase2.
  */
 class NrUeMeasurementsPiecewiseTestSuite2 : public TestSuite
@@ -259,9 +259,9 @@ class NrUeMeasurementsPiecewiseTestSuite2 : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Testing UE measurements in NR with simulation of 2 eNodeB and 1 UE in
+ * @brief Testing UE measurements in NR with simulation of 2 eNodeB and 1 UE in
  *        piecewise configuration and 240 ms report interval.
  *        Here is intenisvely test events A1 and A2. A1 event should be triggered
  *        when the serving cell becomes better than a given threshold. A2 shall
@@ -281,10 +281,10 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
-     * \param config NrRrcSap::ReportConfigEutra
-     * \param expectedTime the expected time
-     * \param expectedRsrp the expected RSRP
+     * @param name the reference name
+     * @param config NrRrcSap::ReportConfigEutra
+     * @param expectedTime the expected time
+     * @param expectedRsrp the expected RSRP
      */
     NrUeMeasurementsPiecewiseTestCase2(std::string name,
                                        NrRrcSap::ReportConfigEutra config,
@@ -294,7 +294,7 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
     ~NrUeMeasurementsPiecewiseTestCase2() override;
 
     /**
-     * \brief Triggers when eNodeB receives measurement report from UE, then
+     * @brief Triggers when eNodeB receives measurement report from UE, then
      *        perform verification on it.
      *
      * The trigger is set up beforehand by connecting to the
@@ -303,11 +303,11 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
      * Verification consists of checking whether the report carries the right
      * value of RSRP or not, and whether it occurs at the expected time or not.
      *
-     * \param context the context
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti  the RNTI
-     * \param report NrRrcSap::MeasurementReport
+     * @param context the context
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti  the RNTI
+     * @param report NrRrcSap::MeasurementReport
      */
     void RecvMeasurementReportCallback(std::string context,
                                        uint64_t imsi,
@@ -317,7 +317,7 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
 
   private:
     /**
-     * \brief Setup the simulation with the intended UE measurement reporting
+     * @brief Setup the simulation with the intended UE measurement reporting
      *        configuration, run it, and connect the
      *        `RecvMeasurementReportCallback` function to the
      *        `NrUeRrc::RecvMeasurementReport` trace source.
@@ -325,7 +325,7 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
     void DoRun() override;
 
     /**
-     * \brief Runs at the end of the simulation, verifying that all expected
+     * @brief Runs at the end of the simulation, verifying that all expected
      *        measurement reports have been examined.
      */
     void DoTeardown() override;
@@ -340,36 +340,36 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
     void TeleportVeryFar();
 
     /**
-     * \brief The active report triggering configuration.
+     * @brief The active report triggering configuration.
      */
     NrRrcSap::ReportConfigEutra m_config;
 
     /**
-     * \brief The list of expected time when measurement reports are received by
+     * @brief The list of expected time when measurement reports are received by
      *        eNodeB.
      */
     std::vector<Time> m_expectedTime;
 
     /**
-     * \brief The list of expected values of RSRP (in 3GPP range unit) from the
+     * @brief The list of expected values of RSRP (in 3GPP range unit) from the
      *        measurement reports received.
      */
     std::vector<uint8_t> m_expectedRsrp;
 
     /**
-     * \brief Pointer to the element of `m_expectedTime` which is expected to
+     * @brief Pointer to the element of `m_expectedTime` which is expected to
      *        occur next in the simulation.
      */
     std::vector<Time>::iterator m_itExpectedTime;
 
     /**
-     * \brief Pointer to the element of `m_expectedRsrp` which is expected to
+     * @brief Pointer to the element of `m_expectedRsrp` which is expected to
      *        occur next in the simulation.
      */
     std::vector<uint8_t>::iterator m_itExpectedRsrp;
 
     /**
-     * \brief The measurement identity being tested. Measurement reports with
+     * @brief The measurement identity being tested. Measurement reports with
      *        different measurement identity (e.g. from handover algorithm) will
      *        be ignored.
      */
@@ -382,9 +382,9 @@ class NrUeMeasurementsPiecewiseTestCase2 : public TestCase
 // ===== NR-UE-MEASUREMENTS-PIECEWISE-3 TEST SUITE ======================== //
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test suite for generating calls to UE measurements test case
+ * @brief Test suite for generating calls to UE measurements test case
  *        ns3::NrUeMeasurementsPiecewiseTestCase3.
  */
 class NrUeMeasurementsPiecewiseTestSuite3 : public TestSuite
@@ -394,9 +394,9 @@ class NrUeMeasurementsPiecewiseTestSuite3 : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Testing UE measurements in NR with simulation of 3 eNodeB and 1 UE in
+ * @brief Testing UE measurements in NR with simulation of 3 eNodeB and 1 UE in
  *        piecewise configuration and 240 ms report interval.
  *        This test is to cover a corner case using event A4, which is not
  *        covered by NrUeMeasurementsPiecewiseTestCase1 and
@@ -434,9 +434,9 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
-     * \param config NrRrcSap::ReportConfigEutra
-     * \param expectedTime the expected time
+     * @param name the reference name
+     * @param config NrRrcSap::ReportConfigEutra
+     * @param expectedTime the expected time
      */
     NrUeMeasurementsPiecewiseTestCase3(std::string name,
                                        NrRrcSap::ReportConfigEutra config,
@@ -445,7 +445,7 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
     ~NrUeMeasurementsPiecewiseTestCase3() override;
 
     /**
-     * \brief Triggers when eNodeB receives measurement report from UE, then
+     * @brief Triggers when eNodeB receives measurement report from UE, then
      *        perform verification on it.
      *
      * The trigger is set up beforehand by connecting to the
@@ -454,11 +454,11 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
      * Verification consists of checking whether the report carries the right
      * value of RSRP or not, and whether it occurs at the expected time or not.
      *
-     * \param context the context
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti  the RNTI
-     * \param report NrRrcSap::MeasurementReport
+     * @param context the context
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti  the RNTI
+     * @param report NrRrcSap::MeasurementReport
      */
     void RecvMeasurementReportCallback(std::string context,
                                        uint64_t imsi,
@@ -468,7 +468,7 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
 
   private:
     /**
-     * \brief Setup the simulation with the intended UE measurement reporting
+     * @brief Setup the simulation with the intended UE measurement reporting
      *        configuration, run it, and connect the
      *        `RecvMeasurementReportCallback` function to the
      *        `NrUeRrc::RecvMeasurementReport` trace source.
@@ -476,7 +476,7 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
     void DoRun() override;
 
     /**
-     * \brief Runs at the end of the simulation, verifying that all expected
+     * @brief Runs at the end of the simulation, verifying that all expected
      *        measurement reports have been examined.
      */
     void DoTeardown() override;
@@ -485,24 +485,24 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
     void TeleportGnbNear();
 
     /**
-     * \brief The active report triggering configuration.
+     * @brief The active report triggering configuration.
      */
     NrRrcSap::ReportConfigEutra m_config;
 
     /**
-     * \brief The list of expected time when measurement reports are received by
+     * @brief The list of expected time when measurement reports are received by
      *        eNodeB.
      */
     std::vector<Time> m_expectedTime;
 
     /**
-     * \brief Pointer to the element of `m_expectedTime` which is expected to
+     * @brief Pointer to the element of `m_expectedTime` which is expected to
      *        occur next in the simulation.
      */
     std::vector<Time>::iterator m_itExpectedTime;
 
     /**
-     * \brief The measurement identity being tested. Measurement reports with
+     * @brief The measurement identity being tested. Measurement reports with
      *        different measurement identity (e.g. from handover algorithm) will
      *        be ignored.
      */
@@ -515,9 +515,9 @@ class NrUeMeasurementsPiecewiseTestCase3 : public TestCase
 // ===== NR-UE-MEASUREMENTS-HANDOVER TEST SUITE =========================== //
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test suite for generating calls to UE measurements test case
+ * @brief Test suite for generating calls to UE measurements test case
  *        ns3::NrUeMeasurementsHandoverTestCase.
  */
 class NrUeMeasurementsHandoverTestSuite : public TestSuite
@@ -527,9 +527,9 @@ class NrUeMeasurementsHandoverTestSuite : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Testing UE measurements in NR with simulation of 2 eNodeB and 1 UE in
+ * @brief Testing UE measurements in NR with simulation of 2 eNodeB and 1 UE in
  *        a handover configuration.
  *
  * The simulation will run for the specified duration, while the handover
@@ -549,12 +549,12 @@ class NrUeMeasurementsHandoverTestCase : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
-     * \param sourceConfigList std::list<NrRrcSap::ReportConfigEutra>
-     * \param targetConfigList std::list<NrRrcSap::ReportConfigEutra>
-     * \param expectedTime the expected time
-     * \param expectedRsrp the expected RSRP
-     * \param duration the duration
+     * @param name the reference name
+     * @param sourceConfigList std::list<NrRrcSap::ReportConfigEutra>
+     * @param targetConfigList std::list<NrRrcSap::ReportConfigEutra>
+     * @param expectedTime the expected time
+     * @param expectedRsrp the expected RSRP
+     * @param duration the duration
      */
     NrUeMeasurementsHandoverTestCase(std::string name,
                                      std::list<NrRrcSap::ReportConfigEutra> sourceConfigList,
@@ -566,7 +566,7 @@ class NrUeMeasurementsHandoverTestCase : public TestCase
     ~NrUeMeasurementsHandoverTestCase() override;
 
     /**
-     * \brief Triggers when either one of the eNodeBs receives measurement report
+     * @brief Triggers when either one of the eNodeBs receives measurement report
      *        from UE, then perform verification on it.
      *
      * The trigger is set up beforehand by connecting to the
@@ -575,11 +575,11 @@ class NrUeMeasurementsHandoverTestCase : public TestCase
      * Verification consists of checking whether the report carries the right
      * value of RSRP or not, and whether it occurs at the expected time or not.
      *
-     * \param context the context
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti  the RNTI
-     * \param report NrRrcSap::MeasurementReport
+     * @param context the context
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti  the RNTI
+     * @param report NrRrcSap::MeasurementReport
      */
     void RecvMeasurementReportCallback(std::string context,
                                        uint64_t imsi,
@@ -589,7 +589,7 @@ class NrUeMeasurementsHandoverTestCase : public TestCase
 
   private:
     /**
-     * \brief Setup the simulation with the intended UE measurement reporting
+     * @brief Setup the simulation with the intended UE measurement reporting
      *        configuration, run it, and connect the
      *        `RecvMeasurementReportCallback` function to the
      *        `NrUeRrc::RecvMeasurementReport` trace source.
@@ -597,61 +597,61 @@ class NrUeMeasurementsHandoverTestCase : public TestCase
     void DoRun() override;
 
     /**
-     * \brief Runs at the end of the simulation, verifying that all expected
+     * @brief Runs at the end of the simulation, verifying that all expected
      *        measurement reports have been examined.
      */
     void DoTeardown() override;
 
     /**
-     * \brief The list of active report triggering configuration for the source
+     * @brief The list of active report triggering configuration for the source
      *        eNodeB.
      */
     std::list<NrRrcSap::ReportConfigEutra> m_sourceConfigList;
 
     /**
-     * \brief The list of active report triggering configuration for the target
+     * @brief The list of active report triggering configuration for the target
      *        eNodeB.
      */
     std::list<NrRrcSap::ReportConfigEutra> m_targetConfigList;
 
     /**
-     * \brief The list of expected time when measurement reports are received by
+     * @brief The list of expected time when measurement reports are received by
      *        eNodeB.
      */
     std::vector<Time> m_expectedTime;
 
     /**
-     * \brief The list of expected values of RSRP (in 3GPP range unit) from the
+     * @brief The list of expected values of RSRP (in 3GPP range unit) from the
      *        measurement reports received.
      */
     std::vector<uint8_t> m_expectedRsrp;
 
     /**
-     * \brief Pointer to the element of `m_expectedTime` which is expected to
+     * @brief Pointer to the element of `m_expectedTime` which is expected to
      *        occur next in the simulation.
      */
     std::vector<Time>::iterator m_itExpectedTime;
 
     /**
-     * \brief Pointer to the element of `m_expectedRsrp` which is expected to
+     * @brief Pointer to the element of `m_expectedRsrp` which is expected to
      *        occur next in the simulation.
      */
     std::vector<uint8_t>::iterator m_itExpectedRsrp;
 
     /**
-     * \brief Duration of simulation.
+     * @brief Duration of simulation.
      */
     Time m_duration;
 
     /**
-     * \brief The list of measurement identities being tested in the source cell.
+     * @brief The list of measurement identities being tested in the source cell.
      *        Measurement reports with different measurement identity (e.g. from
      *        handover algorithm and ANR) will be ignored.
      */
     std::set<uint8_t> m_expectedSourceCellMeasId;
 
     /**
-     * \brief The list of measurement identities being tested in the target cell.
+     * @brief The list of measurement identities being tested in the target cell.
      *        Measurement reports with different measurement identity (e.g. from
      *        handover algorithm and ANR) will be ignored.
      */

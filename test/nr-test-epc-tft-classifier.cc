@@ -28,9 +28,9 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NrTestEpcTftClassifier");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test case to check the functionality of the Tft Classifier. Test
+ * @brief Test case to check the functionality of the Tft Classifier. Test
  * consist of defining different TFT configurations, i.e. direction, ports,
  * address, and it is checking if the clasiffication of UDP packets is
  * done correctly.
@@ -41,15 +41,15 @@ class NrEpcTftClassifierTestCase : public TestCase
     /**
      * Constructor
      *
-     * \param c the EPC TFT classifier
-     * \param d the EPC TFT direction
-     * \param sa the source address (in IPv4 format)
-     * \param da the destination address (in IPv4 format)
-     * \param sp the source port
-     * \param dp the destination port
-     * \param tos the TOS
-     * \param tftId the TFT ID
-     * \param useIpv6 use IPv6 or IPv4 addresses. If set, addresses will be used as IPv4 mapped
+     * @param c the EPC TFT classifier
+     * @param d the EPC TFT direction
+     * @param sa the source address (in IPv4 format)
+     * @param da the destination address (in IPv4 format)
+     * @param sp the source port
+     * @param dp the destination port
+     * @param tos the TOS
+     * @param tftId the TFT ID
+     * @param useIpv6 use IPv6 or IPv4 addresses. If set, addresses will be used as IPv4 mapped
      * addresses
      */
     NrEpcTftClassifierTestCase(Ptr<NrEpcTftClassifier> c,
@@ -76,17 +76,17 @@ class NrEpcTftClassifierTestCase : public TestCase
 
     /**
      * Build name string
-     * \param c the EPC TFT classifier
-     * \param d the EPC TFT direction
-     * \param sa the source address
-     * \param da the destination address
-     * \param sp the source port
-     * \param dp the destination port
-     * \param tos the TOS
-     * \param tftId the TFT ID
-     * \param useIpv6 use IPv6 or IPv4 addresses. If set, addresses will be used as IPv4
+     * @param c the EPC TFT classifier
+     * @param d the EPC TFT direction
+     * @param sa the source address
+     * @param da the destination address
+     * @param sp the source port
+     * @param dp the destination port
+     * @param tos the TOS
+     * @param tftId the TFT ID
+     * @param useIpv6 use IPv6 or IPv4 addresses. If set, addresses will be used as IPv4
      * mapped addresses
-     * \returns the name string
+     * @returns the name string
      */
     static std::string BuildNameString(Ptr<NrEpcTftClassifier> c,
                                        NrEpcTft::Direction d,
@@ -194,9 +194,9 @@ NrEpcTftClassifierTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Epc Tft Classifier Test Suite
+ * @brief Epc Tft Classifier Test Suite
  */
 class NrEpcTftClassifierTestSuite : public TestSuite
 {
@@ -205,7 +205,7 @@ class NrEpcTftClassifierTestSuite : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrEpcTftClassifierTestSuite g_nrTftClassifierTestSuite;

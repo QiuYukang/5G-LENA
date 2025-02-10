@@ -9,13 +9,13 @@
 #include "nr-ue-phy.h"
 #include "nr-ue-rrc.h"
 
-#include <ns3/double.h>
-#include <ns3/mobility-model.h>
-#include <ns3/node.h>
-#include <ns3/nr-spectrum-value-helper.h>
-#include <ns3/random-variable-stream.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/uinteger.h>
+#include "ns3/double.h"
+#include "ns3/mobility-model.h"
+#include "ns3/node.h"
+#include "ns3/nr-spectrum-value-helper.h"
+#include "ns3/random-variable-stream.h"
+#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

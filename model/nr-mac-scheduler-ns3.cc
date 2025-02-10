@@ -16,11 +16,11 @@
 #include "nr-mac-scheduler-srs-default.h"
 #include "nr-mac-short-bsr-ce.h"
 
-#include <ns3/boolean.h>
-#include <ns3/integer.h>
-#include <ns3/log.h>
-#include <ns3/pointer.h>
-#include <ns3/uinteger.h>
+#include "ns3/boolean.h"
+#include "ns3/integer.h"
+#include "ns3/log.h"
+#include "ns3/pointer.h"
+#include "ns3/uinteger.h"
 
 #include <algorithm>
 #include <memory>
@@ -211,8 +211,8 @@ NrMacSchedulerNs3::GetTypeId()
 }
 
 /**
- * \brief Set a fixed MCS.
- * \param mcs The MCS.
+ * @brief Set a fixed MCS.
+ * @param mcs The MCS.
  *
  * Set a fixed MCS for all UE that will be registered *AFTER* the call to this
  * function.
@@ -515,8 +515,8 @@ NrMacSchedulerNs3::GetUlCtrlSyms() const
 }
 
 /**
- * \brief Cell configuration
- * \param params unused.
+ * @brief Cell configuration
+ * @param params unused.
  *
  * Ignored. Always Success.
  */
@@ -535,8 +535,8 @@ NrMacSchedulerNs3::DoCschedCellConfigReq(
 }
 
 /**
- * \brief Register an UE
- * \param params params of the UE
+ * @brief Register an UE
+ * @param params params of the UE
  *
  * If the UE is not registered, then create its representation with a call to
  * CreateUeRepresentation, and then save its pointer in the m_ueMap map.
@@ -591,8 +591,8 @@ NrMacSchedulerNs3::DoCschedUeConfigReq(
 }
 
 /**
- * \brief Release an UE
- * \param params params of the UE to release
+ * @brief Release an UE
+ * @param params params of the UE to release
  *
  * Remove the UE from the ueMap (m_ueMap) and release its SRS offset for
  * later usage.
@@ -622,14 +622,14 @@ NrMacSchedulerNs3::GetNumRbPerRbg() const
 }
 
 /**
- * \brief Create a logical channel starting from a configuration
- * \param config configuration of the logical channel
+ * @brief Create a logical channel starting from a configuration
+ * @param config configuration of the logical channel
  *
  * A subclass can return its own representation of a logical channel by
  * implementing a proper subclass of NrMacSchedulerLC and returning a
  * pointer to a newly created instance.
  *
- * \return a pointer to the representation of a logical channel
+ * @return a pointer to the representation of a logical channel
  */
 LCPtr
 NrMacSchedulerNs3::CreateLC(const nr::LogicalChannelConfigListElement_s& config) const
@@ -639,14 +639,14 @@ NrMacSchedulerNs3::CreateLC(const nr::LogicalChannelConfigListElement_s& config)
 }
 
 /**
- * \brief Create a logical channel group starting from a configuration
- * \param config configuration of the logical channel group
+ * @brief Create a logical channel group starting from a configuration
+ * @param config configuration of the logical channel group
  *
  * A subclass can return its own representation of a logical channel by
  * implementing a proper subclass of NrMacSchedulerLCG and returning a
  * pointer to a newly created instance.
  *
- * \return a pointer to the representation of a logical channel group
+ * @return a pointer to the representation of a logical channel group
  */
 LCGPtr
 NrMacSchedulerNs3::CreateLCG(const nr::LogicalChannelConfigListElement_s& config) const
@@ -656,8 +656,8 @@ NrMacSchedulerNs3::CreateLCG(const nr::LogicalChannelConfigListElement_s& config
 }
 
 /**
- * \brief Configure a logical channel for a UE
- * \param params the params of the LC
+ * @brief Configure a logical channel for a UE
+ * @param params the params of the LC
  *
  * The UE should be previously registered in the UE map. Then, for each logical
  * channel to configure, the UE representation is updated, creating an empty
@@ -733,8 +733,8 @@ NrMacSchedulerNs3::DoCschedLcConfigReq(
 }
 
 /**
- * \brief Release a LC
- * \param params params of the LC to release.
+ * @brief Release a LC
+ * @param params params of the LC to release.
  */
 void
 NrMacSchedulerNs3::DoCschedLcReleaseReq(
@@ -751,8 +751,8 @@ NrMacSchedulerNs3::DoCschedLcReleaseReq(
 }
 
 /**
- * \brief RLC informs of DL data
- * \param params parameters of the function
+ * @brief RLC informs of DL data
+ * @param params parameters of the function
  *
  * The message contains the LC and the amount of data buffered. Therefore,
  * in this method we cycle through all the UE LCG to find the LC, and once
@@ -791,8 +791,8 @@ NrMacSchedulerNs3::DoSchedDlRlcBufferReq(
 }
 
 /**
- * \brief Update the UL LC
- * \param bsr BSR received
+ * @brief Update the UL LC
+ * @param bsr BSR received
  *
  * The UE notifies the buffer size as a sum of all the components. The BSR
  * is a vector of 4 uint8_t that represents the amount of data in each
@@ -836,8 +836,8 @@ NrMacSchedulerNs3::BSRReceivedFromUe(const MacCeElement& bsr)
 }
 
 /**
- * \brief Evaluate different types of control messages (only BSR for the moment)
- * \param params parameters of the control message
+ * @brief Evaluate different types of control messages (only BSR for the moment)
+ * @param params parameters of the control message
  *
  * For each BSR received, calls BSRReceivedFromUe. Ignore all the others control
  * messages.
@@ -862,8 +862,8 @@ NrMacSchedulerNs3::DoSchedUlMacCtrlInfoReq(
 }
 
 /**
- * \brief Received a DL CQI message
- * \param params DL CQI message
+ * @brief Received a DL CQI message
+ * @param params DL CQI message
  *
  * For each message in the list, calculate the expiration time in number of slots,
  * and then pass all the information to the NrMacSchedulerCQIManagement class.
@@ -905,8 +905,8 @@ NrMacSchedulerNs3::DoSchedDlCqiInfoReq(
 }
 
 /**
- * \brief Received a UL CQI message
- * \param params UL CQI message
+ * @brief Received a UL CQI message
+ * @param params UL CQI message
  *
  * Calculate the expiration time in number of slots, and then pass all the
  * information to the NrMacSchedulerCQIManagement class.
@@ -990,11 +990,11 @@ NrMacSchedulerNs3::DoSchedUlCqiInfoReq(
 }
 
 /**
- * \brief Merge newly received HARQ feedbacks with existing feedbacks
- * \param existingFeedbacks a vector of old feedback (will be empty at the end)
- * \param inFeedbacks Received feedbacks
- * \param mode UL or DL, for debug printing
- * \return a vector of all the feedbacks (new + old)
+ * @brief Merge newly received HARQ feedbacks with existing feedbacks
+ * @param existingFeedbacks a vector of old feedback (will be empty at the end)
+ * @param inFeedbacks Received feedbacks
+ * @param mode UL or DL, for debug printing
+ * @return a vector of all the feedbacks (new + old)
  *
  * It is possible that, in one slot, some HARQ could not be transmitted (by
  * choice, or because there are not available resources). These feedbacks are
@@ -1024,10 +1024,10 @@ NrMacSchedulerNs3::MergeHARQ(std::vector<T>* existingFeedbacks,
 }
 
 /**
- * \brief Process HARQ feedbacks
- * \param harqInfo all the known HARQ feedbacks (can be UL or DL)
- * \param GetHarqVectorFn Function to retrieve the correct Harq Vector
- * \param direction "UL" or "DL" for debug messages
+ * @brief Process HARQ feedbacks
+ * @param harqInfo all the known HARQ feedbacks (can be UL or DL)
+ * @param GetHarqVectorFn Function to retrieve the correct Harq Vector
+ * @param direction "UL" or "DL" for debug messages
  *
  * For every received feedback (even the already processed ones) the method
  * checks if the feedback is ACK or NACK. In case of ACK (represented by
@@ -1036,9 +1036,9 @@ NrMacSchedulerNs3::MergeHARQ(std::vector<T>* existingFeedbacks,
  * is marked for retransmission. The decision to retransmit or not the process
  * will be taken later.
  *
- * \see DlHarqInfo
- * \see UlHarqInfo
- * \see HarqProcess
+ * @see DlHarqInfo
+ * @see UlHarqInfo
+ * @see HarqProcess
  */
 template <typename T>
 void
@@ -1093,15 +1093,15 @@ NrMacSchedulerNs3::ProcessHARQFeedbacks(
 }
 
 /**
- * \brief Reset expired HARQ
- * \param rnti RNTI of the user
- * \param harq HARQ process list
+ * @brief Reset expired HARQ
+ * @param rnti RNTI of the user
+ * @param harq HARQ process list
  *
  * For each process, check its timer. If it is expired, reset the
  * process.
  *
- * \see NrMacHarqVector
- * \see HarqProcess
+ * @see NrMacHarqVector
+ * @see HarqProcess
  */
 void
 NrMacSchedulerNs3::ResetExpiredHARQ(uint16_t rnti, NrMacHarqVector* harq)
@@ -1136,12 +1136,12 @@ NrMacSchedulerNs3::ResetExpiredHARQ(uint16_t rnti, NrMacHarqVector* harq)
 }
 
 /**
- * \brief Prepend a CTRL symbol to the allocation list
- * \param symStart starting symbol
- * \param numSymToAllocate number of symbols to allocate (each CTRL take 1 symbol)
- * \param mode Mode of the allocation (UL, DL)
- * \param allocations list of allocations to which prepend the CTRL symbol
- * \return the symbol that can be used to append other things into the allocation list
+ * @brief Prepend a CTRL symbol to the allocation list
+ * @param symStart starting symbol
+ * @param numSymToAllocate number of symbols to allocate (each CTRL take 1 symbol)
+ * @param mode Mode of the allocation (UL, DL)
+ * @param allocations list of allocations to which prepend the CTRL symbol
+ * @return the symbol that can be used to append other things into the allocation list
  */
 uint8_t
 NrMacSchedulerNs3::PrependCtrlSym(uint8_t symStart,
@@ -1174,12 +1174,12 @@ NrMacSchedulerNs3::PrependCtrlSym(uint8_t symStart,
 }
 
 /**
- * \brief Append a CTRL symbol to the allocation list
- * \param symStart starting symbol
- * \param numSymToAllocate number of symbols to allocate (each CTRL take 1 symbol)
- * \param mode Mode of the allocation (UL, DL)
- * \param allocations list of allocations to which append the CTRL symbol
- * \return the VarTtiAllocInfo ID that can be used to append other things into the allocation list
+ * @brief Append a CTRL symbol to the allocation list
+ * @param symStart starting symbol
+ * @param numSymToAllocate number of symbols to allocate (each CTRL take 1 symbol)
+ * @param mode Mode of the allocation (UL, DL)
+ * @param allocations list of allocations to which append the CTRL symbol
+ * @return the VarTtiAllocInfo ID that can be used to append other things into the allocation list
  */
 uint8_t
 NrMacSchedulerNs3::AppendCtrlSym(uint8_t symStart,
@@ -1211,14 +1211,14 @@ NrMacSchedulerNs3::AppendCtrlSym(uint8_t symStart,
 }
 
 /**
- * \brief Compute the number of active DL HARQ to perform
+ * @brief Compute the number of active DL HARQ to perform
  *
- * \param activeDlHarq list of DL HARQ to perform (should be empty at the beginning)
- * \param dlHarqFeedback list of DL HARQ feedback received
+ * @param activeDlHarq list of DL HARQ to perform (should be empty at the beginning)
+ * @param dlHarqFeedback list of DL HARQ feedback received
  *
  * After calculating the active HARQ, they should be sorted. It is done by
  * subclasses in the method SortDlHarq.
- * \see SortDlHarq
+ * @see SortDlHarq
  */
 void
 NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
@@ -1261,14 +1261,14 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeDlHarq,
 }
 
 /**
- * \brief Compute the number of activeUL HARQ to perform
+ * @brief Compute the number of activeUL HARQ to perform
  *
- * \param activeUlHarq list of UL HARQ to perform
- * \param ulHarqFeedback list of UL HARQ feedback
+ * @param activeUlHarq list of UL HARQ to perform
+ * @param ulHarqFeedback list of UL HARQ feedback
  *
  * After calculating the active HARQ, they should be sorted. It is done by
  * subclasses in the method SortUlHarq.
- * \see SortUlHarq
+ * @see SortUlHarq
  */
 void
 NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeUlHarq,
@@ -1299,10 +1299,10 @@ NrMacSchedulerNs3::ComputeActiveHarq(ActiveHarqMap* activeUlHarq,
 }
 
 /**
- * \brief Compute the number of active DL and UL UE
- * \param activeDlUe map of active DL UE to be filled
- * \param GetLCGFn Function to retrieve the LCG of a UE
- * \param mode UL or DL (to be printed in debug messages)
+ * @brief Compute the number of active DL and UL UE
+ * @param activeDlUe map of active DL UE to be filled
+ * @param GetLCGFn Function to retrieve the LCG of a UE
+ * @param mode UL or DL (to be printed in debug messages)
  *
  * The function loops all available UEs and checks their LC. If one (or more)
  * LC contains bytes, they are marked active and inserted in one of the
@@ -1355,12 +1355,12 @@ NrMacSchedulerNs3::ComputeActiveUe(ActiveUeMap* activeUe,
 }
 
 /**
- * \brief Scheduling new DL data
- * \param spoint Starting point of the blocks to add to the allocation list
- * \param symAvail Number of available symbols
- * \param activeDl List of active UE with data to transmit in DL
- * \param slotAlloc The allocation info to which append the allocations
- * \return The number of symbols used in the allocation
+ * @brief Scheduling new DL data
+ * @param spoint Starting point of the blocks to add to the allocation list
+ * @param symAvail Number of available symbols
+ * @param activeDl List of active UE with data to transmit in DL
+ * @param slotAlloc The allocation info to which append the allocations
+ * @return The number of symbols used in the allocation
  *
  * The method is doing the scheduling of new data in the DL direction, delegating
  * three phases to subclasses:
@@ -1549,12 +1549,12 @@ NrMacSchedulerNs3::DoScheduleDlData(PointInFTPlane* spoint,
 }
 
 /**
- * \brief Scheduling new UL data
- * \param spoint Starting point of the blocks to add to the allocation list
- * \param symAvail Number of available symbols
- * \param activeDl List of active UE with data to transmit in UL
- * \param slotAlloc The allocation info to which append the allocations
- * \return The number of symbols used in the allocation
+ * @brief Scheduling new UL data
+ * @param spoint Starting point of the blocks to add to the allocation list
+ * @param symAvail Number of available symbols
+ * @param activeDl List of active UE with data to transmit in UL
+ * @param slotAlloc The allocation info to which append the allocations
+ * @return The number of symbols used in the allocation
  *
  * The method is doing the scheduling of new data in the UL direction. Before
  * doing that, it is necessary to schedule the UEs that requested a SR.
@@ -1717,9 +1717,9 @@ NrMacSchedulerNs3::DoScheduleUlData(PointInFTPlane* spoint,
 }
 
 /**
- * \brief Schedule received SR
- * \param spoint Starting point for allocation
- * \param rntiList list of RNTI which asked for a SR
+ * @brief Schedule received SR
+ * @param spoint Starting point for allocation
+ * @param rntiList list of RNTI which asked for a SR
  *
  * Each time an UE asks for SR, the scheduler will assign a fixed amount of
  * data (12 bytes) to the UE's UL LCG. Then, the routine for scheduling the data
@@ -1744,9 +1744,9 @@ NrMacSchedulerNs3::DoScheduleUlSr(PointInFTPlane* spoint, const std::list<uint16
 }
 
 /**
- * \brief Do the process of scheduling for the DL
- * \param params scheduling parameters
- * \param dlHarqFeedback vector of DL HARQ negative feedback
+ * @brief Do the process of scheduling for the DL
+ * @param params scheduling parameters
+ * @param dlHarqFeedback vector of DL HARQ negative feedback
  *
  * The scheduling process is composed by the UL and the DL parts, and it
  * decides how the resources should be divided between UEs. An important
@@ -1779,7 +1779,7 @@ NrMacSchedulerNs3::DoScheduleUlSr(PointInFTPlane* spoint, const std::list<uint16
  * At the end, the return of DoScheduleDl is passed to MAC through the function
  * SchedConfigInd().
  *
- * \see PointInFTPlane
+ * @see PointInFTPlane
  */
 void
 NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqParameters& params,
@@ -1869,9 +1869,9 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
 }
 
 /**
- * \brief Do the process of scheduling for the UL
- * \param params scheduling parameters
- * \param ulHarqFeedback vector of UL HARQ negative feedback
+ * @brief Do the process of scheduling for the UL
+ * @param params scheduling parameters
+ * @param ulHarqFeedback vector of UL HARQ negative feedback
  *
  * The scheduling process is composed by the UL and the DL parts, and it
  * decides how the resources should be divided between UEs. An important
@@ -1902,7 +1902,7 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
  * At the end, the return of DoScheduleUl is passed to MAC through the function
  * SchedConfigInd().
  *
- * \see PointInFTPlane
+ * @see PointInFTPlane
  */
 void
 NrMacSchedulerNs3::ScheduleUl(const NrMacSchedSapProvider::SchedUlTriggerReqParameters& params,
@@ -1932,12 +1932,12 @@ NrMacSchedulerNs3::ScheduleUl(const NrMacSchedSapProvider::SchedUlTriggerReqPara
 }
 
 /**
- * \brief Schedule UL HARQ and data
- * \param activeUlHarq List of active HARQ processes in UL
- * \param ulSfn Slot number
- * \param allocInfo Allocation info pointer (where to save the allocations)
- * \param type LTE/NR TDD slot type
- * \return the number of symbols used for the UL allocation
+ * @brief Schedule UL HARQ and data
+ * @param activeUlHarq List of active HARQ processes in UL
+ * @param ulSfn Slot number
+ * @param allocInfo Allocation info pointer (where to save the allocations)
+ * @param type LTE/NR TDD slot type
+ * @return the number of symbols used for the UL allocation
  *
  * The UL phase is, in this implementation, based completely on TDMA, so
  * in this method (even if the code is modular enough to be subclassed to
@@ -2283,10 +2283,10 @@ NrMacSchedulerNs3::DoesFhAllocationFit(uint16_t bwpId,
 }
 
 /**
- * \brief Call to the centralized intelligence (which stores a map of the active
+ * @brief Call to the centralized intelligence (which stores a map of the active
  * UEs and cells with the bytes in their queues) to update the maps based on the
  * allocations.
- * \param allocation the list of allocations
+ * @param allocation the list of allocations
  */
 void
 NrMacSchedulerNs3::CallNrFhControlForMapUpdate(
@@ -2297,11 +2297,11 @@ NrMacSchedulerNs3::CallNrFhControlForMapUpdate(
 }
 
 /**
- * \brief Schedule DL HARQ and data
- * \param dlSfnSf Slot number
- * \param ulAllocations Uplink allocation for this slot
- * \param allocInfo Allocation info pointer (where to save the allocations)
- * \return the number of symbols used for the DL allocation
+ * @brief Schedule DL HARQ and data
+ * @param dlSfnSf Slot number
+ * @param ulAllocations Uplink allocation for this slot
+ * @param allocInfo Allocation info pointer (where to save the allocations)
+ * @return the number of symbols used for the DL allocation
  *
  * The DL phase can be OFDMA-based or TDMA-based. The method calculates the
  * number of available symbols as the total number of symbols in one slot
@@ -2399,14 +2399,14 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
 }
 
 /**
- * \brief Decide how to fill the frequency/time of a DL slot
- * \param params parameters for the scheduler
+ * @brief Decide how to fill the frequency/time of a DL slot
+ * @param params parameters for the scheduler
  *
  * The function starts by refreshing the CQI received, and eventually resetting
  * the expired values. Then, the HARQ feedback are processed (ProcessHARQFeedbacks),
  * and finally the expired HARQs are canceled (ResetExpiredHARQ).
  *
- * \see ScheduleDl
+ * @see ScheduleDl
  */
 void
 NrMacSchedulerNs3::DoSchedDlTriggerReq(
@@ -2495,14 +2495,14 @@ NrMacSchedulerNs3::DoSchedDlTriggerReq(
 }
 
 /**
- * \brief Decide how to fill the frequency/time of a UL slot
- * \param params parameters for the scheduler
+ * @brief Decide how to fill the frequency/time of a UL slot
+ * @param params parameters for the scheduler
  *
  * The function starts by refreshing the CQI received, and eventually resetting
  * the expired values. Then, the HARQ feedback are processed (ProcessHARQFeedbacks),
  * and finally the expired HARQs are canceled (ResetExpiredHARQ).
  *
- * \see ScheduleUl
+ * @see ScheduleUl
  */
 void
 NrMacSchedulerNs3::DoSchedUlTriggerReq(
@@ -2559,8 +2559,8 @@ NrMacSchedulerNs3::DoSchedUlTriggerReq(
 }
 
 /**
- * \brief Save the SR list into m_srList
- * \param params SR list
+ * @brief Save the SR list into m_srList
+ * @param params SR list
  *
  * m_srList will be evaluated in DoScheduleUlSr()
  */
@@ -2585,11 +2585,11 @@ NrMacSchedulerNs3::DoSchedUlSrInfoReq(
 }
 
 /**
- * \brief Scheduler UL RACH
- * \param sPoint
- * \param symAvail
- * \param ueMap
- * \param slotAlloc
+ * @brief Scheduler UL RACH
+ * @param sPoint
+ * @param symAvail
+ * @param ueMap
+ * @param slotAlloc
  *
  *  RLC TM SDU sent over resources specified in the UL Grant
  *  in the RAR (not in UL DCIs); the reason is that C-RNTI is
@@ -2597,7 +2597,7 @@ NrMacSchedulerNs3::DoSchedUlSrInfoReq(
  *  as a real RLC TM RLC PDU whose UL resources are allocated
  *  by the scheduler upon call to SCHED_DL_RACH_INFO_REQ.
  *
- * \return The number of symbols used in the allocation
+ * @return The number of symbols used in the allocation
  */
 uint8_t
 NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,

@@ -13,8 +13,8 @@ namespace ns3
 {
 
 /**
- * \ingroup error-models
- * \brief The NrEesmT2 struct
+ * @ingroup error-models
+ * @brief The NrEesmT2 struct
  *
  * This class provides the NR Tables to be used for MCS/CQI Table2, corresponding
  * to tables  5.1.3.1-2 and 5.2.2.1-3 in TS 38.214. It includes the beta values
@@ -26,13 +26,13 @@ namespace ns3
  *
  * Values used inside NrEesmIrT2 and NrEesmCcT2 classes
  *
- * \see NrEesmIrT2
- * \see NrEesmCcT2
+ * @see NrEesmIrT2
+ * @see NrEesmCcT2
  */
 struct NrEesmT2
 {
     /**
-     * \brief NrEesmT2 constructor. Initialize the pointers
+     * @brief NrEesmT2 constructor. Initialize the pointers
      */
     NrEesmT2();
 

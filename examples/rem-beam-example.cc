@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \file rem-beam-example.cc
- * \ingroup examples
- * \brief Rem beam configuration example
+ * @file rem-beam-example.cc
+ * @ingroup examples
+ * @brief Rem beam configuration example
  *
  * This is a simple example which can be used to test different configurations of
  * gNB antenna array parameters and visualize its radiation through REM map.
@@ -32,7 +32,7 @@
  *
  *\code{.unparsed}
  * gnuplot -p nr-rem--gnbs.txt nr-rem--ues.txt nr-rem--buildings.txt nr-rem--plot-rem.gnuplot
- * \endcode
+ * @endcode
  *
  * The following files will be generated (in the root project folder if not specified
  * differently): nr-rem--sinr.png, nr-rem--snr.png and nr-rem--ipsd.png

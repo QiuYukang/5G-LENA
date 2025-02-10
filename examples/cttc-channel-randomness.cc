@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-channel-randomness.cc
+ * @ingroup examples
+ * @file cttc-channel-randomness.cc
  *
  * This example is intended to test the randmness of the channel in order to see
  * if we can reproduce the same channel realization within the same simulation run.
@@ -28,10 +28,10 @@ $ ./ns3 run "cttc-channel-randomness --PrintHelp"
 #include "ns3/nr-module.h"
 #include "ns3/nr-spectrum-value-helper.h"
 #include "ns3/simple-net-device.h"
+#include "ns3/spectrum-model.h"
 #include "ns3/three-gpp-channel-model.h"
 #include "ns3/three-gpp-propagation-loss-model.h"
 #include "ns3/three-gpp-spectrum-propagation-loss-model.h"
-#include <ns3/spectrum-model.h>
 
 using namespace ns3;
 
@@ -39,9 +39,9 @@ NS_LOG_COMPONENT_DEFINE("CttcChannelRandomness");
 
 /**
  * Perform the beamforming using the DFT beamforming method
- * \param thisDevice the device performing the beamforming
- * \param thisAntenna the antenna object associated to thisDevice
- * \param otherDevice the device towards which point the beam
+ * @param thisDevice the device performing the beamforming
+ * @param thisAntenna the antenna object associated to thisDevice
+ * @param otherDevice the device towards which point the beam
  */
 static void
 DoBeamforming(Ptr<NetDevice> thisDevice,

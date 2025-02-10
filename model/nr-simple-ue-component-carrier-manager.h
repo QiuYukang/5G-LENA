@@ -20,7 +20,7 @@ namespace ns3
 class NrUeCcmRrcSapProvider;
 
 /**
- * \brief Component carrier manager implementation which simply does nothing.
+ * @brief Component carrier manager implementation which simply does nothing.
  *
  * Selecting this component carrier selection algorithm is equivalent to disabling automatic
  * triggering of component carrier selection. This is the default choice.
@@ -35,8 +35,8 @@ class NrSimpleUeComponentCarrierManager : public NrUeComponentCarrierManager
     ~NrSimpleUeComponentCarrierManager() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -58,68 +58,68 @@ class NrSimpleUeComponentCarrierManager : public NrUeComponentCarrierManager
     void DoDispose() override;
     // inherited from NrCcsAlgorithm as a Component Carrier Management SAP implementation
     /**
-     * \brief Report Ue Measure function
-     * \param rnti the RNTI
-     * \param measResults the measure results
+     * @brief Report Ue Measure function
+     * @param rnti the RNTI
+     * @param measResults the measure results
      */
     void DoReportUeMeas(uint16_t rnti, NrRrcSap::MeasResults measResults);
     // forwarded from NrMacSapProvider
     /**
-     * \brief Transmit PDU function
-     * \param params NrMacSapProvider::TransmitPduParameters
+     * @brief Transmit PDU function
+     * @param params NrMacSapProvider::TransmitPduParameters
      */
     void DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params);
     /**
-     * \brief Report buffer status function
-     * \param params NrMacSapProvider::ReportBufferStatusParameters
+     * @brief Report buffer status function
+     * @param params NrMacSapProvider::ReportBufferStatusParameters
      */
     virtual void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params);
     /// Notify HARQ deliver failure
     void DoNotifyHarqDeliveryFailure();
     // forwarded from NrMacSapUser
     /**
-     * \brief Notify TX opportunity function
+     * @brief Notify TX opportunity function
      *
-     * \param txOpParams the NrMacSapUser::TxOpportunityParameters
+     * @param txOpParams the NrMacSapUser::TxOpportunityParameters
      */
     void DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams);
     /**
-     * \brief Receive PDU function
+     * @brief Receive PDU function
      *
-     * \param rxPduParams the NrMacSapUser::ReceivePduParameters
+     * @param rxPduParams the NrMacSapUser::ReceivePduParameters
      */
     void DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams);
     // forwarded from NrUeCcmRrcSapProvider
     /**
-     * \brief Add LC function
-     * \param lcId the LCID
-     * \param lcConfig the logical channel config
-     * \param msu the MSU
-     * \returns updated LC config list
+     * @brief Add LC function
+     * @param lcId the LCID
+     * @param lcConfig the logical channel config
+     * @param msu the MSU
+     * @returns updated LC config list
      */
     virtual std::vector<NrUeCcmRrcSapProvider::LcsConfig> DoAddLc(
         uint8_t lcId,
         NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
         NrMacSapUser* msu);
     /**
-     * \brief Remove LC function
-     * \param lcid the LCID
-     * \returns updated LC list
+     * @brief Remove LC function
+     * @param lcid the LCID
+     * @returns updated LC list
      */
     std::vector<uint16_t> DoRemoveLc(uint8_t lcid);
     /**
-     * \brief Configure signal bearer function
-     * \param lcId the LCID
-     * \param lcConfig the logical channel config
-     * \param msu the MSU
-     * \returns NrMacSapUser *
+     * @brief Configure signal bearer function
+     * @param lcId the LCID
+     * @param lcConfig the logical channel config
+     * @param msu the MSU
+     * @returns NrMacSapUser *
      */
     virtual NrMacSapUser* DoConfigureSignalBearer(
         uint8_t lcId,
         NrUeCmacSapProvider::LogicalChannelConfig lcConfig,
         NrMacSapUser* msu);
     /**
-     * \brief Reset LC map
+     * @brief Reset LC map
      *
      */
     void DoReset();

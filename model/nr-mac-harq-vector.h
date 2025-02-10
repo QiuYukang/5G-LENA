@@ -12,8 +12,8 @@ namespace ns3
 {
 
 /**
- * \ingroup scheduler
- * \brief Data structure to save all the HARQ process of an UE
+ * @ingroup scheduler
+ * @brief Data structure to save all the HARQ process of an UE
  *
  * The data is stored as an unordered_map between the process ID and the
  * real data, saved in the structure HarqProcess. The vector (yes, it is an
@@ -24,29 +24,29 @@ namespace ns3
  * The class does not support going "out of space", or in other words, if all
  * the spots are filled with active processes, the next insert will fail.
  *
- * \see HarqProcess
+ * @see HarqProcess
  */
 class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
 {
   public:
     friend std::ostream& operator<<(std::ostream& os, const NrMacHarqVector& item);
     /**
-     * \brief iterator of the map
+     * @brief iterator of the map
      */
     typedef typename std::unordered_map<uint8_t, HarqProcess>::iterator iterator;
     /**
-     * \brief const_iterator of the map
+     * @brief const_iterator of the map
      */
     typedef typename std::unordered_map<uint8_t, HarqProcess>::const_iterator const_iterator;
 
     /**
-     * \brief Default constructor
+     * @brief Default constructor
      */
     NrMacHarqVector() = default;
 
     /**
-     * \brief Set and reserve the size of the vector
-     * \param size the vector size
+     * @brief Set and reserve the size of the vector
+     * @param size the vector size
      *
      * The method will reserve and create the necessary processes.
      */
@@ -61,24 +61,24 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Erase the selected process
-     * \param id ID of the process to erase
-     * \return true if the process was erased successfully
+     * @brief Erase the selected process
+     * @param id ID of the process to erase
+     * @return true if the process was erased successfully
      */
     bool Erase(uint8_t id);
 
     /**
-     * \brief Insert a process
-     * \param id Will be overwritten with process ID
-     * \param element process to store
-     * \return true if the process was stored successfully
+     * @brief Insert a process
+     * @param id Will be overwritten with process ID
+     * @param element process to store
+     * @return true if the process was stored successfully
      */
     bool Insert(uint8_t* id, const HarqProcess& element);
 
     /**
-     * \brief Find a process
-     * \param key ID of the process to find
-     * \return an iterator to the process
+     * @brief Find a process
+     * @param key ID of the process to find
+     * @return an iterator to the process
      */
     const iterator Find(uint8_t key)
     {
@@ -86,8 +86,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Begin of the vector
-     * \return an iterator to the first element
+     * @brief Begin of the vector
+     * @return an iterator to the first element
      */
     const iterator Begin()
     {
@@ -95,8 +95,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief End of the vector
-     * \return an iterator to the end() element
+     * @brief End of the vector
+     * @return an iterator to the end() element
      */
     const iterator End()
     {
@@ -104,8 +104,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Const begin of the vector
-     * \return a const iterator to the first element
+     * @brief Const begin of the vector
+     * @return a const iterator to the first element
      */
     const_iterator CBegin()
     {
@@ -113,8 +113,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Const end of the vector
-     * \return a const iterator to the end() element
+     * @brief Const end of the vector
+     * @return a const iterator to the end() element
      */
     const_iterator CEnd()
     {
@@ -122,9 +122,9 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Check if the ID exists in the map
-     * \param id ID to check
-     * \return true if the ID exists, false if the ID is outside the maximum number
+     * @brief Check if the ID exists in the map
+     * @param id ID to check
+     * @return true if the ID exists, false if the ID is outside the maximum number
      * of stored elements
      */
     bool Exist(uint8_t id) const
@@ -134,9 +134,9 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Get a reference to a process
-     * \param id ID of the process
-     * \return a reference to the process identified by the parameter id
+     * @brief Get a reference to a process
+     * @param id ID of the process
+     * @return a reference to the process identified by the parameter id
      */
     HarqProcess& Get(uint8_t id)
     {
@@ -145,9 +145,9 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Get a const reference to a process
-     * \param id ID of the process
-     * \return a const reference to the process identified by the parameter id
+     * @brief Get a const reference to a process
+     * @param id ID of the process
+     * @return a const reference to the process identified by the parameter id
      */
     const HarqProcess& Get(uint8_t id) const
     {
@@ -156,8 +156,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Find the first (INACTIVE) ID
-     * \return an usable ID, or 255 in case no ID are available
+     * @brief Find the first (INACTIVE) ID
+     * @return an usable ID, or 255 in case no ID are available
      */
     uint8_t FirstAvailableId() const
     {
@@ -172,8 +172,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Can an ID be inserted?
-     * \return true if there is space to insert a new process, false otherwise
+     * @brief Can an ID be inserted?
+     * @return true if there is space to insert a new process, false otherwise
      */
     bool CanInsert() const
     {
@@ -181,8 +181,8 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
     }
 
     /**
-     * \brief Get the used size of the vector
-     * \return the real size occupied by ACTIVE processes.
+     * @brief Get the used size of the vector
+     * @return the real size occupied by ACTIVE processes.
      */
     uint32_t Size() const
     {
@@ -195,10 +195,10 @@ class NrMacHarqVector : private std::unordered_map<uint8_t, HarqProcess>
 };
 
 /**
- * \brief Print HarqProcess onto a ostream
- * \param os Ostream output
- * \param item Item to print
- * \return the Ostream for concatenation
+ * @brief Print HarqProcess onto a ostream
+ * @param os Ostream output
+ * @param item Item to print
+ * @return the Ostream for concatenation
  */
 std::ostream& operator<<(std::ostream& os, const HarqProcess& item);
 

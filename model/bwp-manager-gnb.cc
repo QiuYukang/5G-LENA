@@ -7,10 +7,10 @@
 #include "bwp-manager-algorithm.h"
 #include "nr-control-messages.h"
 
-#include <ns3/log.h>
-#include <ns3/object-map.h>
-#include <ns3/pointer.h>
-#include <ns3/uinteger.h>
+#include "ns3/log.h"
+#include "ns3/object-map.h"
+#include "ns3/pointer.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

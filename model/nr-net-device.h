@@ -7,8 +7,8 @@
 
 #include "nr-phy.h"
 
-#include <ns3/net-device.h>
-#include <ns3/traced-callback.h>
+#include "ns3/net-device.h"
+#include "ns3/traced-callback.h"
 
 namespace ns3
 {
@@ -18,9 +18,9 @@ class Node;
 class Packet;
 
 /**
- * \ingroup ue
- * \ingroup gnb
- * \brief The NrNetDevice class
+ * @ingroup ue
+ * @ingroup gnb
+ * @brief The NrNetDevice class
  *
  * This is the base class for NrUeNetDevice and NrGnbNetDevice.
  */
@@ -28,17 +28,17 @@ class NrNetDevice : public NetDevice
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return the object type id
+     * @brief GetTypeId
+     * @return the object type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrNetDevice
+     * @brief NrNetDevice
      */
     NrNetDevice();
     /**
-     * \brief ~NrNetDevice
+     * @brief ~NrNetDevice
      */
     ~NrNetDevice() override;
 

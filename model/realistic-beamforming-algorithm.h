@@ -11,8 +11,8 @@
 #include "nr-ue-net-device.h"
 #include "realistic-bf-manager.h"
 
+#include "ns3/object.h"
 #include "ns3/three-gpp-channel-model.h"
-#include <ns3/object.h>
 
 #include <queue>
 
@@ -25,8 +25,8 @@ class RealisticBeamformingHelper;
 class NrRealisticBeamformingTestCase;
 
 /**
- * \ingroup gnb-phy
- * \brief Generate "Real" beamforming vectors
+ * @ingroup gnb-phy
+ * @brief Generate "Real" beamforming vectors
  * This class is inherited by all algorithms that do not assume the
  * perfect knowledge of the channel, but instead are performing the
  * estimation of the channel based on measurements, e.g., based on
@@ -52,7 +52,7 @@ class RealisticBeamformingAlgorithm : public Object
 
   public:
     /*
-     * \brief The structure that contains the information about the update time,
+     * @brief The structure that contains the information about the update time,
      * srsSinr and the channel matrix.
      */
     struct DelayedUpdateInfo
@@ -66,7 +66,7 @@ class RealisticBeamformingAlgorithm : public Object
     };
 
     /*
-     * \brief The structure that contains the information about what is the trigger
+     * @brief The structure that contains the information about what is the trigger
      * of the realistic beamforming algorithm, and the periodicity or the delay.
      */
     struct TriggerEventConf
@@ -77,104 +77,104 @@ class RealisticBeamformingAlgorithm : public Object
     };
 
     /**
-     * \brief constructor
+     * @brief constructor
      */
     RealisticBeamformingAlgorithm();
     /*
-     * \brief It is necessary to call this function in order to have
+     * @brief It is necessary to call this function in order to have
      * initialized a pair of gNB and UE spectrum phys for which will be
      * called this algorithm.
-     * \param gnbSpectrumPhy gNB's spectrumPhy instance for which will work this algorithm
-     * \param ueSpectrumPhy UE's spectrumPhy instance of for which will work this algorithm
-     * \param scheduler the pointer to the MAC scheduler to obtain the number of
+     * @param gnbSpectrumPhy gNB's spectrumPhy instance for which will work this algorithm
+     * @param ueSpectrumPhy UE's spectrumPhy instance of for which will work this algorithm
+     * @param scheduler the pointer to the MAC scheduler to obtain the number of
      * SRS symbols
      */
     void Install(const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
                  const Ptr<NrSpectrumPhy>& ueSpectrumPhy,
                  const Ptr<NrMacScheduler>& scheduler);
     /**
-     * \brief Get the type id
-     * \return the type id of the class
+     * @brief Get the type id
+     * @return the type id of the class
      */
     static TypeId GetTypeId();
     /**
-     * \brief Assign a fixed random variable stream number to the random variables
+     * @brief Assign a fixed random variable stream number to the random variables
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream the first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream the first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream);
     /**
-     * \brief Function that generates the beamforming vectors for a pair of
+     * @brief Function that generates the beamforming vectors for a pair of
      * communicating devices by using the direct-path beamforming vector for gNB
      * and quasi-omni beamforming vector for UEs
-     * \return the gNB and UE beamforming vectors
+     * @return the gNB and UE beamforming vectors
      */
     virtual BeamformingVectorPair GetBeamformingVectors();
     /**
-     * \return Gets value of BeamSearchAngleStep attribute
+     * @return Gets value of BeamSearchAngleStep attribute
      */
     double GetBeamSearchAngleStep() const;
     /**
-     * \brief Sets the value of BeamSearchAngleStep attribute
-     * \param beamSearchAngleStep the beam search angle step value
+     * @brief Sets the value of BeamSearchAngleStep attribute
+     * @param beamSearchAngleStep the beam search angle step value
      */
     void SetBeamSearchAngleStep(double beamSearchAngleStep);
     /**
-     * \brief Saves SRS SINR report
-     * \param cellId the cell ID
-     * \param rnti the RNTI of the UE
-     * \param srsSinr the SINR report for the received SRS
+     * @brief Saves SRS SINR report
+     * @param cellId the cell ID
+     * @param rnti the RNTI of the UE
+     * @param srsSinr the SINR report for the received SRS
      */
     void NotifySrsSinrReport(uint16_t cellId, uint16_t rnti, double srsSinr);
     /**
-     * \brief Saves SRS SNR report
-     * \param cellId the cell ID
-     * \param rnti the RNTI
-     * \param srsSnr the SRS SNR report
+     * @brief Saves SRS SNR report
+     * @param cellId the cell ID
+     * @param rnti the RNTI
+     * @param srsSnr the SRS SNR report
      */
     void NotifySrsSnrReport(uint16_t cellId, uint16_t rnti, double srsSnr);
     /**
-     * \brief Saves SRS report (SNR or SINR depending on the configuration)
-     * \param cellId the cell ID
-     * \param rnti the RNTI
-     * \param srsReport the SRS report which can be SNR or SIN depending on the configuration
+     * @brief Saves SRS report (SNR or SINR depending on the configuration)
+     * @param cellId the cell ID
+     * @param rnti the RNTI
+     * @param srsReport the SRS report which can be SNR or SIN depending on the configuration
      */
     void NotifySrsReport(uint16_t cellId, uint16_t rnti, double srsReport);
     /**
-     * \brief RunTask callback will be triggered when the event for updating the beamforming vectors
+     * @brief RunTask callback will be triggered when the event for updating the beamforming vectors
      * occurs The parameters are: gnb spectrum phy, ue spectrum phy.
      */
     typedef Callback<void, const Ptr<NrSpectrumPhy>&, const Ptr<NrSpectrumPhy>&>
         RealisticBfHelperCallback;
     /*
-     * \brief Set whether to use SRS SNR report
-     * \bool v boolean indicator, if true then SRS SNR report will be used
+     * @brief Set whether to use SRS SNR report
+     * @bool v boolean indicator, if true then SRS SNR report will be used
      */
     void SetUseSnrSrs(bool v);
     /*
-     * \brief Get whether the algorithm uses SRS SNR report
-     * \return the boolean indicator indicating whether SRS SNR is used
+     * @brief Get whether the algorithm uses SRS SNR report
+     * @return the boolean indicator indicating whether SRS SNR is used
      */
     bool UseSnrSrs() const;
 
   private:
     /**
-     * \brief Private function that is used to obtain the number of SRS symbols per slot
-     * \return the number of SRS symbols per slot
+     * @brief Private function that is used to obtain the number of SRS symbols per slot
+     * @return the number of SRS symbols per slot
      */
     uint8_t GetSrsSymbolsPerSlot();
 
     /**
-     * \brief Private function that is used to obtain the realistic beamforming configuration from
+     * @brief Private function that is used to obtain the realistic beamforming configuration from
      * the realistic beamforming manager \return returns the realistic beamforming configuration
      */
     RealisticBeamformingAlgorithm::TriggerEventConf GetTriggerEventConf() const;
 
     /**
-     * \brief Private function that is used to notify its the helper that is time
+     * @brief Private function that is used to notify its the helper that is time
      * to update beamforming vectors.
      * Basically, with this function realistic algorithm pass control to the
      * realistic beamforming helper in the sense of calling necessary BF updates, e.g.
@@ -186,7 +186,7 @@ class RealisticBeamformingAlgorithm : public Object
     void NotifyHelper();
 
     /*
-     * \brief Sets RealisticBeamformingHelperCallback that will be notified when it is necessary to
+     * @brief Sets RealisticBeamformingHelperCallback that will be notified when it is necessary to
      * update the beamforming vectors. Function RunTask will then call back
      * RealisticBeamformingAlgorithm that notified it about the necessity to update the beamforming
      * vectors. It is done in this way, in order to split functionalities and responsibilities of
@@ -197,25 +197,25 @@ class RealisticBeamformingAlgorithm : public Object
      */
     void SetTriggerCallback(RealisticBfHelperCallback callback);
     /**
-     * \brief Gets the channel matrix between gNb and UE device of this algorithm
+     * @brief Gets the channel matrix between gNb and UE device of this algorithm
      * This is needed when delayed trigger event is used and delay is larger then SRS periodicity,
      * so there can be various SRS reports and corresponding channel matrices for which
      * will be nececessary to perform bemaforming update using channel matrix corresponding to
      * the time of the reception of SRS.
-     * \return returns a deep copy of the current channel matrix
+     * @return returns a deep copy of the current channel matrix
      */
     Ptr<const MatrixBasedChannelModel::ChannelMatrix> GetChannelMatrix() const;
     /**
-     * \brief Calculates an estimation of the long term component based on the channel measurements
-     * \param channelMatrix the channel matrix H
-     * \param aW the beamforming vector of the first device
-     * \param bW the beamforming vector of the second device
-     * \param a the first node mobility model
-     * \param b the second node mobility model
-     * \param srsSinr the SRS report to be used to estimate the long term component metric
-     * \param aArray the antenna array of the first device
-     * \param bArray the antenna array of the second device
-     * \return the estimated long term component
+     * @brief Calculates an estimation of the long term component based on the channel measurements
+     * @param channelMatrix the channel matrix H
+     * @param aW the beamforming vector of the first device
+     * @param bW the beamforming vector of the second device
+     * @param a the first node mobility model
+     * @param b the second node mobility model
+     * @param srsSinr the SRS report to be used to estimate the long term component metric
+     * @param aArray the antenna array of the first device
+     * @param bArray the antenna array of the second device
+     * @return the estimated long term component
      */
     UniformPlanarArray::ComplexVector GetEstimatedLongTermComponent(
         const Ptr<const MatrixBasedChannelModel::ChannelMatrix>& channelMatrix,
@@ -228,15 +228,15 @@ class RealisticBeamformingAlgorithm : public Object
         Ptr<const PhasedArrayModel> bArray) const;
 
     /*
-     * \brief Calculates the total metric based on the each element of the long term component
-     * \param longTermComponent the vector of complex numbers representing the long term component
+     * @brief Calculates the total metric based on the each element of the long term component
+     * @param longTermComponent the vector of complex numbers representing the long term component
      * per cluster
      */
     double CalculateTheEstimatedLongTermMetric(
         const UniformPlanarArray::ComplexVector& longTermComponent) const;
 
     /**
-     * \brief Removes the "oldest" delayed update info - from the beginning of the queue
+     * @brief Removes the "oldest" delayed update info - from the beginning of the queue
      */
     void RemoveUsedDelayedUpdateInfo();
 
@@ -266,7 +266,7 @@ class RealisticBeamformingAlgorithm : public Object
                                                 //!< vectors for this pair of devices,
                                                 // the helper will be notified through this callback
     /*
-     * \brief Parameters needed to pass to helper once that the helpers callback functions is being
+     * @brief Parameters needed to pass to helper once that the helpers callback functions is being
      * called
      */
     Ptr<NrGnbNetDevice> m_gnbDevice;     //!< pointer to gNB device

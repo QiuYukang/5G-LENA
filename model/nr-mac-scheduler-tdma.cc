@@ -10,7 +10,7 @@
 
 #include "nr-mac-scheduler-tdma.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 #include <algorithm>
 #include <functional>
@@ -54,20 +54,20 @@ NrMacSchedulerTdma::GetUeVectorFromActiveUeMap(const NrMacSchedulerNs3::ActiveUe
 }
 
 /**
- * \brief Assign the available RBG in a TDMA fashion
- * \param symAvail Number of available symbols
- * \param activeUe active flows and UE
- * \param type String representing the type of allocation currently in act (DL or UL)
- * \param BeforeSchedFn Function to call before any scheduling is started
- * \param GetCompareFn Function to call to compare UEs during assignment
- * \param GetTBSFn Function to call to get a reference of the UL or DL TBS
- * \param GetRBGFn Function to call to get a reference of the UL or DL RBG
- * \param GetSymFn Function to call to get a reference of the UL or DL symbols
- * \param SuccessfulAssignmentFn Function to call one time for the UE that got the resources
+ * @brief Assign the available RBG in a TDMA fashion
+ * @param symAvail Number of available symbols
+ * @param activeUe active flows and UE
+ * @param type String representing the type of allocation currently in act (DL or UL)
+ * @param BeforeSchedFn Function to call before any scheduling is started
+ * @param GetCompareFn Function to call to compare UEs during assignment
+ * @param GetTBSFn Function to call to get a reference of the UL or DL TBS
+ * @param GetRBGFn Function to call to get a reference of the UL or DL RBG
+ * @param GetSymFn Function to call to get a reference of the UL or DL symbols
+ * @param SuccessfulAssignmentFn Function to call one time for the UE that got the resources
  * assigned in one iteration \param UnSuccessfulAssignmentFn Function to call for the UEs that did
  * not get anything in one iteration
  *
- * \return a map between the beam and the symbols assigned to each one
+ * @return a map between the beam and the symbols assigned to each one
  *
  * The algorithm redistributes the number of symbols to all the UEs. The
  * pseudocode is the following:
@@ -97,7 +97,7 @@ NrMacSchedulerTdma::GetUeVectorFromActiveUeMap(const NrMacSchedulerNs3::ActiveUe
  * a UL or DL allocation. Please make sure the callbacks return references
  * (or no effects will be seen on the caller).
  *
- * \see BeforeDlSched
+ * @see BeforeDlSched
  */
 NrMacSchedulerTdma::BeamSymbolMap
 NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
@@ -215,10 +215,10 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
 }
 
 /**
- * \brief Assign the available DL RBG to the UEs
- * \param symAvail Number of available symbols
- * \param activeDl active DL flows and UE
- * \return a map between the beam and the symbols assigned to each one
+ * @brief Assign the available DL RBG to the UEs
+ * @param symAvail Number of available symbols
+ * @param activeDl active DL flows and UE
+ * @return a map between the beam and the symbols assigned to each one
  *
  * The function will prepare all the needed callbacks to return UE DL parameters
  * (e.g., the DL TBS, the DL RBG) and then will call NrMacSchedulerTdma::AssignRBGTDMA.
@@ -265,10 +265,10 @@ NrMacSchedulerTdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) 
 }
 
 /**
- * \brief Assign the available UL RBG to the UEs
- * \param symAvail Number of available symbols
- * \param activeUl active DL flows and UE
- * \return a map between the beam and the symbols assigned to each one
+ * @brief Assign the available UL RBG to the UEs
+ * @param symAvail Number of available symbols
+ * @param activeUl active DL flows and UE
+ * @return a map between the beam and the symbols assigned to each one
  *
  * The function will prepare all the needed callbacks to return UE UL parameters
  * (e.g., the UL TBS, the UL RBG) and then will call NrMacSchedulerTdma::AssignRBGTDMA.
@@ -313,11 +313,11 @@ NrMacSchedulerTdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl) 
 }
 
 /**
- * \brief Create a DL DCI starting from spoint and spanning maxSym symbols
- * \param spoint Starting point of the DCI
- * \param ueInfo UE representation
- * \param maxSym Maximum number of symbols for the creation of the DCI
- * \return a pointer to the newly created DCI
+ * @brief Create a DL DCI starting from spoint and spanning maxSym symbols
+ * @param spoint Starting point of the DCI
+ * @param ueInfo UE representation
+ * @param maxSym Maximum number of symbols for the creation of the DCI
+ * @return a pointer to the newly created DCI
  *
  * The method calculates the TBS and the real number of symbols needed, and
  * then call CreateDci().
@@ -364,10 +364,10 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
 }
 
 /**
- * \brief Create a UL DCI starting from spoint and spanning maxSym symbols
- * \param spoint Starting point of the DCI
- * \param ueInfo UE representation
- * \return a pointer to the newly created DCI
+ * @brief Create a UL DCI starting from spoint and spanning maxSym symbols
+ * @param spoint Starting point of the DCI
+ * @param ueInfo UE representation
+ * @return a pointer to the newly created DCI
  *
  * The method calculates the TBS and the real number of symbols needed, and
  * then call CreateDci().
@@ -430,14 +430,14 @@ NrMacSchedulerTdma::GetTpc() const
 }
 
 /**
- * \brief Create a DCI with the parameters specified as input
- * \param spoint starting point
- * \param ueInfo ue representation
- * \param tbs Transport Block Size
- * \param fmt Format of the DCI (UL or DL)
- * \param mcs MCS
- * \param numSym Number of symbols
- * \return a pointer to the newly created DCI
+ * @brief Create a DCI with the parameters specified as input
+ * @param spoint starting point
+ * @param ueInfo ue representation
+ * @param tbs Transport Block Size
+ * @param fmt Format of the DCI (UL or DL)
+ * @param mcs MCS
+ * @param numSym Number of symbols
+ * @return a pointer to the newly created DCI
  *
  * Creates a TDMA DCI (a DCI with all the resource block assigned for the
  * specified number of symbols)

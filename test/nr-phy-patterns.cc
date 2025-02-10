@@ -2,22 +2,22 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/beam-manager.h>
-#include <ns3/multi-model-spectrum-channel.h>
-#include <ns3/node.h>
-#include <ns3/nr-ch-access-manager.h>
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/nr-interference-base.h>
-#include <ns3/nr-mac-scheduler-tdma-rr.h>
-#include <ns3/object-factory.h>
-#include <ns3/test.h>
-#include <ns3/uniform-planar-array.h>
+#include "ns3/beam-manager.h"
+#include "ns3/multi-model-spectrum-channel.h"
+#include "ns3/node.h"
+#include "ns3/nr-ch-access-manager.h"
+#include "ns3/nr-gnb-phy.h"
+#include "ns3/nr-interference-base.h"
+#include "ns3/nr-mac-scheduler-tdma-rr.h"
+#include "ns3/object-factory.h"
+#include "ns3/test.h"
+#include "ns3/uniform-planar-array.h"
 
 /**
- * \file nr-phy-patterns.cc
- * \ingroup test
+ * @file nr-phy-patterns.cc
+ * @ingroup test
  *
- * \brief The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
+ * @brief The test creates a fake MAC that checks if, when PHY calls the DL/UL slot
  * allocations, it does it for the right slot in pattern. In other words, if the
  * PHY calls the UL slot allocation for a slot that should be DL, the test will fail.
  */
@@ -146,14 +146,14 @@ TestGnbMac::SetCurrentSfn(const SfnSf& sfnSf)
 }
 
 /**
- * \brief TestCase for the PHY TDD Patterns
+ * @brief TestCase for the PHY TDD Patterns
  */
 class NrPhyPatternTestCase : public TestCase
 {
   public:
     /**
-     * \brief Create NrPatternTestCase
-     * \param name Name of the test
+     * @brief Create NrPatternTestCase
+     * @param name Name of the test
      */
     NrPhyPatternTestCase(const std::string& pattern, const std::string& name)
         : TestCase(name),

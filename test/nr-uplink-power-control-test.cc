@@ -4,29 +4,29 @@
 
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/boolean.h"
+#include "ns3/callback.h"
+#include "ns3/config.h"
+#include "ns3/double.h"
+#include "ns3/integer.h"
 #include "ns3/internet-module.h"
+#include "ns3/log.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/pointer.h"
+#include "ns3/rng-seed-manager.h"
+#include "ns3/simulator.h"
 #include "ns3/test.h"
-#include <ns3/boolean.h>
-#include <ns3/callback.h>
-#include <ns3/config.h>
-#include <ns3/double.h>
-#include <ns3/integer.h>
-#include <ns3/log.h>
-#include <ns3/mobility-helper.h>
-#include <ns3/nr-module.h>
-#include <ns3/pointer.h>
-#include <ns3/rng-seed-manager.h>
-#include <ns3/simulator.h>
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NrUplinkPowerControlTestCase");
 
 /**
- * \file nr-test-uplink-power-control.cc
- * \ingroup test
+ * @file nr-test-uplink-power-control.cc
+ * @ingroup test
  *
- * \brief Test suite for NrUplinkPowerControlTestCase.
+ * @brief Test suite for NrUplinkPowerControlTestCase.
  *
  */
 class NrUplinkPowerControlTestSuite : public TestSuite
@@ -36,10 +36,10 @@ class NrUplinkPowerControlTestSuite : public TestSuite
 };
 
 /**
- * \file nr-test-uplink-power-control.cc
- * \ingroup test
+ * @file nr-test-uplink-power-control.cc
+ * @ingroup test
  *
- * \brief NR uplink power control test case. Tests PUSCH and PUCCH
+ * @brief NR uplink power control test case. Tests PUSCH and PUCCH
  * power control adaptation. Move UE to different positions and check
  * whether the power is adjusted as expected (open loop, closed loop
  * absolute/accumulated mode).
@@ -48,23 +48,23 @@ class NrUplinkPowerControlTestCase : public TestCase
 {
   public:
     /**
-     * \brief Constructor
-     * \param name the test case name
-     * \param closedLoop - whether open or closed loop mode will be activated, if true closed loop
+     * @brief Constructor
+     * @param name the test case name
+     * @param closedLoop - whether open or closed loop mode will be activated, if true closed loop
      * will be used, if false open loop \param accumulatedMode - if closed loop is activated then
      * this variable defines whether absolute or accumulation mode is being used
      */
     NrUplinkPowerControlTestCase(std::string name, bool closedLoop, bool accumulatedMode);
     /**
-     * \brief Destructor
+     * @brief Destructor
      */
     ~NrUplinkPowerControlTestCase() override;
 
     /**
      * Function that moves the UE to a different position
      *
-     * \param distance a new distance to be set between UE and gNB
-     * \param expectedPuschTxPower the expected PUSCH transmit power in dBm after moving to a new
+     * @param distance a new distance to be set between UE and gNB
+     * @param expectedPuschTxPower the expected PUSCH transmit power in dBm after moving to a new
      * position \param expectedPucchTxPower the expected PUCCH transmit power in dBm after moving to
      * a new position
      */
@@ -72,16 +72,16 @@ class NrUplinkPowerControlTestCase : public TestCase
 
     /**
      * PUSCH transmit power trace function
-     * \param cellId the cell ID
-     * \param rnti the RNTI
-     * \param txPower the transmit power in dBm
+     * @param cellId the cell ID
+     * @param rnti the RNTI
+     * @param txPower the transmit power in dBm
      */
     void PuschTxPowerTrace(uint16_t cellId, uint16_t rnti, double txPower);
     /**
      * PUCCH transmit power trace function
-     * \param cellId the cell ID
-     * \param rnti the RNTI
-     * \param txPower the transmit power in dBm
+     * @param cellId the cell ID
+     * @param rnti the RNTI
+     * @param txPower the transmit power in dBm
      */
     void PucchTxPowerTrace(uint16_t cellId, uint16_t rnti, double txPower);
 

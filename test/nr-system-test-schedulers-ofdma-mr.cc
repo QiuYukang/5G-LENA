@@ -9,16 +9,16 @@
 using namespace ns3;
 
 /**
- * \file nr-system-test-schedulers-ofdma-mr.cc
- * \ingroup test
+ * @file nr-system-test-schedulers-ofdma-mr.cc
+ * @ingroup test
  *
- * \brief System test for OFDMA - Max rate scheduler. It checks that all the
+ * @brief System test for OFDMA - Max rate scheduler. It checks that all the
  * packets sent are delivered correctly.
  */
 
 /**
- * \brief The OFDMA MR scheduler system test suite
- * \ingroup test
+ * @brief The OFDMA MR scheduler system test suite
+ * @ingroup test
  *
  * It will check OFDMA MR with:
  *
@@ -31,7 +31,7 @@ class NrSystemTestSchedulerOfdmaMrSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerOfdmaMrSuite();
 };

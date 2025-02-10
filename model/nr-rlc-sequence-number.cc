@@ -12,9 +12,9 @@ namespace nr
 {
 /**
  * Ostream output function
- * \param os the output stream
- * \param val the sequence number
- * \returns the os
+ * @param os the output stream
+ * @param val the sequence number
+ * @returns the os
  */
 std::ostream&
 operator<<(std::ostream& os, const nr::SequenceNumber10& val)

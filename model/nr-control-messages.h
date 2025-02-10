@@ -8,14 +8,14 @@
 #include "nr-phy-mac-common.h"
 #include "nr-rrc-sap.h"
 
-#include <ns3/simple-ref-count.h>
+#include "ns3/simple-ref-count.h"
 
 namespace ns3
 {
 
 /**
- * \ingroup utils
- * \brief Available TDD slot types. Ordering is important.
+ * @ingroup utils
+ * @brief Available TDD slot types. Ordering is important.
  */
 enum LteNrTddSlotType : uint8_t
 {
@@ -28,8 +28,8 @@ enum LteNrTddSlotType : uint8_t
 std::ostream& operator<<(std::ostream& os, const LteNrTddSlotType& item);
 
 /**
- * \ingroup utils
- * \brief The NrControlMessage class
+ * @ingroup utils
+ * @brief The NrControlMessage class
  *
  * Base class for all the messages types that the UE and the GNB can exchange. The
  * use is not usually involved in the message creation; however, you can read them
@@ -39,7 +39,7 @@ class NrControlMessage : public SimpleRefCount<NrControlMessage>
 {
   public:
     /**
-     * \brief The Message Type
+     * @brief The Message Type
      */
     enum messageType
     {
@@ -57,28 +57,28 @@ class NrControlMessage : public SimpleRefCount<NrControlMessage>
     };
 
     /**
-     * \brief NrControlMessage
+     * @brief NrControlMessage
      */
     NrControlMessage();
     /**
-     * \brief ~NrControlMessage
+     * @brief ~NrControlMessage
      */
     virtual ~NrControlMessage();
 
     /**
-     * \brief Get the MessageType
-     * \return the message type
+     * @brief Get the MessageType
+     * @return the message type
      */
     messageType GetMessageType() const;
 
     /**
-     * \brief Set the BWP in which this message has been generated
-     * \param bwpId the BwpId
+     * @brief Set the BWP in which this message has been generated
+     * @param bwpId the BwpId
      */
     void SetSourceBwp(uint16_t bwpId);
 
     /**
-     * \return the BWP in which this message has been generated
+     * @return the BWP in which this message has been generated
      *
      * If SetSourceBwp() is not called beforehand, the method will ABORT.
      */
@@ -86,8 +86,8 @@ class NrControlMessage : public SimpleRefCount<NrControlMessage>
 
   protected:
     /**
-     * \brief Set the MessageType
-     * \param type type of the message
+     * @brief Set the MessageType
+     * @param type type of the message
      */
     void SetMessageType(messageType type);
 
@@ -97,8 +97,8 @@ class NrControlMessage : public SimpleRefCount<NrControlMessage>
 };
 
 /**
- * \ingroup utils
- * \brief SR message
+ * @ingroup utils
+ * @brief SR message
  *
  * Message that represent a scheduling request, with the RNTI from
  * which this message is coming.
@@ -107,23 +107,23 @@ class NrSRMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrSRMessage constructor
+     * @brief NrSRMessage constructor
      */
     NrSRMessage();
     /**
-     * \brief ~NrSRMessage
+     * @brief ~NrSRMessage
      */
     ~NrSRMessage() override;
 
     /**
-     * \brief Set the RNTI to which this message is intended
-     * \param rnti RNTI
+     * @brief Set the RNTI to which this message is intended
+     * @param rnti RNTI
      */
     void SetRNTI(uint16_t rnti);
 
     /**
-     * \brief Get the RNTI of this message
-     * \return RNTI
+     * @brief Get the RNTI of this message
+     * @return RNTI
      */
     uint16_t GetRNTI() const;
 
@@ -132,44 +132,44 @@ class NrSRMessage : public NrControlMessage
 };
 
 /**
- * \brief The message that represents a DL DCI message
- * \ingroup utils
+ * @brief The message that represents a DL DCI message
+ * @ingroup utils
  */
 class NrDlDciMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrDlDciMessage constructor
-     * \param dci the DCI
+     * @brief NrDlDciMessage constructor
+     * @param dci the DCI
      */
     NrDlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci);
     /**
-     * \brief ~NrDlDciMessage
+     * @brief ~NrDlDciMessage
      */
     ~NrDlDciMessage() override;
 
     /**
-     * \brief Get the DCI
-     * \return the DCI
+     * @brief Get the DCI
+     * @return the DCI
      */
     std::shared_ptr<DciInfoElementTdma> GetDciInfoElement();
 
     /**
-     * \brief Set the delay (in slots) between DL DCI
+     * @brief Set the delay (in slots) between DL DCI
      * reception and subframe to which it applies for
      * reception/transmission of Data (k0)
      */
     void SetKDelay(uint32_t delay);
     /**
-     * \brief Get the delay (in slots) between DCI
+     * @brief Get the delay (in slots) between DCI
      * reception and subframe to which it applies for
      * reception/transmission of Data (k0)
-     * \return k delay
+     * @return k delay
      */
     uint32_t GetKDelay() const;
 
     /**
-     * \brief Set the delay (in slots) between DL Data
+     * @brief Set the delay (in slots) between DL Data
      * reception and subframe to which it applies for
      * Harq feedback
      *
@@ -178,10 +178,10 @@ class NrDlDciMessage : public NrControlMessage
      */
     void SetK1Delay(uint32_t delay);
     /**
-     * \brief Get the delay (in slots) between DL Data
+     * @brief Get the delay (in slots) between DL Data
      * reception and subframe to which it applies for
      * Harq feedback
-     * \return k1 delay
+     * @return k1 delay
      */
     uint32_t GetK1Delay() const;
 
@@ -194,39 +194,39 @@ class NrDlDciMessage : public NrControlMessage
 };
 
 /**
- * \brief The message that represents a UL DCI message
- * \ingroup utils
+ * @brief The message that represents a UL DCI message
+ * @ingroup utils
  */
 class NrUlDciMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrUlDciMessage constructor
-     * \param dci DCI
+     * @brief NrUlDciMessage constructor
+     * @param dci DCI
      */
     NrUlDciMessage(const std::shared_ptr<DciInfoElementTdma>& dci);
     /**
-     * \brief ~NrUlDciMessage
+     * @brief ~NrUlDciMessage
      */
     ~NrUlDciMessage() override;
 
     /**
-     * \brief Get the DCI
-     * \return the DCI
+     * @brief Get the DCI
+     * @return the DCI
      */
     std::shared_ptr<DciInfoElementTdma> GetDciInfoElement();
 
     /**
-     * \brief Set the delay (in slots) between UCI
+     * @brief Set the delay (in slots) between UCI
      * reception and subframe to which it applies for
      * reception/transmission of Data (k2)
      */
     void SetKDelay(uint32_t delay);
     /**
-     * \brief Get the delay (in slots) between UCI
+     * @brief Get the delay (in slots) between UCI
      * reception and subframe to which it applies for
      * reception/transmission of Data (k2)
-     * \return k delay
+     * @return k delay
      */
     uint32_t GetKDelay() const;
 
@@ -237,29 +237,29 @@ class NrUlDciMessage : public NrControlMessage
 };
 
 /**
- * \brief The message that represents a DL CQI message
- * \ingroup utils
+ * @brief The message that represents a DL CQI message
+ * @ingroup utils
  */
 class NrDlCqiMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrDlCqiMessage constructor
+     * @brief NrDlCqiMessage constructor
      */
     NrDlCqiMessage();
     /**
-     * \brief ~NrDlCqiMessage
+     * @brief ~NrDlCqiMessage
      */
     ~NrDlCqiMessage() override;
 
     /**
-     * \brief Set the DlCqi to transmit
-     * \param cqi the DlCqi info
+     * @brief Set the DlCqi to transmit
+     * @param cqi the DlCqi info
      */
     void SetDlCqi(DlCqiInfo cqi);
     /**
-     * \brief Get the DlCqi in this message
-     * \return the DL CQI
+     * @brief Get the DlCqi in this message
+     * @return the DL CQI
      */
     DlCqiInfo GetDlCqi();
 
@@ -268,8 +268,8 @@ class NrDlCqiMessage : public NrControlMessage
 };
 
 /**
- * \ingroup utils
- * \brief the BSR message
+ * @ingroup utils
+ * @brief the BSR message
  *
  * The uplink BsrNrControlMessage defines the specific
  * extension of the CE element for reporting the buffer status report
@@ -278,23 +278,23 @@ class NrBsrMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrBsrMessage constructor
+     * @brief NrBsrMessage constructor
      */
     NrBsrMessage();
     /**
-     * \brief ~NrBsrMessage
+     * @brief ~NrBsrMessage
      */
     ~NrBsrMessage() override;
 
     /**
-     * \brief add a BSR feedback record into the message.
-     * \param bsr the BSR feedback
+     * @brief add a BSR feedback record into the message.
+     * @param bsr the BSR feedback
      */
     void SetBsr(MacCeElement bsr);
 
     /**
-     * \brief Get BSR information
-     * \return BSR message
+     * @brief Get BSR information
+     * @return BSR message
      */
     MacCeElement GetBsr();
 
@@ -305,8 +305,8 @@ class NrBsrMessage : public NrControlMessage
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup utils
- * \brief Abstract model for broadcasting the Master Information Block (MIB)
+ * @ingroup utils
+ * @brief Abstract model for broadcasting the Master Information Block (MIB)
  *        within the control channel (BCCH).
  *
  */
@@ -314,19 +314,19 @@ class NrMibMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief Create a new instance of MIB control message.
+     * @brief Create a new instance of MIB control message.
      */
     NrMibMessage();
 
     /**
-     * \brief Replace the MIB content of this control message.
-     * \param mib the desired MIB content
+     * @brief Replace the MIB content of this control message.
+     * @param mib the desired MIB content
      */
     void SetMib(NrRrcSap::MasterInformationBlock mib);
 
     /**
-     * \brief Retrieve the MIB content from this control message.
-     * \return the current MIB content that this control message holds
+     * @brief Retrieve the MIB content from this control message.
+     * @return the current MIB content that this control message holds
      */
     NrRrcSap::MasterInformationBlock GetMib() const;
 
@@ -337,8 +337,8 @@ class NrMibMessage : public NrControlMessage
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup utils
- * \brief Abstract model for broadcasting the System Information Block Type 1
+ * @ingroup utils
+ * @brief Abstract model for broadcasting the System Information Block Type 1
  *        (SIB1) within the control channel (BCCH).
  *
  */
@@ -346,19 +346,19 @@ class NrSib1Message : public NrControlMessage
 {
   public:
     /**
-     * \brief Create a new instance of SIB1 control message.
+     * @brief Create a new instance of SIB1 control message.
      */
     NrSib1Message();
 
     /**
-     * \brief Replace the SIB1 content of this control message.
-     * \param sib1 the desired SIB1 content
+     * @brief Replace the SIB1 content of this control message.
+     * @param sib1 the desired SIB1 content
      */
     void SetSib1(NrRrcSap::SystemInformationBlockType1 sib1);
 
     /**
-     * \brief Retrieve the SIB1 content from this control message.
-     * \return the current SIB1 content that this control message holds
+     * @brief Retrieve the SIB1 content from this control message.
+     * @return the current SIB1 content that this control message holds
      */
     NrRrcSap::SystemInformationBlockType1 GetSib1() const;
 
@@ -369,33 +369,33 @@ class NrSib1Message : public NrControlMessage
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup utils
+ * @ingroup utils
  *
- * \brief Abstract model for the Random Access Preamble
+ * @brief Abstract model for the Random Access Preamble
  */
 class NrRachPreambleMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrRachPreambleMessage constructor
+     * @brief NrRachPreambleMessage constructor
      */
     NrRachPreambleMessage();
 
     /**
-     * \brief ~NrRachPreambleMessage
+     * @brief ~NrRachPreambleMessage
      */
     ~NrRachPreambleMessage() override;
 
     /**
      * Set the Random Access Preamble Identifier (RAPID), see 3GPP TS 36.321 6.2.2
      *
-     * \param rapid the RAPID
+     * @param rapid the RAPID
      */
     void SetRapId(uint32_t rapid);
 
     /**
      *
-     * \return the RAPID
+     * @return the RAPID
      */
     uint32_t GetRapId() const;
 
@@ -406,32 +406,32 @@ class NrRachPreambleMessage : public NrControlMessage
 // ---------------------------------------------------------------------------
 
 /**
- * \ingroup utils
+ * @ingroup utils
  *
- * \brief Abstract model for the MAC Random Access Response message
+ * @brief Abstract model for the MAC Random Access Response message
  */
 class NrRarMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrRarMessage constructor
+     * @brief NrRarMessage constructor
      */
     NrRarMessage();
 
     /**
-     * \brief ~NrRarMessage
+     * @brief ~NrRarMessage
      */
     ~NrRarMessage() override;
 
     /**
      *
-     * \param raRnti the RA-RNTI, see 3GPP TS 36.321 5.1.4
+     * @param raRnti the RA-RNTI, see 3GPP TS 36.321 5.1.4
      */
     void SetRaRnti(uint16_t raRnti);
 
     /**
      *
-     * \return  the RA-RNTI, see 3GPP TS 36.321 5.1.4
+     * @return  the RA-RNTI, see 3GPP TS 36.321 5.1.4
      */
     uint16_t GetRaRnti() const;
 
@@ -448,19 +448,19 @@ class NrRarMessage : public NrControlMessage
     /**
      * add a RAR to the MAC PDU, see 3GPP TS 36.321 6.2.3
      *
-     * \param rar the rar
+     * @param rar the rar
      */
     void AddRar(Rar rar);
 
     /**
      *
-     * \return a const iterator to the beginning of the RAR list
+     * @return a const iterator to the beginning of the RAR list
      */
     std::list<Rar>::const_iterator RarListBegin() const;
 
     /**
      *
-     * \return a const iterator to the end of the RAR list
+     * @return a const iterator to the end of the RAR list
      */
     std::list<Rar>::const_iterator RarListEnd() const;
 
@@ -470,8 +470,8 @@ class NrRarMessage : public NrControlMessage
 };
 
 /**
- * \ingroup utils
- * \brief DlHarqFeedback message
+ * @ingroup utils
+ * @brief DlHarqFeedback message
  *
  * The downlink NrDlHarqFeedbackMessage defines the specific
  * messages for transmitting the DL HARQ feedback through PUCCH
@@ -480,23 +480,23 @@ class NrDlHarqFeedbackMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrDlHarqFeedbackMessage constructor
+     * @brief NrDlHarqFeedbackMessage constructor
      */
     NrDlHarqFeedbackMessage();
     /**
-     * \brief ~NrDlHarqFeedbackMessage
+     * @brief ~NrDlHarqFeedbackMessage
      */
     ~NrDlHarqFeedbackMessage() override;
 
     /**
-     * \brief add a DL HARQ feedback record into the message.
-     * \param m the DL HARQ feedback
+     * @brief add a DL HARQ feedback record into the message.
+     * @param m the DL HARQ feedback
      */
     void SetDlHarqFeedback(DlHarqInfo m);
 
     /**
-     * \brief Get DL HARQ information
-     * \return DL HARQ message
+     * @brief Get DL HARQ information
+     * @return DL HARQ message
      */
     DlHarqInfo GetDlHarqFeedback();
 
@@ -505,19 +505,19 @@ class NrDlHarqFeedbackMessage : public NrControlMessage
 };
 
 /**
- * \ingroup utils
- * \brief NrSrsMessage message
+ * @ingroup utils
+ * @brief NrSrsMessage message
  *
  */
 class NrSrsMessage : public NrControlMessage
 {
   public:
     /**
-     * \brief NrDlHarqFeedbackMessage constructor
+     * @brief NrDlHarqFeedbackMessage constructor
      */
     NrSrsMessage();
     /**
-     * \brief ~NrDlHarqFeedbackMessage
+     * @brief ~NrDlHarqFeedbackMessage
      */
     ~NrSrsMessage() override = default;
 };

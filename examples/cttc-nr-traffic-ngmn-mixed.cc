@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-nr-traffic-ngmn-mixed.cc
- * \brief A hegagonal topology example used to show how to configure different
+ * @ingroup examples
+ * @file cttc-nr-traffic-ngmn-mixed.cc
+ * @brief A hegagonal topology example used to show how to configure different
  * NGMN types of traffics or NGMN mixed scenario
  *
  * The example consists of an hexagonal grid deployment
@@ -34,6 +34,7 @@ $ ./ns3 run "cttc-nr-traffic-ngmn-mixed --PrintHelp"
  * do that by including the name of the module you need with the suffix "-module.h".
  */
 
+#include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/config-store.h"
@@ -45,20 +46,19 @@ $ ./ns3 run "cttc-nr-traffic-ngmn-mixed --PrintHelp"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
 #include "ns3/nr-module.h"
+#include "ns3/nr-radio-environment-map-helper.h"
+#include "ns3/ping-helper.h"
 #include "ns3/point-to-point-module.h"
-#include <ns3/antenna-module.h>
-#include <ns3/nr-radio-environment-map-helper.h>
-#include <ns3/ping-helper.h>
-#include <ns3/rng-seed-manager.h>
-#include <ns3/three-gpp-ftp-m1-helper.h>
-#include <ns3/three-gpp-http-client.h>
-#include <ns3/three-gpp-http-helper.h>
-#include <ns3/three-gpp-http-server.h>
-#include <ns3/three-gpp-http-variables.h>
-#include <ns3/traffic-generator-ngmn-ftp-multi.h>
-#include <ns3/traffic-generator-ngmn-gaming.h>
-#include <ns3/traffic-generator-ngmn-video.h>
-#include <ns3/traffic-generator-ngmn-voip.h>
+#include "ns3/rng-seed-manager.h"
+#include "ns3/three-gpp-ftp-m1-helper.h"
+#include "ns3/three-gpp-http-client.h"
+#include "ns3/three-gpp-http-helper.h"
+#include "ns3/three-gpp-http-server.h"
+#include "ns3/three-gpp-http-variables.h"
+#include "ns3/traffic-generator-ngmn-ftp-multi.h"
+#include "ns3/traffic-generator-ngmn-gaming.h"
+#include "ns3/traffic-generator-ngmn-video.h"
+#include "ns3/traffic-generator-ngmn-voip.h"
 
 #include <algorithm>
 #include <iostream>
@@ -77,27 +77,27 @@ class RadioNetworkParametersHelper
 {
   public:
     /**
-     * \brief Set the main radio network parameters.
-     * \param freqReuse The cell frequency reuse.
+     * @brief Set the main radio network parameters.
+     * @param freqReuse The cell frequency reuse.
      */
     void SetNetworkParams(const std::string scenario,
                           const std::string operationMode,
                           uint16_t numCcs);
     /**
-     * \brief Gets the BS transmit power
-     * \return Transmit power in dBW
+     * @brief Gets the BS transmit power
+     * @return Transmit power in dBW
      */
     double GetTxPower() const;
 
     /**
-     * \brief Gets the operation bandwidth
-     * \return Bandwidth in Hz
+     * @brief Gets the operation bandwidth
+     * @return Bandwidth in Hz
      */
     double GetBandwidth() const;
 
     /**
-     * \brief Gets the central frequency
-     * \return Central frequency in Hz
+     * @brief Gets the central frequency
+     * @return Central frequency in Hz
      */
     double GetCentralFrequency() const;
 
@@ -590,10 +590,10 @@ enum TrafficTypeConf
 };
 
 /**
- * \brief operator << for TrafficTypeConf
- * \param os output stream
- * \param item TrafficType to print
- * \return a copy of the output stream
+ * @brief operator << for TrafficTypeConf
+ * @param os output stream
+ * @param item TrafficType to print
+ * @return a copy of the output stream
  */
 static inline std::ostream&
 operator<<(std::ostream& os, const TrafficTypeConf& item)

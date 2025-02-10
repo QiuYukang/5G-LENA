@@ -10,8 +10,8 @@
 namespace ns3
 {
 /**
- * \ingroup scheduler
- * \brief UE representation for a AI-based scheduler
+ * @ingroup scheduler
+ * @brief UE representation for a AI-based scheduler
  *
  * The representation stores the weights of a UE, which are also referred to as actions in the RL
  * model, in response to sending the predefined observation. The observation is a vector of
@@ -20,19 +20,19 @@ namespace ns3
  * class. In resource allocation per symbol, we can design the reward function of a UE using the QoS
  * metrics.
  *
- * \see LcObservation
- * \see Weights
- * \see NrMacSchedulerUeInfoQos
+ * @see LcObservation
+ * @see Weights
+ * @see NrMacSchedulerUeInfoQos
  */
 class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
 {
   public:
     /**
-     * \brief NrMacSchedulerUeInfoAi constructor
-     * \param alpha The fairness metric
-     * \param rnti RNTI of the UE
-     * \param beamId BeamId of the UE
-     * \param fn A function that tells how many RB per RBG
+     * @brief NrMacSchedulerUeInfoAi constructor
+     * @param alpha The fairness metric
+     * @param rnti RNTI of the UE
+     * @param beamId BeamId of the UE
+     * @param fn A function that tells how many RB per RBG
      */
     NrMacSchedulerUeInfoAi(float alpha, uint16_t rnti, BeamId beamId, const GetRbPerRbgFn& fn)
         : NrMacSchedulerUeInfoQos(alpha, rnti, beamId, fn)
@@ -40,16 +40,16 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     }
 
     /**
-     * \typedef Weights
-     * \brief A hash map for weights
+     * @typedef Weights
+     * @brief A hash map for weights
      *
      * A hash map for weights that maps a pair of uint8_t to a double.
      * The key is the LC ID, and the value is the weight of the LC as a double.
      */
     typedef std::unordered_map<uint8_t, double> Weights;
     /**
-     * \typedef UeWeightsMap
-     * \brief A hash map for UE weights
+     * @typedef UeWeightsMap
+     * @brief A hash map for UE weights
      *
      * A hash map for UE weights that maps a uint8_t to a Weights.
      * The key is the RNTI, and the value is the Weights of the UE.
@@ -57,8 +57,8 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     typedef std::unordered_map<uint8_t, Weights> UeWeightsMap;
 
     /**
-     * \struct LcObservation
-     * \brief A struct for an observation of a flow
+     * @struct LcObservation
+     * @brief A struct for an observation of a flow
      *
      * A struct for an observation of a flow that stores the RNTI, LCG ID, LC ID, QCI, priority, and
      * head-of-line delay of the flow.
@@ -73,13 +73,13 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     };
 
     /**
-     * \typedef UpdateAllUeWeightsFn
-     * \brief A function type for updating the weights of all UEs.
+     * @typedef UpdateAllUeWeightsFn
+     * @brief A function type for updating the weights of all UEs.
      */
     typedef std::function<void(const UeWeightsMap&)> UpdateAllUeWeightsFn;
     /**
-     * \typedef NotifyCb
-     * \brief A callback type for notifying with specific parameters.
+     * @typedef NotifyCb
+     * @brief A callback type for notifying with specific parameters.
      *
      * This callback takes the following parameters:
      * - An Observation object representing the observations
@@ -97,7 +97,7 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
         NotifyCb;
 
     /**
-     * \brief Reset DL AI scheduler info
+     * @brief Reset DL AI scheduler info
      *
      * Clear the weights for the downlink.
      * It calls also NrMacSchedulerUeInfoQos::ResetDlSchedInfo.
@@ -109,7 +109,7 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     }
 
     /**
-     * \brief Reset UL AI scheduler info
+     * @brief Reset UL AI scheduler info
      *
      * Clear the weights for the uplink.
      * It also calls NrMacSchedulerUeInfoQos::ResetUlSchedInfo.
@@ -121,9 +121,9 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     }
 
     /**
-     * \brief Get the current observation for downlink
-     * \param ue the UE
-     * \return a vector of LcObservation with the current observation
+     * @brief Get the current observation for downlink
+     * @param ue the UE
+     * @return a vector of LcObservation with the current observation
      *
      * Get the current observation for downlink by iterating over the active LCs of the UE.
      * The observation is stored in a vector of LcObservation and each consists of the RNTI,
@@ -132,9 +132,9 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     std::vector<LcObservation> GetDlObservation();
 
     /**
-     * \brief Get the current observation for uplink
-     * \param ue the UE
-     * \return a vector of LcObservation with the current observation
+     * @brief Get the current observation for uplink
+     * @param ue the UE
+     * @return a vector of LcObservation with the current observation
      *
      * Get the current observation for uplink by iterating over the active LCs of the UE.
      * The observation is stored in a vector of LcObservation and each consists of the RNTI,
@@ -143,8 +143,8 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     std::vector<LcObservation> GetUlObservation();
 
     /**
-     * \brief Update the weights for downlink
-     * \param weights The weights assigned to a UE
+     * @brief Update the weights for downlink
+     * @param weights The weights assigned to a UE
      *
      * Update m_weights by copying the weights assigned to a UE.
      * The weights consist of an unordered_map of (key, value) pairs where the lcId is the key,
@@ -154,8 +154,8 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     void UpdateDlWeights(Weights& weights);
 
     /**
-     * \brief Update the weights for uplink
-     * \param weights the weights assigned to a UE
+     * @brief Update the weights for uplink
+     * @param weights the weights assigned to a UE
      *
      * Update m_weights by copying the weights assigned to a UE.
      * The weights consist of an unordered_map of (key, value) pairs where the combination of lcgId
@@ -165,8 +165,8 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     void UpdateUlWeights(Weights& weights);
 
     /**
-     * \brief Get the reward for downlink
-     * \return The reward for the downlink
+     * @brief Get the reward for downlink
+     * @return The reward for the downlink
      *
      * Calculate the reward for the downlink based on the latest observation and the given weights.
      * The reward is calculated as the sum of the rewards of the active LCs.
@@ -174,15 +174,15 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      * \f$ \text{reward}_{i} = \frac{\text{std::pow}(\text{potentialTput}, \alpha)}{\max(1E-9,
      * \text{avgTput})} \times P_{i} \times \text{HOL}_{i} \f$.
      *
-     * \alpha is a fairness metric. \( P \) is the priority associated with the QCI.
+     * @alpha is a fairness metric. \( P \) is the priority associated with the QCI.
      * HOL is the head-of-line delay of the LC.
      * Please note that the throughput is calculated in bit/symbol.
      */
     float GetDlReward();
 
     /**
-     * \brief Get the reward for uplink
-     * \return The reward for the uplink
+     * @brief Get the reward for uplink
+     * @return The reward for the uplink
      *
      * Calculate the reward for the uplink based on the latest observation and the given weights.
      * The reward is calculated as the sum of the rewards of the active LCs.
@@ -190,19 +190,19 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      * \f$ \text{reward}_{i} = \frac{\text{std::pow}(\text{potentialTput}, \alpha)}{\max(1E-9,
      * \text{avgTput})} \times P_{i} \times \text{HOL}_{i} \f$.
      *
-     * \alpha is a fairness metric. \( P \) is the priority associated with the QCI.
+     * @alpha is a fairness metric. \( P \) is the priority associated with the QCI.
      * HOL is the head-of-line delay of the LC.
      * Please note that the throughput is calculated in bit/symbol.
      */
     float GetUlReward();
 
     /**
-     * \brief comparison function object (i.e. an object that satisfies the
+     * @brief comparison function object (i.e. an object that satisfies the
      * requirements of Compare) which returns ​true if the first argument is less
      * than (i.e. is ordered before) the second.
-     * \param lue Left UE
-     * \param rue Right UE
-     * \return true if the AI metric of the left UE is higher than the right UE
+     * @param lue Left UE
+     * @param rue Right UE
+     * @return true if the AI metric of the left UE is higher than the right UE
      *
      * The AI metric is calculated in CalculateDlWeight()
      */
@@ -216,9 +216,9 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     }
 
     /**
-     * \brief Calculate the weight of a UE in the downlink
-     * \param ue the UE
-     * \return the weight of the UE
+     * @brief Calculate the weight of a UE in the downlink
+     * @param ue the UE
+     * @return the weight of the UE
      *
      * Calculate the weight of a UE in the downlink by iterating over the active LCs of the UE.
      * The weight is calculated as the sum of the weights of the active LCs.
@@ -245,12 +245,12 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     }
 
     /**
-     * \brief comparison function object (i.e. an object that satisfies the
+     * @brief comparison function object (i.e. an object that satisfies the
      * requirements of Compare) which returns ​true if the first argument is less
      * than (i.e. is ordered before) the second.
-     * \param lue Left UE
-     * \param rue Right UE
-     * \return true if the AI metric of the left UE is higher than the right UE
+     * @param lue Left UE
+     * @param rue Right UE
+     * @return true if the AI metric of the left UE is higher than the right UE
      *
      * The AI metric is calculated in CalculateUlWeight()
      */
@@ -264,9 +264,9 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
     }
 
     /**
-     * \brief Calculate the weight of a UE in the uplink
-     * \param ue the UE
-     * \return the weight of the UE
+     * @brief Calculate the weight of a UE in the uplink
+     * @param ue the UE
+     * @return the weight of the UE
      *
      * Calculate the weight of a UE in the uplink by iterating over the active LCs of the UE.
      * The weight is calculated as the sum of the weights of the active LCs.

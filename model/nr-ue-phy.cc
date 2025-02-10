@@ -18,13 +18,13 @@
 #include "nr-ue-net-device.h"
 #include "nr-ue-power-control.h"
 
-#include <ns3/boolean.h>
-#include <ns3/double.h>
-#include <ns3/enum.h>
-#include <ns3/log.h>
-#include <ns3/node.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
+#include "ns3/boolean.h"
+#include "ns3/double.h"
+#include "ns3/enum.h"
+#include "ns3/log.h"
+#include "ns3/node.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
 
 #include <algorithm>
 #include <cfloat>

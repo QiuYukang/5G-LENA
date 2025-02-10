@@ -20,8 +20,8 @@ class TrafficGeneratorFtpSingle : public TrafficGenerator
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -30,13 +30,13 @@ class TrafficGeneratorFtpSingle : public TrafficGenerator
     ~TrafficGeneratorFtpSingle() override;
 
     /**
-     * \brief Set the file size to try to transfer
+     * @brief Set the file size to try to transfer
      *
-     * \param fileSize the size of a file to try to transfer
+     * @param fileSize the size of a file to try to transfer
      */
     void SetFileSize(uint32_t fileSize);
     /**
-     * \brief Sets the packet size
+     * @brief Sets the packet size
      */
     void SetPacketSize(uint32_t packetSize);
 
@@ -45,8 +45,8 @@ class TrafficGeneratorFtpSingle : public TrafficGenerator
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream) override;
 
@@ -57,12 +57,12 @@ class TrafficGeneratorFtpSingle : public TrafficGenerator
 
   private:
     /**
-     * \brief Sets the file size to transfer
+     * @brief Sets the file size to transfer
      */
     void GenerateNextPacketBurstSize() override;
     /**
-     * \brief Get the amount of data to transfer
-     * \return the amount of data to transfer
+     * @brief Get the amount of data to transfer
+     * @return the amount of data to transfer
      */
     uint32_t GetNextPacketSize() const override;
 

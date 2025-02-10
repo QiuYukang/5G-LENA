@@ -6,9 +6,9 @@
 
 #include "nr-control-messages.h"
 
-#include <ns3/log.h>
-#include <ns3/packet-burst.h>
-#include <ns3/ptr.h>
+#include "ns3/log.h"
+#include "ns3/packet-burst.h"
+#include "ns3/ptr.h"
 
 namespace ns3
 {

@@ -11,8 +11,8 @@ namespace ns3
 {
 
 /**
- * \ingroup error-models
- * \brief LENA error model
+ * @ingroup error-models
+ * @brief LENA error model
  *
  * LENA is calculating the transport block sizes in a different way than we
  * employ in our module. In particular, it uses tables that come from the standard.
@@ -41,28 +41,28 @@ class LenaErrorModel : public NrLteMiErrorModel
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return the object type id
+     * @brief GetTypeId
+     * @return the object type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrLteMiErrorModel constructor
+     * @brief NrLteMiErrorModel constructor
      */
     LenaErrorModel();
 
     /**
-     * \brief ~NrLteMiErrorModel
+     * @brief ~NrLteMiErrorModel
      */
     ~LenaErrorModel() override;
 
     /**
-     * \brief Get the payload size, following the MCSs in LTE
-     * \param usefulSC Useful Subcarriers (ignored)
-     * \param mcs MCS
-     * \param rank MIMO rank
-     * \param rbNum Resource Block number (please pay attention)
-     * \param mode UL or DL
+     * @brief Get the payload size, following the MCSs in LTE
+     * @param usefulSC Useful Subcarriers (ignored)
+     * @param mcs MCS
+     * @param rank MIMO rank
+     * @param rbNum Resource Block number (please pay attention)
+     * @param mode UL or DL
      *
      * The RB value will be divided by 13.
      */

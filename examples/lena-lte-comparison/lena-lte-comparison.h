@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/nstime.h>
+#include "ns3/nstime.h"
 
 #include <ostream>
 #include <string>

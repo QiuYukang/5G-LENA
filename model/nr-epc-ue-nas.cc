@@ -8,10 +8,10 @@
 
 #include "nr-as-sap.h"
 
-#include <ns3/fatal-error.h>
-#include <ns3/log.h>
-#include <ns3/nr-epc-helper.h>
-#include <ns3/simulator.h>
+#include "ns3/fatal-error.h"
+#include "ns3/log.h"
+#include "ns3/nr-epc-helper.h"
+#include "ns3/simulator.h"
 
 namespace ns3
 {
@@ -28,8 +28,8 @@ static const std::string g_ueNasStateName[NrEpcUeNas::NUM_STATES] = {
 };
 
 /**
- * \param s The UE NAS state.
- * \return The string representation of the given state.
+ * @param s The UE NAS state.
+ * @return The string representation of the given state.
  */
 static inline const std::string&
 ToString(NrEpcUeNas::State s)

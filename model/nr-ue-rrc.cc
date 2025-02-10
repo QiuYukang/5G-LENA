@@ -20,11 +20,11 @@
 #include "nr-rlc-um.h"
 #include "nr-rlc.h"
 
-#include <ns3/fatal-error.h>
-#include <ns3/log.h>
-#include <ns3/object-factory.h>
-#include <ns3/object-map.h>
-#include <ns3/simulator.h>
+#include "ns3/fatal-error.h"
+#include "ns3/log.h"
+#include "ns3/object-factory.h"
+#include "ns3/object-map.h"
+#include "ns3/simulator.h"
 
 #include <cmath>
 
@@ -45,7 +45,7 @@ class UeMemberNrUeCmacSapUser : public NrUeCmacSapUser
     /**
      * Constructor
      *
-     * \param rrc the RRC class
+     * @param rrc the RRC class
      */
     UeMemberNrUeCmacSapUser(NrUeRrc* rrc);
 
@@ -734,7 +734,7 @@ NrUeRrc::DoNotifyRandomAccessFailed()
     case CONNECTED_HANDOVER: {
         m_handoverEndErrorTrace(m_imsi, m_cellId, m_rnti);
         /**
-         * \todo After a handover failure because of a random access failure,
+         * @todo After a handover failure because of a random access failure,
          *       send an RRC Connection Re-establishment and switch to
          *       CONNECTED_REESTABLISHING state.
          */
@@ -1197,7 +1197,7 @@ NrUeRrc::DoRecvRrcConnectionReestablishment(NrRrcSap::RrcConnectionReestablishme
     {
     case CONNECTED_REESTABLISHING: {
         /**
-         * \todo After receiving RRC Connection Re-establishment, stop timer
+         * @todo After receiving RRC Connection Re-establishment, stop timer
          *       T301, fire a new trace source, reply with RRC Connection
          *       Re-establishment Complete, and finally switch to
          *       CONNECTED_NORMALLY state. See Section 5.3.7.5 of 3GPP TS
@@ -1220,7 +1220,7 @@ NrUeRrc::DoRecvRrcConnectionReestablishmentReject(NrRrcSap::RrcConnectionReestab
     {
     case CONNECTED_REESTABLISHING: {
         /**
-         * \todo After receiving RRC Connection Re-establishment Reject, stop
+         * @todo After receiving RRC Connection Re-establishment Reject, stop
          *       timer T301. See Section 5.3.7.8 of 3GPP TS 36.331.
          */
         m_asSapUser->NotifyConnectionReleased(); // Inform upper layers
@@ -1237,7 +1237,7 @@ void
 NrUeRrc::DoRecvRrcConnectionRelease(NrRrcSap::RrcConnectionRelease msg)
 {
     NS_LOG_FUNCTION(this << " RNTI " << m_rnti);
-    /// \todo Currently not implemented, see Section 5.3.8 of 3GPP TS 36.331.
+    /// @todo Currently not implemented, see Section 5.3.8 of 3GPP TS 36.331.
 
     m_lastRrcTransactionIdentifier = msg.rrcTransactionIdentifier;
     // release resources at UE
@@ -1645,7 +1645,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
         {
             NS_LOG_INFO("request to modify existing DRBID");
             Ptr<NrDataRadioBearerInfo> drbInfo = drbMapIt->second;
-            /// \todo currently not implemented. Would need to modify drbInfo, and then propagate
+            /// @todo currently not implemented. Would need to modify drbInfo, and then propagate
             /// changes to the MAC
         }
     }

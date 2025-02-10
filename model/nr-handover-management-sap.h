@@ -13,7 +13,7 @@ namespace ns3
 {
 
 /**
- * \brief Service Access Point (SAP) offered by the handover algorithm instance
+ * @brief Service Access Point (SAP) offered by the handover algorithm instance
  *        to the eNodeB RRC instance.
  *
  * This is the *Handover Management SAP Provider*, i.e., the part of the SAP
@@ -26,10 +26,10 @@ class NrHandoverManagementSapProvider
     virtual ~NrHandoverManagementSapProvider() = default;
 
     /**
-     * \brief Send a UE measurement report to handover algorithm.
-     * \param rnti Radio Network Temporary Identity, an integer identifying the UE
+     * @brief Send a UE measurement report to handover algorithm.
+     * @param rnti Radio Network Temporary Identity, an integer identifying the UE
      *             where the report originates from
-     * \param measResults a single report of one measurement identity
+     * @param measResults a single report of one measurement identity
      *
      * The received measurement report is a result of the UE measurement
      * configuration previously configured by calling
@@ -41,7 +41,7 @@ class NrHandoverManagementSapProvider
 }; // end of class NrHandoverManagementSapProvider
 
 /**
- * \brief Service Access Point (SAP) offered by the eNodeB RRC instance to the
+ * @brief Service Access Point (SAP) offered by the eNodeB RRC instance to the
  *        handover algorithm instance.
  *
  * This is the *Handover Management SAP User*, i.e., the part of the SAP that
@@ -53,10 +53,10 @@ class NrHandoverManagementSapUser
     virtual ~NrHandoverManagementSapUser() = default;
 
     /**
-     * \brief Request a certain reporting configuration to be fulfilled by the UEs
+     * @brief Request a certain reporting configuration to be fulfilled by the UEs
      *        attached to the eNodeB entity.
-     * \param reportConfig the UE measurement reporting configuration
-     * \return the measurement identities associated with this newly added
+     * @param reportConfig the UE measurement reporting configuration
+     * @return the measurement identities associated with this newly added
      *         reporting configuration
      *
      * The eNodeB RRC entity is expected to configure the same reporting
@@ -66,16 +66,16 @@ class NrHandoverManagementSapUser
      * handover algorithm through the NrHandoverManagementSapProvider::ReportUeMeas
      * SAP function.
      *
-     * \note This function is only valid before the simulation begins.
+     * @note This function is only valid before the simulation begins.
      */
     virtual std::vector<uint8_t> AddUeMeasReportConfigForHandover(
         NrRrcSap::ReportConfigEutra reportConfig) = 0;
 
     /**
-     * \brief Instruct the eNodeB RRC entity to prepare a handover.
-     * \param rnti Radio Network Temporary Identity, an integer identifying the
+     * @brief Instruct the eNodeB RRC entity to prepare a handover.
+     * @param rnti Radio Network Temporary Identity, an integer identifying the
      *             UE which shall perform the handover
-     * \param targetCellId the cell ID of the target eNodeB
+     * @param targetCellId the cell ID of the target eNodeB
      *
      * This function is used by the handover algorithm entity when a handover
      * decision has been reached.
@@ -89,7 +89,7 @@ class NrHandoverManagementSapUser
 }; // end of class NrHandoverManagementSapUser
 
 /**
- * \brief Template for the implementation of the NrHandoverManagementSapProvider
+ * @brief Template for the implementation of the NrHandoverManagementSapProvider
  *        as a member of an owner class of type C to which all methods are
  *        forwarded.
  */
@@ -100,7 +100,7 @@ class MemberNrHandoverManagementSapProvider : public NrHandoverManagementSapProv
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrHandoverManagementSapProvider(C* owner);
 
@@ -130,7 +130,7 @@ MemberNrHandoverManagementSapProvider<C>::ReportUeMeas(uint16_t rnti,
 }
 
 /**
- * \brief Template for the implementation of the NrHandoverManagementSapUser
+ * @brief Template for the implementation of the NrHandoverManagementSapUser
  *        as a member of an owner class of type C to which all methods are
  *        forwarded.
  */
@@ -141,7 +141,7 @@ class MemberNrHandoverManagementSapUser : public NrHandoverManagementSapUser
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrHandoverManagementSapUser(C* owner);
 

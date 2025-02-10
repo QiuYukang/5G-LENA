@@ -4,7 +4,7 @@
 
 #include "nr-lte-mi-error-model.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 #include <algorithm>
 #include <cmath>

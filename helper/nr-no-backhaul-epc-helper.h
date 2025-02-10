@@ -18,8 +18,8 @@ class NrEpcPgwApplication;
 class NrEpcMmeApplication;
 
 /**
- * \ingroup nr
- * \brief Create an EPC network with PointToPoint links between the core network nodes.
+ * @ingroup nr
+ * @brief Create an EPC network with PointToPoint links between the core network nodes.
  *
  * This Helper will create an EPC network topology comprising of
  * three nodes: SGW, PGW and MME.
@@ -46,7 +46,7 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
     // inherited from Object
     /**
      * Register this type.
-     * \return The object TypeId.
+     * @return The object TypeId.
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -75,14 +75,14 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
 
   protected:
     /**
-     * \brief DoAddX2Interface: Call AddX2Interface on top of the Gnb device pointers
+     * @brief DoAddX2Interface: Call AddX2Interface on top of the Gnb device pointers
      *
-     * \param gnb1X2 EPCX2 of gNB1
-     * \param gnb1NrDev NR device of gNB1
-     * \param gnb1X2Address Address for gNB1
-     * \param gnb2X2 EPCX2 of gNB2
-     * \param gnb2NrDev NR device of gNB2
-     * \param gnb2X2Address Address for gNB2
+     * @param gnb1X2 EPCX2 of gNB1
+     * @param gnb1NrDev NR device of gNB1
+     * @param gnb1X2Address Address for gNB1
+     * @param gnb2X2 EPCX2 of gNB2
+     * @param gnb2NrDev NR device of gNB2
+     * @param gnb2X2Address Address for gNB2
      */
     virtual void DoAddX2Interface(const Ptr<NrEpcX2>& gnb1X2,
                                   const Ptr<NetDevice>& gnb1NrDev,
@@ -92,10 +92,10 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
                                   const Ipv4Address& gnb2X2Address) const;
 
     /**
-     * \brief DoActivateEpsBearerForUe: Schedule ActivateEpsBearer on the UE
-     * \param ueDevice NR device for the UE
-     * \param tft TFT
-     * \param bearer Bearer
+     * @brief DoActivateEpsBearerForUe: Schedule ActivateEpsBearer on the UE
+     * @param ueDevice NR device for the UE
+     * @param tft TFT
+     * @param bearer Bearer
      */
     virtual void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
                                           const Ptr<NrEpcTft>& tft,

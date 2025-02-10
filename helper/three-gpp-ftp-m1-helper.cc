@@ -4,8 +4,8 @@
 
 #include "three-gpp-ftp-m1-helper.h"
 
-#include <ns3/packet-sink-helper.h>
-#include <ns3/traffic-generator-ftp-single.h>
+#include "ns3/packet-sink-helper.h"
+#include "ns3/traffic-generator-ftp-single.h"
 
 namespace ns3
 {

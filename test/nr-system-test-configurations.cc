@@ -15,10 +15,10 @@
 using namespace ns3;
 
 /**
- * \file nr-system-test-configurations.cc
- * \ingroup test
+ * @file nr-system-test-configurations.cc
+ * @ingroup test
  *
- * \brief Test the configuration for 5G-LENA. Test that does nothing at the moment.
+ * @brief Test the configuration for 5G-LENA. Test that does nothing at the moment.
  */
 
 // This is an example TestCase.

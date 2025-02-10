@@ -11,15 +11,15 @@ namespace ns3
 {
 
 /**
- * \ingroup ue-mac
- * \ingroup gnb-mac
+ * @ingroup ue-mac
+ * @ingroup gnb-mac
  *
- * \brief Mac variable-size Header
+ * @brief Mac variable-size Header
  *
  * This standard-compliant variable-size subheader can be 16 or 24 bits. The final
  * length depends on the size of the part that follows:
  *
- * \verbatim
+ * @verbatim
  +-----+-----+-------------------------------------------------+
  |     |     |                                                 |
  |  0  |  0  |                     m_lcId                      |   Oct 1
@@ -45,7 +45,7 @@ namespace ns3
  *
  * <b>Users, don't use this header directly: you've been warned.</b>
  *
- * \internal
+ * @internal
  *
  * Using this header requires to know the size of the data that will follow
  * this header, and then to set the LCID (that can be from 1 to 32). This
@@ -58,48 +58,48 @@ class NrMacHeaderVs : public Header
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return the type id of the object
+     * @brief GetTypeId
+     * @return the type id of the object
      */
     static TypeId GetTypeId();
     /**
-     * \brief GetInstanceTypeId
-     * \return the instance type id
+     * @brief GetInstanceTypeId
+     * @return the instance type id
      */
     TypeId GetInstanceTypeId() const override;
 
     /**
-     * \brief NrMacHeaderVs constructor
+     * @brief NrMacHeaderVs constructor
      */
     NrMacHeaderVs();
 
     /**
-     * \brief Serialize on a buffer
-     * \param start start position
+     * @brief Serialize on a buffer
+     * @param start start position
      */
     void Serialize(Buffer::Iterator start) const override;
     /**
-     * \brief Deserialize from a buffer
-     * \param start start position
-     * \return the number of bytes read from the buffer
+     * @brief Deserialize from a buffer
+     * @param start start position
+     * @return the number of bytes read from the buffer
      */
     uint32_t Deserialize(Buffer::Iterator start) override;
     /**
-     * \brief Get the serialized size
-     * \return if the size can be represented with 1 byte, then the S.S. is 2,
+     * @brief Get the serialized size
+     * @return if the size can be represented with 1 byte, then the S.S. is 2,
      * otherwise 3
      */
     uint32_t GetSerializedSize() const override;
     /**
-     * \brief Print the struct on a ostream
-     * \param os ostream
+     * @brief Print the struct on a ostream
+     * @param os ostream
      */
     void Print(std::ostream& os) const override;
 
     /**
-     * \brief IsEqual
-     * \param o another instance
-     * \return true if this and o are equal, false otherwise
+     * @brief IsEqual
+     * @param o another instance
+     * @return true if this and o are equal, false otherwise
      */
     bool operator==(const NrMacHeaderVs& o) const;
 
@@ -137,8 +137,8 @@ class NrMacHeaderVs : public Header
     static const uint8_t LC_ID_32 = 32; //!< Identity of the logical channel 32
 
     /**
-     * \brief Set the LC ID
-     * \param lcId LC ID
+     * @brief Set the LC ID
+     * @param lcId LC ID
      *
      * It will assert if the value is not inside the vector of allowed one.
      * To not make any error, please use one of the pre-defined const values in
@@ -147,20 +147,20 @@ class NrMacHeaderVs : public Header
     virtual void SetLcId(uint8_t lcId);
 
     /**
-     * \brief Retrieve the LC ID of this header
-     * \return the LC ID
+     * @brief Retrieve the LC ID of this header
+     * @return the LC ID
      */
     uint8_t GetLcId() const;
 
     /**
-     * \brief Set the size to store (L in the standard)
-     * \param size the size to store (L in the standard)
+     * @brief Set the size to store (L in the standard)
+     * @param size the size to store (L in the standard)
      */
     void SetSize(uint16_t size);
 
     /**
-     * \brief GetS the stored size (L in the standard)
-     * \return the stored size
+     * @brief GetS the stored size (L in the standard)
+     * @return the stored size
      */
     uint16_t GetSize() const;
 

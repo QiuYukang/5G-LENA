@@ -5,9 +5,9 @@
 #ifndef NR_UE_POWER_CONTROL_H
 #define NR_UE_POWER_CONTROL_H
 
-#include <ns3/object.h>
-#include <ns3/ptr.h>
-#include <ns3/traced-callback.h>
+#include "ns3/object.h"
+#include "ns3/ptr.h"
+#include "ns3/traced-callback.h"
 
 #include <vector>
 
@@ -15,7 +15,7 @@ namespace ns3
 {
 
 /**
- * \brief This class implements NR Uplink Power Control functionality.
+ * @brief This class implements NR Uplink Power Control functionality.
  * Can operate in two different modes: following specification TS 36.213
  * that is used in LTE, LAA, etc; or  following specification TS 38.213
  * for New Radio technology.
@@ -63,20 +63,20 @@ class NrUePowerControl : public Object
 
     NrUePowerControl();
     /**
-     * \brief Constructor that sets a pointer to its NrUePhy instance owner.
+     * @brief Constructor that sets a pointer to its NrUePhy instance owner.
      * This is necessary in order to obtain information such as numerology
      * that is used in calculation of transmit power.
      */
     NrUePowerControl(const Ptr<NrUePhy>& nrUePhy);
 
     /**
-     * \brief Destructor
+     * @brief Destructor
      */
     ~NrUePowerControl() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     // inherited from Object
@@ -86,121 +86,121 @@ class NrUePowerControl : public Object
     // set functions
 
     /*
-     * \brief Sets technical specification according to which will
+     * @brief Sets technical specification according to which will
      * be calculated power
-     * \param value technical specification to be used
+     * @param value technical specification to be used
      */
     void SetTechnicalSpec(NrUePowerControl::TechnicalSpec value);
     /**
-     * \brief Sets whether Closed loop model will be active.
-     * \param value If true Closed loop mode will be used, otherwise Open Loop.
+     * @brief Sets whether Closed loop model will be active.
+     * @param value If true Closed loop mode will be used, otherwise Open Loop.
      */
     void SetClosedLoop(bool value);
     /**
-     * \brief Sets whether the accumulation mode will be used or not.
-     * \param value If true TPC accumulation mode will be active,
+     * @brief Sets whether the accumulation mode will be used or not.
+     * @param value If true TPC accumulation mode will be active,
      * otherwise absolute mode will be active
      */
     void SetAccumulationEnabled(bool value);
     /**
-     * \brief Sets alpha parameter for uplink power control calculation.
-     * \param value the value of Alpha parameter
+     * @brief Sets alpha parameter for uplink power control calculation.
+     * @param value the value of Alpha parameter
      */
     void SetAlpha(double value);
     /**
-     * \brief Set PC maximum function
-     * \param value the PC maximum value
+     * @brief Set PC maximum function
+     * @param value the PC maximum value
      */
     void SetPcmax(double value);
     /**
-     * \brief Set PC minimum function
-     * \param value the PC minimum value
+     * @brief Set PC minimum function
+     * @param value the PC minimum value
      */
     void SetPcmin(double pcmin);
     /**
-     * \brief Sets KPusch
-     * \param value KPUSCH value to be used in PUSCH transmit power
+     * @brief Sets KPusch
+     * @param value KPUSCH value to be used in PUSCH transmit power
      */
     void SetKPusch(uint16_t value);
     /**
-     * \brief Sets KPucch
-     * \param value KPUCCH value to be used in PUSCH transmit power
+     * @brief Sets KPucch
+     * @param value KPUCCH value to be used in PUSCH transmit power
      */
     void SetK0Pucch(uint16_t value);
     /**
-     * \brief Sets whether the device for which is configure this
+     * @brief Sets whether the device for which is configure this
      *  uplink power control algorithm is for device that is
      *  bandwidth reduced low complexity device or coverage enhanced (BL/CE)
      *  device
-     * \param value an indicator telling whether device is BL/CE or not
+     * @param value an indicator telling whether device is BL/CE or not
      */
     void SetBlCe(bool value);
     /**
-     * \brief Sets P0 SRS parameter for calculation of SRS power control
-     * \param value P0 SRS value to be set
+     * @brief Sets P0 SRS parameter for calculation of SRS power control
+     * @param value P0 SRS value to be set
      */
     void SetP0Srs(double value);
     /**
-     * \brief Sets Delta TF power adjustment component for
+     * @brief Sets Delta TF power adjustment component for
      * PUSCH power control calculation
-     * \param value Delta TF power adjustment value
+     * @param value Delta TF power adjustment value
      */
     void SetDeltaTF(double value);
     /**
-     * \brief Sets Delta TF transmission power adjustment component for
+     * @brief Sets Delta TF transmission power adjustment component for
      * PUCCH power control calculation
-     * \param value power adjustment value
+     * @param value power adjustment value
      */
     void SetDeltaTFControl(double value);
     /**
-     * \brief Sets delta_f_pucch value needed for calculation of
+     * @brief Sets delta_f_pucch value needed for calculation of
      * PUCCH power control. It is provided by higher layers
      * through deltaF-PUCCH-f0 for PUCCH format 0,
      * deltaF-PUCCH-f1 for PUCCH format 1,
      * deltaF-PUCCH-f2 for PUCCH format 2,
      * deltaF-PUCCH-f3 for PUCCH format 3, and
      * deltaF-PUCCH-f4 for PUCCH format 4.
-     * \param value delta_F_Pucch value to be set
+     * @param value delta_F_Pucch value to be set
      */
     void SetDeltaFPucch(double value);
     /**
-     * \brief Set PO nominal PUCCH value
-     * \param value the value to set
+     * @brief Set PO nominal PUCCH value
+     * @param value the value to set
      */
     void SetPoNominalPucch(int16_t value);
     /**
-     * \brief Set PO PUCCH value
-     * \param value the value to set
+     * @brief Set PO PUCCH value
+     * @param value the value to set
      */
     void SetPoUePucch(int16_t value);
     /**
-     * \brief Set Po nominal Pusch
-     * \param value the Po nominal Pusch
+     * @brief Set Po nominal Pusch
+     * @param value the Po nominal Pusch
      */
     void SetPoNominalPusch(int16_t value);
     /**
-     * \brief Set Po Ue Pusch
-     * \param value the Po Ue Pusch
+     * @brief Set Po Ue Pusch
+     * @param value the Po Ue Pusch
      */
     void SetPoUePusch(int16_t value);
     /**
-     * \brief Set transmit power function
-     * \param value the transmit power value
+     * @brief Set transmit power function
+     * @param value the transmit power value
      */
     void SetTxPower(double value);
     /**
-     * \brief Configure reference signal power (dBm) function
-     * \param value the reference signal power
+     * @brief Configure reference signal power (dBm) function
+     * @param value the reference signal power
      */
     void ConfigureReferenceSignalPower(double value);
     /**
-     * \brief Set RSRP function
-     * \param value the RSRP (dBm) value to set
+     * @brief Set RSRP function
+     * @param value the RSRP (dBm) value to set
      */
     void SetRsrp(double value);
     /**
-     * \brief Set RSRP function
-     * \param rsrpFilterCoefficient value. Determines the strength of
+     * @brief Set RSRP function
+     * @param rsrpFilterCoefficient value. Determines the strength of
      * smoothing effect induced by layer 3 filtering of RSRP
      * used for uplink power control in all attached UE.
      * If equals to 0, no layer 3 filtering is applicable.
@@ -209,100 +209,100 @@ class NrUePowerControl : public Object
 
     // Get functions
     /**
-     * \brief Implements calculation of PUSCH
+     * @brief Implements calculation of PUSCH
      * power control according to TS 36.213 and TS 38.213.
-     * \param rbNum number of RBs used for PUSCH
+     * @param rbNum number of RBs used for PUSCH
      */
     double GetPuschTxPower(std::size_t rbNum);
     /**
-     * \brief Implements calculation of PUCCH
+     * @brief Implements calculation of PUCCH
      * power control according to TS 36.213 and TS 38.213.
-     * \param rbNum number of RBs used for PUCCH
+     * @param rbNum number of RBs used for PUCCH
      */
     double GetPucchTxPower(std::size_t rbNum);
     /**
-     * \brief Implements calculation of SRS
+     * @brief Implements calculation of SRS
      * power control according to TS 36.213 and TS 38.213.
-     * \param rbNum number of RBs used for SRS
+     * @param rbNum number of RBs used for SRS
      */
     double GetSrsTxPower(std::size_t rbNum);
     /**
-     * \brief Function that is called by NrUePhy
+     * @brief Function that is called by NrUePhy
      * to notify NrUePowerControl algorithm
      * that TPC command was received by gNB
-     * \param tpc the TPC command
+     * @param tpc the TPC command
      */
     void ReportTpcPusch(uint8_t tpc);
     /**
-     * \brief Function that is called by NrUePhy
+     * @brief Function that is called by NrUePhy
      * to notify NrUePowerControl algorithm
      * that TPC command for PUCCH was received by gNB
-     * \param tpc the TPC command
+     * @param tpc the TPC command
      */
     void ReportTpcPucch(uint8_t tpc);
 
     /**
      * TracedCallback signature for uplink transmit power.
      *
-     * \param [in] cellId Cell identifier.
-     * \param [in] rnti The C-RNTI identifying the UE.
-     * \param [in] power The current TX power.
+     * @param [in] cellId Cell identifier.
+     * @param [in] rnti The C-RNTI identifying the UE.
+     * @param [in] power The current TX power.
      */
     typedef void (*TxPowerTracedCallback)(uint16_t cellId, uint16_t rnti, double power);
 
     /**
-     * \brief Sets some information for easier logging
-     * \param cellId cell ID
-     * \param rnti UE RNTI
+     * @brief Sets some information for easier logging
+     * @param cellId cell ID
+     * @param rnti UE RNTI
      */
     void SetLoggingInfo(uint16_t cellId, uint16_t rnti);
 
   private:
     /*
-     * \brief Implements conversion from TPC
+     * @brief Implements conversion from TPC
      * command to absolute delta value. Follows both,
      * TS 36.213 and TS 38.213 specification for PUSCH.
      * In 36.213 table is Table 5.1.1.1-2. and
      * in 38.213 the table is Table 7.1.1-1.
-     * \param tpc TPC command value from 0 to 3
+     * @param tpc TPC command value from 0 to 3
      */
     int8_t GetAbsoluteDelta(uint8_t tpc) const;
     /*
-     * \brief Implements conversion from TPC
+     * @brief Implements conversion from TPC
      * command to accumulated delta value. Follows both,
      * TS 36.213 and TS 38.213 specification for PUSCH
      * and PUCCH. In 36.213 tables are Table 5.1.1.1-2.
      * and Table 5.1.2.1-1;
      * while in 38.213 tables are:
      * Table 7.1.1-1 and Table 7.2.1-1.
-     * \param tpc TPC command value from 0 to 3
+     * @param tpc TPC command value from 0 to 3
      */
     int8_t GetAccumulatedDelta(uint8_t tpc) const;
     /**
-     * \brief Calculates fc value for PUSCH power control
+     * @brief Calculates fc value for PUSCH power control
      * according to TS 38.213 7.2.1 formulas.
      */
     void UpdateFc();
     /**
-     * \brief Calculate gc value for PUCCH power control
+     * @brief Calculate gc value for PUCCH power control
      * according to TS 38.213 7.2.1 formulas.
      */
     void UpdateGc();
     /**
-     * \brief Calculates PUSCH transmit power
+     * @brief Calculates PUSCH transmit power
      * according TS 38.213 7.1.1 formulas
-     * \param rbNum number of RBs
+     * @param rbNum number of RBs
      */
     double CalculatePuschTxPowerNr(std::size_t rbNum);
     /**
-     * \brief Calculates PUCCH transmit power
+     * @brief Calculates PUCCH transmit power
      * according TS 38.213 7.2.1 formulas
-     * \param rbNum number of RBs
+     * @param rbNum number of RBs
      */
     double CalculatePucchTxPowerNr(std::size_t rbNum);
     /**
-     * \brief Calculates SRS transmit power
-     * \param rbNum number of RBs
+     * @brief Calculates SRS transmit power
+     * @param rbNum number of RBs
      */
     double CalculateSrsTxPowerNr(std::size_t rbNum);
 

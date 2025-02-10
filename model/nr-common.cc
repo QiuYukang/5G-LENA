@@ -7,8 +7,8 @@
 
 #include "nr-common.h"
 
-#include <ns3/abort.h>
-#include <ns3/log.h>
+#include "ns3/abort.h"
+#include "ns3/log.h"
 
 namespace ns3
 {
@@ -30,9 +30,9 @@ FlowId_t::FlowId_t(const uint16_t a, const uint8_t b)
 /**
  * Equality operator
  *
- * \param a lhs
- * \param b rhs
- * \returns true if "equal"
+ * @param a lhs
+ * @param b rhs
+ * @returns true if "equal"
  */
 bool
 operator==(const FlowId_t& a, const FlowId_t& b)
@@ -43,9 +43,9 @@ operator==(const FlowId_t& a, const FlowId_t& b)
 /**
  * Less than operator
  *
- * \param a lhs
- * \param b rhs
- * \returns true if "less than"
+ * @param a lhs
+ * @param b rhs
+ * @returns true if "less than"
  */
 bool
 operator<(const FlowId_t& a, const FlowId_t& b)
@@ -66,9 +66,9 @@ ImsiLcidPair_t::ImsiLcidPair_t(const uint64_t a, const uint8_t b)
 /**
  * Equality operator
  *
- * \param a lhs
- * \param b rhs
- * \returns true if "equal"
+ * @param a lhs
+ * @param b rhs
+ * @returns true if "equal"
  */
 bool
 operator==(const ImsiLcidPair_t& a, const ImsiLcidPair_t& b)
@@ -79,9 +79,9 @@ operator==(const ImsiLcidPair_t& a, const ImsiLcidPair_t& b)
 /**
  * Less than operator
  *
- * \param a lhs
- * \param b rhs
- * \returns true if "less than"
+ * @param a lhs
+ * @param b rhs
+ * @returns true if "less than"
  */
 bool
 operator<(const ImsiLcidPair_t& a, const ImsiLcidPair_t& b)
@@ -96,9 +96,9 @@ NrUeConfig_t::NrUeConfig_t()
 /**
  * Equality operator
  *
- * \param a lhs
- * \param b rhs
- * \returns true if "equal"
+ * @param a lhs
+ * @param b rhs
+ * @returns true if "equal"
  */
 bool
 operator==(const NrUeConfig_t& a, const NrUeConfig_t& b)
@@ -109,9 +109,9 @@ operator==(const NrUeConfig_t& a, const NrUeConfig_t& b)
 /**
  * Less than operator
  *
- * \param a lhs
- * \param b rhs
- * \returns true if "less than"
+ * @param a lhs
+ * @param b rhs
+ * @returns true if "less than"
  */
 bool
 operator<(const NrUeConfig_t& a, const NrUeConfig_t& b)

@@ -6,7 +6,7 @@
 
 #include "nr-mac-scheduler-ue-info-rr.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 #include <algorithm>
 #include <functional>

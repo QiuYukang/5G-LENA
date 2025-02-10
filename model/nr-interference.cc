@@ -7,8 +7,8 @@
 #include "nr-mimo-chunk-processor.h"
 #include "nr-spectrum-signal-parameters.h"
 
-#include <ns3/log.h>
-#include <ns3/simulator.h>
+#include "ns3/log.h"
+#include "ns3/simulator.h"
 
 #include <algorithm>
 

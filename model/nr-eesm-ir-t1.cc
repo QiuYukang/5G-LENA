@@ -4,7 +4,7 @@
 
 #include "nr-eesm-ir-t1.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 namespace ns3
 {

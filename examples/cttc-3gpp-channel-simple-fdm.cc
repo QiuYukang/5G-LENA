@@ -4,9 +4,9 @@
 
 /**
  *
- * \file cttc-3gpp-channel-simple-fdm.cc
- * \ingroup examples
- * \brief Simple frequency division multiplexing example.
+ * @file cttc-3gpp-channel-simple-fdm.cc
+ * @ingroup examples
+ * @brief Simple frequency division multiplexing example.
  *
  * This example describes how to setup a simple simulation with the frequency
  * division multiplexing. Simulation example allows configuration of the two

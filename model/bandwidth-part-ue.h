@@ -8,8 +8,8 @@
 #include "nr-component-carrier.h"
 #include "nr-ue-phy.h"
 
-#include <ns3/nstime.h>
-#include <ns3/object.h>
+#include "ns3/nstime.h"
+#include "ns3/object.h"
 
 namespace ns3
 {
@@ -17,48 +17,48 @@ namespace ns3
 class NrUeMac;
 
 /**
- * \ingroup ue-bwp
- * \brief Bandwidth part representation for a UE
+ * @ingroup ue-bwp
+ * @brief Bandwidth part representation for a UE
  *
  */
 class BandwidthPartUe : public NrComponentCarrier
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief BandwidthPartUe constructor
+     * @brief BandwidthPartUe constructor
      */
     BandwidthPartUe();
 
     /**
-     * \brief ~BandwidthPartUe
+     * @brief ~BandwidthPartUe
      */
     ~BandwidthPartUe() override;
 
     /**
-     * \return a pointer to the physical layer.
+     * @return a pointer to the physical layer.
      */
     Ptr<NrUePhy> GetPhy() const;
 
     /**
-     * \return a pointer to the MAC layer.
+     * @return a pointer to the MAC layer.
      */
     Ptr<NrUeMac> GetMac() const;
 
     /**
      * Set NrUePhy
-     * \param s a pointer to the NrUePhy
+     * @param s a pointer to the NrUePhy
      */
     void SetPhy(Ptr<NrUePhy> s);
 
     /**
      * Set the NrGnbMac
-     * \param s a pointer to the NrGnbMac
+     * @param s a pointer to the NrGnbMac
      */
     void SetMac(Ptr<NrUeMac> s);
 
@@ -74,7 +74,7 @@ class BandwidthPartUe : public NrComponentCarrier
 
   protected:
     /**
-     * \brief DoDispose method inherited from Object
+     * @brief DoDispose method inherited from Object
      */
     void DoDispose() override;
 

@@ -5,7 +5,7 @@
 #ifndef SINR_OUTPUT_STATS_H
 #define SINR_OUTPUT_STATS_H
 
-#include <ns3/sqlite-output.h>
+#include "ns3/sqlite-output.h"
 
 #include <vector>
 
@@ -13,28 +13,28 @@ namespace ns3
 {
 
 /**
- * \brief Class to collect and store the SINR values obtained from a simulation
+ * @brief Class to collect and store the SINR values obtained from a simulation
  *
  * The class is meant to store in a database the SINR values from UE or GNB during
  * a simulation. The class contains a cache, that after some time is written
  * to the disk.
  *
- * \see SetDb
- * \see SaveSinr
- * \see EmptyCache
+ * @see SetDb
+ * @see SaveSinr
+ * @see EmptyCache
  */
 class SinrOutputStats
 {
   public:
     /**
-     * \brief Constructor
+     * @brief Constructor
      */
     SinrOutputStats();
 
     /**
-     * \brief Install the output database.
-     * \param db database pointer
-     * \param tableName name of the table where the values will be stored
+     * @brief Install the output database.
+     * @param db database pointer
+     * @param tableName name of the table where the values will be stored
      *
      *  The db pointer must be valid through all the lifespan of the class. The
      * method creates, if not exists, a table for storing the values. The table
@@ -54,11 +54,11 @@ class SinrOutputStats
     void SetDb(SQLiteOutput* db, const std::string& tableName = "sinr");
 
     /**
-     * \brief Store the SINR values
-     * \param cellId Cell ID
-     * \param rnti RNTI
-     * \param avgSinr Average SINR
-     * \param bwpId BWP ID
+     * @brief Store the SINR values
+     * @param cellId Cell ID
+     * @param rnti RNTI
+     * @param avgSinr Average SINR
+     * @param bwpId BWP ID
      *
      * The method saves the result in a cache, and if it is necessary, writes the
      * cache to disk before emptying it.
@@ -66,7 +66,7 @@ class SinrOutputStats
     void SaveSinr(uint16_t cellId, uint16_t rnti, double avgSinr, uint16_t bwpId);
 
     /**
-     * \brief Force the cache write to disk, emptying the cache itself.
+     * @brief Force the cache write to disk, emptying the cache itself.
      */
     void EmptyCache();
 

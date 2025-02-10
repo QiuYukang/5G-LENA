@@ -7,10 +7,10 @@
 #ifndef NR_INTERFERENCE_BASE_H
 #define NR_INTERFERENCE_BASE_H
 
-#include <ns3/nstime.h>
-#include <ns3/object.h>
-#include <ns3/packet.h>
-#include <ns3/spectrum-value.h>
+#include "ns3/nstime.h"
+#include "ns3/object.h"
+#include "ns3/packet.h"
+#include "ns3/spectrum-value.h"
 
 #include <list>
 
@@ -31,14 +31,14 @@ class NrInterferenceBase : public Object
     ~NrInterferenceBase() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
 
     /**
-     * \brief Add a NrChunkProcessor that will use the time-vs-frequency SINR
+     * @brief Add a NrChunkProcessor that will use the time-vs-frequency SINR
      * calculated by this NrInterferenceBase instance. Note that all the
      * added NrChunkProcessors will work in parallel.
      *
@@ -47,7 +47,7 @@ class NrInterferenceBase : public Object
     virtual void AddSinrChunkProcessor(Ptr<NrChunkProcessor> p);
 
     /**
-     * \brief Add a NrChunkProcessor that will use the time-vs-frequency
+     * @brief Add a NrChunkProcessor that will use the time-vs-frequency
      * interference calculated by this NrInterferenceBase instance. Note
      * that all the added NrChunkProcessors will work in parallel.
      *
@@ -65,7 +65,7 @@ class NrInterferenceBase : public Object
     virtual void AddRsPowerChunkProcessor(Ptr<NrChunkProcessor> p);
 
     /**
-     * \brief Notify that the PHY is starting a RX attempt
+     * @brief Notify that the PHY is starting a RX attempt
      *
      * @param rxPsd the power spectral density of the signal being RX
      */

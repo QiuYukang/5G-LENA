@@ -4,28 +4,28 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Author: João Albuquerque <joao.barbosa.albuquerque@itec.ufpa.br>
 
-#include <ns3/channel-condition-model.h>
-#include <ns3/log.h>
-#include <ns3/multi-model-spectrum-channel.h>
-#include <ns3/nr-channel-helper.h>
-#include <ns3/nyu-channel-condition-model.h>
-#include <ns3/nyu-propagation-loss-model.h>
-#include <ns3/nyu-spectrum-propagation-loss-model.h>
-#include <ns3/pointer.h>
-#include <ns3/test.h>
-#include <ns3/three-gpp-propagation-loss-model.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
-#include <ns3/three-gpp-v2v-channel-condition-model.h>
-#include <ns3/three-gpp-v2v-propagation-loss-model.h>
-#include <ns3/two-ray-spectrum-propagation-loss-model.h>
+#include "ns3/channel-condition-model.h"
+#include "ns3/log.h"
+#include "ns3/multi-model-spectrum-channel.h"
+#include "ns3/nr-channel-helper.h"
+#include "ns3/nyu-channel-condition-model.h"
+#include "ns3/nyu-propagation-loss-model.h"
+#include "ns3/nyu-spectrum-propagation-loss-model.h"
+#include "ns3/pointer.h"
+#include "ns3/test.h"
+#include "ns3/three-gpp-propagation-loss-model.h"
+#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include "ns3/three-gpp-v2v-channel-condition-model.h"
+#include "ns3/three-gpp-v2v-propagation-loss-model.h"
+#include "ns3/two-ray-spectrum-propagation-loss-model.h"
 
 using namespace ns3;
 
 /**
- * \ingroup test
- * \file nr-channel-setup-test.cc
+ * @ingroup test
+ * @file nr-channel-setup-test.cc
  *
- * \brief This test aims to check if the NrChannelHelper API can correctly create a specified
+ * @brief This test aims to check if the NrChannelHelper API can correctly create a specified
  * channel, which will be defined by the:
  *
  * - Scenarios: RMa, UMa, InH-OfficeOpen, InH-OfficeMixed, V2V-Highway, V2V-Urban, UMi, InH, InF,
@@ -37,7 +37,7 @@ using namespace ns3;
  *
  *  The test will fail if the created channel does not represent the one expected to be created.
  *
- * \note This test code was produced during the Google Summer of Code 2024 program. The main author
+ * @note This test code was produced during the Google Summer of Code 2024 program. The main author
  * is João Albuquerque, under the supervision of Biljana Bojovic, Amir Ashtari, Gabriel Ferreira, in
  * project: 5G NR Module Benchmark and Analysis for Distinct Channel Models
  *

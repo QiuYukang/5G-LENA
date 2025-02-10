@@ -5,33 +5,33 @@
 #ifndef FLOW_MONITOR_OUTPUT_STATS_H
 #define FLOW_MONITOR_OUTPUT_STATS_H
 
-#include <ns3/flow-monitor-helper.h>
-#include <ns3/sqlite-output.h>
+#include "ns3/flow-monitor-helper.h"
+#include "ns3/sqlite-output.h"
 
 namespace ns3
 {
 
 /**
- * \brief Class to store the flow monitor values obtained from a simulation
+ * @brief Class to store the flow monitor values obtained from a simulation
  *
  * The class is meant to store in a database the e2e values for
  * a simulation.
  *
- * \see SetDb
- * \see Save
+ * @see SetDb
+ * @see Save
  */
 class FlowMonitorOutputStats
 {
   public:
     /**
-     * \brief FlowMonitorOutputStats constructor
+     * @brief FlowMonitorOutputStats constructor
      */
     FlowMonitorOutputStats();
 
     /**
-     * \brief Install the output database.
-     * \param db database pointer
-     * \param tableName name of the table where the values will be stored
+     * @brief Install the output database.
+     * @param db database pointer
+     * @param tableName name of the table where the values will be stored
      *
      * The db pointer must be valid through all the lifespan of the class. The
      * method creates, if not exists, a table for storing the values. The table
@@ -57,10 +57,10 @@ class FlowMonitorOutputStats
     void SetDb(SQLiteOutput* db, const std::string& tableName);
 
     /**
-     * \brief Store the flow monitor output in the database
-     * \param monitor Flow Monitor
-     * \param flowmonHelper Flow Monitor Helper
-     * \param filename filename for a text output
+     * @brief Store the flow monitor output in the database
+     * @param monitor Flow Monitor
+     * @param flowmonHelper Flow Monitor Helper
+     * @param filename filename for a text output
      */
     void Save(const Ptr<FlowMonitor>& monitor,
               FlowMonitorHelper& flowmonHelper,

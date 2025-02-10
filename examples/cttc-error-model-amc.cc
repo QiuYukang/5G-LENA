@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/internet-apps-module.h"
@@ -13,14 +14,13 @@
 #include "ns3/nr-module.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/point-to-point-helper.h"
-#include <ns3/antenna-module.h>
 
 #include <chrono>
 
 /**
- * \file cttc-error-model-amc.cc
- * \ingroup examples
- * \brief Error model example with adaptive modulation and coding: 1 gNB and 1 UE, multiple packets
+ * @file cttc-error-model-amc.cc
+ * @ingroup examples
+ * @brief Error model example with adaptive modulation and coding: 1 gNB and 1 UE, multiple packets
  * with non-varying fading conditions.
  *
  * This example allows the user to test the end-to-end performance with the new

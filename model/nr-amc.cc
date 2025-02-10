@@ -8,13 +8,13 @@
 #include "nr-error-model.h"
 #include "nr-lte-mi-error-model.h"
 
-#include <ns3/double.h>
-#include <ns3/enum.h>
-#include <ns3/log.h>
-#include <ns3/math.h>
-#include <ns3/nr-spectrum-value-helper.h>
-#include <ns3/object-factory.h>
-#include <ns3/uinteger.h>
+#include "ns3/double.h"
+#include "ns3/enum.h"
+#include "ns3/log.h"
+#include "ns3/math.h"
+#include "ns3/nr-spectrum-value-helper.h"
+#include "ns3/object-factory.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

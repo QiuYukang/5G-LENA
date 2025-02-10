@@ -5,25 +5,25 @@
 // Author: Nicola Baldo <nbaldo@cttc.es>
 //         Manuel Requena <manuel.requena@cttc.es>/
 
-#include <ns3/bulk-send-helper.h>
-#include <ns3/core-module.h>
-#include <ns3/internet-module.h>
-#include <ns3/mobility-module.h>
-#include <ns3/network-module.h>
-#include <ns3/nr-module.h>
-#include <ns3/packet-sink-helper.h>
-#include <ns3/packet-sink.h>
-#include <ns3/point-to-point-module.h>
-#include <ns3/udp-client-server-helper.h>
+#include "ns3/bulk-send-helper.h"
+#include "ns3/core-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/network-module.h"
+#include "ns3/nr-module.h"
+#include "ns3/packet-sink-helper.h"
+#include "ns3/packet-sink.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/udp-client-server-helper.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("NrX2HandoverMeasuresTest");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief CheckPointEvent structure
+ * @brief CheckPointEvent structure
  */
 struct CheckPointEvent
 {
@@ -36,11 +36,11 @@ struct CheckPointEvent
     /**
      *  Constructor
      *
-     * \param start the start time
-     * \param stop the stop time
-     * \param interval the interval time
-     * \param ueIndex the UE index
-     * \param gnbIndex the gNB index
+     * @param start the start time
+     * @param stop the stop time
+     * @param interval the interval time
+     * @param ueIndex the UE index
+     * @param gnbIndex the gNB index
      */
     CheckPointEvent(Time start, Time stop, Time interval, uint32_t ueIndex, uint32_t gnbIndex)
         : checkStartTime(start),
@@ -53,9 +53,9 @@ struct CheckPointEvent
 };
 
 /**
- * \ingroup lte-test
+ * @ingroup lte-test
  *
- * \brief Test different X2 handover measures and algorithms, e.g. NrA2A4RsrqHandoverAlgorithm and
+ * @brief Test different X2 handover measures and algorithms, e.g. NrA2A4RsrqHandoverAlgorithm and
  * NrA3RsrpHandoverAlgorithm. Test defines different handover parameters and scenario
  * configurations.
  */
@@ -65,17 +65,17 @@ class NrX2HandoverMeasuresTestCase : public TestCase
     /**
      * Constructor.
      *
-     * \param nGnbs number of gNBs in the test
-     * \param nUes number of UEs in the test
-     * \param nDedicatedBearers number of bearers to be activated per UE
-     * \param checkPointEventList list of check point events
-     * \param checkPointEventListName name of check point event list
-     * \param useUdp true if UDP is to be used, false if TCP is to be used
-     * \param schedulerType type of scheduler to be used (e.g. "ns3::NrMacSchedulerTdmaPF")
-     * \param handoverAlgorithmType type of handover algorithm to be used (e.g.
+     * @param nGnbs number of gNBs in the test
+     * @param nUes number of UEs in the test
+     * @param nDedicatedBearers number of bearers to be activated per UE
+     * @param checkPointEventList list of check point events
+     * @param checkPointEventListName name of check point event list
+     * @param useUdp true if UDP is to be used, false if TCP is to be used
+     * @param schedulerType type of scheduler to be used (e.g. "ns3::NrMacSchedulerTdmaPF")
+     * @param handoverAlgorithmType type of handover algorithm to be used (e.g.
      * "ns3::NrA3RsrpHandoverAlgorithm")
-     * \param admitHo true if Ho is admitted, false if it is not admitted
-     * \param useIdealRrc true if ideal RRC is to be used, false if real RRC is to be used
+     * @param admitHo true if Ho is admitted, false if it is not admitted
+     * @param useIdealRrc true if ideal RRC is to be used, false if real RRC is to be used
      */
     NrX2HandoverMeasuresTestCase(uint32_t nGnbs,
                                  uint32_t nUes,
@@ -91,17 +91,17 @@ class NrX2HandoverMeasuresTestCase : public TestCase
   private:
     /**
      * Build name string
-     * \param nGnbs number of gNBs in the test
-     * \param nUes number of UEs in the test
-     * \param nDedicatedBearers number of bearers to be activated per UE
-     * \param checkPointEventListName name of check point event list
-     * \param useUdp true if UDP is to be used, false if TCP is to be used
-     * \param schedulerType the scheduler type
-     * \param handoverAlgorithmType type of handover algorithm to be used (e.g.
+     * @param nGnbs number of gNBs in the test
+     * @param nUes number of UEs in the test
+     * @param nDedicatedBearers number of bearers to be activated per UE
+     * @param checkPointEventListName name of check point event list
+     * @param useUdp true if UDP is to be used, false if TCP is to be used
+     * @param schedulerType the scheduler type
+     * @param handoverAlgorithmType type of handover algorithm to be used (e.g.
      * "ns3::NrA3RsrpHandoverAlgorithm")
-     * \param admitHo true if Ho is admitted, false if it is not admitted
-     * \param useIdealRrc true if the ideal RRC should be used
-     * \returns the name string
+     * @param admitHo true if Ho is admitted, false if it is not admitted
+     * @param useIdealRrc true if the ideal RRC should be used
+     * @returns the name string
      */
     static std::string BuildNameString(uint32_t nGnbs,
                                        uint32_t nUes,
@@ -115,8 +115,8 @@ class NrX2HandoverMeasuresTestCase : public TestCase
     void DoRun() override;
     /**
      * Check connected function
-     * \param ueDevice the UE device
-     * \param gnbDevice the gNB device
+     * @param ueDevice the UE device
+     * @param gnbDevice the gNB device
      */
     void CheckConnected(Ptr<NetDevice> ueDevice, Ptr<NetDevice> gnbDevice);
 
@@ -135,9 +135,9 @@ class NrX2HandoverMeasuresTestCase : public TestCase
     Ptr<NrPointToPointEpcHelper> m_epcHelper;         ///< EPC helper
 
     /**
-     * \ingroup lte-test
+     * @ingroup lte-test
      *
-     * \brief BearerData structure
+     * @brief BearerData structure
      */
     struct BearerData
     {
@@ -149,9 +149,9 @@ class NrX2HandoverMeasuresTestCase : public TestCase
     };
 
     /**
-     * \ingroup lte-test
+     * @ingroup lte-test
      *
-     * \brief UeData structure
+     * @brief UeData structure
      */
     struct UeData
     {
@@ -160,13 +160,13 @@ class NrX2HandoverMeasuresTestCase : public TestCase
     };
 
     /**
-     * \brief Save stats  function
-     * \param ueIndex the index of the UE
+     * @brief Save stats  function
+     * @param ueIndex the index of the UE
      */
     void SaveStats(uint32_t ueIndex);
     /**
-     * \brief Check stats  function
-     * \param ueIndex the index of the UE
+     * @brief Check stats  function
+     * @param ueIndex the index of the UE
      */
     void CheckStats(uint32_t ueIndex);
 
@@ -730,9 +730,9 @@ NrX2HandoverMeasuresTestCase::CheckStats(uint32_t ueIndex)
 }
 
 /**
- * \ingroup lte-test
+ * @ingroup lte-test
  *
- * \brief NR X2 Handover Measures Test Suite
+ * @brief NR X2 Handover Measures Test Suite
  */
 class NrX2HandoverMeasuresTestSuite : public TestSuite
 {
@@ -993,7 +993,7 @@ NrX2HandoverMeasuresTestSuite::NrX2HandoverMeasuresTestSuite()
 } // end of NrX2HandoverMeasuresTestSuite ()
 
 /**
- * \ingroup lte-test
+ * @ingroup lte-test
  * Static variable for test initialization
  */
 static NrX2HandoverMeasuresTestSuite g_NrX2HandoverMeasuresTestSuiteInstance;

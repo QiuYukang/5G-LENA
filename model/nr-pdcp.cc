@@ -25,7 +25,7 @@ class NrPdcpSpecificNrRlcSapUser : public NrRlcSapUser
     /**
      * Constructor
      *
-     * \param pdcp PDCP
+     * @param pdcp PDCP
      */
     NrPdcpSpecificNrRlcSapUser(NrPdcp* pdcp);
 

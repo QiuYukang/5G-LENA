@@ -5,8 +5,8 @@
 #ifndef NR_MIMO_MATRICES_H
 #define NR_MIMO_MATRICES_H
 
-#include <ns3/matrix-array.h>
-#include <ns3/spectrum-value.h>
+#include "ns3/matrix-array.h"
+#include "ns3/spectrum-value.h"
 
 namespace ns3
 {
@@ -14,7 +14,7 @@ namespace ns3
 class NrIntfNormChanMat;
 class NrSinrMatrix;
 
-/// \ingroup Matrices
+/// @ingroup Matrices
 /// NrCovMat stores the interference-plus-noise covariance matrices of a MIMO signal, with one
 /// matrix page for each frequency bin. Operations for efficient computation, addition, and
 /// subtraction of covariance matrices of interfering MIMO signals are implemented.
@@ -26,28 +26,28 @@ class NrCovMat : public ComplexMatrixArray
         : ComplexMatrixArray(arr){};
 
     /// Add an interference signal: this += rhs * rhs.HermitianTranspose()
-    /// \param rhs the full channel matrix (including precoding)
+    /// @param rhs the full channel matrix (including precoding)
     virtual void AddInterferenceSignal(const ComplexMatrixArray& rhs);
 
     /// Subtract an interference signal: this -= rhs * rhs.HermitianTranspose()
-    /// \param rhs the full channel matrix (including precoding)
+    /// @param rhs the full channel matrix (including precoding)
     virtual void SubtractInterferenceSignal(const ComplexMatrixArray& rhs);
 
-    /// \brief Calculate the interference-normalized channel matrix for SISO and MIMO.
+    /// @brief Calculate the interference-normalized channel matrix for SISO and MIMO.
     /// See NrIntfNormChanMat for details.
-    /// \param chanMat the frequency-domain channel matrix without precoding
-    /// \return the channel matrix after applying interference-normalization/whitening
+    /// @param chanMat the frequency-domain channel matrix without precoding
+    /// @return the channel matrix after applying interference-normalization/whitening
     virtual NrIntfNormChanMat CalcIntfNormChannel(const ComplexMatrixArray& chanMat) const;
 
   private:
-    /// \brief Calculate the interference-normalized channel matrix for MIMO.
+    /// @brief Calculate the interference-normalized channel matrix for MIMO.
     /// When the simulation is SISO only, this method will not be called.
-    /// \param chanMat the frequency-domain channel matrix without precoding
-    /// \return the channel matrix after applying interference-normalization/whitening
+    /// @param chanMat the frequency-domain channel matrix without precoding
+    /// @return the channel matrix after applying interference-normalization/whitening
     virtual NrIntfNormChanMat CalcIntfNormChannelMimo(const ComplexMatrixArray& chanMat) const;
 };
 
-/// \ingroup Matrices
+/// @ingroup Matrices
 /// NrIntfNormChanMat stores the channel matrix after normalizing/whitening the interference.
 /// See https://en.wikipedia.org/wiki/Whitening_transformation
 /// Specifically, H_intfNorm = inv(L) * H, where
@@ -67,25 +67,25 @@ class NrIntfNormChanMat : public ComplexMatrixArray
     NrIntfNormChanMat(ComplexMatrixArray arr)
         : ComplexMatrixArray(arr){};
 
-    /// \brief Compute the MIMO SINR when a specific precoder is applied.
-    /// \param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
-    /// \returns the SINR values for each layer and RB (dim: rank x nRbs)
+    /// @brief Compute the MIMO SINR when a specific precoder is applied.
+    /// @param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
+    /// @returns the SINR values for each layer and RB (dim: rank x nRbs)
     virtual NrSinrMatrix ComputeSinrForPrecoding(const ComplexMatrixArray& precMats) const;
 
   private:
-    /// \brief Compute the MSE (mean square error) for an MMSE receiver, for SISO and MIMO.
-    /// \param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
-    /// \returns the MSE value or matrix
+    /// @brief Compute the MSE (mean square error) for an MMSE receiver, for SISO and MIMO.
+    /// @param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
+    /// @returns the MSE value or matrix
     virtual ComplexMatrixArray ComputeMse(const ComplexMatrixArray& precMats) const;
 
-    /// \brief Compute the MSE (mean square error) matrix for a MIMO MMSE receiver
+    /// @brief Compute the MSE (mean square error) matrix for a MIMO MMSE receiver
     /// When the simulation is SISO only, this method will not be called.
-    /// \param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
-    /// \returns the MSE matrix as inv(I + precMats' * this' * this * precMats).
+    /// @param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
+    /// @returns the MSE matrix as inv(I + precMats' * this' * this * precMats).
     virtual ComplexMatrixArray ComputeMseMimo(const ComplexMatrixArray& precMats) const;
 };
 
-/// \brief NrSinrMatrix stores the MIMO SINR matrix, with dimension rank x nRbs
+/// @brief NrSinrMatrix stores the MIMO SINR matrix, with dimension rank x nRbs
 class NrSinrMatrix : public DoubleMatrixArray
 {
   public:
@@ -99,9 +99,9 @@ class NrSinrMatrix : public DoubleMatrixArray
 
     uint8_t GetRank() const;
     size_t GetNumRbs() const;
-    /// \brief Linearize a 2D matrix into a vector, and convert that vector to a SpectrumValue
+    /// @brief Linearize a 2D matrix into a vector, and convert that vector to a SpectrumValue
     /// Matches layer-to-codeword mapping in TR 38.211, Table 7.3.1.3-1
-    /// \return A SpectrumValue with the (nRB * nMimoLayers) SINR values
+    /// @return A SpectrumValue with the (nRB * nMimoLayers) SINR values
     SpectrumValue GetVectorizedSpecVal() const;
 };
 

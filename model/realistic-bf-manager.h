@@ -7,8 +7,8 @@
 
 #include "beam-manager.h"
 
-#include <ns3/nstime.h>
-#include <ns3/object.h>
+#include "ns3/nstime.h"
+#include "ns3/object.h"
 
 namespace ns3
 {
@@ -18,9 +18,9 @@ class NrGnbNetDevice;
 class BeamformingHelperBase;
 
 /**
- * \ingroup gnb-phy
+ * @ingroup gnb-phy
  *
- * \brief Antenna array management
+ * @brief Antenna array management
  *
  * BeamManager is responsible of installation and configuration of antenna
  * array. Additionally, in the case of gNB it saves the map of beamforming
@@ -36,50 +36,50 @@ class RealisticBfManager : public BeamManager
     };
 
     /**
-     * \brief RealisticBfManager constructor
+     * @brief RealisticBfManager constructor
      */
     RealisticBfManager();
 
     /**
-     * \brief ~RealisticBfManager
+     * @brief ~RealisticBfManager
      */
     ~RealisticBfManager() override;
 
     /**
-     * \brief GetTypeId
-     * \return the TypeId of this instance
+     * @brief GetTypeId
+     * @return the TypeId of this instance
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief Sets the beamforming update trigger event, trigger event type
+     * @brief Sets the beamforming update trigger event, trigger event type
      * is one for all the nodes
-     * \param triggerEvent triggerEvent type
+     * @param triggerEvent triggerEvent type
      */
     void SetTriggerEvent(RealisticBfManager::TriggerEvent triggerEvent);
     /**
-     * \return Returns the trigger event type
+     * @return Returns the trigger event type
      */
     RealisticBfManager::TriggerEvent GetTriggerEvent() const;
 
     /**
-     * \brief Sets the periodicity of the beamforming update in the number of the
+     * @brief Sets the periodicity of the beamforming update in the number of the
      * SRS SINR reports
      */
     void SetUpdatePeriodicity(uint16_t periodicity);
 
     /**
-     * \returns Gets the periodicity in the number of SRS SINR reports
+     * @returns Gets the periodicity in the number of SRS SINR reports
      */
     uint16_t GetUpdatePeriodicity() const;
     /**
-     * \brief Sets the delay after the SRS SINR report reception and triggering of the
+     * @brief Sets the delay after the SRS SINR report reception and triggering of the
      * beamforming update
-     * \param delay the delay after reception of SRS SINR
+     * @param delay the delay after reception of SRS SINR
      */
     void SetUpdateDelay(Time delay);
     /**
-     * \return returns the delay after sSRS SINR report and beamforming
+     * @return returns the delay after sSRS SINR report and beamforming
      */
     Time GetUpdateDelay() const;
 

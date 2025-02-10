@@ -21,9 +21,9 @@
 #include <vector>
 
 /**
- * \file cttc-nr-traffic-3gpp-xr.cc
- * \ingroup examples
- * \brief Simple topology consisting of 1 GNB and various UEs.
+ * @file cttc-nr-traffic-3gpp-xr.cc
+ * @ingroup examples
+ * @brief Simple topology consisting of 1 GNB and various UEs.
  *  Can be configured with different 3GPP XR traffic generators (by using
  *  XR traffic mixer helper).
  *

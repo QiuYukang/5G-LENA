@@ -10,7 +10,7 @@
 #include "nr-rlc-sequence-number.h"
 #include "nr-rlc.h"
 
-#include <ns3/event-id.h>
+#include "ns3/event-id.h"
 
 #include <deque>
 #include <map>
@@ -27,8 +27,8 @@ class NrRlcUm : public NrRlc
     NrRlcUm();
     ~NrRlcUm() override;
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -36,14 +36,14 @@ class NrRlcUm : public NrRlc
     /**
      * RLC SAP
      *
-     * \param p packet
+     * @param p packet
      */
     void DoTransmitPdcpPdu(Ptr<Packet> p) override;
 
     /**
      * MAC SAP
      *
-     * \param txOpParams the NrMacSapUser::TxOpportunityParameters
+     * @param txOpParams the NrMacSapUser::TxOpportunityParameters
      */
     void DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams) override;
     void DoNotifyHarqDeliveryFailure() override;
@@ -58,8 +58,8 @@ class NrRlcUm : public NrRlc
     /**
      * Is inside reordering window function
      *
-     * \param seqNumber the sequence number
-     * \returns true if inside the window
+     * @param seqNumber the sequence number
+     * @returns true if inside the window
      */
     bool IsInsideReorderingWindow(nr::SequenceNumber10 seqNumber);
 
@@ -68,8 +68,8 @@ class NrRlcUm : public NrRlc
     /**
      * Reassemble SN interval function
      *
-     * \param lowSeqNumber the low sequence number
-     * \param highSeqNumber the high sequence number
+     * @param lowSeqNumber the low sequence number
+     * @param highSeqNumber the high sequence number
      */
     void ReassembleSnInterval(nr::SequenceNumber10 lowSeqNumber,
                               nr::SequenceNumber10 highSeqNumber);
@@ -77,7 +77,7 @@ class NrRlcUm : public NrRlc
     /**
      * Reassemble and deliver function
      *
-     * \param packet the packet
+     * @param packet the packet
      */
     void ReassembleAndDeliver(Ptr<Packet> packet);
 
@@ -89,14 +89,14 @@ class NrRlcUm : public NrRlc
     uint32_t m_txBufferSize;    ///< transmit buffer size
 
     /**
-     * \brief Store an incoming (from layer above us) PDU, waiting to transmit it
+     * @brief Store an incoming (from layer above us) PDU, waiting to transmit it
      */
     struct TxPdu
     {
         /**
-         * \brief TxPdu default constructor
-         * \param pdu the PDU
-         * \param time the arrival time
+         * @brief TxPdu default constructor
+         * @param pdu the PDU
+         * @param time the arrival time
          */
         TxPdu(const Ptr<Packet>& pdu, const Time& time)
             : m_pdu(pdu),

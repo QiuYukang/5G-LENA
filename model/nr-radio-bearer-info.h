@@ -10,9 +10,9 @@
 #include "nr-eps-bearer.h"
 #include "nr-rrc-sap.h"
 
-#include <ns3/ipv4-address.h>
-#include <ns3/object.h>
-#include <ns3/pointer.h>
+#include "ns3/ipv4-address.h"
+#include "ns3/object.h"
+#include "ns3/pointer.h"
 
 namespace ns3
 {
@@ -30,8 +30,8 @@ class NrRadioBearerInfo : public Object
     NrRadioBearerInfo();
     ~NrRadioBearerInfo() override;
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -47,8 +47,8 @@ class NrSignalingRadioBearerInfo : public NrRadioBearerInfo
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -64,8 +64,8 @@ class NrDataRadioBearerInfo : public NrRadioBearerInfo
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 

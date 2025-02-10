@@ -10,8 +10,8 @@
 #include "ns3/mobility-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-helper.h"
+#include "ns3/sqlite-output.h"
 #include "ns3/stats-module.h"
-#include <ns3/sqlite-output.h>
 
 const uint32_t DB_ATTEMPT_LIMIT = 20; // how many times to try to perform DB query before giving up,
                                       // we dont want to enter to a infinite loop
@@ -19,9 +19,9 @@ const uint32_t DB_ATTEMPT_LIMIT = 20; // how many times to try to perform DB que
 using namespace ns3;
 
 /**
- * \ingroup examples
- * \file realistic-beamforming.cc
- * \brief Simulation script for the realistic beamforming evaluation.
+ * @ingroup examples
+ * @file realistic-beamforming.cc
+ * @brief Simulation script for the realistic beamforming evaluation.
  * Simulation allows to configure various parameters out of which the
  * most important are:
  * - distance (by configuring deltaX and deltaY parameters). Distance
@@ -89,7 +89,7 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("CttcRealisticBeamforming");
 
 /**
- * \brief Main class
+ * @brief Main class
  */
 class CttcRealisticBeamforming
 {
@@ -101,7 +101,7 @@ class CttcRealisticBeamforming
     };
 
     /**
-     * \brief This function converts a linear SINR value that is encapsulated in
+     * @brief This function converts a linear SINR value that is encapsulated in
      * params structure to dBs, and then it prints the dB value to an output file
      * containing SINR values.
      * @param params RxPacketTraceParams structure that contains different
@@ -111,7 +111,7 @@ class CttcRealisticBeamforming
     void UeReception(RxPacketTraceParams params);
 
     /**
-     * \brief Function that will save the configuration parameters to be used later for
+     * @brief Function that will save the configuration parameters to be used later for
      * printing the results into the files.
      *
      * @param deltaX delta that will be used to determine X coordinate of UE wrt to gNB X coordinate
@@ -149,34 +149,34 @@ class CttcRealisticBeamforming
                    std::string condition);
 
     /**
-     * \brief Function that will actually configure all the simulation parameters,
+     * @brief Function that will actually configure all the simulation parameters,
      * topology and run the simulation by using the parameters that are being
      * configured for the specific run.
      */
     void RunSimulation();
     /**
-     * \brief Destructor that closes the output file stream and finished the
+     * @brief Destructor that closes the output file stream and finished the
      *  writing into the files.
      */
     ~CttcRealisticBeamforming();
     /**
-     * \brief Creates a string tag that contains some simulation run specific values in
+     * @brief Creates a string tag that contains some simulation run specific values in
      * order to be able to distinguish the results files for different runs for
      * different parameters.
      */
     std::string BuildTag();
     /**
-     * \brief
+     * @brief
      * Prepare files for the output of the results
      */
     void PrepareOutputFiles();
     /**
-     * \brief
+     * @brief
      * Print the statistics to the output files
      */
     void PrintResultsToFiles();
     /**
-     * \brief
+     * @brief
      * Create traffic applications
      */
     void CreateDlTrafficApplications(ApplicationContainer& serverAppDl,
@@ -187,7 +187,7 @@ class CttcRealisticBeamforming
                                      Ipv4InterfaceContainer& ueIpIface);
 
     /**
-     * \brief Prepare the database to print the results, e.g., open it, and
+     * @brief Prepare the database to print the results, e.g., open it, and
      * create the necessary table if it does not exist.
      * Method creates, if not exists, a table for storing the values. The table
      * will contain the following columns:
@@ -213,12 +213,12 @@ class CttcRealisticBeamforming
     void PrepareDatabase();
 
     /**
-     * \brief Insert results to the table in database.
+     * @brief Insert results to the table in database.
      */
     void PrintResultsToDatabase();
 
     /**
-     * \brief Delete results entry from database if already exist
+     * @brief Delete results entry from database if already exist
      */
     void DeleteFromDatabaseIfAlreadyExist();
 

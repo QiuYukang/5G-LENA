@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-fh-compression.cc
- * \brief A multi-cell network deployment with site sectorization
+ * @ingroup examples
+ * @file cttc-fh-compression.cc
+ * @brief A multi-cell network deployment with site sectorization
  *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.901. This example consists of an hexagonal grid deployment
@@ -35,6 +35,7 @@ $ ./ns3 run "cttc-fh-compression --PrintHelp"
  * do that by including the name of the module you need with the suffix "-module.h".
  */
 
+#include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/config-store.h"
@@ -46,9 +47,8 @@ $ ./ns3 run "cttc-fh-compression --PrintHelp"
 #include "ns3/mobility-module.h"
 #include "ns3/nr-module.h"
 #include "ns3/point-to-point-module.h"
-#include <ns3/antenna-module.h>
-#include <ns3/rng-seed-manager.h>
-#include <ns3/three-gpp-ftp-m1-helper.h>
+#include "ns3/rng-seed-manager.h"
+#include "ns3/three-gpp-ftp-m1-helper.h"
 
 #include <algorithm>
 #include <iostream>
@@ -74,18 +74,18 @@ class RadioNetworkParametersHelper
 {
   public:
     /**
-     * \brief Set the radio network parameters to LTE.
-     * \param freqReuse The cell frequency reuse.
+     * @brief Set the radio network parameters to LTE.
+     * @param freqReuse The cell frequency reuse.
      */
     void SetNetworkToLte(const std::string scenario,
                          const std::string operationMode,
                          uint16_t numCcs);
 
     /**
-     * \brief Set the radio network parameters to NR.
-     * \param scenario Urban scenario (UMa or UMi).
-     * \param numerology Numerology to use.
-     * \param freqReuse The cell frequency reuse.
+     * @brief Set the radio network parameters to NR.
+     * @param scenario Urban scenario (UMa or UMi).
+     * @param numerology Numerology to use.
+     * @param freqReuse The cell frequency reuse.
      */
     void SetNetworkToNr(const std::string scenario,
                         const std::string operationMode,
@@ -93,31 +93,31 @@ class RadioNetworkParametersHelper
                         uint16_t numCcs);
 
     /**
-     * \brief Gets the BS transmit power
-     * \return Transmit power in dBW
+     * @brief Gets the BS transmit power
+     * @return Transmit power in dBW
      */
     double GetTxPower() const;
 
     /**
-     * \brief Gets the operation bandwidth
-     * \return Bandwidth in Hz
+     * @brief Gets the operation bandwidth
+     * @return Bandwidth in Hz
      */
     double GetBandwidth() const;
 
     /**
-     * \brief Gets the central frequency
-     * \return Central frequency in Hz
+     * @brief Gets the central frequency
+     * @return Central frequency in Hz
      */
     double GetCentralFrequency() const;
 
     /**
-     * \brief Gets the band numerology
-     * \return Numerology
+     * @brief Gets the band numerology
+     * @return Numerology
      */
     uint16_t GetNumerology() const;
 
     /**
-     * \brief Converts the maxMcsVectorInput (string) into an std::vector of maximum MCS used per
+     * @brief Converts the maxMcsVectorInput (string) into an std::vector of maximum MCS used per
      * cell \return maxMcsVector
      */
     std::vector<int16_t> GetMcsVectorFromInput();

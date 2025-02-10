@@ -4,9 +4,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file gsoc-nr-rl-based-sched.cc
- * \brief A example for RL based scheduler (nr-mac-scheduler-ofdma/tdma-ai)
+ * @ingroup examples
+ * @file gsoc-nr-rl-based-sched.cc
+ * @brief A example for RL based scheduler (nr-mac-scheduler-ofdma/tdma-ai)
  *
  * This example describes how to setup a simulation using the AI scheduler and
  * the 3GPP channel model from TR 38.900. This example consists of a simple
@@ -44,7 +44,7 @@
  *
  * \code{.unparsed}
  * $ ./ns3 run gsoc-nr-rl-based-sched -- --enableLcLevelQos=1
- * \endcode
+ * @endcode
  *
  * You should see that the starvation of non-GBR UE 1 is decreased. However, notice that the example
  * offers the possibility to study further scenarios though the modification of the scenario
@@ -53,9 +53,9 @@
  *
  * \code{.unparsed}
  * $ ./ns3 run gsoc-nr-rl-based-sched -- --ueLevelSchedulerType=Ai --enableLcLevelQos=1
- * \endcode
+ * @endcode
  *
- * \note This example was created during the Google Summer of Code 2024 program.
+ * @note This example was created during the Google Summer of Code 2024 program.
  * The main author is Hyerin Kim, under the supervision of Katerina Koutlia, Amir Ashtari,
  * Bijana Bojovic, and Gabriel Ferreira for the project "Enhancement of RL Approach Accessibility in
  * NR."

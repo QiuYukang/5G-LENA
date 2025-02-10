@@ -17,10 +17,10 @@
 #include "nr-phy-sap.h"
 #include "nr-radio-bearer-tag.h"
 
-#include <ns3/boolean.h>
-#include <ns3/log.h>
-#include <ns3/random-variable-stream.h>
-#include <ns3/uinteger.h>
+#include "ns3/boolean.h"
+#include "ns3/log.h"
+#include "ns3/random-variable-stream.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {
@@ -333,8 +333,8 @@ NrUeMac::GetTotalBufSize() const
 }
 
 /**
- * \brief Sets the number of HARQ processes
- * \param numHarqProcesses the maximum number of harq processes
+ * @brief Sets the number of HARQ processes
+ * @param numHarqProcesses the maximum number of harq processes
  */
 void
 NrUeMac::SetNumHarqProcess(uint8_t numHarqProcess)
@@ -354,7 +354,7 @@ NrUeMac::SetNumHarqProcess(uint8_t numHarqProcess)
 }
 
 /**
- * \return number of HARQ processes
+ * @return number of HARQ processes
  */
 uint8_t
 NrUeMac::GetNumHarqProcess() const

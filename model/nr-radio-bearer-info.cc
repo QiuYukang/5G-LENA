@@ -9,7 +9,7 @@
 #include "nr-pdcp.h"
 #include "nr-rlc.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 namespace ns3
 {

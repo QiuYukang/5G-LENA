@@ -19,7 +19,11 @@
 #include "ns3/inet-socket-address.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-interface.h"
+#include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/ipv4-static-routing.h"
 #include "ns3/log.h"
+#include "ns3/mac48-address.h"
 #include "ns3/nr-epc-gnb-application.h"
 #include "ns3/nr-eps-bearer-tag.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
@@ -30,17 +34,13 @@
 #include "ns3/simulator.h"
 #include "ns3/test.h"
 #include "ns3/uinteger.h"
-#include <ns3/ipv4-interface.h>
-#include <ns3/ipv4-static-routing-helper.h>
-#include <ns3/ipv4-static-routing.h>
-#include <ns3/mac48-address.h>
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("NrEpcTestS1uUplink");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
  * A Udp client. Sends UDP packet carrying sequence number and time
  * stamp but also including the NrEpsBearerTag. This tag is normally
@@ -54,8 +54,8 @@ class NrEpsBearerTagUdpClient : public Application
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -63,17 +63,17 @@ class NrEpsBearerTagUdpClient : public Application
     /**
      * Constructor
      *
-     * \param rnti the RNTI
-     * \param bid the BID
+     * @param rnti the RNTI
+     * @param bid the BID
      */
     NrEpsBearerTagUdpClient(uint16_t rnti, uint8_t bid);
 
     ~NrEpsBearerTagUdpClient() override;
 
     /**
-     * \brief set the remote address and port
-     * \param ip remote IP address
-     * \param port remote port
+     * @brief set the remote address and port
+     * @param ip remote IP address
+     * @param port remote port
      */
     void SetRemote(Ipv4Address ip, uint16_t port);
 
@@ -85,8 +85,8 @@ class NrEpsBearerTagUdpClient : public Application
     void StopApplication() override;
 
     /**
-     * \brief Schedule transmit function
-     * \param dt the delta time
+     * @brief Schedule transmit function
+     * @param dt the delta time
      */
     void ScheduleTransmit(Time dt);
     /// Send function
@@ -237,19 +237,19 @@ NrEpsBearerTagUdpClient::Send()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Custom test structure to hold information of data transmitted in the uplink per UE
+ * @brief Custom test structure to hold information of data transmitted in the uplink per UE
  */
 struct UeUlTestData
 {
     /**
      * Constructor
      *
-     * \param n number of packets
-     * \param s packet size
-     * \param r the RNTI
-     * \param l the BID
+     * @param n number of packets
+     * @param s packet size
+     * @param r the RNTI
+     * @param l the BID
      */
     UeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l);
 
@@ -271,9 +271,9 @@ UeUlTestData::UeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l)
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Custom structure containing information about data sent in the uplink
+ * @brief Custom structure containing information about data sent in the uplink
  * of eNodeB. Includes the information of the data sent in the uplink per UE.
  */
 struct GnbUlTestData
@@ -282,9 +282,9 @@ struct GnbUlTestData
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief NrEpcS1uUlTestCase class
+ * @brief NrEpcS1uUlTestCase class
  */
 class NrEpcS1uUlTestCase : public TestCase
 {
@@ -292,8 +292,8 @@ class NrEpcS1uUlTestCase : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
-     * \param v the list of UE lists
+     * @param name the reference name
+     * @param v the list of UE lists
      */
     NrEpcS1uUlTestCase(std::string name, std::vector<GnbUlTestData> v);
     ~NrEpcS1uUlTestCase() override;

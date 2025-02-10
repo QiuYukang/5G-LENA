@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-lte-ca-demo.cc
- * \brief Example for setting LTE CA scenario
+ * @ingroup examples
+ * @file cttc-lte-ca-demo.cc
+ * @brief Example for setting LTE CA scenario
  *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.901. This example consists of 1 gNb and 1 UE. Have a look at the

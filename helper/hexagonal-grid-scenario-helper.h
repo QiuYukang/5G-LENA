@@ -7,8 +7,8 @@
 
 #include "node-distribution-scenario-interface.h"
 
-#include <ns3/random-variable-stream.h>
-#include <ns3/vector.h>
+#include "ns3/random-variable-stream.h"
+#include "ns3/vector.h"
 
 namespace ns3
 {
@@ -22,27 +22,27 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
 {
   public:
     /*
-     * \brief Set results directory for the gnuplot file
+     * @brief Set results directory for the gnuplot file
      */
     void SetResultsDir(std::string resultsDir);
 
     /*
-     * \brief Set simTag for the gnuplot file
+     * @brief Set simTag for the gnuplot file
      */
     void SetSimTag(std::string simTag);
 
     /**
-     * \brief HexagonalGridScenarioHelper
+     * @brief HexagonalGridScenarioHelper
      */
     HexagonalGridScenarioHelper();
 
     /**
-     * \brief ~HexagonalGridScenarioHelper
+     * @brief ~HexagonalGridScenarioHelper
      */
     ~HexagonalGridScenarioHelper() override;
 
     /**
-     * \brief Sets the number of outer rings of sites around the central site
+     * @brief Sets the number of outer rings of sites around the central site
      *
      * Relation between the number of rings and the number of rings.
      *
@@ -72,15 +72,15 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
     void SetNumRings(uint8_t numRings);
 
     /**
-     * \brief Gets the radius of the hexagonal cell
-     * \returns Cell radius in meters
+     * @brief Gets the radius of the hexagonal cell
+     * @returns Cell radius in meters
      */
     double GetHexagonalCellRadius() const;
 
     /**
-     * \brief Returns the cell center coordinates
-     * \param sitePos Site position coordinates
-     * \param cellId Cell Id
+     * @brief Returns the cell center coordinates
+     * @param sitePos Site position coordinates
+     * @param cellId Cell Id
      */
     Vector GetHexagonalCellCenter(const Vector& sitePos, uint16_t cellId) const;
 
@@ -88,11 +88,11 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
     void CreateScenario() override;
 
     /**
-     * \brief This function can be used to create a scenario with
+     * @brief This function can be used to create a scenario with
      *        UEs with mobility and define a percentage of UEs, if needed,
      *        that will have a random antenna height > 1.5 m
-     * \param speed UE speed
-     * \param percentage Percentage (decimal) of UEs with random antenna height > 1.5 m
+     * @param speed UE speed
+     * @param percentage Percentage (decimal) of UEs with random antenna height > 1.5 m
      */
     void CreateScenarioWithMobility(const Vector& speed, double percentage);
 
@@ -101,13 +101,13 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
      * used by this model.  Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream);
 
     /*
-     * \brief Sets the maximum distance between UE and the closest site.
+     * @brief Sets the maximum distance between UE and the closest site.
      * Note: used only in the function CreateScenarioWithMobility
      */
     void SetMaxUeDistanceToClosestSite(double maxUeDistanceToClosestSite);

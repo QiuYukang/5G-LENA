@@ -8,8 +8,8 @@
 #include "beamforming-vector.h"
 
 #include "ns3/event-id.h"
-#include <ns3/net-device.h>
-#include <ns3/nstime.h>
+#include "ns3/net-device.h"
+#include "ns3/nstime.h"
 
 #include <map>
 
@@ -21,9 +21,9 @@ class NrGnbNetDevice;
 class BeamformingHelperBase;
 
 /**
- * \ingroup gnb-phy
+ * @ingroup gnb-phy
  *
- * \brief Antenna array management
+ * @brief Antenna array management
  *
  * BeamManager is responsible of installation and configuration of antenna
  * array. Additionally, in the case of gNB it saves the map of beamforming
@@ -35,57 +35,57 @@ class BeamManager : public Object
 
   public:
     /**
-     * \brief BeamManager constructor
+     * @brief BeamManager constructor
      */
     BeamManager();
 
     /**
-     * \brief ~BeamManager
+     * @brief ~BeamManager
      */
     ~BeamManager() override;
 
     /**
-     * \brief GetTypeId
-     * \return the TypeId of this instance
+     * @brief GetTypeId
+     * @return the TypeId of this instance
      */
     static TypeId GetTypeId();
 
     /*
-     * \brief configures a predefined beam to use for directional transmissions
+     * @brief configures a predefined beam to use for directional transmissions
      */
     void SetPredefinedBeam(PhasedArrayModel::ComplexVector predefinedBeam);
 
     /**
-     * \brief configures a predefined beam to use for directional transmissions
-     * \param sector specifies the sector of the beam to be configured
-     * \param elevation specifies the elevation angle of the beam to be configured
+     * @brief configures a predefined beam to use for directional transmissions
+     * @param sector specifies the sector of the beam to be configured
+     * @param elevation specifies the elevation angle of the beam to be configured
      */
     void SetPredefinedBeam(uint16_t sector, double elevation);
 
     /**
-     * \brief Configures quasi-omni beamforming vector
+     * @brief Configures quasi-omni beamforming vector
      *
-     * \param antennaArray the antenna array
+     * @param antennaArray the antenna array
      */
     void Configure(const Ptr<UniformPlanarArray>& antennaArray);
 
     /**
-     * \brief Get weight vector from a BeamformingVector
-     * \param v the BeamformingVector
-     * \return the weight vector
+     * @brief Get weight vector from a BeamformingVector
+     * @param v the BeamformingVector
+     * @return the weight vector
      */
     PhasedArrayModel::ComplexVector GetVector(const BeamformingVector& v) const;
 
     /**
-     * \brief Extract the beam id from the beamforming vector specified
-     * \return the beam id
-     * \param v the beamforming vector
+     * @brief Extract the beam id from the beamforming vector specified
+     * @return the beam id
+     * @param v the beamforming vector
      */
     BeamId GetBeamId(const BeamformingVector& v) const;
 
     /**
-     * \brief Get a pointer to the current antenna
-     * \return the antenna
+     * @brief Get a pointer to the current antenna
+     * @return the antenna
      */
     Ptr<const UniformPlanarArray> GetAntenna() const;
 
@@ -94,58 +94,58 @@ class BeamManager : public Object
                             //!< per device
 
     /**
-     * \brief Function that saves the beamforming weights of the antenna
+     * @brief Function that saves the beamforming weights of the antenna
      * for transmission or reception to/from a specified connected device.
-     * \param bfv the unique identifier of the beam
-     * \param device device to which it is being transmitted, or from which is
+     * @param bfv the unique identifier of the beam
+     * @param device device to which it is being transmitted, or from which is
      * being received
      */
     virtual void SaveBeamformingVector(const BeamformingVector& bfv,
                                        const Ptr<const NetDevice>& device);
     /**
-     * \brief Change the beamforming vector for tx/rx to/from specified device
-     * \param device Device to change the beamforming vector for
+     * @brief Change the beamforming vector for tx/rx to/from specified device
+     * @param device Device to change the beamforming vector for
      */
     virtual void ChangeBeamformingVector(const Ptr<const NetDevice>& device);
 
     /**
-     * \brief Change current beamforming vector to quasi-omni beamforming vector
+     * @brief Change current beamforming vector to quasi-omni beamforming vector
      */
     virtual void ChangeToQuasiOmniBeamformingVector();
 
     /**
-     * \brief Function that returns the beamforming vector that is currently being
+     * @brief Function that returns the beamforming vector that is currently being
      * used by the antenna.
-     * \return the current beamforming vector
+     * @return the current beamforming vector
      */
     virtual PhasedArrayModel::ComplexVector GetCurrentBeamformingVector();
 
     /**
-     * \brief Function that returns the beamforming vector weights that is used to
+     * @brief Function that returns the beamforming vector weights that is used to
      * communicated with a specified device
-     * \return the current beamforming vector
+     * @return the current beamforming vector
      */
     virtual PhasedArrayModel::ComplexVector GetBeamformingVector(
         const Ptr<NetDevice>& device) const;
 
     /**
-     * \brief Function that returns the beamId of the beam that is used to
+     * @brief Function that returns the beamId of the beam that is used to
      * communicated with a specified device
-     * \return the current beamforming vector
+     * @return the current beamforming vector
      */
     virtual BeamId GetBeamId(const Ptr<NetDevice>& device) const;
 
     /**
-     * \brief Set the Sector
-     * \param sector sector
-     * \param elevation elevation
+     * @brief Set the Sector
+     * @param sector sector
+     * @param elevation elevation
      */
     void SetSector(uint16_t sector, double elevation) const;
 
     /**
-     * \brief Set the Sector
-     * \param azimuth azimuth
-     * \param zenith zenith
+     * @brief Set the Sector
+     * @param azimuth azimuth
+     * @param zenith zenith
      */
     void SetSectorAz(double azimuth, double zenith) const;
 

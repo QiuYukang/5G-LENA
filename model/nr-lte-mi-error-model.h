@@ -11,21 +11,21 @@ namespace ns3
 {
 
 /**
- * \ingroup error-models
- * \brief The NrLteMiErrorModelOutput struct
+ * @ingroup error-models
+ * @brief The NrLteMiErrorModelOutput struct
  * Error model output returned by the class NrLteMiErrorModel
- * \see NrLteMiErrorModel
+ * @see NrLteMiErrorModel
  */
 struct NrLteMiErrorModelOutput : public NrErrorModelOutput
 {
     /**
-     * \brief NrLteMiErrorModelOutput default constructor (deleted)
+     * @brief NrLteMiErrorModelOutput default constructor (deleted)
      */
     NrLteMiErrorModelOutput() = delete;
 
     /**
-     * \brief NrLteMiErrorModelOutput constructor with tbler parameter
-     * \param tbler the reference TBler
+     * @brief NrLteMiErrorModelOutput constructor with tbler parameter
+     * @param tbler the reference TBler
      */
     NrLteMiErrorModelOutput(double tbler)
         : NrErrorModelOutput(tbler)
@@ -33,7 +33,7 @@ struct NrLteMiErrorModelOutput : public NrErrorModelOutput
     }
 
     /**
-     * \brief ~NrLteMiErrorModelOutput
+     * @brief ~NrLteMiErrorModelOutput
      */
     ~NrLteMiErrorModelOutput() override
     {
@@ -46,7 +46,7 @@ struct NrLteMiErrorModelOutput : public NrErrorModelOutput
 };
 
 /**
- * \ingroup error-models
+ * @ingroup error-models
  * This class provides the BLER estimation based on mutual information metrics,
  * assuming TC coding with block segmentation as per TS 36.212 Sect. 5.1.2 and
  * modulation and coding in TS 36.214 including up to 64-QAM. The BLER-SINR
@@ -59,32 +59,32 @@ class NrLteMiErrorModel : public NrErrorModel
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return the object type id
+     * @brief GetTypeId
+     * @return the object type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrLteMiErrorModel constructor
+     * @brief NrLteMiErrorModel constructor
      */
     NrLteMiErrorModel();
 
     /**
-     * \brief ~NrLteMiErrorModel
+     * @brief ~NrLteMiErrorModel
      */
     ~NrLteMiErrorModel() override;
 
     /**
-     * \brief Get an output for the decodification error probability of a given
+     * @brief Get an output for the decodification error probability of a given
      * transport block, assuming the MIESM method, NR TC coding and block
      * segmentation, MCSs in LTE, and HARQ based on IR.
      *
-     * \param sinr SINR vector
-     * \param map RB map
-     * \param size Transport block size (bytes)
-     * \param mcs MCS
-     * \param history History of the retransmission
-     * \return A pointer to an output, with the tbler and accumulated MI, effective
+     * @param sinr SINR vector
+     * @param map RB map
+     * @param size Transport block size (bytes)
+     * @param mcs MCS
+     * @param history History of the retransmission
+     * @return A pointer to an output, with the tbler and accumulated MI, effective
      * MI, code bits, and info bits.
      */
     Ptr<NrErrorModelOutput> GetTbDecodificationStats(const SpectrumValue& sinr,
@@ -94,15 +94,15 @@ class NrLteMiErrorModel : public NrErrorModel
                                                      const NrErrorModelHistory& history) override;
 
     /**
-     * \brief Get the SE for a given CQI, following the CQIs in LTE
+     * @brief Get the SE for a given CQI, following the CQIs in LTE
      */
     double GetSpectralEfficiencyForCqi(uint8_t cqi) override;
     /**
-     * \brief Get the SE for a given MCS, following the MCSs in LTE
+     * @brief Get the SE for a given MCS, following the MCSs in LTE
      */
     double GetSpectralEfficiencyForMcs(uint8_t mcs) const override;
     /**
-     * \brief Get the payload size, following the MCSs in LTE
+     * @brief Get the payload size, following the MCSs in LTE
      */
     uint32_t GetPayloadSize(uint32_t usefulSC,
                             uint8_t mcs,
@@ -110,23 +110,23 @@ class NrLteMiErrorModel : public NrErrorModel
                             uint32_t rbNum,
                             Mode mode) const override;
     /**
-     * \brief Get the maximum code block size, as per LTE
+     * @brief Get the maximum code block size, as per LTE
      */
     uint32_t GetMaxCbSize(uint32_t tbSize, uint8_t mcs) const override;
     uint8_t GetMaxMcs() const override;
 
   private:
     /**
-     * \brief Get an output for the decodification error probability of a given
+     * @brief Get an output for the decodification error probability of a given
      * transport block, assuming the MIESM method, NR TC coding and block
      * segmentation, MCSs in LTE, and HARQ based on IR.
      *
-     * \param sinr SINR vector
-     * \param map RB map
-     * \param size Transport block size (bit)
-     * \param mcs MCS
-     * \param history History of the retransmission
-     * \return A pointer to an output, with the tbler and accumulated MI, effective
+     * @param sinr SINR vector
+     * @param map RB map
+     * @param size Transport block size (bit)
+     * @param mcs MCS
+     * @param history History of the retransmission
+     * @return A pointer to an output, with the tbler and accumulated MI, effective
      * MI, code bits, and info bits.
      */
     virtual Ptr<NrErrorModelOutput> GetTbBitDecodificationStats(const SpectrumValue& sinr,
@@ -136,24 +136,24 @@ class NrLteMiErrorModel : public NrErrorModel
                                                                 const NrErrorModelHistory& history);
 
     /**
-     * \brief compute the mmib (mean mutual information per bit) for the
+     * @brief compute the mmib (mean mutual information per bit) for the
      * specified MCS and SINR, according to the MIESM method
      *
-     * \param sinr the perceived SINRs in the whole bandwidth
-     * \param map the actives RBs for the TB
-     * \param mcs the MCS of the TB
-     * \return the mmib
+     * @param sinr the perceived SINRs in the whole bandwidth
+     * @param map the actives RBs for the TB
+     * @param mcs the MCS of the TB
+     * @return the mmib
      */
     static double Mib(const SpectrumValue& sinr, const std::vector<int>& map, uint8_t mcs);
 
     /**
-     * \brief map the mmib (mean mutual information per bit) into CBLER for
+     * @brief map the mmib (mean mutual information per bit) into CBLER for
      * the specified MCS and CB size, according to the MIESM method
      *
-     * \param mib mean mutual information per bit of a code-block
-     * \param ecrId Effective Code Rate ID
-     * \param cbSize the size of the CB
-     * \return the code block error rate
+     * @param mib mean mutual information per bit of a code-block
+     * @param ecrId Effective Code Rate ID
+     * @param cbSize the size of the CB
+     * @return the code block error rate
      */
     static double MappingMiBler(double mib, uint8_t ecrId, uint32_t cbSize);
 };

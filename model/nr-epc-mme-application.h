@@ -19,7 +19,7 @@ namespace ns3
 {
 
 /**
- * \ingroup nr
+ * @ingroup nr
  *
  * This application implements the Mobility Management Entity (MME) according to
  * the 3GPP TS 23.401 document.
@@ -41,8 +41,8 @@ class NrEpcMmeApplication : public Application
 
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -55,25 +55,25 @@ class NrEpcMmeApplication : public Application
 
     /**
      *
-     * \return the MME side of the S1-AP SAP
+     * @return the MME side of the S1-AP SAP
      */
     NrEpcS1apSapMme* GetS1apSapMme();
 
     /**
      * Add a new SGW to the MME
      *
-     * \param sgwS11Addr IPv4 address of the SGW S11 interface
-     * \param mmeS11Addr IPv4 address of the MME S11 interface
-     * \param mmeS11Socket socket of the MME S11 interface
+     * @param sgwS11Addr IPv4 address of the SGW S11 interface
+     * @param mmeS11Addr IPv4 address of the MME S11 interface
+     * @param mmeS11Socket socket of the MME S11 interface
      */
     void AddSgw(Ipv4Address sgwS11Addr, Ipv4Address mmeS11Addr, Ptr<Socket> mmeS11Socket);
 
     /**
      * Add a new gNB to the MME
      *
-     * \param ecgi E-UTRAN Cell Global ID, the unique identifier of the eNodeB
-     * \param gnbS1UAddr IPv4 address of the gNB for S1-U communications
-     * \param gnbS1apSap the gNB side of the S1-AP SAP
+     * @param ecgi E-UTRAN Cell Global ID, the unique identifier of the eNodeB
+     * @param gnbS1UAddr IPv4 address of the gNB for S1-U communications
+     * @param gnbS1apSap the gNB side of the S1-AP SAP
      */
     void AddGnb(uint16_t ecgi, Ipv4Address gnbS1UAddr, NrEpcS1apSapGnb* gnbS1apSap);
 
@@ -81,7 +81,7 @@ class NrEpcMmeApplication : public Application
      * Add a new UE to the MME. This is the equivalent of storing the UE
      * credentials before the UE is ever turned on.
      *
-     * \param imsi the unique identifier of the UE
+     * @param imsi the unique identifier of the UE
      */
     void AddUe(uint64_t imsi);
 
@@ -90,10 +90,10 @@ class NrEpcMmeApplication : public Application
      * The bearer will be activated when the UE enters the ECM
      * connected state.
      *
-     * \param imsi UE identifier
-     * \param tft traffic flow template of the bearer
-     * \param bearer QoS characteristics of the bearer
-     * \returns bearer ID
+     * @param imsi UE identifier
+     * @param tft traffic flow template of the bearer
+     * @param bearer QoS characteristics of the bearer
+     * @returns bearer ID
      */
     uint8_t AddBearer(uint64_t imsi, Ptr<NrEpcTft> tft, NrEpsBearer bearer);
 
@@ -102,18 +102,18 @@ class NrEpcMmeApplication : public Application
 
     /**
      * Process the S1 Initial UE Message received from an gNB
-     * \param mmeUeS1Id the MME UE S1 ID
-     * \param gnbUeS1Id the gNB UE S1 ID
-     * \param imsi the IMSI
-     * \param ecgi the ECGI
+     * @param mmeUeS1Id the MME UE S1 ID
+     * @param gnbUeS1Id the gNB UE S1 ID
+     * @param imsi the IMSI
+     * @param ecgi the ECGI
      */
     void DoInitialUeMessage(uint64_t mmeUeS1Id, uint16_t gnbUeS1Id, uint64_t imsi, uint16_t ecgi);
 
     /**
      * Process the S1 Initial Context Setup Response received from an gNB
-     * \param mmeUeS1Id the MME UE S1 ID
-     * \param gnbUeS1Id the gNB UE S1 ID
-     * \param erabSetupList the ERAB setup list
+     * @param mmeUeS1Id the MME UE S1 ID
+     * @param gnbUeS1Id the gNB UE S1 ID
+     * @param erabSetupList the ERAB setup list
      */
     void DoInitialContextSetupResponse(uint64_t mmeUeS1Id,
                                        uint16_t gnbUeS1Id,
@@ -121,10 +121,10 @@ class NrEpcMmeApplication : public Application
 
     /**
      * Process the S1 Path Switch Request received from an gNB
-     * \param mmeUeS1Id the MME UE S1 ID
-     * \param gnbUeS1Id the gNB UE S1 ID
-     * \param cgi the CGI
-     * \param erabToBeSwitchedInDownlinkList the ERAB to be switched in downlink list
+     * @param mmeUeS1Id the MME UE S1 ID
+     * @param gnbUeS1Id the gNB UE S1 ID
+     * @param cgi the CGI
+     * @param erabToBeSwitchedInDownlinkList the ERAB to be switched in downlink list
      */
     void DoPathSwitchRequest(
         uint64_t gnbUeS1Id,
@@ -134,9 +134,9 @@ class NrEpcMmeApplication : public Application
 
     /**
      * Process ERAB Release Indication received from an gNB
-     * \param mmeUeS1Id the MME UE S1 ID
-     * \param gnbUeS1Id the gNB UE S1 ID
-     * \param erabToBeReleaseIndication the ERAB to be release indication list
+     * @param mmeUeS1Id the MME UE S1 ID
+     * @param gnbUeS1Id the gNB UE S1 ID
+     * @param erabToBeReleaseIndication the ERAB to be release indication list
      */
     void DoErabReleaseIndication(
         uint64_t mmeUeS1Id,
@@ -147,28 +147,28 @@ class NrEpcMmeApplication : public Application
 
     /**
      * Reads the S11 messages from a socket
-     * \param socket the socket
+     * @param socket the socket
      */
     void RecvFromS11Socket(Ptr<Socket> socket);
 
     /**
      * Process GTP-C Create Session Response message
-     * \param header the GTP-C header
-     * \param packet the packet containing the message
+     * @param header the GTP-C header
+     * @param packet the packet containing the message
      */
     void DoRecvCreateSessionResponse(NrGtpcHeader& header, Ptr<Packet> packet);
 
     /**
      * Process GTP-C Modify Bearer Response message
-     * \param header the GTP-C header
-     * \param packet the packet containing the message
+     * @param header the GTP-C header
+     * @param packet the packet containing the message
      */
     void DoRecvModifyBearerResponse(NrGtpcHeader& header, Ptr<Packet> packet);
 
     /**
      * Process GTP-C Delete Bearer Request message
-     * \param header the GTP-C header
-     * \param packet the packet containing the message
+     * @param header the GTP-C header
+     * @param packet the packet containing the message
      */
     void DoRecvDeleteBearerRequest(NrGtpcHeader& header, Ptr<Packet> packet);
 
@@ -201,9 +201,9 @@ class NrEpcMmeApplication : public Application
     std::map<uint64_t, Ptr<NrUeInfo>> m_ueInfoMap;
 
     /**
-     * \brief This Function erases all contexts of bearer from MME side
-     * \param ueInfo UE information pointer
-     * \param epsBearerId Bearer Id which need to be removed corresponding to UE
+     * @brief This Function erases all contexts of bearer from MME side
+     * @param ueInfo UE information pointer
+     * @param epsBearerId Bearer Id which need to be removed corresponding to UE
      */
     void RemoveBearer(Ptr<NrUeInfo> ueInfo, uint8_t epsBearerId);
 

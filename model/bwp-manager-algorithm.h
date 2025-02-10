@@ -7,21 +7,21 @@
 
 #include "nr-eps-bearer.h"
 
-#include <ns3/object.h>
+#include "ns3/object.h"
 
 namespace ns3
 {
 
 /**
- * \ingroup bwp
- * \brief Interface for a Bwp selection algorithm based on the bearer
+ * @ingroup bwp
+ * @brief Interface for a Bwp selection algorithm based on the bearer
  *
  *
  * At the moment, we provide only a static algorithm that has to be configured
  * before the simulation starts (BwpManagerAlgorithmStatic).
  *
  *
- * \section bwp_manager_conf Configuration
+ * @section bwp_manager_conf Configuration
  *
  * The algorithm can be set, before the scenario creation, through the
  * helper method NrHelper::SetGnbBwpManagerAlgorithmTypeId(). It is
@@ -31,20 +31,20 @@ namespace ns3
  * and NrHelper::SetUeBwpManagerAlgorithmAttribute().
  *
  *
- * \see GetBwpForEpsBearer
- * \see BwpManagerAlgorithmStatic
+ * @see GetBwpForEpsBearer
+ * @see BwpManagerAlgorithmStatic
  */
 class BwpManagerAlgorithm : public Object
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return The TypeId of the object
+     * @brief GetTypeId
+     * @return The TypeId of the object
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief constructor
+     * @brief constructor
      */
     BwpManagerAlgorithm() = default;
     /**
@@ -52,16 +52,16 @@ class BwpManagerAlgorithm : public Object
      */
     ~BwpManagerAlgorithm() override = default;
     /**
-     * \brief Get the bandwidth part id for the Qci specified
-     * \param v the qci
-     * \return the bwp id that the algorithm selects for the qci specified
+     * @brief Get the bandwidth part id for the Qci specified
+     * @param v the qci
+     * @return the bwp id that the algorithm selects for the qci specified
      */
     virtual uint8_t GetBwpForEpsBearer(const NrEpsBearer::Qci& v) const = 0;
 };
 
 /**
- * \ingroup bwp
- * \brief The BwpManagerAlgorithmStatic class
+ * @ingroup bwp
+ * @brief The BwpManagerAlgorithmStatic class
  *
  * A static manager: it gets the association through a series of Attributes.
  */
@@ -69,17 +69,17 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return The TypeId of the object
+     * @brief GetTypeId
+     * @return The TypeId of the object
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief constructor
+     * @brief constructor
      */
     BwpManagerAlgorithmStatic() = default;
     /**
-     * \brief deconstructor
+     * @brief deconstructor
      */
     ~BwpManagerAlgorithmStatic() override = default;
 
@@ -87,8 +87,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     uint8_t GetBwpForEpsBearer(const NrEpsBearer::Qci& v) const override;
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetConvVoiceBwp(uint8_t bwpIndex)
     {
@@ -96,8 +96,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetConvVoiceBwp() const
     {
@@ -105,8 +105,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetConvVideoBwp(uint8_t bwpIndex)
     {
@@ -114,8 +114,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetConvVideoBwp() const
     {
@@ -123,8 +123,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetGamingBwp(uint8_t bwpIndex)
     {
@@ -132,8 +132,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetGamingBwp() const
     {
@@ -141,8 +141,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetNonConvVideoBwp(uint8_t bwpIndex)
     {
@@ -150,8 +150,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetNonConvVideoBwp() const
     {
@@ -159,8 +159,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetMcPttBwp(uint8_t bwpIndex)
     {
@@ -168,8 +168,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetMcPttBwp() const
     {
@@ -177,8 +177,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetNmcPttBwp(uint8_t bwpIndex)
     {
@@ -186,8 +186,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetNmcPttBwp() const
     {
@@ -195,8 +195,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetMcVideoBwp(uint8_t bwpIndex)
     {
@@ -204,8 +204,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetMcVideoBwp() const
     {
@@ -213,8 +213,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetGbrV2xBwp(uint8_t bwpIndex)
     {
@@ -222,8 +222,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetGbrV2xBwp() const
     {
@@ -231,8 +231,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetImsBwp(uint8_t bwpIndex)
     {
@@ -240,8 +240,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetImsBwp() const
     {
@@ -249,8 +249,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetVideoTcpOpBwp(uint8_t bwpIndex)
     {
@@ -258,8 +258,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetVideoTcpOpBwp() const
     {
@@ -267,8 +267,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetVideoGamingBwp(uint8_t bwpIndex)
     {
@@ -276,8 +276,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetVideoGamingBwp() const
     {
@@ -285,8 +285,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetVideoTcpPremiumBwp(uint8_t bwpIndex)
     {
@@ -294,8 +294,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetVideoTcpPremiumBwp() const
     {
@@ -303,8 +303,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetVideoTcpDefaultBwp(uint8_t bwpIndex)
     {
@@ -312,8 +312,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetVideoTcpDefaultBwp() const
     {
@@ -321,8 +321,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetMcDelaySignalBwp(uint8_t bwpIndex)
     {
@@ -330,8 +330,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetMcDelaySignalBwp() const
     {
@@ -339,8 +339,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetMcDataBwp(uint8_t bwpIndex)
     {
@@ -348,8 +348,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetMcDataBwp() const
     {
@@ -357,8 +357,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetNgbrV2xBwp(uint8_t bwpIndex)
     {
@@ -366,8 +366,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetNgbrV2xBwp() const
     {
@@ -375,8 +375,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetLowLatEmbbBwp(uint8_t bwpIndex)
     {
@@ -384,8 +384,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetLowLatEmbbBwp() const
     {
@@ -393,8 +393,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetDiscreteAutSmallBwp(uint8_t bwpIndex)
     {
@@ -402,8 +402,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetDiscreteAutSmallBwp() const
     {
@@ -411,8 +411,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetDiscreteAutLargeBwp(uint8_t bwpIndex)
     {
@@ -420,8 +420,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetDiscreteAutLargeBwp() const
     {
@@ -429,8 +429,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetItsBwp(uint8_t bwpIndex)
     {
@@ -438,8 +438,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetItsBwp() const
     {
@@ -447,8 +447,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetElectricityBwp(uint8_t bwpIndex)
     {
@@ -456,8 +456,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetElectricityBwp() const
     {
@@ -465,8 +465,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetLiveUlStream71Bwp(uint8_t bwpIndex)
     {
@@ -474,8 +474,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetLiveUlStream71Bwp() const
     {
@@ -483,8 +483,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetLiveUlStream72Bwp(uint8_t bwpIndex)
     {
@@ -492,8 +492,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetLiveUlStream72Bwp() const
     {
@@ -501,8 +501,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetLiveUlStream73Bwp(uint8_t bwpIndex)
     {
@@ -510,8 +510,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetLiveUlStream73Bwp() const
     {
@@ -519,8 +519,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetLiveUlStream74Bwp(uint8_t bwpIndex)
     {
@@ -528,8 +528,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetLiveUlStream74Bwp() const
     {
@@ -537,8 +537,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetLiveUlStream76Bwp(uint8_t bwpIndex)
     {
@@ -546,8 +546,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetLiveUlStream76Bwp() const
     {
@@ -555,8 +555,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetInterService87Bwp(uint8_t bwpIndex)
     {
@@ -564,8 +564,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetInterService87Bwp() const
     {
@@ -573,8 +573,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetInterService88Bwp(uint8_t bwpIndex)
     {
@@ -582,8 +582,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetInterService88Bwp() const
     {
@@ -591,8 +591,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetVisualContent89Bwp(uint8_t bwpIndex)
     {
@@ -600,8 +600,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetVisualContent89Bwp() const
     {
@@ -609,8 +609,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Set BWP index of the QCI in the function name
-     * \param bwpIndex Bwp Index to be assigned to the selected QCI
+     * @brief Set BWP index of the QCI in the function name
+     * @param bwpIndex Bwp Index to be assigned to the selected QCI
      */
     void SetVisualContent90Bwp(uint8_t bwpIndex)
     {
@@ -618,8 +618,8 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
     }
 
     /**
-     * \brief Get the BWP index of the QCI in the function name
-     * \return the BWP index of the selected QCI
+     * @brief Get the BWP index of the QCI in the function name
+     * @return the BWP index of the selected QCI
      */
     uint8_t GetVisualContent90Bwp() const
     {
@@ -628,7 +628,7 @@ class BwpManagerAlgorithmStatic : public BwpManagerAlgorithm
 
   private:
     /**
-     * \brief Map between QCI and BWP
+     * @brief Map between QCI and BWP
      */
     std::unordered_map<uint8_t, uint8_t> m_qciToBwpMap;
 };

@@ -7,7 +7,7 @@
 
 #include "nr-mac-scheduler-lcg.h"
 
-#include <ns3/object.h>
+#include "ns3/object.h"
 
 #include <vector>
 
@@ -15,9 +15,9 @@ namespace ns3
 {
 
 /**
- * \ingroup scheduler
+ * @ingroup scheduler
  *
- * \brief This class is the interface for the creation of various scheduling
+ * @brief This class is the interface for the creation of various scheduling
  * algorithms for the distribution of the assigned bytes to the different LCGs/LCs
  * of a UE.
  *
@@ -37,46 +37,46 @@ class NrMacSchedulerLcAlgorithm : public Object
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return The TypeId of the class
+     * @brief GetTypeId
+     * @return The TypeId of the class
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrMacSchedulerLcAlgorithm constructor
+     * @brief NrMacSchedulerLcAlgorithm constructor
      */
     NrMacSchedulerLcAlgorithm();
 
     /**
-     * \brief ~NrMacSchedulerLc deconstructor
+     * @brief ~NrMacSchedulerLc deconstructor
      */
     ~NrMacSchedulerLcAlgorithm() override;
 
     /**
-     * \brief Represent an assignation of bytes to a LCG/LC
+     * @brief Represent an assignation of bytes to a LCG/LC
      */
     struct Assignation
     {
         /**
-         * \brief Assignation constructor (deleted)
+         * @brief Assignation constructor (deleted)
          */
         Assignation() = delete;
         /**
-         * \brief Assignation copy constructor (deleted)
-         * \param o other instance
+         * @brief Assignation copy constructor (deleted)
+         * @param o other instance
          */
         Assignation(const Assignation& o) = delete;
         /**
-         * \brief Assignation move constructor (default)
-         * \param o other instance
+         * @brief Assignation move constructor (default)
+         * @param o other instance
          */
         Assignation(Assignation&& o) = default;
 
         /**
-         * \brief Assignation constructor with parameters
-         * \param lcg LCG ID
-         * \param lcId LC ID
-         * \param bytes Assigned bytes
+         * @brief Assignation constructor with parameters
+         * @param lcg LCG ID
+         * @param lcId LC ID
+         * @param bytes Assigned bytes
          */
         Assignation(uint8_t lcg, uint8_t lcId, uint32_t bytes)
             : m_lcg(lcg),
@@ -86,7 +86,7 @@ class NrMacSchedulerLcAlgorithm : public Object
         }
 
         /**
-         * \brief Default deconstructor
+         * @brief Default deconstructor
          */
         ~Assignation() = default;
 
@@ -96,14 +96,14 @@ class NrMacSchedulerLcAlgorithm : public Object
     };
 
     /**
-     * \brief Method to decide how to distribute the assigned bytes to the different LCs
+     * @brief Method to decide how to distribute the assigned bytes to the different LCs
      *        for the DL direction. Notice that in the DL more sophisticated algorithms
      *        can be applied since there is no limitation in the distinction among the
      *        various LCs as there is in the UL (in the UL the scheduler considers only
      *        the first created LC inside the same LCG).
-     * \param ueLCG LCG of an UE
-     * \param tbs TBS to divide between the LCG/LC
-     * \return A vector of Assignation
+     * @param ueLCG LCG of an UE
+     * @param tbs TBS to divide between the LCG/LC
+     * @return A vector of Assignation
      */
     virtual std::vector<Assignation> AssignBytesToDlLC(
         const std::unordered_map<uint8_t, LCGPtr>& ueLCG,
@@ -111,13 +111,13 @@ class NrMacSchedulerLcAlgorithm : public Object
         Time slotPeriod) const = 0;
 
     /**
-     * \brief Method to decide how to distribute the assigned bytes to the different LCs
+     * @brief Method to decide how to distribute the assigned bytes to the different LCs
      *        for the UL direction. Notice that in the UL there is a limitation in the
      *        distinction among the various LCs since the scheduler considers only the
      *        first created LC inside the same LCG.
-     * \param ueLCG LCG of an UE
-     * \param tbs TBS to divide between the LCG/LC
-     * \return A vector of Assignation
+     * @param ueLCG LCG of an UE
+     * @param tbs TBS to divide between the LCG/LC
+     * @return A vector of Assignation
      */
     virtual std::vector<Assignation> AssignBytesToUlLC(
         const std::unordered_map<uint8_t, LCGPtr>& ueLCG,

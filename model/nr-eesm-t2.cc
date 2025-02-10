@@ -8,7 +8,7 @@ namespace ns3
 {
 
 /**
- * \brief Table of beta values for each standard MCS in Table2 in TS38.214
+ * @brief Table of beta values for each standard MCS in Table2 in TS38.214
  */
 static const std::vector<double> BetaTable2 = {1.6,   1.63,  1.67,  1.73,   1.79,   4.27,   4.71,
                                                5.16,  5.66,  6.16,  6.5,    10.97,  12.92,  14.96,
@@ -16,7 +16,7 @@ static const std::vector<double> BetaTable2 = {1.6,   1.63,  1.67,  1.73,   1.79
                                                65.0,  78.58, 92.48, 106.27, 118.74, 126.36, 132.54};
 
 /**
- * \brief Table of ECR of the standard MCSs: 28 MCSs as per Table2 in TS38.214
+ * @brief Table of ECR of the standard MCSs: 28 MCSs as per Table2 in TS38.214
  */
 static const std::vector<double> McsEcrTable2 = {
     // QPSK (M=2)
@@ -54,7 +54,7 @@ static const std::vector<double> McsEcrTable2 = {
 };
 
 /**
- * \brief Table of modulation order of the standard MCSs: 28 MCSs as per Table2
+ * @brief Table of modulation order of the standard MCSs: 28 MCSs as per Table2
  * in TS38.214
  */
 static const std::vector<uint8_t> McsMTable2 = {
@@ -92,7 +92,7 @@ static const std::vector<uint8_t> McsMTable2 = {
     8};
 
 /**
- * \brief Table of SE of the standard MCSs: 28 (0 to 27) MCSs as per Table2 in TS38.214
+ * @brief Table of SE of the standard MCSs: 28 (0 to 27) MCSs as per Table2 in TS38.214
  */
 static const std::vector<double> SpectralEfficiencyForMcs2 = {
     // QPSK (M=2)
@@ -130,7 +130,7 @@ static const std::vector<double> SpectralEfficiencyForMcs2 = {
 };
 
 /**
- * \brief Table of SE of the standard CQIs: 16 CQIs as per Table2 in TS38.214
+ * @brief Table of SE of the standard CQIs: 16 CQIs as per Table2 in TS38.214
  */
 static const std::vector<double> SpectralEfficiencyForCqi2 = {0.0, // out of range
                                                               0.15,
@@ -150,7 +150,7 @@ static const std::vector<double> SpectralEfficiencyForCqi2 = {0.0, // out of ran
                                                               7.41};
 
 /**
- * \brief SINR to BLER mapping for MCSs in Table2
+ * @brief SINR to BLER mapping for MCSs in Table2
  */
 static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr2 = {
     { // BG TYPE 1

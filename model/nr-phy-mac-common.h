@@ -10,10 +10,10 @@
 #include "nr-error-model.h"
 #include "sfnsf.h"
 
-#include <ns3/log.h>
-#include <ns3/matrix-array.h>
-#include <ns3/object.h>
-#include <ns3/string.h>
+#include "ns3/log.h"
+#include "ns3/matrix-array.h"
+#include "ns3/object.h"
+#include "ns3/string.h"
 
 #include <deque>
 #include <list>
@@ -92,7 +92,7 @@ struct GetSecond
 };
 
 /**
- * \brief Flags for the CSI feedback configuration
+ * @brief Flags for the CSI feedback configuration
  */
 enum CsiFeedbackFlag : uint8_t
 {
@@ -103,13 +103,13 @@ enum CsiFeedbackFlag : uint8_t
 };
 
 /**
- * \ingroup utils
- * \brief Scheduling information. Despite the name, it is not TDMA.
+ * @ingroup utils
+ * @brief Scheduling information. Despite the name, it is not TDMA.
  */
 struct DciInfoElementTdma
 {
     /**
-     * \brief Format of the DCI
+     * @brief Format of the DCI
      */
     enum DciFormat
     {
@@ -118,7 +118,7 @@ struct DciInfoElementTdma
     };
 
     /**
-     * \brief The VarTtiType enum
+     * @brief The VarTtiType enum
      */
     enum VarTtiType
     {
@@ -129,10 +129,10 @@ struct DciInfoElementTdma
     };
 
     /**
-     * \brief Constructor used in NrUePhy to build local DCI for DL and UL control
-     * \param symStart Sym start
-     * \param numSym Num sym
-     * \param rbgBitmask Bitmask of RBG
+     * @brief Constructor used in NrUePhy to build local DCI for DL and UL control
+     * @param symStart Sym start
+     * @param numSym Num sym
+     * @param rbgBitmask Bitmask of RBG
      */
     DciInfoElementTdma(uint8_t symStart,
                        uint8_t numSym,
@@ -148,19 +148,19 @@ struct DciInfoElementTdma
     }
 
     /**
-     * \brief Construct to build brand new DCI. Please remember to update manually
+     * @brief Construct to build brand new DCI. Please remember to update manually
      * the HARQ process ID and the RBG bitmask
      *
-     * \param rnti RNTI of the UE
-     * \param format DCI format
-     * \param symStart starting symbol index for flexible TTI scheme
-     * \param numSym number of symbols for flexible TTI scheme
-     * \param mcs MCS
-     * \param rank the Rank number
-     * \param precMats the precoding matrix
-     * \param tbs TB size
-     * \param ndi New Data Indicator
-     * \param rv Redundancy Version
+     * @param rnti RNTI of the UE
+     * @param format DCI format
+     * @param symStart starting symbol index for flexible TTI scheme
+     * @param numSym number of symbols for flexible TTI scheme
+     * @param mcs MCS
+     * @param rank the Rank number
+     * @param precMats the precoding matrix
+     * @param tbs TB size
+     * @param ndi New Data Indicator
+     * @param rv Redundancy Version
      */
     DciInfoElementTdma(uint16_t rnti,
                        DciFormat format,
@@ -192,12 +192,12 @@ struct DciInfoElementTdma
     }
 
     /**
-     * \brief Copy constructor except for some values that have to be overwritten
-     * \param symStart Sym start
-     * \param numSym Num sym
-     * \param ndi New Data Indicator: 0 for Retx, 1 for New Data
-     * \param rv Retransmission value
-     * \param o Other object from which copy all that is not specified as parameter
+     * @brief Copy constructor except for some values that have to be overwritten
+     * @param symStart Sym start
+     * @param numSym Num sym
+     * @param ndi New Data Indicator: 0 for Retx, 1 for New Data
+     * @param rv Retransmission value
+     * @param o Other object from which copy all that is not specified as parameter
      */
     DciInfoElementTdma(uint8_t symStart,
                        uint8_t numSym,
@@ -240,8 +240,8 @@ struct DciInfoElementTdma
 };
 
 /**
- * \ingroup utils
- * \brief The RlcPduInfo struct
+ * @ingroup utils
+ * @brief The RlcPduInfo struct
  */
 struct RlcPduInfo
 {
@@ -289,8 +289,8 @@ struct NrBuildRarListElement_s
 };
 
 /**
- * \ingroup utils
- * \brief The SlotAllocInfo struct
+ * @ingroup utils
+ * @brief The SlotAllocInfo struct
  */
 struct SlotAllocInfo
 {
@@ -300,7 +300,7 @@ struct SlotAllocInfo
     }
 
     /**
-     * \brief Enum which indicates the allocations that are inside the allocation info
+     * @brief Enum which indicates the allocations that are inside the allocation info
      */
     enum AllocationType
     {
@@ -311,32 +311,32 @@ struct SlotAllocInfo
     };
 
     /**
-     * \brief Merge the input parameter to this SlotAllocInfo
-     * \param other SlotAllocInfo to merge in this allocation
+     * @brief Merge the input parameter to this SlotAllocInfo
+     * @param other SlotAllocInfo to merge in this allocation
      *
      * After the merge, order the allocation by symStart in DCI
      */
     void Merge(const SlotAllocInfo& other);
 
     /**
-     * \brief Check if we have data allocations
-     * \return true if m_varTtiAllocInfo contains data allocations
+     * @brief Check if we have data allocations
+     * @return true if m_varTtiAllocInfo contains data allocations
      */
     bool ContainsDataAllocation() const;
 
     /**
-     * \brief Check if we have UL MSG3 allocations
-     * \return true if m_varTtiAllocInfo contains data allocations
+     * @brief Check if we have UL MSG3 allocations
+     * @return true if m_varTtiAllocInfo contains data allocations
      */
     bool ContainsUlMsg3Allocation() const;
 
     /**
-     * \return true if m_varTtiAllocInfo contains a DL ctrl allocation
+     * @return true if m_varTtiAllocInfo contains a DL ctrl allocation
      */
     bool ContainsDlCtrlAllocation() const;
 
     /**
-     * \return true if m_varTtiAllocInfo contains a scheduled UL ctrl allocation (e.g., SRS)
+     * @return true if m_varTtiAllocInfo contains a scheduled UL ctrl allocation (e.g., SRS)
      */
     bool ContainsUlCtrlAllocation() const;
 
@@ -346,9 +346,9 @@ struct SlotAllocInfo
     AllocationType m_type{NONE};                         //!< Allocations type
     std::vector<NrBuildRarListElement_s> m_buildRarList; //!< build rar list that will be sent to UE
     /**
-     * \brief operator < (less than)
-     * \param rhs other SlotAllocInfo to compare
-     * \return true if this SlotAllocInfo is less than rhs
+     * @brief operator < (less than)
+     * @param rhs other SlotAllocInfo to compare
+     * @return true if this SlotAllocInfo is less than rhs
      *
      * The comparison is done on sfnSf
      */
@@ -356,8 +356,8 @@ struct SlotAllocInfo
 };
 
 /**
- * \ingroup utils
- * \brief The DlCqiInfo struct
+ * @ingroup utils
+ * @brief The DlCqiInfo struct
  */
 struct DlCqiInfo
 {
@@ -382,7 +382,7 @@ struct DlCqiInfo
 };
 
 /**
- * \brief The structure used for the CQI feedback message that contains the optimum CQI, RI, PMI,
+ * @brief The structure used for the CQI feedback message that contains the optimum CQI, RI, PMI,
  and full precoding matrix (dimensions: nGnbPorts * rank * nRbs).
  */
 struct PmCqiInfo
@@ -402,8 +402,8 @@ struct PmCqiInfo
 };
 
 /**
- * \ingroup utils
- * \brief The UlCqiInfo struct
+ * @ingroup utils
+ * @brief The UlCqiInfo struct
  */
 struct UlCqiInfo
 {
@@ -421,8 +421,8 @@ struct UlCqiInfo
 };
 
 /**
- * \ingroup utils
- * \brief The MacCeValue struct
+ * @ingroup utils
+ * @brief The MacCeValue struct
  */
 struct MacCeValue
 {
@@ -438,8 +438,8 @@ struct MacCeValue
 };
 
 /**
- * \ingroup utils
- * \brief See section 4.3.14 macCEListElement
+ * @ingroup utils
+ * @brief See section 4.3.14 macCEListElement
  */
 struct MacCeElement
 {
@@ -460,8 +460,8 @@ struct MacCeElement
 };
 
 /**
- * \ingroup utils
- * \brief The RlcListElement struct
+ * @ingroup utils
+ * @brief The RlcListElement struct
  */
 struct RlcListElement
 {
@@ -469,8 +469,8 @@ struct RlcListElement
 };
 
 /**
- * \ingroup utils
- * \brief The UePhyPacketCountParameter struct
+ * @ingroup utils
+ * @brief The UePhyPacketCountParameter struct
  */
 struct UePhyPacketCountParameter
 {
@@ -481,8 +481,8 @@ struct UePhyPacketCountParameter
 };
 
 /**
- * \ingroup utils
- * \brief The GnbPhyPacketCountParameter struct
+ * @ingroup utils
+ * @brief The GnbPhyPacketCountParameter struct
  */
 struct GnbPhyPacketCountParameter
 {
@@ -493,8 +493,8 @@ struct GnbPhyPacketCountParameter
 };
 
 /**
- * \ingroup utils
- * \brief Information about the expected transport block at a certain point in the slot
+ * @ingroup utils
+ * @brief Information about the expected transport block at a certain point in the slot
  *
  * Information passed by the PHY through a call to AddExpectedTb
  */
@@ -554,8 +554,8 @@ struct TransportBlockInfo
     TransportBlockInfo() = delete;
 
     /**
-     * \brief Update minimum and average SINR of the transport block based on perceived SINR
-     * \param perceivedSinr SpectrumValue with perceived SINR
+     * @brief Update minimum and average SINR of the transport block based on perceived SINR
+     * @param perceivedSinr SpectrumValue with perceived SINR
      */
     void UpdatePerceivedSinr(const SpectrumValue& perceivedSinr);
 
@@ -569,8 +569,8 @@ struct TransportBlockInfo
 };
 
 /**
- * \ingroup utils
- * \brief The RxPacketTraceParams struct
+ * @ingroup utils
+ * @brief The RxPacketTraceParams struct
  */
 struct RxPacketTraceParams
 {
@@ -619,11 +619,11 @@ struct RxPacketTraceParams
 };
 
 /**
- * \ingroup utils
- * \brief Store information about HARQ
+ * @ingroup utils
+ * @brief Store information about HARQ
  *
- * \see DlHarqInfo
- * \see UlHarqInfo
+ * @see DlHarqInfo
+ * @see UlHarqInfo
  */
 struct HarqInfo
 {
@@ -636,15 +636,15 @@ struct HarqInfo
     uint8_t m_bwpIndex{UINT8_MAX};      //!< BWP identifier, uniquely identifies BWP within the UE
 
     /**
-     * \return true if the HARQ should be eliminated, since the info has been
+     * @return true if the HARQ should be eliminated, since the info has been
      * correctly received
      */
     virtual bool IsReceivedOk() const = 0;
 };
 
 /**
- * \ingroup utils
- * \brief A struct that contains info for the DL HARQ
+ * @ingroup utils
+ * @brief A struct that contains info for the DL HARQ
  *
  * http://www.eurecom.fr/~kaltenbe/fapi-2.0/structDlInfoListElement__s.html
  * Note: This should really be called DlInfoListElement ...
@@ -652,7 +652,7 @@ struct HarqInfo
 struct DlHarqInfo : public HarqInfo
 {
     /**
-     * \brief Status of the DL Harq: ACKed or NACKed
+     * @brief Status of the DL Harq: ACKed or NACKed
      */
     enum HarqStatus
     {
@@ -669,8 +669,8 @@ struct DlHarqInfo : public HarqInfo
 };
 
 /**
- * \ingroup utils
- * \brief A struct that contains info for the UL HARQ
+ * @ingroup utils
+ * @brief A struct that contains info for the UL HARQ
  */
 struct UlHarqInfo : public HarqInfo
 {
@@ -696,7 +696,7 @@ namespace nr
 {
 
 /**
- * \brief Base class for storing the values of vendor specific parameters
+ * @brief Base class for storing the values of vendor specific parameters
  */
 struct VendorSpecificValue : public SimpleRefCount<VendorSpecificValue>
 {
@@ -704,8 +704,8 @@ struct VendorSpecificValue : public SimpleRefCount<VendorSpecificValue>
 };
 
 /**
- * \brief See section 4.3.3 vendorSpecificListElement
- * \struct VendorSpecificListElement_s
+ * @brief See section 4.3.3 vendorSpecificListElement
+ * @struct VendorSpecificListElement_s
  */
 struct VendorSpecificListElement_s
 {
@@ -715,8 +715,8 @@ struct VendorSpecificListElement_s
 };
 
 /**
- * \brief See section 4.3.4 logicalChannelConfigListElement
- * \struct LogicalChannelConfigListElement_s
+ * @brief See section 4.3.4 logicalChannelConfigListElement
+ * @struct LogicalChannelConfigListElement_s
  */
 struct LogicalChannelConfigListElement_s
 {
@@ -749,8 +749,8 @@ struct LogicalChannelConfigListElement_s
 };
 
 /**
- * \brief See section 4.3.6 rachListElement
- * \struct RachListElement_s
+ * @brief See section 4.3.6 rachListElement
+ * @struct RachListElement_s
  */
 struct RachListElement_s
 {
@@ -759,7 +759,7 @@ struct RachListElement_s
 };
 
 /**
- * \brief See section 4.3.15 macCEValue
+ * @brief See section 4.3.15 macCEValue
  */
 struct MacCeValue_u
 {
@@ -769,7 +769,7 @@ struct MacCeValue_u
 };
 
 /**
- * \brief See section 4.3.14 macCEListElement
+ * @brief See section 4.3.14 macCEListElement
  */
 struct MacCeListElement_s
 {

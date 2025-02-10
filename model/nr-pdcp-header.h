@@ -15,8 +15,8 @@ namespace ns3
 {
 
 /**
- * \ingroup nr
- * \brief The packet header for the Packet Data Convergence Protocol (PDCP) packets
+ * @ingroup nr
+ * @brief The packet header for the Packet Data Convergence Protocol (PDCP) packets
  *
  * This class has fields corresponding to those in an PDCP header as well as
  * methods for serialization to and deserialization from a byte buffer.
@@ -26,7 +26,7 @@ class NrPdcpHeader : public Header
 {
   public:
     /**
-     * \brief Constructor
+     * @brief Constructor
      *
      * Creates a null header
      */
@@ -34,28 +34,28 @@ class NrPdcpHeader : public Header
     ~NrPdcpHeader() override;
 
     /**
-     * \brief Set DC bit
+     * @brief Set DC bit
      *
-     * \param dcBit DC bit to set
+     * @param dcBit DC bit to set
      */
     void SetDcBit(uint8_t dcBit);
     /**
-     * \brief Set sequence number
+     * @brief Set sequence number
      *
-     * \param sequenceNumber sequence number
+     * @param sequenceNumber sequence number
      */
     void SetSequenceNumber(uint16_t sequenceNumber);
 
     /**
-     * \brief Get DC bit
+     * @brief Get DC bit
      *
-     * \returns DC bit
+     * @returns DC bit
      */
     uint8_t GetDcBit() const;
     /**
-     * \brief Get sequence number
+     * @brief Get sequence number
      *
-     * \returns sequence number
+     * @returns sequence number
      */
     uint16_t GetSequenceNumber() const;
 
@@ -67,8 +67,8 @@ class NrPdcpHeader : public Header
     } DcBit_t; ///< DcBit_t typedef
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     TypeId GetInstanceTypeId() const override;

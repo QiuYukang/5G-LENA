@@ -5,18 +5,18 @@
 #ifndef THREE_GPP_FTP_M1_HELPER_H
 #define THREE_GPP_FTP_M1_HELPER_H
 
-#include <ns3/internet-apps-module.h>
-#include <ns3/internet-module.h>
-#include <ns3/network-module.h>
-#include <ns3/node.h>
-#include <ns3/traffic-generator-helper.h>
+#include "ns3/internet-apps-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/network-module.h"
+#include "ns3/node.h"
+#include "ns3/traffic-generator-helper.h"
 
 namespace ns3
 {
 
 /**
- * \ingroup helper
- * \brief Helper for a correct setup of every FTP Model 1 applications
+ * @ingroup helper
+ * @brief Helper for a correct setup of every FTP Model 1 applications
  *
  * This class can help you in setting up a simulation that is using
  * an FTP Model 1 application.
@@ -59,7 +59,7 @@ class ThreeGppFtpM1Helper : public Object
     /**
      * Constructor that should be called from user program in order to setup the FTP Model 1
      * traffic helper.
-     * \param serverApps is a container of server applications. This helper will be adding client
+     * @param serverApps is a container of server applications. This helper will be adding client
      * applications in this container. \param clientApps is a container of client applications. This
      * helper will be adding client applications to this container. \param serverNodes are server
      * nodes that will be considered for this FTP Mpdel 1 traffic \param clientNodes are client
@@ -77,13 +77,13 @@ class ThreeGppFtpM1Helper : public Object
     ~ThreeGppFtpM1Helper() override;
 
     /**
-     * \brief GetTypeId
-     * \return the type id of the object
+     * @brief GetTypeId
+     * @return the type id of the object
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief To be called before Start() function.
+     * @brief To be called before Start() function.
      */
     void Configure(uint16_t port,
                    Time serverStartTime,
@@ -92,7 +92,7 @@ class ThreeGppFtpM1Helper : public Object
                    double ftpLambda,
                    uint32_t ftpFileSize);
     /**
-     * \brief Start to generate file transfers according to FTP Model 1
+     * @brief Start to generate file transfers according to FTP Model 1
      */
     void Start();
 
@@ -101,26 +101,26 @@ class ThreeGppFtpM1Helper : public Object
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream);
 
   private:
     /**
-     * \brief Configures FTP servers
+     * @brief Configures FTP servers
      */
     void DoConfigureFtpServers();
     /**
-     * \brief Configures FTP clients
+     * @brief Configures FTP clients
      */
     void DoConfigureFtpClients();
     /**
-     * \brief Function that is called to start the next file transfer
+     * @brief Function that is called to start the next file transfer
      */
     void DoStartFileTransfer();
     /**
-     * \brief Gets the next file transfer time
+     * @brief Gets the next file transfer time
      */
     Time DoGetNextTime() const;
 

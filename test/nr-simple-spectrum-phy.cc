@@ -9,14 +9,14 @@
 
 #include "nr-simple-spectrum-phy.h"
 
+#include "ns3/antenna-model.h"
+#include "ns3/boolean.h"
+#include "ns3/double.h"
+#include "ns3/log.h"
 #include "ns3/nr-net-device.h"
 #include "ns3/nr-phy-tag.h"
 #include "ns3/nr-spectrum-signal-parameters.h"
-#include <ns3/antenna-model.h>
-#include <ns3/boolean.h>
-#include <ns3/double.h>
-#include <ns3/log.h>
-#include <ns3/simulator.h>
+#include "ns3/simulator.h"
 
 #include <cmath>
 

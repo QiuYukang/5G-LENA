@@ -5,7 +5,7 @@
 #ifndef NR_SPECTRUM_SIGNAL_PARAMETERS_H
 #define NR_SPECTRUM_SIGNAL_PARAMETERS_H
 
-#include <ns3/spectrum-signal-parameters.h>
+#include "ns3/spectrum-signal-parameters.h"
 
 #include <list>
 
@@ -16,9 +16,9 @@ class PacketBurst;
 class NrControlMessage;
 
 /**
- * \ingroup spectrum
+ * @ingroup spectrum
  *
- * \brief Data signal representation for the module
+ * @brief Data signal representation for the module
  *
  * This struct provides the generic signal representation to be used by the module
  * for what regards the data part.
@@ -29,13 +29,13 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
     Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
-     * \brief NrSpectrumSignalParametersDataFrame
+     * @brief NrSpectrumSignalParametersDataFrame
      */
     NrSpectrumSignalParametersDataFrame();
 
     /**
-     * \brief NrSpectrumSignalParametersDataFrame copy constructor
-     * \param p the object from which we have to copy things
+     * @brief NrSpectrumSignalParametersDataFrame copy constructor
+     * @param p the object from which we have to copy things
      */
     NrSpectrumSignalParametersDataFrame(const NrSpectrumSignalParametersDataFrame& p);
 
@@ -46,10 +46,10 @@ struct NrSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
 };
 
 /**
- * \ingroup gnb-phy
- * \ingroup ue-phy
+ * @ingroup gnb-phy
+ * @ingroup ue-phy
  *
- * \brief DL CTRL signal representation for the module
+ * @brief DL CTRL signal representation for the module
  *
  * This struct provides the generic signal representation to be used by the module
  * for what regards the downlink control part.
@@ -60,13 +60,13 @@ struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
     Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
-     * \brief NrSpectrumSignalParametersDlCtrlFrame
+     * @brief NrSpectrumSignalParametersDlCtrlFrame
      */
     NrSpectrumSignalParametersDlCtrlFrame();
 
     /**
-     * \brief NrSpectrumSignalParametersDlCtrlFrame copy constructor
-     * \param p the object from which we have to copy from
+     * @brief NrSpectrumSignalParametersDlCtrlFrame copy constructor
+     * @param p the object from which we have to copy from
      */
     NrSpectrumSignalParametersDlCtrlFrame(const NrSpectrumSignalParametersDlCtrlFrame& p);
 
@@ -76,10 +76,10 @@ struct NrSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
 };
 
 /**
- * \ingroup gnb-phy
- * \ingroup ue-phy
+ * @ingroup gnb-phy
+ * @ingroup ue-phy
  *
- * \brief UL CTRL signal representation for the module
+ * @brief UL CTRL signal representation for the module
  *
  * This struct provides the generic signal representation to be used by the module
  * for what regards the UL CTRL part.
@@ -90,13 +90,13 @@ struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
     Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
-     * \brief NrSpectrumSignalParametersUlCtrlFrame
+     * @brief NrSpectrumSignalParametersUlCtrlFrame
      */
     NrSpectrumSignalParametersUlCtrlFrame();
 
     /**
-     * \brief NrSpectrumSignalParametersUlCtrlFrame copy constructor
-     * \param p the object from which we have to copy from
+     * @brief NrSpectrumSignalParametersUlCtrlFrame copy constructor
+     * @param p the object from which we have to copy from
      */
     NrSpectrumSignalParametersUlCtrlFrame(const NrSpectrumSignalParametersUlCtrlFrame& p);
 
@@ -105,10 +105,10 @@ struct NrSpectrumSignalParametersUlCtrlFrame : public SpectrumSignalParameters
 };
 
 /**
- * \ingroup gnb-phy
- * \ingroup ue-phy
+ * @ingroup gnb-phy
+ * @ingroup ue-phy
  *
- * \brief DL CSI-RS signal representation
+ * @brief DL CSI-RS signal representation
  *
  * This struct provides the CSI-RS signal representation.
  */
@@ -118,13 +118,13 @@ struct NrSpectrumSignalParametersCsiRs : public SpectrumSignalParameters
     Ptr<SpectrumSignalParameters> Copy() const override;
 
     /**
-     * \brief NrSpectrumSignalParametersCsiRs
+     * @brief NrSpectrumSignalParametersCsiRs
      */
     NrSpectrumSignalParametersCsiRs();
 
     /**
-     * \brief NrSpectrumSignalParametersCsiRs copy constructor
-     * \param p the object from which we have to copy from
+     * @brief NrSpectrumSignalParametersCsiRs copy constructor
+     * @param p the object from which we have to copy from
      */
     NrSpectrumSignalParametersCsiRs(const NrSpectrumSignalParametersCsiRs& p);
 

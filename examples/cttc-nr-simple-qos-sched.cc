@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-nr-simple-qos-sched.cc
- * \brief A simple example for QoS scheduler (nr-mac-scheduler-ofdma/tdma-qos)
+ * @ingroup examples
+ * @file cttc-nr-simple-qos-sched.cc
+ * @brief A simple example for QoS scheduler (nr-mac-scheduler-ofdma/tdma-qos)
  *
  * This example describes how to setup a simulation using the QoS scheduler and
  * the 3GPP channel model from TR 38.900. This example consists of a simple

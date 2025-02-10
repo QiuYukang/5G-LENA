@@ -5,9 +5,9 @@
 
 #include "nr-mac-scheduler-tdma-ai.h"
 
-#include <ns3/boolean.h>
-#include <ns3/callback.h>
-#include <ns3/log.h>
+#include "ns3/boolean.h"
+#include "ns3/callback.h"
+#include "ns3/log.h"
 
 #include <algorithm>
 #include <functional>

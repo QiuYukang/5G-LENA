@@ -6,8 +6,8 @@
 #include "cttc-mimo-simple-db-helper.h"
 
 #include "ns3/nr-module.h"
+#include "ns3/sqlite-output.h"
 #include "ns3/stats-module.h"
-#include <ns3/sqlite-output.h>
 
 #include <chrono>
 #include <thread>

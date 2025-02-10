@@ -8,7 +8,7 @@
 
 #include "traffic-generator.h"
 
-#include <ns3/random-variable-stream.h>
+#include "ns3/random-variable-stream.h"
 
 namespace ns3
 {
@@ -22,7 +22,7 @@ class TrafficGenerator3gppGenericVideo : public TrafficGenerator
 {
   public:
     /**
-     * \brief Different loopback algorithm types
+     * @brief Different loopback algorithm types
      */
     enum LoopbackAlgType
     {
@@ -34,20 +34,20 @@ class TrafficGenerator3gppGenericVideo : public TrafficGenerator
     };
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     TrafficGenerator3gppGenericVideo();
     ~TrafficGenerator3gppGenericVideo() override;
 
     /*
-     * \brief Get loopback algorithm type
+     * @brief Get loopback algorithm type
      */
     TrafficGenerator3gppGenericVideo::LoopbackAlgType GetLoopbackAlgType() const;
 
     /**
-     *\brief Set loopback algorithm type
+     *@brief Set loopback algorithm type
      */
     void SetLoopbackAlgType(LoopbackAlgType loopbackAlgType);
 
@@ -62,8 +62,8 @@ class TrafficGenerator3gppGenericVideo : public TrafficGenerator
      * used by this model. Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream) override;
 
@@ -81,21 +81,21 @@ class TrafficGenerator3gppGenericVideo : public TrafficGenerator
     // Called at time specified by Start by the DoInitialize method
     void StartApplication() override;
     /**
-     * \brief Creates the next event
+     * @brief Creates the next event
      */
     void PacketBurstSent() override;
     /**
-     * \brief Generates the packet burst size in number of packets
+     * @brief Generates the packet burst size in number of packets
      */
     void GenerateNextPacketBurstSize() override;
     /**
-     * \brief Get the size of the next packet in bytes
-     * \return the size of the next packet in bytes
+     * @brief Get the size of the next packet in bytes
+     * @return the size of the next packet in bytes
      */
     uint32_t GetNextPacketSize() const override;
     /**
-     * \brief Get the relative time when the next packet should be sent
-     * \return the relative time when the next packet will be sent
+     * @brief Get the relative time when the next packet should be sent
+     * @return the relative time when the next packet will be sent
      */
     Time GetNextPacketTime() const override;
 

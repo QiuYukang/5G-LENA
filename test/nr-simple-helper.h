@@ -26,9 +26,9 @@ class NrTestRrc;
 class NrTestMac;
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief A simplified version of NrHelper, that
+ * @brief A simplified version of NrHelper, that
  * is used for creation and configuration of NR entities for testing purposes
  * when just a limited NrHelper functionality is wanted.
  *
@@ -40,8 +40,8 @@ class NrSimpleHelper : public Object
     ~NrSimpleHelper() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -49,18 +49,18 @@ class NrSimpleHelper : public Object
     /**
      * create a set of gNB devices
      *
-     * \param c the node container where the devices are to be installed
+     * @param c the node container where the devices are to be installed
      *
-     * \return the NetDeviceContainer with the newly created devices
+     * @return the NetDeviceContainer with the newly created devices
      */
     NetDeviceContainer InstallGnbDevice(NodeContainer c);
 
     /**
      * create a set of UE devices
      *
-     * \param c the node container where the devices are to be installed
+     * @param c the node container where the devices are to be installed
      *
-     * \return the NetDeviceContainer with the newly created devices
+     * @return the NetDeviceContainer with the newly created devices
      */
     NetDeviceContainer InstallUeDevice(NodeContainer c);
 
@@ -113,15 +113,15 @@ class NrSimpleHelper : public Object
     /**
      * Install single gNB device
      *
-     * \param n the node
-     * \returns the device
+     * @param n the node
+     * @returns the device
      */
     Ptr<NetDevice> InstallSingleGnbDevice(Ptr<Node> n);
     /**
      * Install single UE device
      *
-     * \param n the node
-     * \returns the device
+     * @param n the node
+     * @returns the device
      */
     Ptr<NetDevice> InstallSingleUeDevice(Ptr<Node> n);
 

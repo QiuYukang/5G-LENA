@@ -20,8 +20,8 @@ namespace ns3
 class NetDevice;
 
 /**
- * \ingroup spectrum
- * \brief NYU Spectrum Propagation Loss Model
+ * @ingroup spectrum
+ * @brief NYU Spectrum Propagation Loss Model
  *
  * This class models the frequency dependent propagation phenomena in the way
  * described by 3GPP TR 38.901 document. The main method is DoCalcRxPowerSpectralDensity,
@@ -29,9 +29,9 @@ class NetDevice;
  * the mobility models of the transmitting node and receiving node, and
  * returns the PSD of the received signal.
  *
- * \see MatrixBasedChannelModel
- * \see PhasedArrayModel
- * \see ChannelCondition
+ * @see MatrixBasedChannelModel
+ * @see PhasedArrayModel
+ * @see ChannelCondition
  */
 class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLossModel
 {
@@ -50,40 +50,40 @@ class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLos
 
     /**
      * Get the type ID.
-     * \return the object TypeId
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
     /**
      * Set the channel model object
-     * \param channel a pointer to an object implementing the MatrixBasedChannelModel interface
+     * @param channel a pointer to an object implementing the MatrixBasedChannelModel interface
      */
     void SetChannelModel(Ptr<MatrixBasedChannelModel> channel);
 
     /**
      * Get the channel model object
-     * \return a pointer to the object implementing the MatrixBasedChannelModel interface
+     * @return a pointer to the object implementing the MatrixBasedChannelModel interface
      */
     Ptr<MatrixBasedChannelModel> GetChannelModel() const;
 
     /**
      * Sets the value of an attribute belonging to the associated
      * MatrixBasedChannelModel instance
-     * \param name name of the attribute
-     * \param value the attribute value
+     * @param name name of the attribute
+     * @param value the attribute value
      */
     void SetChannelModelAttribute(const std::string& name, const AttributeValue& value);
 
     /**
      * Returns the value of an attribute belonging to the associated
      * MatrixBasedChannelModel instance
-     * \param name name of the attribute
-     * \param value where the result should be stored
+     * @param name name of the attribute
+     * @param value where the result should be stored
      */
     void GetChannelModelAttribute(const std::string& name, AttributeValue& value) const;
 
     /**
-     * \brief Computes the received PSD.
+     * @brief Computes the received PSD.
      *
      * This function computes the received PSD by applying the 3GPP fast fading
      * model and the beamforming gain.
@@ -96,12 +96,12 @@ class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLos
      * a certain channel is cached and recomputed only when the channel realization
      * is updated, or when the beamforming vectors change.
      *
-     * \param txPsd tx PSD
-     * \param a first node mobility model
-     * \param b second node mobility model
-     * \param aPhasedArrayModel the antenna array of the first node
-     * \param bPhasedArrayModel the antenna array of the second node
-     * \return the received spectrum signal
+     * @param txPsd tx PSD
+     * @param a first node mobility model
+     * @param b second node mobility model
+     * @param aPhasedArrayModel the antenna array of the first node
+     * @param bPhasedArrayModel the antenna array of the second node
+     * @return the received spectrum signal
      */
     Ptr<SpectrumSignalParameters> DoCalcRxPowerSpectralDensity(
         Ptr<const SpectrumSignalParameters> params,
@@ -130,7 +130,7 @@ class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLos
 
     /**
      * Get the operating frequency
-     * \return the operating frequency in Hz
+     * @return the operating frequency in Hz
      */
     double GetFrequency() const;
 
@@ -138,10 +138,10 @@ class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLos
      * Looks for the long term component in m_longTermMap. If found, checks
      * whether it has to be updated. If not found or if it has to be updated,
      * calls the method CalcLongTerm to compute it.
-     * \param channelMatrix the channel matrix
-     * \param aPhasedArrayModel the antenna array of the tx device
-     * \param bPhasedArrayModel the antenna array of the rx device
-     * \return vector containing the long term component for each cluster
+     * @param channelMatrix the channel matrix
+     * @param aPhasedArrayModel the antenna array of the tx device
+     * @param bPhasedArrayModel the antenna array of the rx device
+     * @return vector containing the long term component for each cluster
      */
     PhasedArrayModel::ComplexVector GetLongTerm(
         Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix,
@@ -149,10 +149,10 @@ class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLos
         Ptr<const PhasedArrayModel> bPhasedArrayModel) const;
     /**
      * Computes the long term component
-     * \param channelMatrix the channel matrix H
-     * \param sW the beamforming vector of the s device
-     * \param uW the beamforming vector of the u device
-     * \return the long term component
+     * @param channelMatrix the channel matrix H
+     * @param sW the beamforming vector of the s device
+     * @param uW the beamforming vector of the u device
+     * @return the long term component
      */
     PhasedArrayModel::ComplexVector CalcLongTerm(
         Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix,
@@ -161,13 +161,13 @@ class NYUSpectrumPropagationLossModel : public PhasedArraySpectrumPropagationLos
 
     /**
      * Computes the beamforming gain and applies it to the tx PSD
-     * \param txPsd the tx PSD
-     * \param longTerm the long term component
-     * \param channelMatrix The channel matrix structure
-     * \param channelParams The channel params structure
-     * \param sSpeed speed of the first node
-     * \param uSpeed speed of the second node
-     * \return the rx PSD
+     * @param txPsd the tx PSD
+     * @param longTerm the long term component
+     * @param channelMatrix The channel matrix structure
+     * @param channelParams The channel params structure
+     * @param sSpeed speed of the first node
+     * @param uSpeed speed of the second node
+     * @return the rx PSD
      */
     Ptr<SpectrumValue> CalcBeamformingGain(
         Ptr<SpectrumValue> txPsd,

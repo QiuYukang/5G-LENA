@@ -12,7 +12,7 @@
 
 #include "nr-fh-control.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 #include <algorithm>
 #include <random>
@@ -43,9 +43,9 @@ NrMacSchedulerOfdma::NrMacSchedulerOfdma()
 
 /**
  *
- * \brief Calculate the number of symbols to assign to each beam
- * \param symAvail Number of available symbols
- * \param activeDl Map of active DL UE and their beam
+ * @brief Calculate the number of symbols to assign to each beam
+ * @param symAvail Number of available symbols
+ * @param activeDl Map of active DL UE and their beam
  *
  * Each beam has a different requirement in terms of byte that should be
  * transmitted with that beam. That requirement depends on the number of UE
@@ -124,10 +124,10 @@ NrMacSchedulerOfdma::GetSymPerBeam(uint32_t symAvail,
 }
 
 /**
- * \brief Assign the available DL RBG to the UEs
- * \param symAvail Available symbols
- * \param activeDl Map of active UE and their beams
- * \return a map between beams and the symbol they need
+ * @brief Assign the available DL RBG to the UEs
+ * @param symAvail Available symbols
+ * @param activeDl Map of active UE and their beams
+ * @return a map between beams and the symbol they need
  *
  * The algorithm redistributes the frequencies to all the UEs inside a beam.
  * The pre-requisite is to calculate the symbols for each beam, done with
@@ -435,11 +435,11 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
 }
 
 /**
- * \brief Create the DL DCI in OFDMA mode
- * \param spoint Starting point
- * \param ueInfo UE representation
- * \param maxSym Maximum symbols to use
- * \return a pointer to the newly created instance
+ * @brief Create the DL DCI in OFDMA mode
+ * @param spoint Starting point
+ * @param ueInfo UE representation
+ * @param maxSym Maximum symbols to use
+ * @return a pointer to the newly created instance
  *
  * The function calculates the TBS and then call CreateDci().
  */

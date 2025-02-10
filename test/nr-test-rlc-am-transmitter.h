@@ -26,9 +26,9 @@ class NrRlc;
 using namespace ns3;
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief TestSuite 4.1.1 RLC AM: Only transmitter functionality.
+ * @brief TestSuite 4.1.1 RLC AM: Only transmitter functionality.
  */
 class NrRlcAmTransmitterTestSuite : public TestSuite
 {
@@ -37,9 +37,9 @@ class NrRlcAmTransmitterTestSuite : public TestSuite
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test case used by NrRlcAmTransmitterOneSduTestCase to create topology
+ * @brief Test case used by NrRlcAmTransmitterOneSduTestCase to create topology
  * and to implement functionalities and check if data received corresponds to
  * data sent.
  */
@@ -49,7 +49,7 @@ class NrRlcAmTransmitterTestCase : public TestCase
     /**
      * Constructor
      *
-     * \param name the reference name
+     * @param name the reference name
      */
     NrRlcAmTransmitterTestCase(std::string name);
     NrRlcAmTransmitterTestCase();
@@ -57,9 +57,9 @@ class NrRlcAmTransmitterTestCase : public TestCase
 
     /**
      * Check data received function
-     * \param time the time to check
-     * \param shouldReceived should have received indicator
-     * \param assertMsg the assert message
+     * @param time the time to check
+     * @param shouldReceived should have received indicator
+     * @param assertMsg the assert message
      */
     void CheckDataReceived(Time time, std::string shouldReceived, std::string assertMsg);
 
@@ -73,16 +73,16 @@ class NrRlcAmTransmitterTestCase : public TestCase
   private:
     /**
      * Check data received function
-     * \param shouldReceived should have received indicator
-     * \param assertMsg the assert message
+     * @param shouldReceived should have received indicator
+     * @param assertMsg the assert message
      */
     void DoCheckDataReceived(std::string shouldReceived, std::string assertMsg);
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test 4.1.1.1 Test that SDU transmitted at PDCP corresponds to PDU
+ * @brief Test 4.1.1.1 Test that SDU transmitted at PDCP corresponds to PDU
  * received by MAC.
  */
 class NrRlcAmTransmitterOneSduTestCase : public NrRlcAmTransmitterTestCase
@@ -91,7 +91,7 @@ class NrRlcAmTransmitterOneSduTestCase : public NrRlcAmTransmitterTestCase
     /**
      * Constructor
      *
-     * \param name the reference name
+     * @param name the reference name
      */
     NrRlcAmTransmitterOneSduTestCase(std::string name);
     NrRlcAmTransmitterOneSduTestCase();
@@ -102,9 +102,9 @@ class NrRlcAmTransmitterOneSduTestCase : public NrRlcAmTransmitterTestCase
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test 4.1.1.2 Test the correct functionality of the Segmentation.
+ * @brief Test 4.1.1.2 Test the correct functionality of the Segmentation.
  * Test check that single SDU is properly segmented to n PDUs.
  */
 class NrRlcAmTransmitterSegmentationTestCase : public NrRlcAmTransmitterTestCase
@@ -113,7 +113,7 @@ class NrRlcAmTransmitterSegmentationTestCase : public NrRlcAmTransmitterTestCase
     /**
      * Constructor
      *
-     * \param name the reference name
+     * @param name the reference name
      */
     NrRlcAmTransmitterSegmentationTestCase(std::string name);
     NrRlcAmTransmitterSegmentationTestCase();
@@ -124,9 +124,9 @@ class NrRlcAmTransmitterSegmentationTestCase : public NrRlcAmTransmitterTestCase
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test 4.1.1.3 Test that concatenation functionality works properly.
+ * @brief Test 4.1.1.3 Test that concatenation functionality works properly.
  * Test check if n SDUs are correctly contactenate to single PDU.
  */
 class NrRlcAmTransmitterConcatenationTestCase : public NrRlcAmTransmitterTestCase
@@ -135,7 +135,7 @@ class NrRlcAmTransmitterConcatenationTestCase : public NrRlcAmTransmitterTestCas
     /**
      * Constructor
      *
-     * \param name the reference name
+     * @param name the reference name
      */
     NrRlcAmTransmitterConcatenationTestCase(std::string name);
     NrRlcAmTransmitterConcatenationTestCase();
@@ -146,9 +146,9 @@ class NrRlcAmTransmitterConcatenationTestCase : public NrRlcAmTransmitterTestCas
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test 4.1.1.4 Test checks functionality of Report Buffer Status by
+ * @brief Test 4.1.1.4 Test checks functionality of Report Buffer Status by
  * testing primitive parameters.
  */
 class NrRlcAmTransmitterReportBufferStatusTestCase : public NrRlcAmTransmitterTestCase
@@ -157,7 +157,7 @@ class NrRlcAmTransmitterReportBufferStatusTestCase : public NrRlcAmTransmitterTe
     /**
      * Constructor
      *
-     * \param name the reference name
+     * @param name the reference name
      */
     NrRlcAmTransmitterReportBufferStatusTestCase(std::string name);
     NrRlcAmTransmitterReportBufferStatusTestCase();

@@ -7,10 +7,10 @@
  *         Budiarto Herman <budiarto.herman@magister.fi>
  */
 
-#include <ns3/core-module.h>
-#include <ns3/mobility-module.h>
-#include <ns3/network-module.h>
-#include <ns3/nr-module.h>
+#include "ns3/core-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/network-module.h"
+#include "ns3/nr-module.h"
 
 #include <cmath>
 
@@ -19,27 +19,27 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NrRrcTest");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test rrc connection establishment.
+ * @brief Test rrc connection establishment.
  */
 class NrRrcConnectionEstablishmentTestCase : public TestCase
 {
   public:
     /**
      *
-     * \param isFdd FDD if true, TDD if false
-     * \param nUes number of UEs in the test
-     * \param nBearers number of bearers to be setup in each connection
-     * \param tConnBase connection time base value for all UEs in ms
-     * \param tConnIncrPerUe additional connection time increment for each UE index (0...nUes-1) in
+     * @param isFdd FDD if true, TDD if false
+     * @param nUes number of UEs in the test
+     * @param nBearers number of bearers to be setup in each connection
+     * @param tConnBase connection time base value for all UEs in ms
+     * @param tConnIncrPerUe additional connection time increment for each UE index (0...nUes-1) in
      * ms
-     * \param delayDiscStart expected duration to perform connection establishment in ms
-     * \param errorExpected if true, test case will wait a bit longer to accommodate for
+     * @param delayDiscStart expected duration to perform connection establishment in ms
+     * @param errorExpected if true, test case will wait a bit longer to accommodate for
      * transmission error
-     * \param useIdealRrc If set to false, real RRC protocol model will be used
-     * \param admitRrcConnectionRequest If set to false, gNB will not allow UE connections
-     * \param description additional description of the test case
+     * @param useIdealRrc If set to false, real RRC protocol model will be used
+     * @param admitRrcConnectionRequest If set to false, gNB will not allow UE connections
+     * @param description additional description of the test case
      */
     NrRrcConnectionEstablishmentTestCase(bool isFdd,
                                          uint32_t nUes,
@@ -58,17 +58,17 @@ class NrRrcConnectionEstablishmentTestCase : public TestCase
     /**
      * Build name string function
      *
-     * \param isFdd FDD if true, TDD if false
-     * \param nUes number of UEs in the test
-     * \param nBearers number of bearers to be setup in each connection
-     * \param tConnBase connection time base value for all UEs in ms
-     * \param tConnIncrPerUe additional connection time increment for each UE index (0...nUes-1)
+     * @param isFdd FDD if true, TDD if false
+     * @param nUes number of UEs in the test
+     * @param nBearers number of bearers to be setup in each connection
+     * @param tConnBase connection time base value for all UEs in ms
+     * @param tConnIncrPerUe additional connection time increment for each UE index (0...nUes-1)
      * in ms
-     * \param delayDiscStart expected duration to perform connection establishment in ms
-     * \param useIdealRrc If set to false, real RRC protocol model will be used
-     * \param admitRrcConnectionRequest If set to false, gNB will not allow UE connections
-     * \param description additional description of the test case
-     * \returns the name string
+     * @param delayDiscStart expected duration to perform connection establishment in ms
+     * @param useIdealRrc If set to false, real RRC protocol model will be used
+     * @param admitRrcConnectionRequest If set to false, gNB will not allow UE connections
+     * @param description additional description of the test case
+     * @returns the name string
      */
     static std::string BuildNameString(bool isFdd,
                                        uint32_t nUes,
@@ -81,28 +81,28 @@ class NrRrcConnectionEstablishmentTestCase : public TestCase
                                        std::string description = "");
     /**
      * Connect function
-     * \param ueDevice the UE device
-     * \param gnbDevice the gNB device
+     * @param ueDevice the UE device
+     * @param gnbDevice the gNB device
      */
     void Connect(Ptr<NetDevice> ueDevice, Ptr<NetDevice> gnbDevice);
     /**
      * Check connected function
-     * \param ueDevice the UE device
-     * \param gnbDevice the gNB device
+     * @param ueDevice the UE device
+     * @param gnbDevice the gNB device
      */
     void CheckConnected(Ptr<NetDevice> ueDevice, Ptr<NetDevice> gnbDevice);
     /**
      * Check not connected function
-     * \param ueDevice the UE device
-     * \param gnbDevice the gNB device
+     * @param ueDevice the UE device
+     * @param gnbDevice the gNB device
      */
     void CheckNotConnected(Ptr<NetDevice> ueDevice, Ptr<NetDevice> gnbDevice);
     /**
      * Connection established callback function
-     * \param context the context string
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti the RNTI
+     * @param context the context string
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti the RNTI
      */
     void ConnectionEstablishedCallback(std::string context,
                                        uint64_t imsi,
@@ -110,11 +110,11 @@ class NrRrcConnectionEstablishmentTestCase : public TestCase
                                        uint16_t rnti);
     /**
      * Connection timeout callback function
-     * \param context the context string
-     * \param imsi the IMSI
-     * \param cellId the cell ID
-     * \param rnti the RNTI
-     * \param connEstFailCount the T300 timer expiration counter value
+     * @param context the context string
+     * @param imsi the IMSI
+     * @param cellId the cell ID
+     * @param rnti the RNTI
+     * @param connEstFailCount the T300 timer expiration counter value
      */
     void ConnectionTimeoutCallback(std::string context,
                                    uint64_t imsi,
@@ -621,9 +621,9 @@ NrRrcConnectionEstablishmentTestCase::ConnectionTimeoutCallback(std::string cont
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Nr Rrc Connection Establishment Error Test Case
+ * @brief Nr Rrc Connection Establishment Error Test Case
  */
 class NrRrcConnectionEstablishmentErrorTestCase : public NrRrcConnectionEstablishmentTestCase
 {
@@ -631,9 +631,9 @@ class NrRrcConnectionEstablishmentErrorTestCase : public NrRrcConnectionEstablis
     /**
      *
      *
-     * \param jumpAwayTime the time when all the UEs 'teleport' to a pre-defined
+     * @param jumpAwayTime the time when all the UEs 'teleport' to a pre-defined
      *                     high-interference position and stay there for 100 ms
-     * \param description additional description of the test case
+     * @param description additional description of the test case
      */
     NrRrcConnectionEstablishmentErrorTestCase(bool isFdd,
                                               Time jumpAwayTime,
@@ -813,9 +813,9 @@ NrRrcConnectionEstablishmentErrorTestCase::JumpBack()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Nr Rrc Test Suite
+ * @brief Nr Rrc Test Suite
  */
 class NrRrcTestSuite : public TestSuite
 {
@@ -1122,7 +1122,7 @@ NrRrcTestSuite::NrRrcTestSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrRrcTestSuite g_nrRrcTestSuiteInstance;

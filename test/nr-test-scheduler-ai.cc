@@ -3,29 +3,29 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/beam-id.h>
-#include <ns3/callback.h>
-#include <ns3/node.h>
-#include <ns3/nr-control-messages.h>
-#include <ns3/nr-eps-bearer.h>
-#include <ns3/nr-gnb-mac.h>
-#include <ns3/nr-mac-sched-sap.h>
-#include <ns3/nr-mac-scheduler-ns3.h>
-#include <ns3/nr-mac-scheduler-ofdma-ai.h>
-#include <ns3/nr-mac-scheduler-tdma-ai.h>
-#include <ns3/nr-mac-scheduler-ue-info-ai.h>
-#include <ns3/nr-phy-sap.h>
-#include <ns3/object-factory.h>
-#include <ns3/test.h>
+#include "ns3/beam-id.h"
+#include "ns3/callback.h"
+#include "ns3/node.h"
+#include "ns3/nr-control-messages.h"
+#include "ns3/nr-eps-bearer.h"
+#include "ns3/nr-gnb-mac.h"
+#include "ns3/nr-mac-sched-sap.h"
+#include "ns3/nr-mac-scheduler-ns3.h"
+#include "ns3/nr-mac-scheduler-ofdma-ai.h"
+#include "ns3/nr-mac-scheduler-tdma-ai.h"
+#include "ns3/nr-mac-scheduler-ue-info-ai.h"
+#include "ns3/nr-phy-sap.h"
+#include "ns3/object-factory.h"
+#include "ns3/test.h"
 
 #include <algorithm>
 #include <unordered_set>
 
 /**
- * \file nr-test-scheduler-ai.cc
- * \ingroup test
+ * @file nr-test-scheduler-ai.cc
+ * @ingroup test
  *
- * \brief Unit-testing for the scheduler AI. The test checks that the scheduler
+ * @brief Unit-testing for the scheduler AI. The test checks that the scheduler
  * is created correctly.
  *
  * This unit test is designed to verify the functionality of the callback used for invoking

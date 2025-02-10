@@ -2,29 +2,29 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/beam-id.h>
-#include <ns3/node.h>
-#include <ns3/nr-control-messages.h>
-#include <ns3/nr-gnb-mac.h>
-#include <ns3/nr-mac-sched-sap.h>
-#include <ns3/nr-mac-scheduler-ns3.h>
-#include <ns3/nr-phy-sap.h>
-#include <ns3/object-factory.h>
-#include <ns3/test.h>
+#include "ns3/beam-id.h"
+#include "ns3/node.h"
+#include "ns3/nr-control-messages.h"
+#include "ns3/nr-gnb-mac.h"
+#include "ns3/nr-mac-sched-sap.h"
+#include "ns3/nr-mac-scheduler-ns3.h"
+#include "ns3/nr-phy-sap.h"
+#include "ns3/object-factory.h"
+#include "ns3/test.h"
 
 #include <algorithm>
 
 /**
- * \file nr-test-notching.cc
- * \ingroup test
+ * @file nr-test-notching.cc
+ * @ingroup test
  *
- * \brief This test is used to validate the notching functionality.
+ * @brief This test is used to validate the notching functionality.
  * In order to do so, it creates a fake MAC and checks in the method
  * TestNotchingGnbMac::DoSchedConfigIndication() that RBG mask is
  * in the DCI is constructed in accordance with the (tested)
  * notching mask.
  *
- * \see TestNotchingGnbMac::DoSchedConfigIndication
+ * @see TestNotchingGnbMac::DoSchedConfigIndication
  */
 namespace ns3
 {
@@ -248,18 +248,18 @@ TestNotchingGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndPar
 }
 
 /**
- * \brief TestCase for the notching mask
+ * @brief TestCase for the notching mask
  */
 class NrNotchingTestCase : public TestCase
 {
   public:
     /**
-     * \brief Create NrNotchingTestCase
-     * \param name Name of the test
-     * \param mask The mask to be tested
-     * \param schedulerType The type of the scheduler to be tested
-     * \param numOfUesPerBeam The number of UEs per beam to be tested
-     * \param beamsNum The number beams to be tested
+     * @brief Create NrNotchingTestCase
+     * @param name Name of the test
+     * @param mask The mask to be tested
+     * @param schedulerType The type of the scheduler to be tested
+     * @param numOfUesPerBeam The number of UEs per beam to be tested
+     * @param beamsNum The number beams to be tested
      */
     NrNotchingTestCase(const std::string& name,
                        const std::vector<bool>& mask,

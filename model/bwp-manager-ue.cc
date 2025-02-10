@@ -7,8 +7,8 @@
 #include "bwp-manager-algorithm.h"
 #include "nr-control-messages.h"
 
-#include <ns3/log.h>
-#include <ns3/pointer.h>
+#include "ns3/log.h"
+#include "ns3/pointer.h"
 
 namespace ns3
 {

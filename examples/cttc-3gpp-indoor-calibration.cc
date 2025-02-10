@@ -15,9 +15,9 @@
 using namespace ns3;
 
 /**
- * \ingroup examples
- * \file cttc-3gpp-indoor-calibration.cc
- * \brief Simulation script for the NR-MIMO Phase 1 system-level calibration
+ * @ingroup examples
+ * @file cttc-3gpp-indoor-calibration.cc
+ * @brief Simulation script for the NR-MIMO Phase 1 system-level calibration
  *
  * The scenario implemented in the present simulation script is according to
  * the topology described in 3GPP TR 38.901 V17.0.0 (2022-03) Figure 7.2-1:
@@ -102,13 +102,13 @@ struct DroppingParameters
 };
 
 /**
- * \brief Main class
+ * @brief Main class
  */
 class Nr3gppIndoorCalibration
 {
   public:
     /**
-     * \brief This function converts a linear SINR value that is encapsulated in
+     * @brief This function converts a linear SINR value that is encapsulated in
      * params structure to dBs, and then it prints the dB value to an output file
      * containing SINR values.
      * @param params RxPacketTraceParams structure that contains different
@@ -118,14 +118,14 @@ class Nr3gppIndoorCalibration
     void UeReception(RxPacketTraceParams params);
 
     /**
-     * \brief This function converts a linear SNR value to dBs and prints it to
+     * @brief This function converts a linear SNR value to dBs and prints it to
      * the output file containing SNR values.
      * @param snr SNR value in linear units
      */
     void UeSnrPerProcessedChunk(double snr);
 
     /**
-     * \brief This function prints out the RSSI value in dBm to file.
+     * @brief This function prints out the RSSI value in dBm to file.
      * @param rssidBm RSSI value in dBm
      */
     void UeRssiPerProcessedChunk(double rssidBm);
@@ -168,18 +168,18 @@ class Nr3gppIndoorCalibration
              uint32_t duration,
              DroppingParameters dropParam = DroppingParameters());
     /**
-     * \brief Destructor that closes the output file stream and finished the
+     * @brief Destructor that closes the output file stream and finished the
      * writing into the files.
      */
     ~Nr3gppIndoorCalibration();
 
     /**
-     * \brief Function selects UE nodes that are placed with a minimum
+     * @brief Function selects UE nodes that are placed with a minimum
      * distance from its closest gNB.
-     * \param ueNodes - container of UE nodes
-     * \param gnbNodes - container of gNB nodes
-     * \param min3DDistance - the minimum that shall be between UE and gNB
-     * \param numberOfUesToBeSelected - the number of UE nodes to be selected
+     * @param ueNodes - container of UE nodes
+     * @param gnbNodes - container of gNB nodes
+     * @param min3DDistance - the minimum that shall be between UE and gNB
+     * @param numberOfUesToBeSelected - the number of UE nodes to be selected
      * from the original container
      */
     NodeContainer SelectWellPlacedUes(const NodeContainer ueNodes,

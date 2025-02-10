@@ -20,7 +20,7 @@ namespace ns3
 {
 
 /**
- * \ingroup nr
+ * @ingroup nr
  * The NrSimpleNetDevice class implements the NR simple net device.
  * This class is used to provide a limited NrNetDevice functionalities that
  * are necessary for testing purposes.
@@ -29,8 +29,8 @@ class NrSimpleNetDevice : public SimpleNetDevice
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -38,7 +38,7 @@ class NrSimpleNetDevice : public SimpleNetDevice
     /**
      * Constructor
      *
-     * \param node the Node
+     * @param node the Node
      */
     NrSimpleNetDevice(Ptr<Node> node);
 

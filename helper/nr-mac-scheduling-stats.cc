@@ -4,9 +4,9 @@
 
 #include "nr-mac-scheduling-stats.h"
 
+#include "ns3/log.h"
+#include "ns3/simulator.h"
 #include "ns3/string.h"
-#include <ns3/log.h>
-#include <ns3/simulator.h>
 
 namespace ns3
 {

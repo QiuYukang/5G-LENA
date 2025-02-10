@@ -4,16 +4,16 @@
 
 #include "system-scheduler-test-qos.h"
 
-#include <ns3/antenna-module.h>
-#include <ns3/applications-module.h>
-#include <ns3/config.h>
-#include <ns3/internet-module.h>
-#include <ns3/nr-module.h>
-#include <ns3/packet.h>
-#include <ns3/point-to-point-helper.h>
-#include <ns3/pointer.h>
-#include <ns3/simulator.h>
-#include <ns3/uinteger.h>
+#include "ns3/antenna-module.h"
+#include "ns3/applications-module.h"
+#include "ns3/config.h"
+#include "ns3/internet-module.h"
+#include "ns3/nr-module.h"
+#include "ns3/packet.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/pointer.h"
+#include "ns3/simulator.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

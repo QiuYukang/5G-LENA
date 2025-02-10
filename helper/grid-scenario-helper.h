@@ -7,8 +7,8 @@
 
 #include "node-distribution-scenario-interface.h"
 
-#include <ns3/random-variable-stream.h>
-#include <ns3/vector.h>
+#include "ns3/random-variable-stream.h"
+#include "ns3/vector.h"
 
 namespace ns3
 {
@@ -22,12 +22,12 @@ class GridScenarioHelper : public NodeDistributionScenarioInterface
 {
   public:
     /**
-     * \brief GridScenarioHelper
+     * @brief GridScenarioHelper
      */
     GridScenarioHelper();
 
     /**
-     * \brief ~GridScenarioHelper
+     * @brief ~GridScenarioHelper
      */
     ~GridScenarioHelper() override;
 
@@ -52,8 +52,8 @@ class GridScenarioHelper : public NodeDistributionScenarioInterface
     void SetColumns(uint32_t c);
 
     /**
-     * \brief Set starting position of the grid
-     * \param [in] initialPos The starting position vector (x, y, z), where z is ignored.
+     * @brief Set starting position of the grid
+     * @param [in] initialPos The starting position vector (x, y, z), where z is ignored.
      */
     void SetStartingPosition(const Vector& initialPos);
 
@@ -69,8 +69,8 @@ class GridScenarioHelper : public NodeDistributionScenarioInterface
      * used by this model.  Return the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream);
 

@@ -15,7 +15,7 @@
 namespace ns3
 {
 /**
- * \brief The Gym environment for the RL-based scheduler
+ * @brief The Gym environment for the RL-based scheduler
  *
  * This class extends the OpenGymEnv class and implements the Gym environment for the RL-based
  * scheduler. The environment receives observations, gameover status, rewards and extra information
@@ -29,45 +29,45 @@ namespace ns3
  * - Tuple: a tuple of simpler spaces
  * - Dict: a dictionary of simpler spaces
  *
- * \see NotifyCurrentIteration
- * \see ExecuteActions
+ * @see NotifyCurrentIteration
+ * @see ExecuteActions
  */
 class NrMacSchedulerAiNs3GymEnv : public OpenGymEnv
 {
   public:
     /**
-     * \brief Constructor for NrMacSchedulerAiNs3GymEnv
+     * @brief Constructor for NrMacSchedulerAiNs3GymEnv
      * Initializes the Gym environment for the RL-based scheduler.
      */
     NrMacSchedulerAiNs3GymEnv();
 
     /**
-     * \brief Constructor with number of UEs
-     * \param numFlows The number of flows in the environment
+     * @brief Constructor with number of UEs
+     * @param numFlows The number of flows in the environment
      * Initializes the Gym environment with the given number of flows.
      */
     NrMacSchedulerAiNs3GymEnv(uint32_t numFlows);
 
     /**
-     * \brief Destructor for NrMacSchedulerAiNs3GymEnv
+     * @brief Destructor for NrMacSchedulerAiNs3GymEnv
      */
     ~NrMacSchedulerAiNs3GymEnv() override;
 
     /**
-     * \brief GetTypeId
-     * \return The TypeId of the class
+     * @brief GetTypeId
+     * @return The TypeId of the class
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief Dispose of the object
+     * @brief Dispose of the object
      * Cleans up resources when the object is no longer needed.
      */
     void DoDispose() override;
 
     /**
-     * \brief Get the action space of the environment
-     * \return the action space definition
+     * @brief Get the action space of the environment
+     * @return the action space definition
      *
      * Define the action space for the RL-based scheduler. The action space specifies
      * the range and type of actions that the RL model can take.  In this environment,
@@ -80,8 +80,8 @@ class NrMacSchedulerAiNs3GymEnv : public OpenGymEnv
     Ptr<OpenGymSpace> GetActionSpace() override;
 
     /**
-     * \brief Get the observation space of the environment
-     * \return the observation space definition
+     * @brief Get the observation space of the environment
+     * @return the observation space definition
      *
      * Define the observation space for the RL-based scheduler. The observation space
      * specifies the structure of the state that the reinforcement learning model observes. In this
@@ -93,16 +93,16 @@ class NrMacSchedulerAiNs3GymEnv : public OpenGymEnv
     Ptr<OpenGymSpace> GetObservationSpace() override;
 
     /**
-     * \brief Check if the game is over
-     * \return true if the game is over, false otherwise
+     * @brief Check if the game is over
+     * @return true if the game is over, false otherwise
      *
      * Determines whether the current episode in the Gym environment has ended.
      */
     bool GetGameOver() override;
 
     /**
-     * \brief Get the current observation
-     * \return the current observation
+     * @brief Get the current observation
+     * @return the current observation
      *
      * Collect values of the current observation from the environment, which is used by the RL
      * model. The observation contains information about all flows, including  their RNTI, LCID,
@@ -112,8 +112,8 @@ class NrMacSchedulerAiNs3GymEnv : public OpenGymEnv
     Ptr<OpenGymDataContainer> GetObservation() override;
 
     /**
-     * \brief Get the reward for the current step
-     * \return the reward value
+     * @brief Get the reward for the current step
+     * @return the reward value
      *
      * Return the reward achieved during the last step, which is used by the RL model to update its
      * policy.
@@ -121,17 +121,17 @@ class NrMacSchedulerAiNs3GymEnv : public OpenGymEnv
     float GetReward() override;
 
     /**
-     * \brief Get extra information from the environment
-     * \return additional information associated with current environment state
+     * @brief Get extra information from the environment
+     * @return additional information associated with current environment state
      *
      * Retrieve any extra information associated with the current environment state.
      */
     std::string GetExtraInfo() override;
 
     /**
-     * \brief Execute actions received from the RL model
-     * \param action The action received from the RL model
-     * \return bool True if the action was executed successfully, false otherwise
+     * @brief Execute actions received from the RL model
+     * @param action The action received from the RL model
+     * @return bool True if the action was executed successfully, false otherwise
      *
      * Apply the actions received from the RL model to the environment. The actions
      * are provided as a container (`OpenGymBoxContainer<float>`) where each element represents a
@@ -142,12 +142,12 @@ class NrMacSchedulerAiNs3GymEnv : public OpenGymEnv
     bool ExecuteActions(Ptr<OpenGymDataContainer> action) override;
 
     /**
-     * \brief Notify the environment about the current iteration
-     * \param observations Observations from the scheduler
-     * \param isGameOver Whether the game/episode is over
-     * \param reward Reward for the current iteration
-     * \param extraInfo Additional information
-     * \param updateAllUeWeightsFn A callback function to update the weights of all UEs
+     * @brief Notify the environment about the current iteration
+     * @param observations Observations from the scheduler
+     * @param isGameOver Whether the game/episode is over
+     * @param reward Reward for the current iteration
+     * @param extraInfo Additional information
+     * @param updateAllUeWeightsFn A callback function to update the weights of all UEs
      *
      * This method is called at each iteration of the simulation to provide the environment with
      * the latest observations, reward, and any other relevant information. The environment updates

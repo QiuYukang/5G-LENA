@@ -14,8 +14,8 @@ namespace ns3
 {
 
 /**
- * \ingroup scheduler
- * \brief Provides the CSCHED SAP
+ * @ingroup scheduler
+ * @brief Provides the CSCHED SAP
  *
  * This abstract class defines the MAC Scheduler interface specified in the
  * Femto Forum Technical Document:
@@ -31,7 +31,7 @@ class NrMacCschedSapProvider
 {
   public:
     /**
-     * \brief ~NrMacCschedSapProvider
+     * @brief ~NrMacCschedSapProvider
      */
     virtual ~NrMacCschedSapProvider()
     {
@@ -221,7 +221,7 @@ class NrMacCschedSapProvider
     //
 
     /**
-     * \brief CSCHED_CELL_CONFIG_REQ
+     * @brief CSCHED_CELL_CONFIG_REQ
      */
     virtual void CschedCellConfigReq(const struct CschedCellConfigReqParameters& params) = 0;
 

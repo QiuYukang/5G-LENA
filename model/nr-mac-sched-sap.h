@@ -14,19 +14,19 @@ namespace ns3
 class SpectrumModel;
 
 /**
- * \ingroup scheduler
- * \brief The SAP interface between MAC and scheduler
+ * @ingroup scheduler
+ * @brief The SAP interface between MAC and scheduler
  */
 class NrMacSchedSapProvider
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrMacSchedSapProvider() = default;
     /**
-     * \brief NrMacSchedSapProvider copy constructor (deleted)
-     * \param o other instance
+     * @brief NrMacSchedSapProvider copy constructor (deleted)
+     * @param o other instance
      */
     NrMacSchedSapProvider(const NrMacSchedSapProvider& o) = delete;
 
@@ -36,7 +36,7 @@ class NrMacSchedSapProvider
     virtual ~NrMacSchedSapProvider() = default;
 
     /**
-     * \brief RLC buffer status.
+     * @brief RLC buffer status.
      */
     struct SchedDlRlcBufferReqParameters
     {
@@ -52,7 +52,7 @@ class NrMacSchedSapProvider
     };
 
     /**
-     * \brief The SchedDlCqiInfoReqParameters struct
+     * @brief The SchedDlCqiInfoReqParameters struct
      */
     struct SchedDlCqiInfoReqParameters
     {
@@ -61,7 +61,7 @@ class NrMacSchedSapProvider
     };
 
     /**
-     * \brief The SchedUlMacCtrlInfoReqParameters struct
+     * @brief The SchedUlMacCtrlInfoReqParameters struct
      */
     struct SchedUlMacCtrlInfoReqParameters
     {
@@ -70,7 +70,7 @@ class NrMacSchedSapProvider
     };
 
     /**
-     * \brief The SchedUlCqiInfoReqParameters struct
+     * @brief The SchedUlCqiInfoReqParameters struct
      */
     struct SchedUlCqiInfoReqParameters
     {
@@ -80,7 +80,7 @@ class NrMacSchedSapProvider
     };
 
     /**
-     * \brief UL HARQ information to be used when scheduling UL data.
+     * @brief UL HARQ information to be used when scheduling UL data.
      */
     struct SchedUlTriggerReqParameters
     {
@@ -90,7 +90,7 @@ class NrMacSchedSapProvider
     };
 
     /**
-     * \brief DL HARQ information to be used when scheduling UL data.
+     * @brief DL HARQ information to be used when scheduling UL data.
      */
     struct SchedDlTriggerReqParameters
     {
@@ -100,7 +100,7 @@ class NrMacSchedSapProvider
     };
 
     /**
-     * \brief SR received from MAC, to pass to schedulers
+     * @brief SR received from MAC, to pass to schedulers
      *
      * Scheduling request information.
      *
@@ -130,22 +130,22 @@ class NrMacSchedSapProvider
     virtual void SchedDlCqiInfoReq(const SchedDlCqiInfoReqParameters& params) = 0;
 
     /**
-     * \brief Starts the DL MAC scheduler for this subframe.
-     * \param params      DL HARQ information
+     * @brief Starts the DL MAC scheduler for this subframe.
+     * @param params      DL HARQ information
      */
     virtual void SchedDlTriggerReq(const struct SchedDlTriggerReqParameters& params) = 0;
 
     virtual void SchedUlCqiInfoReq(const struct SchedUlCqiInfoReqParameters& params) = 0;
 
     /**
-     * \brief Starts the UL MAC scheduler for this subframe.
-     * \param params      UL HARQ information
+     * @brief Starts the UL MAC scheduler for this subframe.
+     * @param params      UL HARQ information
      */
     virtual void SchedUlTriggerReq(const struct SchedUlTriggerReqParameters& params) = 0;
 
     /**
-     * \brief Provides scheduling request reception information to the scheduler.
-     * \param params Scheduling request information.
+     * @brief Provides scheduling request reception information to the scheduler.
+     * @param params Scheduling request information.
      */
     virtual void SchedUlSrInfoReq(const SchedUlSrInfoReqParameters& params) = 0;
 
@@ -154,21 +154,21 @@ class NrMacSchedSapProvider
     virtual void SchedSetMcs(uint32_t mcs) = 0;
 
     /**
-     * \brief SCHED_DL_RACH_INFO_REQ
+     * @brief SCHED_DL_RACH_INFO_REQ
      *
-     * \param params SchedDlRachInfoReqParameters
+     * @param params SchedDlRachInfoReqParameters
      */
     virtual void SchedDlRachInfoReq(const SchedDlRachInfoReqParameters& params) = 0;
 
     /**
-     * \brief Retrieve the number of DL ctrl symbols configured in the scheduler
-     * \return the number of DL ctrl symbols
+     * @brief Retrieve the number of DL ctrl symbols configured in the scheduler
+     * @return the number of DL ctrl symbols
      */
     virtual uint8_t GetDlCtrlSyms() const = 0;
 
     /**
-     * \brief Retrieve the number of UL ctrl symbols configured in the scheduler
-     * \return the number of UL ctrl symbols
+     * @brief Retrieve the number of UL ctrl symbols configured in the scheduler
+     * @return the number of UL ctrl symbols
      */
     virtual uint8_t GetUlCtrlSyms() const = 0;
 
@@ -176,25 +176,25 @@ class NrMacSchedSapProvider
 };
 
 /**
- * \ingroup scheduler
- * \brief The Interface between Scheduler and MAC
+ * @ingroup scheduler
+ * @brief The Interface between Scheduler and MAC
  */
 class NrMacSchedSapUser
 {
   public:
     /**
-     * \brief ~NrMacSchedSapUser
+     * @brief ~NrMacSchedSapUser
      */
     virtual ~NrMacSchedSapUser() = default;
 
     /**
-     * \brief The SchedConfigIndParameters struct
+     * @brief The SchedConfigIndParameters struct
      */
     struct SchedConfigIndParameters
     {
         /**
-         * \brief SchedConfigIndParameters
-         * \param sfnSf sfnSf
+         * @brief SchedConfigIndParameters
+         * @param sfnSf sfnSf
          */
         SchedConfigIndParameters(const SfnSf sfnSf)
             : m_sfnSf(sfnSf),
@@ -207,55 +207,55 @@ class NrMacSchedSapUser
     };
 
     /**
-     * \brief Install a scheduling decision
-     * \param params the scheduling decision
+     * @brief Install a scheduling decision
+     * @param params the scheduling decision
      */
     virtual void SchedConfigInd(const struct SchedConfigIndParameters& params) = 0;
 
     /**
-     * \brief Get the SpectrumModel
-     * \return the spectrum model
+     * @brief Get the SpectrumModel
+     * @return the spectrum model
      */
     virtual Ptr<const SpectrumModel> GetSpectrumModel() const = 0;
 
     /**
-     * \brief Get the number of RB per RBG
-     * \return Number of RB per RBG
+     * @brief Get the number of RB per RBG
+     * @return Number of RB per RBG
      */
     virtual uint32_t GetNumRbPerRbg() const = 0;
 
     /**
-     * \brief Get the number of HARQ process
-     * \return the number of HARQ processes
+     * @brief Get the number of HARQ process
+     * @return the number of HARQ processes
      */
     virtual uint8_t GetNumHarqProcess() const = 0;
 
     /**
-     * \brief Get the BWP ID
-     * \return the BWP ID
+     * @brief Get the BWP ID
+     * @return the BWP ID
      */
     virtual uint16_t GetBwpId() const = 0;
 
     /**
-     * \brief Get the Cell ID
-     * \return the Cell ID
+     * @brief Get the Cell ID
+     * @return the Cell ID
      */
     virtual uint16_t GetCellId() const = 0;
 
     /**
-     * \brief Get the Symbol per slot
-     * \return the symbol per slot
+     * @brief Get the Symbol per slot
+     * @return the symbol per slot
      */
     virtual uint32_t GetSymbolsPerSlot() const = 0;
 
     /**
-     * \brief Get the slot period
-     * \return the slot period
+     * @brief Get the slot period
+     * @return the slot period
      */
     virtual Time GetSlotPeriod() const = 0;
 
     /**
-     * \brief Build RAR list from allocations and assign preamble IDs
+     * @brief Build RAR list from allocations and assign preamble IDs
      * @param slotAllocInfo Allocations
      */
     virtual void BuildRarList(SlotAllocInfo& slotAllocInfo) = 0;

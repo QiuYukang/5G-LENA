@@ -4,8 +4,8 @@
 
 #include "power-output-stats.h"
 
-#include <ns3/abort.h>
-#include <ns3/rng-seed-manager.h>
+#include "ns3/abort.h"
+#include "ns3/rng-seed-manager.h"
 
 namespace ns3
 {

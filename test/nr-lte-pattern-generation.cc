@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/test.h>
+#include "ns3/nr-gnb-phy.h"
+#include "ns3/test.h"
 
 /**
- * \file nr-lte-pattern-generation.cc
- * \ingroup test
+ * @file nr-lte-pattern-generation.cc
+ * @ingroup test
  *
- * \brief The test considers the function NrGnbPhy::GenerateStructuresFromPattern
+ * @brief The test considers the function NrGnbPhy::GenerateStructuresFromPattern
  * and checks that the output of that function is equal to the one pre-defined.
  * Test includes also the Harq feedback indication.
  */
@@ -17,14 +17,14 @@ namespace ns3
 {
 
 /**
- * \ingroup test
- * \brief TestSched testcase
+ * @ingroup test
+ * @brief TestSched testcase
  */
 class NrPatternTestCase : public TestCase
 {
   public:
     /**
-     * \brief The result in a single struct
+     * @brief The result in a single struct
      */
     struct Result
     {
@@ -36,7 +36,7 @@ class NrPatternTestCase : public TestCase
     };
 
     /**
-     * \brief The harqResult in a single struct
+     * @brief The harqResult in a single struct
      */
     struct HarqResult
     {
@@ -44,8 +44,8 @@ class NrPatternTestCase : public TestCase
     };
 
     /**
-     * \brief Create NrPatternTestCase
-     * \param name Name of the test
+     * @brief Create NrPatternTestCase
+     * @param name Name of the test
      */
     NrPatternTestCase(const std::string& name)
         : TestCase(name)
@@ -53,45 +53,45 @@ class NrPatternTestCase : public TestCase
     }
 
     /**
-     * \brief Check if two maps are equal
-     * \param a first map
-     * \param b second map
+     * @brief Check if two maps are equal
+     * @param a first map
+     * @param b second map
      */
     void CheckMap(const std::map<uint32_t, std::vector<uint32_t>>& a,
                   const std::map<uint32_t, std::vector<uint32_t>>& b);
 
     /**
-     * \brief Check if two maps of the Harq indication are equal
-     * \param a first map
-     * \param b second map
+     * @brief Check if two maps of the Harq indication are equal
+     * @param a first map
+     * @param b second map
      */
     void CheckHarqMap(const std::map<uint32_t, uint32_t>& a, const std::map<uint32_t, uint32_t>& b);
 
     /**
-     * \brief Check if two vectors are equal
-     * \param a first vector
-     * \param b second vector
+     * @brief Check if two vectors are equal
+     * @param a first vector
+     * @param b second vector
      */
     void CheckVector(const std::vector<uint32_t>& a, const std::vector<uint32_t>& b);
 
   private:
     void DoRun() override;
     /**
-     * \brief Test the output of PHY for a pattern, and compares it to the input
-     * \param pattern The pattern to test
-     * \param result The theoretical result
+     * @brief Test the output of PHY for a pattern, and compares it to the input
+     * @param pattern The pattern to test
+     * @param result The theoretical result
      */
     void TestPattern(const std::vector<LteNrTddSlotType>& pattern, const Result& result);
 
     /**
-     * \brief Print the map
-     * \param str the map to print
+     * @brief Print the map
+     * @param str the map to print
      */
     void Print(const std::map<uint32_t, std::vector<uint32_t>>& str);
 
     /**
-     * \brief Print the Harq feedback map
-     * \param str the map to print
+     * @brief Print the Harq feedback map
+     * @param str the map to print
      */
     void PrintHarq(const std::map<uint32_t, uint32_t>& str);
 
@@ -1532,7 +1532,7 @@ NrPatternTestCase::TestPattern(const std::vector<LteNrTddSlotType>& pattern, con
 }
 
 /**
- * \brief The NrPatternTestSuite class
+ * @brief The NrPatternTestSuite class
  */
 class NrPatternTestSuite : public TestSuite
 {

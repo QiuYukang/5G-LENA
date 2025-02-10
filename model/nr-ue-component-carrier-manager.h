@@ -12,7 +12,7 @@
 #include "nr-mac-sap.h"
 #include "nr-ue-ccm-rrc-sap.h"
 
-#include <ns3/object.h>
+#include "ns3/object.h"
 
 #include <map>
 #include <vector>
@@ -27,7 +27,7 @@ class NrMacSapUser;
 class NrMacSapProvider;
 
 /**
- * \brief The abstract base class of a Component Carrier Manager* for UE
+ * @brief The abstract base class of a Component Carrier Manager* for UE
   that operates using the component carrier manager SAP interface.
  *
  */
@@ -38,44 +38,44 @@ class NrUeComponentCarrierManager : public Object
     ~NrUeComponentCarrierManager() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief Set the "user" part of the NrComponentCarrier Management SAP interface
+     * @brief Set the "user" part of the NrComponentCarrier Management SAP interface
      * that this UE component carrier manager will interact with.
-     * \param s a reference to the "user" part of the interface, typically a
+     * @param s a reference to the "user" part of the interface, typically a
      *          member of an NrGnbRrc instance
      */
     virtual void SetNrCcmRrcSapUser(NrUeCcmRrcSapUser* s);
 
     /**
-     * \brief Exports the "provider" part of the NrComponentCarrier Management SAP interface.
-     * \return the reference to the "provider" part of the interface, typically to
+     * @brief Exports the "provider" part of the NrComponentCarrier Management SAP interface.
+     * @return the reference to the "provider" part of the interface, typically to
      *         be kept by an NrUeRrc instance
      */
     virtual NrUeCcmRrcSapProvider* GetNrCcmRrcSapProvider();
 
     /**
-     * \brief Returns the MAC sap provider interface that if forwarding calls to the
+     * @brief Returns the MAC sap provider interface that if forwarding calls to the
      * instance of the NrUeComponentCarrierManager.
-     * \return the reference to the "provider" part of the interface
+     * @return the reference to the "provider" part of the interface
      */
     virtual NrMacSapProvider* GetNrMacSapProvider() = 0;
 
     /**
-     * \brief Sets a pointer to SAP interface of MAC instance for the specified carrier.
-     * \param componentCarrierId the component carrier id
-     * \param sap the pointer to the sap interface
-     * \return whether the settings of the sap provider was successful
+     * @brief Sets a pointer to SAP interface of MAC instance for the specified carrier.
+     * @param componentCarrierId the component carrier id
+     * @param sap the pointer to the sap interface
+     * @return whether the settings of the sap provider was successful
      */
     bool SetComponentCarrierMacSapProviders(uint8_t componentCarrierId, NrMacSapProvider* sap);
 
     /**
-     * \brief Sets number of component carriers that are supported by this UE.
-     * \param noOfComponentCarriers number of component carriers
+     * @brief Sets number of component carriers that are supported by this UE.
+     * @param noOfComponentCarriers number of component carriers
      */
     void SetNumberOfComponentCarriers(uint8_t noOfComponentCarriers);
 

@@ -4,9 +4,9 @@
 
 #include "nr-bearer-stats-simple.h"
 
+#include "ns3/log.h"
 #include "ns3/nstime.h"
 #include "ns3/string.h"
-#include <ns3/log.h>
 
 namespace ns3
 {

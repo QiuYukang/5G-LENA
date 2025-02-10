@@ -12,8 +12,8 @@ namespace ns3
 {
 
 /**
- * \ingroup error-models
- * \brief The NrEesmCcT2 class
+ * @ingroup error-models
+ * @brief The NrEesmCcT2 class
  *
  * Class that implements the CC-HARQ combining with Table 2. It can be used
  * directly in the code.
@@ -22,16 +22,16 @@ class NrEesmCcT2 : public NrEesmCc
 {
   public:
     /**
-     * \brief Get the type id of the object
-     * \return the type id of the object
+     * @brief Get the type id of the object
+     * @return the type id of the object
      */
     static TypeId GetTypeId();
     /**
-     * \brief NrEesmCcT2 constructor
+     * @brief NrEesmCcT2 constructor
      */
     NrEesmCcT2();
     /**
-     * \brief ~NrEesmCcT2 deconstructor
+     * @brief ~NrEesmCcT2 deconstructor
      */
     ~NrEesmCcT2() override;
 

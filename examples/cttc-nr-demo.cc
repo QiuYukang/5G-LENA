@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-nr-demo.cc
- * \brief A cozy, simple, NR demo (in a tutorial style)
+ * @ingroup examples
+ * @file cttc-nr-demo.cc
+ * @brief A cozy, simple, NR demo (in a tutorial style)
  *
  * Notice: this entire program uses technical terms defined by the 3GPP TS 38.300 [1].
  *

@@ -11,7 +11,7 @@
 
 #include "nr-fh-control.h"
 
-#include <ns3/log.h>
+#include "ns3/log.h"
 
 #include <algorithm>
 
@@ -56,15 +56,15 @@ NrMacSchedulerHarqRr::InstallDoesFhAllocationFitFn(
 }
 
 /**
- * \brief Schedule DL HARQ in RR fashion
- * \param startingPoint starting point of the first retransmission.
- * \param symAvail Available symbols
- * \param activeDlHarq Map of the active HARQ processes
- * \param ueMap Map of the UEs
- * \param dlHarqToRetransmit HARQ feedbacks that could not be transmitted (to fill)
- * \param dlHarqFeedback all the HARQ feedbacks
- * \param slotAlloc Slot allocation info
- * \return the VarTtiSlotAlloc ID to use next
+ * @brief Schedule DL HARQ in RR fashion
+ * @param startingPoint starting point of the first retransmission.
+ * @param symAvail Available symbols
+ * @param activeDlHarq Map of the active HARQ processes
+ * @param ueMap Map of the UEs
+ * @param dlHarqToRetransmit HARQ feedbacks that could not be transmitted (to fill)
+ * @param dlHarqFeedback all the HARQ feedbacks
+ * @param slotAlloc Slot allocation info
+ * @return the VarTtiSlotAlloc ID to use next
  *
  * The algorithm is a bit complex, but nothing special. The HARQ should be
  * placed in 2D space as they were before. Probably there is an error in the algorithm.
@@ -242,15 +242,15 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
 }
 
 /**
- * \brief Schedule the UL HARQ
- * \param startingPoint starting point of the first retransmission.
+ * @brief Schedule the UL HARQ
+ * @param startingPoint starting point of the first retransmission.
  * It should be set to the next available starting point
- * \param symAvail Available symbols
- * \param ueMap Map of the UEs
- * \param ulHarqToRetransmit HARQ feedbacks that could not be transmitted (to fill)
- * \param ulHarqFeedback all the HARQ feedbacks
- * \param slotAlloc Slot allocation info
- * \return the VarTtiSlotAlloc ID to use next
+ * @param symAvail Available symbols
+ * @param ueMap Map of the UEs
+ * @param ulHarqToRetransmit HARQ feedbacks that could not be transmitted (to fill)
+ * @param ulHarqFeedback all the HARQ feedbacks
+ * @param slotAlloc Slot allocation info
+ * @return the VarTtiSlotAlloc ID to use next
  *
  * The algorithm for scheduling the UL HARQ is straightforward. Since the UL
  * transmission are all TDMA, for each NACKed process a DCI is built, with
@@ -348,8 +348,8 @@ NrMacSchedulerHarqRr::ScheduleUlHarq(
 }
 
 /**
- * \brief Sort Dl Harq retx based on their symbol requirement
- * \param activeDlHarq map of the active retx
+ * @brief Sort Dl Harq retx based on their symbol requirement
+ * @param activeDlHarq map of the active retx
  */
 void
 NrMacSchedulerHarqRr::SortDlHarq(NrMacSchedulerNs3::ActiveHarqMap* activeDlHarq) const
@@ -373,8 +373,8 @@ NrMacSchedulerHarqRr::SortDlHarq(NrMacSchedulerNs3::ActiveHarqMap* activeDlHarq)
 }
 
 /**
- * \brief (In theory) sort UL HARQ retx
- * \param activeUlHarq map of the active retx
+ * @brief (In theory) sort UL HARQ retx
+ * @param activeUlHarq map of the active retx
  *
  * Since in the uplink we are still TDMA, there is no need of sorting
  * the HARQ. The HARQ will be picked one by one until there are no
@@ -389,11 +389,11 @@ NrMacSchedulerHarqRr::SortUlHarq(
 }
 
 /**
- * \brief Find the specified HARQ process and buffer it into a vector
- * \param dlHarqFeedback HARQ not retransmitted list
- * \param dlHarqToRetransmit HARQ buffer list (to retransmit)
- * \param rnti RNTI to find
- * \param harqProcess process ID to find
+ * @brief Find the specified HARQ process and buffer it into a vector
+ * @param dlHarqFeedback HARQ not retransmitted list
+ * @param dlHarqToRetransmit HARQ buffer list (to retransmit)
+ * @param rnti RNTI to find
+ * @param harqProcess process ID to find
  */
 void
 NrMacSchedulerHarqRr::BufferHARQFeedback(const std::vector<DlHarqInfo>& dlHarqFeedback,

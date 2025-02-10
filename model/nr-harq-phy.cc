@@ -4,8 +4,8 @@
 
 #include "nr-harq-phy.h"
 
-#include <ns3/assert.h>
-#include <ns3/log.h>
+#include "ns3/assert.h"
+#include "ns3/log.h"
 
 NS_LOG_COMPONENT_DEFINE("NrHarqPhy");
 

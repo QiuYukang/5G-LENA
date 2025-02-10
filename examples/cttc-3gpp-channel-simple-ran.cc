@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-3gpp-channel-simple-ran.cc
- * \brief Simple RAN
+ * @ingroup examples
+ * @file cttc-3gpp-channel-simple-ran.cc
+ * @brief Simple RAN
  *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.901. This example consists of a simple topology of 1 UE and 1 gNb,

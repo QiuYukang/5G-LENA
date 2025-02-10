@@ -87,7 +87,7 @@ NrRlcAmE2eTestSuite::NrRlcAmE2eTestSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrRlcAmE2eTestSuite nrRlcAmE2eTestSuite;

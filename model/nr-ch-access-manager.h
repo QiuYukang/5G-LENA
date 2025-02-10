@@ -5,9 +5,9 @@
 #include "nr-gnb-mac.h"
 #include "nr-spectrum-phy.h"
 
-#include <ns3/event-id.h>
-#include <ns3/nstime.h>
-#include <ns3/object.h>
+#include "ns3/event-id.h"
+#include "ns3/nstime.h"
+#include "ns3/object.h"
 
 #include <functional>
 
@@ -18,14 +18,14 @@ namespace ns3
 {
 
 /**
- * \ingroup nru
- * \brief The Channel Access Manager class
+ * @ingroup nru
+ * @brief The Channel Access Manager class
  *
  * This is the interface for any channel access manager. A channel access manager
  * is responsible to listen to the channel, informing the PHY when it is free
  * for transmitting.
  *
- * \section ch_access_manager_req Requesting the channel
+ * @section ch_access_manager_req Requesting the channel
  *
  * The PHY would call the method RequestAccess(). Then, when the channel is
  * available for transmission, the channel access manager would call the
@@ -33,7 +33,7 @@ namespace ns3
  * cannot be access, then the callback set with SetAccessDeniedCallback()
  * will be called, instead. The request can be cancelled by calling Cancel().
  *
- * \section ch_access_manager_conf Configuration
+ * @section ch_access_manager_conf Configuration
  *
  * Any channel access manager attribute can be set through the helper methods
  * NrHelper::SetUeChannelAccessManagerAttribute() or
@@ -41,93 +41,93 @@ namespace ns3
  * directly calling `SetAttribute` on the pointer. The list of
  * attributes is reported below, in the Attributes section.
  *
- * \see NrAlwaysOnAccessManager
+ * @see NrAlwaysOnAccessManager
  */
 class NrChAccessManager : public Object
 {
   public:
     /**
-     * \brief Get the type ID
-     * \return the type id
+     * @brief Get the type ID
+     * @return the type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief ChannelAccessManager constructor
+     * @brief ChannelAccessManager constructor
      */
     NrChAccessManager();
 
     /**
-     * \brief ~ChannelAccessManager
+     * @brief ~ChannelAccessManager
      */
     ~NrChAccessManager() override;
 
     /**
-     * \brief Set duration of grant for transmission.
-     * \param grantDuration duration of grant
+     * @brief Set duration of grant for transmission.
+     * @param grantDuration duration of grant
      */
     void SetGrantDuration(Time grantDuration);
 
     /**
-     * \brief Get grant duration time.
-     * \returns default grant duration
+     * @brief Get grant duration time.
+     * @returns default grant duration
      */
     Time GetGrantDuration() const;
 
     /**
-     * \brief A function that signal that the channel has been earned
+     * @brief A function that signal that the channel has been earned
      */
     typedef std::function<void(const Time& time)> AccessGrantedCallback;
     /**
-     * \brief A function that signal that the channel is denied and the request should
+     * @brief A function that signal that the channel is denied and the request should
      * be retried
      */
     typedef std::function<void()> AccessDeniedCallback;
 
     /**
-     * \brief RequestAccess
+     * @brief RequestAccess
      *
      * When the channel is granted, the callback set with SetAccessGrantedCallback()
      * will be called.
      */
     virtual void RequestAccess() = 0;
     /**
-     * \brief Set Access-Granted Callback
-     * \param cb the callback to invoke when the channel access is granted
+     * @brief Set Access-Granted Callback
+     * @param cb the callback to invoke when the channel access is granted
      */
     virtual void SetAccessGrantedCallback(const AccessGrantedCallback& cb) = 0;
     /**
-     * \brief Set Access-Denied Callback
-     * \param cb the callback to invoke when the channel access is denied
+     * @brief Set Access-Denied Callback
+     * @param cb the callback to invoke when the channel access is denied
      */
     virtual void SetAccessDeniedCallback(const AccessDeniedCallback& cb) = 0;
 
     /**
-     * \brief Cancel a previously invoked request for accessing the channel
+     * @brief Cancel a previously invoked request for accessing the channel
      */
     virtual void Cancel() = 0;
 
     /**
-     * \brief Set spectrum phy instance for this channel access manager
-     * \param spectrumPhy spectrum phy instance
+     * @brief Set spectrum phy instance for this channel access manager
+     * @param spectrumPhy spectrum phy instance
      */
     virtual void SetNrSpectrumPhy(Ptr<NrSpectrumPhy> spectrumPhy);
 
     /**
-     * \brief Getter for spectrum phy instance to which is connected this channel access manager
-     * \return pointer to spectrum phy instance
+     * @brief Getter for spectrum phy instance to which is connected this channel access manager
+     * @return pointer to spectrum phy instance
      */
     Ptr<NrSpectrumPhy> GetNrSpectrumPhy();
 
     /**
-     * \brief Set MAC instance for this channel access manager
-     * \param mac gNB mac instance
+     * @brief Set MAC instance for this channel access manager
+     * @param mac gNB mac instance
      */
     virtual void SetNrGnbMac(Ptr<NrGnbMac> mac);
 
     /**
-     * \brief Getter for MAC instance to which is connected this channel access manager
-     * \return pointer to MAC instance
+     * @brief Getter for MAC instance to which is connected this channel access manager
+     * @return pointer to MAC instance
      */
     Ptr<NrGnbMac> GetNrGnbMac();
 
@@ -139,12 +139,12 @@ class NrChAccessManager : public Object
 };
 
 /**
- * \ingroup nru
- * \brief A Channel access manager that sees the channel always free for transmitting
+ * @ingroup nru
+ * @brief A Channel access manager that sees the channel always free for transmitting
  *
  * This channel access manager is installed by default in NR instances.
  *
- * \section always_on_usage
+ * @section always_on_usage
  *
  * This is the CAM that is created by default. However, if you want to set it
  * manually, you can invoke the helper function before installing the gnb:
@@ -170,17 +170,17 @@ class NrAlwaysOnAccessManager : public NrChAccessManager
 {
   public:
     /**
-     * \brief Get the type ID
-     * \return the type id
+     * @brief Get the type ID
+     * @return the type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrAlwaysOnAccessManager constructor
+     * @brief NrAlwaysOnAccessManager constructor
      */
     NrAlwaysOnAccessManager();
     /**
-     * \brief destructor
+     * @brief destructor
      */
     ~NrAlwaysOnAccessManager() override;
 

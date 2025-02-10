@@ -7,8 +7,8 @@
 #include "nr-spectrum-phy.h"
 #include "nr-ue-net-device.h"
 
-#include <ns3/boolean.h>
-#include <ns3/spectrum-transmit-filter.h>
+#include "ns3/boolean.h"
+#include "ns3/spectrum-transmit-filter.h"
 
 namespace ns3
 {

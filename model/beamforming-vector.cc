@@ -4,8 +4,8 @@
 
 #include "beamforming-vector.h"
 
-#include <ns3/angles.h>
-#include <ns3/uinteger.h>
+#include "ns3/angles.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

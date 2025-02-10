@@ -8,7 +8,7 @@ namespace ns3
 {
 
 /**
- * \brief Table of SE of the standard MCSs: 29 (0 to 28) MCSs as per Table1 in TS38.214
+ * @brief Table of SE of the standard MCSs: 29 (0 to 28) MCSs as per Table1 in TS38.214
  */
 static const std::vector<double> SpectralEfficiencyForMcs1 = {
     // QPSK (M=2)
@@ -46,7 +46,7 @@ static const std::vector<double> SpectralEfficiencyForMcs1 = {
 };
 
 /**
- * \brief Table of SE of the standard CQIs: 16 CQIs as per Table1 in TS38.214
+ * @brief Table of SE of the standard CQIs: 16 CQIs as per Table1 in TS38.214
  */
 static const std::vector<double> SpectralEfficiencyForCqi1 = {0.0, // out of range
                                                               0.15,
@@ -66,7 +66,7 @@ static const std::vector<double> SpectralEfficiencyForCqi1 = {0.0, // out of ran
                                                               5.55};
 
 /**
- * \brief SINR to BLER mapping for MCSs in Table1
+ * @brief SINR to BLER mapping for MCSs in Table1
  */
 static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr1 = {
     { // BG TYPE 1
@@ -17449,7 +17449,7 @@ static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr1 = {
       {0U, NrEesmErrorModel::DoubleTuple{{0.0}, {0.0}}}}}};
 
 /**
- * \brief Table of beta values for each standard MCS in Table1 in TS38.214
+ * @brief Table of beta values for each standard MCS in Table1 in TS38.214
  */
 static const std::vector<double> BetaTable1 = {
     1.6,   1.61,  1.63,  1.65,  1.67,  1.7,   1.73,  1.76,  1.79,  1.82,
@@ -17457,7 +17457,7 @@ static const std::vector<double> BetaTable1 = {
     14.96, 17.06, 19.33, 21.85, 24.51, 27.14, 29.94, 32.05, 34.28};
 
 /**
- * \brief Table of ECR of the standard MCSs: 29 MCSs as per Table1 in TS38.214
+ * @brief Table of ECR of the standard MCSs: 29 MCSs as per Table1 in TS38.214
  */
 static const std::vector<double> McsEcrTable1 = {
     // QPSK (M=2)
@@ -17495,7 +17495,7 @@ static const std::vector<double> McsEcrTable1 = {
 };
 
 /**
- * \brief Table of modulation order of the standard MCSs: 29 MCSs as per Table1
+ * @brief Table of modulation order of the standard MCSs: 29 MCSs as per Table1
  * in TS38.214
  */
 static const std::vector<uint8_t> McsMTable1 = {

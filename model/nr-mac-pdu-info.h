@@ -11,18 +11,18 @@ namespace ns3
 {
 
 /**
- * \ingroup ue-mac
- * \ingroup gnb-mac
- * \brief Used to track the MAC PDU with the slot in which has to go, and the DCI
+ * @ingroup ue-mac
+ * @ingroup gnb-mac
+ * @brief Used to track the MAC PDU with the slot in which has to go, and the DCI
  * that generated it
  *
  */
 struct NrMacPduInfo
 {
     /**
-     * \brief Construct a NrMacPduInfo
-     * \param sfn SfnSf of the PDU
-     * \param dci DCI of the PDU
+     * @brief Construct a NrMacPduInfo
+     * @param sfn SfnSf of the PDU
+     * @param dci DCI of the PDU
      */
     NrMacPduInfo(SfnSf sfn, std::shared_ptr<DciInfoElementTdma> dci)
         : m_sfnSf(sfn),

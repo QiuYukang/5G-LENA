@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 // Author: Biljana Bojovic <bbojovic@cttc.es>
 
-#include <ns3/sqlite-output.h>
+#include "ns3/sqlite-output.h"
 
 const uint32_t DB_ATTEMPT_LIMIT = 500;
 
@@ -51,35 +51,35 @@ struct CttcMimoSimpleResults
 };
 
 /**
- * \brief The helper class that creates the specific tables in the database,
+ * @brief The helper class that creates the specific tables in the database,
  * write results, checks if the results exits, etc.
  */
 class CttcMimoSimpleDbHelper
 {
   public:
     /**
-     * \brief Destructror that should close the database if not closed
+     * @brief Destructror that should close the database if not closed
      */
     ~CttcMimoSimpleDbHelper();
     /**
-     * \brief Sets the results dir path
+     * @brief Sets the results dir path
      */
     void SetResultsDirPath(std::string resultsDir);
     /**
-     * \brief Sets the DB name
+     * @brief Sets the DB name
      */
     void SetDbName(std::string dbName);
     /**
-     * \brief Prepare the database, i.e., open the database it,
+     * @brief Prepare the database, i.e., open the database it,
      * and create the table if it does not exist.
      */
     void PrepareTable();
     /**
-     * \brief Insert results to the table in database.
+     * @brief Insert results to the table in database.
      */
     void InsertResults(CttcMimoSimpleResults& results);
     /**
-     * \brief Delete results entry from table if already exist
+     * @brief Delete results entry from table if already exist
      */
     void DeleteFromTableIfAlreadyExist(CttcMimoSimpleResults& results);
 

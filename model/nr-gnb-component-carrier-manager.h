@@ -14,7 +14,7 @@
 #include "nr-mac-sap.h"
 #include "nr-rrc-sap.h"
 
-#include <ns3/object.h>
+#include "ns3/object.h"
 
 #include <map>
 #include <vector>
@@ -30,7 +30,7 @@ class NrGnbCmacSapProvider;
 class NrCcmMacSapProvider;
 
 /**
- * \brief The class implements Component Carrier Manager (CCM) that operates
+ * @brief The class implements Component Carrier Manager (CCM) that operates
  * using the Component Carrier Manager SAP interfaces.
  *
  * CCM receives measurement reports from an eNode RRC instance and is forwarding
@@ -68,72 +68,72 @@ class NrGnbComponentCarrierManager : public Object
     NrGnbComponentCarrierManager();
     ~NrGnbComponentCarrierManager() override;
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief Set the "user" part of the NrComponentCarrier Management SAP interface that
+     * @brief Set the "user" part of the NrComponentCarrier Management SAP interface that
      *        this NrComponentCarrier algorithm instance will interact with.
-     * \param s a reference to the "user" part of the interface, typically a
+     * @param s a reference to the "user" part of the interface, typically a
      *          member of an NrGnbRrc instance
      */
     virtual void SetNrCcmRrcSapUser(NrCcmRrcSapUser* s);
 
     /**
-     * \brief Export the "provider" part of the NrComponentCarrier Management SAP interface.
-     * \return the reference to the "provider" part of the interface, typically to
+     * @brief Export the "provider" part of the NrComponentCarrier Management SAP interface.
+     * @return the reference to the "provider" part of the interface, typically to
      *         be kept by an NrGnbRlc instance
      */
     virtual NrCcmRrcSapProvider* GetNrCcmRrcSapProvider();
 
     /**
-     * \brief This function returns a pointer to the NrCcmMacSapUser interface, which
+     * @brief This function returns a pointer to the NrCcmMacSapUser interface, which
      * is used by MAC to communicate to CCM when e.g. UL buffer status report is
      * received, or to notify CCM about PRB occupancy, and similar. Functions that are
      * specific for the communication between MAC and CCM.
      *
-     * \returns NrCcmMacSapUser*
+     * @returns NrCcmMacSapUser*
      */
     virtual NrCcmMacSapUser* GetNrCcmMacSapUser();
 
     /**
-     * \brief Returns the pointer to the NrMacSapProvider interface, the
+     * @brief Returns the pointer to the NrMacSapProvider interface, the
      * provider of MAC, which is this new architecture served by
      * NrGnbComponentCarrierManager object which will behave as a
      * proxy, and will forward calls between to MAC objects of
      * component carriers based on the logic implemented in the
      * specific component carrier manager.
      *
-     * \returns NrMacSapProvider*
+     * @returns NrMacSapProvider*
      */
     virtual NrMacSapProvider* GetNrMacSapProvider();
 
     /**
-     * \brief Set NrMacSapProvider interface for the MAC object of
+     * @brief Set NrMacSapProvider interface for the MAC object of
      * the specified component carrier.
      *
-     * \param componentCarrierId component carrier ID
-     * \param sap the MAC SAP provider
-     * \returns true if successful
+     * @param componentCarrierId component carrier ID
+     * @param sap the MAC SAP provider
+     * @returns true if successful
      */
     virtual bool SetMacSapProvider(uint8_t componentCarrierId, NrMacSapProvider* sap);
 
     /**
-     * \brief Set NrCcmMacSapProvider interface for the MAC object of
+     * @brief Set NrCcmMacSapProvider interface for the MAC object of
      * the specified component carrier. Through this interface CCM communicates with
      * MAC, e.g. it notifies MAC of the specific carrier when to scheduler UL BSR.
      *
-     * \param componentCarrierId component carrier ID
-     * \param sap the MAC SAP provider
-     * \returns true if successful
+     * @param componentCarrierId component carrier ID
+     * @param sap the MAC SAP provider
+     * @returns true if successful
      */
     virtual bool SetCcmMacSapProviders(uint8_t componentCarrierId, NrCcmMacSapProvider* sap);
 
     /**
-     * \brief Sets the total number of component carriers.
-     * \param noOfComponentCarriers number of component carriers
+     * @brief Sets the total number of component carriers.
+     * @param noOfComponentCarriers number of component carriers
      */
     virtual void SetNumberOfComponentCarriers(uint16_t noOfComponentCarriers);
 
@@ -142,15 +142,15 @@ class NrGnbComponentCarrierManager : public Object
     void DoDispose() override;
 
     /**
-     * \brief Implementation of ReportUeMeas.
-     * \param rnti Radio Network Temporary Identity, an integer identifying the UE
+     * @brief Implementation of ReportUeMeas.
+     * @param rnti Radio Network Temporary Identity, an integer identifying the UE
      *             where the report originates from
-     * \param measResults a single report of one measurement identity
+     * @param measResults a single report of one measurement identity
      */
     virtual void DoReportUeMeas(uint16_t rnti, NrRrcSap::MeasResults measResults) = 0;
 
     /**
-     * \brief Structure to represent UE info
+     * @brief Structure to represent UE info
      */
     struct NrUeInfo
     {

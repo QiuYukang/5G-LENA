@@ -9,16 +9,16 @@
 using namespace ns3;
 
 /**
- * \file nr-system-test-schedulers-tdma-pf.cc
- * \ingroup test
+ * @file nr-system-test-schedulers-tdma-pf.cc
+ * @ingroup test
  *
- * \brief System test for TDMA - Proportional Fair scheduler.  It checks that all the
+ * @brief System test for TDMA - Proportional Fair scheduler.  It checks that all the
  * packets sent are delivered correctly.
  */
 
 /**
- * \brief The TDMA PF scheduler system test suite
- * \ingroup test
+ * @brief The TDMA PF scheduler system test suite
+ * @ingroup test
  *
  * It will check Tdma PF with:
  *
@@ -31,7 +31,7 @@ class NrSystemTestSchedulerTdmaPfSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerTdmaPfSuite();
 };

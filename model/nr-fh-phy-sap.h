@@ -11,7 +11,7 @@ namespace ns3
 {
 
 /**
- * \brief Service Access Point (SAP) offered by the FhControl instance
+ * @brief Service Access Point (SAP) offered by the FhControl instance
  *        to the gnb PHY instance.
  *
  * This is the *NrFhPhySapProvider*, i.e., the part of the SAP that contains
@@ -39,7 +39,7 @@ class NrFhPhySapProvider
 };
 
 /**
- * \brief Service Access Point (SAP) offered by the gnb PHY instance to
+ * @brief Service Access Point (SAP) offered by the gnb PHY instance to
  * the FhControl instance.
  *
  * This is the *NrFhPhySapUser*, i.e., the part of the SAP that contains the
@@ -57,7 +57,7 @@ class NrFhPhySapUser
 };
 
 /**
- * \brief Template for the implementation of the NrFhPhySapProvider as a member of
+ * @brief Template for the implementation of the NrFhPhySapProvider as a member of
  *        an owner class of type C to which all methods are forwarded.
  */
 template <class C>
@@ -67,7 +67,7 @@ class MemberNrFhPhySapProvider : public NrFhPhySapProvider
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrFhPhySapProvider(C* owner);
 
@@ -129,7 +129,7 @@ MemberNrFhPhySapProvider<C>::NotifyEndSlot(uint16_t bwpId, SfnSf currentSlot)
 }
 
 /**
- * \brief Template for the implementation of the NrFhPhySapUser as a member of an
+ * @brief Template for the implementation of the NrFhPhySapUser as a member of an
  *        owner class of type C to which all methods are forwarded.
  */
 
@@ -140,7 +140,7 @@ class MemberNrFhPhySapUser : public NrFhPhySapUser
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrFhPhySapUser(C* owner);
 

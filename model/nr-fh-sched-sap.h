@@ -14,7 +14,7 @@ namespace ns3
 {
 
 /**
- * \brief Service Access Point (SAP) offered by the FhControl instance
+ * @brief Service Access Point (SAP) offered by the FhControl instance
  *        to the MAC Scheduler instance.
  *
  * This is the *NrFhSchedSapProvider*, i.e., the part of the SAP that
@@ -49,7 +49,7 @@ class NrFhSchedSapProvider
 };
 
 /**
- * \brief Service Access Point (SAP) offered by the MAC Scheduler instance
+ * @brief Service Access Point (SAP) offered by the MAC Scheduler instance
  * to the FhControl instance.
  *
  * This is the *NrFhSchedSapUser*, i.e., the part of the SAP that contains the
@@ -65,7 +65,7 @@ class NrFhSchedSapUser
 };
 
 /**
- * \brief Template for the implementation of the NrFhSchedSapProvider as a member of
+ * @brief Template for the implementation of the NrFhSchedSapProvider as a member of
  *        an owner class of type C to which all methods are forwarded.
  */
 
@@ -76,7 +76,7 @@ class MemberNrFhSchedSapProvider : public NrFhSchedSapProvider
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrFhSchedSapProvider(C* owner);
 
@@ -180,7 +180,7 @@ MemberNrFhSchedSapProvider<C>::GetMaxRegAssignable(uint16_t bwpId,
 }
 
 /**
- * \brief Template for the implementation of the NrFhSchedSapUser as a member of an
+ * @brief Template for the implementation of the NrFhSchedSapUser as a member of an
  *        owner class of type C to which all methods are forwarded.
  */
 
@@ -191,7 +191,7 @@ class MemberNrFhSchedSapUser : public NrFhSchedSapUser
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrFhSchedSapUser(C* owner);
 

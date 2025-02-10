@@ -4,8 +4,8 @@
 
 #include "nr-ch-access-manager.h"
 
-#include <ns3/double.h>
-#include <ns3/log.h>
+#include "ns3/double.h"
+#include "ns3/log.h"
 
 namespace ns3
 {

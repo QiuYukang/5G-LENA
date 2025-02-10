@@ -12,11 +12,11 @@
 #include "nr-ue-net-device.h"
 #include "nr-ue-phy.h"
 
+#include "ns3/boolean.h"
+#include "ns3/double.h"
+#include "ns3/matrix-based-channel-model.h"
 #include "ns3/node.h"
-#include <ns3/boolean.h>
-#include <ns3/double.h>
-#include <ns3/matrix-based-channel-model.h>
-#include <ns3/trace-source-accessor.h>
+#include "ns3/trace-source-accessor.h"
 
 #include <numeric>
 

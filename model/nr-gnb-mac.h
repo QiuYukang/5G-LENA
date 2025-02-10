@@ -14,7 +14,7 @@
 #include "nr-phy-mac-common.h"
 #include "nr-phy-sap.h"
 
-#include <ns3/traced-callback.h>
+#include "ns3/traced-callback.h"
 
 namespace ns3
 {
@@ -24,20 +24,20 @@ class NrRarMessage;
 class BeamId;
 
 /**
- * \ingroup gnb-mac
- * \brief The MAC class for the gnb
+ * @ingroup gnb-mac
+ * @brief The MAC class for the gnb
  *
- * \section gnb_mac_general General information
+ * @section gnb_mac_general General information
  *
- * \todo fill gnb-mac general information doxygen part
+ * @todo fill gnb-mac general information doxygen part
  *
- * \section gnb_mac_configuration Configuration
+ * @section gnb_mac_configuration Configuration
  *
  * The user can configure the class using the method NrHelper::SetGnbMacAttribute(),
  * or by directly calling `SetAttribute` on the MAC pointer. The list of
  * attributes is reported below, in the Attributes section.
  *
- * \section gnb_mac_trace CTRL Traces for CTRL messages
+ * @section gnb_mac_trace CTRL Traces for CTRL messages
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is GnbMacRxedCtrlMsgsTrace,
@@ -55,29 +55,29 @@ class NrGnbMac : public Object
 
   public:
     /**
-     * \brief Get the TypeId
-     * \return the TypeId
+     * @brief Get the TypeId
+     * @return the TypeId
      */
     static TypeId GetTypeId();
     /**
-     * \brief NrGnbMac constructor
+     * @brief NrGnbMac constructor
      */
     NrGnbMac();
     /**
-     * \brief ~NrGnbMac
+     * @brief ~NrGnbMac
      */
     ~NrGnbMac() override;
 
     /**
-     * \brief Sets the number of RBs per RBG. Currently it can be
+     * @brief Sets the number of RBs per RBG. Currently it can be
      * configured by the user, while in the future it will be configured
      * by the RRC based on the type of configuration and the bandwidth.
-     * \param rbgSize Number of RBs per RBG
+     * @param rbgSize Number of RBs per RBG
      */
     void SetNumRbPerRbg(uint32_t rbgSize);
 
     /**
-     * \return The number of resource blocks per resource block group.
+     * @return The number of resource blocks per resource block group.
      * This function will be called through SAP interfaces by PHY and scheduler,
      * to obtain this information from MAC.
      * Note that this functions can be named without "Do" prefix,
@@ -88,32 +88,32 @@ class NrGnbMac : public Object
     uint32_t GetNumRbPerRbg() const;
 
     /**
-     * \brief Sets the number of HARQ processes
-     * \param numHarqProcess the maximum number of harq processes
+     * @brief Sets the number of HARQ processes
+     * @param numHarqProcess the maximum number of harq processes
      */
     void SetNumHarqProcess(uint8_t numHarqProcess);
 
     /**
-     * \return number of HARQ processes
+     * @return number of HARQ processes
      */
     uint8_t GetNumHarqProcess() const;
 
     /**
-     * \brief Retrieve the number of DL ctrl symbols configured in the scheduler
-     * \return the number of DL ctrl symbols
+     * @brief Retrieve the number of DL ctrl symbols configured in the scheduler
+     * @return the number of DL ctrl symbols
      */
     virtual uint8_t GetDlCtrlSyms() const;
 
     /**
-     * \brief Retrieve the number of UL ctrl symbols configured in the scheduler
-     * \return the number of UL ctrl symbols
+     * @brief Retrieve the number of UL ctrl symbols configured in the scheduler
+     * @return the number of UL ctrl symbols
      */
     virtual uint8_t GetUlCtrlSyms() const;
 
     /**
-     * \brief Perform DL scheduling decision for the indicated slot
-     * \param sfnSf the slot to fill with scheduling decisions
-     * \param type TDD slot type
+     * @brief Perform DL scheduling decision for the indicated slot
+     * @param sfnSf the slot to fill with scheduling decisions
+     * @param type TDD slot type
      *
      * The MAC should perform its operations (including the scheduler) for DL.
      * Please note that what is decided in this slot will reach the air later
@@ -122,9 +122,9 @@ class NrGnbMac : public Object
     virtual void DoSlotDlIndication(const SfnSf& sfnSf, LteNrTddSlotType type);
 
     /**
-     * \brief Perform UL scheduling decision for the indicated slot
-     * \param sfnSf the slot to fill with scheduling decisions
-     * \param type TDD slot type
+     * @brief Perform UL scheduling decision for the indicated slot
+     * @param sfnSf the slot to fill with scheduling decisions
+     * @param type TDD slot type
      *
      * The MAC should perform its operations (including the scheduler) for UL.
      * Please note that what is decided in this slot will reach the air later
@@ -133,8 +133,8 @@ class NrGnbMac : public Object
     virtual void DoSlotUlIndication(const SfnSf& sfnSf, LteNrTddSlotType type);
 
     /**
-     * \brief Set the current sfn
-     * \param sfn Current sfn
+     * @brief Set the current sfn
+     * @param sfn Current sfn
      */
     virtual void SetCurrentSfn(const SfnSf& sfn);
 
@@ -155,36 +155,36 @@ class NrGnbMac : public Object
     void SetGnbCmacSapUser(NrGnbCmacSapUser* s);
 
     /**
-     * \brief Get the gNB-ComponentCarrierManager SAP User
-     * \return a pointer to the SAP User of the ComponentCarrierManager
+     * @brief Get the gNB-ComponentCarrierManager SAP User
+     * @return a pointer to the SAP User of the ComponentCarrierManager
      */
     NrCcmMacSapProvider* GetNrCcmMacSapProvider();
 
     /**
-     * \brief Set the ComponentCarrierManager SAP user
-     * \param s a pointer to the ComponentCarrierManager provider
+     * @brief Set the ComponentCarrierManager SAP user
+     * @param s a pointer to the ComponentCarrierManager provider
      */
     void SetNrCcmMacSapUser(NrCcmMacSapUser* s);
 
     /**
-     * \brief A Beam for a user has changed
-     * \param beamId new beam ID
-     * \param rnti RNTI of the user
+     * @brief A Beam for a user has changed
+     * @param beamId new beam ID
+     * @param rnti RNTI of the user
      */
     void BeamChangeReport(BeamId beamId, uint8_t rnti);
 
     /**
      * TracedCallback signature for DL and UL data scheduling events.
      *
-     * \param [in] frame Frame number
-     * \param [in] subframe Subframe number
-     * \param [in] slotNum Slot number
-     * \param [in] symStart Symbol start
-     * \param [in] numSym Number of symbols
-     * \param [in] tbSize The TB size
-     * \param [in] mcs MCS
-     * \param [in] rnti RNTI
-     * \param [in] bwpId BandWidth Part id
+     * @param [in] frame Frame number
+     * @param [in] subframe Subframe number
+     * @param [in] slotNum Slot number
+     * @param [in] symStart Symbol start
+     * @param [in] numSym Number of symbols
+     * @param [in] tbSize The TB size
+     * @param [in] mcs MCS
+     * @param [in] rnti RNTI
+     * @param [in] bwpId BandWidth Part id
      * ...
      */
     typedef void (*SchedulingTracedCallback)(uint32_t frameNum,
@@ -200,22 +200,22 @@ class NrGnbMac : public Object
     /**
      * TracedCallback signature for SR scheduling events.
      *
-     * \param [in] rnti The C-RNTI identifying the UE.
-     * \param [in] bwpId The component carrier ID of this MAC.
+     * @param [in] rnti The C-RNTI identifying the UE.
+     * @param [in] bwpId The component carrier ID of this MAC.
      */
     typedef void (*SrTracedCallback)(const uint8_t bwpId, const uint16_t rnti);
 
     /**
      *  TracedCallback signature for Gnb Mac Received Control Messages.
      *
-     * \param [in] frame Frame number.
-     * \param [in] subframe Subframe number.
-     * \param [in] slot number.
-     * \param [in] VarTti
-     * \param [in] nodeId
-     * \param [in] rnti
-     * \param [in] bwpId
-     * \param [in] pointer to msg to get the msg type
+     * @param [in] frame Frame number.
+     * @param [in] subframe Subframe number.
+     * @param [in] slot number.
+     * @param [in] VarTti
+     * @param [in] nodeId
+     * @param [in] rnti
+     * @param [in] bwpId
+     * @param [in] pointer to msg to get the msg type
      */
     typedef void (*RxedGnbMacCtrlMsgsTracedCallback)(const SfnSf sfn,
                                                      const uint16_t nodeId,
@@ -226,14 +226,14 @@ class NrGnbMac : public Object
     /**
      *  TracedCallback signature for Gnb Mac Transmitted Control Messages.
      *
-     * \param [in] frame Frame number.
-     * \param [in] subframe Subframe number.
-     * \param [in] slot number.
-     * \param [in] VarTti
-     * \param [in] nodeId
-     * \param [in] rnti
-     * \param [in] bwpId
-     * \param [in] pointer to msg to get the msg type
+     * @param [in] frame Frame number.
+     * @param [in] subframe Subframe number.
+     * @param [in] slot number.
+     * @param [in] VarTti
+     * @param [in] nodeId
+     * @param [in] rnti
+     * @param [in] bwpId
+     * @param [in] pointer to msg to get the msg type
      */
     typedef void (*TxedGnbMacCtrlMsgsTracedCallback)(const SfnSf sfn,
                                                      const uint16_t nodeId,
@@ -243,30 +243,30 @@ class NrGnbMac : public Object
 
   protected:
     /**
-     * \brief DoDispose method inherited from Object
+     * @brief DoDispose method inherited from Object
      */
     void DoDispose() override;
     /**
-     * \brief Get the bwp id of this MAC
-     * \return the bwp id
+     * @brief Get the bwp id of this MAC
+     * @return the bwp id
      */
     uint16_t GetBwpId() const;
 
     /**
-     * \brief Get the cell id of this MAC
-     * \return the cell id
+     * @brief Get the cell id of this MAC
+     * @return the cell id
      */
     uint16_t GetCellId() const;
 
     /**
-     * \brief Get a DCI for the DL CTRL symbol
-     * \return a DL CTRL allocation
+     * @brief Get a DCI for the DL CTRL symbol
+     * @return a DL CTRL allocation
      */
     std::shared_ptr<DciInfoElementTdma> GetDlCtrlDci() const;
 
     /**
-     * \brief Get a DCI for the UL CTRL symbol
-     * \return a UL CTRL allocation
+     * @brief Get a DCI for the UL CTRL symbol
+     * @return a UL CTRL allocation
      */
     std::shared_ptr<DciInfoElementTdma> GetUlCtrlDci() const;
 
@@ -276,8 +276,8 @@ class NrGnbMac : public Object
     void ReceiveBsrMessage(MacCeElement bsr);
     void DoReportMacCeToScheduler(nr::MacCeListElement_s bsr);
     /**
-     * \brief Called by CCM to inform us that we are the addressee of a SR.
-     * \param rnti RNTI that requested to be scheduled
+     * @brief Called by CCM to inform us that we are the addressee of a SR.
+     * @param rnti RNTI that requested to be scheduled
      */
     void DoReportSrToScheduler(uint16_t rnti);
     void DoReceivePhyPdu(Ptr<Packet> p);
@@ -308,21 +308,21 @@ class NrGnbMac : public Object
     NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue DoAllocateNcRaPreamble(uint16_t rnti);
 
     /**
-     * \brief Process the newly received DL HARQ feedback
-     * \param params the DL HARQ feedback
+     * @brief Process the newly received DL HARQ feedback
+     * @param params the DL HARQ feedback
      */
     void DoDlHarqFeedback(const DlHarqInfo& params);
     /**
-     * \brief Process the newly received UL HARQ feedback
-     * \param params the UL HARQ feedback
+     * @brief Process the newly received UL HARQ feedback
+     * @param params the UL HARQ feedback
      */
     void DoUlHarqFeedback(const UlHarqInfo& params);
 
     /**
-     * \brief Create RAR elements and set DCI,
+     * @brief Create RAR elements and set DCI,
      * RA premable to the RAR elements to be sent by
      * PHY through RAR control message
-     * \param rarList list of messages that come from scheduler
+     * @param rarList list of messages that come from scheduler
      *
      * Clears m_rapIdRntiMap.
      */

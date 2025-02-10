@@ -13,22 +13,22 @@ namespace ns3
 class Tag;
 
 /**
- * \ingroup spectrum
+ * @ingroup spectrum
  *
- * \brief Tag used to define the RNTI and LC id for each MAC packet transmitted
+ * @brief Tag used to define the RNTI and LC id for each MAC packet transmitted
  */
 class NrRadioBearerTag : public Tag
 {
   public:
     /**
-     * \brief Get the object TypeId
-     * \return the object type id
+     * @brief Get the object TypeId
+     * @return the object type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief Get the InstanceTypeId
-     * \return the TypeId of the instance
+     * @brief Get the InstanceTypeId
+     * @return the TypeId of the instance
      */
     TypeId GetInstanceTypeId() const override;
 
@@ -50,28 +50,28 @@ class NrRadioBearerTag : public Tag
     /**
      * Set the RNTI to the given value.
      *
-     * \param rnti the value of the RNTI to set
+     * @param rnti the value of the RNTI to set
      */
     void SetRnti(uint16_t rnti);
 
     /**
      * Set the LC id to the given value.
      *
-     * \param lcid the value of the RNTI to set
+     * @param lcid the value of the RNTI to set
      */
     void SetLcid(uint8_t lcid);
 
     /**
      * Set the layer id to the given value.
      *
-     * \param layer the value of the layer to set
+     * @param layer the value of the layer to set
      */
     void SetLayer(uint8_t layer);
 
     /**
      * Set the size of the RLC PDU in bytes.
      *
-     * \param size the size of the RLC PDU in bytes
+     * @param size the size of the RLC PDU in bytes
      */
     void SetSize(uint32_t size);
 
@@ -82,23 +82,23 @@ class NrRadioBearerTag : public Tag
     void Print(std::ostream& os) const override;
 
     /**
-     * \brief Get the Rnti
-     * \return the RNTI
+     * @brief Get the Rnti
+     * @return the RNTI
      */
     uint16_t GetRnti() const;
     /**
-     * \brief Get the Lcid
-     * \return the LCID
+     * @brief Get the Lcid
+     * @return the LCID
      */
     uint8_t GetLcid() const;
     /**
-     * \brief Get the Layer
-     * \return the layer (?)
+     * @brief Get the Layer
+     * @return the layer (?)
      */
     uint8_t GetLayer() const;
     /**
-     * \brief Get Size
-     * \return size in bytes of RLC PDU
+     * @brief Get Size
+     * @return size in bytes of RLC PDU
      */
     uint32_t GetSize() const;
 

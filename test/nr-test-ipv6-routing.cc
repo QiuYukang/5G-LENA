@@ -39,9 +39,9 @@ the followed route for a packet
 using namespace ns3;
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Nr Ipv6 routing test case.
+ * @brief Nr Ipv6 routing test case.
  */
 class NrIpv6RoutingTestCase : public TestCase
 {
@@ -50,35 +50,35 @@ class NrIpv6RoutingTestCase : public TestCase
     ~NrIpv6RoutingTestCase() override;
 
     /**
-     * \brief Initialize testing parameters.
+     * @brief Initialize testing parameters.
      */
     void Checker();
 
     /**
-     * \brief sent Packets from client's IPv6 interface.
-     * \param p packet
-     * \param ipv6 Ipv6 object
-     * \param interface Ipv6interface from which the packet is transmitted
+     * @brief sent Packets from client's IPv6 interface.
+     * @param p packet
+     * @param ipv6 Ipv6 object
+     * @param interface Ipv6interface from which the packet is transmitted
      */
     void SentAtClient(Ptr<const Packet> p, Ptr<Ipv6> ipv6, uint32_t interface);
 
     /**
-     * \brief Received Packets at client's IPv6 interface.
-     * \param p packet
-     * \param ipv6 Ipv6 object
-     * \param interface Ipv6interface at which the packet is received
+     * @brief Received Packets at client's IPv6 interface.
+     * @param p packet
+     * @param ipv6 Ipv6 object
+     * @param interface Ipv6interface at which the packet is received
      */
     void ReceivedAtClient(Ptr<const Packet> p, Ptr<Ipv6> ipv6, uint32_t interface);
 
     /**
-     * \brief Received Packet at pgw from gnb.
-     * \param p packet
+     * @brief Received Packet at pgw from gnb.
+     * @param p packet
      */
     void GnbToPgw(Ptr<Packet> p);
 
     /**
-     * \brief Received Packet at pgw from gnb.
-     * \param p packet
+     * @brief Received Packet at pgw from gnb.
+     * @param p packet
      */
     void TunToPgw(Ptr<Packet> p);
 
@@ -370,7 +370,7 @@ NrIpv6RoutingTestCase::DoRun()
 }
 
 /**
- * \brief test suite 1
+ * @brief test suite 1
  */
 class NrIpv6RoutingTestSuite : public TestSuite
 {
@@ -385,7 +385,7 @@ NrIpv6RoutingTestSuite::NrIpv6RoutingTestSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrIpv6RoutingTestSuite g_nripv6testsuite;

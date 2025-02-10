@@ -5,8 +5,8 @@
 #include "hexagonal-grid-scenario-helper.h"
 
 #include "ns3/constant-velocity-mobility-model.h"
-#include <ns3/double.h>
-#include <ns3/mobility-helper.h>
+#include "ns3/double.h"
+#include "ns3/mobility-helper.h"
 
 #include <cmath>
 
@@ -154,14 +154,14 @@ std::vector<double> HexagonalGridScenarioHelper::siteAngles{
 };
 
 /**
- * \brief Creates a GNUPLOT with the hexagonal deployment including base stations
+ * @brief Creates a GNUPLOT with the hexagonal deployment including base stations
  * (BS), their hexagonal cell areas and user terminals (UT). Positions and cell
  * radius must be given in meters
  *
- * \param sitePosVector Vector of site positions
- * \param cellCenterVector Vector of cell center positions
- * \param utPosVector Vector of user terminals positions
- * \param cellRadius Hexagonal cell radius in meters
+ * @param sitePosVector Vector of site positions
+ * @param cellCenterVector Vector of cell center positions
+ * @param utPosVector Vector of user terminals positions
+ * @param cellRadius Hexagonal cell radius in meters
  */
 static void
 PlotHexagonalDeployment(const Ptr<const ListPositionAllocator>& sitePosVector,

@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/sfnsf.h>
-#include <ns3/test.h>
+#include "ns3/sfnsf.h"
+#include "ns3/test.h"
 
 /**
- * \file test-sfnsf.cc
- * \ingroup test
+ * @file test-sfnsf.cc
+ * @ingroup test
  *
- * \brief Unit-testing for the frame/subframe/slot numbering, along with the
+ * @brief Unit-testing for the frame/subframe/slot numbering, along with the
  * numerology. The test checks that the normalized slot number equals a
  * monotonically-increased integer, for every numerology.
  */

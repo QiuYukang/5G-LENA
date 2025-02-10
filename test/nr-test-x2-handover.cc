@@ -4,6 +4,10 @@
 //
 // Author: Nicola Baldo <nbaldo@cttc.es>
 
+#include "ns3/core-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/network-module.h"
 #include "ns3/nr-epc-tft.h"
 #include "ns3/nr-gnb-net-device.h"
 #include "ns3/nr-gnb-rrc.h"
@@ -12,23 +16,19 @@
 #include "ns3/nr-radio-bearer-info.h"
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-rrc.h"
-#include <ns3/core-module.h>
-#include <ns3/internet-module.h>
-#include <ns3/mobility-module.h>
-#include <ns3/network-module.h>
-#include <ns3/packet-sink-helper.h>
-#include <ns3/packet-sink.h>
-#include <ns3/point-to-point-module.h>
-#include <ns3/udp-client-server-helper.h>
+#include "ns3/packet-sink-helper.h"
+#include "ns3/packet-sink.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/udp-client-server-helper.h"
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("NrX2HandoverTest");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief HandoverEvent structure
+ * @brief HandoverEvent structure
  */
 struct HandoverEvent
 {
@@ -39,9 +39,9 @@ struct HandoverEvent
 };
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Test X2 Handover. In this test is used NoOpHandoverAlgorithm and
+ * @brief Test X2 Handover. In this test is used NoOpHandoverAlgorithm and
  * the request for handover is generated manually, and it is not based on measurements.
  */
 class NrX2HandoverTestCase : public TestCase
@@ -50,13 +50,13 @@ class NrX2HandoverTestCase : public TestCase
     /**
      *
      *
-     * \param nUes number of UEs in the test
-     * \param nDedicatedBearers number of bearers to be activated per UE
-     * \param handoverEventList
-     * \param handoverEventListName
-     * \param schedulerType the scheduler type
-     * \param admitHo
-     * \param useIdealRrc true if the ideal RRC should be used
+     * @param nUes number of UEs in the test
+     * @param nDedicatedBearers number of bearers to be activated per UE
+     * @param handoverEventList
+     * @param handoverEventListName
+     * @param schedulerType the scheduler type
+     * @param admitHo
+     * @param useIdealRrc true if the ideal RRC should be used
      */
     NrX2HandoverTestCase(uint32_t nUes,
                          uint32_t nDedicatedBearers,
@@ -69,13 +69,13 @@ class NrX2HandoverTestCase : public TestCase
   private:
     /**
      * Build name string
-     * \param nUes number of UEs in the test
-     * \param nDedicatedBearers number of bearers to be activated per UE
-     * \param handoverEventListName
-     * \param schedulerType the scheduler type
-     * \param admitHo
-     * \param useIdealRrc true if the ideal RRC should be used
-     * \returns the name string
+     * @param nUes number of UEs in the test
+     * @param nDedicatedBearers number of bearers to be activated per UE
+     * @param handoverEventListName
+     * @param schedulerType the scheduler type
+     * @param admitHo
+     * @param useIdealRrc true if the ideal RRC should be used
+     * @returns the name string
      */
     static std::string BuildNameString(uint32_t nUes,
                                        uint32_t nDedicatedBearers,
@@ -86,21 +86,21 @@ class NrX2HandoverTestCase : public TestCase
     void DoRun() override;
     /**
      * Check connected function
-     * \param ueDevice the UE device
-     * \param gnbDevice the gNB device
+     * @param ueDevice the UE device
+     * @param gnbDevice the gNB device
      */
     void CheckConnected(Ptr<NetDevice> ueDevice, Ptr<NetDevice> gnbDevice);
 
     /**
      * Teleport UE between both gNBs of the test
-     * \param ueNode the UE node
+     * @param ueNode the UE node
      */
     void TeleportUeToMiddle(Ptr<Node> ueNode);
 
     /**
      * Teleport UE near the target gNB of the handover
-     * \param ueNode the UE node
-     * \param gnbNode the target gNB node
+     * @param ueNode the UE node
+     * @param gnbNode the target gNB node
      */
     void TeleportUeNearTargetGnb(Ptr<Node> ueNode, Ptr<Node> gnbNode);
 
@@ -116,9 +116,9 @@ class NrX2HandoverTestCase : public TestCase
     Ptr<NrPointToPointEpcHelper> m_epcHelper;     ///< EPC helper
 
     /**
-     * \ingroup nr-test
+     * @ingroup nr-test
      *
-     * \brief BearerData structure
+     * @brief BearerData structure
      */
     struct BearerData
     {
@@ -130,9 +130,9 @@ class NrX2HandoverTestCase : public TestCase
     };
 
     /**
-     * \ingroup nr-test
+     * @ingroup nr-test
      *
-     * \brief UeData structure
+     * @brief UeData structure
      */
     struct UeData
     {
@@ -141,13 +141,13 @@ class NrX2HandoverTestCase : public TestCase
     };
 
     /**
-     * \brief Save stats after handover function
-     * \param ueIndex the index of the UE
+     * @brief Save stats after handover function
+     * @param ueIndex the index of the UE
      */
     void SaveStatsAfterHandover(uint32_t ueIndex);
     /**
-     * \brief Check stats a while after handover function
-     * \param ueIndex the index of the UE
+     * @brief Check stats a while after handover function
+     * @param ueIndex the index of the UE
      */
     void CheckStatsAWhileAfterHandover(uint32_t ueIndex);
 
@@ -661,9 +661,9 @@ NrX2HandoverTestCase::CheckStatsAWhileAfterHandover(uint32_t ueIndex)
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief NR X2 Handover Test Suite.
+ * @brief NR X2 Handover Test Suite.
  *
  * In this test suite, we use NoOpHandoverAlgorithm, i.e. "handover algorithm which does nothing"
  * is used and handover is triggered manually. The automatic handover algorithms (A2A4, A3Rsrp)
@@ -1098,7 +1098,7 @@ NrX2HandoverTestSuite::NrX2HandoverTestSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrX2HandoverTestSuite g_nrX2HandoverTestSuiteInstance;

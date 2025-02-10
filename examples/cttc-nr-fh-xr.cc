@@ -18,9 +18,9 @@
 #include <vector>
 
 /**
- * \file cttc-nr-fh-xr.cc
- * \ingroup examples
- * \brief An example to study Fronthaul limitations on XR traffic
+ * @file cttc-nr-fh-xr.cc
+ * @ingroup examples
+ * @brief An example to study Fronthaul limitations on XR traffic
  *
  * This example has been implemented in order to study the Fronthaul (FH) Control feature
  * implemented in the NrFhControl class. It allows for simulations of single- or multi-cell

@@ -4,9 +4,9 @@
 
 #include "beamforming-helper-base.h"
 
+#include "ns3/beamforming-vector.h"
 #include "ns3/event-id.h"
-#include <ns3/beamforming-vector.h>
-#include <ns3/nstime.h>
+#include "ns3/nstime.h"
 
 #ifndef SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_IDEAL_BEAMFORMING_HELPER_H_
@@ -19,54 +19,54 @@ class NrUeNetDevice;
 class IdealBeamformingAlgorithm;
 
 /**
- * \ingroup helper
- * \brief The IdealBeamformingHelper class
+ * @ingroup helper
+ * @brief The IdealBeamformingHelper class
  */
 class IdealBeamformingHelper : public BeamformingHelperBase
 {
   public:
     /**
-     * \brief IdealBeamformingHelper
+     * @brief IdealBeamformingHelper
      */
     IdealBeamformingHelper();
     /**
-     * \brief ~IdealBeamformingHelper
+     * @brief ~IdealBeamformingHelper
      */
     ~IdealBeamformingHelper() override;
 
     /**
-     * \brief Get the Type ID
-     * \return the TypeId of the instance
+     * @brief Get the Type ID
+     * @return the TypeId of the instance
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief SetBeamformingMethod
-     * \param beamformingMethod
+     * @brief SetBeamformingMethod
+     * @param beamformingMethod
      */
     void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 
     /**
-     * \brief SetIdealBeamformingPeriodicity
-     * \param v
+     * @brief SetIdealBeamformingPeriodicity
+     * @param v
      */
     void SetPeriodicity(const Time& v);
     /**
-     * \brief GetIdealBeamformingPeriodicity
-     * \return
+     * @brief GetIdealBeamformingPeriodicity
+     * @return
      */
     Time GetPeriodicity() const;
 
     /**
-     * \brief Run beamforming task
+     * @brief Run beamforming task
      */
     virtual void Run() const;
 
     /**
-     * \brief Specify among which devices the beamforming algorithm should be
+     * @brief Specify among which devices the beamforming algorithm should be
      * performed
-     * \param gNbDev gNB device
-     * \param ueDev UE device
+     * @param gNbDev gNB device
+     * @param ueDev UE device
      */
     void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
                             const Ptr<NrUeNetDevice>& ueDev) override;
@@ -76,7 +76,7 @@ class IdealBeamformingHelper : public BeamformingHelperBase
     void DoInitialize() override;
 
     /**
-     * \brief The beamforming timer has expired; at the next slot, perform beamforming.
+     * @brief The beamforming timer has expired; at the next slot, perform beamforming.
      *
      */
     virtual void ExpireBeamformingTimer();

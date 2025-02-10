@@ -12,9 +12,9 @@
 #include "ns3/point-to-point-helper.h"
 
 /**
- * \file cttc-error-model-comparison.cc
- * \ingroup examples
- * \brief Error model example comparison: TBS for all MCSs.
+ * @file cttc-error-model-comparison.cc
+ * @ingroup examples
+ * @brief Error model example comparison: TBS for all MCSs.
  *
  * This example allows the user to compare the Transport Block Size that is obtained
  * for each MCS index under different error models (NR and LTE) and different MCS Tables.

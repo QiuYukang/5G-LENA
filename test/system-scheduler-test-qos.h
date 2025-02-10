@@ -5,8 +5,8 @@
 #ifndef SYSTEM_SCHEDULER_TEST_QOS_H
 #define SYSTEM_SCHEDULER_TEST_QOS_H
 
-#include <ns3/ptr.h>
-#include <ns3/test.h>
+#include "ns3/ptr.h"
+#include "ns3/test.h"
 
 namespace ns3
 {
@@ -14,10 +14,10 @@ namespace ns3
 class Packet;
 
 /**
- * \file system-scheduler-test-qos.h
- * \ingroup test
+ * @file system-scheduler-test-qos.h
+ * @ingroup test
  *
- * \brief This test case checks if the throughput obtained is as expected for
+ * @brief This test case checks if the throughput obtained is as expected for
  * the QoS scheduling logic.
  *
  * For the testing of the QoS scheduler we consider two different types of traffic,
@@ -40,21 +40,21 @@ $ ./ns3 run "test-runner --suite=nr-system-test-schedulers-qos"
  */
 
 /**
- * \ingroup test
- * \brief Main class for testing a scheduler, system-wise
+ * @ingroup test
+ * @brief Main class for testing a scheduler, system-wise
  */
 class SystemSchedulerTestQos : public TestCase
 {
   public:
     /**
-     * \brief SystemSchedulerTest is a test constructor which is used to initialise the test
+     * @brief SystemSchedulerTest is a test constructor which is used to initialise the test
      * parameters. \param name The "normal" scheduler under test \param ueNumPergNb The number of
      * UEs (per gNB for test case 1) \param numerology The numerology to be used in the simulation
-     * \param bw1 The system bandwidth (Hz)
-     * \param isDownlnk Is the downlink traffic going to be present in the test case
-     * \param isUplink Is the uplink traffic going to be present in the test case
-     * \param priorityTrafficScenario The type of traffic to be assign to flow with QCI 1
-     * \param schedulerType Which scheduler is going to be used in the test case
+     * @param bw1 The system bandwidth (Hz)
+     * @param isDownlnk Is the downlink traffic going to be present in the test case
+     * @param isUplink Is the uplink traffic going to be present in the test case
+     * @param priorityTrafficScenario The type of traffic to be assign to flow with QCI 1
+     * @param schedulerType Which scheduler is going to be used in the test case
      *        Ofdma/Tdma" and the scheduling logic "QoS"
      */
     SystemSchedulerTestQos(uint32_t ueNumPergNb,
@@ -67,7 +67,7 @@ class SystemSchedulerTestQos : public TestCase
                            uint32_t priorityTrafficScenario,
                            const std::string& schedulerType);
     /**
-     * \brief ~SystemSchedulerTestQos
+     * @brief ~SystemSchedulerTestQos
      */
     ~SystemSchedulerTestQos() override;
 
@@ -88,8 +88,8 @@ class SystemSchedulerTestQos : public TestCase
 };
 
 /**
- * \brief The QoS scheduler system test suite
- * \ingroup test
+ * @brief The QoS scheduler system test suite
+ * @ingroup test
  *
  * This test will check Tdma/Ofdma QoS with:
  *
@@ -99,13 +99,13 @@ class SystemSchedulerTestQos : public TestCase
  * - currently the priorities are hardcoded, but the test can be extended to
  *   support additional QCIs
  *
- * \see SystemSchedulerTestQos
+ * @see SystemSchedulerTestQos
  */
 class NrSystemTestSchedulerQosSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerQosSuite();
 };

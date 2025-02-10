@@ -4,8 +4,8 @@
 
 #include "realistic-bf-manager.h"
 
-#include <ns3/enum.h>
-#include <ns3/uinteger.h>
+#include "ns3/enum.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {

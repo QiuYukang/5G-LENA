@@ -24,8 +24,8 @@ class NrEpsBearerTag : public Tag
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     TypeId GetInstanceTypeId() const override;
@@ -64,12 +64,12 @@ class NrEpsBearerTag : public Tag
 
     /**
      * Get RNTI function
-     * \returns the RNTI
+     * @returns the RNTI
      */
     uint16_t GetRnti() const;
     /**
      * Get Bearer Id function
-     * \returns the Bearer Id
+     * @returns the Bearer Id
      */
     uint8_t GetBid() const;
 

@@ -21,10 +21,10 @@
 #include "ns3/point-to-point-module.h"
 
 /**
- * \file cttc-nr-notching.cc
- * \ingroup examples
+ * @file cttc-nr-notching.cc
+ * @ingroup examples
  *
- * \brief Creates a configurable NR TDD/FDD deployment with up to 2 gNBs, for
+ * @brief Creates a configurable NR TDD/FDD deployment with up to 2 gNBs, for
  * testing a notching mask.
  *
  * This example is used to study notching. By default the notching mask (mask with

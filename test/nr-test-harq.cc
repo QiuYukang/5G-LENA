@@ -2,22 +2,22 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/nr-eesm-cc-t1.h>
-#include <ns3/nr-eesm-error-model.h>
-#include <ns3/nr-eesm-ir-t1.h>
-#include <ns3/nr-spectrum-value-helper.h>
-#include <ns3/ptr.h>
-#include <ns3/spectrum-value.h>
-#include <ns3/test.h>
+#include "ns3/nr-eesm-cc-t1.h"
+#include "ns3/nr-eesm-error-model.h"
+#include "ns3/nr-eesm-ir-t1.h"
+#include "ns3/nr-spectrum-value-helper.h"
+#include "ns3/ptr.h"
+#include "ns3/spectrum-value.h"
+#include "ns3/test.h"
 
 #include <cmath>
 #include <iostream>
 
 /**
- * \file nr-test-harq.cc
- * \ingroup test
+ * @file nr-test-harq.cc
+ * @ingroup test
  *
- * \brief System-testing for effective SINR computation for
+ * @brief System-testing for effective SINR computation for
  * HARQ Incremental Redundancy (IR) and Chase Combining (CC).
  *
  * Testing values are computed using the equations in:

@@ -4,12 +4,12 @@
 
 #include "nr-cb-type-one-sp.h"
 
-#include <ns3/double.h>
-#include <ns3/enum.h>
-#include <ns3/log.h>
-#include <ns3/math.h>
-#include <ns3/nr-spectrum-value-helper.h>
-#include <ns3/uinteger.h>
+#include "ns3/double.h"
+#include "ns3/enum.h"
+#include "ns3/log.h"
+#include "ns3/math.h"
+#include "ns3/nr-spectrum-value-helper.h"
+#include "ns3/uinteger.h"
 
 #include <complex.h>
 

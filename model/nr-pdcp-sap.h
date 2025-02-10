@@ -40,7 +40,7 @@ class NrPdcpSapProvider
      * This method is to be called when upper RRC entity has a
      * RRC PDU ready to send
      *
-     * \param params Parameters
+     * @param params Parameters
      */
     virtual void TransmitPdcpSdu(TransmitPdcpSduParameters params) = 0;
 };
@@ -70,7 +70,7 @@ class NrPdcpSapUser
     /**
      * Called by the PDCP entity to notify the RRC entity of the reception of a new RRC PDU
      *
-     * \param params Parameters
+     * @param params Parameters
      */
     virtual void ReceivePdcpSdu(ReceivePdcpSduParameters params) = 0;
 };
@@ -83,7 +83,7 @@ class NrPdcpSpecificNrPdcpSapProvider : public NrPdcpSapProvider
     /**
      * Constructor
      *
-     * \param pdcp PDCP
+     * @param pdcp PDCP
      */
     NrPdcpSpecificNrPdcpSapProvider(C* pdcp);
 
@@ -118,7 +118,7 @@ class NrPdcpSpecificNrPdcpSapUser : public NrPdcpSapUser
     /**
      * Constructor
      *
-     * \param rrc RRC
+     * @param rrc RRC
      */
     NrPdcpSpecificNrPdcpSapUser(C* rrc);
 

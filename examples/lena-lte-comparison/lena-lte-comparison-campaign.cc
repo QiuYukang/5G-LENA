@@ -4,8 +4,8 @@
 
 #include "lena-lte-comparison.h"
 
-#include <ns3/command-line.h>
-#include <ns3/show-progress.h>
+#include "ns3/command-line.h"
+#include "ns3/show-progress.h"
 
 using namespace ns3;
 

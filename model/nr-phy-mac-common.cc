@@ -6,8 +6,8 @@
 
 #include "nr-phy-mac-common.h"
 
-#include <ns3/attribute-accessor-helper.h>
-#include <ns3/log.h>
+#include "ns3/attribute-accessor-helper.h"
+#include "ns3/log.h"
 
 #include <algorithm>
 

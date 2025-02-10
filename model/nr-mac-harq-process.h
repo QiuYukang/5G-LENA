@@ -12,8 +12,8 @@
 namespace ns3
 {
 /**
- * \ingroup scheduler
- * \brief The HarqProcess struct
+ * @ingroup scheduler
+ * @brief The HarqProcess struct
  *
  * The struct represent a single HARQ process, identified by an ID
  * (unfortunately the ID is not stored in the struct, but somewhere else,
@@ -29,7 +29,7 @@ namespace ns3
 struct HarqProcess
 {
     /**
-     * \brief Status of the process
+     * @brief Status of the process
      *
      * Other than the obvious meaning of the values, it is worth to state that
      * the RECEIVED_FEEDBACK status is equivalent to "the process has received
@@ -44,13 +44,13 @@ struct HarqProcess
     };
 
     /**
-     * \brief Default constructor
+     * @brief Default constructor
      */
     HarqProcess() = default;
 
     /**
-     * \brief HarqProcess copy constructor
-     * \param other other instance
+     * @brief HarqProcess copy constructor
+     * @param other other instance
      */
     HarqProcess(const HarqProcess& other)
         : m_active(other.m_active),
@@ -62,11 +62,11 @@ struct HarqProcess
     }
 
     /**
-     * \brief HarqProcess value-by-value constructor
-     * \param active Is the process active?
-     * \param status Status of the process
-     * \param timer Timer of the process (in slot)
-     * \param dci DCI of the process
+     * @brief HarqProcess value-by-value constructor
+     * @param active Is the process active?
+     * @param status Status of the process
+     * @param timer Timer of the process (in slot)
+     * @param dci DCI of the process
      */
     HarqProcess(bool active,
                 Status status,
@@ -80,7 +80,7 @@ struct HarqProcess
     }
 
     /**
-     * \brief Reset the Process content.
+     * @brief Reset the Process content.
      */
     void Erase()
     {
@@ -99,10 +99,10 @@ struct HarqProcess
 };
 
 /**
- * \brief operator << for HARQ processes
- * \param os output stream
- * \param item process to print
- * \return a copy of the output stream
+ * @brief operator << for HARQ processes
+ * @param os output stream
+ * @param item process to print
+ * @return a copy of the output stream
  */
 static inline std::ostream&
 operator<<(std::ostream& os, const HarqProcess& item)

@@ -9,7 +9,7 @@
 #include "nr-phy-mac-common.h"
 #include "nr-ue-cmac-sap.h"
 
-#include <ns3/traced-callback.h>
+#include "ns3/traced-callback.h"
 
 #include <unordered_map>
 
@@ -24,16 +24,16 @@ class PacketBurst;
 class NrUlDciMessage;
 
 /**
- * \ingroup ue-mac
- * \brief The MAC class for the UE
+ * @ingroup ue-mac
+ * @brief The MAC class for the UE
  *
- * \section ue_mac_general General information
+ * @section ue_mac_general General information
  *
  * The UE MAC has not much freedom, as it is directed by the GNB at which it
  * is attached to. For the attachment phase, we follow (more or less) what is
  * happening in LENA. After the UE is attached, the things become different.
  *
- * \section ue_mac_sr Scheduling Request
+ * @section ue_mac_sr Scheduling Request
  *
  * When a RLC (please remember, there are as many RLC as many bearer the UE has)
  * tells the UE that there is some data in its queue, the UE MAC activates the
@@ -44,7 +44,7 @@ class NrUlDciMessage;
  * The GNB then allocates some data (a quantity that is implementation-defined)
  * to the UE, in which it can transmit data and a SHORT_BSR.
  *
- * \section ue_mac_response_to_dci Response to a DCI
+ * @section ue_mac_response_to_dci Response to a DCI
  *
  * When the UE receives an UL_DCI, it can use a part of it to send a Control Element.
  * The most used control element (and, by the way, the only we support right now)
@@ -87,13 +87,13 @@ class NrUlDciMessage;
  * was sent in LENA, indicating the status of 4 LCG at once with an 8-bit value.
  * Making this part standard-compliant is a good novice exercise.
  *
- * \section ue_mac_configuration Configuration
+ * @section ue_mac_configuration Configuration
  *
  * The user can configure the class using the method NrHelper::SetUeMacAttribute(),
  * or by directly calling `SetAttribute` on the MAC pointer. The list of
  * attributes is reported below, in the Attributes section.
  *
- * \section ue_mac_traces CTRL-trace Traces for CTRL messages
+ * @section ue_mac_traces CTRL-trace Traces for CTRL messages
  *
  * The class has two attributes that signals to the eventual listener the
  * transmission or the reception of CTRL messages. One is UeMacRxedCtrlMsgsTrace,
@@ -108,57 +108,57 @@ class NrUeMac : public Object
 
   public:
     /**
-     * \brief Get the Type id
-     * \return the type id
+     * @brief Get the Type id
+     * @return the type id
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrUeMac constructor
+     * @brief NrUeMac constructor
      */
     NrUeMac();
     /**
-     * \brief Deconstructor
+     * @brief Deconstructor
      */
     ~NrUeMac() override;
 
     /**
-     * \brief Set the C MAC SAP user (AKA the RRC representation for the MAC)
-     * \param s the SAP pointer
+     * @brief Set the C MAC SAP user (AKA the RRC representation for the MAC)
+     * @param s the SAP pointer
      */
     void SetUeCmacSapUser(NrUeCmacSapUser* s);
 
     /**
-     * \brief Get the C MAC SAP provider (AKA the MAC representation for the RRC)
-     * \return  C MAC SAP provider (AKA the MAC representation for the RRC)
+     * @brief Get the C MAC SAP provider (AKA the MAC representation for the RRC)
+     * @return  C MAC SAP provider (AKA the MAC representation for the RRC)
      */
     NrUeCmacSapProvider* GetUeCmacSapProvider();
 
     /**
-     * \brief Get the Mac SAP provider (AKA the MAC representation for the RLC)
-     * \return the Mac SAP provider (AKA the MAC representation for the RLC)
+     * @brief Get the Mac SAP provider (AKA the MAC representation for the RLC)
+     * @return the Mac SAP provider (AKA the MAC representation for the RLC)
      */
     NrMacSapProvider* GetUeMacSapProvider();
 
     /**
-     * \brief Get the PHY SAP User (AKA the MAC representation for the PHY)
-     * \return the PHY SAP User (AKA the MAC representation for the PHY)
+     * @brief Get the PHY SAP User (AKA the MAC representation for the PHY)
+     * @return the PHY SAP User (AKA the MAC representation for the PHY)
      */
     NrUePhySapUser* GetPhySapUser();
 
     /**
-     * \brief Set PHY SAP provider (AKA the PHY representation for the MAC)
-     * \param ptr the PHY SAP provider (AKA the PHY representation for the MAC)
+     * @brief Set PHY SAP provider (AKA the PHY representation for the MAC)
+     * @param ptr the PHY SAP provider (AKA the PHY representation for the MAC)
      */
     void SetPhySapProvider(NrPhySapProvider* ptr);
 
     /**
      *  TracedCallback signature for Ue Mac Received Control Messages.
-     * \param [in] sfnSf Frame number, subframe number, slot number, VarTti
-     * \param [in] nodeId the node ID
-     * \param [in] rnti the RNTI
-     * \param [in] bwpId the BWP ID
-     * \param [in] ctrlMessage the pointer to msg to get the msg type
+     * @param [in] sfnSf Frame number, subframe number, slot number, VarTti
+     * @param [in] nodeId the node ID
+     * @param [in] rnti the RNTI
+     * @param [in] bwpId the BWP ID
+     * @param [in] ctrlMessage the pointer to msg to get the msg type
      */
     typedef void (*RxedUeMacCtrlMsgsTracedCallback)(const SfnSf sfnSf,
                                                     const uint16_t nodeId,
@@ -167,11 +167,11 @@ class NrUeMac : public Object
                                                     Ptr<NrControlMessage> ctrlMessage);
     /**
      *  TracedCallback signature for Ue Mac Transmitted Control Messages.
-     * \param [in] sfnSf the frame number, subframe number, slot number, VarTti
-     * \param [in] nodeId the node ID
-     * \param [in] rnti the RNTI
-     * \param [in] bwpId the BWP ID
-     * \param [in] ctrlMessage the pointer to msg to get the msg type
+     * @param [in] sfnSf the frame number, subframe number, slot number, VarTti
+     * @param [in] nodeId the node ID
+     * @param [in] rnti the RNTI
+     * @param [in] bwpId the BWP ID
+     * @param [in] ctrlMessage the pointer to msg to get the msg type
      */
     typedef void (*TxedUeMacCtrlMsgsTracedCallback)(const SfnSf sfnSf,
                                                     const uint16_t nodeId,
@@ -180,63 +180,63 @@ class NrUeMac : public Object
                                                     Ptr<NrControlMessage> ctrlMessage);
 
     /**
-     * \brief Sets the number of HARQ processes.
+     * @brief Sets the number of HARQ processes.
      * Called by the helper at the moment of UE attachment
-     * \param numHarqProcesses the maximum number of harq processes
+     * @param numHarqProcesses the maximum number of harq processes
      */
     void SetNumHarqProcess(uint8_t numHarqProcesses);
 
     /**
-     * \brief Please remember that this number is obtained by the GNB, the UE
+     * @brief Please remember that this number is obtained by the GNB, the UE
      * cannot configure it.
      *
-     * \return number of HARQ processes
+     * @return number of HARQ processes
      */
     uint8_t GetNumHarqProcess() const;
 
     /**
-     * \brief Get the bwp id of this MAC
-     * \return the bwp id
+     * @brief Get the bwp id of this MAC
+     * @return the bwp id
      */
     uint16_t GetBwpId() const;
 
     /**
-     * \brief Get the cell id of this MAC
-     * \return the cell id
+     * @brief Get the cell id of this MAC
+     * @return the cell id
      */
     uint16_t GetCellId() const;
 
     /**
-     * \brief Get the RNTI
-     * \return the RNTI
+     * @brief Get the RNTI
+     * @return the RNTI
      */
     uint16_t GetRnti() const;
 
     /**
-     * \brief Get the IMSI
-     * \return the IMSI
+     * @brief Get the IMSI
+     * @return the IMSI
      */
     uint64_t GetImsi() const;
 
     /**
-     * \brief Assign a fixed random variable stream number to the random variables
+     * @brief Assign a fixed random variable stream number to the random variables
      * used by this model. Returns the number of streams (possibly zero) that
      * have been assigned.
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     int64_t AssignStreams(int64_t stream);
 
   protected:
     /**
-     * \brief DoDispose method inherited from Object
+     * @brief DoDispose method inherited from Object
      */
     void DoDispose() override;
 
     /**
-     * \brief Set the frame/subframe/slot counter
-     * \param sfn the SfnSf
+     * @brief Set the frame/subframe/slot counter
+     * @param sfn the SfnSf
      */
     void SetCurrentSlot(const SfnSf& sfn);
 
@@ -246,40 +246,40 @@ class NrUeMac : public Object
      * Subclasses that override this method are expected to chain up to
      * their parent's implementation and then set their own streams
      *
-     * \param stream first stream index to use
-     * \return the number of stream indices assigned by this model
+     * @param stream first stream index to use
+     * @return the number of stream indices assigned by this model
      */
     virtual int64_t DoAssignStreams(int64_t stream);
 
   private:
     /**
-     * \brief Received a RA response
-     * \param raResponse the response
+     * @brief Received a RA response
+     * @param raResponse the response
      */
     void RecvRaResponse(NrBuildRarListElement_s raResponse);
     /**
-     * \brief Set the RNTI
+     * @brief Set the RNTI
      */
     void SetRnti(uint16_t);
     /**
-     * \brief Do some work, we begin a new slot
-     * \param sfn the new slot
+     * @brief Do some work, we begin a new slot
+     * @param sfn the new slot
      */
     virtual void DoSlotIndication(const SfnSf& sfn);
 
     /**
-     * \brief Get the total size of the RLC buffers.
-     * \return The number of bytes that are in the RLC buffers
+     * @brief Get the total size of the RLC buffers.
+     * @return The number of bytes that are in the RLC buffers
      */
     uint32_t GetTotalBufSize() const __attribute__((warn_unused_result));
 
     /**
-     * \brief Send to the PHY a SR
+     * @brief Send to the PHY a SR
      */
     void SendSR() const;
     /**
-     * \brief Called by RLC to transmit a RLC PDU
-     * \param params the RLC params
+     * @brief Called by RLC to transmit a RLC PDU
+     * @param params the RLC params
      *
      * Please note that this call is triggered by communicating to the RLC
      * that there is a new transmission opportunity with NotifyTxOpportunity().
@@ -292,14 +292,14 @@ class NrUeMac : public Object
     void DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params);
 
     /**
-     * \brief Called by CCM
-     * \param params the BSR params
+     * @brief Called by CCM
+     * @param params the BSR params
      *
      * The CCM is calling this function for all the MAC of the UE. This method
      * will send SR only for CC ID = 0 (BwpManagerGnb will take care of
      * routing the SR to the appropriate MAC).
      *
-     * \see DoSlotIndication
+     * @see DoSlotIndication
      */
     void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params);
 
@@ -325,9 +325,9 @@ class NrUeMac : public Object
     void SendRaPreamble(bool contention);
 
     /**
-     * \brief Send a Report Buffer Status
-     * \param dataSfn data slot
-     * \param symStart symStart
+     * @brief Send a Report Buffer Status
+     * @param dataSfn data slot
+     * @param symStart symStart
      *
      * Please note that the BSR is not saved in the HARQ buffer, so it will
      * not get retransmitted.
@@ -336,8 +336,8 @@ class NrUeMac : public Object
     void RefreshHarqProcessesPacketBuffer();
 
     /**
-     * \brief Process the received UL DCI
-     * \param dciMsg the UL DCI received
+     * @brief Process the received UL DCI
+     * @param dciMsg the UL DCI received
      *
      * The method will call SendNewData() or TransmitRetx() (depending on the UL
      * DCI type), that will take care of sending data out taking into account the
@@ -348,7 +348,7 @@ class NrUeMac : public Object
     void ProcessUlDci(const Ptr<NrUlDciMessage>& dciMsg);
 
     /**
-     * \brief Transmit a retransmission (good joke, eh?)
+     * @brief Transmit a retransmission (good joke, eh?)
      *
      * The method uses the DCI stored in m_ulDci to take the HARQ process id,
      * preparing the subPDUs that are waiting in such HARQ process,
@@ -357,20 +357,20 @@ class NrUeMac : public Object
     void TransmitRetx();
 
     /**
-     * \brief Send data after an UL DCI
+     * @brief Send data after an UL DCI
      *
      * The method takes care of checking how many subPDUs we have to send,
      * and with a very rough estimation, tries to allocate data to all the active
      * LCID.
      *
-     * \see SendNewStatusData()
-     * \see SendRetxData()
-     * \see SendTxData()
+     * @see SendNewStatusData()
+     * @see SendRetxData()
+     * @see SendTxData()
      */
     void SendNewData();
 
     /**
-     * \brief Send STATUS PDUs
+     * @brief Send STATUS PDUs
      *
      * This method will try to use the allocated resources by the UL_DCI to send
      * StatusPDU, if they are present, for all the LCID.
@@ -378,28 +378,28 @@ class NrUeMac : public Object
     void SendNewStatusData();
 
     /**
-     * \brief Send RETX data
+     * @brief Send RETX data
      *
-     * \param usefulTbs TBS that we can use (data only)
-     * \param activeRetx number of active LCID with some data in the retxQueue
+     * @param usefulTbs TBS that we can use (data only)
+     * @param activeRetx number of active LCID with some data in the retxQueue
      *
      * The method will try to use the allocated resources by the UL_DCI to send
      * data in the retxQueue of the various active LCID.
      *
-     * \todo the code is similar to SendTxData, maybe they can be unified.
+     * @todo the code is similar to SendTxData, maybe they can be unified.
      */
     void SendRetxData(uint32_t usefulTbs, uint32_t activeRetx);
 
     /**
-     * \brief Send TX data
+     * @brief Send TX data
      *
-     * \param usefulTbs TBS that we can use (data only)
-     * \param activeTx number of active LCID with some data in the txQueue
+     * @param usefulTbs TBS that we can use (data only)
+     * @param activeTx number of active LCID with some data in the txQueue
      *
      * The method will try to use the allocated resources by the UL_DCI to send
      * data in the txQueue of the various active LCID.
      *
-     * \todo the code is similar to SendReTxData, maybe they can be unified.
+     * @todo the code is similar to SendReTxData, maybe they can be unified.
      */
     void SendTxData(uint32_t usefulTbs, uint32_t activeTx);
 
@@ -422,7 +422,7 @@ class NrUeMac : public Object
         m_ulBsrReceived; //!< BSR received from RLC (the last one)
 
     /**
-     * \brief States for the SR/BSR mechanism.
+     * @brief States for the SR/BSR mechanism.
      *
      * The SR/BSR mechanism is based on a variable in which
      * it is saved the state (INACTIVE/ACTIVE).
@@ -496,7 +496,7 @@ class NrUeMac : public Object
         m_macTxedCtrlMsgsTrace;
 
     /**
-     * \brief The `RaResponseTimeout` trace source. Fired RA response timeout.
+     * @brief The `RaResponseTimeout` trace source. Fired RA response timeout.
      * Exporting IMSI, contention flag, preamble transmission counter
      * and the max limit of preamble transmission.
      */

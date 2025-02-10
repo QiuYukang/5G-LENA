@@ -9,16 +9,16 @@
 using namespace ns3;
 
 /**
- * \file nr-system-test-schedulers-tdma-rr.cc
- * \ingroup test
+ * @file nr-system-test-schedulers-tdma-rr.cc
+ * @ingroup test
  *
- * \brief System test for TDMA - Round Robin scheduler. It checks that all the
+ * @brief System test for TDMA - Round Robin scheduler. It checks that all the
  * packets sent are delivered correctly.
  */
 
 /**
- * \brief The TDMA RR scheduler system test suite
- * \ingroup test
+ * @brief The TDMA RR scheduler system test suite
+ * @ingroup test
  *
  * It will check Tdma RR with:
  *
@@ -31,7 +31,7 @@ class NrSystemTestSchedulerTdmaRrDlSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerTdmaRrDlSuite();
 };
@@ -97,7 +97,7 @@ static NrSystemTestSchedulerTdmaRrDlSuite nrSystemTestSchedulerTdmaRrDlSuite;
 // ----------------------------------------------------------------------------
 
 /**
- * \brief The TDMA RR scheduler system test suite
+ * @brief The TDMA RR scheduler system test suite
  *
  * It will check Tdma RR with:
  *
@@ -110,7 +110,7 @@ class NrSystemTestSchedulerTdmaRrUlSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerTdmaRrUlSuite();
 };
@@ -176,7 +176,7 @@ static NrSystemTestSchedulerTdmaRrUlSuite nrSystemTestSchedulerTdmaRrUlSuite;
 // ----------------------------------------------------------------------------
 
 /**
- * \brief The TDMA RR scheduler system test suite
+ * @brief The TDMA RR scheduler system test suite
  *
  * It will check Tdma RR with:
  *
@@ -189,7 +189,7 @@ class NrSystemTestSchedulerTdmaRrDlUlSuite : public TestSuite
 {
   public:
     /**
-     * \brief constructor
+     * @brief constructor
      */
     NrSystemTestSchedulerTdmaRrDlUlSuite();
 };

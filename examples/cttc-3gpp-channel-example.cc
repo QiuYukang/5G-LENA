@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \file cttc-3gpp-channel-example.cc
- * \ingroup examples
- * \brief Channel Example
+ * @file cttc-3gpp-channel-example.cc
+ * @ingroup examples
+ * @brief Channel Example
  *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.901. Topology consists by default of 2 UEs and 2 gNbs, and can be
@@ -15,7 +15,9 @@
  * the root ns-3 project folder.
  */
 
+#include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/buildings-helper.h"
 #include "ns3/config-store.h"
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
@@ -27,8 +29,6 @@
 #include "ns3/nr-module.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/point-to-point-helper.h"
-#include <ns3/antenna-module.h>
-#include <ns3/buildings-helper.h>
 
 using namespace ns3;
 

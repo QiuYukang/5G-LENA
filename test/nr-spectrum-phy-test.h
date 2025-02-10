@@ -7,10 +7,10 @@
 #include "ns3/test.h"
 
 /**
- * \ingroup test
- * \file test-nr-spectrum-phy.h
+ * @ingroup test
+ * @file test-nr-spectrum-phy.h
  *
- * \brief This test sets two times noise figure and checks if this setting is applied
+ * @brief This test sets two times noise figure and checks if this setting is applied
  * correctly to connected classes of SpectrumPhy, i.e. SpectrumModel, SpectrumValue,
  * SpectrumChannel etc.
  */
@@ -21,8 +21,8 @@ namespace ns3
 class MobilityModel;
 
 /**
- * \ingroup test
- * \brief No loss spectrum propagation loss model created for testing purposes.
+ * @ingroup test
+ * @brief No loss spectrum propagation loss model created for testing purposes.
  * As its name says, there are no losses.
  */
 class NoLossSpectrumPropagationLossModel : public SpectrumPropagationLossModel
@@ -32,8 +32,8 @@ class NoLossSpectrumPropagationLossModel : public SpectrumPropagationLossModel
     ~NoLossSpectrumPropagationLossModel() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -61,18 +61,18 @@ class SetNoisePsdTestCase : public TestCase
     ~SetNoisePsdTestCase() override;
 
     /**
-     * \brief Save SNR value in the list of values
+     * @brief Save SNR value in the list of values
      */
     void SaveSnr(double snr);
 
   private:
     /**
-     * \brief Run test case
+     * @brief Run test case
      */
     void DoRun() override;
 
     /**
-     * \brief Check if the test case has pass or failed
+     * @brief Check if the test case has pass or failed
      */
     void DoEvaluateTest();
 
@@ -91,7 +91,7 @@ class SetNoisePsdTestCase : public TestCase
 };
 
 /**
- * \ingroup test
+ * @ingroup test
  * The test suite that runs different test cases to test NrSpectrumPhy.
  */
 class NrSpectrumPhyTestSuite : public TestSuite

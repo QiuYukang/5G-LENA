@@ -19,10 +19,10 @@
 using namespace ns3;
 
 /**
- * \file test-timings.cc
- * \ingroup test
+ * @file test-timings.cc
+ * @ingroup test
  *
- * \brief Check numerology timings. The test, that is run for every numerology,
+ * @brief Check numerology timings. The test, that is run for every numerology,
  * checks that the slot number of certain events is the same as the one
  * pre-recorded by an expert, that spent time in checking that such timing is
  * correct. We currently check only RAR and DL_DCI messages, improvements are

@@ -4,7 +4,7 @@
 
 #include "nr-mac-scheduler-srs-default.h"
 
-#include <ns3/uinteger.h>
+#include "ns3/uinteger.h"
 
 #include <algorithm>
 

@@ -26,7 +26,7 @@ class NrRlcSpecificNrMacSapUser : public NrMacSapUser
     /**
      * Constructor
      *
-     * \param rlc the RLC
+     * @param rlc the RLC
      */
     NrRlcSpecificNrMacSapUser(NrRlc* rlc);
 

@@ -10,7 +10,7 @@
 #include "nr-mac-sched-sap.h"
 #include "nr-mac-scheduler-lcg.h"
 
-#include <ns3/matrix-array.h>
+#include "ns3/matrix-array.h"
 
 #include <functional>
 #include <unordered_map>
@@ -20,13 +20,13 @@ namespace ns3
 
 class NrMacSchedulerUeInfo;
 /**
- * \brief Shared pointer to an instance of NrMacSchedulerUeInfo
+ * @brief Shared pointer to an instance of NrMacSchedulerUeInfo
  */
 typedef std::shared_ptr<NrMacSchedulerUeInfo> UePtr;
 
 /**
- * \ingroup scheduler
- * \brief The representation of an user for any Mac scheduler
+ * @ingroup scheduler
+ * @brief The representation of an user for any Mac scheduler
  *
  * Basic representation for an UE inside any scheduler. The class is responsible
  * to store all the UE-related field that can be used by any scheduler.
@@ -44,79 +44,79 @@ typedef std::shared_ptr<NrMacSchedulerUeInfo> UePtr;
  * the method UpdateDlMetric() or UpdateUlMetric(). Make sure all the relevant
  * information that should be updated for a correct sorting are updated there.
  *
- * \see NrMacSchedulerUeInfoRR
- * \see NrMacSchedulerUeInfoPF
- * \see NrMacSchedulerUeInfoMR
+ * @see NrMacSchedulerUeInfoRR
+ * @see NrMacSchedulerUeInfoPF
+ * @see NrMacSchedulerUeInfoMR
  */
 class NrMacSchedulerUeInfo
 {
   public:
     /**
-     * \brief Default Constructor (deleted)
+     * @brief Default Constructor (deleted)
      */
     NrMacSchedulerUeInfo() = delete;
 
     typedef std::function<uint32_t()> GetRbPerRbgFn;
 
     /**
-     * \brief Create a new UE representation
-     * \param rnti the RNTI of the UE
-     * \param beamId the BeamID of the UE (can be updated later)
+     * @brief Create a new UE representation
+     * @param rnti the RNTI of the UE
+     * @param beamId the BeamID of the UE (can be updated later)
      */
     NrMacSchedulerUeInfo(uint16_t rnti, BeamId beamId, const GetRbPerRbgFn& fn);
 
     /**
-     * \brief ~NrMacSchedulerUeInfo deconstructor
+     * @brief ~NrMacSchedulerUeInfo deconstructor
      */
     virtual ~NrMacSchedulerUeInfo();
 
     /**
-     * \brief GetDlRBG
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetDlRBG
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint32_t& GetDlRBG(const UePtr& ue);
     /**
-     * \brief GetUlRBG
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetUlRBG
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint32_t& GetUlRBG(const UePtr& ue);
     /**
-     * \brief GetDlSym
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetDlSym
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint8_t& GetDlSym(const UePtr& ue);
     /**
-     * \brief GetUlSym
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetUlSym
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint8_t& GetUlSym(const UePtr& ue);
     /**
-     * \brief GetDlMcs
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetDlMcs
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint8_t& GetDlMcs(const UePtr& ue);
     /**
-     * \brief GetUlMcs
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetUlMcs
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint8_t& GetUlMcs(const UePtr& ue);
     /**
-     * \brief GetDlTBS
-     * \param ue UE pointer from which obtain the value
-     * \return The TB size
+     * @brief GetDlTBS
+     * @param ue UE pointer from which obtain the value
+     * @return The TB size
      */
     static uint32_t& GetDlTBS(const UePtr& ue);
 
     /**
-     * \brief GetUlTBS
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetUlTBS
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static uint32_t& GetUlTBS(const UePtr& ue)
     {
@@ -124,38 +124,38 @@ class NrMacSchedulerUeInfo
     }
 
     /**
-     * \brief GetDlLCG
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetDlLCG
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static std::unordered_map<uint8_t, LCGPtr>& GetDlLCG(const UePtr& ue);
     /**
-     * \brief GetUlLCG
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetUlLCG
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static std::unordered_map<uint8_t, LCGPtr>& GetUlLCG(const UePtr& ue);
     /**
-     * \brief GetDlHarqVector
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetDlHarqVector
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static NrMacHarqVector& GetDlHarqVector(const UePtr& ue);
     /**
-     * \brief GetUlHarqVector
-     * \param ue UE pointer from which obtain the value
-     * \return
+     * @brief GetUlHarqVector
+     * @param ue UE pointer from which obtain the value
+     * @return
      */
     static NrMacHarqVector& GetUlHarqVector(const UePtr& ue);
 
     /**
-     * \brief Prints information related to the QCI of a UEs LC
-     * \param ue UE for which we want to print the LC info
-     * \param lcgId The logical channel group ID
-     * \param lcId The logical channel ID
-     * \param qci The QCI of this LC
-     * \param P The priority associated to the QCI of this LC
-     * \return
+     * @brief Prints information related to the QCI of a UEs LC
+     * @param ue UE for which we want to print the LC info
+     * @param lcgId The logical channel group ID
+     * @param lcId The logical channel ID
+     * @param qci The QCI of this LC
+     * @param P The priority associated to the QCI of this LC
+     * @return
      */
     static void PrintLcInfo(uint16_t ue,
                             uint8_t lcgId,
@@ -168,7 +168,7 @@ class NrMacSchedulerUeInfo
     typedef std::function<NrMacHarqVector&(const UePtr& ue)> GetHarqVectorFn;
 
     /**
-     * \brief Reset DL information
+     * @brief Reset DL information
      *
      * Called after each slot. It should reset all the information that are
      * slot-dependent.
@@ -176,7 +176,7 @@ class NrMacSchedulerUeInfo
     virtual void ResetDlSchedInfo();
 
     /**
-     * \brief Reset UL information
+     * @brief Reset UL information
      *
      * Called after each slot. It should reset all the information that are
      * slot-dependent.
@@ -184,14 +184,14 @@ class NrMacSchedulerUeInfo
     virtual void ResetUlSchedInfo();
 
     /**
-     * \brief Update DL metrics after resources have been assigned
+     * @brief Update DL metrics after resources have been assigned
      *
      * The amount of assigned resources is stored inside m_dlRBG by the scheduler.
      */
     virtual void UpdateDlMetric(const Ptr<const NrAmc>& amc);
 
     /**
-     * \brief ResetDlMetric
+     * @brief ResetDlMetric
      *
      * Called when the scheduler has assigned RBGs, but the sum does not arrive
      * to a TBS > 0. The assignation is, therefore, not transformed in DCI.
@@ -200,14 +200,14 @@ class NrMacSchedulerUeInfo
     virtual void ResetDlMetric();
 
     /**
-     * \brief Update UL metrics after resources have been assigned
+     * @brief Update UL metrics after resources have been assigned
      *
      * The amount of assigned resources is stored inside m_ulRBG by the scheduler.
      */
     virtual void UpdateUlMetric(const Ptr<const NrAmc>& amc);
 
     /**
-     * \brief ResetUlMetric
+     * @brief ResetUlMetric
      *
      * Called when the scheduler has assigned RBGs, but the sum does not arrive
      * to a TBS > 0. The assignation is, therefore, not transformed in DCI.
@@ -218,12 +218,12 @@ class NrMacSchedulerUeInfo
     uint32_t GetTotalDlBuffer() const;
 
     /**
-     * \brief Received CQI information
+     * @brief Received CQI information
      */
     struct CqiInfo
     {
         /**
-         * \brief Type of CQI
+         * @brief Type of CQI
          */
         enum CqiType
         {
@@ -278,9 +278,9 @@ class NrMacSchedulerUeInfo
 
   protected:
     /**
-     * \brief Retrieve the number of RB per RBG
+     * @brief Retrieve the number of RB per RBG
      *
-     * \return numRbPerRbg. Calls the MAC.
+     * @return numRbPerRbg. Calls the MAC.
      */
     uint32_t GetNumRbPerRbg() const;
 

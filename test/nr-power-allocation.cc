@@ -9,10 +9,10 @@
 using namespace ns3;
 
 /**
- * \ingroup test
- * \file test-antenna-3gpp-model-conf.cc
+ * @ingroup test
+ * @file test-antenna-3gpp-model-conf.cc
  *
- * \brief This test case checks whether the power allocation assigns
+ * @brief This test case checks whether the power allocation assigns
  * correctly power over active RBs using the specified power allocation
  * type.
  */

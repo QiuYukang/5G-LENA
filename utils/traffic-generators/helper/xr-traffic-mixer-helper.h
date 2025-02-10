@@ -28,7 +28,7 @@ namespace ns3
 {
 
 /**
- * \brief Enum that is used to configure the traffic type
+ * @brief Enum that is used to configure the traffic type
  */
 enum NrXrConfig
 {
@@ -43,16 +43,16 @@ enum NrXrConfig
     NGMN_VOICE
 }; // NGMN voip
 /**
- * \brief Return NrXrConfig enum for a corresponding string
+ * @brief Return NrXrConfig enum for a corresponding string
  */
 enum NrXrConfig GetXrTrafficType(const std::string& item);
 /**
- * \brief Returns a string representing NrXrConfig enum
+ * @brief Returns a string representing NrXrConfig enum
  */
 std::string GetXrTrafficName(const NrXrConfig& item);
 
 /**
- * \brief Operator for input from stream to NrXrConfig
+ * @brief Operator for input from stream to NrXrConfig
  */
 static inline std::istream&
 operator>>(std::istream& is, NrXrConfig& item)
@@ -64,7 +64,7 @@ operator>>(std::istream& is, NrXrConfig& item)
 }
 
 /**
- * \brief Operator to output to the stream from NrXrConfig enum
+ * @brief Operator to output to the stream from NrXrConfig enum
  */
 static inline std::ostream&
 operator<<(std::ostream& os, const NrXrConfig& item)
@@ -76,8 +76,8 @@ operator<<(std::ostream& os, const NrXrConfig& item)
 extern const std::map<NrXrConfig, std::list<TypeId>> XrPreconfig;
 
 /**
- * \ingroup applications
- * \defgroup traffic TrafficGenerator
+ * @ingroup applications
+ * @defgroup traffic TrafficGenerator
  *
  * This traffic mixer can mix various types of traffics.
  */
@@ -85,29 +85,29 @@ class XrTrafficMixerHelper : public Object
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     XrTrafficMixerHelper();
     ~XrTrafficMixerHelper() override;
     /*
-     * \brief Adds a stream of provided TypeId
-     * \param trafficGenerator specifies the type ID of a stream to be added to a mixed traffic flow
+     * @brief Adds a stream of provided TypeId
+     * @param trafficGenerator specifies the type ID of a stream to be added to a mixed traffic flow
      */
     void AddStream(TypeId trafficGenerator);
 
     /*
-     * \brief Configures the configured XR traffic
-     * \param xrTrafficType the XR traffic type to be configured
+     * @brief Configures the configured XR traffic
+     * @param xrTrafficType the XR traffic type to be configured
      */
     void ConfigureXr(NrXrConfig xrTrafficType);
 
     /*
-     * \brief Configures the stream mixtures of the traffic types added by
+     * @brief Configures the stream mixtures of the traffic types added by
      * function AddStream.
-     * \param transportProtocol the transport protocol to be configured
-     * \param remoteAddresses the vector of the remote address values toward which will be sent the
+     * @param transportProtocol the transport protocol to be configured
+     * @param remoteAddresses the vector of the remote address values toward which will be sent the
      * generated data \param trafficGeneratorNode the traffic generator node container \return the
      * container of the newly created traffic generator applications
      */

@@ -18,7 +18,7 @@ namespace ns3
 {
 
 /**
- * \ingroup nr
+ * @ingroup nr
  *
  * Takes care of storing the information generated at MAC layer. Metrics saved are:
  *   - Timestamp (in MilliSeconds)
@@ -48,14 +48,14 @@ class NrMacSchedulingStats : public NrStatsCalculator
     // Inherited from ns3::Object
     /**
      *  Register this type.
-     *  \return The object TypeId.
+     *  @return The object TypeId.
      */
     static TypeId GetTypeId();
 
     /**
      * Set the name of the file where the uplink statistics will be stored.
      *
-     * \param outputFilename string with the name of the file
+     * @param outputFilename string with the name of the file
      */
     void SetUlOutputFilename(std::string outputFilename);
 
@@ -68,7 +68,7 @@ class NrMacSchedulingStats : public NrStatsCalculator
     /**
      * Set the name of the file where the downlink statistics will be stored.
      *
-     * \param outputFilename string with the name of the file
+     * @param outputFilename string with the name of the file
      */
     void SetDlOutputFilename(std::string outputFilename);
 
@@ -80,18 +80,18 @@ class NrMacSchedulingStats : public NrStatsCalculator
 
     /**
      * Notifies the stats calculator that an downlink scheduling has occurred.
-     * \param cellId Cell ID of the attached gNb
-     * \param imsi IMSI of the scheduled UE
-     * \param traceInfo NrSchedulingCallbackInfo structure containing all downlink
+     * @param cellId Cell ID of the attached gNb
+     * @param imsi IMSI of the scheduled UE
+     * @param traceInfo NrSchedulingCallbackInfo structure containing all downlink
      *        information that is generated when DlScheduling trace is fired
      */
     void DlScheduling(uint16_t cellId, uint64_t imsi, const NrSchedulingCallbackInfo& traceInfo);
 
     /**
      * Notifies the stats calculator that an uplink scheduling has occurred.
-     * \param cellId Cell ID of the attached gNB
-     * \param imsi IMSI of the scheduled UE
-     * \param traceInfo NrSchedulingCallbackInfo structure containing all uplink
+     * @param cellId Cell ID of the attached gNB
+     * @param imsi IMSI of the scheduled UE
+     * @param traceInfo NrSchedulingCallbackInfo structure containing all uplink
      *        information that is generated when DlScheduling trace is fired
      */
     void UlScheduling(uint16_t cellId, uint64_t imsi, const NrSchedulingCallbackInfo& traceInfo);
@@ -99,9 +99,9 @@ class NrMacSchedulingStats : public NrStatsCalculator
     /**
      * Trace sink for the ns3::NrGnbMac::DlScheduling trace source
      *
-     * \param macStats
-     * \param path
-     * \param traceInfo NrSchedulingCallbackInfo structure containing all downlink
+     * @param macStats
+     * @param path
+     * @param traceInfo NrSchedulingCallbackInfo structure containing all downlink
      *        information that is generated when DlScheduling trace is fired
      */
     static void DlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
@@ -111,9 +111,9 @@ class NrMacSchedulingStats : public NrStatsCalculator
     /**
      * Trace sink for the ns3::NrGnbMac::UlScheduling trace source
      *
-     * \param macStats the pointer to the MAC stats
-     * \param path the trace source path
-     * \param traceInfo - all the traces information in a single structure
+     * @param macStats the pointer to the MAC stats
+     * @param path the trace source path
+     * @param traceInfo - all the traces information in a single structure
      */
     static void UlSchedulingCallback(Ptr<NrMacSchedulingStats> macStats,
                                      std::string path,

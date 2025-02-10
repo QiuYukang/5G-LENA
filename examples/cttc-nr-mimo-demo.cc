@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \ingroup examples
- * \file cttc-nr-mimo-demo.cc
- * \brief An example that shows how to setup and use MIMO
+ * @ingroup examples
+ * @file cttc-nr-mimo-demo.cc
+ * @brief An example that shows how to setup and use MIMO
  *
  * This example describes how to setup a simulation using MIMO. The scenario
  * consists of a simple topology, in which there

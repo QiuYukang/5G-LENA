@@ -7,8 +7,8 @@
 #ifndef NR_EPS_BEARER
 #define NR_EPS_BEARER
 
-#include <ns3/object-base.h>
-#include <ns3/uinteger.h>
+#include "ns3/object-base.h"
+#include "ns3/uinteger.h"
 
 #include <unordered_map>
 
@@ -48,7 +48,7 @@ struct NrAllocationRetentionPriority
 };
 
 /**
- * \brief This class contains the specification of EPS Bearers.
+ * @brief This class contains the specification of EPS Bearers.
  *
  * See the following references:
  * 3GPP TS 23.203, Section 4.7.2 The EPS bearer
@@ -78,8 +78,8 @@ class NrEpsBearer : public ObjectBase
 {
   public:
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -162,21 +162,21 @@ class NrEpsBearer : public ObjectBase
     NrEpsBearer(Qci x, NrGbrQosInformation y);
 
     /**
-     * \brief NrEpsBearer copy constructor
-     * \param o other instance
+     * @brief NrEpsBearer copy constructor
+     * @param o other instance
      */
     NrEpsBearer(const NrEpsBearer& o);
 
     /**
-     * \brief Deconstructor
+     * @brief Deconstructor
      */
     ~NrEpsBearer() override
     {
     }
 
     /**
-     * \brief SetRelease
-     * \param release The release the user want for this bearer
+     * @brief SetRelease
+     * @param release The release the user want for this bearer
      *
      * Releases introduces new types, and change values for existing ones.
      * While we can't do much for the added type (we must expose them even
@@ -189,8 +189,8 @@ class NrEpsBearer : public ObjectBase
     void SetRelease(uint8_t release);
 
     /**
-     * \brief GetRelease
-     * \return The release currently set for this bearer type
+     * @brief GetRelease
+     * @return The release currently set for this bearer type
      */
     uint8_t GetRelease() const
     {
@@ -230,7 +230,7 @@ class NrEpsBearer : public ObjectBase
 
   private:
     /**
-     * \brief Map between QCI and requirements
+     * @brief Map between QCI and requirements
      *
      * The tuple is formed by: resource type, priority, packet delay budget, packet error rate,
      *  default maximum data burst, default averaging window (0 when does not apply)
@@ -239,10 +239,10 @@ class NrEpsBearer : public ObjectBase
         std::unordered_map<Qci, std::tuple<uint8_t, uint8_t, uint16_t, double, uint32_t, uint32_t>>;
 
     /**
-     * \brief Get the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
-     * \param map Map between QCI and requirements
-     * \param qci QCI to look for
-     * \return the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
+     * @brief Get the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
+     * @param map Map between QCI and requirements
+     * @param qci QCI to look for
+     * @return the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
      */
     static uint8_t GetResourceType(const BearerRequirementsMap& map, Qci qci)
     {
@@ -250,10 +250,10 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * \brief Get priority for the selected QCI
-     * \param map Map between QCI and requirements
-     * \param qci QCI to look for
-     * \return priority for the selected QCI
+     * @brief Get priority for the selected QCI
+     * @param map Map between QCI and requirements
+     * @param qci QCI to look for
+     * @return priority for the selected QCI
      */
     static uint8_t GetPriority(const BearerRequirementsMap& map, Qci qci)
     {
@@ -261,10 +261,10 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * \brief Get packet delay in ms for the selected QCI
-     * \param map Map between QCI and requirements
-     * \param qci QCI to look for
-     * \return packet delay in ms for the selected QCI
+     * @brief Get packet delay in ms for the selected QCI
+     * @param map Map between QCI and requirements
+     * @param qci QCI to look for
+     * @return packet delay in ms for the selected QCI
      */
     static uint16_t GetPacketDelayBudgetMs(const BearerRequirementsMap& map, Qci qci)
     {
@@ -272,10 +272,10 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * \brief Get packet error rate for the selected QCI
-     * \param map Map between QCI and requirements
-     * \param qci QCI to look for
-     * \return packet error rate for the selected QCI
+     * @brief Get packet error rate for the selected QCI
+     * @param map Map between QCI and requirements
+     * @param qci QCI to look for
+     * @return packet error rate for the selected QCI
      */
     static double GetPacketErrorLossRate(const BearerRequirementsMap& map, Qci qci)
     {
@@ -283,10 +283,10 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * \brief Get maximum data burst for the selected QCI
-     * \param map Map between QCI and requirements
-     * \param qci QCI to look for
-     * \return maximum data burst for the selected QCI
+     * @brief Get maximum data burst for the selected QCI
+     * @param map Map between QCI and requirements
+     * @param qci QCI to look for
+     * @return maximum data burst for the selected QCI
      */
     static uint32_t GetMaxDataBurst(const BearerRequirementsMap& map, Qci qci)
     {
@@ -294,10 +294,10 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * \brief Get default averaging window for the selected QCI
-     * \param map Map between QCI and requirements
-     * \param qci QCI to look for
-     * \return default averaging window for the selected QCI
+     * @brief Get default averaging window for the selected QCI
+     * @param map Map between QCI and requirements
+     * @param qci QCI to look for
+     * @return default averaging window for the selected QCI
      */
     static uint32_t GetAvgWindow(const BearerRequirementsMap& map, Qci qci)
     {
@@ -305,8 +305,8 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * \brief Retrieve requirements for Rel. 11
-     * \return the BearerRequirementsMap for Release 11
+     * @brief Retrieve requirements for Rel. 11
+     * @return the BearerRequirementsMap for Release 11
      *
      * It returns a pointer to a non-const static data. That is not thread-safe,
      * nor safe to do in general. However, a const-correct version would have
@@ -318,8 +318,8 @@ class NrEpsBearer : public ObjectBase
     static const BearerRequirementsMap& GetRequirementsRel11();
 
     /**
-     * \brief Retrieve requirements for Rel. 15
-     * \return the BearerRequirementsMap for Release 15
+     * @brief Retrieve requirements for Rel. 15
+     * @return the BearerRequirementsMap for Release 15
      *
      * It returns a pointer to a non-const static data. That is not thread-safe,
      * nor safe to do in general. However, a const-correct version would have
@@ -331,13 +331,13 @@ class NrEpsBearer : public ObjectBase
     static const BearerRequirementsMap& GetRequirementsRel15();
 
     /**
-     * \brief Retrieve requirements for Rel. 18
-     * \return the BearerRequirementsMap for Release 18
+     * @brief Retrieve requirements for Rel. 18
+     * @return the BearerRequirementsMap for Release 18
      */
     static const BearerRequirementsMap& GetRequirementsRel18();
 
     /**
-     * \brief Requirements pointer per bearer
+     * @brief Requirements pointer per bearer
      *
      * It will point to a static map.
      */

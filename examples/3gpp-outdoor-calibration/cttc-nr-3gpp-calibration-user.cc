@@ -4,15 +4,15 @@
 
 #include "cttc-nr-3gpp-calibration.h"
 
-#include <ns3/command-line.h>
-#include <ns3/show-progress.h>
+#include "ns3/command-line.h"
+#include "ns3/show-progress.h"
 
 using namespace ns3;
 
 /**
- * \ingroup examples
- * \file cttc-nr-3gpp-calibration-user.cc
- * \brief A multi-cell network deployment with site sectorization
+ * @ingroup examples
+ * @file cttc-nr-3gpp-calibration-user.cc
+ * @brief A multi-cell network deployment with site sectorization
  *
  * This example describes how to setup a simulation using the 3GPP channel model
  * from TR 38.901. This example consists of an hexagonal grid deployment

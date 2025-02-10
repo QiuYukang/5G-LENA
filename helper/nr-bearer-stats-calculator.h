@@ -36,7 +36,7 @@ typedef std::map<nr::ImsiLcidPair_t, nr::FlowId_t> FlowIdMap;
 } // namespace nr
 
 /**
- * \ingroup utils
+ * @ingroup utils
  *
  * This class is an ns-3 trace sink that performs the calculation of
  * RLC and PDCP statistics for uplink and downlink.
@@ -73,28 +73,28 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
     // Inherited from ns3::Object
     /**
      *  Register this type.
-     *  \return The object TypeId.
+     *  @return The object TypeId.
      */
     static TypeId GetTypeId();
     void DoDispose() override;
     /**
      *
-     * \param t the value of the StartTime attribute
+     * @param t the value of the StartTime attribute
      */
     void SetStartTime(Time t);
     /**
      *
-     * \return the value of the StartTime attribute
+     * @return the value of the StartTime attribute
      */
     Time GetStartTime() const;
     /**
      *
-     * \param e the epoch duration
+     * @param e the epoch duration
      */
     void SetEpoch(Time e);
     /**
      *
-     * \return the epoch duration
+     * @return the epoch duration
      */
     Time GetEpoch() const;
     /**
@@ -266,7 +266,7 @@ class NrBearerStatsCalculator : public NrBearerStatsBase
      */
     std::vector<double> GetDlPduSizeStats(uint64_t imsi, uint8_t lcid);
     /**
-     * \return UL output file name
+     * @return UL output file name
      */
     std::string GetUlOutputFilename();
     /**

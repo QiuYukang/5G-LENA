@@ -11,8 +11,8 @@ namespace ns3
 {
 
 /**
- * \ingroup error-models
- * \brief The NrEesmCc class
+ * @ingroup error-models
+ * @brief The NrEesmCc class
  *
  * In HARQ-CC, every retransmission contains the same coded bits
  * (information and coding bits). Therefore, the ECR after the q-th retransmission
@@ -32,29 +32,29 @@ class NrEesmCc : public NrEesmErrorModel
 {
   public:
     /**
-     * \brief Get the type id of the object
-     * \return the type id of the object
+     * @brief Get the type id of the object
+     * @return the type id of the object
      */
     static TypeId GetTypeId();
     /**
-     * \brief NrEesmCc constructor
+     * @brief NrEesmCc constructor
      */
     NrEesmCc();
     /**
-     * \brief ~NrEesmCc
+     * @brief ~NrEesmCc
      */
     ~NrEesmCc() override;
 
   protected:
     /**
-     * \brief Computes the effective SINR after retransmission combining with HARQ-CC.
+     * @brief Computes the effective SINR after retransmission combining with HARQ-CC.
      *
-     * \param sinr the SINR vector of current transmission
-     * \param map the RB map of current transmission
-     * \param sizeBit the Transport block size in bits
-     * \param mcs the MCS of the transmission
-     * \param sinrHistory the History of the previous transmissions of the same block
-     * \return The effective SINR
+     * @param sinr the SINR vector of current transmission
+     * @param map the RB map of current transmission
+     * @param sizeBit the Transport block size in bits
+     * @param mcs the MCS of the transmission
+     * @param sinrHistory the History of the previous transmissions of the same block
+     * @return The effective SINR
      */
     double ComputeSINR(const SpectrumValue& sinr,
                        const std::vector<int>& map,
@@ -63,12 +63,12 @@ class NrEesmCc : public NrEesmErrorModel
                        const NrErrorModel::NrErrorModelHistory& sinrHistory) const override;
 
     /**
-     * \brief Returns the MCS corresponding to the ECR after retransmissions. As the ECR
+     * @brief Returns the MCS corresponding to the ECR after retransmissions. As the ECR
      * does not change with retransmissions with HARQ-CC, and MCS is kept fixed through
      * retransmissions, it returns current MCS.
      *
-     * \param mcsTx the MCS of the transmission
-     * \return The equivalent MCS after retransmissions
+     * @param mcsTx the MCS of the transmission
+     * @return The equivalent MCS after retransmissions
      */
     double GetMcsEq(uint8_t mcsTx) const override;
 };

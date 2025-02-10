@@ -103,7 +103,7 @@ NrRadioLinkFailureTestSuite::NrRadioLinkFailureTestSuite()
 } // end of NrRadioLinkFailureTestSuite::NrRadioLinkFailureTestSuite ()
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 static NrRadioLinkFailureTestSuite g_nrRadioLinkFailureTestSuite;

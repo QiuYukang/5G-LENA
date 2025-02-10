@@ -23,7 +23,7 @@ class NrMacSapUser;
 class NrRrcSap;
 
 /**
- * \brief Service Access Point (SAP) offered by the Component Carrier Manager (CCM)
+ * @brief Service Access Point (SAP) offered by the Component Carrier Manager (CCM)
  * instance to the eNodeB RRC instance.
  *
  * This is the *Component Carrier Manager SAP Provider*, i.e., the part of the SAP
@@ -48,10 +48,10 @@ class NrCcmRrcSapProvider
     };
 
     /**
-     * \brief Reports UE measurements to the component carrier manager.
-     * \param rnti Radio Network Temporary Identity, an integer identifying
+     * @brief Reports UE measurements to the component carrier manager.
+     * @param rnti Radio Network Temporary Identity, an integer identifying
      * the UE where the measurement report originates from.
-     * \param measResults a single report of one measurement identity
+     * @param measResults a single report of one measurement identity
      *
      * The received measurement report is a result of the UE measurements configuration
      * previously configured by calling
@@ -61,39 +61,39 @@ class NrCcmRrcSapProvider
     virtual void ReportUeMeas(uint16_t rnti, NrRrcSap::MeasResults measResults) = 0;
 
     /**
-     * \brief Add a new UE in the NrGnbComponentCarrierManager.
-     * \param rnti Radio Network Temporary Identity, an integer identifying the UE.
-     * \param state The current rrc state of the UE.
+     * @brief Add a new UE in the NrGnbComponentCarrierManager.
+     * @param rnti Radio Network Temporary Identity, an integer identifying the UE.
+     * @param state The current rrc state of the UE.
      */
     virtual void AddUe(uint16_t rnti, uint8_t state) = 0;
 
     /**
-     * \brief Add a new logical channel.
-     * \param lcInfo - information about newly created logical channel
-     * \param msu - pointer to corresponding rlc interface
+     * @brief Add a new logical channel.
+     * @param lcInfo - information about newly created logical channel
+     * @param msu - pointer to corresponding rlc interface
      *
      */
     virtual void AddLc(NrGnbCmacSapProvider::LcInfo lcInfo, NrMacSapUser* msu) = 0;
 
     /**
-     * \brief Remove an existing UE.
-     * \param rnti Radio Network Temporary Identity, an integer identifying the UE
+     * @brief Remove an existing UE.
+     * @param rnti Radio Network Temporary Identity, an integer identifying the UE
      *             where the report originates from
      */
     virtual void RemoveUe(uint16_t rnti) = 0;
 
     /**
-     * \brief Add a new Bearer for the Ue in the NrGnbComponentCarrierManager.
-     * \param bearer a pointer to the NrEpsBearer object
-     * \param bearerId a unique identifier for the bearer
-     * \param rnti Radio Network Temporary Identity, an integer identifying the UE
+     * @brief Add a new Bearer for the Ue in the NrGnbComponentCarrierManager.
+     * @param bearer a pointer to the NrEpsBearer object
+     * @param bearerId a unique identifier for the bearer
+     * @param rnti Radio Network Temporary Identity, an integer identifying the UE
      *             where the report originates from
-     * \param lcid the Logical Channel id
-     * \param lcGroup the Logical Channel group
-     * \param msu a pointer to the NrMacSapUser, the NrGnbComponentCarrierManager
+     * @param lcid the Logical Channel id
+     * @param lcGroup the Logical Channel group
+     * @param msu a pointer to the NrMacSapUser, the NrGnbComponentCarrierManager
      *             has to store a NrMacSapUser for each Rlc instance, in order to
      *             properly redirect the packet
-     * \return vector of LcsConfig contains the lc configuration for each Mac
+     * @return vector of LcsConfig contains the lc configuration for each Mac
      *                the size of the vector is equal to the number of component
      *                carrier enabled.
      *
@@ -108,21 +108,21 @@ class NrCcmRrcSapProvider
                                                                              NrMacSapUser* msu) = 0;
 
     /**
-     * \brief Release an existing Data Radio Bearer for a Ue in the NrGnbComponentCarrierManager
-     * \param rnti Radio Network Temporary Identity, an integer identifying the UE
+     * @brief Release an existing Data Radio Bearer for a Ue in the NrGnbComponentCarrierManager
+     * @param rnti Radio Network Temporary Identity, an integer identifying the UE
      *             where the report originates from
-     * \param lcid the Logical Channel Id
-     * \return vector of integer the componentCarrierId of the NrComponentCarrier
+     * @param lcid the Logical Channel Id
+     * @return vector of integer the componentCarrierId of the NrComponentCarrier
      *                where the bearer is enabled
      */
 
     virtual std::vector<uint8_t> ReleaseDataRadioBearer(uint16_t rnti, uint8_t lcid) = 0;
 
     /**
-     * \brief Add the Signal Bearer for a specific Ue in NrGnbComponenCarrierManager
-     * \param lcInfo this structure it is hard-coded in the NrGnbRrc
-     * \param rlcMacSapUser it is the MacSapUser of the Rlc instance
-     * \return the NrMacSapUser of the ComponentCarrierManager
+     * @brief Add the Signal Bearer for a specific Ue in NrGnbComponenCarrierManager
+     * @param lcInfo this structure it is hard-coded in the NrGnbRrc
+     * @param rlcMacSapUser it is the MacSapUser of the Rlc instance
+     * @return the NrMacSapUser of the ComponentCarrierManager
      *
      */
     virtual NrMacSapUser* ConfigureSignalBearer(NrGnbCmacSapProvider::LcInfo lcInfo,
@@ -131,7 +131,7 @@ class NrCcmRrcSapProvider
 }; // end of class NrCcmRrcSapProvider
 
 /**
- * \brief Service Access Point (SAP) offered by the eNodeB RRC instance to the
+ * @brief Service Access Point (SAP) offered by the eNodeB RRC instance to the
  *        component carrier manager (CCM) instance.
  *
  * This is the *Component Carrier Management SAP User*, i.e., the part of the SAP that
@@ -146,10 +146,10 @@ class NrCcmRrcSapUser
     virtual ~NrCcmRrcSapUser() = default;
 
     /**
-     * \brief Request a certain reporting configuration to be fulfilled by the UEs
+     * @brief Request a certain reporting configuration to be fulfilled by the UEs
      *        attached to the eNodeB entity.
-     * \param reportConfig the UE measurement reporting configuration
-     * \return the measurement identity associated with this newly added
+     * @param reportConfig the UE measurement reporting configuration
+     * @return the measurement identity associated with this newly added
      *         reporting configuration
      *
      * The eNodeB RRC entity is expected to configure the same reporting
@@ -159,16 +159,16 @@ class NrCcmRrcSapUser
      * NrComponentCarrier algorithm through the NrCcmRrcSapProvider::ReportUeMeas
      * SAP function.
      *
-     * \note This function is only valid before the simulation begins.
+     * @note This function is only valid before the simulation begins.
      */
     virtual uint8_t AddUeMeasReportConfigForComponentCarrier(
         NrRrcSap::ReportConfigEutra reportConfig) = 0;
 
     /**
-     * \brief Instruct the eNodeB RRC entity to prepare a component carrier.
-     * \param rnti Radio Network Temporary Identity, an integer identifying the
+     * @brief Instruct the eNodeB RRC entity to prepare a component carrier.
+     * @param rnti Radio Network Temporary Identity, an integer identifying the
      *             UE which shall perform the NrComponentCarrier
-     * \param targetCellId the cell ID of the target eNodeB
+     * @param targetCellId the cell ID of the target eNodeB
      *
      * This function is used by the NrComponentCarrier manager when a decision on
      * component carriers configurations.
@@ -182,7 +182,7 @@ class NrCcmRrcSapUser
     /**
      * add a new Logical Channel (LC)
      *
-     * \param lcConfig is a single structure contains logical Channel Id, Logical Channel config and
+     * @param lcConfig is a single structure contains logical Channel Id, Logical Channel config and
      * Component Carrier Id
      */
     virtual void AddLcs(std::vector<NrGnbRrcSapProvider::LogicalChannelConfig> lcConfig) = 0;
@@ -190,23 +190,23 @@ class NrCcmRrcSapUser
     /**
      * remove an existing LC
      *
-     * \param rnti
-     * \param lcid
+     * @param rnti
+     * @param lcid
      */
     virtual void ReleaseLcs(uint16_t rnti, uint8_t lcid) = 0;
 
     /**
      * Get UE manager by RNTI
      *
-     * \param rnti RNTI
-     * \return UE manager
+     * @param rnti RNTI
+     * @return UE manager
      */
     virtual Ptr<NrUeManager> GetUeManager(uint16_t rnti) = 0;
 
     /**
-     * \brief Set the number of component carriers
+     * @brief Set the number of component carriers
      *
-     * \param noOfComponentCarriers The number of component carriers
+     * @param noOfComponentCarriers The number of component carriers
      */
     virtual void SetNumberOfComponentCarriers(uint16_t noOfComponentCarriers) = 0;
 
@@ -220,7 +220,7 @@ class MemberNrCcmRrcSapProvider : public NrCcmRrcSapProvider
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrCcmRrcSapProvider(C* owner);
 
@@ -312,7 +312,7 @@ class MemberNrCcmRrcSapUser : public NrCcmRrcSapUser
     /**
      * Constructor
      *
-     * \param owner the owner class
+     * @param owner the owner class
      */
     MemberNrCcmRrcSapUser(C* owner);
 

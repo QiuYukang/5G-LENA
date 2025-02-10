@@ -25,17 +25,17 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE("NrAsn1EncodingTest");
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Contains ASN encoding test utility functions.
+ * @brief Contains ASN encoding test utility functions.
  */
 class TestUtils
 {
   public:
     /**
      * Function to convert packet contents in hex format
-     * \param pkt the packet
-     * \returns the text string
+     * @param pkt the packet
+     * @returns the text string
      */
     static std::string sprintPacketContentsHex(Ptr<Packet> pkt)
     {
@@ -51,8 +51,8 @@ class TestUtils
 
     /**
      * Function to convert packet contents in binary format
-     * \param pkt the packet
-     * \returns the text string
+     * @param pkt the packet
+     * @returns the text string
      */
     static std::string sprintPacketContentsBin(Ptr<Packet> pkt)
     {
@@ -68,7 +68,7 @@ class TestUtils
 
     /**
      * Function to log packet contents
-     * \param pkt the packet
+     * @param pkt the packet
      */
     static void LogPacketContents(Ptr<Packet> pkt)
     {
@@ -79,8 +79,8 @@ class TestUtils
 
     /**
      * Function to log packet info
-     * \param source T
-     * \param s the string
+     * @param source T
+     * @param s the string
      */
     template <class T>
     static void LogPacketInfo(T source, std::string s)
@@ -94,9 +94,9 @@ class TestUtils
 
 // --------------------------- CLASS RrcHeaderTestCase -----------------------------
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief This class provides common functions to be inherited
+ * @brief This class provides common functions to be inherited
  * by the children TestCases
  */
 class RrcHeaderTestCase : public TestCase
@@ -104,19 +104,19 @@ class RrcHeaderTestCase : public TestCase
   public:
     /**
      * Constructor
-     * \param s the reference name
+     * @param s the reference name
      */
     RrcHeaderTestCase(std::string s);
     void DoRun() override = 0;
     /**
-     * \brief Create radio resource config dedicated
-     * \returns NrRrcSap::RadioResourceConfigDedicated
+     * @brief Create radio resource config dedicated
+     * @returns NrRrcSap::RadioResourceConfigDedicated
      */
     NrRrcSap::RadioResourceConfigDedicated CreateRadioResourceConfigDedicated();
     /**
-     * \brief Assert equal radio resource config dedicated
-     * \param rrcd1 NrRrcSap::RadioResourceConfigDedicated # 1
-     * \param rrcd2 NrRrcSap::RadioResourceConfigDedicated # 2
+     * @brief Assert equal radio resource config dedicated
+     * @param rrcd1 NrRrcSap::RadioResourceConfigDedicated # 1
+     * @param rrcd2 NrRrcSap::RadioResourceConfigDedicated # 2
      */
     void AssertEqualRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicated rrcd1,
                                                  NrRrcSap::RadioResourceConfigDedicated rrcd2);
@@ -311,9 +311,9 @@ RrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated(
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Request Test Case
+ * @brief Rrc Connection Request Test Case
  */
 class NrRrcConnectionRequestTestCase : public RrcHeaderTestCase
 {
@@ -363,9 +363,9 @@ NrRrcConnectionRequestTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Setup Test Case
+ * @brief Rrc Connection Setup Test Case
  */
 class NrRrcConnectionSetupTestCase : public RrcHeaderTestCase
 {
@@ -420,9 +420,9 @@ NrRrcConnectionSetupTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Setup Complete Test Case
+ * @brief Rrc Connection Setup Complete Test Case
  */
 class NrRrcConnectionSetupCompleteTestCase : public RrcHeaderTestCase
 {
@@ -473,9 +473,9 @@ NrRrcConnectionSetupCompleteTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Reconfiguration Complete Test Case
+ * @brief Rrc Connection Reconfiguration Complete Test Case
  */
 class NrRrcConnectionReconfigurationCompleteTestCase : public RrcHeaderTestCase
 {
@@ -527,9 +527,9 @@ NrRrcConnectionReconfigurationCompleteTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Reconfiguration Test Case
+ * @brief Rrc Connection Reconfiguration Test Case
  */
 class NrRrcConnectionReconfigurationTestCase : public RrcHeaderTestCase
 {
@@ -765,9 +765,9 @@ NrRrcConnectionReconfigurationTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Handover Preparation Info Test Case
+ * @brief Handover Preparation Info Test Case
  */
 class NrHandoverPreparationInfoTestCase : public RrcHeaderTestCase
 {
@@ -874,9 +874,9 @@ NrHandoverPreparationInfoTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Reestablishment Request Test Case
+ * @brief Rrc Connection Reestablishment Request Test Case
  */
 class NrRrcConnectionReestablishmentRequestTestCase : public RrcHeaderTestCase
 {
@@ -934,9 +934,9 @@ NrRrcConnectionReestablishmentRequestTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Reestablishment Test Case
+ * @brief Rrc Connection Reestablishment Test Case
  */
 class NrRrcConnectionReestablishmentTestCase : public RrcHeaderTestCase
 {
@@ -990,9 +990,9 @@ NrRrcConnectionReestablishmentTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Reestablishment Complete Test Case
+ * @brief Rrc Connection Reestablishment Complete Test Case
  */
 class NrRrcConnectionReestablishmentCompleteTestCase : public RrcHeaderTestCase
 {
@@ -1044,9 +1044,9 @@ NrRrcConnectionReestablishmentCompleteTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Rrc Connection Reject Test Case
+ * @brief Rrc Connection Reject Test Case
  */
 class NrRrcConnectionRejectTestCase : public RrcHeaderTestCase
 {
@@ -1097,9 +1097,9 @@ NrRrcConnectionRejectTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Measurement Report Test Case
+ * @brief Measurement Report Test Case
  */
 class NrMeasurementReportTestCase : public RrcHeaderTestCase
 {
@@ -1234,9 +1234,9 @@ NrMeasurementReportTestCase::DoRun()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  *
- * \brief Asn1Encoding Test Suite
+ * @brief Asn1Encoding Test Suite
  */
 class NrAsn1EncodingSuite : public TestSuite
 {
@@ -1262,7 +1262,7 @@ NrAsn1EncodingSuite::NrAsn1EncodingSuite()
 }
 
 /**
- * \ingroup nr-test
+ * @ingroup nr-test
  * Static variable for test initialization
  */
 NrAsn1EncodingSuite g_nrAsn1EncodingSuite;

@@ -4,10 +4,10 @@
 
 #include "nr-spectrum-value-helper.h"
 
+#include "ns3/abort.h"
+#include "ns3/fatal-error.h"
+#include "ns3/log.h"
 #include "ns3/simulator.h"
-#include <ns3/abort.h>
-#include <ns3/fatal-error.h>
-#include <ns3/log.h>
 
 #include <cmath>
 #include <map>
@@ -22,9 +22,9 @@ struct NrSpectrumModelId
     /**
      * Constructor
      *
-     * \param f center frequency
-     * \param b bandwidth in RBs
-     * \param s subcarrierSpacing
+     * @param f center frequency
+     * @param b bandwidth in RBs
+     * @param s subcarrierSpacing
      */
     NrSpectrumModelId(double f, uint16_t b, double s);
     double frequency;   ///<
@@ -40,10 +40,10 @@ NrSpectrumModelId::NrSpectrumModelId(double f, uint16_t b, double s)
 }
 
 /**
- * \brief Operator < so that it can be the key in a g_nrSpectrumModelMap
- * \param a lhs
- * \param b rhs
- * \returns true if earfcn less than or if earfcn equal and bandwidth less than or if earfcn and
+ * @brief Operator < so that it can be the key in a g_nrSpectrumModelMap
+ * @param a lhs
+ * @param b rhs
+ * @returns true if earfcn less than or if earfcn equal and bandwidth less than or if earfcn and
  * bandwidth equal and sucarrier spacing less than
  */
 bool

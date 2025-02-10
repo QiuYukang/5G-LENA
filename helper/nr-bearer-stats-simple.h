@@ -19,7 +19,7 @@ namespace ns3
 {
 
 /*
- * \ingroup helpers
+ * @ingroup helpers
  *
  * Defines the minimum set of functions that RLC or PDC stats class should implement.
  * See also NrBearerStatsSimple and NrBearerStatsSimple.
@@ -30,7 +30,7 @@ class NrBearerStatsBase : public Object
     // Inherited from ns3::Object
     /**
      *  Register this type.
-     *  \return The object TypeId.
+     *  @return The object TypeId.
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -93,9 +93,9 @@ class NrBearerStatsBase : public Object
 };
 
 /**
- * \ingroup helpers
+ * @ingroup helpers
  *
- * \brief
+ * @brief
  *
  * This class writes RLC or PDC statistics to separate files:
  *   - DL TX statistics
@@ -124,7 +124,7 @@ class NrBearerStatsSimple : public NrBearerStatsBase
     // Inherited from ns3::Object
     /**
      *  Register this type.
-     *  \return The object TypeId.
+     *  @return The object TypeId.
      */
     static TypeId GetTypeId();
     void DoDispose() override;

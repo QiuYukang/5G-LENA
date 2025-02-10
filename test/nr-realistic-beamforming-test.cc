@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/antenna-module.h>
-#include <ns3/core-module.h>
-#include <ns3/mobility-module.h>
-#include <ns3/nr-module.h>
-#include <ns3/spectrum-model.h>
-#include <ns3/three-gpp-channel-model.h>
-#include <ns3/three-gpp-propagation-loss-model.h>
-#include <ns3/three-gpp-spectrum-propagation-loss-model.h>
+#include "ns3/antenna-module.h"
+#include "ns3/core-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/nr-module.h"
+#include "ns3/spectrum-model.h"
+#include "ns3/three-gpp-channel-model.h"
+#include "ns3/three-gpp-propagation-loss-model.h"
+#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
 
 namespace ns3
 {
@@ -17,10 +17,10 @@ namespace ns3
 NS_LOG_COMPONENT_DEFINE("NrRealisticBeamformingTest");
 
 /**
- * \ingroup test
- * \file nr-realistic-beamforming-test.cc
+ * @ingroup test
+ * @file nr-realistic-beamforming-test.cc
  *
- * \brief This test tests how different levels of received SINR SRS
+ * @brief This test tests how different levels of received SINR SRS
  * affect the realistic beamforming algorithm performance. What is expected
  * is that when SINR is high that realistic beamforming algorithm will
  * select the same beamforming vector pair as it would ideal beamforming

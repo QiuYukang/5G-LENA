@@ -4,9 +4,9 @@
 
 /**
  *
- * \file cttc-3gpp-channel-nums-fdm.cc
- * \ingroup examples
- * \brief Frequency division multiplexing example, with TDD and FDD
+ * @file cttc-3gpp-channel-nums-fdm.cc
+ * @ingroup examples
+ * @brief Frequency division multiplexing example, with TDD and FDD
  *
  * The example is showing how to configure multiple bandwidth parts, in which
  * some of them form a FDD configuration, while others uses TDD. The user

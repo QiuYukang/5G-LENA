@@ -1010,7 +1010,7 @@ NrRlcAm::DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams)
             NS_LOG_LOGIC("Reordering timer is running");
             if ((m_vrX == m_vrR) || ((!IsInsideReceivingWindow(m_vrX)) && (m_vrX != m_vrMr)))
             {
-                /// \todo stop and reset the t-Reordering
+                /// @todo stop and reset the t-Reordering
                 NS_LOG_LOGIC("Stop reordering timer");
                 m_reorderingTimer.Cancel();
             }
@@ -1217,7 +1217,7 @@ NrRlcAm::ReassembleAndDeliver(Ptr<Packet> packet)
             {
                 NS_LOG_LOGIC("INTERNAL ERROR: Not enough data in the packet ("
                              << packet->GetSize() << "). Needed LI=" << lengthIndicator);
-                /// \todo What to do in this case? Discard packet and continue? Or Assert?
+                /// @todo What to do in this case? Discard packet and continue? Or Assert?
             }
 
             // Split packet in two fragments

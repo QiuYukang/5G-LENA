@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 /**
- * \file rem-example.cc
- * \ingroup examples
- * \brief REM Creation Example
+ * @file rem-example.cc
+ * @ingroup examples
+ * @brief REM Creation Example
  *
  * This example describes how to setup a simulation using NrRadioEnvironmentMapHelper.
  *
@@ -21,7 +21,7 @@
  *  $ ./ns3 run "rem-example --simTag=u --remMode=UeCoverage"
  *  $ ./ns3 run "rem-example --simTag=b1 --remMode=BeamShape --typeOfRem=DlRem"
  *  $ ./ns3 run "rem-example --simTag=b2 --remMode=BeamShape --typeOfRem=UlRem"
- * \endcode
+ * @endcode
  *
  * DL or UL REM map can be selected by passing to the rem helper the desired
  * transmitting device(s) (RTD(s)) and receiving device (RRD), which for the DL
@@ -41,7 +41,7 @@
  *
  * \code{.unparsed}
  * $ gnuplot -p nr-rem--gnbs.txt nr-rem--ues.txt nr-rem--buildings.txt nr-rem--plot-rem.gnuplot
- * \endcode
+ * @endcode
  *
  * And the following files will be generated (in the root project folder if not specified
  * differently): nr-rem--sinr.png, nr-rem--snr.png and nr-rem--ipsd.png
@@ -50,6 +50,7 @@
 
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/buildings-module.h"
 #include "ns3/config-store.h"
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
@@ -60,7 +61,6 @@
 #include "ns3/nr-module.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/point-to-point-helper.h"
-#include <ns3/buildings-module.h>
 
 using namespace ns3;
 

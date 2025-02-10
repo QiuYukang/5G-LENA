@@ -6,14 +6,14 @@
 
 #include "nr-mac-scheduler-tdma.h"
 
-#include <ns3/traced-value.h>
+#include "ns3/traced-value.h"
 
 namespace ns3
 {
 
 /**
- * \ingroup scheduler
- * \brief The base for all the OFDMA schedulers
+ * @ingroup scheduler
+ * @brief The base for all the OFDMA schedulers
  *
  * An example of OFDMA-based scheduling is the following:
  * <pre>
@@ -43,26 +43,26 @@ namespace ns3
  * The DCI is created by CreateDlDci() or CreateUlDci(), which call CreateDci()
  * to perform the "hard" work.
  *
- * \see NrMacSchedulerOfdmaRR
- * \see NrMacSchedulerOfdmaPF
- * \see NrMacSchedulerOfdmaMR
+ * @see NrMacSchedulerOfdmaRR
+ * @see NrMacSchedulerOfdmaPF
+ * @see NrMacSchedulerOfdmaMR
  */
 class NrMacSchedulerOfdma : public NrMacSchedulerTdma
 {
   public:
     /**
-     * \brief GetTypeId
-     * \return The TypeId of the class
+     * @brief GetTypeId
+     * @return The TypeId of the class
      */
     static TypeId GetTypeId();
 
     /**
-     * \brief NrMacSchedulerOfdma constructor
+     * @brief NrMacSchedulerOfdma constructor
      */
     NrMacSchedulerOfdma();
 
     /**
-     * \brief Deconstructor
+     * @brief Deconstructor
      */
     ~NrMacSchedulerOfdma() override
     {
@@ -82,10 +82,10 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
         uint32_t maxSym) const override;
 
     /**
-     * \brief Advance the starting point by the number of symbols specified,
+     * @brief Advance the starting point by the number of symbols specified,
      * resetting the RB count to 0
-     * \param spoint Starting point
-     * \param symOfBeam Number of symbols for the beam
+     * @param spoint Starting point
+     * @param symOfBeam Number of symbols for the beam
      */
     void ChangeDlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 

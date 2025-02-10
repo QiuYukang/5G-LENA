@@ -11,13 +11,13 @@
 #include "nr-handover-management-sap.h"
 #include "nr-rrc-sap.h"
 
-#include <ns3/nstime.h>
+#include "ns3/nstime.h"
 
 namespace ns3
 {
 
 /**
- * \brief Implementation of the strongest cell handover algorithm, based on RSRP
+ * @brief Implementation of the strongest cell handover algorithm, based on RSRP
  *        measurements and Event A3.
  *
  * The algorithm utilizes Event A3 (Section 5.5.4.4 of 3GPP TS 36.331) UE
@@ -44,7 +44,7 @@ namespace ns3
  *                                               TimeValue (MilliSeconds (256)));
  *     NetDeviceContainer nrGnbDevs = nrHelper->InstallGnbDevice (gnbNodes);
  *
- * \note Setting the handover algorithm type and attributes after the call to
+ * @note Setting the handover algorithm type and attributes after the call to
  *       NrHelper::InstallGnbDevice does not have any effect to the devices
  *       that have already been installed.
  */
@@ -57,8 +57,8 @@ class NrA3RsrpHandoverAlgorithm : public NrHandoverAlgorithm
     ~NrA3RsrpHandoverAlgorithm() override;
 
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
 
@@ -82,8 +82,8 @@ class NrA3RsrpHandoverAlgorithm : public NrHandoverAlgorithm
      * Determines if a neighbour cell is a valid destination for handover.
      * Currently always return true.
      *
-     * \param cellId The cell ID of the neighbour cell.
-     * \return True if the cell is a valid destination for handover.
+     * @param cellId The cell ID of the neighbour cell.
+     * @return True if the cell is a valid destination for handover.
      */
     bool IsValidNeighbour(uint16_t cellId);
 

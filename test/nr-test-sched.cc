@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/nr-mac-sched-sap.h>
-#include <ns3/nr-mac-scheduler-ns3.h>
-#include <ns3/object-factory.h>
-#include <ns3/test.h>
+#include "ns3/nr-mac-sched-sap.h"
+#include "ns3/nr-mac-scheduler-ns3.h"
+#include "ns3/object-factory.h"
+#include "ns3/test.h"
 
 /**
- * \file nr-test-sched.cc
- * \ingroup test
+ * @file nr-test-sched.cc
+ * @ingroup test
  *
- * \brief The class is a stub for a future, unit-testing component for the various
+ * @brief The class is a stub for a future, unit-testing component for the various
  * kind of schedulers. The idea is to check what is happening to the scheduling
  * part following a black-box approach: passing inputs, and then see what
  * is the output, and if it is like we would expect. The reference API is the
@@ -22,8 +22,8 @@ namespace ns3
 {
 
 /**
- * \ingroup test
- * \brief The TestCschedSapUser class
+ * @ingroup test
+ * @brief The TestCschedSapUser class
  *
  * This class doesn't do absolutely nothing. Thank you for the attention.
  */
@@ -74,15 +74,15 @@ class TestCschedSapUser : public NrMacCschedSapUser
 class TestSchedSapUser;
 
 /**
- * \brief TestSched testcase
+ * @brief TestSched testcase
  */
 class NrSchedGeneralTestCase : public TestCase
 {
   public:
     /**
-     * \brief Create NrSchedGeneralTestCase
-     * \param scheduler Scheduler to test
-     * \param name Name of the test
+     * @brief Create NrSchedGeneralTestCase
+     * @param scheduler Scheduler to test
+     * @param name Name of the test
      */
     NrSchedGeneralTestCase(const std::string& scheduler, const std::string& name)
         : TestCase(name),
@@ -91,7 +91,7 @@ class NrSchedGeneralTestCase : public TestCase
     }
 
     /**
-     * \brief Destroy the object instance
+     * @brief Destroy the object instance
      */
     ~NrSchedGeneralTestCase() override
     {

@@ -4,15 +4,15 @@
 
 #include "ideal-beamforming-helper.h"
 
-#include <ns3/ideal-beamforming-algorithm.h>
-#include <ns3/log.h>
-#include <ns3/nr-gnb-net-device.h>
-#include <ns3/nr-gnb-phy.h>
-#include <ns3/nr-spectrum-phy.h>
-#include <ns3/nr-ue-net-device.h>
-#include <ns3/nr-ue-phy.h>
-#include <ns3/object-factory.h>
-#include <ns3/vector.h>
+#include "ns3/ideal-beamforming-algorithm.h"
+#include "ns3/log.h"
+#include "ns3/nr-gnb-net-device.h"
+#include "ns3/nr-gnb-phy.h"
+#include "ns3/nr-spectrum-phy.h"
+#include "ns3/nr-ue-net-device.h"
+#include "ns3/nr-ue-phy.h"
+#include "ns3/object-factory.h"
+#include "ns3/vector.h"
 
 namespace ns3
 {

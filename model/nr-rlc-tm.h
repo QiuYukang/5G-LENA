@@ -10,7 +10,7 @@
 
 #include "nr-rlc.h"
 
-#include <ns3/event-id.h>
+#include "ns3/event-id.h"
 
 #include <map>
 
@@ -30,8 +30,8 @@ class NrRlcTm : public NrRlc
     NrRlcTm();
     ~NrRlcTm() override;
     /**
-     * \brief Get the type ID.
-     * \return the object TypeId
+     * @brief Get the type ID.
+     * @return the object TypeId
      */
     static TypeId GetTypeId();
     void DoDispose() override;
@@ -39,14 +39,14 @@ class NrRlcTm : public NrRlc
     /**
      * RLC SAP
      *
-     * \param p packet
+     * @param p packet
      */
     void DoTransmitPdcpPdu(Ptr<Packet> p) override;
 
     /**
      * MAC SAP
      *
-     * \param txOpParams the NrMacSapUser::TxOpportunityParameters
+     * @param txOpParams the NrMacSapUser::TxOpportunityParameters
      */
     void DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams) override;
     /**
@@ -63,14 +63,14 @@ class NrRlcTm : public NrRlc
 
   private:
     /**
-     * \brief Store an incoming (from layer above us) PDU, waiting to transmit it
+     * @brief Store an incoming (from layer above us) PDU, waiting to transmit it
      */
     struct TxPdu
     {
         /**
-         * \brief TxPdu default constructor
-         * \param pdu the PDU
-         * \param time the arrival time
+         * @brief TxPdu default constructor
+         * @param pdu the PDU
+         * @param time the arrival time
          */
         TxPdu(const Ptr<Packet>& pdu, const Time& time)
             : m_pdu(pdu),

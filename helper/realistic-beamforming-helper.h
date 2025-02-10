@@ -4,10 +4,10 @@
 
 #include "beamforming-helper-base.h"
 
-#include <ns3/beamforming-vector.h>
-#include <ns3/node.h>
-#include <ns3/object-factory.h>
-#include <ns3/realistic-beamforming-algorithm.h>
+#include "ns3/beamforming-vector.h"
+#include "ns3/node.h"
+#include "ns3/object-factory.h"
+#include "ns3/realistic-beamforming-algorithm.h"
 
 #ifndef SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
 #define SRC_NR_HELPER_REALISTIC_BEAMFORMING_HELPER_H_
@@ -22,8 +22,8 @@ class NrUePhy;
 class NrSpectrumPhy;
 
 /**
- * \ingroup helper
- * \brief The RealisticBeamformingHelper class that helps user create beamforming tasks
+ * @ingroup helper
+ * @brief The RealisticBeamformingHelper class that helps user create beamforming tasks
  * and configure when these tasks should be executed. This helper also collects SRS measurements
  * for each gNB and UE. This helper class is currently compatible only with the
  * RealisticBeamformingAlgorithm.
@@ -44,10 +44,10 @@ class NrSpectrumPhy;
  */
 
 /**
- * \brief Calculate the Cantor function for two unsigned int
- * \param x1 first value max value 65535
- * \param x2 second value max value 65535
- * \return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
+ * @brief Calculate the Cantor function for two unsigned int
+ * @param x1 first value max value 65535
+ * @param x2 second value max value 65535
+ * @return \f$ (((x1 + x2) * (x1 + x2 + 1))/2) + x2; \f$ max value 4294836225
  */
 static constexpr uint32_t
 Cantor(uint32_t x1, uint32_t x2)
@@ -59,36 +59,36 @@ class RealisticBeamformingHelper : public BeamformingHelperBase
 {
   public:
     /**
-     * \brief Get the Type ID
-     * \return the TypeId of the instance
+     * @brief Get the Type ID
+     * @return the TypeId of the instance
      */
     static TypeId GetTypeId();
     /**
-     * \brief Adds the beamforming task to the list of tasks
-     * \gnbDev gNbDev pointer to gNB device
-     * \ueDev ueDev pointer to UE device
+     * @brief Adds the beamforming task to the list of tasks
+     * @gnbDev gNbDev pointer to gNB device
+     * @ueDev ueDev pointer to UE device
      */
     void AddBeamformingTask(const Ptr<NrGnbNetDevice>& gNbDev,
                             const Ptr<NrUeNetDevice>& ueDev) override;
 
     /**
-     * \brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
-     * \param srsSinr
-     * \param rnti
+     * @brief Function that forwards the SRS SINR to the correct RealisticBeamformingAlgorithm
+     * @param srsSinr
+     * @param rnti
      */
     void SaveSrsSinrReport(uint16_t cellId, uint16_t rnti, double srsSinr);
     /**
-     * \brief When the condition for triggering a beamforming update is fulfilled
+     * @brief When the condition for triggering a beamforming update is fulfilled
      * this function will be triggered
-     * \param cellId id that uniquely identifies the gNB phy
-     * \param rnti id that uniquely identifies the user of gNb
-     * \param srsSinr value of srsSinr to be passed to RealisticBeamformingAlgorithm
+     * @param cellId id that uniquely identifies the gNB phy
+     * @param rnti id that uniquely identifies the user of gNb
+     * @param srsSinr value of srsSinr to be passed to RealisticBeamformingAlgorithm
      */
     void TriggerBeamformingAlgorithm(uint16_t cellId, uint16_t rnti, double srsSinr);
 
     /**
-     * \brief SetBeamformingMethod
-     * \param beamformingMethod
+     * @brief SetBeamformingMethod
+     * @param beamformingMethod
      */
     void SetBeamformingMethod(const TypeId& beamformingMethod) override;
 

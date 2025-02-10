@@ -2,19 +2,19 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include <ns3/enum.h>
-#include <ns3/nr-eesm-cc-t1.h>
-#include <ns3/nr-eesm-cc-t2.h>
-#include <ns3/nr-eesm-error-model.h>
-#include <ns3/nr-eesm-ir-t1.h>
-#include <ns3/nr-eesm-ir-t2.h>
-#include <ns3/test.h>
+#include "ns3/enum.h"
+#include "ns3/nr-eesm-cc-t1.h"
+#include "ns3/nr-eesm-cc-t2.h"
+#include "ns3/nr-eesm-error-model.h"
+#include "ns3/nr-eesm-ir-t1.h"
+#include "ns3/nr-eesm-ir-t2.h"
+#include "ns3/test.h"
 
 /**
- * \file nr-test-l2sm-eesm.cc
- * \ingroup test
+ * @file nr-test-l2sm-eesm.cc
+ * @ingroup test
  *
- * \brief This test validates specific functions of the NR PHY abstraction model.
+ * @brief This test validates specific functions of the NR PHY abstraction model.
  * The test checks two issues: 1) LDPC base graph (BG) selection works properly, and 2)
  * BLER values are properly obtained from the BLER-SINR look up tables for different
  * block sizes, MCS Tables, BG types, and SINR values.
@@ -24,7 +24,7 @@ namespace ns3
 {
 
 /**
- * \brief NrL2smEesm testcase
+ * @brief NrL2smEesm testcase
  */
 class NrL2smEesmTestCase : public TestCase
 {
@@ -35,7 +35,7 @@ class NrL2smEesmTestCase : public TestCase
     }
 
     /**
-     * \brief Destroy the object instance
+     * @brief Destroy the object instance
      */
     ~NrL2smEesmTestCase() override
     {

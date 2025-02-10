@@ -7,7 +7,7 @@
 #include "nr-mac-sched-sap.h"
 #include "nr-phy-mac-common.h"
 
-#include <ns3/nstime.h>
+#include "ns3/nstime.h"
 
 #include <memory>
 
@@ -15,43 +15,43 @@ namespace ns3
 {
 
 /**
- * \ingroup scheduler
- * \brief Represent a DL Logical Channel of an UE
+ * @ingroup scheduler
+ * @brief Represent a DL Logical Channel of an UE
  *
  * The scheduler stores here the information that comes from BSR, arriving
  * from the gNB.
  *
  * Please use the unique ptr defined by the typedef LCPtr.
  *
- * \see Update
- * \see GetTotalSize
+ * @see Update
+ * @see GetTotalSize
  */
 class NrMacSchedulerLC
 {
   public:
     /**
-     * \brief NrMacSchedulerLC constructor
-     * \param conf Configuration of the LC
+     * @brief NrMacSchedulerLC constructor
+     * @param conf Configuration of the LC
      */
     NrMacSchedulerLC(const nr::LogicalChannelConfigListElement_s& conf);
     /**
-     * \brief NrMacSchedulerLC default constructor (deletec)
+     * @brief NrMacSchedulerLC default constructor (deletec)
      */
     NrMacSchedulerLC() = delete;
     /**
-     * \brief NrMacSchedulerLC copy constructor (deleted)
-     * \param o other instance
+     * @brief NrMacSchedulerLC copy constructor (deleted)
+     * @param o other instance
      */
     NrMacSchedulerLC(const NrMacSchedulerLC& o) = delete;
     /**
-     * \brief Overwrite all the parameters with the one contained in the message
-     * \param params the message received from the RLC layer, containing the information about the
+     * @brief Overwrite all the parameters with the one contained in the message
+     * @param params the message received from the RLC layer, containing the information about the
      * queues
      */
     void Update(const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params);
     /**
-     * \brief Get the total size of the LC
-     * \return the total size of the LC
+     * @brief Get the total size of the LC
+     * @return the total size of the LC
      */
     uint32_t GetTotalSize() const;
 
@@ -73,14 +73,14 @@ class NrMacSchedulerLC
 };
 
 /**
- * \brief Unique pointer to an instance of NrMacSchedulerLC
- * \ingroup scheduler
+ * @brief Unique pointer to an instance of NrMacSchedulerLC
+ * @ingroup scheduler
  */
 typedef std::unique_ptr<NrMacSchedulerLC> LCPtr;
 
 /**
- * \ingroup scheduler
- * \brief Represent an UE LCG (can be DL or UL)
+ * @ingroup scheduler
+ * @brief Represent an UE LCG (can be DL or UL)
  *
  * A Logical Channel Group has an id (represented by m_id) and can contain
  * logical channels. The LC are stored inside an unordered map, indexed
@@ -101,41 +101,41 @@ typedef std::unique_ptr<NrMacSchedulerLC> LCPtr;
  * have a misrepresentation between the ID inside the UEs and the ID inside
  * the scheduler, we should make sure that each LCG in UL has only one LC.
  *
- * \see UpdateInfo
+ * @see UpdateInfo
  */
 class NrMacSchedulerLCG
 {
   public:
     /**
-     * \brief NrMacSchedulerLCG constructor
-     * \param id The id of the LCG
+     * @brief NrMacSchedulerLCG constructor
+     * @param id The id of the LCG
      */
     NrMacSchedulerLCG(uint8_t id);
     /**
-     * \brief NrMacSchedulerLCG copy constructor (deleted)
-     * \param other other instance
+     * @brief NrMacSchedulerLCG copy constructor (deleted)
+     * @param other other instance
      */
     NrMacSchedulerLCG(const NrMacSchedulerLCG& other) = delete;
     /**
-     * \brief Check if the LCG contains the LC id specified
-     * \param lcId LC ID to check for
-     * \return true if the LCG contains the LC
+     * @brief Check if the LCG contains the LC id specified
+     * @param lcId LC ID to check for
+     * @return true if the LCG contains the LC
      */
     bool Contains(uint8_t lcId) const;
     /**
-     * \brief Get the number of LC currently in the LCG
-     * \return the number of LC
+     * @brief Get the number of LC currently in the LCG
+     * @return the number of LC
      */
     uint32_t NumOfLC() const;
     /**
-     * \brief Insert LC in the group
-     * \param lc LC to insert
-     * \return true if the insertion was fine (false in the case the LC already exists)
+     * @brief Insert LC in the group
+     * @param lc LC to insert
+     * @return true if the insertion was fine (false in the case the LC already exists)
      */
     bool Insert(LCPtr&& lc);
     /**
-     * \brief Update the LCG with a message coming from RLC in the gNB.
-     * \param params message from gNB RLC layer.
+     * @brief Update the LCG with a message coming from RLC in the gNB.
+     * @param params message from gNB RLC layer.
      *
      * The method is able to update the LC using all the information such as
      * Retx queue, Tx queue, and the various delays.
@@ -144,8 +144,8 @@ class NrMacSchedulerLCG
      */
     void UpdateInfo(const NrMacSchedSapProvider::SchedDlRlcBufferReqParameters& params);
     /**
-     * \brief Update the LCG with just the LCG occupancy. Used in UL case when a BSR is received.
-     * \param lcgQueueSize Sum of the size of all components in B
+     * @brief Update the LCG with just the LCG occupancy. Used in UL case when a BSR is received.
+     * @param lcgQueueSize Sum of the size of all components in B
      *
      * Used in the UL case, in which only the sum of the components are
      * available. For the LC, only the value m_rlcTransmissionQueueSize is updated.
@@ -154,49 +154,49 @@ class NrMacSchedulerLCG
      */
     void UpdateInfo(uint32_t lcgQueueSize);
     /**
-     * \brief Get the total size of the LCG
-     * \return the total size of the LCG
+     * @brief Get the total size of the LCG
+     * @return the total size of the LCG
      */
     uint32_t GetTotalSize() const;
 
     /**
-     * \brief Get TotalSize Of LC
-     * \param lcId LC ID
-     * \return the total size of the LC
+     * @brief Get TotalSize Of LC
+     * @param lcId LC ID
+     * @return the total size of the LC
      */
     uint32_t GetTotalSizeOfLC(uint8_t lcId) const;
 
     /**
-     * \brief Get a vector of LC ID
-     * \return a vector with all the LC id present in this LCG
+     * @brief Get a vector of LC ID
+     * @return a vector with all the LC id present in this LCG
      */
     std::vector<uint8_t> GetLCId() const;
 
     /**
-     * \brief Get a vector of the active LC IDs
-     * \return a vector with all the LC ids in this LCG that have data
+     * @brief Get a vector of the active LC IDs
+     * @return a vector with all the LC ids in this LCG that have data
      */
     std::vector<uint8_t> GetActiveLCIds() const;
 
     /**
-     * \brief Get the QoS Class Identifier of the flow
-     * \param lcId LC ID
-     * \return the QoS Class Identifier of the flow with lcId
+     * @brief Get the QoS Class Identifier of the flow
+     * @param lcId LC ID
+     * @return the QoS Class Identifier of the flow with lcId
      */
     uint8_t GetQci(uint8_t lcId) const;
 
     /**
-     * \brief Get the LC Ptr for a specific LC ID
-     * \param lcId LC ID
-     * \return the LC Ptr for the LC ID
+     * @brief Get the LC Ptr for a specific LC ID
+     * @param lcId LC ID
+     * @return the LC Ptr for the LC ID
      */
     std::unique_ptr<NrMacSchedulerLC>& GetLC(uint8_t lcId);
 
     /**
-     * \brief Inform the LCG of the assigned data to a LC id
-     * \param lcId the LC id to which the data was assigned
-     * \param size amount of assigned data
-     * \param type String representing the type of allocation currently in act (DL or UL)
+     * @brief Inform the LCG of the assigned data to a LC id
+     * @param lcId the LC id to which the data was assigned
+     * @param size amount of assigned data
+     * @param type String representing the type of allocation currently in act (DL or UL)
      */
     void AssignedData(uint8_t lcId, uint32_t size, std::string type);
 
@@ -208,8 +208,8 @@ class NrMacSchedulerLCG
 };
 
 /**
- * \brief LCGPtr unique pointer to a LCG
- * \ingroup scheduler
+ * @brief LCGPtr unique pointer to a LCG
+ * @ingroup scheduler
  */
 typedef std::unique_ptr<NrMacSchedulerLCG> LCGPtr;
 

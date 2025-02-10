@@ -5,9 +5,9 @@
 
 #include "traffic-generator-test.h"
 
-#include <ns3/boolean.h>
-#include <ns3/ping-helper.h>
-#include <ns3/rng-seed-manager.h>
+#include "ns3/boolean.h"
+#include "ns3/ping-helper.h"
+#include "ns3/rng-seed-manager.h"
 
 namespace ns3
 {
