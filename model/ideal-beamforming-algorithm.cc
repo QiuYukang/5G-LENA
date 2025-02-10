@@ -816,7 +816,7 @@ KroneckerQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& g
     BeamformingVector ueBfv = {uebfV, OMNI_BEAM_ID};
     ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>()->SetBeamformingVector(uebfV);
 
-    // configure gNB beamforming vector to be Kronecer
+    // configure gNB beamforming vector to be Kronecker
     Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
     double maxPower = 0;
     BeamformingVector gnbBfv;

@@ -168,7 +168,7 @@ TrafficGeneratorNgmnFtpTestCase::DoRun()
 
     uint64_t averageFileSize = totalFileSizeBytes / repetitions;
     Time averageReadingTime = totalReadingTime / repetitions;
-    // According to the NMGN white paper the mean value should be aprox. 2MBytes
+    // According to the NMGN white paper the mean value should be approx. 2MBytes
     NS_TEST_ASSERT_MSG_EQ_TOL(averageFileSize,
                               2e6,
                               2e6 * 0.1,

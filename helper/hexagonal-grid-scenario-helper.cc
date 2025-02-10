@@ -223,7 +223,7 @@ PlotHexagonalDeployment(const Ptr<const ListPositionAllocator>& sitePosVector,
                         << " rto " << arrowLength * std::cos(angleRad) << ","
                         << arrowLength * std::sin(angleRad) << " arrowstyle 1 \n";
 
-        // Draw the hexagon arond the cell center
+        // Draw the hexagon around the cell center
         topologyOutfile << "set object " << cellId + 1 << " polygon from \\\n";
 
         for (uint16_t vertexId = 0; vertexId <= 6; ++vertexId)

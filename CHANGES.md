@@ -348,7 +348,7 @@ into account the resource type and the e_rabGuaranteedBitRate of a flow.
 
 This release contains the upgrade of the supported ns-3 release, i.e., upgrade
 from ns-3.37 to ns-3.38, including updating to the new and updated interfaces in
-antenna and spectrum module (ns-3 !1046 abd ns-3 !1269).
+antenna and spectrum module (ns-3 !1046 and ns-3 !1269).
 
 ### New API:
 
