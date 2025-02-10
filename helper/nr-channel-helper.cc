@@ -117,17 +117,6 @@ NrChannelHelper::CreateChannel(uint8_t flags)
         {
             channelObject = matrixChannelClassPtr.Get<MatrixBasedChannelModel>();
             channelObject->AggregateObject(spectrumLossModel);
-
-            // Break the circular dependency between channel and spectrumLoss objects
-            // before disposing the objects to avoid a memory leak until ns-3.44
-            auto threeGppSpecProp =
-                DynamicCast<ThreeGppSpectrumPropagationLossModel>(spectrumLossModel);
-            if (threeGppSpecProp)
-            {
-                Simulator::ScheduleDestroy(&ThreeGppSpectrumPropagationLossModel::SetChannelModel,
-                                           threeGppSpecProp,
-                                           CreateObject<ThreeGppChannelModel>());
-            }
         }
         else
         {
