@@ -685,6 +685,7 @@ NrGnbPhy::QueueMib()
 {
     NS_LOG_FUNCTION(this);
     NrRrcSap::MasterInformationBlock mib;
+    mib.numerology = GetNumerology();
     mib.dlBandwidth = GetChannelBandwidth() / (1000 * 100);
     mib.systemFrameNumber = 1;
     Ptr<NrMibMessage> mibMsg = Create<NrMibMessage>();

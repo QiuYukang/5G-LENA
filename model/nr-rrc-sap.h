@@ -625,6 +625,7 @@ class NrRrcSap
     /// MasterInformationBlock structure
     struct MasterInformationBlock
     {
+        int numerology;             ///< numerology
         uint16_t dlBandwidth;       ///< DL bandwidth
         uint16_t systemFrameNumber; ///< system frame number
     };

@@ -2444,6 +2444,7 @@ NrGnbRrc::ConfigureCell(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccPhyCon
     {
         // Enabling MIB transmission
         NrRrcSap::MasterInformationBlock mib;
+        mib.numerology = it.second->GetPhy()->GetNumerology();
         mib.dlBandwidth = it.second->GetDlBandwidth();
         mib.systemFrameNumber = 0;
         m_cphySapProvider.at(it.first)->SetMasterInformationBlock(mib);

@@ -791,6 +791,7 @@ NrHandoverPreparationInfoTestCase::DoRun()
     msg.asConfig.sourceDlCarrierFreq = 3;
     msg.asConfig.sourceUeIdentity = 11;
     msg.asConfig.sourceRadioResourceConfig = CreateRadioResourceConfigDedicated();
+    msg.asConfig.sourceMasterInformationBlock.numerology = 3;
     msg.asConfig.sourceMasterInformationBlock.dlBandwidth = 50;
     msg.asConfig.sourceMasterInformationBlock.systemFrameNumber = 1;
 
@@ -839,6 +840,9 @@ NrHandoverPreparationInfoTestCase::DoRun()
     NS_TEST_ASSERT_MSG_EQ(source.GetAsConfig().sourceUeIdentity,
                           destination.GetAsConfig().sourceUeIdentity,
                           "sourceUeIdentity");
+    NS_TEST_ASSERT_MSG_EQ(source.GetAsConfig().sourceMasterInformationBlock.numerology,
+                          destination.GetAsConfig().sourceMasterInformationBlock.numerology,
+                          "numerology");
     NS_TEST_ASSERT_MSG_EQ(source.GetAsConfig().sourceMasterInformationBlock.dlBandwidth,
                           destination.GetAsConfig().sourceMasterInformationBlock.dlBandwidth,
                           "dlBandwidth");

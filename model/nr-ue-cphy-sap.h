@@ -101,6 +101,13 @@ class NrUeCphySapProvider
     virtual uint32_t GetDlEarfcn() = 0;
 
     /**
+     * Set numerology
+     *
+     * @param numerology the numerology to be used
+     */
+    virtual void SetNumerology(uint16_t numerology) = 0;
+
+    /**
      * @param dlBandwidth the DL bandwidth in number of PRBs
      */
     virtual void SetDlBandwidth(uint16_t dlBandwidth) = 0;
@@ -299,6 +306,7 @@ class MemberNrUeCphySapProvider : public NrUeCphySapProvider
     MemberNrUeCphySapProvider() = delete;
 
     // inherited from NrUeCphySapProvider
+    void SetNumerology(uint16_t numerology) override;
     void Reset() override;
     void StartCellSearch(uint32_t dlEarfcn) override;
     void SynchronizeWithGnb(uint16_t cellId) override;
@@ -368,6 +376,13 @@ uint32_t
 MemberNrUeCphySapProvider<C>::GetDlEarfcn()
 {
     return m_owner->DoGetDlEarfcn();
+}
+
+template <class C>
+void
+MemberNrUeCphySapProvider<C>::SetNumerology(uint16_t numerology)
+{
+    m_owner->SetNumerology(numerology);
 }
 
 template <class C>

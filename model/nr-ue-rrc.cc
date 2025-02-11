@@ -864,6 +864,8 @@ NrUeRrc::DoRecvMasterInformationBlock(uint16_t cellId, NrRrcSap::MasterInformati
 {
     m_dlBandwidth = msg.dlBandwidth;
     m_cphySapProvider.at(GetPrimaryDlIndex())->SetDlBandwidth(msg.dlBandwidth);
+    m_cphySapProvider.at(GetPrimaryDlIndex())->SetNumerology(msg.numerology);
+    m_cphySapProvider.at(GetPrimaryUlIndex())->SetNumerology(msg.numerology);
     m_hasReceivedMib = true;
     m_mibReceivedTrace(m_imsi, m_cellId, m_rnti, cellId);
 

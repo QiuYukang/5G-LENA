@@ -6018,6 +6018,7 @@ NrHandoverPreparationInfoHeader::PreSerialize() const
 
     // Serialize sourceMasterInformationBlock
     SerializeSequence(std::bitset<0>(), false);
+    SerializeInteger(m_asConfig.sourceMasterInformationBlock.numerology, 0, 6); // numerology
     SerializeEnum(
         6,
         BandwidthToEnum(m_asConfig.sourceMasterInformationBlock.dlBandwidth)); // dl-Bandwidth
@@ -6112,6 +6113,10 @@ NrHandoverPreparationInfoHeader::Deserialize(Buffer::Iterator bIterator)
 
                 // Deserialize sourceMasterInformationBlock
                 bIterator = DeserializeSequence(&bitset0, false, bIterator);
+                bIterator = DeserializeInteger(&m_asConfig.sourceMasterInformationBlock.numerology,
+                                               0,
+                                               6,
+                                               bIterator);     // numerology
                 bIterator = DeserializeEnum(6, &n, bIterator); // dl-Bandwidth
                 m_asConfig.sourceMasterInformationBlock.dlBandwidth = EnumToBandwidth(n);
 

@@ -1576,6 +1576,12 @@ NrUePhy::StartEventLoop(uint16_t frame, uint8_t subframe, uint16_t slot)
     {
         NS_LOG_INFO("Initial bandwidth not set, configuring the default one for Cell ID: "
                     << GetCellId() << ", RNTI: " << GetRnti() << ", BWP ID: " << GetBwpId());
+        if (GetSubcarrierSpacing() == 0)
+        {
+            NS_LOG_INFO("No numerology was set, assuming numerology 0 for Cell ID: "
+                        << GetCellId() << ", RNTI: " << GetRnti() << ", BWP ID: " << GetBwpId());
+            SetNumerology(0);
+        }
         DoSetInitialBandwidth();
     }
 
