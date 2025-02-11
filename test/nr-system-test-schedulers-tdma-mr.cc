@@ -6,6 +6,8 @@
 
 #include "ns3/test.h"
 
+#include <map>
+
 using namespace ns3;
 
 /**
@@ -51,6 +53,12 @@ NrSystemTestSchedulerTdmaMrSuite::NrSystemTestSchedulerTdmaMrSuite()
     std::list<std::string> scheds = {"MR"};
     std::list<TxMode> mode = {DL, UL, DL_UL};
     std::list<uint32_t> uesPerBeamList = {1, 2, 4, 8};
+    std::map<uint32_t, Duration> durationForUesPerBeam = {
+        {1, Duration::QUICK},
+        {2, Duration::QUICK},
+        {4, Duration::EXTENSIVE},
+        {8, Duration::EXTENSIVE},
+    };
     std::list<uint32_t> beams = {1, 2};
     std::list<uint32_t> numerologies = {
         0,
@@ -97,7 +105,7 @@ NrSystemTestSchedulerTdmaMrSuite::NrSystemTestSchedulerTdmaMrSuite()
                                                                 isDl,
                                                                 isUl,
                                                                 schedName.str()),
-                                        Duration::QUICK);
+                                        durationForUesPerBeam.at(uesPerBeam));
                         }
                     }
                 }
