@@ -109,18 +109,16 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint32_t txNumCols = static_cast<uint32_t>(uintValue.Get());
+    uint16_t txNumCols = static_cast<uint16_t>(uintValue.Get());
     ueSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint32_t rxNumCols = static_cast<uint32_t>(uintValue.Get());
+    uint16_t rxNumCols = static_cast<uint16_t>(uintValue.Get());
 
     NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems() &&
               ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems());
 
-    uint16_t numColsTx = static_cast<uint16_t>(txNumCols);
-    uint16_t numColsRx = static_cast<uint16_t>(rxNumCols);
     for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t txSector = 0; txSector < numColsTx; txSector++)
+        for (uint16_t txSector = 0; txSector < txNumCols; txSector++)
         {
             NS_ASSERT(txSector < UINT16_MAX);
 
@@ -133,10 +131,9 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                 maxTxW = txW; // initialize maxTxW
             }
 
-            for (double rxTheta = 60; rxTheta < 121;
-                 rxTheta = static_cast<uint16_t>(rxTheta + m_beamSearchAngleStep))
+            for (double rxTheta = 60; rxTheta < 121; rxTheta = rxTheta + m_beamSearchAngleStep)
             {
-                for (uint16_t rxSector = 0; rxSector < numColsRx; rxSector++)
+                for (uint16_t rxSector = 0; rxSector < rxNumCols; rxSector++)
                 {
                     NS_ASSERT(rxSector < UINT16_MAX);
 
@@ -279,7 +276,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint32_t txNumCols = static_cast<uint32_t>(uintValue.Get());
+    uint16_t txNumCols = static_cast<uint16_t>(uintValue.Get());
 
     ueSpectrumPhy->GetBeamManager()
         ->ChangeToQuasiOmniBeamformingVector(); // we have to set it immediately to q-omni so that
@@ -290,10 +287,9 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
         ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
     BeamformingVector ueBfv = std::make_pair(rxW, OMNI_BEAM_ID);
 
-    uint16_t numCols = static_cast<uint16_t>(txNumCols);
     for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t txSector = 0; txSector < numCols; txSector++)
+        for (uint16_t txSector = 0; txSector < txNumCols; txSector++)
         {
             NS_ASSERT(txSector < UINT16_MAX);
 
