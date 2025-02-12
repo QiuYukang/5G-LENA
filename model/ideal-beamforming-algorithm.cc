@@ -120,7 +120,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
     uint16_t numRowsRx = static_cast<uint16_t>(rxNumRows);
     for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t txSector = 0; txSector <= numRowsTx; txSector++)
+        for (uint16_t txSector = 0; txSector < numRowsTx; txSector++)
         {
             NS_ASSERT(txSector < UINT16_MAX);
 
@@ -136,7 +136,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
             for (double rxTheta = 60; rxTheta < 121;
                  rxTheta = static_cast<uint16_t>(rxTheta + m_beamSearchAngleStep))
             {
-                for (uint16_t rxSector = 0; rxSector <= numRowsRx; rxSector++)
+                for (uint16_t rxSector = 0; rxSector < numRowsRx; rxSector++)
                 {
                     NS_ASSERT(rxSector < UINT16_MAX);
 
@@ -293,7 +293,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
     uint16_t numRows = static_cast<uint16_t>(txNumRows);
     for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t txSector = 0; txSector <= numRows; txSector++)
+        for (uint16_t txSector = 0; txSector < numRows; txSector++)
         {
             NS_ASSERT(txSector < UINT16_MAX);
 

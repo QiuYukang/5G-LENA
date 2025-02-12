@@ -322,7 +322,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
 
     for (double gnbTheta = 60; gnbTheta < 121; gnbTheta = gnbTheta + m_beamSearchAngleStep)
     {
-        for (uint16_t gnbSector = 0; gnbSector <= gnbNumRows; gnbSector++)
+        for (uint16_t gnbSector = 0; gnbSector < gnbNumRows; gnbSector++)
         {
             NS_ASSERT(gnbSector < UINT16_MAX);
             m_gnbSpectrumPhy->GetBeamManager()->SetSector(gnbSector, gnbTheta);
@@ -332,7 +332,7 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
             for (double ueTheta = 60; ueTheta < 121;
                  ueTheta = static_cast<uint16_t>(ueTheta + m_beamSearchAngleStep))
             {
-                for (uint16_t ueSector = 0; ueSector <= ueNumRows; ueSector++)
+                for (uint16_t ueSector = 0; ueSector < ueNumRows; ueSector++)
                 {
                     NS_ASSERT(ueSector < UINT16_MAX);
                     m_ueSpectrumPhy->GetBeamManager()->SetSector(ueSector, ueTheta);
