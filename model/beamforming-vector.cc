@@ -59,11 +59,11 @@ CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
                      uint16_t sector,
                      double elevation)
 {
-    UintegerValue uintValueNumRows;
-    antenna->GetAttribute("NumRows", uintValueNumRows);
+    UintegerValue uintValueNumColumns;
+    antenna->GetAttribute("NumColumns", uintValueNumColumns);
 
     double hAngle_radian =
-        M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumRows.Get())) -
+        M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumColumns.Get())) -
         0.5 * M_PI;
     double vAngle_radian = elevation * M_PI / 180;
     uint16_t size = antenna->GetNumElems();
@@ -85,8 +85,8 @@ CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
 PhasedArrayModel::ComplexVector
 CreateDirectionalBfvAz(const Ptr<const UniformPlanarArray>& antenna, double azimuth, double zenith)
 {
-    UintegerValue uintValueNumRows;
-    antenna->GetAttribute("NumRows", uintValueNumRows);
+    UintegerValue uintValueNumColumns;
+    antenna->GetAttribute("NumColumns", uintValueNumColumns);
 
     double hAngle_radian = azimuth * M_PI / 180;
     double vAngle_radian = zenith * M_PI / 180;
