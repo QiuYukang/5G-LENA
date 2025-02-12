@@ -9,6 +9,7 @@
 #include "ns3/traced-value.h"
 
 #include <set>
+#include <unordered_set>
 
 namespace ns3
 {
@@ -93,10 +94,27 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
 
     void ChangeUlBeam(PointInFTPlane* spoint, uint32_t symOfBeam) const override;
 
+    /**
+     * @brief Calculate the number of symbols to assign to each beam by calling using the technique
+     * selected in m_symPerBeamType
+     * @param symAvail Number of available symbols
+     * @param activeDl Map of active DL UE and their beam
+     * @return symbols per beam allocation map
+     */
     NrMacSchedulerOfdma::BeamSymbolMap GetSymPerBeam(uint32_t symAvail,
                                                      const ActiveUeMap& activeDl) const;
 
     uint8_t GetTpc() const override;
+
+    /**
+     * @brief Enumeration of techniques to distribute the available symbols to the active beams
+     */
+    enum class SymPerBeamType
+    {
+        LOAD_BASED, //!< Distributes symbols to beams proportionally to the buffer size of its users
+        ROUND_ROBIN, //!< Distributes all symbols to the first active beam in the m_rrBeams queue
+        PROPORTIONAL_FAIR //!< Distributes symbols to beams proportionally to mean achievable rate
+    };
 
   private:
     /**
@@ -203,5 +221,43 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
 
     TracedValue<uint32_t>
         m_tracedValueSymPerBeam; //!< Variable to trace symbols per beam allocation
+
+    /**
+     *
+     * @brief Calculate the number of symbols to assign to each beam based on beam's UEs buffer load
+     * @param symAvail Number of available symbols
+     * @param activeDl Map of active DL UE and their beam
+     * @return symbols per beam allocation map
+     * Each beam has a different requirement in terms of byte that should be
+     * transmitted with that beam. That requirement depends on the number of UE
+     * that are inside such beam, and how many bytes they have to transmit.
+     *
+     * For the beam \f$ b \f$, the number of assigned symbols is the following:
+     *
+     * \f$ sym_{b} = BufSize(b) * \frac{symAvail}{BufSizeTotal} \f$
+     */
+    NrMacSchedulerOfdma::BeamSymbolMap GetLoadBasedSymPerBeam(uint32_t symAvail,
+                                                              const ActiveUeMap& activeDl) const;
+    /**
+     *
+     * @brief Allocate all symbols to the first active beam in the round-robin queue
+     * @param symAvail Number of available symbols
+     * @param activeDl Map of active DL UE and their beam
+     * @return symbols per beam allocation map
+     */
+    NrMacSchedulerOfdma::BeamSymbolMap GetRRSymPerBeam(uint32_t symAvail,
+                                                       const ActiveUeMap& activeDl) const;
+    /**
+     * @brief Calculate the number of symbols to assign to each beam based on a PF approximation
+     * @param symAvail Number of available symbols
+     * @param activeDl Map of active DL UE and their beam
+     * @return symbols per beam allocation map
+     */
+    NrMacSchedulerOfdma::BeamSymbolMap GetPFSymPerBeam(uint32_t symAvail,
+                                                       const ActiveUeMap& activeDl) const;
+
+    SymPerBeamType m_symPerBeamType; //!< Holds the type of symbol scheduling done for each beam
+    mutable std::deque<BeamId> m_rrBeams; //!< Queue of order of beams to transmit
+    mutable std::unordered_set<BeamId, BeamIdHash> m_rrBeamsSet; //!< Set of known beams
 };
 } // namespace ns3

@@ -28,6 +28,16 @@ NrMacSchedulerOfdma::GetTypeId()
     static TypeId tid =
         TypeId("ns3::NrMacSchedulerOfdma")
             .SetParent<NrMacSchedulerTdma>()
+            .AddAttribute("SymPerBeamType",
+                          "Type of symbol allocation per beam",
+                          EnumValue(SymPerBeamType::LOAD_BASED),
+                          MakeEnumAccessor<SymPerBeamType>(&NrMacSchedulerOfdma::m_symPerBeamType),
+                          MakeEnumChecker<SymPerBeamType>(SymPerBeamType::LOAD_BASED,
+                                                          "LOAD_BASED",
+                                                          SymPerBeamType::ROUND_ROBIN,
+                                                          "ROUND_ROBIN",
+                                                          SymPerBeamType::PROPORTIONAL_FAIR,
+                                                          "PROPORTIONAL_FAIR"))
             .AddTraceSource(
                 "SymPerBeam",
                 "Number of assigned symbol per beam. Gets called every time an assignment is made",
@@ -41,23 +51,47 @@ NrMacSchedulerOfdma::NrMacSchedulerOfdma()
 {
 }
 
-/**
- *
- * @brief Calculate the number of symbols to assign to each beam
- * @param symAvail Number of available symbols
- * @param activeDl Map of active DL UE and their beam
- *
- * Each beam has a different requirement in terms of byte that should be
- * transmitted with that beam. That requirement depends on the number of UE
- * that are inside such beam, and how many bytes they have to transmit.
- *
- * For the beam \f$ b \f$, the number of assigned symbols is the following:
- *
- * \f$ sym_{b} = BufSize(b) * \frac{symAvail}{BufSizeTotal} \f$
- */
 NrMacSchedulerOfdma::BeamSymbolMap
 NrMacSchedulerOfdma::GetSymPerBeam(uint32_t symAvail,
                                    const NrMacSchedulerNs3::ActiveUeMap& activeDl) const
+{
+    BeamSymbolMap ret;
+    switch (m_symPerBeamType)
+    {
+    case SymPerBeamType::PROPORTIONAL_FAIR:
+        ret = GetPFSymPerBeam(symAvail, activeDl);
+        break;
+    case SymPerBeamType::ROUND_ROBIN:
+        ret = GetRRSymPerBeam(symAvail, activeDl);
+        break;
+    case SymPerBeamType::LOAD_BASED:
+        ret = GetLoadBasedSymPerBeam(symAvail, activeDl);
+        break;
+    default:
+        NS_ABORT_MSG("Invalid NrMacSchedulerOfdma::m_symPerBeamType");
+    }
+
+    // Ensure we have one entry per beam
+    for (const auto& [beam, ueVector] : activeDl)
+    {
+        if (ret.find(beam) == ret.end())
+        {
+            ret[beam] = 0;
+        }
+    }
+
+    // Trigger the trace source firing, using const_cast as we don't change
+    // the internal state of the class
+    for (const auto& v : ret)
+    {
+        const_cast<NrMacSchedulerOfdma*>(this)->m_tracedValueSymPerBeam = v.second;
+    }
+    return ret;
+}
+
+NrMacSchedulerOfdma::BeamSymbolMap
+NrMacSchedulerOfdma::GetLoadBasedSymPerBeam(uint32_t symAvail,
+                                            const NrMacSchedulerNs3::ActiveUeMap& activeDl) const
 {
     NS_LOG_FUNCTION(this);
 
@@ -113,13 +147,143 @@ NrMacSchedulerOfdma::GetSymPerBeam(uint32_t symAvail,
         }
     }
 
-    // Trigger the trace source firing, using const_cast as we don't change
-    // the internal state of the class
-    for (const auto& v : ret)
+    return ret;
+}
+
+NrMacSchedulerOfdma::BeamSymbolMap
+NrMacSchedulerOfdma::GetRRSymPerBeam(uint32_t symAvail,
+                                     const NrMacSchedulerNs3::ActiveUeMap& activeDl) const
+{
+    NS_LOG_FUNCTION(this);
+
+    BeamSymbolMap ret;
+
+    std::unordered_set<BeamId, BeamIdHash> activeBeams;
+    for (const auto& el : activeDl)
     {
-        const_cast<NrMacSchedulerOfdma*>(this)->m_tracedValueSymPerBeam = v.second;
+        // Add new beams to the round-robin queue
+        if (m_rrBeamsSet.find(el.first) == m_rrBeamsSet.end())
+        {
+            m_rrBeams.push_back(el.first);
+            m_rrBeamsSet.insert(el.first);
+        }
+        // Add active beam to set
+        activeBeams.insert(el.first);
     }
 
+    // Find first active beam in the round-robin queue
+    for (size_t i = 0; i < m_rrBeams.size(); ++i)
+    {
+        // Move round-robing front queue item to the end
+        m_rrBeams.push_back(m_rrBeams.front());
+        m_rrBeams.pop_front();
+
+        // If front beam in round-robing queue is active,
+        // allocate all available symbols to it
+        if (activeBeams.find(m_rrBeams.back()) != activeBeams.end())
+        {
+            ret.emplace(std::make_pair(m_rrBeams.back(), symAvail));
+            break;
+        }
+    }
+
+    return ret;
+}
+
+NrMacSchedulerOfdma::BeamSymbolMap
+NrMacSchedulerOfdma::GetPFSymPerBeam(uint32_t symAvail,
+                                     const NrMacSchedulerNs3::ActiveUeMap& activeDl) const
+{
+    NS_LOG_FUNCTION(this);
+
+    GetSecond GetUeVector;
+    BeamSymbolMap ret;
+
+    // Holds mean previousAchievableRate and current achievable rate for a given beam
+    std::unordered_map<BeamId, std::pair<uint64_t, uint64_t>, BeamIdHash> activeBeamsPrevAndCurrTBS;
+    for (const auto& el : activeDl)
+    {
+        // Add active beam to set
+        activeBeamsPrevAndCurrTBS[el.first] = {1, 1};
+    }
+
+    // Copy UE buffer size to a structure we can modify
+    std::unordered_map<std::shared_ptr<NrMacSchedulerUeInfo>, unsigned> ueRemainingBuffer;
+    for (const auto& el : activeDl)
+    {
+        for (const auto& ue : GetUeVector(el))
+        {
+            ueRemainingBuffer[ue.first] = ue.second;
+        }
+    }
+    // We calculate scheduling priority for each additional symbol
+    for (size_t sym = 1; sym <= symAvail; sym++)
+    {
+        BeamId maxPriorityBeam;
+        double maxPriorityBeamPFMetric = 0.0;
+
+        // For every beam
+        for (const auto& [beam, ueVector] : activeDl)
+        {
+            double sumThr = 0;
+            int activeUesInBeam = 0;
+            // And for active UE in each beam, estimate TB size
+            for (const auto& [ue, buff] : ueVector)
+            {
+                if (ueRemainingBuffer.at(ue) > 0)
+                {
+                    sumThr +=
+                        m_dlAmc->GetPayloadSize(ue->m_dlMcs, ue->m_dlRank, GetBandwidthInRbg());
+                    activeUesInBeam++;
+                }
+            }
+            // Then save TB size divided by number of active UEs to get the mean TBS
+            activeBeamsPrevAndCurrTBS[beam].second = sumThr / activeUesInBeam;
+
+            double currBeamPFMetric = activeBeamsPrevAndCurrTBS[beam].second /
+                                      ((double)activeBeamsPrevAndCurrTBS[beam].first / sym);
+            if (currBeamPFMetric > maxPriorityBeamPFMetric)
+            {
+                maxPriorityBeam = beam;
+                maxPriorityBeamPFMetric = currBeamPFMetric;
+            }
+        }
+
+        // We schedule maxPriorityBeam, but before that, let's reduce the UEs buffers in the
+        // scheduled beam, so we don't get disproportionally high TBS even though there is no data
+        // remaining to transmit
+        uint64_t bytesAllocated = activeBeamsPrevAndCurrTBS[maxPriorityBeam].second;
+
+        // Make a copy of UE vector, so we can sort it with peace of mind
+        auto ueVector = activeDl.at(maxPriorityBeam);
+        std::stable_sort(ueVector.begin(), ueVector.end(), [](auto a, auto b) {
+            return a.second < b.second;
+        });
+        for (const auto& [ue, buff] : ueVector)
+        {
+            auto& remBytes = ueRemainingBuffer.at(ue);
+            // If one UE buffer is cleared, we won't use its TBS in the next symbol
+            if (remBytes < bytesAllocated)
+            {
+                bytesAllocated -= remBytes;
+                remBytes = 0;
+            }
+            // In case the UE buffer is bigger than allocated bytes, we stop this
+            else
+            {
+                remBytes -= bytesAllocated;
+                break;
+            }
+        }
+        // Now we schedule maxPriorityBeam
+        activeBeamsPrevAndCurrTBS[maxPriorityBeam].first +=
+            activeBeamsPrevAndCurrTBS[maxPriorityBeam].second;
+        if (ret.find(maxPriorityBeam) == ret.end())
+        {
+            ret[maxPriorityBeam] = 0;
+        }
+        ret[maxPriorityBeam]++;
+    }
     return ret;
 }
 
