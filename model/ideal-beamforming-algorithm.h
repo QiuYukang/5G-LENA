@@ -62,16 +62,6 @@ class CellScanBeamforming : public IdealBeamformingAlgorithm
     static TypeId GetTypeId();
 
     /**
-     * @return Gets value of BeamSearchAngleStep attribute
-     */
-    double GetBeamSearchAngleStep() const;
-
-    /**
-     * @brief Sets the value of BeamSearchAngleStep attribute
-     */
-    void SetBeamSearchAngleStep(double beamSearchAngleStep);
-
-    /**
      * @brief constructor
      */
     CellScanBeamforming() = default;
@@ -93,7 +83,7 @@ class CellScanBeamforming : public IdealBeamformingAlgorithm
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
   private:
-    double m_beamSearchAngleStep{30}; //!< the beam search angle step attribute
+    uint8_t m_oversamplingFactor; //!< Number of samples per row and per column
 };
 
 /**

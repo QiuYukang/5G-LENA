@@ -79,7 +79,6 @@ main(int argc, char* argv[])
     std::string operationMode = "TDD"; // TDD or FDD (mixed TDD and FDD mode)
 
     bool cellScan = false;
-    double beamSearchAngleStep = 10.0;
 
     uint32_t udpPacketSizeUll = 915;
     uint32_t udpPacketSizeBe = 915;
@@ -134,9 +133,6 @@ main(int argc, char* argv[])
                  "Use beam search method to determine beamforming vector,"
                  "true to use cell scanning method",
                  cellScan);
-    cmd.AddValue("beamSearchAngleStep",
-                 "Beam search angle step for beam search method",
-                 beamSearchAngleStep);
     cmd.AddValue("packetSizeUll",
                  "packet size in bytes to be used by ultra low latency traffic",
                  udpPacketSizeUll);
@@ -258,8 +254,6 @@ main(int argc, char* argv[])
     {
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                              TypeIdValue(CellScanBeamforming::GetTypeId()));
-        idealBeamformingHelper->SetBeamformingAlgorithmAttribute("BeamSearchAngleStep",
-                                                                 DoubleValue(beamSearchAngleStep));
     }
     else
     {

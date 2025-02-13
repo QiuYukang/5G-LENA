@@ -55,9 +55,7 @@ CreateQuasiOmniBfv(const Ptr<const UniformPlanarArray>& antenna)
 }
 
 PhasedArrayModel::ComplexVector
-CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
-                     double sector,
-                     double elevation)
+CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna, double sector, double elevation)
 {
     UintegerValue uintValueNumColumns;
     antenna->GetAttribute("NumColumns", uintValueNumColumns);

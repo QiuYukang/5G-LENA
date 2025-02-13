@@ -149,8 +149,6 @@ SystemSchedulerTest::DoRun()
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                          TypeIdValue(CellScanBeamforming::GetTypeId()));
-    idealBeamformingHelper->SetBeamformingAlgorithmAttribute("BeamSearchAngleStep",
-                                                             DoubleValue(10.0));
 
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
     nrHelper->SetBeamformingHelper(idealBeamformingHelper);

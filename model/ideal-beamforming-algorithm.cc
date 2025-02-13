@@ -7,6 +7,7 @@
 #include "nr-spectrum-phy.h"
 
 #include "ns3/double.h"
+#include "ns3/integer.h"
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/node.h"
 #include "ns3/nr-spectrum-value-helper.h"
@@ -40,26 +41,13 @@ CellScanBeamforming::GetTypeId()
         TypeId("ns3::CellScanBeamforming")
             .SetParent<IdealBeamformingAlgorithm>()
             .AddConstructor<CellScanBeamforming>()
-            .AddAttribute("BeamSearchAngleStep",
-                          "Angle step when searching for the best beam",
-                          DoubleValue(30),
-                          MakeDoubleAccessor(&CellScanBeamforming::SetBeamSearchAngleStep,
-                                             &CellScanBeamforming::GetBeamSearchAngleStep),
-                          MakeDoubleChecker<double>());
+            .AddAttribute("OversamplingFactor",
+                          "Samples per antenna row/column",
+                          UintegerValue(1),
+                          MakeUintegerAccessor(&CellScanBeamforming::m_oversamplingFactor),
+                          MakeUintegerChecker<uint8_t>(1, 4));
 
     return tid;
-}
-
-void
-CellScanBeamforming::SetBeamSearchAngleStep(double beamSearchAngleStep)
-{
-    m_beamSearchAngleStep = beamSearchAngleStep;
-}
-
-double
-CellScanBeamforming::GetBeamSearchAngleStep() const
-{
-    return m_beamSearchAngleStep;
 }
 
 BeamformingVectorPair
@@ -107,21 +95,30 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
     PhasedArrayModel::ComplexVector maxTxW;
     PhasedArrayModel::ComplexVector maxRxW;
 
-    UintegerValue uintValue;
-    gnbSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint16_t txNumCols = static_cast<uint16_t>(uintValue.Get());
-    ueSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint16_t rxNumCols = static_cast<uint16_t>(uintValue.Get());
+    Ptr<UniformPlanarArray> gnbUpa = DynamicCast<UniformPlanarArray>(gnbSpectrumPhy->GetAntenna());
+    Ptr<UniformPlanarArray> ueUpa = DynamicCast<UniformPlanarArray>(ueSpectrumPhy->GetAntenna());
+    NS_ASSERT_MSG(gnbUpa, "gNB antenna should be UniformPlanarArray");
+    NS_ASSERT_MSG(ueUpa, "UE antenna should be UniformPlanarArray");
 
-    NS_ASSERT(gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems() &&
-              ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>()->GetNumElems());
+    uint16_t txNumCols = gnbUpa->GetNumColumns();
+    uint16_t txNumRows = gnbUpa->GetNumRows();
+    uint16_t rxNumCols = ueUpa->GetNumColumns();
+    uint16_t rxNumRows = ueUpa->GetNumRows();
 
-    for (double txTheta = 60; txTheta < 121; txTheta = txTheta + m_beamSearchAngleStep)
+    NS_ASSERT(gnbUpa->GetNumElems() && ueUpa->GetNumElems());
+
+    double txZenithStep = 180 / ((txNumRows > 1 ? m_oversamplingFactor : 1) * txNumRows);
+    double txSectorStep = 1.0 / (txNumCols > 1 ? m_oversamplingFactor : 1);
+    double rxZenithStep = 180 / ((rxNumRows > 1 ? m_oversamplingFactor : 1) * rxNumRows);
+    double rxSectorStep = 1.0 / (rxNumCols > 1 ? m_oversamplingFactor : 1);
+
+    for (double txZenith = 0; txZenith < 180; txZenith += txZenithStep)
     {
-        for (uint16_t txSector = 0; txSector < txNumCols; txSector++)
+        // Calculate beam elevation to center it into the middle of the wedge, and not at the start
+        double txTheta = txZenith + txZenithStep * 0.5;
+        for (double txSector = 0; txSector < txNumCols; txSector += txSectorStep)
         {
             NS_ASSERT(txSector < UINT16_MAX);
-
             gnbSpectrumPhy->GetBeamManager()->SetSector(txSector, txTheta);
             PhasedArrayModel::ComplexVector txW =
                 gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
@@ -131,9 +128,12 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                 maxTxW = txW; // initialize maxTxW
             }
 
-            for (double rxTheta = 60; rxTheta < 121; rxTheta = rxTheta + m_beamSearchAngleStep)
+            for (double rxZenith = 0; rxZenith < 180; rxZenith += txZenithStep)
             {
-                for (uint16_t rxSector = 0; rxSector < rxNumCols; rxSector++)
+                // Calculate beam elevation to center it into the middle of the wedge, and not at
+                // the start
+                double rxTheta = rxZenith + rxZenithStep * 0.5;
+                for (double rxSector = 0; rxSector < rxNumCols; rxSector += rxSectorStep)
                 {
                     NS_ASSERT(rxSector < UINT16_MAX);
 
@@ -163,7 +163,8 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
 
                     NS_LOG_LOGIC(
                         " Rx power: "
-                        << power << "txTheta " << txTheta << " rxTheta " << rxTheta << " tx sector "
+                        << power << " txTheta " << txTheta << " rxTheta " << rxTheta
+                        << " tx sector "
                         << (M_PI * static_cast<double>(txSector) / static_cast<double>(txNumCols) -
                             0.5 * M_PI) /
                                M_PI * 180
@@ -187,19 +188,24 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
         }
     }
 
-    BeamformingVector gnbBfv =
-        BeamformingVector(std::make_pair(maxTxW, BeamId(maxTxSector, maxTxTheta)));
-    BeamformingVector ueBfv =
-        BeamformingVector(std::make_pair(maxRxW, BeamId(maxRxSector, maxRxTheta)));
+    BeamformingVector gnbBfv = BeamformingVector(std::make_pair(
+        maxTxW,
+        BeamId(maxTxSector * (txNumCols > 1 ? m_oversamplingFactor : 1), maxTxTheta)));
+    BeamformingVector ueBfv = BeamformingVector(std::make_pair(
+        maxRxW,
+        BeamId(maxRxSector * (rxNumCols > 1 ? m_oversamplingFactor : 1), maxRxTheta)));
 
     NS_LOG_DEBUG(
-        "Beamforming vectors for gNB with node id: "
-        << gnbSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
-        << " and UE with node id: " << ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
-        << " are txTheta " << maxTxTheta << " rxTheta " << maxRxTheta << " tx sector "
+        "Beamforming vectors with max power "
+        << max
+        << " for gNB with node id: " << gnbSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
+        << " (" << gnbSpectrumPhy->GetMobility()->GetPosition()
+        << ") and UE with node id: " << ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
+        << " (" << ueSpectrumPhy->GetMobility()->GetPosition() << ") are txTheta " << maxTxTheta
+        << " tx sector "
         << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(txNumCols) - 0.5 * M_PI) /
                M_PI * 180
-        << " rx sector "
+        << " rxTheta " << maxRxTheta << " rx sector "
         << (M_PI * static_cast<double>(maxRxSector) / static_cast<double>(rxNumCols) - 0.5 * M_PI) /
                M_PI * 180);
 

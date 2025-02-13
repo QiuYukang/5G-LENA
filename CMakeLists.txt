@@ -491,6 +491,7 @@ set(test_sources
     test/nr-multipanel-test.cc
     test/ul-scheduling-test.cc
     test/nr-test-subband.cc
+    test/nr-ideal-beamforming-test.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \

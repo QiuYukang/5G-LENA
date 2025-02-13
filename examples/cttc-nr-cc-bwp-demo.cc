@@ -93,7 +93,6 @@ main(int argc, char* argv[])
         "F|F|F|F|F|F|F|F|F|F|"; // Pattern can be e.g. "DL|S|UL|UL|DL|DL|S|UL|UL|DL|"
     double totalTxPower = 8;
     bool cellScan = false;
-    double beamSearchAngleStep = 10.0;
 
     bool udpFullBuffer = false;
     uint32_t udpPacketSizeUll = 100;
@@ -150,9 +149,6 @@ main(int argc, char* argv[])
                  "Use beam search method to determine beamforming vector,"
                  "true to use cell scanning method",
                  cellScan);
-    cmd.AddValue("beamSearchAngleStep",
-                 "Beam search angle step for beam search method",
-                 beamSearchAngleStep);
     cmd.AddValue("udpFullBuffer",
                  "Whether to set the full buffer traffic; if this parameter is "
                  "set then the udpInterval parameter will be neglected.",
@@ -394,8 +390,6 @@ main(int argc, char* argv[])
     {
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                              TypeIdValue(CellScanBeamforming::GetTypeId()));
-        idealBeamformingHelper->SetBeamformingAlgorithmAttribute("BeamSearchAngleStep",
-                                                                 DoubleValue(beamSearchAngleStep));
     }
     else
     {

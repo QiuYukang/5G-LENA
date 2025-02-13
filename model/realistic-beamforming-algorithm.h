@@ -114,15 +114,6 @@ class RealisticBeamformingAlgorithm : public Object
      */
     virtual BeamformingVectorPair GetBeamformingVectors();
     /**
-     * @return Gets value of BeamSearchAngleStep attribute
-     */
-    double GetBeamSearchAngleStep() const;
-    /**
-     * @brief Sets the value of BeamSearchAngleStep attribute
-     * @param beamSearchAngleStep the beam search angle step value
-     */
-    void SetBeamSearchAngleStep(double beamSearchAngleStep);
-    /**
      * @brief Saves SRS SINR report
      * @param cellId the cell ID
      * @param rnti the RNTI of the UE
@@ -243,9 +234,10 @@ class RealisticBeamformingAlgorithm : public Object
     void DoDispose() override;
 
     // attribute members, configuration variables
-    double m_beamSearchAngleStep{30}; //!< The beam angle step that will be used to define the set
-                                      //!< of beams for which will be estimated the channel
-    bool m_useSnrSrs{true};           //!< SRS SNR used as measurement (attribute)
+    uint8_t m_oversamplingFactor; //!<  Number of samples per row and per column, that will be used
+                                  //!<  to define the set
+                                  //!< of beams for which will be estimated the channel
+    bool m_useSnrSrs{true};       //!< SRS SNR used as measurement (attribute)
     // variable members, counters, and saving values
     double m_maxSrsSinrPerSlot{
         0}; //!< the maximum SRS SINR/SNR per slot in Watts, e.g. if there are 4 SRS symbols per UE,

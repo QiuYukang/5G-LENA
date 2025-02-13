@@ -158,7 +158,6 @@ class Nr3gppIndoorCalibration
              uint16_t numerology,
              double totalTxPower,
              bool cellScan,
-             double beamSearchAngleStep,
              bool gNbAntennaModel,
              bool ueAntennaModel,
              std::string indoorScenario,
@@ -369,7 +368,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              uint16_t numerology,
                              double totalTxPower,
                              bool cellScan,
-                             double beamSearchAngleStep,
                              bool gNbAntennaModel,
                              bool ueAntennaModel,
                              std::string indoorScenario,
@@ -603,8 +601,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                              TypeIdValue(CellScanBeamforming::GetTypeId()));
-        idealBeamformingHelper->SetBeamformingAlgorithmAttribute("BeamSearchAngleStep",
-                                                                 DoubleValue(beamSearchAngleStep));
     }
     else
     {
@@ -757,7 +753,6 @@ main(int argc, char* argv[])
 
     uint32_t duration = 150;
     bool cellScan = false;
-    double beamSearchAngleStep = 10.0;
     bool enableGnbIso = true;
     bool enableUeIso = true;
     std::string indoorScenario = "InH-OfficeOpen";
@@ -780,9 +775,6 @@ main(int argc, char* argv[])
                  "Use beam search method to determine beamforming vector,"
                  "true to use cell scanning method",
                  cellScan);
-    cmd.AddValue("beamSearchAngleStep",
-                 "Beam search angle step for beam search method",
-                 beamSearchAngleStep);
     cmd.AddValue("enableGnbIso", "Enable Isotropic antenna for the gNB", enableGnbIso);
     cmd.AddValue("enableGnbIso", "Enable Isotropic antenna for the UE", enableUeIso);
     cmd.AddValue("indoorScenario",
@@ -820,7 +812,6 @@ main(int argc, char* argv[])
                                   numerology,
                                   totalTxPower,
                                   cellScan,
-                                  beamSearchAngleStep,
                                   enableGnbIso,
                                   enableUeIso,
                                   indoorScenario,

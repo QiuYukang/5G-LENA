@@ -67,12 +67,11 @@ RealisticBeamformingAlgorithm::GetTypeId()
             .SetParent<Object>()
             .AddConstructor<RealisticBeamformingAlgorithm>()
             .AddAttribute(
-                "BeamSearchAngleStep",
-                "Angle step when searching for the best beam",
-                DoubleValue(30),
-                MakeDoubleAccessor(&RealisticBeamformingAlgorithm::SetBeamSearchAngleStep,
-                                   &RealisticBeamformingAlgorithm::GetBeamSearchAngleStep),
-                MakeDoubleChecker<double>())
+                "OversamplingFactor",
+                "Samples per antenna row/column",
+                UintegerValue(1),
+                MakeUintegerAccessor(&RealisticBeamformingAlgorithm::m_oversamplingFactor),
+                MakeUintegerChecker<uint8_t>(1, 4))
             .AddAttribute("UseSnrSrs",
                           "Denotes whether the SRS measurement will be SNR or SINR. If False"
                           "SINR is used, if True the SNR",
@@ -108,18 +107,6 @@ RealisticBeamformingAlgorithm::GetTriggerEventConf() const
     conf.updatePeriodicity = realBf->GetUpdatePeriodicity();
     conf.updateDelay = realBf->GetUpdateDelay();
     return conf;
-}
-
-void
-RealisticBeamformingAlgorithm::SetBeamSearchAngleStep(double beamSearchAngleStep)
-{
-    m_beamSearchAngleStep = beamSearchAngleStep;
-}
-
-double
-RealisticBeamformingAlgorithm::GetBeamSearchAngleStep() const
-{
-    return m_beamSearchAngleStep;
 }
 
 void
@@ -293,12 +280,6 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
     PhasedArrayModel::ComplexVector maxTxW;
     PhasedArrayModel::ComplexVector maxRxW;
 
-    UintegerValue uintValue;
-    m_gnbSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint16_t gnbNumCols = static_cast<uint16_t>(uintValue.Get());
-    m_ueSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint16_t ueNumCols = static_cast<uint32_t>(uintValue.Get());
-
     TriggerEventConf conf = GetTriggerEventConf();
     double srsSinr = 0;
     Ptr<const MatrixBasedChannelModel::ChannelMatrix> channelMatrix = nullptr;
@@ -320,22 +301,44 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
         channelMatrix = GetChannelMatrix();
     }
 
-    for (double gnbTheta = 60; gnbTheta < 121; gnbTheta = gnbTheta + m_beamSearchAngleStep)
+    Ptr<UniformPlanarArray> gnbUpa =
+        DynamicCast<UniformPlanarArray>(m_gnbSpectrumPhy->GetAntenna());
+    Ptr<UniformPlanarArray> ueUpa = DynamicCast<UniformPlanarArray>(m_ueSpectrumPhy->GetAntenna());
+    NS_ASSERT_MSG(gnbUpa, "gNB antenna should be UniformPlanarArray");
+    NS_ASSERT_MSG(ueUpa, "UE antenna should be UniformPlanarArray");
+
+    uint16_t txNumCols = gnbUpa->GetNumColumns();
+    uint16_t txNumRows = gnbUpa->GetNumRows();
+    uint16_t rxNumCols = ueUpa->GetNumColumns();
+    uint16_t rxNumRows = ueUpa->GetNumRows();
+
+    NS_ASSERT(gnbUpa->GetNumElems() && ueUpa->GetNumElems());
+
+    double txZenithStep = 180 / ((txNumRows > 1 ? m_oversamplingFactor : 1) * txNumRows);
+    double txSectorStep = 1.0 / (txNumCols > 1 ? m_oversamplingFactor : 1);
+    double rxZenithStep = 180 / ((rxNumRows > 1 ? m_oversamplingFactor : 1) * rxNumRows);
+    double rxSectorStep = 1.0 / (rxNumCols > 1 ? m_oversamplingFactor : 1);
+
+    for (double txZenith = 0; txZenith < 180; txZenith += txZenithStep)
     {
-        for (uint16_t gnbSector = 0; gnbSector < gnbNumCols; gnbSector++)
+        // Calculate beam elevation to center it into the middle of the wedge, and not at the start
+        double txTheta = txZenith + txZenithStep * 0.5;
+        for (double txSector = 0; txSector < txNumCols; txSector += txSectorStep)
         {
-            NS_ASSERT(gnbSector < UINT16_MAX);
-            m_gnbSpectrumPhy->GetBeamManager()->SetSector(gnbSector, gnbTheta);
+            NS_ASSERT(txSector < UINT16_MAX);
+            m_gnbSpectrumPhy->GetBeamManager()->SetSector(txSector, txTheta);
             PhasedArrayModel::ComplexVector gnbW =
                 m_gnbSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
-            for (double ueTheta = 60; ueTheta < 121;
-                 ueTheta = static_cast<uint16_t>(ueTheta + m_beamSearchAngleStep))
+            for (double rxZenith = 0; rxZenith < 180; rxZenith += txZenithStep)
             {
-                for (uint16_t ueSector = 0; ueSector < ueNumCols; ueSector++)
+                // Calculate beam elevation to center it into the middle of the wedge, and not at
+                // the start
+                double rxTheta = rxZenith + rxZenithStep * 0.5;
+                for (double rxSector = 0; rxSector < rxNumCols; rxSector += rxSectorStep)
                 {
-                    NS_ASSERT(ueSector < UINT16_MAX);
-                    m_ueSpectrumPhy->GetBeamManager()->SetSector(ueSector, ueTheta);
+                    NS_ASSERT(rxSector < UINT16_MAX);
+                    m_ueSpectrumPhy->GetBeamManager()->SetSector(rxSector, rxTheta);
                     PhasedArrayModel::ComplexVector ueW =
                         m_ueSpectrumPhy->GetBeamManager()->GetCurrentBeamformingVector();
 
@@ -359,24 +362,23 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
 
                     NS_LOG_LOGIC(
                         " Estimated long term metric value: "
-                        << estimatedLongTermMetric << " gnb theta " << gnbTheta << " ue theta "
-                        << ueTheta << " gnb sector "
-                        << (M_PI * static_cast<double>(gnbSector) /
-                                static_cast<double>(gnbNumCols) -
+                        << estimatedLongTermMetric << " gnb theta " << txTheta << " ue theta "
+                        << rxTheta << " gnb sector "
+                        << (M_PI * static_cast<double>(txSector) / static_cast<double>(txNumCols) -
                             0.5 * M_PI) /
                                M_PI * 180
                         << " ue sector "
-                        << (M_PI * static_cast<double>(ueSector) / static_cast<double>(ueNumCols) -
+                        << (M_PI * static_cast<double>(rxSector) / static_cast<double>(rxNumCols) -
                             0.5 * M_PI) /
                                M_PI * 180);
 
                     if (max < estimatedLongTermMetric)
                     {
                         max = estimatedLongTermMetric;
-                        maxTxSector = gnbSector;
-                        maxRxSector = ueSector;
-                        maxTxTheta = gnbTheta;
-                        maxRxTheta = ueTheta;
+                        maxTxSector = txSector;
+                        maxRxSector = rxSector;
+                        maxTxTheta = txTheta;
+                        maxRxTheta = rxTheta;
                         maxTxW = gnbW;
                         maxRxW = ueW;
                     }
@@ -385,19 +387,22 @@ RealisticBeamformingAlgorithm::GetBeamformingVectors()
         }
     }
 
-    BeamformingVectorPair bfPair =
-        std::make_pair(BeamformingVector(std::make_pair(maxTxW, BeamId(maxTxSector, maxTxTheta))),
-                       BeamformingVector(std::make_pair(maxRxW, BeamId(maxRxSector, maxRxTheta))));
+    BeamformingVectorPair bfPair = std::make_pair(
+        BeamformingVector(std::make_pair(
+            maxTxW,
+            BeamId(maxTxSector * (txNumCols > 1 ? m_oversamplingFactor : 1), maxTxTheta))),
+        BeamformingVector(std::make_pair(
+            maxRxW,
+            BeamId(maxRxSector * (rxNumCols > 1 ? m_oversamplingFactor : 1), maxRxTheta))));
     NS_LOG_DEBUG(
         "Beamforming vectors for gNB with node id: "
         << m_gnbSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
         << " and UE with node id: " << m_ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
         << " txTheta " << maxTxTheta << " rxTheta " << maxRxTheta << " tx sector "
-        << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(gnbNumCols) -
-            0.5 * M_PI) /
+        << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(txNumCols) - 0.5 * M_PI) /
                M_PI * 180
         << " rx sector "
-        << (M_PI * static_cast<double>(maxRxSector) / static_cast<double>(ueNumCols) - 0.5 * M_PI) /
+        << (M_PI * static_cast<double>(maxRxSector) / static_cast<double>(rxNumCols) - 0.5 * M_PI) /
                M_PI * 180);
 
     return bfPair;
