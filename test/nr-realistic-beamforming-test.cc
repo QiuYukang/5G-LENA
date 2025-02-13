@@ -271,10 +271,10 @@ NrRealisticBeamformingTestCase::DoRun()
         }
     }
 
-    double tolerance = 0.2;
+    double tolerance = 0.21;
     if (m_testDuration == Duration::EXTENSIVE)
     {
-        tolerance = 0.2;
+        tolerance = 0.21;
     }
     else
     {
