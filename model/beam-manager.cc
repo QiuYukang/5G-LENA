@@ -220,7 +220,7 @@ BeamManager::GetBeamId(const Ptr<NetDevice>& device) const
 }
 
 void
-BeamManager::SetSector(uint16_t sector, double elevation) const
+BeamManager::SetSector(double sector, double elevation) const
 {
     NS_LOG_INFO("Set sector to : " << (unsigned)sector << ", and elevation to: " << elevation);
     m_antennaArray->SetBeamformingVector(CreateDirectionalBfv(m_antennaArray, sector, elevation));

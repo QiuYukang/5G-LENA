@@ -56,15 +56,14 @@ CreateQuasiOmniBfv(const Ptr<const UniformPlanarArray>& antenna)
 
 PhasedArrayModel::ComplexVector
 CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
-                     uint16_t sector,
+                     double sector,
                      double elevation)
 {
     UintegerValue uintValueNumColumns;
     antenna->GetAttribute("NumColumns", uintValueNumColumns);
 
     double hAngle_radian =
-        M_PI * (static_cast<double>(sector) / static_cast<double>(uintValueNumColumns.Get())) -
-        0.5 * M_PI;
+        M_PI * (sector / static_cast<double>(uintValueNumColumns.Get())) - 0.5 * M_PI;
     double vAngle_radian = elevation * M_PI / 180;
     uint16_t size = antenna->GetNumElems();
     PhasedArrayModel::ComplexVector tempVector(size);

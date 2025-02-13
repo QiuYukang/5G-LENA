@@ -140,7 +140,7 @@ class BeamManager : public Object
      * @param sector sector
      * @param elevation elevation
      */
-    void SetSector(uint16_t sector, double elevation) const;
+    void SetSector(double sector, double elevation) const;
 
   private:
     Ptr<UniformPlanarArray>

@@ -45,7 +45,7 @@ PhasedArrayModel::ComplexVector CreateQuasiOmniBfv(const Ptr<const UniformPlanar
  * @return the beamforming vector
  */
 PhasedArrayModel::ComplexVector CreateDirectionalBfv(const Ptr<const UniformPlanarArray>& antenna,
-                                                     uint16_t sector,
+                                                     double sector,
                                                      double elevation);
 
 /**
