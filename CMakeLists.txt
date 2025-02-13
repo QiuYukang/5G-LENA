@@ -15,6 +15,34 @@ else()
   )
 endif()
 
+set(opengym_sources)
+set(opengym_headers)
+set(opengym_tests)
+set(opengym_libraries)
+if(opengym
+   IN_LIST
+   contrib_libs_to_build
+)
+  set(opengym_sources
+      model/nr-mac-scheduler-ai-ns3-gym-env.cc
+      model/nr-mac-scheduler-ofdma-ai.cc
+      model/nr-mac-scheduler-tdma-ai.cc
+      model/nr-mac-scheduler-ue-info-ai.cc
+  )
+  set(opengym_headers
+      model/nr-mac-scheduler-ai-ns3-gym-env.h
+      model/nr-mac-scheduler-ofdma-ai.h
+      model/nr-mac-scheduler-tdma-ai.h
+      model/nr-mac-scheduler-ue-info-ai.h
+  )
+  set(opengym_tests
+      test/nr-test-scheduler-ai.cc
+  )
+  set(opengym_libraries
+      ${libopengym}
+  )
+endif()
+
 set(source_files
     ${eigen_sources}
     helper/beamforming-helper-base.cc
@@ -110,7 +138,6 @@ set(source_files
     model/nr-mac-header-vs-dl.cc
     model/nr-mac-header-vs-ul.cc
     model/nr-mac-header-vs.cc
-    model/nr-mac-scheduler-ai-ns3-gym-env.cc
     model/nr-mac-scheduler-cqi-management.cc
     model/nr-mac-scheduler-harq-rr.cc
     model/nr-mac-scheduler-lc-alg.cc
@@ -118,20 +145,17 @@ set(source_files
     model/nr-mac-scheduler-lc-rr.cc
     model/nr-mac-scheduler-lcg.cc
     model/nr-mac-scheduler-ns3.cc
-    model/nr-mac-scheduler-ofdma-ai.cc
     model/nr-mac-scheduler-ofdma-mr.cc
     model/nr-mac-scheduler-ofdma-pf.cc
     model/nr-mac-scheduler-ofdma-qos.cc
     model/nr-mac-scheduler-ofdma-rr.cc
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-srs-default.cc
-    model/nr-mac-scheduler-tdma-ai.cc
     model/nr-mac-scheduler-tdma-mr.cc
     model/nr-mac-scheduler-tdma-pf.cc
     model/nr-mac-scheduler-tdma-qos.cc
     model/nr-mac-scheduler-tdma-rr.cc
     model/nr-mac-scheduler-tdma.cc
-    model/nr-mac-scheduler-ue-info-ai.cc
     model/nr-mac-scheduler-ue-info-pf.cc
     model/nr-mac-scheduler-ue-info-qos.cc
     model/nr-mac-scheduler-ue-info.cc
@@ -307,7 +331,6 @@ set(header_files
     model/nr-mac-pdu-info.h
     model/nr-mac-sap.h
     model/nr-mac-sched-sap.h
-    model/nr-mac-scheduler-ai-ns3-gym-env.h
     model/nr-mac-scheduler-cqi-management.h
     model/nr-mac-scheduler-harq-rr.h
     model/nr-mac-scheduler-lc-alg.h
@@ -315,7 +338,6 @@ set(header_files
     model/nr-mac-scheduler-lc-rr.h
     model/nr-mac-scheduler-lcg.h
     model/nr-mac-scheduler-ns3.h
-    model/nr-mac-scheduler-ofdma-ai.h
     model/nr-mac-scheduler-ofdma-mr.h
     model/nr-mac-scheduler-ofdma-pf.h
     model/nr-mac-scheduler-ofdma-qos.h
@@ -323,13 +345,11 @@ set(header_files
     model/nr-mac-scheduler-ofdma.h
     model/nr-mac-scheduler-srs-default.h
     model/nr-mac-scheduler-srs.h
-    model/nr-mac-scheduler-tdma-ai.h
     model/nr-mac-scheduler-tdma-mr.h
     model/nr-mac-scheduler-tdma-pf.h
     model/nr-mac-scheduler-tdma-qos.h
     model/nr-mac-scheduler-tdma-rr.h
     model/nr-mac-scheduler-tdma.h
-    model/nr-mac-scheduler-ue-info-ai.h
     model/nr-mac-scheduler-ue-info-mr.h
     model/nr-mac-scheduler-ue-info-pf.h
     model/nr-mac-scheduler-ue-info-qos.h
@@ -405,11 +425,11 @@ set(header_files
 )
 
 set(test_sources
+    ${opengym_tests}
     test/nr-system-test-configurations.cc
     test/nr-test-numerology-delay.cc
     test/nr-test-fdm-of-numerologies.cc
     test/nr-test-sched.cc
-    test/nr-test-scheduler-ai.cc
     test/nr-system-test-schedulers-tdma-rr.cc
     test/nr-system-test-schedulers-tdma-pf.cc
     test/nr-system-test-schedulers-tdma-mr.cc
@@ -485,7 +505,7 @@ build_lib(
     ${libapplications}
     ${libcsma}
     ${libconfig-store}
-    ${libopengym}
+    ${opengym_libraries}
   TEST_SOURCES ${test_sources}
 )
 

@@ -46,31 +46,32 @@ build_lib_example(
 )
 
 if(${ENABLE_EIGEN})
-    set(eigen_dependent_examples
-            cttc-nr-fh-xr
-    )
-    foreach(
-            example
-            ${eigen_dependent_examples}
-    )
-        build_lib_example(
-                NAME ${example}
-                SOURCE_FILES ${example}.cc
-                LIBRARIES_TO_LINK ${libnr}
-                ${libflow-monitor}
-        )
-    endforeach()
-    set(source_files
-            cttc-nr-mimo-demo.cc
-            mimo-sim-helpers/cttc-mimo-simple-db-helper.cc
-    )
+  set(eigen_dependent_examples
+      cttc-nr-fh-xr
+  )
+  foreach(
+    example
+    ${eigen_dependent_examples}
+  )
     build_lib_example(
-            NAME cttc-nr-mimo-demo
-            SOURCE_FILES ${source_files}
-            LIBRARIES_TO_LINK ${libnr}
-            ${libflow-monitor}
-            ${SQLite3_LIBRARIES}
+      NAME ${example}
+      SOURCE_FILES ${example}.cc
+      LIBRARIES_TO_LINK ${libnr}
+                        ${libflow-monitor}
     )
+  endforeach()
+  set(source_files
+      cttc-nr-mimo-demo.cc
+      mimo-sim-helpers/cttc-mimo-simple-db-helper.cc
+  )
+  build_lib_example(
+    NAME cttc-nr-mimo-demo
+    SOURCE_FILES ${source_files}
+    LIBRARIES_TO_LINK
+      ${libnr}
+      ${libflow-monitor}
+      ${SQLite3_LIBRARIES}
+  )
 endif()
 
 if(NOT
@@ -151,9 +152,14 @@ else()
   )
 endif()
 
-build_lib_example(
-  NAME gsoc-nr-rl-based-sched
-  SOURCE_FILES gsoc-nr-rl-based-sched/gsoc-nr-rl-based-sched.cc
-  LIBRARIES_TO_LINK ${libnr}
-                    ${libflow-monitor}
+if(opengym
+   IN_LIST
+   contrib_libs_to_build
 )
+  build_lib_example(
+    NAME gsoc-nr-rl-based-sched
+    SOURCE_FILES gsoc-nr-rl-based-sched/gsoc-nr-rl-based-sched.cc
+    LIBRARIES_TO_LINK ${libnr}
+                      ${libflow-monitor}
+  )
+endif()
