@@ -174,6 +174,7 @@ set(source_files
     model/nr-phy-mac-common.cc
     model/nr-phy-tag.cc
     model/nr-phy.cc
+    model/nr-pm-search-fast.cc
     model/nr-pm-search-full.cc
     model/nr-pm-search.cc
     model/nr-radio-bearer-info.cc
@@ -372,6 +373,7 @@ set(header_files
     model/nr-phy-sap.h
     model/nr-phy-tag.h
     model/nr-phy.h
+    model/nr-pm-search-fast.h
     model/nr-pm-search-full.h
     model/nr-pm-search.h
     model/nr-radio-bearer-info.h
