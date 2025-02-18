@@ -274,6 +274,37 @@ cpp_examples = [
     ("gsoc-nr-rl-based-sched", "True", "True"),
     ("gsoc-nr-channel-models", "True", "True"),
     ("gsoc-nr-channel-models --channelModel=Friis", "True", "True"),
+    ("cttc-nr-mimo-demo --enableMimoFeedback=0", "True", "True"),
+    (
+        "cttc-nr-mimo-demo --enableMimoFeedback=1 --rankLimit=4 --fullSearchCb=ns3::NrCbTypeOneSp --packetInterval=10us --pmSearchMethod=ns3::NrPmSearchFull --subbandSize=4",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --enableMimoFeedback=1 --rankLimit=4 --fullSearchCb=ns3::NrCbTypeOneSp --packetInterval=10us --pmSearchMethod=ns3::NrPmSearchSasaoka --subbandSize=4",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --enableMimoFeedback=1 --rankLimit=4 --fullSearchCb=ns3::NrCbTypeOneSp --packetInterval=10us --pmSearchMethod=ns3::NrPmSearchFast --rankTechnique=SVD --rankThreshold=0.5 --subbandSize=4",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --enableMimoFeedback=1 --rankLimit=4 --fullSearchCb=ns3::NrCbTypeOneSp --packetInterval=10us --pmSearchMethod=ns3::NrPmSearchFast --rankTechnique=WaterFilling --rankThreshold=0.75 --subbandSize=4",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --enableMimoFeedback=1 --rankLimit=4 --fullSearchCb=ns3::NrCbTypeOneSp --packetInterval=10us --pmSearchMethod=ns3::NrPmSearchFast --rankTechnique=Sasaoka --rankThreshold=0.0 --subbandSize=4",
+        "True",
+        "True",
+    ),
+    (
+        "cttc-nr-mimo-demo --enableMimoFeedback=1 --rankLimit=4 --fullSearchCb=ns3::NrCbTypeOneSp --packetInterval=10us --pmSearchMethod=ns3::NrPmSearchFast --rankTechnique=Sasaoka --rankThreshold=0.0 --subbandSize=8",
+        "True",
+        "True",
+    ),
 ]
 
 # A list of Python examples to run in order to ensure that they remain
