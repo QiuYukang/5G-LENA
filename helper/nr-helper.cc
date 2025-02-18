@@ -851,7 +851,7 @@ NrHelper::InstallSingleGnbDevice(
     }
 
     // This RRC attribute is used to connect each new RLC instance with the MAC layer
-    // (for function such as TransmitPdu, ReportBufferStatusReport).
+    // (for function such as TransmitPdu, BufferStatusReportReport).
     // Since in this new architecture, the component carrier manager acts a proxy, it
     // will have its own NrMacSapProvider interface, RLC will see it as through original MAC
     // interface NrMacSapProvider, but the function call will go now through

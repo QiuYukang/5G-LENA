@@ -50,7 +50,7 @@ BwpManagerUe::GetTypeId()
 }
 
 void
-BwpManagerUe::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerUe::DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_algorithm != nullptr);
@@ -62,7 +62,7 @@ BwpManagerUe::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameter
                                 << " traffic type " << m_lcToBearerMap.at(params.lcid)
                                 << " reported to CcId " << static_cast<uint32_t>(bwpIndex));
 
-    m_componentCarrierLcMap.at(bwpIndex).at(params.lcid)->ReportBufferStatus(params);
+    m_componentCarrierLcMap.at(bwpIndex).at(params.lcid)->BufferStatusReport(params);
 }
 
 std::vector<NrUeCcmRrcSapProvider::LcsConfig>

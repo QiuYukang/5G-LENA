@@ -70,10 +70,11 @@ class NrSimpleUeComponentCarrierManager : public NrUeComponentCarrierManager
      */
     void DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params);
     /**
-     * @brief Report buffer status function
-     * @param params NrMacSapProvider::ReportBufferStatusParameters
+     * @brief Buffer status report function
+     * @param params NrMacSapProvider::BufferStatusReportParameters
      */
-    virtual void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params);
+    virtual void DoTransmitBufferStatusReport(
+        NrMacSapProvider::BufferStatusReportParameters params);
     /// Notify HARQ deliver failure
     void DoNotifyHarqDeliveryFailure();
     // forwarded from NrMacSapUser

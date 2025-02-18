@@ -90,7 +90,8 @@ class BwpManagerUe : public NrSimpleUeComponentCarrierManager
     void SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp);
 
   protected:
-    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params) override;
+    void DoTransmitBufferStatusReport(
+        NrMacSapProvider::BufferStatusReportParameters params) override;
     std::vector<NrUeCcmRrcSapProvider::LcsConfig> DoAddLc(
         uint8_t lcId,
         NrUeCmacSapProvider::LogicalChannelConfig lcConfig,

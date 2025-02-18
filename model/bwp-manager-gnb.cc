@@ -52,7 +52,7 @@ BwpManagerGnb::SetBwpManagerAlgorithm(const Ptr<BwpManagerAlgorithm>& algorithm)
 }
 
 uint8_t
-BwpManagerGnb::GetResourceType(NrMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerGnb::GetResourceType(NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_ASSERT_MSG(m_ueInfo.find(params.rnti) != m_ueInfo.end(),
                   "Trying to check the QoS of unknown UE");
@@ -160,7 +160,7 @@ BwpManagerGnb::SetOutputLink(uint32_t sourceBwp, uint32_t outputBwp)
 }
 
 void
-BwpManagerGnb::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
+BwpManagerGnb::DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this);
 
@@ -168,7 +168,7 @@ BwpManagerGnb::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParamete
 
     if (m_macSapProvidersMap.find(bwpIndex) != m_macSapProvidersMap.end())
     {
-        m_macSapProvidersMap.find(bwpIndex)->second->ReportBufferStatus(params);
+        m_macSapProvidersMap.find(bwpIndex)->second->BufferStatusReport(params);
     }
     else
     {

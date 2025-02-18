@@ -61,8 +61,8 @@ class NrRlcAm : public NrRlc
     void ExpireReorderingTimer();
     /// Expire poll retransmitter
     void ExpirePollRetransmitTimer();
-    /// Expire RBS timer
-    void ExpireRbsTimer();
+    /// Expire BSR timer
+    void ExpireBsrTimer();
 
     /**
      * method called when the T_status_prohibit timer expires
@@ -90,9 +90,9 @@ class NrRlcAm : public NrRlc
     void ReassembleAndDeliver(Ptr<Packet> packet);
 
     /**
-     * Report buffer status
+     * Buffer status report
      */
-    void DoReportBufferStatus();
+    void DoTransmitBufferStatusReport();
 
   private:
     /**
@@ -194,8 +194,8 @@ class NrRlcAm : public NrRlc
     Time m_reorderingTimerValue;     ///< reordering timer value
     EventId m_statusProhibitTimer;   ///< status prohibit timer
     Time m_statusProhibitTimerValue; ///< status prohibit timer value
-    EventId m_rbsTimer;              ///< RBS timer
-    Time m_rbsTimerValue;            ///< RBS timer value
+    EventId m_bsrTimer;              ///< BSR timer
+    Time m_bsrTimerValue;            ///< BSR timer value
 
     /**
      * Configurable parameters. See section 7.4 in TS 36.322

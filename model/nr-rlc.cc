@@ -192,7 +192,7 @@ void
 NrRlcSm::DoInitialize()
 {
     NS_LOG_FUNCTION(this);
-    ReportBufferStatus();
+    BufferStatusReport();
 }
 
 void
@@ -250,7 +250,7 @@ NrRlcSm::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams)
     m_txPdu(m_rnti, m_lcid, txOpParams.bytes);
 
     m_macSapProvider->TransmitPdu(params);
-    ReportBufferStatus();
+    BufferStatusReport();
 }
 
 void
@@ -260,10 +260,10 @@ NrRlcSm::DoNotifyHarqDeliveryFailure()
 }
 
 void
-NrRlcSm::ReportBufferStatus()
+NrRlcSm::BufferStatusReport()
 {
     NS_LOG_FUNCTION(this);
-    NrMacSapProvider::ReportBufferStatusParameters p;
+    NrMacSapProvider::BufferStatusReportParameters p;
     p.rnti = m_rnti;
     p.lcid = m_lcid;
     p.txQueueSize = 80000;
@@ -271,8 +271,8 @@ NrRlcSm::ReportBufferStatus()
     p.retxQueueSize = 0;
     p.retxQueueHolDelay = 0;
     p.statusPduSize = 0;
-    p.expRbsTimer = false;
-    m_macSapProvider->ReportBufferStatus(p);
+    p.expBsrTimer = false;
+    m_macSapProvider->BufferStatusReport(p);
 }
 
 //////////////////////////////////////////

@@ -35,7 +35,7 @@ NrRlcAmTransmitterTestSuite::NrRlcAmTransmitterTestSuite()
                 TestCase::Duration::QUICK);
     AddTestCase(new NrRlcAmTransmitterConcatenationTestCase("Concatenation"),
                 TestCase::Duration::QUICK);
-    AddTestCase(new NrRlcAmTransmitterReportBufferStatusTestCase("ReportBufferStatus primitive"),
+    AddTestCase(new NrRlcAmTransmitterBufferStatusReportTestCase("BufferStatusReport primitive"),
                 TestCase::Duration::QUICK);
 }
 
@@ -223,26 +223,26 @@ NrRlcAmTransmitterConcatenationTestCase::DoRun()
 }
 
 /**
- * Test 4.1.1.4 Report Buffer Status (test primitive parameters)
+ * Test 4.1.1.4 Buffer Status Report (test primitive parameters)
  */
-NrRlcAmTransmitterReportBufferStatusTestCase::NrRlcAmTransmitterReportBufferStatusTestCase(
+NrRlcAmTransmitterBufferStatusReportTestCase::NrRlcAmTransmitterBufferStatusReportTestCase(
     std::string name)
     : NrRlcAmTransmitterTestCase(name)
 {
 }
 
-NrRlcAmTransmitterReportBufferStatusTestCase::~NrRlcAmTransmitterReportBufferStatusTestCase()
+NrRlcAmTransmitterBufferStatusReportTestCase::~NrRlcAmTransmitterBufferStatusReportTestCase()
 {
 }
 
 void
-NrRlcAmTransmitterReportBufferStatusTestCase::DoRun()
+NrRlcAmTransmitterBufferStatusReportTestCase::DoRun()
 {
     // Create topology
     NrRlcAmTransmitterTestCase::DoRun();
 
     //
-    // d) Test the parameters of the ReportBufferStatus primitive
+    // d) Test the parameters of the BufferStatusReport primitive
     //
 
     //   txMac->SendTxOpportunity (Seconds (0.1), (2+2) + (10+6));

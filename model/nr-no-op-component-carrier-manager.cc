@@ -77,14 +77,14 @@ NrNoOpComponentCarrierManager::DoTransmitPdu(NrMacSapProvider::TransmitPduParame
 }
 
 void
-NrNoOpComponentCarrierManager::DoReportBufferStatus(
-    NrMacSapProvider::ReportBufferStatusParameters params)
+NrNoOpComponentCarrierManager::DoTransmitBufferStatusReport(
+    NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this);
     auto ueManager = m_ccmRrcSapUser->GetUeManager(params.rnti);
     auto it = m_macSapProvidersMap.find(ueManager->GetComponentCarrierId());
     NS_ASSERT_MSG(it != m_macSapProvidersMap.end(), "could not find Sap for NrComponentCarrier ");
-    it->second->ReportBufferStatus(params);
+    it->second->BufferStatusReport(params);
 }
 
 void
@@ -384,8 +384,8 @@ NrRrComponentCarrierManager::GetTypeId()
 }
 
 void
-NrRrComponentCarrierManager::DoReportBufferStatus(
-    NrMacSapProvider::ReportBufferStatusParameters params)
+NrRrComponentCarrierManager::DoTransmitBufferStatusReport(
+    NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this);
 
@@ -394,7 +394,7 @@ NrRrComponentCarrierManager::DoReportBufferStatus(
     {
         NS_LOG_INFO("Buffer status forwarded to the primary carrier.");
         auto ueManager = m_ccmRrcSapUser->GetUeManager(params.rnti);
-        m_macSapProvidersMap.at(ueManager->GetComponentCarrierId())->ReportBufferStatus(params);
+        m_macSapProvidersMap.at(ueManager->GetComponentCarrierId())->BufferStatusReport(params);
     }
     else
     {
@@ -404,7 +404,7 @@ NrRrComponentCarrierManager::DoReportBufferStatus(
         {
             NS_ASSERT_MSG(m_macSapProvidersMap.find(i) != m_macSapProvidersMap.end(),
                           "Mac sap provider does not exist.");
-            m_macSapProvidersMap.at(i)->ReportBufferStatus(params);
+            m_macSapProvidersMap.at(i)->BufferStatusReport(params);
         }
     }
 }

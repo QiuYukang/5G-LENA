@@ -684,9 +684,9 @@ As it can be deduced, the RLC SDU is received at ``NrRlcUm::DoTransmitPdcpPdu()`
       m_txDropTrace(p);
   }
 
-  /** Report Buffer Status */
-  DoReportBufferStatus();
-  m_rbsTimer.Cancel();
+  /** Transmit Buffer Status Report */
+  DoTransmitBufferStatusReport();
+  m_bsrTimer.Cancel();
 
 The packet remains unchanged, if not for a new tag managed by ``NrRlcSduStatusTag``, which keeps track of the
 fragmentation status of the packet done by the RLC layer. Given that ``DoTransmitPdcpPdu()`` does not fragment the
@@ -696,7 +696,7 @@ The packet is then appended to a buffer called ``m_txBuffer``, which is a ``vect
 structure containing (i) a pointer to the packet, and (ii) the time when the packet has been added to the buffer, as
 dictated by the ``Simulator::Now()`` call in ``m_txBuffer.emplace_back()`` instruction.
 
-At the end of the procedure, ``DoReportBufferStatus()`` is called to alert the queue size at the MAC layer, handled by
+At the end of the procedure, ``DoTransmitBufferStatusReport()`` is called to alert the queue size at the MAC layer, handled by
 ``NrMacSapProvider``. The buffer report focuses on reporting the queue size and its HOL delay, together with the RNTI
 and LCID of reference, as it can be noticed by the following excerpt of the said method:
 
@@ -713,7 +713,7 @@ and LCID of reference, as it can be noticed by the following excerpt of the said
           m_txBufferSize + 2 * m_txBuffer.size(); // Data in tx queue + estimated headers size
   }
 
-  NrMacSapProvider::ReportBufferStatusParameters r;
+  NrMacSapProvider::BufferStatusReportParameters r;
   r.rnti = m_rnti;
   r.lcid = m_lcid;
   r.txQueueSize = queueSize;
@@ -722,8 +722,8 @@ and LCID of reference, as it can be noticed by the following excerpt of the said
   r.retxQueueHolDelay = 0;
   r.statusPduSize = 0;
 
-  NS_LOG_LOGIC("Send ReportBufferStatus = " << r.txQueueSize << ", " << r.txQueueHolDelay);
-  m_macSapProvider->ReportBufferStatus(r);
+  NS_LOG_LOGIC("Send BufferStatusReport = " << r.txQueueSize << ", " << r.txQueueHolDelay);
+  m_macSapProvider->BufferStatusReport(r);
 
 There is no mention of the actual ``m_txBuffer``, which is kept at the RLC layer, until a transmission opportunity is
 found at the MAC layer, for which there is an upcall to ``NrRlcUm::DoNotifyTxOpportunity()`` done by the MAC scheduler.
@@ -891,13 +891,13 @@ At first glance, it is possible to note that these logs present two key informat
 These can be used as contextual information to better follow the traffic served by a certain cell on a BWP.
 To learn more how these IDs work, please refer to Section 2.2 of the `NR manual`_.
 
-Once the RLC transmission buffer is updated, the ``NrGnbMac::DoReportBufferStatus()`` intermediates with the MAC
+Once the RLC transmission buffer is updated, the ``NrGnbMac::DoTransmitBufferStatusReport()`` intermediates with the MAC
 scheduler SAP to report the buffer status:
 
 .. sourcecode:: text
 
-  +0.400000282s 0  [ CellId 2, bwpId 0] NrGnbMac:DoReportBufferStatus(): [INFO ] Reporting RLC buffer status update to MAC Scheduler for RNTI=2, LCID=4, Transmission Queue HOL Delay=0, Transmission Queue Size=132, Retransmission Queue HOL delay=0, Retransmission Queue Size=0, PDU Size=0
-  +0.400002262s 0  [ CellId 3, bwpId 1] NrGnbMac:DoReportBufferStatus(): [INFO ] Reporting RLC buffer status update to MAC Scheduler for RNTI=1, LCID=4, Transmission Queue HOL Delay=0, Transmission Queue Size=1284, Retransmission Queue HOL delay=0, Retransmission Queue Size=0, PDU Size=0
+  +0.400000282s 0  [ CellId 2, bwpId 0] NrGnbMac:DoTransmitBufferStatusReport(): [INFO ] Reporting RLC buffer status update to MAC Scheduler for RNTI=2, LCID=4, Transmission Queue HOL Delay=0, Transmission Queue Size=132, Retransmission Queue HOL delay=0, Retransmission Queue Size=0, PDU Size=0
+  +0.400002262s 0  [ CellId 3, bwpId 1] NrGnbMac:DoTransmitBufferStatusReport(): [INFO ] Reporting RLC buffer status update to MAC Scheduler for RNTI=1, LCID=4, Transmission Queue HOL Delay=0, Transmission Queue Size=1284, Retransmission Queue HOL delay=0, Retransmission Queue Size=0, PDU Size=0
 
 By following these messages it is possible to track the ``Transmission Queue Size``, which is filled by incoming RLC
 PDUs and emptied by the scheduled transmissions.

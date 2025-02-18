@@ -37,7 +37,7 @@ NrRlcUmTransmitterTestSuite::NrRlcUmTransmitterTestSuite()
                 TestCase::Duration::QUICK);
     AddTestCase(new NrRlcUmTransmitterConcatenationTestCase("Concatenation"),
                 TestCase::Duration::QUICK);
-    AddTestCase(new NrRlcUmTransmitterReportBufferStatusTestCase("ReportBufferStatus primitive"),
+    AddTestCase(new NrRlcUmTransmitterBufferStatusReportTestCase("BufferStatusReport primitive"),
                 TestCase::Duration::QUICK);
 }
 
@@ -223,26 +223,26 @@ NrRlcUmTransmitterConcatenationTestCase::DoRun()
 }
 
 /**
- * Test 4.1.1.4 Report Buffer Status (test primitive parameters)
+ * Test 4.1.1.4 Buffer Status Report (test primitive parameters)
  */
-NrRlcUmTransmitterReportBufferStatusTestCase::NrRlcUmTransmitterReportBufferStatusTestCase(
+NrRlcUmTransmitterBufferStatusReportTestCase::NrRlcUmTransmitterBufferStatusReportTestCase(
     std::string name)
     : NrRlcUmTransmitterTestCase(name)
 {
 }
 
-NrRlcUmTransmitterReportBufferStatusTestCase::~NrRlcUmTransmitterReportBufferStatusTestCase()
+NrRlcUmTransmitterBufferStatusReportTestCase::~NrRlcUmTransmitterBufferStatusReportTestCase()
 {
 }
 
 void
-NrRlcUmTransmitterReportBufferStatusTestCase::DoRun()
+NrRlcUmTransmitterBufferStatusReportTestCase::DoRun()
 {
     // Create topology
     NrRlcUmTransmitterTestCase::DoRun();
 
     //
-    // d) Test the parameters of the ReportBufferStatus primitive
+    // d) Test the parameters of the BufferStatusReport primitive
     //
 
     // PDCP entity sends data

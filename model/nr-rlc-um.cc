@@ -85,7 +85,7 @@ NrRlcUm::DoDispose()
 {
     NS_LOG_FUNCTION(this);
     m_reorderingTimer.Cancel();
-    m_rbsTimer.Cancel();
+    m_bsrTimer.Cancel();
 
     NrRlc::DoDispose();
 }
@@ -143,9 +143,9 @@ NrRlcUm::DoTransmitPdcpPdu(Ptr<Packet> p)
         m_txDropTrace(p);
     }
 
-    /** Report Buffer Status */
-    DoReportBufferStatus();
-    m_rbsTimer.Cancel();
+    /** Transmit Buffer Status Report */
+    DoTransmitBufferStatusReport();
+    m_bsrTimer.Cancel();
 }
 
 /**
@@ -430,8 +430,8 @@ NrRlcUm::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams)
 
     if (!m_txBuffer.empty())
     {
-        m_rbsTimer.Cancel();
-        m_rbsTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcUm::ExpireRbsTimer, this);
+        m_bsrTimer.Cancel();
+        m_bsrTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcUm::ExpireBsrTimer, this);
     }
 }
 
@@ -1176,7 +1176,7 @@ NrRlcUm::ReassembleSnInterval(nr::SequenceNumber10 lowSeqNumber, nr::SequenceNum
 }
 
 void
-NrRlcUm::DoReportBufferStatus()
+NrRlcUm::DoTransmitBufferStatusReport()
 {
     Time holDelay(0);
     uint32_t queueSize = 0;
@@ -1189,7 +1189,7 @@ NrRlcUm::DoReportBufferStatus()
             m_txBufferSize + 2 * m_txBuffer.size(); // Data in tx queue + estimated headers size
     }
 
-    NrMacSapProvider::ReportBufferStatusParameters r;
+    NrMacSapProvider::BufferStatusReportParameters r;
     r.rnti = m_rnti;
     r.lcid = m_lcid;
     r.txQueueSize = queueSize;
@@ -1197,12 +1197,12 @@ NrRlcUm::DoReportBufferStatus()
     r.retxQueueSize = 0;
     r.retxQueueHolDelay = 0;
     r.statusPduSize = 0;
-    r.expRbsTimer = m_expRbsTimer;
+    r.expBsrTimer = m_expBsrTimer;
 
-    m_expRbsTimer = false;
+    m_expBsrTimer = false;
 
-    NS_LOG_LOGIC("Send ReportBufferStatus = " << r.txQueueSize << ", " << r.txQueueHolDelay);
-    m_macSapProvider->ReportBufferStatus(r);
+    NS_LOG_LOGIC("Send BufferStatusReport = " << r.txQueueSize << ", " << r.txQueueHolDelay);
+    m_macSapProvider->BufferStatusReport(r);
 }
 
 void
@@ -1245,15 +1245,15 @@ NrRlcUm::ExpireReorderingTimer()
 }
 
 void
-NrRlcUm::ExpireRbsTimer()
+NrRlcUm::ExpireBsrTimer()
 {
-    NS_LOG_LOGIC("RBS Timer expires");
+    NS_LOG_LOGIC("BSR Timer expires");
 
     if (!m_txBuffer.empty())
     {
-        m_expRbsTimer = true;
-        DoReportBufferStatus();
-        m_rbsTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcUm::ExpireRbsTimer, this);
+        m_expBsrTimer = true;
+        DoTransmitBufferStatusReport();
+        m_bsrTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcUm::ExpireBsrTimer, this);
     }
 }
 

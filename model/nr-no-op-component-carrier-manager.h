@@ -88,10 +88,11 @@ class NrNoOpComponentCarrierManager : public NrGnbComponentCarrierManager
      */
     virtual void DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params);
     /**
-     * @brief Report buffer status.
-     * @param params the report buffer status parameters
+     * @brief Buffer status report.
+     * @param params the buffer status report parameters
      */
-    virtual void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params);
+    virtual void DoTransmitBufferStatusReport(
+        NrMacSapProvider::BufferStatusReportParameters params);
     /**
      * @brief Notify transmit opportunity.
      *
@@ -168,7 +169,8 @@ class NrRrComponentCarrierManager : public NrNoOpComponentCarrierManager
 
   protected:
     // Inherited methods
-    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params) override;
+    void DoTransmitBufferStatusReport(
+        NrMacSapProvider::BufferStatusReportParameters params) override;
     void DoUlReceiveMacCe(nr::MacCeListElement_s bsr, uint8_t componentCarrierId) override;
     void DoUlReceiveSr(uint16_t rnti, uint8_t componentCarrierId) override;
 

@@ -301,7 +301,7 @@ class NrUeMac : public Object
      *
      * @see DoSlotIndication
      */
-    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params);
+    void DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params);
 
     // forwarded from PHY SAP
     void DoReceivePhyPdu(Ptr<Packet> p);
@@ -325,14 +325,14 @@ class NrUeMac : public Object
     void SendRaPreamble(bool contention);
 
     /**
-     * @brief Send a Report Buffer Status
+     * @brief Send a Buffer Status Report
      * @param dataSfn data slot
      * @param symStart symStart
      *
      * Please note that the BSR is not saved in the HARQ buffer, so it will
      * not get retransmitted.
      */
-    void SendReportBufferStatus(const SfnSf& dataSfn, uint8_t symStart);
+    void SendBufferStatusReport(const SfnSf& dataSfn, uint8_t symStart);
     void RefreshHarqProcessesPacketBuffer();
 
     /**
@@ -418,7 +418,7 @@ class NrUeMac : public Object
     SfnSf m_ulDciSfnsf;           //!< Received a DCI for transmitting data in this slot.
     uint32_t m_ulDciTotalUsed{0}; //!< Received a DCI, put the total count of bytes we sent.
 
-    std::unordered_map<uint8_t, NrMacSapProvider::ReportBufferStatusParameters>
+    std::unordered_map<uint8_t, NrMacSapProvider::BufferStatusReportParameters>
         m_ulBsrReceived; //!< BSR received from RLC (the last one)
 
     /**
@@ -428,7 +428,7 @@ class NrUeMac : public Object
      * it is saved the state (INACTIVE/ACTIVE).
      *
      * The machine is starting from the INACTIVE state. When the RLC notifies
-     * to MAC that there are new bytes in its queue (DoReportBufferStatus()),
+     * to MAC that there are new bytes in its queue (DoTransmitBufferStatusReport()),
      * if the machine is in INACTIVE state, it enters the ACTIVE state.
      * Entering the ACTIVE state means to send a SR, which is enqueued in the PHY layer.
      * It will suffer slots of CTRL latency. If the state is already ACTIVE, then

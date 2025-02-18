@@ -52,8 +52,8 @@ class NrRlcUm : public NrRlc
   private:
     /// Expire reordering timer
     void ExpireReorderingTimer();
-    /// Expire RBS timer
-    void ExpireRbsTimer();
+    /// Expire BSR timer
+    void ExpireBsrTimer();
 
     /**
      * Is inside reordering window function
@@ -81,8 +81,8 @@ class NrRlcUm : public NrRlc
      */
     void ReassembleAndDeliver(Ptr<Packet> packet);
 
-    /// Report buffer status
-    void DoReportBufferStatus();
+    /// Buffer status report
+    void DoTransmitBufferStatusReport();
 
   private:
     uint32_t m_maxTxBufferSize; ///< maximum transmit buffer status
@@ -135,7 +135,7 @@ class NrRlcUm : public NrRlc
      */
     Time m_reorderingTimerValue;        ///< reordering timer value
     EventId m_reorderingTimer;          ///< reordering timer
-    EventId m_rbsTimer;                 ///< RBS timer
+    EventId m_bsrTimer;                 ///< BSR timer
     bool m_enablePdcpDiscarding{false}; //!< whether to use the PDCP discarding (perform discarding
                                         //!< at the moment of passing the PDCP SDU to RLC)
     uint32_t m_discardTimerMs{0};       //!< the discard timer value in milliseconds
@@ -159,7 +159,7 @@ class NrRlcUm : public NrRlc
      */
     nr::SequenceNumber10 m_expectedSeqNumber;
 
-    bool m_expRbsTimer{false};
+    bool m_expBsrTimer{false};
 };
 
 } // namespace ns3

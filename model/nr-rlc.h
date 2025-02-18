@@ -203,8 +203,8 @@ class NrRlcSm : public NrRlc
     void DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams) override;
 
   private:
-    /// Report buffer status
-    void ReportBufferStatus();
+    /// Buffer status report
+    void BufferStatusReport();
 };
 
 // /**

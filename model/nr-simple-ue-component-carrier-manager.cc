@@ -38,7 +38,7 @@ class NrSimpleUeCcmMacSapProvider : public NrMacSapProvider
 
     // inherited from NrMacSapProvider
     void TransmitPdu(NrMacSapProvider::TransmitPduParameters params) override;
-    void ReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params) override;
+    void BufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params) override;
 
   private:
     NrSimpleUeComponentCarrierManager* m_mac; ///< the component carrier manager
@@ -56,9 +56,9 @@ NrSimpleUeCcmMacSapProvider::TransmitPdu(TransmitPduParameters params)
 }
 
 void
-NrSimpleUeCcmMacSapProvider::ReportBufferStatus(ReportBufferStatusParameters params)
+NrSimpleUeCcmMacSapProvider::BufferStatusReport(BufferStatusReportParameters params)
 {
-    m_mac->DoReportBufferStatus(params);
+    m_mac->DoTransmitBufferStatusReport(params);
 }
 
 ///////////////////////////////////////////////////////////
@@ -179,8 +179,8 @@ NrSimpleUeComponentCarrierManager::DoTransmitPdu(NrMacSapProvider::TransmitPduPa
 }
 
 void
-NrSimpleUeComponentCarrierManager::DoReportBufferStatus(
-    NrMacSapProvider::ReportBufferStatusParameters params)
+NrSimpleUeComponentCarrierManager::DoTransmitBufferStatusReport(
+    NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this);
     NS_LOG_DEBUG("BSR from RLC for LCID = " << (uint16_t)params.lcid);
@@ -197,7 +197,7 @@ NrSimpleUeComponentCarrierManager::DoReportBufferStatus(
         auto it = ccLcMapIt->second.find(params.lcid);
         if (it != ccLcMapIt->second.end())
         {
-            it->second->ReportBufferStatus(params);
+            it->second->BufferStatusReport(params);
         }
     }
 }

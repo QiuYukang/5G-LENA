@@ -94,11 +94,11 @@ NrRlcAm::GetTypeId()
                           MakeTimeAccessor(&NrRlcAm::m_statusProhibitTimerValue),
                           MakeTimeChecker())
             .AddAttribute(
-                "ReportBufferStatusTimer",
-                "How much to wait to issue a new Report Buffer Status since the last time "
+                "BufferStatusReportTimer",
+                "How much to wait to issue a new Buffer Status Report since the last time "
                 "a new SDU was received",
                 TimeValue(MilliSeconds(20)),
-                MakeTimeAccessor(&NrRlcAm::m_rbsTimerValue),
+                MakeTimeAccessor(&NrRlcAm::m_bsrTimerValue),
                 MakeTimeChecker())
             .AddAttribute("TxOpportunityForRetxAlwaysBigEnough",
                           "If true, always pretend that the size of a TxOpportunity is big enough "
@@ -123,7 +123,7 @@ NrRlcAm::DoDispose()
     m_pollRetransmitTimer.Cancel();
     m_reorderingTimer.Cancel();
     m_statusProhibitTimer.Cancel();
-    m_rbsTimer.Cancel();
+    m_bsrTimer.Cancel();
 
     m_maxTxBufferSize = 0;
     m_txonBuffer.clear();
@@ -172,10 +172,10 @@ NrRlcAm::DoTransmitPdcpPdu(Ptr<Packet> p)
         m_txDropTrace(p);
     }
 
-    /** Report Buffer Status */
-    DoReportBufferStatus();
-    m_rbsTimer.Cancel();
-    m_rbsTimer = Simulator::Schedule(m_rbsTimerValue, &NrRlcAm::ExpireRbsTimer, this);
+    /** Transmit Buffer Status Report */
+    DoTransmitBufferStatusReport();
+    m_bsrTimer.Cancel();
+    m_bsrTimer = Simulator::Schedule(m_bsrTimerValue, &NrRlcAm::ExpireBsrTimer, this);
 }
 
 /**
@@ -873,7 +873,7 @@ NrRlcAm::DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams)
 
             if (!m_statusProhibitTimer.IsPending())
             {
-                DoReportBufferStatus();
+                DoTransmitBufferStatusReport();
             }
         }
 
@@ -1605,7 +1605,7 @@ NrRlcAm::ReassembleAndDeliver(Ptr<Packet> packet)
 }
 
 void
-NrRlcAm::DoReportBufferStatus()
+NrRlcAm::DoTransmitBufferStatusReport()
 {
     NS_LOG_FUNCTION(this);
 
@@ -1644,7 +1644,7 @@ NrRlcAm::DoReportBufferStatus()
         retxQueueHolDelay = Seconds(0);
     }
 
-    NrMacSapProvider::ReportBufferStatusParameters r;
+    NrMacSapProvider::BufferStatusReportParameters r;
     r.rnti = m_rnti;
     r.lcid = m_lcid;
     r.txQueueSize = m_txonBufferSize;
@@ -1663,14 +1663,14 @@ NrRlcAm::DoReportBufferStatus()
 
     if (r.txQueueSize != 0 || r.retxQueueSize != 0 || r.statusPduSize != 0)
     {
-        NS_LOG_INFO("Send ReportBufferStatus: " << r.txQueueSize << ", " << r.txQueueHolDelay
+        NS_LOG_INFO("Send BufferStatusReport: " << r.txQueueSize << ", " << r.txQueueHolDelay
                                                 << ", " << r.retxQueueSize << ", "
                                                 << r.retxQueueHolDelay << ", " << r.statusPduSize);
-        m_macSapProvider->ReportBufferStatus(r);
+        m_macSapProvider->BufferStatusReport(r);
     }
     else
     {
-        NS_LOG_INFO("ReportBufferStatus don't needed");
+        NS_LOG_INFO("BufferStatusReport don't needed");
     }
 }
 
@@ -1757,7 +1757,7 @@ NrRlcAm::ExpirePollRetransmitTimer()
         }
     }
 
-    DoReportBufferStatus();
+    DoTransmitBufferStatusReport();
 }
 
 void
@@ -1767,14 +1767,14 @@ NrRlcAm::ExpireStatusProhibitTimer()
 }
 
 void
-NrRlcAm::ExpireRbsTimer()
+NrRlcAm::ExpireBsrTimer()
 {
-    NS_LOG_LOGIC("RBS Timer expires");
+    NS_LOG_LOGIC("BSR Timer expires");
 
     if (m_txonBufferSize + m_txedBufferSize + m_retxBufferSize > 0)
     {
-        DoReportBufferStatus();
-        m_rbsTimer = Simulator::Schedule(m_rbsTimerValue, &NrRlcAm::ExpireRbsTimer, this);
+        DoTransmitBufferStatusReport();
+        m_bsrTimer = Simulator::Schedule(m_bsrTimerValue, &NrRlcAm::ExpireBsrTimer, this);
     }
 }
 

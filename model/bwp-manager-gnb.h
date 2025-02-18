@@ -95,7 +95,8 @@ class BwpManagerGnb : public NrRrComponentCarrierManager
     /*
      * @brief This function contains most of the BwpManager logic.
      */
-    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params) override;
+    void DoTransmitBufferStatusReport(
+        NrMacSapProvider::BufferStatusReportParameters params) override;
 
     /*
      * @brief Intercepts function calls from MAC of component carriers when it notifies RLC
@@ -133,7 +134,7 @@ class BwpManagerGnb : public NrRrComponentCarrierManager
      * @brief Get the resource type of the flow.
      * @returns The resource type
      */
-    uint8_t GetResourceType(NrMacSapProvider::ReportBufferStatusParameters params);
+    uint8_t GetResourceType(NrMacSapProvider::BufferStatusReportParameters params);
 
     Ptr<BwpManagerAlgorithm> m_algorithm; //!< The BWP selection algorithm.
 

@@ -48,7 +48,7 @@ void
 NrRlcTm::DoDispose()
 {
     NS_LOG_FUNCTION(this);
-    m_rbsTimer.Cancel();
+    m_bsrTimer.Cancel();
     m_txBuffer.clear();
 
     NrRlc::DoDispose();
@@ -80,9 +80,9 @@ NrRlcTm::DoTransmitPdcpPdu(Ptr<Packet> p)
         NS_LOG_LOGIC("packet size     = " << p->GetSize());
     }
 
-    /** Report Buffer Status */
-    DoReportBufferStatus();
-    m_rbsTimer.Cancel();
+    /** Transmit Buffer Status Report */
+    DoTransmitBufferStatusReport();
+    m_bsrTimer.Cancel();
 }
 
 /**
@@ -133,8 +133,8 @@ NrRlcTm::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams)
 
     if (!m_txBuffer.empty())
     {
-        m_rbsTimer.Cancel();
-        m_rbsTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcTm::ExpireRbsTimer, this);
+        m_bsrTimer.Cancel();
+        m_bsrTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcTm::ExpireBsrTimer, this);
     }
 }
 
@@ -160,7 +160,7 @@ NrRlcTm::DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams)
 }
 
 void
-NrRlcTm::DoReportBufferStatus()
+NrRlcTm::DoTransmitBufferStatusReport()
 {
     Time holDelay(0);
     uint32_t queueSize = 0;
@@ -172,7 +172,7 @@ NrRlcTm::DoReportBufferStatus()
         queueSize = m_txBufferSize; // just data in tx queue (no header overhead for RLC TM)
     }
 
-    NrMacSapProvider::ReportBufferStatusParameters r;
+    NrMacSapProvider::BufferStatusReportParameters r;
     r.rnti = m_rnti;
     r.lcid = m_lcid;
     r.txQueueSize = queueSize;
@@ -181,19 +181,19 @@ NrRlcTm::DoReportBufferStatus()
     r.retxQueueHolDelay = 0;
     r.statusPduSize = 0;
 
-    NS_LOG_LOGIC("Send ReportBufferStatus = " << r.txQueueSize << ", " << r.txQueueHolDelay);
-    m_macSapProvider->ReportBufferStatus(r);
+    NS_LOG_LOGIC("Send BufferStatusReport = " << r.txQueueSize << ", " << r.txQueueHolDelay);
+    m_macSapProvider->BufferStatusReport(r);
 }
 
 void
-NrRlcTm::ExpireRbsTimer()
+NrRlcTm::ExpireBsrTimer()
 {
-    NS_LOG_LOGIC("RBS Timer expires");
+    NS_LOG_LOGIC("BSR Timer expires");
 
     if (!m_txBuffer.empty())
     {
-        DoReportBufferStatus();
-        m_rbsTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcTm::ExpireRbsTimer, this);
+        DoTransmitBufferStatusReport();
+        m_bsrTimer = Simulator::Schedule(MilliSeconds(10), &NrRlcTm::ExpireBsrTimer, this);
     }
 }
 

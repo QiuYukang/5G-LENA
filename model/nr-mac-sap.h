@@ -50,9 +50,9 @@ class NrMacSapProvider
     virtual void TransmitPdu(TransmitPduParameters params) = 0;
 
     /**
-     * Parameters for NrMacSapProvider::ReportBufferStatus
+     * Parameters for NrMacSapProvider::BufferStatusReport
      */
-    struct ReportBufferStatusParameters
+    struct BufferStatusReportParameters
     {
         uint16_t rnti; /**< the C-RNTI identifying the UE */
         uint8_t lcid;  /**< the logical channel id corresponding to the sending RLC instance */
@@ -62,15 +62,15 @@ class NrMacSapProvider
         uint16_t retxQueueHolDelay; /**<  the Head Of Line delay of the retransmission queue */
         uint16_t
             statusPduSize; /**< the current size of the pending STATUS RLC  PDU message in bytes */
-        bool expRbsTimer;
+        bool expBsrTimer;
     };
 
     /**
      * Report the RLC buffer status to the MAC
      *
-     * @param params ReportBufferStatusParameters
+     * @param params BufferStatusReportParameters
      */
-    virtual void ReportBufferStatus(ReportBufferStatusParameters params) = 0;
+    virtual void BufferStatusReport(BufferStatusReportParameters params) = 0;
 };
 
 /**
@@ -199,7 +199,7 @@ class GnbMacMemberNrMacSapProvider : public NrMacSapProvider
 
     // inherited from NrMacSapProvider
     void TransmitPdu(TransmitPduParameters params) override;
-    void ReportBufferStatus(ReportBufferStatusParameters params) override;
+    void BufferStatusReport(BufferStatusReportParameters params) override;
 
   private:
     C* m_mac; ///< the MAC class
@@ -220,9 +220,9 @@ GnbMacMemberNrMacSapProvider<C>::TransmitPdu(TransmitPduParameters params)
 
 template <class C>
 void
-GnbMacMemberNrMacSapProvider<C>::ReportBufferStatus(ReportBufferStatusParameters params)
+GnbMacMemberNrMacSapProvider<C>::BufferStatusReport(BufferStatusReportParameters params)
 {
-    m_mac->DoReportBufferStatus(params);
+    m_mac->DoTransmitBufferStatusReport(params);
 }
 
 } // namespace ns3

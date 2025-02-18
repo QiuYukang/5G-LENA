@@ -285,7 +285,7 @@ class NrGnbMac : public Object
     virtual void DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters ind);
     // forwarded from NrMacSapProvider
     void DoTransmitPdu(NrMacSapProvider::TransmitPduParameters);
-    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters);
+    void DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters);
     void DoUlCqiReport(NrMacSchedSapProvider::SchedUlCqiInfoReqParameters ulcqi);
     // forwarded from NrMacCchedSapUser
     void DoCschedCellConfigCnf(NrMacCschedSapUser::CschedCellConfigCnfParameters params);

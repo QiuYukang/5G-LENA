@@ -358,10 +358,10 @@ class NrTestMac : public Object
      */
     void DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params);
     /**
-     * Report buffer status function
-     * @param params NrMacSapProvider::ReportBufferStatusParameters
+     * Buffer status report function
+     * @param params NrMacSapProvider::BufferStatusReportParameters
      */
-    void DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params);
+    void DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params);
 
     NrMacSapProvider* m_macSapProvider; ///< MAC SAP provider
     NrMacSapUser* m_macSapUser;         ///< MAC SAP user

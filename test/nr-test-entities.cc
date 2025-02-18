@@ -604,7 +604,7 @@ NrTestMac::DoTransmitPdu(NrMacSapProvider::TransmitPduParameters params)
 }
 
 void
-NrTestMac::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
+NrTestMac::DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this << params.txQueueSize << params.retxQueueSize << params.statusPduSize);
 

@@ -1068,7 +1068,7 @@ NrGnbMac::DoDlHarqFeedback(const DlHarqInfo& params)
 }
 
 void
-NrGnbMac::DoReportBufferStatus(NrMacSapProvider::ReportBufferStatusParameters params)
+NrGnbMac::DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParameters params)
 {
     NS_LOG_FUNCTION(this);
     NrMacSchedSapProvider::SchedDlRlcBufferReqParameters schedParams;

@@ -56,10 +56,10 @@ class NrRlcTm : public NrRlc
     void DoReceivePdu(NrMacSapUser::ReceivePduParameters rxPduParams) override;
 
   private:
-    /// Expire RBS timer function
-    void ExpireRbsTimer();
-    /// Report buffer status
-    void DoReportBufferStatus();
+    /// Expire BSR timer function
+    void ExpireBsrTimer();
+    /// Buffer status report
+    void DoTransmitBufferStatusReport();
 
   private:
     /**
@@ -89,7 +89,7 @@ class NrRlcTm : public NrRlc
     uint32_t m_maxTxBufferSize; ///< maximum transmit buffer size
     uint32_t m_txBufferSize;    ///< transmit buffer size
 
-    EventId m_rbsTimer; ///< RBS timer
+    EventId m_bsrTimer; ///< BSR timer
 };
 
 } // namespace ns3

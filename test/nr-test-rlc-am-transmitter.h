@@ -148,10 +148,10 @@ class NrRlcAmTransmitterConcatenationTestCase : public NrRlcAmTransmitterTestCas
 /**
  * @ingroup nr-test
  *
- * @brief Test 4.1.1.4 Test checks functionality of Report Buffer Status by
+ * @brief Test 4.1.1.4 Test checks functionality of Buffer Status Report by
  * testing primitive parameters.
  */
-class NrRlcAmTransmitterReportBufferStatusTestCase : public NrRlcAmTransmitterTestCase
+class NrRlcAmTransmitterBufferStatusReportTestCase : public NrRlcAmTransmitterTestCase
 {
   public:
     /**
@@ -159,9 +159,9 @@ class NrRlcAmTransmitterReportBufferStatusTestCase : public NrRlcAmTransmitterTe
      *
      * @param name the reference name
      */
-    NrRlcAmTransmitterReportBufferStatusTestCase(std::string name);
-    NrRlcAmTransmitterReportBufferStatusTestCase();
-    ~NrRlcAmTransmitterReportBufferStatusTestCase() override;
+    NrRlcAmTransmitterBufferStatusReportTestCase(std::string name);
+    NrRlcAmTransmitterBufferStatusReportTestCase();
+    ~NrRlcAmTransmitterBufferStatusReportTestCase() override;
 
   private:
     void DoRun() override;
