@@ -872,7 +872,7 @@ class NrHelper : public Object
         /// Limits the selection of ranks determined by SVD decomposition.
         double rankThreshold{0.0};
         /// Select technique that determines ranks in non-exhaustive search.
-        std::string rankTechnique{"SVD"};
+        std::string rankTechnique{"Sasaoka"};
         uint8_t subbandSize{1}; ///< Number of PRBs per subband for downsampling
         std::string downsamplingTechnique{"FirstPRB"}; ///< Sub-band compression technique
     };

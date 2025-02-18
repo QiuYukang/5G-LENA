@@ -80,9 +80,9 @@ class NrPmSearchFull : public NrPmSearch
     /// @param i1 the index of the wideband precoding matrix W1
     /// @param rank the rank (number of MIMO layers)
     /// @return a struct containing wideband and subband PMIs, and full precoding matrix.
-    Ptr<PrecMatParams> FindOptSubbandPrecoding(const NrIntfNormChanMat& sbNormChanMat,
-                                               size_t i1,
-                                               uint8_t rank) const;
+    virtual Ptr<PrecMatParams> FindOptSubbandPrecoding(const NrIntfNormChanMat& sbNormChanMat,
+                                                       size_t i1,
+                                                       uint8_t rank) const;
 
     /// @brief Create the subband precoding matrices for the given wideband precoding.
     /// @param i1 the index of the wideband precoding matrix W1

@@ -113,8 +113,9 @@ class NrPmSearch : public Object
 
     enum RankTechnique
     {
-        SVD,         ///< Select MIMO rank via SVD decomposition
-        WaterFilling ///< Select MIMO rank via water-filling technique
+        SVD,          ///< Select MIMO rank via SVD decomposition
+        WaterFilling, ///< Select MIMO rank via water-filling technique,
+        Sasaoka       ///< Select MIMO rank via rank increment capacity technique
     };
 
   protected:
@@ -182,8 +183,8 @@ class NrPmSearch : public Object
     void GetSubbandDownsampleAveragePrb(const NrIntfNormChanMat& chanMat,
                                         ComplexMatrixArray& downsampledChanMat) const;
 
-    double m_rankThreshold;        ///< Threshold used to determine the MIMO rank via SVD
-    RankTechnique m_rankTechnique; ///< Algorithm used to select the MIMO rank
+    double m_rankThreshold;                 ///< Threshold used to determine the MIMO rank via SVD
+    RankTechnique m_rankTechnique{Sasaoka}; ///< Algorithm used to select the MIMO rank
 };
 
 } // namespace ns3

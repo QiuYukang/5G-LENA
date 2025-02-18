@@ -67,6 +67,51 @@ NrIntfNormChanMat::ComputeMseMimo(const ComplexMatrixArray& precMats) const
 }
 
 uint8_t
+NrIntfNormChanMat::GetSasaokaWidebandRank() const
+{
+    // Extract eigenvalues for each subband
+    std::vector<std::vector<double>> subbandRankEigenval(m_numPages);
+    for (std::size_t subband = 0; subband < m_numPages; subband++)
+    {
+        ConstEigenMatrix<std::complex<double>> HEigen(this->GetPagePtr(subband),
+                                                      this->GetNumRows(),
+                                                      this->GetNumCols());
+        auto eigenvalues = HEigen.eigenvalues();
+
+        // Store them in descending order
+        subbandRankEigenval[subband].resize(eigenvalues.size());
+        for (int64_t i = 0; i < eigenvalues.size(); i++)
+        {
+            subbandRankEigenval[subband][i] =
+                std::abs(eigenvalues.coeff(eigenvalues.size() - i - 1));
+        }
+    }
+    // Calculate capacity increment for each rank
+    int minDim = std::min(m_numCols, m_numRows);
+    std::vector<double> rankCapacityIncrease(minDim);
+    uint8_t selectedRank = 0;
+    // Found via linear regression using scikitlearn by comparing outputs against full search
+    std::array<double, 4> coeffs{0., 1.84181129, 0.11705455, 1.39847256};
+    for (int rank = 1; rank <= minDim; rank++)
+    {
+        auto cap = 0.0;
+        for (std::size_t subband = 0; subband < m_numPages; subband++)
+        {
+            cap += log2(1 + subbandRankEigenval[subband][rank - 1] / rank);
+        }
+        rankCapacityIncrease[rank - 1] = cap / m_numPages;
+    }
+    // Check if higher than threshold obtained by a calibrated function alpha(rank)
+    double rankD = 1.0;
+    for (int rank = 1; rank <= minDim; rank++)
+    {
+        rankD += (rankCapacityIncrease[rank - 1] / rankCapacityIncrease[0]) * coeffs[rank - 1];
+    }
+    selectedRank = round(rankD);
+    return selectedRank;
+}
+
+uint8_t
 NrIntfNormChanMat::GetWaterfillingWidebandRank(uint8_t maxRank, double thr) const
 {
     // Compute the rank via SVD decomposition

@@ -22,6 +22,12 @@ NrIntfNormChanMat::ComputeMseMimo([[maybe_unused]] const ComplexMatrixArray& pre
 }
 
 uint8_t
+NrIntfNormChanMat::GetSasaokaWidebandRank() const
+{
+    NS_FATAL_ERROR("GetSasaokaWidebandRank requires Eigen matrix library.");
+}
+
+uint8_t
 NrIntfNormChanMat::GetWaterfillingWidebandRank(uint8_t maxRank, double thr) const
 {
     NS_FATAL_ERROR("GetWaterfillingWidebandRank requires Eigen matrix library.");

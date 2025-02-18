@@ -80,6 +80,12 @@ class NrIntfNormChanMat : public ComplexMatrixArray
     virtual NrIntfNormChanMat GetWidebandChannel() const;
 
     /**
+     * @brief GetSasaokaWidebandRank extracts the rank from an input channel matrix
+     * using Sasaoka's increment of capacity ratio technique
+     */
+    virtual uint8_t GetSasaokaWidebandRank() const;
+
+    /**
      * @brief GetWaterfillingWidebandRank extracts the rank from an input channel matrix
      * using the waterfilling technique
      */

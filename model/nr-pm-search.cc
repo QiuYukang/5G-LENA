@@ -32,7 +32,9 @@ NrPmSearch::GetTypeId()
                           MakeEnumChecker(RankTechnique::SVD,
                                           "SVD",
                                           RankTechnique::WaterFilling,
-                                          "WaterFilling"))
+                                          "WaterFilling",
+                                          RankTechnique::Sasaoka,
+                                          "Sasaoka"))
             .AddAttribute("RankThreshold",
                           "Rank threshold for SVD selection",
                           DoubleValue(std::numeric_limits<double>::epsilon()),
@@ -283,6 +285,9 @@ NrPmSearch::SelectRank(NrIntfNormChanMat& channelMatrix) const
         break;
     case RankTechnique::WaterFilling:
         maxRank = channelMatrix.GetWaterfillingWidebandRank(*m_ranks.rbegin(), m_rankThreshold);
+        break;
+    case RankTechnique::Sasaoka:
+        maxRank = channelMatrix.GetSasaokaWidebandRank();
         break;
     default:
         NS_ABORT_MSG("Unknown rank technique");
