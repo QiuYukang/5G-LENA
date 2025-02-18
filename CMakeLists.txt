@@ -176,6 +176,7 @@ set(source_files
     model/nr-phy.cc
     model/nr-pm-search-fast.cc
     model/nr-pm-search-full.cc
+    model/nr-pm-search-ideal.cc
     model/nr-pm-search.cc
     model/nr-radio-bearer-info.cc
     model/nr-radio-bearer-tag.cc
@@ -375,6 +376,7 @@ set(header_files
     model/nr-phy.h
     model/nr-pm-search-fast.h
     model/nr-pm-search-full.h
+    model/nr-pm-search-ideal.h
     model/nr-pm-search.h
     model/nr-radio-bearer-info.h
     model/nr-radio-bearer-tag.h
