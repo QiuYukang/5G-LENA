@@ -497,6 +497,46 @@ set(test_sources
     # cmake-format: on
 )
 
+check_deps(
+  hosvd_deps
+  PYTHON_PACKAGES
+  pyttb # Requires patches to compute HOSVD for a complex tensor. Use
+  # pip install git+https://gitlab.com/cttc-lena/pyttb
+  pybind11
+)
+if(NOT
+   ("${hosvd_deps}"
+    STREQUAL
+    "")
+   OR WIN32
+)
+  message(
+    STATUS
+      "Search-free PMI selection requires pyttb and pybind11, and only works on Unix"
+  )
+else()
+  find_package(
+    pybind11
+    REQUIRED
+  )
+  link_libraries(
+    pybind11::headers
+    pybind11::embed
+    ${CMAKE_DL_LIBS}
+  )
+  list(
+    APPEND
+    source_files
+    model/nr-pm-search-maleki.cc
+  )
+  list(
+    APPEND
+    header_files
+    model/nr-pm-search-maleki.h
+  )
+  add_compile_definitions(PMI_MALEKI=1)
+endif()
+
 build_lib(
   LIBNAME nr
   SOURCE_FILES ${source_files}
