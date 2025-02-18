@@ -209,7 +209,8 @@ main(int argc, char* argv[])
     cmd.AddValue(
         "pmSearchMethod",
         "Precoding matrix search method, currently implemented only exhaustive search method"
-        "(ns3::NrPmSearchFull)",
+        "[ns3::NrPmSearchFull, ns3::NrPmSearchFast, ns3::NrPmSearchIdeal, ns3::NrPmSearchSasaoka, "
+        "ns3::NrPmSearchMaleki (requires extra dependencies)]",
         mimoPmiParams.pmSearchMethod);
     cmd.AddValue("fullSearchCb",
                  "The codebook to be used for the full search. Available codebooks are "
@@ -219,6 +220,11 @@ main(int argc, char* argv[])
                  "Sec. 5.2.2.2.1 supporting codebook mode 1 only, and limited to rank 4.",
                  mimoPmiParams.fullSearchCb);
     cmd.AddValue("rankLimit", "The maximum rank number to be used.", mimoPmiParams.rankLimit);
+    cmd.AddValue("rankTechnique",
+                 "Technique used for RI selection by Fast and Sasaoka PMI selection [SVD, "
+                 "WaterFilling, Sasaoka]",
+                 mimoPmiParams.rankTechnique);
+    cmd.AddValue("rankThreshold", "Threshold used by rankTechnique", mimoPmiParams.rankThreshold);
     cmd.AddValue("subbandSize", "Sub-band size for downsampling", mimoPmiParams.subbandSize);
     cmd.AddValue("downsamplingTechnique",
                  "Sub-band downsampling technique",
