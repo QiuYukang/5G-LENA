@@ -1982,9 +1982,12 @@ NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
     auto searchTypeId = TypeId::LookupByName(mp.pmSearchMethod);
     SetPmSearchTypeId(searchTypeId);
     SetPmSearchAttribute("RankLimit", UintegerValue(mp.rankLimit));
+    SetPmSearchAttribute("RankThreshold", DoubleValue(mp.rankThreshold));
+    SetPmSearchAttribute("RankTechnique", StringValue(mp.rankTechnique));
     SetPmSearchAttribute("SubbandSize", UintegerValue(mp.subbandSize));
     SetPmSearchAttribute("DownsamplingTechnique", StringValue(mp.downsamplingTechnique));
-    if (searchTypeId == NrPmSearchFull::GetTypeId())
+    if (searchTypeId == NrPmSearchFull::GetTypeId() ||
+        searchTypeId.GetParent() == NrPmSearchFull::GetTypeId())
     {
         SetPmSearchAttribute("CodebookType", TypeIdValue(TypeId::LookupByName(mp.fullSearchCb)));
     }

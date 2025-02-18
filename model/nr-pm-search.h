@@ -106,6 +106,17 @@ class NrPmSearch : public Object
      */
     int64_t AssignStreams(int64_t stream);
 
+    /// @brief Select the MIMO rank for a given channel matrix.
+    /// @param channelMatrix matrix to extract the rank
+    /// @return maximum supported rank
+    virtual uint8_t SelectRank(NrIntfNormChanMat& channelMatrix) const;
+
+    enum RankTechnique
+    {
+        SVD,         ///< Select MIMO rank via SVD decomposition
+        WaterFilling ///< Select MIMO rank via water-filling technique
+    };
+
   protected:
     struct PrecMatParams : public SimpleRefCount<PrecMatParams>
     {
@@ -170,6 +181,9 @@ class NrPmSearch : public Object
      * */
     void GetSubbandDownsampleAveragePrb(const NrIntfNormChanMat& chanMat,
                                         ComplexMatrixArray& downsampledChanMat) const;
+
+    double m_rankThreshold;        ///< Threshold used to determine the MIMO rank via SVD
+    RankTechnique m_rankTechnique; ///< Algorithm used to select the MIMO rank
 };
 
 } // namespace ns3

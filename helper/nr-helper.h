@@ -869,7 +869,11 @@ class NrHelper : public Object
         std::string pmSearchMethod{"ns3::NrPmSearchFull"}; ///< Precoding matrix search algorithm
         std::string fullSearchCb{"ns3::NrCbTwoPort"}; ///< Codebook when using full-search algorithm
         uint8_t rankLimit{UINT8_MAX}; ///< Limit maximum MIMO rank to model limited UE capabilities.
-        uint8_t subbandSize{1};       ///< Number of PRBs per subband for downsampling
+        /// Limits the selection of ranks determined by SVD decomposition.
+        double rankThreshold{0.0};
+        /// Select technique that determines ranks in non-exhaustive search.
+        std::string rankTechnique{"SVD"};
+        uint8_t subbandSize{1}; ///< Number of PRBs per subband for downsampling
         std::string downsamplingTechnique{"FirstPRB"}; ///< Sub-band compression technique
     };
 
