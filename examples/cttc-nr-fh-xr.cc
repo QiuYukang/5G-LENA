@@ -204,7 +204,7 @@ main(int argc, char* argv[])
     std::string bfMethod = "CellScan";
 
     NrHelper::MimoPmiParams mimoPmiParams;
-    mimoPmiParams.pmSearchMethod = "ns3::NrPmSearchFull";
+    mimoPmiParams.pmSearchMethod = "ns3::NrPmSearchFast";
     mimoPmiParams.fullSearchCb = "ns3::NrCbTwoPort";
     mimoPmiParams.rankLimit = 2;
     mimoPmiParams.subbandSize = 8;
