@@ -149,6 +149,7 @@ set(source_files
     model/nr-mac-scheduler-ofdma-pf.cc
     model/nr-mac-scheduler-ofdma-qos.cc
     model/nr-mac-scheduler-ofdma-rr.cc
+    model/nr-mac-scheduler-ofdma-symbol-per-beam.cc
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-srs-default.cc
     model/nr-mac-scheduler-tdma-mr.cc
@@ -345,6 +346,7 @@ set(header_files
     model/nr-mac-scheduler-ofdma-pf.h
     model/nr-mac-scheduler-ofdma-qos.h
     model/nr-mac-scheduler-ofdma-rr.h
+    model/nr-mac-scheduler-ofdma-symbol-per-beam.h
     model/nr-mac-scheduler-ofdma.h
     model/nr-mac-scheduler-srs-default.h
     model/nr-mac-scheduler-srs.h
@@ -481,6 +483,7 @@ set(test_sources
     test/nr-channel-setup-test.cc
     test/nr-test-ri-pmi.cc
     test/nr-test-csi.cc
+    test/nr-test-sched-symbols-per-beam.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \

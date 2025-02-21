@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
 #include "nr-mac-scheduler-tdma.h"
 
 #include "ns3/traced-value.h"
@@ -13,6 +14,8 @@
 
 namespace ns3
 {
+class NrMacSchedulerOfdmaSymbolPerBeam;
+class NrSchedOfdmaSymbolPerBeamTestCase;
 
 /**
  * @ingroup scheduler
@@ -219,45 +222,13 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
         FTResources& assignedResources,
         std::vector<bool>& availableRbgs) const;
 
+    void SetSymPerBeamType(SymPerBeamType type);
     TracedValue<uint32_t>
         m_tracedValueSymPerBeam; //!< Variable to trace symbols per beam allocation
 
-    /**
-     *
-     * @brief Calculate the number of symbols to assign to each beam based on beam's UEs buffer load
-     * @param symAvail Number of available symbols
-     * @param activeDl Map of active DL UE and their beam
-     * @return symbols per beam allocation map
-     * Each beam has a different requirement in terms of byte that should be
-     * transmitted with that beam. That requirement depends on the number of UE
-     * that are inside such beam, and how many bytes they have to transmit.
-     *
-     * For the beam \f$ b \f$, the number of assigned symbols is the following:
-     *
-     * \f$ sym_{b} = BufSize(b) * \frac{symAvail}{BufSizeTotal} \f$
-     */
-    NrMacSchedulerOfdma::BeamSymbolMap GetLoadBasedSymPerBeam(uint32_t symAvail,
-                                                              const ActiveUeMap& activeDl) const;
-    /**
-     *
-     * @brief Allocate all symbols to the first active beam in the round-robin queue
-     * @param symAvail Number of available symbols
-     * @param activeDl Map of active DL UE and their beam
-     * @return symbols per beam allocation map
-     */
-    NrMacSchedulerOfdma::BeamSymbolMap GetRRSymPerBeam(uint32_t symAvail,
-                                                       const ActiveUeMap& activeDl) const;
-    /**
-     * @brief Calculate the number of symbols to assign to each beam based on a PF approximation
-     * @param symAvail Number of available symbols
-     * @param activeDl Map of active DL UE and their beam
-     * @return symbols per beam allocation map
-     */
-    NrMacSchedulerOfdma::BeamSymbolMap GetPFSymPerBeam(uint32_t symAvail,
-                                                       const ActiveUeMap& activeDl) const;
-
     SymPerBeamType m_symPerBeamType; //!< Holds the type of symbol scheduling done for each beam
-    mutable std::deque<BeamId> m_rrBeams; //!< Queue of order of beams to transmit
-    mutable std::unordered_set<BeamId, BeamIdHash> m_rrBeamsSet; //!< Set of known beams
+    Ptr<NrMacSchedulerOfdmaSymbolPerBeam> m_symPerBeam; //!< Holds a symbol per beam allocator
+    /// Make it friend of the test case, so that the test case can access m_symPerBeam
+    friend class NrSchedOfdmaSymbolPerBeamTestCase;
 };
 } // namespace ns3
