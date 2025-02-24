@@ -13,6 +13,7 @@
 #include "ns3/matrix-array.h"
 
 #include <functional>
+#include <optional>
 #include <unordered_map>
 
 namespace ns3
@@ -188,7 +189,7 @@ class NrMacSchedulerUeInfo
      *
      * The amount of assigned resources is stored inside m_dlRBG by the scheduler.
      */
-    virtual void UpdateDlMetric(const Ptr<const NrAmc>& amc);
+    virtual void UpdateDlMetric();
 
     /**
      * @brief ResetDlMetric
@@ -204,7 +205,7 @@ class NrMacSchedulerUeInfo
      *
      * The amount of assigned resources is stored inside m_ulRBG by the scheduler.
      */
-    virtual void UpdateUlMetric(const Ptr<const NrAmc>& amc);
+    virtual void UpdateUlMetric();
 
     /**
      * @brief ResetUlMetric
@@ -275,6 +276,10 @@ class NrMacSchedulerUeInfo
     uint32_t m_srsPeriodicity{0}; //!< SRS periodicity
     uint32_t m_srsOffset{0};      //!< SRS offset
     uint8_t m_startMcsDlUe{0};    //!< Starting DL MCS to be used
+
+    // Settings from the scheduler, that affects MCS, TBS and throughput computation
+    Ptr<NrAmc> m_dlAmc;          //!< AMC instance of scheduler associated with DL
+    Ptr<NrAmc> m_ulAmc;          //!< AMC instance of scheduler associated with UL
 
   protected:
     /**

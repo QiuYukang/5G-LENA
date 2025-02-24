@@ -90,45 +90,35 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
      * @brief Update the QoS metric for downlink
      * @param totAssigned the resources assigned
      * @param timeWindow the time window
-     * @param amc a pointer to the AMC
      *
      * Updates m_currTputDl and m_avgTputDl by keeping in consideration
      * the assigned resources (in form of TBS) and the time window.
      * It gets the tbSize by calling NrMacSchedulerUeInfo::UpdateDlMetric.
      */
-    void UpdateDlQosMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
-                           double timeWindow,
-                           const Ptr<const NrAmc>& amc);
+    void UpdateDlQosMetric(const NrMacSchedulerNs3::FTResources& totAssigned, double timeWindow);
 
     /**
      * @brief Update the QoS metric for uplink
      * @param totAssigned the resources assigned
      * @param timeWindow the time window
-     * @param amc a pointer to the AMC
      *
      * Updates m_currTputUl and m_avgTputUl by keeping in consideration
      * the assigned resources (in form of TBS) and the time window.
      * It gets the tbSize by calling NrMacSchedulerUeInfo::UpdateUlMetric.
      */
-    void UpdateUlQosMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
-                           double timeWindow,
-                           const Ptr<const NrAmc>& amc);
+    void UpdateUlQosMetric(const NrMacSchedulerNs3::FTResources& totAssigned, double timeWindow);
 
     /**
      * @brief Calculate the Potential throughput for downlink
      * @param assignableInIteration resources assignable
-     * @param amc a pointer to the AMC
      */
-    void CalculatePotentialTPutDl(const NrMacSchedulerNs3::FTResources& assignableInIteration,
-                                  const Ptr<const NrAmc>& amc);
+    void CalculatePotentialTPutDl(const NrMacSchedulerNs3::FTResources& assignableInIteration);
 
     /**
      * @brief Calculate the Potential throughput for uplink
      * @param assignableInIteration resources assignable
-     * @param amc a pointer to the AMC
      */
-    void CalculatePotentialTPutUl(const NrMacSchedulerNs3::FTResources& assignableInIteration,
-                                  const Ptr<const NrAmc>& amc);
+    void CalculatePotentialTPutUl(const NrMacSchedulerNs3::FTResources& assignableInIteration);
 
     /**
      * @brief comparison function object (i.e. an object that satisfies the

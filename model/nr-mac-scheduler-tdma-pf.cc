@@ -108,7 +108,7 @@ NrMacSchedulerTdmaPF::AssignedDlResources(const UePtrAndBufferReq& ue,
 {
     NS_LOG_FUNCTION(this);
     auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF>(ue.first);
-    uePtr->UpdateDlPFMetric(totAssigned, m_timeWindow, m_dlAmc);
+    uePtr->UpdateDlPFMetric(totAssigned, m_timeWindow);
 }
 
 void
@@ -119,7 +119,7 @@ NrMacSchedulerTdmaPF::NotAssignedDlResources(
 {
     NS_LOG_FUNCTION(this);
     auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF>(ue.first);
-    uePtr->UpdateDlPFMetric(totAssigned, m_timeWindow, m_dlAmc);
+    uePtr->UpdateDlPFMetric(totAssigned, m_timeWindow);
 }
 
 void
@@ -129,7 +129,7 @@ NrMacSchedulerTdmaPF::AssignedUlResources(const UePtrAndBufferReq& ue,
 {
     NS_LOG_FUNCTION(this);
     auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF>(ue.first);
-    uePtr->UpdateUlPFMetric(totAssigned, m_timeWindow, m_ulAmc);
+    uePtr->UpdateUlPFMetric(totAssigned, m_timeWindow);
 }
 
 void
@@ -140,7 +140,7 @@ NrMacSchedulerTdmaPF::NotAssignedUlResources(
 {
     NS_LOG_FUNCTION(this);
     auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF>(ue.first);
-    uePtr->UpdateUlPFMetric(totAssigned, m_timeWindow, m_ulAmc);
+    uePtr->UpdateUlPFMetric(totAssigned, m_timeWindow);
 }
 
 void
@@ -149,7 +149,7 @@ NrMacSchedulerTdmaPF::BeforeDlSched(const UePtrAndBufferReq& ue,
 {
     NS_LOG_FUNCTION(this);
     auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF>(ue.first);
-    uePtr->CalculatePotentialTPutDl(assignableInIteration, m_dlAmc);
+    uePtr->CalculatePotentialTPutDl(assignableInIteration);
 }
 
 void
@@ -158,7 +158,7 @@ NrMacSchedulerTdmaPF::BeforeUlSched(const UePtrAndBufferReq& ue,
 {
     NS_LOG_FUNCTION(this);
     auto uePtr = std::dynamic_pointer_cast<NrMacSchedulerUeInfoPF>(ue.first);
-    uePtr->CalculatePotentialTPutUl(assignableInIteration, m_ulAmc);
+    uePtr->CalculatePotentialTPutUl(assignableInIteration);
 }
 
 } // namespace ns3

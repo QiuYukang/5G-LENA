@@ -45,7 +45,7 @@ NrMacSchedulerOfdmaRR::AssignedDlResources(const UePtrAndBufferReq& ue,
 {
     NS_LOG_FUNCTION(this);
     GetFirst GetUe;
-    GetUe(ue)->UpdateDlMetric(m_dlAmc);
+    GetUe(ue)->UpdateDlMetric();
 }
 
 void
@@ -55,7 +55,7 @@ NrMacSchedulerOfdmaRR::AssignedUlResources(const UePtrAndBufferReq& ue,
 {
     NS_LOG_FUNCTION(this);
     GetFirst GetUe;
-    GetUe(ue)->UpdateUlMetric(m_ulAmc);
+    GetUe(ue)->UpdateUlMetric();
 }
 
 std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,

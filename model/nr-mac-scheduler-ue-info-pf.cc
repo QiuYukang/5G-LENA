@@ -13,12 +13,11 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerUeInfoPF");
 
 void
 NrMacSchedulerUeInfoPF::UpdateDlPFMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
-                                         double timeWindow,
-                                         const Ptr<const NrAmc>& amc)
+                                         double timeWindow)
 {
     NS_LOG_FUNCTION(this);
 
-    NrMacSchedulerUeInfo::UpdateDlMetric(amc);
+    NrMacSchedulerUeInfo::UpdateDlMetric();
 
     m_currTputDl = static_cast<double>(m_dlTbSize) / (totAssigned.m_sym);
     m_avgTputDl = ((1.0 - (1.0 / static_cast<double>(timeWindow))) * m_lastAvgTputDl) +
@@ -34,12 +33,11 @@ NrMacSchedulerUeInfoPF::UpdateDlPFMetric(const NrMacSchedulerNs3::FTResources& t
 
 void
 NrMacSchedulerUeInfoPF::UpdateUlPFMetric(const NrMacSchedulerNs3::FTResources& totAssigned,
-                                         double timeWindow,
-                                         const Ptr<const NrAmc>& amc)
+                                         double timeWindow)
 {
     NS_LOG_FUNCTION(this);
 
-    NrMacSchedulerUeInfo::UpdateUlMetric(amc);
+    NrMacSchedulerUeInfo::UpdateUlMetric();
 
     m_currTputUl = static_cast<double>(m_ulTbSize) / (totAssigned.m_sym);
     m_avgTputUl = ((1.0 - (1.0 / static_cast<double>(timeWindow))) * m_lastAvgTputUl) +
@@ -55,13 +53,12 @@ NrMacSchedulerUeInfoPF::UpdateUlPFMetric(const NrMacSchedulerNs3::FTResources& t
 
 void
 NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl(
-    const NrMacSchedulerNs3::FTResources& assignableInIteration,
-    const Ptr<const NrAmc>& amc)
+    const NrMacSchedulerNs3::FTResources& assignableInIteration)
 {
     NS_LOG_FUNCTION(this);
 
     uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg();
-    m_potentialTputDl = amc->GetPayloadSize(m_dlMcs, m_dlRank, rbsAssignable);
+    m_potentialTputDl = m_dlAmc->GetPayloadSize(m_dlMcs, m_dlRank, rbsAssignable);
     m_potentialTputDl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputDl " << m_potentialTputDl << " lastAvgThDl "
@@ -71,13 +68,12 @@ NrMacSchedulerUeInfoPF::CalculatePotentialTPutDl(
 
 void
 NrMacSchedulerUeInfoPF::CalculatePotentialTPutUl(
-    const NrMacSchedulerNs3::FTResources& assignableInIteration,
-    const Ptr<const NrAmc>& amc)
+    const NrMacSchedulerNs3::FTResources& assignableInIteration)
 {
     NS_LOG_FUNCTION(this);
 
     uint32_t rbsAssignable = assignableInIteration.m_rbg * GetNumRbPerRbg();
-    m_potentialTputUl = amc->GetPayloadSize(m_ulMcs, m_ulRank, rbsAssignable);
+    m_potentialTputUl = m_ulAmc->GetPayloadSize(m_ulMcs, m_ulRank, rbsAssignable);
     m_potentialTputUl /= assignableInIteration.m_sym;
 
     NS_LOG_INFO("UE " << m_rnti << " potentialTputUl " << m_potentialTputUl << " lastAvgThUl "

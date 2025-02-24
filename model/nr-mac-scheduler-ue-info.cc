@@ -120,7 +120,7 @@ NrMacSchedulerUeInfo::ResetUlSchedInfo()
 }
 
 void
-NrMacSchedulerUeInfo::UpdateDlMetric(const Ptr<const NrAmc>& amc)
+NrMacSchedulerUeInfo::UpdateDlMetric()
 {
     if (m_dlRBG == 0)
     {
@@ -128,7 +128,7 @@ NrMacSchedulerUeInfo::UpdateDlMetric(const Ptr<const NrAmc>& amc)
     }
     else
     {
-        m_dlTbSize = amc->CalculateTbSize(m_dlMcs, m_dlRank, m_dlRBG * GetNumRbPerRbg());
+        m_dlTbSize = m_dlAmc->CalculateTbSize(m_dlMcs, m_dlRank, m_dlRBG * GetNumRbPerRbg());
     }
 }
 
@@ -139,7 +139,7 @@ NrMacSchedulerUeInfo::ResetDlMetric()
 }
 
 void
-NrMacSchedulerUeInfo::UpdateUlMetric(const Ptr<const NrAmc>& amc)
+NrMacSchedulerUeInfo::UpdateUlMetric()
 {
     if (m_ulRBG == 0)
     {
@@ -147,7 +147,7 @@ NrMacSchedulerUeInfo::UpdateUlMetric(const Ptr<const NrAmc>& amc)
     }
     else
     {
-        m_ulTbSize = amc->CalculateTbSize(m_ulMcs, m_ulRank, m_ulRBG * GetNumRbPerRbg());
+        m_ulTbSize = m_ulAmc->CalculateTbSize(m_ulMcs, m_ulRank, m_ulRBG * GetNumRbPerRbg());
     }
 }
 

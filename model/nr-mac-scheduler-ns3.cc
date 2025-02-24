@@ -563,6 +563,8 @@ NrMacSchedulerNs3::DoCschedUeConfigReq(
         UeInfoOf(*itUe)->m_dlMcs = m_startMcsDl;
         UeInfoOf(*itUe)->m_startMcsDlUe = m_startMcsDl;
         UeInfoOf(*itUe)->m_ulMcs = m_startMcsUl;
+        UeInfoOf(*itUe)->m_dlAmc = m_dlAmc;
+        UeInfoOf(*itUe)->m_ulAmc = m_ulAmc;
 
         NrMacSchedulerSrs::SrsPeriodicityAndOffset srs = m_schedulerSrs->AddUe();
 
