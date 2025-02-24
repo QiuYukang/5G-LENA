@@ -604,8 +604,8 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
                         if (power > maxPower)
                         {
                             maxPower = power;
-                            gnbBfv = {bf, BeamId::GetEmptyBeamId()};
-                            ueBfv = {bfUe, BeamId::GetEmptyBeamId()}; // for the best Panel
+                            gnbBfv = {bf, BeamId(i, j)};
+                            ueBfv = {bfUe, BeamId(k, m)}; // for the best Panel
                             activePanelIndex =
                                 b; // active panel has to be update to K as better beam has found
                         }
@@ -714,7 +714,7 @@ KroneckerQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& g
             if (power > maxPower)
             {
                 maxPower = power;
-                gnbBfv = {bf, BeamId::GetEmptyBeamId()};
+                gnbBfv = {bf, BeamId(i, j)};
             }
         }
     }
