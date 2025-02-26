@@ -145,7 +145,7 @@ documentation:
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-    - apt-get install -y ccache cmake g++ python3 doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments texlive-fonts-extra git
+    - apt-get install -y ccache cmake g++ python3 doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx python3-sphinx-rtd-theme latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments fonts-freefont-otf fonts-freefont-ttf git
     - sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
     - sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
   image: ubuntu
@@ -163,10 +163,11 @@ documentation:
     - popd
     # Export nr version for documentation
     - export NRVERSION="nr-`git describe --tags`"
-    - mkdir -p public/
+    - mkdir -p public/manual
     # Build NR manual
     - pushd doc
     - make latexpdf && mv ./build/latex/nrmodule.pdf ../public/
+    - make html     && mv ./build/html/* ../public/manual
     # Build doxygen
     - doxygen doxygen.conf && mv ./doc/html/ ../public/
     - popd

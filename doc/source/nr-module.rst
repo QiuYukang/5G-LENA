@@ -231,11 +231,17 @@ CQI feedback
 ============
 NR defines a Channel Quality Indicator (CQI), which is reported by the UE and can be used for MCS index selection at the gNB for DL data transmissions. NR defines three tables of 4-bit CQIs (see Tables 5.2.2.1-1 to 5.2.2.1-3 in [TS38214]_), where each table is associated with one MCS table. In the simulator, we support CQI Table1 and CQI Table2 (i.e., Table 5.2.2.1-1 and Table 5.2.2.1-2), which are defined based on the configured error model and corresponding MCS Table.
 
-At the moment, we support the generation of a *wide-band* CQI that is computed based on the data channel (PDSCH). Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the gNB transmission (neglecting RBs with 0 transmitted power).
+Before nr-3.0, we only supported the generation of a *wide-band* CQI that is computed based on the SISO data channel (PDSCH). Such value is a single integer that represents the entire channel state or better said, the (average) state of the resource blocks that have been used in the gNB transmission (neglecting RBs with 0 transmitted power).
 
 The CQI index to be reported is obtained by first obtaining an SINR measurement and then passing this SINR measurement to the Adaptive Modulation and Coding module (see details in AMC section) that maps it to the CQI index. Such value is computed for each PDSCH reception and reported after it.
 
 In case of UL transmissions, there is not explicit CQI feedback, since the gNB directly indicates to the UE the MCS to be used in UL data transmissions. In that case, the gNB measures the SINR received in the PUSCH, and computes based on it the equivalent CQI index, and from it the MCS index for UL is determined.
+
+Since nr-3.0, we also support *wide-band* CQI computed based on the MIMO data channel (PSDCH).
+
+Since nr-4.0, we also support *wide-band* and *sub-band* CQI for MIMO data channel (PDSCH) and/or the CSI-RS+CSI-IM (see more in :ref:`CSI-RS and CSI-IM`).
+
+CQI feedback for MIMO is detailed in section :ref:`Search for the optimal precoding matrix`.
 
 
 Power allocation
@@ -1221,7 +1227,7 @@ When using MIMO one should configure the ``AmcModel`` as ``ErrorModel``. The ``S
 some additions are needed to ``NrAmc`` to allow its usage.
 
 Search for the optimal precoding matrix
-###########################################
+#######################################
 
 ``NrPmSearchFull`` class is implemented to find the optimal precoding matrix, rank indicator, and corresponding CQI,
 and creates a CQI/PMI/RI feedback message. ``NrPmSearchFull`` uses exhaustive search for 3GPP Type-I codebooks.
@@ -1241,6 +1247,34 @@ another specialization of ``NrPmSearch`` that would implement a different algori
 
 The size of the sub-bands depends on the channel bandwidth, both in numbers of PRBs. It should be set accordingly to 3GPP
 TS 38.214 Table 5.2.1.4-2 via the attribute ``NrPmSearch::SubbandSize``.
+
+As of release 4.0, additional PMI selection techniques were included. These can be selected by setting
+``NrHelper::PmSearchMethod`` attribute to ``ns3::NrPmSearchIdeal``, ``ns3::NrPmSearchFast``, ``ns3::NrPmSearchSasaoka``,
+``ns3::NrPmSearchMaleki``.
+
+* ``NrPmsearchIdeal`` extracts the theoretical ideal precoding matrix from the channel matrix via SVD decomposition,
+  then selects the number of columns (equivalent to the rank) that maximizes the TBS through brute force.
+
+* ``NrPmSearchFast`` uses a RI selection technique, settable via the attribute ``NrPmSearch::RankTechnique``, to skip
+  all other rank computations.
+
+  * Available RI techniques include: ``SVD``, based on SVD decomposition;
+    ``WaterFilling``, based on power allocation; ``Sasaoka``, based on increment of channel capacity ratio.
+
+    * Rank selections ``SVD`` and ``WaterFilling`` must be calibrated per scenario using
+      the calibration factor ``NrPmSearch::RankThreshold``.
+    * After determining the rank, the PMI sub-indices I1 and I2 are searched.
+
+  * The I1 index, which corresponds to wide-band component, is searched using the channel matrix average.
+  * The I2 index, which corresponds to sub-band component, is searched using the channel matrix averaged per sub-band.
+
+* ``NrPmSearchSasaoka`` uses the ``Sasaoka`` RI selection technique, then searches for the PMI that maximizes
+  the mutual information, instead of TBS targeted by other techniques. Both techniques are proposed in [Sasaoka2019]_.
+
+* ``NrPmSearchMaleki`` implements a search-free PMI selection exploiting intrinsic characteristics of
+  the 3GPP Type I codebooks proposed in [Maleki2023]_.
+  Since the PMI search is fast, the RI is determined by brute-force search.
+
 
 MIMO activation
 ###############
@@ -1488,6 +1522,22 @@ the scheduling criteria is the same as in the corresponding OFDMA
 schedulers, while the scheduling is performed in time-domain instead of
 the frequency-domain, and thus the resources being allocated are symbols instead of RBGs.
 
+Since nr-4.0, sub-band CQI information can be used by the schedulers to avoid allocating interfered RBGs.
+This can be achieved by changing the ``NrMacSchedulerNs3::McsCsiSource``.
+The default value of this attribute is set to ``WIDEBAND_MCS``, which uses the wide-band CQI,
+and the MCS derived from it, to schedule each UE RBG with the same priority.
+To estimate the MCS of allocated RBGs based on the sub-band CQI information, set the attribute
+to one of the following: ``AVG_MCS``, ``AVG_SPEC_EFF`` and ``AVG_SINR``.
+
+* ``AVG_MCS``: averages the approximated MCS for a given sub-band CQI (note that MCS is wideband,
+  and this is a rought estimate).
+* ``AVG_SPEC_EFF``: averages the approximated spectral efficiency of allocated RBGs, then
+  transforms it back to an MCS estimate.
+* ``AVG_SINR``: averages the SINR of allocated RBGs, then compute the resulting MCS straight
+  directly from the error models. It is the most accurate estimate.
+
+Note that when sub-band CQI is used, the RBG allocated to the UE is the one that produces
+the highest MCS.
 
 Scheduler operation
 ===================
@@ -2103,8 +2153,6 @@ Usage
 This section is principally concerned with the usage of the model, using
 the public API. We discuss on examples available to the user.
 
-.. _Examples:
-
 Examples
 ********
 
@@ -2697,8 +2745,6 @@ feedback can be based on CSI-RS and CSI-IM, and hence is periodic and provides t
 This parameter can take the following values: ``CQI_PDSCH_MIMO = 1``, ``CQI_CSI_RS = 2``, ``CQI_PDSCH_MIMO|CQI_CSI_RS = 3``,
 ``CQI_CSI_RS|CQI_CSI_IM = 6``, ``CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM = 7``, and ``CQI_PDSCH_SISO = 8``.
 
-.. _Validation:
-
 Validation
 ----------
 
@@ -2952,7 +2998,52 @@ TrafficGeneratorTestCase checks that the traffic generator is correctly being co
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/traffic-generator-test_8cc_source.html
 
+Test for RI and PMI selection techniques
+========================================
 
+Test case called ``nr-test-ri-pmi-system`` is a system test used to verify the different RI/PMI selection techniques produce the expected results,
+in terms of performance, mean rank and MCS. The test is setup like ``cttc-nr-mimo-demo``, with a single gNB-UE pair, generating traffic to fully saturate
+the channel. The different RI and PMI techniques produce different precoding matrices, increasing or lowering the gain. The difference in gain
+directly reflect on link adaptation, changing the rank and MCS selection, resulting in better or worse results in terms of throughput and latency.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/html/nr-test-ri-pmi_8cc.html
+
+
+Test for CSI feedback with MIMO
+===============================
+
+Test case called ``nr-test-csi`` is a system test used to verify the CSI feedback works correctly without and with interference.
+The test is setup with a main gNB-UE pair. The main UE is the measuring UE, that is used to collect the metrics used by the test.
+In case we are testing with interference, a secondary gNB-UE pair is added. The interfered band of the secondary gNB-UE pair is
+defined by an interference pattern, implemented using a notching mask to model the frequency domain and a ON-OFF application
+to model the time domain. That interference pattern can be either wide-band, or narrow-band (occupying the upper or lower
+half of the bandwidth), according to the notching mask.
+
+To check if the interference is being properly detected by the CSI, we monitor the main UE, which must
+traverse through the states of the following finite state machine shown in :numref:`fig-csi-test-fsm`.
+
+.. _fig-csi-test-fsm:
+
+.. figure:: figures/csi-test-fsm.png
+   :align: center
+   :scale: 80 %
+
+   Finite state machine for interference detection with CSI
+
+Many different combinations of interference measurement sources are tested, including ``CQI_PDSCH_SISO``,
+``CQI_CSI_PDSCH_MIMO``, ``CQI_CSI_RS | CQI_CSI_IM`` and ``CQI_PDSCH_MIMO | CQI_CSI_RS | CQI_CSI_IM``
+(see more details in :ref:`CSI-RS and CSI-IM`).
+We also measure the main UE throughput using the wide-band and sub-band CQI scheduling
+(see more details in :ref:`Scheduler`).
+
+The rank, MCS, mean throughput throughout the simulation, the mean throughput over a sliding window,
+and sub-band CQI reports over time are collected by the test-suite and stored into a JSON file for easy processing.
+A companion script, ``nr-test-csi-plot.py``, can plot all the measurements for all the test cases, allowing for
+the visual inspection of the behavior of the system during the simulation.
+
+The complete details of the validation script are provided in
+https://cttc-lena.gitlab.io/nr/html/nr-test-csi_8cc.html
 
 Open issues and future work
 ---------------------------
@@ -3020,3 +3111,7 @@ Open issues and future work
 .. [eigen3] Eigen library: https://eigen.tuxfamily.org/
 
 .. [ComNetFhControl] Katerina Koutlia, Sandra Lagén, "On the impact of Open RAN Fronthaul Control in scenarios with XR Traffic", Computer Networks, Volume 253, August 2024.
+
+.. [Sasaoka2019] Naoto Sasaoka, Takumi Sasaki, Yoshio Itoh. "PMI/RI Selection Based on Channel Capacity Increment Ratio". 2019 International Symposium on Multimedia and Communication Technology (ISMAC). doi: 10.1109/ISMAC.2019.8836179.
+
+.. [Maleki2023] Marjan Maleki, Juening Jin and Martin Haardt. "Low Complexity PMI Selection for BICM-MIMO Rate Maximization in 5G New Radio Systems". 2023 31st European Signal Processing Conference (EUSIPCO). doi: 10.23919/EUSIPCO58844.2023.10290121.

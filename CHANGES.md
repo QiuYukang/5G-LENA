@@ -55,23 +55,38 @@ us a note on ns-developers mailing list.
 ### New API:
 
 - We introduced a new attachment algorithm `AttachToMaxRsrpGnb`.
+
 - We introduced a new beamforming algorithms, `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming`.
+
 - We introduced a new helper class, `NrChannelHelper`, simplifying the implementation, configuration, and assignment of different spectrum channels with various channel models to create bands. This class extends our module to support NYUSIM, Fluctuating Two-Ray, and 3GPP channel models.
+
 - Channel state information (CSI) can now be obtained by leveraging periodic CSI-RS signalling and CSI-IM measurements.
 New `NrSpectrumSignalParametersCsiRs` type of NR signals is introduced to represent CSI-RS signals. The type of CSI feedback
 can be configured through `NrHelper::CsiFeedbackFlags` attribute.
-- New spectrum filter called `NrCsiRsFilter` is introduced to minimize the computational complexity of CSI-RS signalling,
-by filtering it for the receiving `SpectrumPhy` instances that should not receive such signals.
+
+- New spectrum filter called `NrCsiRsFilter` is introduced to minimize the computational complexity of CSI-RS signalling, by filtering it for the receiving `SpectrumPhy` instances that should not receive such signals.
+
+- We introduced a new `NrMacSchedulerUeInfo::GetDlMcs()` function that returns either the wideband MCS, or an MCS estimate based on the sub-band CQI of allocated RBGs.
+
+- We introduced new functions to `NrMacSchedulerOfdma` in order to simplify resource allocation, including: `AttemptAllocationOfCurrentResourceToUe()`, `AllocateCurrentResourceToUe()`, `DeallocateCurrentResourceFromUe()`, `ShouldScheduleUeBasedOnFronthaul()` and  `DeallocateResourcesDueToFronthaulConstraint()`.
 
 ### Changes to existing API:
 
-The existing scenario configuration was removed from band creation. Additionally, band initialization and channel attribute setting methods were removed from `NrHelper`.
+- The existing scenario configuration was removed from band creation. Additionally, band initialization and channel attribute setting methods were removed from `NrHelper`.
 
-A new attribute, ``NrRlcUm::OutOfOrderDelivery`` was added to correspond to TS 36.322 Section 5.1.2.2.3 ``rlc-OutOfOrderDelivery`` variable; it defaults to true.
+- A new attribute, ``NrRlcUm::OutOfOrderDelivery`` was added to correspond to TS 36.322 Section 5.1.2.2.3 ``rlc-OutOfOrderDelivery`` variable; it defaults to true.
+
+- `NrMacSchedulerCQIManagement::DlWBCQIReported()` and `NrMacSchedulerCQIManagement::DlSBCQIReported()` functions were merged into `NrMacSchedulerCQIManagement::DlCqiReported()`.
+
+- `NrAmc` pointers previously passed via function parameters by schedulers to `NrMacSchedulerUeInfo` functions, are now set during UeInfo creation.
+
+- `NrUeInfo::GetDlRBG()`, `NrUeInfo::GetUlRBG()`, `NrUeInfo::GetDlSym()`, `NrUeInfo::GetUlSym()` now return vectors instead of numbers. This is done to reflect changes to sub-band aware schedulers.
+
+
 
 ### Changed behavior:
 
-By default, RLC SDUs received out of order will be delivered without waiting for a reordering timer to expire.  The observed latency of applications such as voice should be lower as a result.
+- By default, RLC SDUs received out of order will be delivered without waiting for a reordering timer to expire.  The observed latency of applications such as voice should be lower as a result.
 
 ---
 

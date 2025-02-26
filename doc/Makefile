@@ -11,6 +11,7 @@ CONVERT = convert -density 250
 
 SOURCE = source
 FIGURES = $(SOURCE)/figures
+FIGURES_NOBUILD = figures
 
 # specify dia figures from which .png and .pdf figures need to be built
 
@@ -52,6 +53,7 @@ IMAGES_DOT = \
 
 
 IMAGES_NOBUILD = \
+    $(FIGURES_NOBUILD)/csi-test-fsm.png \
 #	$(FIGURES)/fading_pedestrian.png \
 	${IMAGES_SEQDIAG:.seqdiag=.png} \
 	${IMAGES_SEQDIAG:.seqdiag=.pdf} \
@@ -129,6 +131,11 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 	-rm -f $(IMAGES_BUILD)
 
+copy-sources:  $(SOURCES)
+	@mkdir -p $(FIGURES)
+	@cp -r $(IMAGES_NOBUILD) $(FIGURES)
+	@mkdir -p $(BUILDDIR)/html/_static
+	@cp -r ./static/* $(BUILDDIR)/html/_static
 
 images: $(IMAGES_NOBUILD) $(IMAGES_BUILD)
 
@@ -137,17 +144,17 @@ frag: pickle
 	pushd $(BUILDDIR)/frag && ../../pickle-to-xml.py ../pickle/index.fpickle  > navigation.xml && popd
 	cp -r $(BUILDDIR)/pickle/_images $(BUILDDIR)/frag
 
-html:  $(IMAGES)
+html: copy-sources $(IMAGES)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
-dirhtml:  $(IMAGES)
+dirhtml: copy-sources $(IMAGES)
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
 
-singlehtml:  $(IMAGES)
+singlehtml: copy-sources $(IMAGES)
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
 	@echo
 	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
@@ -191,14 +198,14 @@ epub:  $(IMAGES)
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-latex:  $(IMAGES)
+latex: copy-sources $(IMAGES)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
 	@echo "Run \`make' in that directory to run these through (pdf)latex" \
 	      "(use \`make latexpdf' here to do that automatically)."
 
-latexpdf:  $(IMAGES)
+latexpdf: copy-sources $(IMAGES)
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo "Running LaTeX files through pdflatex..."
 	make -C $(BUILDDIR)/latex all-pdf

@@ -14,6 +14,7 @@ extensions = [
     "sphinx.ext.imgmath",
     "sphinx.ext.ifconfig",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
 ]
 
 latex_engine = "xelatex"
@@ -25,7 +26,10 @@ exclude_patterns = []
 add_function_parentheses = True
 # add_module_names = True
 # modindex_common_prefix = []
-
+html_theme = "sphinx_rtd_theme"
+html_css_files = [
+    "custom.css",
+]
 project = "NR Module"
 copyright = "2024"
 author = "OpenSim CTTC/CERCA"

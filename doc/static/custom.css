@@ -44,3 +44,7 @@ body > header > nav #m-navbar-collapse a
 {
   background-color: #375C93;
 }
+
+.wy-nav-content {
+  max-width: min(80%, 1000px);
+}

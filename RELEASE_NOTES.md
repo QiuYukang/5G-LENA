@@ -37,39 +37,35 @@ This release will be compatible with ns-3.4x.
 
 Important news
 --------------
-- We introduced a new attachment algorithm `AttachToMaxRsrpGnb` which follows 3GPP configuration to attach UE to the gNB with highest RSRP within indicates handoff margin.
-- We introduced a new beamforming algorithms, `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming` which provides Kronecker based beamforming whereas in the `KroneckerBeamforming` both gNB and UE use Kronecker, and in the `KroneckerQuasiOmniBeamforming` gNB use Kronecker vector and UE used Omni direction to do Beamforming.
-- We introduced a new helper, `NrChannelHelper`, which provides a simple interface for configuring spectrum channels with various channel models, including NYUSIM, Fluctuating Two-Ray (FTR), and 3GPP.
-
-- A new example, `gsoc-nr-channel-models.cc`, demonstrates how to configure different spectrum channels for end-to-end simulations. These channels can be 'legacy' (e.g., Friis) or not (e.g., NYUSIM, 3GPP, FTR).
-
-- A new test file, `nr-channel-setup-test.cc`, tests if the NrChannelHelper API can correctly create a specified
-channel, which will be created using well-defined combinations of scenarios, channel models, and channel conditions.
-
-- The ns-3 implementation of NYUSIM channel model is added as a feature of the NR module. The original files are installed in utils directory,
-with some version updates. Acknowledgments to Hitesh Poddar (NYU WIRELESS) and Tomoki Yoshimura (Sharp Laboratories of America),
-authors of the NYUSIM channel model code implementation in ns-3. (Original code: https://github.com/hiteshPoddar/NYUSIM_in_ns3/tree/main)
-
-- A method has been implemented to ensure that non-SU-MIMO channel models can also be utilized. This is achieved by converting the receiver's PSD (Power Spectral Density) into a spectrum channel matrix used in the module's features.
+- A method has been implemented to ensure that legacy channel models can also be utilized. This is achieved by converting the receiver's PSD (Power Spectral Density) into a spectrum channel matrix used in the module's features.
+- Previously, CSI feedback was based only on PDSCH. Now, the module is extended to support period CSI-RS and CSI-IM based CSI-feedback. Additional combinations of these modes are available for testing purposes and can be configured through `NrHelper::CsiFeedbackFlags` attribute. Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
+- It is no longer necessary to call NrHelper::UpdateDeviceConfigs(); please remove from any examples or tests.
 
 - Remember to follow the instructions from the README.md file, i.e., to checkout
   the correct release branch of both ns-3 and the NR module. The information about
   compatibility with the corresponding ns-3 release branch is stated in the
   `README.md` file.
 
-- Previously, CSI feedback was based only on PDSCH. Now, the module is extended to support period CSI-RS and CSI-IM based CSI-feedback.
-Additional combinations of these modes are available for testing purposes and can be configured through `NrHelper::CsiFeedbackFlags` attribute.
-Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
-
-- It is no longer necessary to call NrHelper::UpdateDeviceConfigs(); please remove from any examples or tests.
-
 New user-visible features
 -------------------------
-In the new version of the module, we have created a simple interface for configuring spectrum channels for use in simulations. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels.
+
+- We introduced CSI-RS signals and CSI-IM interference measurements to complement PDSCH-based CQI feedback.
+- We introduced a new attachment algorithm `AttachToMaxRsrpGnb` which follows 3GPP configuration to attach UE to the gNB with highest RSRP within indicates handoff margin.
+- We introduced a new beamforming algorithms, `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming` which provides Kronecker based beamforming whereas in the `KroneckerBeamforming` both gNB and UE use Kronecker, and in the `KroneckerQuasiOmniBeamforming` gNB use Kronecker vector and UE used Omni direction to do Beamforming.
+- As part of the GSoC 2024 contribution from João Albuquerque, we introduced a new helper, `NrChannelHelper`, which provides a simple interface for configuring spectrum channels with various channel models, including NYUSIM, Fluctuating Two-Ray (FTR), and 3GPP. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels. The `gsoc-nr-channel-models.cc` example demonstrates how to configure different spectrum channels for end-to-end simulations. These channels can be 'legacy' (e.g., Friis) or not (e.g., NYUSIM, 3GPP, FTR). The `nr-channel-setup-test.cc` test checks if the NrChannelHelper API can correctly create a specified
+  channel, which will be created using well-defined combinations of scenarios, channel models, and channel conditions.
+- The ns-3 implementation of NYUSIM channel model is added as a feature of the NR module. The original files are installed in utils directory,
+  with some version updates. Acknowledgments to Hitesh Poddar (NYU WIRELESS) and Tomoki Yoshimura (Sharp Laboratories of America),
+  authors of the NYUSIM channel model code implementation in ns-3. (Original code: https://github.com/hiteshPoddar/NYUSIM_in_ns3/tree/main)
+- As part of the GSoC 2024 contribution from Hyerin Kim, we introduced a new Reinforced-Learning based MAC schedulers, `NrMacSchedulerTdmaAi` and `NrMacSchedulerOfdmaAi`, using the `ns3-gym` module.
+- We introduced sub-band CQI reporting, in addition to additional Rank Indicators (RI)/Precoding Matrix Indicator (PMI) selection techniques, as alternatives to the `NrPmSearchFull`, such as `NrPmSearchIdeal`, `NrPmSearchFast`, `NrPmSearchSasaoka` and `NrPmSearchMaleki`.
+- We introduced sub-band awareness to the MAC schedulers, which can be controlled via the attribute `NrMacSchedulerNs3::McsCsiSource`.
+
 
 Bugs fixed
 ----------
-
+- With CSI-RS+CSI-IM, users are not starved due to CQI 0 preventing RBG allocation when there was no data transmission and PDSCH-based CQI feedback was used.
+- UEs numerology is now properly set via MIB, in case UEs were not explicitly attached to gNBs via `NrHelper::AttachToGnb()`.
 
 Known issues
 ------------
