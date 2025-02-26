@@ -50,7 +50,7 @@ us a note on ns-developers mailing list.
 
 ---
 
-## Changes from NR-v3.3 to v3.4
+## Changes from NR-v3.3 to v4.0
 
 ### New API:
 

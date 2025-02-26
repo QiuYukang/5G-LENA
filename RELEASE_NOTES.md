@@ -15,7 +15,7 @@ http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
-Release NR-v3.4
+Release NR-v4.0
 ---------------
 
 Availability
