@@ -218,6 +218,7 @@ set(source_files
     utils/channels/nyu/nyu-propagation-loss-model.cc
     utils/channels/nyu/nyu-spectrum-propagation-loss-model.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
+    utils/fast-fading-constant-position-mobility-model.cc
     utils/traffic-generators/helper/traffic-generator-helper.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
     utils/traffic-generators/model/traffic-generator-3gpp-audio-data.cc
@@ -428,6 +429,7 @@ set(header_files
     utils/channels/nyu/nyu-propagation-loss-model.h
     utils/channels/nyu/nyu-spectrum-propagation-loss-model.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
+    utils/fast-fading-constant-position-mobility-model.h
     utils/nr-json.hpp
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
