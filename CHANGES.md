@@ -70,6 +70,8 @@ can be configured through `NrHelper::CsiFeedbackFlags` attribute.
 
 - We introduced new functions to `NrMacSchedulerOfdma` in order to simplify resource allocation, including: `AttemptAllocationOfCurrentResourceToUe()`, `AllocateCurrentResourceToUe()`, `DeallocateCurrentResourceFromUe()`, `ShouldScheduleUeBasedOnFronthaul()` and  `DeallocateResourcesDueToFronthaulConstraint()`.
 
+- We introduced new symbols per beam scheduling options. These can be set using attribute ``NrMacSchedulerOfdma::SymPerBeamType`` to ``LOAD_BASED`` (current behavior and default value), ``ROUND_ROBIN`` and ``PROPORTIONAL_FAIR``.
+
 ### Changes to existing API:
 
 - The existing scenario configuration was removed from band creation. Additionally, band initialization and channel attribute setting methods were removed from `NrHelper`.

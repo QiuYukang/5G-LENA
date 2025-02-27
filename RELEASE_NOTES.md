@@ -60,6 +60,7 @@ New user-visible features
 - As part of the GSoC 2024 contribution from Hyerin Kim, we introduced a new Reinforced-Learning based MAC schedulers, `NrMacSchedulerTdmaAi` and `NrMacSchedulerOfdmaAi`, using the `ns3-gym` module.
 - We introduced sub-band CQI reporting, in addition to additional Rank Indicators (RI)/Precoding Matrix Indicator (PMI) selection techniques, as alternatives to the `NrPmSearchFull`, such as `NrPmSearchIdeal`, `NrPmSearchFast`, `NrPmSearchSasaoka` and `NrPmSearchMaleki`.
 - We introduced sub-band awareness to the MAC schedulers, which can be controlled via the attribute `NrMacSchedulerNs3::McsCsiSource`.
+- We introduced new symbols per beam scheduling options, which can be controlled via  the attribute ``NrMacSchedulerOfdma::SymPerBeamType``.
 
 
 Bugs fixed

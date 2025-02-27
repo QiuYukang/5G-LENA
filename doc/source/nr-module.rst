@@ -1486,19 +1486,37 @@ OFDMA scheduling, while in the uplink they leverage some of the subclasses of
 ``NrMacSchedulerTdma`` class that implements TDMA scheduling.
 
 The OFDMA scheduling in the downlink is composed of the two scheduling levels:
-1) the scheduling of the symbols per beam (time-domain level), where scheduler
+(1) the scheduling of the symbols per beam (time-domain level), where scheduler
 selects a number of consecutive OFDM symbols in a slot to assign to a specific
-beam, and 2) the scheduling of RBGs per UE in a beam, where the scheduler
+beam, and (2) the scheduling of RBGs per UE in a beam, where the scheduler
 determines the allocation of RBGs for the OFDM symbols of the corresponding
 beam (frequency-domain level).
-The scheduling of the symbols per beam can be performed in a load-based or
-round robin fashion. The calculation of load is based on the BSRs and the
-assignment of symbols per beam is proportional to the load. In the following
-level, the specific scheduling algorithm (round robin, proportional fair,
-max rate) decides how RBGs are allocated among different UEs associated to the same beam.
-Multiple fairness checks can be ensured in between each level of scheduling -
-the time domain and the frequency domain. For instance, a UE that already has
-its needs covered by a portion of the assigned resources can free these
+
+The time-domain scheduling (1) of the symbols per beam can be performed with different policies:
+
+* Load-Based (attribute ``NrMacSchedulerOfdma::SymPerBeamType`` set to ``LOAD_BASED``)
+
+    * The calculation of load is based on the BSRs and the assignment of symbols per beam
+      is proportional to the load.
+
+* Round-Robin (attribute ``NrMacSchedulerOfdma::SymPerBeamType`` set to ``ROUND_ROBIN``)
+
+    * Symbols are assigned one at a time, to the active beam in the front of a circular queue,
+      which is then moved to the end of the queue.
+
+* Proportional-Fair (attribute ``NrMacSchedulerOfdma::SymPerBeamType`` set to ``PROPORTIONAL_FAIR``)
+
+    * Symbols are assigned one at a time, by applying the proportional-fair policy to the average TBS
+      of UEs in a given beam. Mean TBS bytes added by each additional symbol are then removed from total byte
+      load of a beam, possibly reducing the number of remaining users in the beam for the next symbols
+      in a given slot.
+
+
+The frequency-domain scheduling (2) of RBGs can be performed using different scheduling algorithms
+(round robin, proportional fair, max rate, RL-based). Which decide how RBGs are allocated among
+different UEs associated to the same beam. Multiple fairness checks can be ensured in between
+each level of scheduling - the time domain and the frequency domain. For instance, a UE that
+already has its needs covered by a portion of the assigned resources can free these
 resources for others to use.
 
 The NR module currently offers three specializations of the OFMA schedulers.
@@ -3044,6 +3062,23 @@ the visual inspection of the behavior of the system during the simulation.
 
 The complete details of the validation script are provided in
 https://cttc-lena.gitlab.io/nr/html/nr-test-csi_8cc.html
+
+Test for OFDMA time-domain schedulers (symbols per beam)
+========================================================
+
+Test case called ``nr-test-sched-symbols-per-beam`` is a unit test used to verify the different time-domain
+symbol per beam schedulers work correctly. The test performs a few checks for each of the implemented
+schedulers:
+
+- Try scheduling symbols to no beams.
+- Try scheduling symbols to a beam with a single UE, CQI 15, 1B buffer.
+- Try scheduling symbols to two beams. The first beam with a single UE, CQI 15, 1B buffer. The second beam with a single UE, CQI 2, 1MB buffer.
+- Try scheduling symbols to two beams. The first beam with two UEs, CQI 15, 1B e 0.99MB buffer. The second beam with a single UE, CQI 2, 1MB buffer.
+- Try scheduling symbols to three beams. The first beam with two UEs, CQI 15, 1B e 0.99MB buffer. The second beam with a single UE, CQI 2, 1MB buffer. The third beam with a single UE, CQI 8, 1MB buffer.
+- Test scheduler specific aspects:
+
+    - Check whether round-robin queue ordering is preserved after removing UEs and respective beams, and adding them back.
+    - Check whether PF memory is preserved across subframes, to maintain fairness over time.
 
 Open issues and future work
 ---------------------------
