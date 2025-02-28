@@ -49,7 +49,7 @@ In this section, we present the design of the different features and procedures 
 
 Architecture
 ************
-The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in Figure :ref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an PGW/SGW (Packet Gateway and Service Gateway), through a link. Such a connection can be defined with any technology that is currently available in ns-3.  The diagram illustrates a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``NrEpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NrGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NrUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but in the opposite direction.
+The 'NR' module has been designed to perform end-to-end simulations of 3GPP-oriented cellular networks. The end-to-end overview of a typical simulation with the 'NR' module is drawn in :numref:`fig-e2e`. In dark gray, we represent the existing, and unmodified, ns-3 and LENA components. In light gray, we describe the NR components. On one side, we have a remote host (depicted as a single node in the Figure, for simplicity, but there can be multiple nodes) that connects to an PGW/SGW (Packet Gateway and Service Gateway), through a link. Such a connection can be defined with any technology that is currently available in ns-3.  The diagram illustrates a single link, but there are no limits on the topology, including any number of remote hosts. Inside the SGW/PGW, the ``NrEpcSgwPgwApp`` encapsulates the packet using the GTP protocol. Through an IP connection, which represents the backhaul of the NR network (again, described with a single link in the Figure, but the topology can vary), the GTP packet is received by the gNB. There, after decapsulating the payload, the packet is transmitted inside the NR stack through the entry point represented by the class ``NrGnbNetDevice``. The packet, if received correctly at the UE, is passed to higher layers by the class ``NrUeNetDevice``. The path crossed by packets in the UL case is the same as the one described above but in the opposite direction.
 
 .. _fig-e2e:
 
@@ -59,7 +59,7 @@ The 'NR' module has been designed to perform end-to-end simulations of 3GPP-orie
 
    End-to-end class overview
 
-Concerning the RAN, we detail what is happening between ``NrGnbNetDevice`` and ``NrUeNetDevice`` in Figure :ref:`fig-ran`. The ``NrGnbMac`` and ``NrUeMac`` MAC classes implement the LTE module Service Access Point (SAP) provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NrMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``NrGnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
+Concerning the RAN, we detail what is happening between ``NrGnbNetDevice`` and ``NrUeNetDevice`` in :numref:`fig-ran`. The ``NrGnbMac`` and ``NrUeMac`` MAC classes implement the LTE module Service Access Point (SAP) provider and user interfaces, enabling the communication with the LTE RLC layer. The module supports RLC TM, SM, UM, and AM modes. The MAC layer contains the scheduler (``NrMacScheduler`` and derived classes). Every scheduler also implements an SAP for LTE RRC layer configuration (``NrGnbRrc``). The ``NrPhy`` classes are used to perform the directional communication for both downlink (DL) and uplink (UL), to transmit/receive the data and control channels. Each ``NrPhy`` class writes into an instance of the ``NrSpectrumPhy`` class, which is shared between the UL and DL parts.
 
 .. _fig-ran:
 
@@ -69,7 +69,7 @@ Concerning the RAN, we detail what is happening between ``NrGnbNetDevice`` and `
 
    RAN class overview
 
-Two interesting blocks in Figure :ref:`fig-ran` are the ``NrGnbBwpM`` and ``NrUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. The component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and thereby improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its own PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NrGnbBwpM`` and ``NrUeBwpM``).
+Two interesting blocks in :numref:`fig-ran` are the ``NrGnbBwpM`` and ``NrUeBwpM`` layers. 3GPP does not explicitly define them, and as such, they are virtual layers. Still, they help construct a fundamental feature of our simulator: the multiplexing of different BWPs. NR has included the definition of 3GPP BWPs for energy-saving purposes, as well as to multiplex a variety of services with different QoS requirements. The component carrier concept was already introduced in LTE, and persists in NR through our general BWP concept, as a way to aggregate carriers and thereby improve the system capacity. In the 'NR' simulator, it is possible to divide the entire bandwidth into different BWPs. Each BWP can have its own PHY and MAC configuration (e.g., specific numerology, scheduler rationale, and so on). We added the possibility for any node to transmit and receive flows in different BWPs, by either assigning each bearer to a specific BWP or distributing the data flow among different BWPs, according to the rules of the manager. The introduction of a proxy layer to multiplex and demultiplex the data was necessary to glue everything together, and this is the purpose of these two new classes (``NrGnbBwpM`` and ``NrUeBwpM``).
 
 Note: The 3GPP definition for "Bandwidth Part" (BWP) is made for energy-saving purposes at the UE nodes. As per the 3GPP standard, the active 3GPP BWP at a UE can vary semi-statically, and multiple 3GPP BWPs can span over the same frequency spectrum region. In this text, and through the code, we use the word BWP to refer to various things that are not always in line with the 3GPP definition.
 
@@ -149,7 +149,7 @@ In the time domain, each 10 ms frame is split in time into ten subframes, each o
 
 In the frequency domain, the number of subcarriers per physical resource block (PRB) is fixed to 12, and the maximum number of PRBs, according to Release-15, is 275. With a particular channel bandwidth, the numerology defines the size of a PRB and the total number of PRBs usable by the system. PRBs are grouped into PRB groups at MAC scheduling time.
 
-Figure :ref:`fig-frame` shows the NR frame structure in time- and frequency- domains for numerology 3 with normal CP and a total channel bandwidth of 400 MHz.
+:numref:`fig-frame` shows the NR frame structure in time- and frequency- domains for numerology 3 with normal CP and a total channel bandwidth of 400 MHz.
 
 .. _fig-frame:
 
@@ -185,7 +185,7 @@ Some of the details of what is explained above is present in the papers [WNS3201
 
 FDM of numerologies
 ===================
-An additional level of flexibility in the NR system can be achieved by implementing the multiplexing of numerologies in the frequency domain. As an example, ultra-reliable and low-latency communications (URLLC) traffic requires a short slot length to meet strict latency requirements, while enhanced mobile broadband (eMBB) use case in general aims at increasing throughput, which is achieved with a large slot length. Therefore, among the set of supported numerologies for a specific operational band and deployment configuration, URLLC can be served with the numerology that has the shortest slot length and eMBB with the numerology associated with the largest slot length. To address that, NR enables FDM of numerologies through different BWPs, to address the trade-off between latency and throughput for different types of traffic by physically dividing the bandwidth in two or more BWPs. In Figure :ref:`fig-bwp`, we illustrate an example of the FDM of numerologies. The channel is split into two BWPs that accommodate the two numerologies multiplexed in the frequency domain. The total bandwidth :math:`B` is then divided into two parts of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
+An additional level of flexibility in the NR system can be achieved by implementing the multiplexing of numerologies in the frequency domain. As an example, ultra-reliable and low-latency communications (URLLC) traffic requires a short slot length to meet strict latency requirements, while enhanced mobile broadband (eMBB) use case in general aims at increasing throughput, which is achieved with a large slot length. Therefore, among the set of supported numerologies for a specific operational band and deployment configuration, URLLC can be served with the numerology that has the shortest slot length and eMBB with the numerology associated with the largest slot length. To address that, NR enables FDM of numerologies through different BWPs, to address the trade-off between latency and throughput for different types of traffic by physically dividing the bandwidth in two or more BWPs. In :numref:`fig-bwp`, we illustrate an example of the FDM of numerologies. The channel is split into two BWPs that accommodate the two numerologies multiplexed in the frequency domain. The total bandwidth :math:`B` is then divided into two parts of bandwidth :math:`B_u` for URLLC and :math:`B_e` for eMBB, so that :math:`B_u+B_e \le B`.
 
 .. _fig-bwp:
 
@@ -330,7 +330,7 @@ has been used for what concerns the extraction of link-level performance
 by using the Exponential Effective SINR (EESM) as the L2SM mapping function.
 
 The overall NR PHY abstraction model that is implemented in the 'NR' module is shown in
-Figure :ref:`fig-l2sm`. The L2SM process receives inputs consisting of a vector
+:numref:`fig-l2sm`. The L2SM process receives inputs consisting of a vector
 of SINRs per allocated RB, the MCS selection (including MCS index and the MCS
 table to which it refers), the TBS delivered to PHY, and the HARQ history. Then,
 it provides as output the BLER of the MAC transport block.
@@ -377,7 +377,7 @@ The MCS Table1 includes from MCS0 (ECR=0.12, QPSK, SE=0.23 bits/s/Hz)
 to MCS28 (ECR=0.94, 64-QAM, SE=5.55 bits/s/Hz), whereas the MCS Table2
 has MCS indices from MCS0 (ECR=0.12, QPSK, SE=0.23 bits/s/Hz) to MCS27
 (ECR=0.93, 256-QAM, SE=7.40 bits/s/Hz).
-As shown in Figure :ref:`fig-l2sm`, the MCS Table (1 or 2) and the
+As shown in :numref:`fig-l2sm`, the MCS Table (1 or 2) and the
 MCS index (0 to 28 for MCS Table1, and 0 to 27 for MCS Table2) are
 inputs for the NR PHY abstraction.
 
@@ -480,7 +480,7 @@ The BF task is composed of a pair of connected gNB and UE devices for which
 the BF helper will manage the update of the BF vectors by calling
 ``GetBeamformingVectors`` of the configured BF algorithm.
 
-In Figure :ref:`fig-rbf-impl`, we show the class diagram of the beamforming model.
+In :numref:`fig-rbf-impl`, we show the class diagram of the beamforming model.
 
 .. _fig-rbf-impl:
 
@@ -580,7 +580,7 @@ section.
 Finally, ``CalculateTheEstimatedLongTermMetric`` calculates the metric that is used to select the
 best BF pair.
 
-In Figure :ref:`fig-rbf-impl`, we show the diagram of the classes that are used for realistic
+In :numref:`fig-rbf-impl`, we show the diagram of the classes that are used for realistic
 BF based on SRS measurements, the dependencies among classes, and the most important
 methods. E.g., we can see that `RealisticBeamformingAlgorithm`
 needs to access to `ThreeGppChannelModel` to obtain the channel matrix in order to perform the estimation of the channel based on SRS report.
@@ -626,7 +626,7 @@ SRS is typically transmitted over only a subset of subcarriers, defined by the
 configuration, e.g., each 2nd or each 4th subcarrier is used for SRS transmission.
 However, since the minimum transmission granularity in 5G-LENA module is a RB in frequency domain,
 all subcarriers are used for SRS transmission.
-Figure :ref:`fig-srs-5glena` shows the slot structure and the symbols over which the
+:numref:`fig-srs-5glena` shows the slot structure and the symbols over which the
 SRS transmission spans, assuming a repeated TDD pattern structure of
 [DL F UL UL UL] (i.e., one DL slot, followed by one flexible slot and three UL
 slots and that SRS transmissions occur in F slots (i.e., slots number 1 and 6 in the figure).
@@ -1919,7 +1919,7 @@ Two general types of maps can be generated according to whether the BeamShape
 or CoverageArea is selected.
 The first case considers the configuration of the beamforming vectors (for each
 RTD) as defined by the user in the scenario script for which the REM maps
-(SNR/SINR/IPSD) are generated. Examples are given in Figure :ref:`fig-BSexamples`
+(SNR/SINR/IPSD) are generated. Examples are given in :numref:`fig-BSexamples`
 where the first two figures depict the SNR (left) and SINR (right) for the case
 of two gNBs with antenna array configuration 8x8 and Isotropic elements, while
 the two figures on the bottom correspond to 3GPP element configuration.
@@ -1936,7 +1936,7 @@ In the second case, the beams are reconfigured during the map generation for
 each rem point in order to visualize the coverage area in terms of SNR, SINR
 and IPSD. Examples of the SNR (left) and SINR (right) CoverageArea maps for two
 gNBs with Isotropic/3GPP (top/bottom) antenna elements are presented in
-Figure :ref:`fig-CAexamples`.
+:numref:`fig-CAexamples`.
 
 .. _fig-CAexamples:
 
@@ -1948,7 +1948,7 @@ Figure :ref:`fig-CAexamples`.
 
 The ``NrRadioEnvironmentMapHelper`` allows also the visualization of the coverage
 holes when buildings are included in the deployment. An example is given in
-Figure :ref:`fig-CAexamplesBuildings`, where Isotropic antenna elements were
+:numref:`fig-CAexamplesBuildings`, where Isotropic antenna elements were
 configured to both gNBs of the example.
 
 .. _fig-CAexamplesBuildings:
@@ -1959,7 +1959,7 @@ configured to both gNBs of the example.
 
    CoverageArea map examples with buildings (left: SNR, right: SINR)
 
-An example for a hexagonal deployment is given in Figure :ref:`fig-S3`. In this
+An example for a hexagonal deployment is given in :numref:`fig-S3`. In this
 example the REM depicts a scenario for the frequency band of 2GHz, BW of 10 MHz,
 while the Inter-Site Distance (ISD) has been set to 1732m for the Urban case (top)
 and 7000m for the Rural case (bottom). The transmit power has been set to 43 dBm.
@@ -1972,7 +1972,7 @@ and 7000m for the Rural case (bottom). The transmit power has been set to 43 dBm
 
    Hexagonal Topology (BeamShape) map examples (left: SNR, right: SINR)
 
-Finally, Figure :ref:`fig-HetNet` presents an example of a Heterogeneous Network
+Finally, :numref:`fig-HetNet` presents an example of a Heterogeneous Network
 (HetNet) of 7 Macro sites and 3 randomly deployed Small Cells.
 
 .. _fig-HetNet:
@@ -1988,7 +1988,7 @@ for the DL or the UL direction. This can be done by passing to the rem helper
 the desired transmitting device(s) (RTD(s)) and receiving device (RRD), which
 for the DL case correspond to gNB(s) and UE, respectively, while for the UL
 case to UE(s) and gNB, respectively. An example of an UL case is given in
-Figure :ref:`fig-UlRemHex`, for the hexagonal topology presented in Figure :ref:`fig-S3`
+:numref:`fig-UlRemHex`, for the hexagonal topology presented in :numref:`fig-S3`
 above (Urban case), for 324 UEs with UE transmit power 23 dBm, antenna height 1.5m
 and 1x1 antenna array.
 
@@ -2165,7 +2165,7 @@ The program ``nr/examples/cttc-3gpp-channel-simple-ran.cc``
 allows users to select the numerology and test the performance considering
 only the RAN. The scenario topology is simple, and it
 consists of a single gNB and single UE. The scenario is illustrated in
-Figure ::`fig-scenario-simple`.
+::`fig-scenario-simple`.
 
 .. _fig-scenario-simple:
 
@@ -2184,7 +2184,7 @@ cttc-3gpp-channel-nums.cc
 =========================
 The program ``examples/cttc-3gpp-channel-nums.cc``
 allows users to select the numerology and test the end-to-end performance.
-Figure :ref:`fig-end-to-end` shows the simulation setup.
+:numref:`fig-end-to-end` shows the simulation setup.
 The user can run this example with UDP full buffer traffic and can specify the
 UDP packet interval.
 
@@ -2220,7 +2220,7 @@ The configuration of BWP is composed of the following parameters:
 central carrier frequency, bandwidth and numerology. There are 2 UEs, and each UE has one flow.
 One flow is of URLLC traffic type, while the another is eMBB.
 URLLC is configured to be transmitted over the first BWP, and the eMBB over the second BWP.
-Figure :ref:`fig-end-to-end` shows the simulation setup.
+:numref:`fig-end-to-end` shows the simulation setup.
 Note that this simulation topology is as the one used in ``scratch/cttc-3gpp-channel-nums.cc``
 The user can run this example with UDP full buffer traffic or can specify the
 UDP packet interval and UDP packet size per type of traffic.
@@ -2234,7 +2234,7 @@ cttc-3gpp-indoor-calibration.cc
 The program ``examples/cttc-3gpp-indoor-calibration`` is the simulation
 script created for the NR-MIMO Phase 1 system-level calibration.
 The scenario implemented in this simulation script is according to
-the topology described in 3GPP TR 38.901 V17.0.0 (2022-03) Figure 7.2-1:
+the topology described in 3GPP TR 38.901 V17.0.0 (2022-03) 7.2-1:
 "Layout of indoor office scenarios".
 The simulation assumptions and the configuration parameters follow
 the evaluation assumptions agreed at 3GPP TSG RAN WG1 meeting #88,
@@ -2559,7 +2559,7 @@ and UEs, are also varied. Finally, let us notice that all scenarios have been
 evaluated under full buffer traffic, as indicated by 3GPP reference results.
 
 The network layout consists in a hexagonal topology with 37 sites of 3 sectors each,
-thus leading to 111 Base Stations (BS), as shown in Figure :ref:`fig-calibration-hex-grid`.
+thus leading to 111 Base Stations (BS), as shown in :numref:`fig-calibration-hex-grid`.
 However, in the measurements we consider only the 21 inner BSs, while the 111 BSs
 are simulated to account for the wrap-around effect. Notice that each sector has
 its antenna arrays oriented towards its sector area, and each sector area is equally

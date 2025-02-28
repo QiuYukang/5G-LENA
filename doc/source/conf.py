@@ -24,6 +24,7 @@ source_suffix = ".rst"
 master_doc = "nr-module"
 exclude_patterns = []
 add_function_parentheses = True
+numfig = True
 # add_module_names = True
 # modindex_common_prefix = []
 html_theme = "sphinx_rtd_theme"
