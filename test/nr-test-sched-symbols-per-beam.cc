@@ -441,10 +441,10 @@ NrSchedOfdmaSymbolPerBeamTestCase::DoRun()
         };
 
         auto testSamplesStride = [this, &getNextBeam](int stride) {
-            std::vector<BeamId> beams;
+            std::vector<BeamId> beams(stride * 2);
             for (int i = 0; i < stride * 2; i++)
             {
-                beams.push_back(getNextBeam());
+                beams.at(i) = getNextBeam();
             }
             for (int i = 0; i < stride - 1; i++)
             {
