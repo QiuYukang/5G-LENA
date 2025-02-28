@@ -5,7 +5,6 @@
 stages:
   - code-linting
   - build
-  - reuse
   - documentation
   - deploy
 
@@ -131,14 +130,6 @@ per-commit-gcc-optimized-sanitizers:
     EXTRAS: --enable-sanitizers
   tags:
     - CTTC
-
-reuse:
-  stage: reuse
-  image:
-    name: fsfe/reuse:latest
-    entrypoint: [""]
-  script:
-    - reuse lint
 
 documentation:
   stage: documentation

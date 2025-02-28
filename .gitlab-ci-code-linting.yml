@@ -6,6 +6,15 @@
 #
 # Contains jobs to check the ns-3 coding style and perform lint checking.
 
+# REUSE license checking
+reuse:
+  stage: code-linting
+  image:
+    name: fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
+
 # Clang-format
 check-style-clang-format:
   stage: code-linting
