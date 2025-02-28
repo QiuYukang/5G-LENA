@@ -3048,19 +3048,19 @@ https://cttc-lena.gitlab.io/nr/html/nr-test-csi_8cc.html
 Open issues and future work
 ---------------------------
 
-.. [mmwave-module] NYU WIRELESS, University of Padova, "ns-3 module for simulating mmwave-based cellular systems," Available at https://github.com/nyuwireless/ns3-mmwave.
+.. [mmwave-module] NYU WIRELESS, University of Padova. "ns-3 module for simulating mmwave-based cellular systems". Available at https://github.com/nyuwireless/ns3-mmwave.
 
-.. [TR38900] 3GPP TR 38.900 "Study on channel model for frequency above 6GHz", (Release 14) TR 38.912v14.0.0 (2016-12), 3rd Generation Partnership Project, 2016.
+.. [TR38900] 3GPP TR 38.900. "Study on channel model for frequency above 6GHz, (Release 14) TR 38.912v14.0.0 (2016-12), 3rd Generation Partnership Project". 2016.
 
-.. [end-to-end-mezz] Marco Mezzavilla, Menglei Zhang, Michele Polese, Russell Ford, Sourjya Dutta, Sundeep Rangan, Michele Zorzi, "End-to-End Simulation of 5G mmWave Networks,", in IEEE Communication Surveys and Tutorials, vol. 13, No 20,  pp. 2237-2263, April 2018.
+.. [end-to-end-mezz] Marco Mezzavilla, Menglei Zhang, Michele Polese, Russell Ford, Sourjya Dutta, Sundeep Rangan, Michele Zorzi. "End-to-End Simulation of 5G mmWave Networks". In IEEE Communication Surveys and Tutorials, vol. 13, No 20,  pp. 2237-2263, April 2018.
 
-.. [WNS32018-NR]  B. Bojovic, S. Lagen, L. Giupponi, Implementation and Evaluation of Frequency Division Multiplexing of Numerologies for 5G New Radio in ns-3 , in Workshop on ns-3, June 2018, Mangalore, India.
+.. [WNS32018-NR]  Biljana Bojovic, Sandra Lagen, L. Giupponi. "Implementation and Evaluation of Frequency Division Multiplexing of Numerologies for 5G New Radio in ns-3". In Workshop on ns-3, June 2018, Mangalore, India.
 
-.. [CAMAD2018-NR] N. Patriciello, S. Lagen, L. Giupponi, B. Bojovic, 5G New Radio Numerologies and their Impact on the End-To-End Latency , in Proceedings of IEEE International Workshop on Computer-Aided Modeling Analysis and Design of Communication Links and Networks (IEEE CAMAD), 17-19 September 2018, Barcelona (Spain).
+.. [CAMAD2018-NR] Natale Patriciello, Sandra Lagen, L. Giupponi, Biljana Bojovic. "5G New Radio Numerologies and their Impact on the End-To-End Latency". In Proceedings of IEEE International Workshop on Computer-Aided Modeling Analysis and Design of Communication Links and Networks (IEEE CAMAD), 17-19 September 2018, Barcelona (Spain).
 
-.. [CA-WNS32017] B. Bojovic, D. Abrignani Melchiorre, M. Miozzo, L. Giupponi, N. Baldo, Towards LTE-Advanced and LTE-A Pro Network Simulations: Implementing Carrier Aggregation in LTE Module of ns-3, in Proceedings of the Workshop on ns-3, Porto, Portugal, June 2017.
+.. [CA-WNS32017] Biljana Bojovic, D. Abrignani Melchiorre, M. Miozzo, L. Giupponi, N. Baldo. "Towards LTE-Advanced and LTE-A Pro Network Simulations: Implementing Carrier Aggregation in LTE Module of ns-3". In Proceedings of the Workshop on ns-3, Porto, Portugal, June 2017.
 
-.. [ff-api] FemtoForum , "LTE MAC Scheduler Interface v1.11", Document number: FF_Tech_001_v1.11 , Date issued: 12-10-2010.
+.. [ff-api] FemtoForum , "LTE MAC Scheduler Interface v1.11". Document number: FF_Tech_001_v1.11 , Date issued: 12-10-2010.
 
 .. [TS38300] 3GPP TS 38.300, TSG RAN; NR; Overall description; Stage 2 (Release 16), v16.0.0, Dec. 2019
 
@@ -3072,45 +3072,45 @@ Open issues and future work
 
 .. [TS38214] 3GPP  TS  38.214, TSG  RAN;  NR;  Physical  layer  procedures  for  data (Release 16), v16.0.0, Dec. 2019.
 
-.. [calibration-l2sm] A.-M. Cipriano,  R.  Visoz,  and  T.  Salzer,  "Calibration  issues  of  PHY layer  abstractions  for  wireless  broadband  systems", IEEE  Vehicular Technology Conference, Sept. 2008.
+.. [calibration-l2sm] A.-M. Cipriano,  R.  Visoz,  and  T.  Salzer.  "Calibration  issues  of  PHY layer  abstractions  for  wireless  broadband  systems". IEEE  Vehicular Technology Conference, Sept. 2008.
 
-.. [nr-l2sm] S. Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello, L. Giupponi, "New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks", in Proceedings of IEEE International Conference on Communications (IEEE ICC), 7-11 June 2020, Dublin (Ireland).
+.. [nr-l2sm] Sandra Lagen, K. Wanuga, H. Elkotby, S. Goyal, N. Patriciello, L. Giupponi. "New Radio Physical Layer Abstraction for System-Level Simulations of 5G Networks". In Proceedings of IEEE International Conference on Communications (IEEE ICC), 7-11 June 2020, Dublin (Ireland).
 
-.. [baldo2009] N. Baldo and M. Miozzo, "Spectrum-aware Channel and PHY layer modeling for ns3", Proceedings of ICST NSTools 2009, Pisa, Italy.
+.. [baldo2009] Nicola Baldo and M. Miozzo. "Spectrum-aware Channel and PHY layer modeling for ns3". Proceedings of ICST NSTools 2009, Pisa, Italy.
 
-.. [notching1] H. McDonald, D. Shyy, M. Steele and C. Patterson, "LTE Uplink Interference Mitigation Features," MILCOM 2018 - 2018 IEEE Military Communications Conference (MILCOM), Los Angeles, CA, 2018, pp. 505-511, doi: 10.1109/MILCOM.2018.8599850
+.. [notching1] Howard McDonald, D. Shyy, M. Steele and C. Patterson. "LTE Uplink Interference Mitigation Features," MILCOM 2018 - 2018 IEEE Military Communications Conference (MILCOM), Los Angeles, CA, 2018, pp. 505-511, doi: 10.1109/MILCOM.2018.8599850
 
-.. [notching2] H. McDonald et al., "AWS-3 Interference Mitigation: Improving Spectrum Sharing with LTE & 5G Uplink Spectrum Control," MILCOM 2019 - 2019 IEEE Military Communications Conference (MILCOM), Norfolk, VA, USA, 2019, pp. 102-107, doi: 10.1109/MILCOM47813.2019.9020877
+.. [notching2] Howard McDonald et al. "AWS-3 Interference Mitigation: Improving Spectrum Sharing with LTE & 5G Uplink Spectrum Control," MILCOM 2019 - 2019 IEEE Military Communications Conference (MILCOM), Norfolk, VA, USA, 2019, pp. 102-107, doi: 10.1109/MILCOM47813.2019.9020877
 
 .. [lte-ulpc] LTE ns-3 implementation of uplink power control: https://www.nsnam.org/docs/models/html/lte-design.html#power-control
 
-.. [SigProc5G] F.-L. Luo and C. J. Zhang, "Signal Processing for 5G: Algorithms and Implementations", John Wiley & Sons., Aug. 2016.
+.. [SigProc5G] F.-L. Luo and C. J. Zhang. "Signal Processing for 5G: Algorithms and Implementations". John Wiley & Sons., Aug. 2016.
 
-.. [TS38331]  3GPP TS 38.331, Radio Resource Control (RRC), (Rel. 15), 2018.
+.. [TS38331]  3GPP. "TS 38.331, Radio Resource Control (RRC), (Rel. 15)". 2018.
 
-.. [IMT-2020] ITU-R, Submission, evaluation process and consensus building for IMT-2020, ITU-R IMT-2020/2-E, 2019.
+.. [IMT-2020] ITU-R. "Submission, evaluation process and consensus building for IMT-2020, ITU-R IMT-2020/2-E". 2019.
 
-.. [SIMPAT-calibration] K. Koutlia, B. Bojovic, Z. Ali, S. Laǵen, Calibration of the 5G-LENA system level simulator in 3GPP reference scenarios, Simulation Modelling Practice and Theory 119, 2022.
+.. [SIMPAT-calibration] Katerina Koutlia, Biljana Bojovic, Z. Ali, S. Laǵen. "Calibration of the 5G-LENA system level simulator in 3GPP reference scenarios". Simulation Modelling Practice and Theory 119, 2022.
 
-.. [TR38901] 3GPP TR 38.901 "Study on Channel Model for Frequencies from 0.5 to 100 GHz", (Release 15) TR 38.901v16.1.0 (2020), 3rd Generation Partnership Project, 2020.
+.. [TR38901] 3GPP. "Study on Channel Model for Frequencies from 0.5 to 100 GHz". (Release 15) TR 38.901v16.1.0 (2020), 3rd Generation Partnership Project, 2020.
 
-.. [RP180524] Huawei RP-180524, "Summary of Calibration Results for IMT-2020 Self Evaluation", 3GPP TSG RAN Meeting #79, 2018.
+.. [RP180524] Huawei. "RP-180524 Summary of Calibration Results for IMT-2020 Self Evaluation". 3GPP TSG RAN Meeting #79, 2018.
 
-.. [NGMN-traffics] NGMN Alliance, "NGMN Radio Access Performance Evaluation Methodology", 2008.
+.. [NGMN-traffics] NGMN Alliance. "NGMN Radio Access Performance Evaluation Methodology". 2008.
 
-.. [TR38838] 3GPP TR 38.838, "Study on XR (Extended Reality) Evaluations for NR", V17.0.0, 2022.
+.. [TR38838] 3GPP. "TR 38.838 Study on XR (Extended Reality) Evaluations for NR". V17.0.0, 2022.
 
-.. [WNS32022-ngmn] B. Bojovic, S. Lagen, Enabling NGMN mixed traffic models for ns-3, in Workshop on ns-3, June 2022.
+.. [WNS32022-ngmn] Biljana Bojovic, Sandra Lagen. "Enabling NGMN mixed traffic models for ns-3". In Workshop on ns-3, June 2022.
 
-.. [WNS3-QosSchedulers] K. Koutlia, S. Lagen, and B. Bojovic. 2023. Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA. In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.
+.. [WNS3-QosSchedulers] Katerina Koutlia, Sandra Lagen, and Biljana Bojovic. "Enabling QoS Provisioning Support for Delay-Critical Traffic and Multi-Flow Handling in ns-3 5G-LENA". In Proceedings of the 2023 Workshop on ns-3 (WNS3 '23). Association for Computing Machinery, New York, NY, USA, 45–51. https://doi.org/10.1145/3592149.3592159.
 
-.. [Palomar2006] Daniel P. Palomar and Yi Jiang: MIMO Transceiver Design via Majorization Theory
+.. [Palomar2006] Daniel P. Palomar and Yi Jiang. "MIMO Transceiver Design via Majorization Theory"
 
 .. [interf-whitening] "Whitening transformation": https://en.wikipedia.org/wiki/Whitening_transformation
 
 .. [eigen3] Eigen library: https://eigen.tuxfamily.org/
 
-.. [ComNetFhControl] Katerina Koutlia, Sandra Lagén, "On the impact of Open RAN Fronthaul Control in scenarios with XR Traffic", Computer Networks, Volume 253, August 2024.
+.. [ComNetFhControl] Katerina Koutlia, Sandra Lagén. "On the impact of Open RAN Fronthaul Control in scenarios with XR Traffic". Computer Networks, Volume 253, August 2024.
 
 .. [Sasaoka2019] Naoto Sasaoka, Takumi Sasaki, Yoshio Itoh. "PMI/RI Selection Based on Channel Capacity Increment Ratio". 2019 International Symposium on Multimedia and Communication Technology (ISMAC). doi: 10.1109/ISMAC.2019.8836179.
 
