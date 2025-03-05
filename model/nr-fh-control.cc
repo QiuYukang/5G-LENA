@@ -501,7 +501,7 @@ uint32_t
 NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, uint8_t dlRank)
 {
     uint32_t modulationOrder =
-        m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
+        m_mcsTable == 1 ? nrEesmT1.m_mcsMTable->at(mcs) : nrEesmT2.m_mcsMTable->at(mcs);
 
     uint16_t numOfActiveBwps =
         GetNumberActiveBwps(); // considers only active BWPs with data in queue
@@ -646,7 +646,7 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRa
 {
     uint64_t thr;
     uint32_t modulationOrder =
-        m_mcsTable == 1 ? GetModulationOrderTable1(mcs) : GetModulationOrderTable2(mcs);
+        m_mcsTable == 1 ? nrEesmT1.m_mcsMTable->at(mcs) : nrEesmT2.m_mcsMTable->at(mcs);
 
     uint16_t numerology = m_fhPhySapUser.at(bwpId)->GetNumerology();
     NS_ASSERT_MSG(numerology == m_numerologyPerBwp.at(bwpId),
@@ -701,83 +701,6 @@ NrFhControl::GetMaxMcs(uint8_t mcsTable, uint16_t modOrder) const
         }
     }
     return mcsMax;
-}
-
-uint32_t
-NrFhControl::GetModulationOrderTable1(const uint32_t mcs) const
-{
-    std::vector<uint8_t> McsMTable1 = {// QPSK (modulationOrder = 2)
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       // 16QAM (modulationOrder = 4)
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       // 64QAM (modulationOrder = 6)
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6};
-    return McsMTable1.at(mcs);
-}
-
-uint32_t
-NrFhControl::GetModulationOrderTable2(const uint32_t mcs) const
-{
-    NS_ASSERT_MSG(mcs <= 27, "MCS must be up to 27");
-    std::vector<uint8_t> McsMTable2 = {// QPSK (modulationOrder = 2)
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       2,
-                                       // 16QAM (modulationOrder = 4)
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       4,
-                                       // 64QAM (modulationOrder = 6)
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       6,
-                                       // 256QAM (modulationOrder = 8)
-                                       8,
-                                       8,
-                                       8,
-                                       8,
-                                       8,
-                                       8,
-                                       8,
-                                       8};
-    return McsMTable2.at(mcs);
 }
 
 uint8_t

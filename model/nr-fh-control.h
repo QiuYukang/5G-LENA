@@ -5,6 +5,8 @@
 #ifndef NR_FH_CONTROL_H
 #define NR_FH_CONTROL_H
 
+#include "nr-eesm-t1.h"
+#include "nr-eesm-t2.h"
 #include "nr-fh-phy-sap.h"
 #include "nr-fh-sched-sap.h"
 
@@ -316,16 +318,6 @@ class NrFhControl : public Object
     uint8_t GetMaxMcs(uint8_t mcsTable, uint16_t modOrder) const;
 
     /**
-     * @brief Returns the modulation order of a specific mcs of MCS Table1.
-     */
-    uint32_t GetModulationOrderTable1(const uint32_t mcs) const;
-
-    /**
-     * @brief Returns the modulation order of a specific mcs of MCS Table2.
-     */
-    uint32_t GetModulationOrderTable2(const uint32_t mcs) const;
-
-    /**
      * @brief Returns the max MCS index of a given modulation order of MCS Table1.
      */
     uint8_t GetMcsTable1(const uint8_t modOrder) const;
@@ -384,6 +376,9 @@ class NrFhControl : public Object
     // SfnSf, physicalCellId, bwpId, RBs used
     TracedCallback<const SfnSf&, uint16_t, uint16_t, uint32_t>
         m_rbsAirTrace; //!< Report the RBs used of the AI (in DL) per BWP
+
+    NrEesmT1 nrEesmT1; //!< MCS table 1
+    NrEesmT2 nrEesmT2; //!< MCS table 2
 };
 
 } // end namespace ns3
