@@ -665,68 +665,44 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRa
 uint8_t
 NrFhControl::GetMaxMcs(uint8_t mcsTable, uint16_t modOrder) const
 {
-    uint8_t mcsMax = 0;
-    if (mcsTable == 1)
+    // If the calculated modOrder is higher than 6 or 8, limit its value to the maximum allowed in
+    // the MCS table
+    while (true)
     {
         if (modOrder < 4)
         {
-            mcsMax = GetMcsTable1(0);
+            modOrder = 2;
+            break;
         }
-        else if (modOrder >= 4 && modOrder < 6)
+
+        if (modOrder < 6)
         {
-            mcsMax = GetMcsTable1(1);
+            modOrder = 4;
+            break;
         }
-        else if (modOrder >= 6)
+
+        if (modOrder < 8)
         {
-            mcsMax = GetMcsTable1(2);
+            modOrder = 6;
+            break;
         }
+
+        if (m_mcsTable == 1)
+        {
+            NS_ABORT_MSG("Illegal modOrder for MCS Table 1");
+        }
+        modOrder = 8;
+        break;
     }
-    else if (m_mcsTable == 2)
-    {
-        if (modOrder < 4)
-        {
-            mcsMax = GetMcsTable2(0);
-        }
-        else if (modOrder >= 4 && modOrder < 6)
-        {
-            mcsMax = GetMcsTable2(1);
-        }
-        else if (modOrder >= 6 && modOrder < 8)
-        {
-            mcsMax = GetMcsTable2(2);
-        }
-        else if (modOrder >= 8)
-        {
-            mcsMax = GetMcsTable2(3);
-        }
-    }
+
+    const std::vector<uint8_t>* mcsMTable =
+        (mcsTable == 1) ? nrEesmT1.m_mcsMTable : nrEesmT2.m_mcsMTable;
+    // Find the last position where the modulation order appears in the MCS table. This position
+    // corresponds to the highest MCS that can be associated with that modulation order.
+    auto it = std::find(mcsMTable->rbegin(), mcsMTable->rend(), modOrder);
+    uint8_t mcsMax = std::distance(mcsMTable->begin(), it.base()) - 1;
+
     return mcsMax;
-}
-
-uint8_t
-NrFhControl::GetMcsTable1(const uint8_t modOrd) const
-{
-    std::vector<uint8_t> McsTable1 = {// QPSK (modulationOrder = 2)
-                                      9,
-                                      // 16QAM (modulationOrder = 4)
-                                      16,
-                                      // 64QAM (modulationOrder = 6)
-                                      28};
-    return McsTable1.at(modOrd);
-}
-
-uint8_t
-NrFhControl::GetMcsTable2(const uint8_t modOrd) const
-{
-    std::vector<uint8_t> McsTable2 = {// QPSK (modulationOrder = 2)
-                                      4,
-                                      // 16QAM (modulationOrder = 4)
-                                      10,
-                                      // 64QAM (modulationOrder = 6)
-                                      19,
-                                      // 256QAM (modulationOrder = 8)
-                                      27};
-    return McsTable2.at(modOrd);
 }
 
 } // namespace ns3

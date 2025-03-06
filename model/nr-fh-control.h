@@ -317,16 +317,6 @@ class NrFhControl : public Object
      */
     uint8_t GetMaxMcs(uint8_t mcsTable, uint16_t modOrder) const;
 
-    /**
-     * @brief Returns the max MCS index of a given modulation order of MCS Table1.
-     */
-    uint8_t GetMcsTable1(const uint8_t modOrder) const;
-
-    /**
-     * @brief Returns the max MCS index of a given modulation order of MCS Table2.
-     */
-    uint8_t GetMcsTable2(const uint8_t modOrder) const;
-
     uint16_t m_physicalCellId; //!< Physical cell ID to which the NrFhControl instance belongs to.
 
     // FH Control - PHY SAP
