@@ -114,7 +114,7 @@ weekly-build-gcc-12-optimized:
 # GCC 13
 weekly-build-gcc-13-debug:
   extends: .weekly-build-gcc-base
-  image: ubuntu:23.04
+  image: ubuntu:24.04
   variables:
     MODE: debug
     COMPILER: g++-13
@@ -122,7 +122,7 @@ weekly-build-gcc-13-debug:
 
 weekly-build-gcc-13-default:
   extends: .weekly-build-gcc-base
-  image: ubuntu:23.04
+  image: ubuntu:24.04
   variables:
     MODE: default
     COMPILER: g++-13
@@ -130,7 +130,7 @@ weekly-build-gcc-13-default:
 
 weekly-build-gcc-13-optimized:
   extends: .weekly-build-gcc-base
-  image: ubuntu:23.04
+  image: ubuntu:24.04
   variables:
     MODE: optimized
     COMPILER: g++-13
@@ -138,7 +138,7 @@ weekly-build-gcc-13-optimized:
 
 weekly-build-gcc-13-optimized-sanitizers:
   extends: .weekly-build-gcc-base
-  image: ubuntu:23.04
+  image: ubuntu:24.04
   variables:
     MODE: optimized
     COMPILER: g++-13
@@ -148,7 +148,7 @@ weekly-build-gcc-13-optimized-sanitizers:
 
 weekly-build-gcc-13-optimized-noeigen:
   extends: .weekly-build-gcc-base
-  image: ubuntu:23.04
+  image: ubuntu:24.04
   variables:
     MODE: optimized
     COMPILER: g++-13
