@@ -25,7 +25,6 @@
 #include "ns3/uinteger.h"
 
 #include <cmath>
-#include <format>
 #include <iostream>
 #include <map>
 #include <string>
