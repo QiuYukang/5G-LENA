@@ -6,13 +6,19 @@
 
 #include "ns3/matrix-array.h"
 
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
-#pragma clang diagnostic ignored "-Wunknown-warning-option"
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+
 #include <Eigen/Dense>
 #include <Eigen/SVD>
+
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 namespace ns3
 {
