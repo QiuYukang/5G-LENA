@@ -6,6 +6,10 @@ if(${ENABLE_EIGEN})
   set(eigen_sources
       model/nr-mimo-matrices-eigen.cc
   )
+  set(eigen_tests
+      test/nr-test-ri-pmi.cc
+      test/nr-test-csi.cc
+  )
 else()
   message(
     WARNING "nr MIMO features require the eigen3 library, but it was not found"
@@ -13,6 +17,7 @@ else()
   set(eigen_sources
       model/nr-mimo-matrices-no-eigen.cc
   )
+  set(eigen_tests)
 endif()
 
 set(opengym_sources)
@@ -434,6 +439,7 @@ set(header_files
 )
 
 set(test_sources
+    ${eigen_tests}
     ${opengym_tests}
     test/nr-system-test-configurations.cc
     test/nr-test-numerology-delay.cc
@@ -481,8 +487,6 @@ set(test_sources
     test/nr-test-epc-e2e-data.cc
     test/nr-test-deactivate-bearer.cc
     test/nr-channel-setup-test.cc
-    test/nr-test-ri-pmi.cc
-    test/nr-test-csi.cc
     test/nr-test-sched-symbols-per-beam.cc
     # cmake-format: off
     # todo:
