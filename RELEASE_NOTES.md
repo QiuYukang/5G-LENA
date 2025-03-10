@@ -68,6 +68,8 @@ Bugs fixed
 ----------
 - With CSI-RS+CSI-IM, users are not starved due to CQI 0 preventing RBG allocation when there was no data transmission and PDSCH-based CQI feedback was used.
 - UEs numerology is now properly set via MIB, in case UEs were not explicitly attached to gNBs via `NrHelper::AttachToGnb()`.
+- UEs getting stuck in the ACTIVE state after multiple BSR transmission losses has been fixed by adjusting the UEs' state machine transitions and using the BSR expiration timer. If the timer expires without receiving any grant in response to the BSR and HARQ is not active, an SR is retransmitted. If the timer expires while HARQ is active, the UE checks whether all HARQ retransmission attempts have been completed. If so, an SR is retransmitted; otherwise, it waits for HARQ to finish all retransmissions before sending an SR again (see issue #230).
+
 
 Known issues
 ------------
