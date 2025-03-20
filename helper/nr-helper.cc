@@ -23,7 +23,6 @@
 #include "ns3/names.h"
 #include "ns3/nr-ch-access-manager.h"
 #include "ns3/nr-chunk-processor.h"
-#include "ns3/nr-csi-rs-filter.h"
 #include "ns3/nr-epc-gnb-application.h"
 #include "ns3/nr-epc-ue-nas.h"
 #include "ns3/nr-epc-x2.h"
@@ -1994,32 +1993,6 @@ NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
 }
 
 void
-NrHelper::AddNrCsiRsFilter(Ptr<SpectrumChannel> channel)
-{
-    Ptr<const SpectrumTransmitFilter> p = channel->GetSpectrumTransmitFilter();
-    bool found = false;
-    while (p && !found)
-    {
-        if (DynamicCast<const NrCsiRsFilter>(p))
-        {
-            NS_LOG_DEBUG("Found existing NrCsiRsFilter for spectrum channel " << channel);
-            found = true;
-        }
-        else
-        {
-            NS_LOG_DEBUG("Found different SpectrumTransmitFilter for channel " << channel);
-            p = p->GetNext();
-        }
-    }
-    if (!found)
-    {
-        Ptr<NrCsiRsFilter> pCsiRsFilter = CreateObject<NrCsiRsFilter>();
-        channel->AddSpectrumTransmitFilter(pCsiRsFilter);
-        NS_LOG_DEBUG("Adding NrCsiRsFilter to channel " << channel);
-    }
-}
-
-void
 NrHelper::SetupInitialAssoc(const NrHelper::InitialAssocParams& params)
 {
     // Set parameters for Initial Association Params
@@ -2027,5 +2000,4 @@ NrHelper::SetupInitialAssoc(const NrHelper::InitialAssocParams& params)
     SetInitialAssocAttribute("HandoffMargin", DoubleValue(params.handoffMargin));
     SetInitialAssocAttribute("PrimaryCarrierIndex", DoubleValue(params.primaryCarrierIndex));
 }
-
 } // namespace ns3

@@ -267,6 +267,12 @@ class NrChannelHelper : public Object
      */
     std::pair<TypeId, TypeId> GetPropagationTypeId() const;
 
+    /**
+     * Install NrCsiRsFilter onto the specified spectrum channel
+     * @param channel the spectrum channel instance on which will be installed the filter
+     */
+    void AddNrCsiRsFilter(Ptr<SpectrumChannel> channel);
+
     ObjectFactory m_pathLossModel;         //!< The path loss object factory
     ObjectFactory m_spectrumModel;         //!< The phased spectrum object factory
     ObjectFactory m_channelConditionModel; //!< The channel condition object factory

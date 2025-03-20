@@ -10,6 +10,7 @@
 #include "ns3/double.h"
 #include "ns3/enum.h"
 #include "ns3/multi-model-spectrum-channel.h"
+#include "ns3/nr-csi-rs-filter.h"
 #include "ns3/nyu-propagation-loss-model.h"
 #include "ns3/nyu-spectrum-propagation-loss-model.h"
 #include "ns3/object-factory.h"
@@ -145,6 +146,8 @@ NrChannelHelper::CreateChannel(uint8_t flags)
         NS_LOG_DEBUG("Path loss model: " << pathLoss->GetInstanceTypeId().GetName());
         channel->AddPropagationLossModel(pathLoss);
     }
+    // TODO configure whether to install or not this filter
+    AddNrCsiRsFilter(channel);
     return channel;
 }
 
@@ -371,4 +374,29 @@ NrChannelHelper::AssignChannelsToBands(
     }
 }
 
+void
+NrChannelHelper::AddNrCsiRsFilter(Ptr<SpectrumChannel> channel)
+{
+    Ptr<const SpectrumTransmitFilter> p = channel->GetSpectrumTransmitFilter();
+    bool found = false;
+    while (p && !found)
+    {
+        if (DynamicCast<const NrCsiRsFilter>(p))
+        {
+            NS_LOG_DEBUG("Found existing NrCsiRsFilter for spectrum channel " << channel);
+            found = true;
+        }
+        else
+        {
+            NS_LOG_DEBUG("Found different SpectrumTransmitFilter for channel " << channel);
+            p = p->GetNext();
+        }
+    }
+    if (!found)
+    {
+        Ptr<NrCsiRsFilter> pCsiRsFilter = CreateObject<NrCsiRsFilter>();
+        channel->AddSpectrumTransmitFilter(pCsiRsFilter);
+        NS_LOG_DEBUG("Adding NrCsiRsFilter to channel " << channel);
+    }
+}
 } // namespace ns3
