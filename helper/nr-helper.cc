@@ -122,7 +122,7 @@ NrHelper::GetTypeId()
                 "CQI_PDSCH_MIMO|CQI_CSI_RS = 3, "
                 "CQI_CSI_RS|CQI_CSI_IM = 6, CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM = 7, and "
                 "CQI_PDSCH_SISO = 8.",
-                UintegerValue(CQI_CSI_IM | CQI_CSI_RS | CQI_PDSCH_MIMO),
+                UintegerValue(CQI_PDSCH_MIMO),
                 MakeUintegerAccessor(&NrHelper::m_csiFeedbackFlags),
                 MakeUintegerChecker<uint8_t>(0x0, 0x08))
             .AddAttribute("PmSearchMethod",
