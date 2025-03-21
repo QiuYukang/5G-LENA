@@ -275,6 +275,7 @@ NrPmSearch::AssignStreams(int64_t streamNum)
 uint8_t
 NrPmSearch::SelectRank(NrIntfNormChanMat& channelMatrix) const
 {
+    uint8_t minRank = 1;
     uint8_t maxRank = 0;
 
     // First determine the maximum supported rank
@@ -293,6 +294,7 @@ NrPmSearch::SelectRank(NrIntfNormChanMat& channelMatrix) const
         NS_ABORT_MSG("Unknown rank technique");
     }
 
+    maxRank = std::max(minRank, maxRank);
     // If our maxRank is not supported, then take the maximum supported
     // todo: find nearest rank, rounding downwards
     if (std::lower_bound(m_ranks.begin(), m_ranks.end(), maxRank) == m_ranks.end())

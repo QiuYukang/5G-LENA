@@ -31,7 +31,7 @@ NrPmSearchFast::GetWidebandI1(Ptr<const NrCbTypeOne> cb, const ComplexMatrixArra
     // we instead calculate the best wideband i1, then search for subband i2s
     auto numI1 = cb->GetNumI1();
     auto numI2 = cb->GetNumI2();
-    int maxI1 = -1;
+    int maxI1 = 0;
     double maxCap = 0.0;
     for (auto i1 = size_t{0}; i1 < numI1; i1++)
     {
