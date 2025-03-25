@@ -851,7 +851,9 @@ class NrSpectrumPhy : public SpectrumPhy
     typedef TracedCallback<uint16_t, uint8_t, uint32_t, double, uint8_t> DlDataPathlossTrace;
     DlDataPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
     bool m_enableDlDataPathlossTrace =
-        false; //!< By default this trace is disabled to not slow done simulations
+        false;                   //!< By default this trace is disabled to not slow done simulations
+    double m_dlDataPathloss = 0; // DL data pathloss calculated in StartRx, and used in trace in
+                                 // EndRxData, i.e., when ProcessReceivedPacketBurst is called
     bool m_isGnb = false;
 };
 

@@ -615,13 +615,8 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
                 Ptr<const SpectrumValue> txPsd =
                     DynamicCast<NrSpectrumPhy>(nrDataRxParams->txPhy)->GetTxPowerSpectralDensity();
                 Ptr<const SpectrumValue> rxPsd = nrDataRxParams->psd;
-                double pathloss = 10 * log10(Integral(*txPsd)) - 10 * log10(Integral(*rxPsd));
-                Ptr<NrUePhy> phy = (DynamicCast<NrUePhy>(m_phy));
-                m_dlDataPathlossTrace(GetCellId(),
-                                      GetBwpId(),
-                                      GetMobility()->GetObject<Node>()->GetId(),
-                                      pathloss,
-                                      phy->ComputeCqi(m_sinrPerceived));
+                // this value will be used in EndRxData when ProcessReceivedPacketBurst is called
+                m_dlDataPathloss = 10 * log10(Integral(*txPsd)) - 10 * log10(Integral(*rxPsd));
             }
         }
         else
@@ -1696,6 +1691,15 @@ NrSpectrumPhy::ProcessReceivedPacketBurst()
                                                 GetBwpId(),
                                                 cqi);
                 m_rxPacketTraceUe(traceParams);
+
+                if (m_enableDlDataPathlossTrace)
+                {
+                    m_dlDataPathlossTrace(GetCellId(),
+                                          GetBwpId(),
+                                          GetMobility()->GetObject<Node>()->GetId(),
+                                          m_dlDataPathloss,
+                                          cqi);
+                }
             }
 
             // send HARQ feedback (if not already done for this TB)
