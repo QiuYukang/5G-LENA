@@ -846,7 +846,14 @@ class NrSpectrumPhy : public SpectrumPhy
         false; //!< By default this trace is disabled to not slow done simulations
     /*
      * @brief Trace source that reports the following: Cell ID, Bwp ID, UE node ID, DL
-     * CTRL pathloss, CQI that corresponds to the current SINR
+     * CTRL pathloss, CQI that corresponds to the current SINR considering single port(rank 1).
+     * This CQI value is added to the data pathloss trace to allow results filtering for the
+     * calibration purposes, to compensate for the lack of RSSI based initial access and handover
+     * features at the time this trace was added to 5G-LENA. Once these both features are part of
+     * 5G-LENA, the CQI value should be removed from this trace. Also, notice that for MIMO
+     * simulations this CQI value is based on the approximation of SINR, such as if it was used
+     * a single port (rank 1), so this CQI value does not correspond to the CQI value that will
+     * later be determined by PM search algorithm.
      */
     typedef TracedCallback<uint16_t, uint8_t, uint32_t, double, uint8_t> DlDataPathlossTrace;
     DlDataPathlossTrace m_dlDataPathlossTrace; //!< DL DATA pathloss trace
