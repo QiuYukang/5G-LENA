@@ -76,7 +76,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     NS_LOG_INFO("Values of SINR to pass to the AMC: " << out.str());
 
     // MCS updated inside the function; crappy API... but we can't fix everything
-    ueInfo->m_ulCqi.m_wbCqi = GetAmcUl()->CreateCqiFeedbackWbTdma(specVals, ueInfo->m_ulMcs);
+    ueInfo->m_ulCqi.m_wbCqi = GetAmcUl()->CreateCqiFeedbackSiso(specVals, ueInfo->m_ulMcs);
     NS_LOG_DEBUG("Calculated MCS for RNTI " << ueInfo->m_rnti << " is " << ueInfo->m_ulMcs);
 }
 

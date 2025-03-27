@@ -1262,7 +1262,7 @@ NrUePhy::CreateDlCqiFeedbackMessage(const SpectrumValue& sinr)
     dlcqi.m_cqiType = DlCqiInfo::WB;
 
     std::vector<int> cqi;
-    dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackWbTdma(sinr, dlcqi.m_mcs);
+    dlcqi.m_wbCqi = m_amc->CreateCqiFeedbackSiso(sinr, dlcqi.m_mcs);
     msg->SetDlCqi(dlcqi);
 
     m_cqiFeedbackTrace(m_rnti, dlcqi.m_wbCqi, dlcqi.m_mcs, 1);
@@ -1563,7 +1563,7 @@ NrUePhy::ComputeCqi(const SpectrumValue& sinr)
 {
     NS_LOG_FUNCTION(this);
     uint8_t mcs; // it is initialized by AMC in the following call
-    uint8_t wbCqi = m_amc->CreateCqiFeedbackWbTdma(sinr, mcs);
+    uint8_t wbCqi = m_amc->CreateCqiFeedbackSiso(sinr, mcs);
     return wbCqi;
 }
 

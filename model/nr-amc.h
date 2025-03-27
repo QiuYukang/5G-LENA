@@ -73,7 +73,7 @@ class NrAmc : public Object
     /**
      * @brief Valid types of the model used to create a cqi feedback
      *
-     * @see CreateCqiFeedbackWbTdma
+     * @see CreateCqiFeedbackSiso
      */
     enum AmcModel
     {
@@ -104,17 +104,24 @@ class NrAmc : public Object
     void SetNumRefScPerRb(uint8_t nref);
 
     /**
-     * @brief Create a CQI/MCS wideband feedback from a SINR values
+     * @brief Create a CQI/MCS wideband feedback from SINR values.
      *
      * For CQI creation, a CSI reference resource equal to all RBs in
      * which the gNB/UE has transmitted power, and from which the SINR can be
      * measured, during 1 OFDM symbol, is assumed.
      *
+     * This function is used for creating CQI feedback in simulations in which MIMO is disabled,
+     * i.e., there is 1 port at TX and RX, and only analog beamforming is used.
+     * Also, this function is used for DL DATA pathloss traces, for
+     * both, SISO and MIMO simulations. In MIMO simulations the input to this function is estimated
+     * RX PSD considering 1 port at TX an RX, and this CQI value is only used for tracing purposes
+     * in the simulations with MIMO.
+     *
      * @param sinr the sinr values
      * @param mcsWb The calculated MCS
      * @return The calculated CQI
      */
-    uint8_t CreateCqiFeedbackWbTdma(const SpectrumValue& sinr, uint8_t& mcsWb) const;
+    uint8_t CreateCqiFeedbackSiso(const SpectrumValue& sinr, uint8_t& mcsWb) const;
 
     /**
      * @brief Get CQI from a SpectralEfficiency value

@@ -160,7 +160,7 @@ NrAmc::GetPayloadSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const
 }
 
 uint8_t
-NrAmc::CreateCqiFeedbackWbTdma(const SpectrumValue& sinr, uint8_t& mcs) const
+NrAmc::CreateCqiFeedbackSiso(const SpectrumValue& sinr, uint8_t& mcs) const
 {
     NS_LOG_FUNCTION(this);
 
@@ -460,7 +460,7 @@ NrAmc::GetMaxMcsForErrorModel(const NrSinrMatrix& sinrMat) const
 uint8_t
 NrAmc::GetWbCqiFromMcs(uint8_t mcs) const
 {
-    // Based on OSS CreateCqiFeedbackWbTdma
+    // Based on OSS CreateCqiFeedbackSiso
     auto cqi = uint8_t{0};
     if (mcs == 0)
     {

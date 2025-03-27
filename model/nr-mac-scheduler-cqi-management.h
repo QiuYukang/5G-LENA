@@ -99,7 +99,7 @@ class NrMacSchedulerCQIManagement
      * parameters as input.
      *
      * From a vector of SINR (along the entire band) a SpectrumValue is calculated
-     * and then passed as input to NrAmc::CreateCqiFeedbackWbTdma. From this
+     * and then passed as input to NrAmc::CreateCqiFeedbackSiso. From this
      * function, we have as a result an updated value of CQI, as well as an updated
      * version of MCS for the UL.
      */
