@@ -592,8 +592,6 @@ NrSpectrumPhy::GetTxPowerSpectralDensity()
 Ptr<MatrixBasedChannelModel::Complex3DVector>
 NrSpectrumPhy::CreateSpectrumChannelMatrix(const Ptr<SpectrumSignalParameters> params) const
 {
-    auto rxPsd = params->psd;
-    uint32_t nRb = rxPsd->GetValuesN();
     auto txAntenna = DynamicCast<PhasedArrayModel>(params->txPhy->GetAntenna());
     auto rxAntenna = DynamicCast<PhasedArrayModel>(GetAntenna());
     NS_ABORT_MSG_UNLESS(txAntenna && rxAntenna, "Only phased antenna array models are supported.");
@@ -602,24 +600,31 @@ NrSpectrumPhy::CreateSpectrumChannelMatrix(const Ptr<SpectrumSignalParameters> p
     auto rxAntennaPorts = rxAntenna->GetNumPorts();
     NS_ASSERT_MSG(txAntennaPorts == 1 && rxAntennaPorts == 1,
                   "The conversion only fits to a single antenna port in Tx and Rx");
+
+    Ptr<const SpectrumValue> rxPsd = params->psd;
+    Ptr<const SpectrumValue> txPsd =
+        DynamicCast<NrSpectrumPhy>(params->txPhy)->GetTxPowerSpectralDensity();
+    uint32_t nRb = rxPsd->GetValuesN();
     Ptr<MatrixBasedChannelModel::Complex3DVector> channelSpct =
         Create<MatrixBasedChannelModel::Complex3DVector>(rxAntennaPorts, txAntennaPorts, nRb);
-    auto vit = params->psd->ValuesBegin();
+    auto rxRb = rxPsd->ConstValuesBegin();
+    auto txRb = txPsd->ConstValuesBegin();
     size_t iRb = 0;
-    while (vit != params->psd->ValuesEnd())
+    while (rxRb != rxPsd->ConstValuesEnd() && txRb != txPsd->ConstValuesEnd())
     {
-        if (*vit != 0.0)
+        if (*rxRb != 0.0 && *txRb != 0.0)
         {
-            auto sqrtvit = sqrt(*vit);
-            for (size_t u = 0; u < 1; u++)
+            auto sqrtvit = sqrt(*rxRb / *txRb);
+            for (size_t u = 0; u < rxAntennaPorts; u++)
             {
-                for (size_t s = 0; s < 1; s++)
+                for (size_t s = 0; s < txAntennaPorts; s++)
                 {
                     channelSpct->Elem(u, s, iRb) = sqrtvit;
                 }
             }
         }
-        vit++;
+        rxRb++;
+        txRb++;
         iRb++;
     }
     return channelSpct;

@@ -746,7 +746,8 @@ class NrSpectrumPhy : public SpectrumPhy
 
     /**
      * @brief Function that is called when the rx signal does not contain an expected channel
-     * matrix.
+     * matrix. Currently, this function is only used for compatibility with the current API,
+     * as the spectrum channel is not actually used in the case of a single stream.
      * @param params the signal parameters which contains the spectrum channel matrix
      * @returns the channel matrix
      */
