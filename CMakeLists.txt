@@ -488,6 +488,7 @@ set(test_sources
     test/nr-test-deactivate-bearer.cc
     test/nr-channel-setup-test.cc
     test/nr-test-sched-symbols-per-beam.cc
+    test/nr-multipanel-test.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
