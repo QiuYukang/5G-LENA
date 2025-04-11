@@ -296,7 +296,6 @@ NrInitialAssociation::ComputeRxPsd(Ptr<const SpectrumSignalParameters> spectrumS
 double
 NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearchParams& lsps)
 {
-    double maxPsd = 0;
     auto& chParams = lsps.chParams;
     auto& mobility = lsps.mobility;
     auto& antennas = lsps.antennaArrays;
@@ -338,9 +337,9 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
                     antennas.gnbArrayModel,
                     antennas.ueArrayModel[k]);
                 auto eng = ComputeRxPsd(rxParam);
-                if (eng > maxPsd)
+                if (eng > lsps.maxPsdFound)
                 {
-                    maxPsd = eng;
+                    lsps.maxPsdFound = eng;
                     bfAngles = {m_rowBeamAngles[j], m_colBeamAngles[i]};
                     activePanelIndex =
                         k; // active panel has to be update to K as better beam has found
@@ -352,7 +351,7 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
         chParams.pathLossModel->CalcRxPower(0, mobility.gnbMobility, mobility.ueMobility);
     m_bestBfVectors.push_back(bfAngles);
     SetUeActivePanel(activePanelIndex);
-    return pow(10.0, attenuation / 10.0) * maxPsd;
+    return pow(10.0, attenuation / 10.0) * lsps.maxPsdFound;
 }
 
 double

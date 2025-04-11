@@ -69,6 +69,7 @@ class NrInitialAssociation : public Object
         ChannelParams chParams;
         Mobilities mobility;
         AntennaArrayModels antennaArrays;
+        double maxPsdFound = 0.0;
     };
 
     /// @brief Check whether number of beams is corresponds to standard
