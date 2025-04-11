@@ -309,7 +309,7 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
     }
     NrAnglePair bfAngles;
     Ptr<const SpectrumValue> fakePsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
-        TRANSMIT_POWER_INIT_ASSOC,
+        DynamicCast<NrGnbNetDevice>(gnbDevice)->GetPhy(0)->GetTxPower(),
         activeRbs,
         chParams.spectralModel,
         NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_USED);
