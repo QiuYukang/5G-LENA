@@ -123,6 +123,7 @@ NrUeNetDevice::DoDispose()
     m_ccMap.clear();
     m_componentCarrierManager->Dispose();
     m_componentCarrierManager = nullptr;
+    m_nrInitAcc = nullptr;
     NrNetDevice::DoDispose();
 }
 
