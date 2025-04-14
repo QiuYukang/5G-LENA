@@ -203,6 +203,10 @@ class NrInitialAssociation : public Object
     /// @param panelIndex Index of panel to be active
     void SetUeActivePanel(int8_t panelIndex) const;
 
+    /// @brief Get the index of the active panel for the UE device in NrSpectrumPhy
+    /// @return panelIndex
+    uint8_t GetUeActivePanel() const;
+
     /// @brief Set the primary BWP or carrier
     /// @param index
     void SetPrimaryCarrier(double index);

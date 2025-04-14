@@ -300,7 +300,7 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
     auto& chParams = lsps.chParams;
     auto& mobility = lsps.mobility;
     auto& antennas = lsps.antennaArrays;
-    uint8_t activePanelIndex = 0;
+    uint8_t activePanelIndex = GetUeActivePanel();
     antennas.gnbArrayModel = ExtractGnbParameters(gnbDevice, lsps);
     std::vector<int> activeRbs;
     for (size_t rbId = m_startSsb; rbId < m_numBandsSsb + m_startSsb; rbId++)
@@ -520,6 +520,22 @@ NrInitialAssociation::SetUeActivePanel(int8_t panelIndex) const
     auto phy = ueDev->GetPhy(0);
     auto spectrumPhy = phy->GetSpectrumPhy();
     spectrumPhy->SetActivePanel(panelIndex);
+}
+
+uint8_t
+NrInitialAssociation::GetUeActivePanel() const
+{
+    auto ueDev = m_ueDevice->GetObject<NrUeNetDevice>();
+    auto phy = ueDev->GetPhy(0);
+    auto spectrumPhy = phy->GetSpectrumPhy();
+    for (uint8_t i = 0; i < spectrumPhy->GetNumPanels(); i++)
+    {
+        if (spectrumPhy->GetPanelByIndex(i) == spectrumPhy->GetAntenna())
+        {
+            return i;
+        }
+    }
+    NS_ABORT_MSG("Missed the antenna panel");
 }
 
 } // namespace ns3
