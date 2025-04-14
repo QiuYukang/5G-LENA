@@ -18,7 +18,7 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 variables:
-  NS3_RELEASE_VERSION: master
+  NS3_RELEASE_VERSION: ns-3.44
   NS3_REPOSITORY_URL: https://gitlab.com/nsnam/ns-3-dev
 
 ###################### BUILD STAGE #############################################
@@ -177,7 +177,6 @@ documentation:
   interruptible: true
   variables:
     CCACHE_BASEDIR_VALUE: ns-3-ccache-storage
-    NS3_RELEASE_VERSION: "ns-3.42"
 
 pages:
   stage: deploy
