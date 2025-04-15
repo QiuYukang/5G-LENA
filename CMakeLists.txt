@@ -489,6 +489,7 @@ set(test_sources
     test/nr-channel-setup-test.cc
     test/nr-test-sched-symbols-per-beam.cc
     test/nr-multipanel-test.cc
+    test/ul-scheduling-test.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
