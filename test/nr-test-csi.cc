@@ -459,7 +459,6 @@ NrCsiTestCase::DoRun()
     Config::SetDefault("ns3::NrGnbPhy::PowerAllocationType",
                        EnumValue<NrSpectrumValueHelper::PowerAllocationType>(
                            NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW));
-    Config::SetDefault("ns3::NrMacSchedulerNs3::EnableHarqReTx", BooleanValue(false));
     Config::SetDefault("ns3::NrMacSchedulerNs3::McsCsiSource",
                        EnumValue<NrMacSchedulerUeInfo::McsCsiSource>(m_params.m_mcsCsiSource));
     Config::SetDefault("ns3::NrPmSearch::RankLimit", UintegerValue(4));
@@ -943,7 +942,7 @@ NrCsiTestSuite::NrCsiTestSuite()
         //
         // Test CSI-RS plus CSI-IM feedback under no interference, or wideband/half-bandwidth interference
         {      Duration::QUICK, 200, 20,         {}, false, 410, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
-        {      Duration::QUICK, 200, 20, {wbInterf}, false, 162, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
+        {      Duration::QUICK, 200, 20, {wbInterf}, false, 182, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
         {  Duration::EXTENSIVE, 200, 20, {hbInterf}, false, 232, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
         {      Duration::QUICK, 200, 20, {hbInterf}, false, 234, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_SPEC_EFF},
         {      Duration::QUICK, 200, 20, {hbInterf}, false, 208, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_SINR},
@@ -953,13 +952,13 @@ NrCsiTestSuite::NrCsiTestSuite()
 
         // Test with 3GPP 2-bit clamping (sub-band CQI must be within wideband CQI [-1,+2] range)
         {  Duration::EXTENSIVE, 200, 20,         {},  true, 410, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
-        {  Duration::EXTENSIVE, 200, 20, {wbInterf},  true, 162, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
+        {  Duration::EXTENSIVE, 200, 20, {wbInterf},  true, 182, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
         {  Duration::EXTENSIVE, 200, 20, {hbInterf},  true, 232, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
         {      Duration::QUICK, 200, 20, {lbInterf},  true, 247, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
 
         // Test with PDSCH MIMO
         {  Duration::EXTENSIVE, 200, 20, {wbInterf},  true, 126, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
-        {      Duration::QUICK, 200, 20, {hbInterf},  true, 164, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
+        {      Duration::QUICK, 200, 20, {hbInterf},  true, 195, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
 
         // Test with PDSCH MIMO, CSI-RS and CSI-IM
         {      Duration::QUICK, 200, 20, {hbInterf},  true, 236, 1, 70000, true, CQI_PDSCH_MIMO | CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
