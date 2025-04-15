@@ -225,7 +225,11 @@ NrUeMac::GetTypeId()
             .AddTraceSource("RaResponseTimeout",
                             "Trace fired upon RA response timeout",
                             MakeTraceSourceAccessor(&NrUeMac::m_raResponseTimeoutTrace),
-                            "ns3::NrUeMac::RaResponseTimeoutTracedCallback");
+                            "ns3::NrUeMac::RaResponseTimeoutTracedCallback")
+            .AddTraceSource("UeMacStateMachineTrace",
+                            "UE MAC state machine trace",
+                            MakeTraceSourceAccessor(&NrUeMac::m_macUeStateMachine),
+                            "ns3::NrUeMac::UeMacStateMachineTracedCallback");
     return tid;
 }
 
@@ -421,7 +425,31 @@ NrUeMac::DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportParame
 
     if (m_srState == INACTIVE || (params.expBsrTimer && m_srState == ACTIVE))
     {
-        NS_LOG_INFO("INACTIVE -> TO_SEND, bufSize " << GetTotalBufSize());
+        if (m_srState == INACTIVE)
+        {
+            NS_LOG_INFO("m_srState = INACTIVE -> TO_SEND, bufSize " << GetTotalBufSize());
+            m_macUeStateMachine(m_currentSlot,
+                                GetCellId(),
+                                m_rnti,
+                                GetBwpId(),
+                                m_srState,
+                                m_ulBsrReceived,
+                                1,
+                                "DoTransmitBufferStatusReport");
+        }
+        else
+        {
+            NS_LOG_INFO("m_srState = ACTIVE (BSR Timer expired) -> TO_SEND, bufSize "
+                        << GetTotalBufSize());
+            m_macUeStateMachine(m_currentSlot,
+                                GetCellId(),
+                                m_rnti,
+                                GetBwpId(),
+                                m_srState,
+                                m_ulBsrReceived,
+                                0,
+                                "DoTransmitBufferStatusReport");
+        }
         m_srState = TO_SEND;
     }
 }
@@ -517,6 +545,15 @@ NrUeMac::SendBufferStatusReport(const SfnSf& dataSfn, uint8_t symStart)
                   "We used more data than the DCI allowed us.");
 
     m_phySapProvider->SendMacPdu(p, dataSfn, symStart, m_ulDci->m_rnti);
+
+    m_macUeStateMachine(m_currentSlot,
+                        GetCellId(),
+                        m_rnti,
+                        GetBwpId(),
+                        m_srState,
+                        m_ulBsrReceived,
+                        m_ulDci->m_ndi,
+                        "SendBufferStatusReport");
 }
 
 void
@@ -571,6 +608,14 @@ NrUeMac::DoSlotIndication(const SfnSf& sfn)
         SendSR();
         m_srState = ACTIVE;
         NS_LOG_INFO("m_srState = TO_SEND -> ACTIVE");
+        m_macUeStateMachine(m_currentSlot,
+                            GetCellId(),
+                            m_rnti,
+                            GetBwpId(),
+                            m_srState,
+                            m_ulBsrReceived,
+                            1,
+                            "DoSlotIndication");
     }
 
     // Feedback missing
@@ -701,6 +746,14 @@ NrUeMac::ProcessUlDci(const Ptr<NrUlDciMessage>& dciMsg)
     {
         // This method will retransmit the data saved in the harq buffer
         TransmitRetx();
+        m_macUeStateMachine(m_currentSlot,
+                            GetCellId(),
+                            m_rnti,
+                            GetBwpId(),
+                            m_srState,
+                            m_ulBsrReceived,
+                            m_ulDci->m_ndi,
+                            "ProcessUlDci");
 
         // This method will transmit a new BSR.
         SendBufferStatusReport(dataSfn, m_ulDci->m_symStart);
@@ -708,6 +761,14 @@ NrUeMac::ProcessUlDci(const Ptr<NrUlDciMessage>& dciMsg)
     else if (m_ulDci->m_ndi == 1)
     {
         SendNewData();
+        m_macUeStateMachine(m_currentSlot,
+                            GetCellId(),
+                            m_rnti,
+                            GetBwpId(),
+                            m_srState,
+                            m_ulBsrReceived,
+                            m_ulDci->m_ndi,
+                            "ProcessUlDci");
 
         NS_LOG_INFO("After sending NewData, bufSize " << GetTotalBufSize());
 
