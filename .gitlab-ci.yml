@@ -136,7 +136,7 @@ documentation:
   before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-    - apt-get install -y ccache cmake g++ python3 doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx python3-sphinx-rtd-theme latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments fonts-freefont-otf fonts-freefont-ttf git
+    - apt-get install -y ccache cmake g++ python3 doxygen graphviz make imagemagick dia texlive texlive-font-utils python3-sphinx python3-sphinx-rtd-theme latexmk texlive texlive-science texlive-formats-extra texlive-base python3-jinja2 python3-pygments fonts-freefont-otf fonts-freefont-ttf git libeigen3-dev
     - sed -i "s/EPS,PDF,//g" /etc/ImageMagick-6/policy.xml
     - sed -i "s/none/read\ |\ write/g" /etc/ImageMagick-6/policy.xml
   image: ubuntu
@@ -150,7 +150,8 @@ documentation:
     - ln -s ${PWD} ns-3-dev/contrib/nr
     - pushd ns-3-dev
     - ./ns3 configure
-    - ./ns3 run nr-print-introspected-doxygen --quiet > contrib/nr/doc/introspected-doxygen.h
+    - ./ns3 build nr-print-introspected-doxygen
+    - ./ns3 run nr-print-introspected-doxygen --no-build --quiet > contrib/nr/doc/introspected-doxygen.h
     - popd
     # Export nr version for documentation
     - export NRVERSION="nr-`git describe --tags`"
