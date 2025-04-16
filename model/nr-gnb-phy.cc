@@ -376,7 +376,7 @@ NrGnbPhy::GenerateStructuresFromPattern(const std::vector<LteNrTddSlotType>& pat
             GenerateDciMaps(*generationPattern, toSendUl, generateUl, i, n2, l1l2CtrlLatency);
         }
         else if ((*generationPattern)[i] == LteNrTddSlotType::DL ||
-                 pattern[i] == LteNrTddSlotType::S)
+                 (*generationPattern)[i] == LteNrTddSlotType::S)
         {
             GenerateDciMaps(*generationPattern, toSendDl, generateDl, i, n0, l1l2CtrlLatency);
 
