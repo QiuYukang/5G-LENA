@@ -216,7 +216,9 @@ NrPmSearch::GetSubbandDownsampleRandomPrb(const NrIntfNormChanMat& chanMat,
         auto sbPage = downsampledChanMat.GetPagePtr(page);
         bool lastPageIsSmaller = prbsLastSubband && page == nSubbands - 1;
         auto prbsInSubband = lastPageIsSmaller ? prbsLastSubband : m_subbandSize;
-        auto randomPrb = m_downsamplingUniRand->GetInteger(1, prbsInSubband - 1);
+        NS_ASSERT_MSG(prbsInSubband > 0,
+                      "prbsInSubband should be either size of sub-band or its modulus");
+        auto randomPrb = m_downsamplingUniRand->GetInteger(0, prbsInSubband - 1);
         auto prbPage = chanMat.GetPagePtr(page * m_subbandSize + randomPrb);
         for (size_t i = 0; i < matSize; i++)
         {
