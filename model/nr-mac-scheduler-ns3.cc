@@ -2028,7 +2028,7 @@ NrMacSchedulerNs3::DoScheduleUl(const std::vector<UlHarqInfo>& ulHarqFeedback,
 
     // RACH
     uint8_t usedMsg3 = 0;
-    if (!m_rachList.empty())
+    if (!m_rachList.empty() && (type == LteNrTddSlotType::F || type == LteNrTddSlotType::UL))
     {
         usedMsg3 = DoScheduleUlMsg3(&ulAssignationStartPoint, ulSymAvail, allocInfo);
         NS_ASSERT_MSG(ulSymAvail >= usedMsg3,
