@@ -857,17 +857,20 @@ NrCsiTestCase::DoRun()
     monitor->SetAttribute("PacketSizeBinWidth", DoubleValue(20));
 
     // Schedule change to RLC buffers in interfered nodes after RRC connection is properly setup
-    Simulator::Schedule(MilliSeconds(300), [ueNode = gnbContainer.GetN()]() {
-        NS_ASSERT(
-            Config::SetFailSafe("/NodeList/0/DeviceList/*/$ns3::NrGnbNetDevice/NrGnbRrc/UeMap/*/"
-                                "DataRadioBearerMap/*/NrRlc/$ns3::NrRlcUm/MaxTxBufferSize",
-                                UintegerValue(999999999))); // Unbounded RLC buffer for gNB0
-        NS_ASSERT(
-            Config::SetFailSafe("/NodeList/" + std::to_string(ueNode) +
-                                    "/DeviceList/*/$ns3::NrUeNetDevice/NrUeRrc/DataRadioBearerMap/"
-                                    "*/NrRlc/$ns3::NrRlcUm/MaxTxBufferSize",
-                                UintegerValue(999999999))); // Unbounded RLC buffer for UE0
-    });
+    if (gnbContainer.GetN() > 1)
+    {
+        Simulator::Schedule(MilliSeconds(300), [ueNode = gnbContainer.GetN()]() {
+            NS_ASSERT(Config::SetFailSafe(
+                "/NodeList/0/DeviceList/*/$ns3::NrGnbNetDevice/NrGnbRrc/UeMap/*/"
+                "DataRadioBearerMap/*/NrRlc/$ns3::NrRlcUm/MaxTxBufferSize",
+                UintegerValue(999999999))); // Unbounded RLC buffer for gNB0
+            NS_ASSERT(Config::SetFailSafe(
+                "/NodeList/" + std::to_string(ueNode) +
+                    "/DeviceList/*/$ns3::NrUeNetDevice/NrUeRrc/DataRadioBearerMap/"
+                    "*/NrRlc/$ns3::NrRlcUm/MaxTxBufferSize",
+                UintegerValue(999999999))); // Unbounded RLC buffer for UE0
+        });
+    }
     Simulator::Schedule(udpAppStartTime,
                         &NrCsiTestCase::LogThroughputUe0,
                         this,
