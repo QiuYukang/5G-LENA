@@ -548,7 +548,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      *
      * @return Returns true if HARQ ReTx are enabled; otherwise false
      */
-    bool IsHarqReTxEnable() const;
+    bool IsHarqReTxEnable() const override;
 
     /**
      * @brief Sets the default RACH UL

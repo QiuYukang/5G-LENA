@@ -130,6 +130,11 @@ class NrMacGeneralSchedSapProvider : public NrMacSchedSapProvider
     uint8_t GetUlCtrlSyms() const override
     {
         return m_scheduler->GetUlCtrlSyms();
+    }
+
+    bool IsHarqReTxEnable() const override
+    {
+        return m_scheduler->IsHarqReTxEnable();
     };
 
   private:

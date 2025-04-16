@@ -172,6 +172,8 @@ class NrMacSchedSapProvider
      */
     virtual uint8_t GetUlCtrlSyms() const = 0;
 
+    virtual bool IsHarqReTxEnable() const = 0;
+
   private:
 };
 

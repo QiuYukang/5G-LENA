@@ -556,6 +556,12 @@ NrGnbMac::GetUlCtrlSyms() const
     return m_macSchedSapProvider->GetUlCtrlSyms();
 }
 
+bool
+NrGnbMac::IsHarqReTxEnable() const
+{
+    return m_macSchedSapProvider->IsHarqReTxEnable();
+}
+
 void
 NrGnbMac::ReceiveRachPreamble(uint32_t raId)
 {
@@ -1346,6 +1352,7 @@ NrGnbMac::DoConfigureMac(uint16_t ulBandwidth, uint16_t dlBandwidth)
     NS_LOG_DEBUG("Mac configured. Attributes:"
                  << std::endl
                  << "\t NumRbPerRbg: " << m_numRbPerRbg << std::endl
+                 << "\t HarqEnable: " << m_macSchedSapProvider->IsHarqReTxEnable() << std::endl
                  << "\t NumHarqProcess: " << +m_numHarqProcess << std::endl
                  << "Physical properties: " << std::endl
                  << "\t Bandwidth provided: " << ulBandwidth * 1000 * 100 << " Hz" << std::endl

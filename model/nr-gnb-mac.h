@@ -110,6 +110,8 @@ class NrGnbMac : public Object
      */
     virtual uint8_t GetUlCtrlSyms() const;
 
+    virtual bool IsHarqReTxEnable() const;
+
     /**
      * @brief Perform DL scheduling decision for the indicated slot
      * @param sfnSf the slot to fill with scheduling decisions
