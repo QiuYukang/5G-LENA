@@ -4,6 +4,7 @@
 
 #include "nr-mac-scheduler-srs-default.h"
 
+#include "ns3/shuffle.h"
 #include "ns3/uinteger.h"
 
 #include <algorithm>
@@ -161,11 +162,7 @@ NrMacSchedulerSrsDefault::ShuffleOffsets()
 {
     NS_LOG_FUNCTION(this);
     // Shuffle the available values, so it contains the element in a random order
-    for (auto i = m_availableOffsetValues.size() - 1; i > 0; --i)
-    {
-        auto j = m_random->GetInteger(0, i);
-        std::swap(m_availableOffsetValues[i], m_availableOffsetValues[j]);
-    }
+    Shuffle(m_availableOffsetValues.begin(), m_availableOffsetValues.end(), m_random);
 }
 
 void
