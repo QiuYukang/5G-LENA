@@ -129,6 +129,7 @@ class NrPmSearch : public Object
     };
 
     size_t m_subbandSize{1};   ///< Size of each subband (in number of RBs)
+    bool m_enforceSubbandSize; ///< Enforce sub-band sizes according to 3GPP
     bool m_subbandCqiClamping; ///< Clamp sub-band CQI range to wideband CQI [-1,+2], according to
                                ///< 3GPP
     enum DownsamplingTechnique m_downsamplingTechnique; ///< Technique used to downsample PRBs

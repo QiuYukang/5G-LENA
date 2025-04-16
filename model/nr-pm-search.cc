@@ -45,6 +45,11 @@ NrPmSearch::GetTypeId()
                           UintegerValue(1),
                           MakeUintegerAccessor(&NrPmSearch::m_subbandSize),
                           MakeUintegerChecker<uint8_t>(1, 32))
+            .AddAttribute("EnforceSubbandSize",
+                          "Enforce 3GPP standardized sub-band size",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&NrPmSearch::m_enforceSubbandSize),
+                          MakeBooleanChecker())
             .AddAttribute(
                 "DownsamplingTechnique",
                 "Algorithm used to downsample PRBs into SBs",
@@ -107,33 +112,44 @@ NrIntfNormChanMat
 NrPmSearch::SubbandDownsampling(const NrIntfNormChanMat& channelMatrix)
 {
     size_t prbs = channelMatrix.GetNumPages();
+
     // Check if subband size is allowed for bandwidth
     // 3GPP TS 38.214 Table 5.2.1.4-2
-    if (prbs < 24)
+    if (m_enforceSubbandSize)
     {
-        NS_ASSERT_MSG(m_subbandSize == 1,
-                      "Bandwidth parts with less than 24 PRBs should have subbands of size 1");
+        if (prbs < 24)
+        {
+            NS_ASSERT_MSG(m_subbandSize == 1,
+                          "Bandwidth parts with less than 24 PRBs should have subbands of size 1");
+        }
+        else if (prbs >= 24 && prbs <= 72)
+        {
+            NS_ASSERT_MSG(
+                m_subbandSize == 4 || m_subbandSize == 8,
+                "Bandwidth parts with 24<=x<=72 PRBs should have subbands of size 4 or 8");
+        }
+        else if (prbs >= 73 && prbs <= 144)
+        {
+            NS_ASSERT_MSG(
+                m_subbandSize == 8 || m_subbandSize == 16,
+                "Bandwidth parts with 73<=x<=144 PRBs should have subbands of size 8 or 16");
+        }
+        else if (prbs >= 145 && prbs <= 275)
+        {
+            NS_ASSERT_MSG(
+                m_subbandSize == 16 || m_subbandSize == 32,
+                "Bandwidth parts with 145<=x<=275 PRBs should have subbands of size 16 or 32");
+        }
+        else
+        {
+            NS_ASSERT_MSG(m_subbandSize == 32,
+                          "Bandwidth parts with >275 PRBs should have subbands of size 32");
+        }
+    }
+
+    if (m_subbandSize == 1)
+    {
         return channelMatrix;
-    }
-    else if (prbs >= 24 && prbs <= 72)
-    {
-        NS_ASSERT_MSG(m_subbandSize == 4 || m_subbandSize == 8,
-                      "Bandwidth parts with 24<=x<=72 PRBs should have subbands of size 4 or 8");
-    }
-    else if (prbs >= 73 && prbs <= 144)
-    {
-        NS_ASSERT_MSG(m_subbandSize == 8 || m_subbandSize == 16,
-                      "Bandwidth parts with 73<=x<=144 PRBs should have subbands of size 8 or 16");
-    }
-    else if (prbs >= 145 && prbs <= 275)
-    {
-        NS_ASSERT_MSG(
-            m_subbandSize == 16 || m_subbandSize == 32,
-            "Bandwidth parts with 145<=x<=275 PRBs should have subbands of size 16 or 32");
-    }
-    else
-    {
-        NS_ABORT_MSG("Unsupported subband size");
     }
 
     // Calculate number of subbands
