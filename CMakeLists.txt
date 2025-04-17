@@ -490,6 +490,7 @@ set(test_sources
     test/nr-test-sched-symbols-per-beam.cc
     test/nr-multipanel-test.cc
     test/ul-scheduling-test.cc
+    test/nr-test-subband.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
