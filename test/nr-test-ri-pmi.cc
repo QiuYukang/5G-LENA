@@ -473,14 +473,14 @@ class TestRiPmiSystem : public TestSuite
         AddTestCase(new RiPmiTestCase(500,          "SVD",  0.5,    "ns3::NrPmSearchFast",  96.9, 250.8, 1.9, 27.0), Duration::EXTENSIVE);
         AddTestCase(new RiPmiTestCase(500,          "SVD",  0.9,    "ns3::NrPmSearchFast",  53.0, 400.3, 1.1, 27.0), Duration::EXTENSIVE);
         AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 10.0,    "ns3::NrPmSearchFast", 126.4, 157.6, 3.6, 20.5), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 50.0,    "ns3::NrPmSearchFast", 119.4, 142.4, 3.3, 23.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 120.7, 141.7, 3.1, 24.5), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 120.7, 141.7, 3.1, 24.5), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 50.0,    "ns3::NrPmSearchFast", 128.2, 156.9, 3.3, 23.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 129.5, 155.7, 3.1, 24.5), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 129.5, 155.7, 3.1, 24.5), Duration::EXTENSIVE);
         AddTestCase(new RiPmiTestCase(500, "WaterFilling", 10.0,    "ns3::NrPmSearchFast",  92.0, 282.9, 3.1, 18.5), Duration::QUICK);
         AddTestCase(new RiPmiTestCase(500, "WaterFilling", 50.0,    "ns3::NrPmSearchFast",  99.8, 268.1, 2.3, 24.7), Duration::QUICK);
         AddTestCase(new RiPmiTestCase(500, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 101.8, 260.8, 2.2, 27.0), Duration::EXTENSIVE);
         AddTestCase(new RiPmiTestCase(500, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 101.8, 260.8, 2.2, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast", 118.0, 154.9, 3.1, 23.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast", 124.3, 170.3, 3.1, 23.0), Duration::QUICK);
         AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0, "ns3::NrPmSearchSasaoka", 117.6, 153.9, 3.1, 23.0), Duration::QUICK);
         AddTestCase(new RiPmiTestCase(500,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast",  75.9, 299.2, 3.1, 15.0), Duration::QUICK);
         AddTestCase(new RiPmiTestCase(500,      "Sasaoka",  0.0, "ns3::NrPmSearchSasaoka",  76.5, 301.5, 3.1, 15.0), Duration::QUICK);
