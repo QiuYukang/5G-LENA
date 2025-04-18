@@ -1370,14 +1370,6 @@ main(int argc, char* argv[])
         ueCgSector3IpIface = epcHelper->AssignUeIpv4Address(NetDeviceContainer(ueCgSector3NetDev));
     }
 
-    // Set the default gateway for the UEs
-    for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
-    {
-        Ptr<Ipv4StaticRouting> ueStaticRouting =
-            ipv4RoutingHelper.GetStaticRouting(ueNodes.Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
-    }
-
     // attach UEs to the closest eNB
     nrHelper->AttachToClosestGnb(ueVoiceSector1NetDev, gnbSector1NetDev);
     nrHelper->AttachToClosestGnb(ueArSector1NetDev, gnbSector1NetDev);

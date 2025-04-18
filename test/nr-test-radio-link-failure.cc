@@ -313,12 +313,6 @@ NrRadioLinkFailureTestCase::DoRun()
 
     for (uint32_t u = 0; u < m_numUes; ++u)
     {
-        Ptr<Node> ue = ueNodes.Get(u);
-        // Set the default gateway for the UE
-        Ptr<Ipv4StaticRouting> ueStaticRouting =
-            ipv4RoutingHelper.GetStaticRouting(ue->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
-
         for (uint32_t b = 0; b < numBearersPerUe; ++b)
         {
             ApplicationContainer ulClientApps;

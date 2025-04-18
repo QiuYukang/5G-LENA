@@ -453,11 +453,6 @@ UlSchedulingTest::DoRun()
     remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
     internet.Install(ueNode);
 
-    // Set the default gateway for the UE
-    Ptr<Ipv4StaticRouting> ueStaticRouting =
-        ipv4RoutingHelper.GetStaticRouting(ueNode.Get(0)->GetObject<Ipv4>());
-    ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
-
     ueVoiceIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueDevices));
 
     // Attach UEs to the closest gNB //

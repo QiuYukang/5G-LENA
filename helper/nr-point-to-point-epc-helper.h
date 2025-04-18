@@ -84,7 +84,7 @@ namespace ns3
  * @section p2p_epc_ipv4 Assigning IPV4 addresses
  *
  * Another important thing that this helper can do is assigning automatically
- * the IPv4 addresses to the UE:
+ * the IPv4 addresses to the UE and setup the default gateway address with:
  *
 \verbatim
   NetDeviceContainer netDeviceContainerForUe = ...;
@@ -92,8 +92,8 @@ namespace ns3
 (netDeviceContainerForUe);
 \endverbatim
  *
- * And, of course, you would like to set the default routing for the UE,
- * which is the address of the EPC:
+ * You can change the default gateway address for the UE by changing
+ * the EPC address retrieved by nrEpcHelper->GetUeDefaultGatewayAddress () in:
  *
 \verbatim
   // Set the default gateway for the UEs

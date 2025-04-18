@@ -268,37 +268,14 @@ main(int argc, char* argv[])
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
-    NodeContainer remoteHostContainer;
-    remoteHostContainer.Create(1);
-    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
-    InternetStackHelper internet;
-    internet.Install(remoteHostContainer);
+    auto [remoteHost, remoteHostIpv4Address] =
+        nrEpcHelper->SetupRemoteHost("100Gb/s", 2500, Seconds(0.000));
+    NodeContainer remoteHostContainer(remoteHost);
 
-    // connect a remoteHost to pgw. Setup routing too
-    PointToPointHelper p2ph;
-    p2ph.SetDeviceAttribute("DataRate", DataRateValue(DataRate("100Gb/s")));
-    p2ph.SetDeviceAttribute("Mtu", UintegerValue(2500));
-    p2ph.SetChannelAttribute("Delay", TimeValue(Seconds(0.000)));
-    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
-    Ipv4AddressHelper ipv4h;
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
-    Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign(internetDevices);
-    Ptr<Ipv4StaticRouting> remoteHostStaticRouting =
-        ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
-    remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
+    InternetStackHelper internet;
     internet.Install(ueNodes);
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
-
-    // Set the default gateway for the UEs
-    for (uint32_t j = 0; j < ueNodes.GetN(); ++j)
-    {
-        Ptr<Ipv4StaticRouting> ueStaticRouting =
-            ipv4RoutingHelper.GetStaticRouting(ueNodes.Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
-    }
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
@@ -307,17 +284,21 @@ main(int argc, char* argv[])
     ApplicationContainer sinkApps;
     NodeContainer txNodes;
     NodeContainer sinkNodes;
-    Ipv4InterfaceContainer sinkIps;
+    std::vector<Ipv4Address> sinkIps;
 
     if (isUl)
     {
-        sinkIps.Add(internetIpIfaces.Get(1));
+        sinkIps.push_back(remoteHostIpv4Address);
         sinkNodes = remoteHostContainer;
         txNodes = ueNodes;
     }
     else
     {
-        sinkIps = ueIpIface;
+        sinkIps.resize(ueIpIface.GetN());
+        for (uint32_t i = 0; i < ueIpIface.GetN(); i++)
+        {
+            sinkIps[i] = ueIpIface.GetAddress(i);
+        }
         sinkNodes = ueNodes;
         txNodes = remoteHostContainer;
     }
@@ -327,7 +308,7 @@ main(int argc, char* argv[])
     {
         for (uint32_t j = 0; j < sinkNodes.GetN(); ++j)
         {
-            UdpClientHelper dlClient(sinkIps.GetAddress(j), dlPort);
+            UdpClientHelper dlClient(sinkIps[j], dlPort);
             dlClient.SetAttribute("MaxPackets", UintegerValue(packets));
             dlClient.SetAttribute("PacketSize", UintegerValue(pktSize));
             dlClient.SetAttribute("Interval", TimeValue(packetInterval));

@@ -107,7 +107,6 @@ void
 NrEpcS1uDlTestCase::DoRun()
 {
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
-    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
 
     // allow jumbo packets
     Config::SetDefault("ns3::CsmaNetDevice::Mtu", UintegerValue(30000));
@@ -115,29 +114,8 @@ NrEpcS1uDlTestCase::DoRun()
     nrEpcHelper->SetAttribute("S1uLinkMtu", UintegerValue(30000));
 
     // Create a single RemoteHost
-    NodeContainer remoteHostContainer;
-    remoteHostContainer.Create(1);
-    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
-    InternetStackHelper internet;
-    internet.Install(remoteHostContainer);
-
-    // Create the internet
-    PointToPointHelper p2ph;
-    p2ph.SetDeviceAttribute("DataRate", DataRateValue(DataRate("100Gb/s")));
-    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
-    Ipv4AddressHelper ipv4h;
-    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
-    ipv4h.Assign(internetDevices);
-
-    // setup default gateway for the remote hosts
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-    Ptr<Ipv4StaticRouting> remoteHostStaticRouting =
-        ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
-
-    // hardcoded UE addresses for now
-    remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"),
-                                               Ipv4Mask("255.255.255.0"),
-                                               1);
+    auto [remoteHost, remoteHostIpv4Address] =
+        nrEpcHelper->SetupRemoteHost("100Gb/s", 2500, Seconds(0.000));
 
     NodeContainer gnbs;
     uint16_t cellIdCounter = 0;

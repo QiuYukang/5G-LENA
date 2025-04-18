@@ -224,10 +224,6 @@ NrEpcE2eDataTestCase::DoRun()
             Ptr<NetDevice> ueNrDevice = ueNrDevs.Get(u);
             Ipv4InterfaceContainer ueIpIface =
                 nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNrDevice));
-            // set the default gateway for the UE
-            Ptr<Ipv4StaticRouting> ueStaticRouting =
-                ipv4RoutingHelper.GetStaticRouting(ue->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
 
             // we can now attach the UE, which will also activate the default EPS bearer
             nrHelper->AttachToGnb(ueNrDevice, *nrGnbDevIt);

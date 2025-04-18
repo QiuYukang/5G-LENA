@@ -221,21 +221,10 @@ NrIpv6RoutingTestCase::DoRun()
     ConfigStore inputConfig;
     inputConfig.ConfigureDefaults();
 
-    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
-
-    // Create a single RemoteHost
-    NodeContainer remoteHostContainer;
-    remoteHostContainer.Create(1);
-    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
-    InternetStackHelper internet;
-    internet.Install(remoteHostContainer);
-
     // Create the Internet
-    PointToPointHelper p2ph;
-    p2ph.SetDeviceAttribute("DataRate", DataRateValue(DataRate("100Gb/s")));
-    p2ph.SetDeviceAttribute("Mtu", UintegerValue(1500));
-    p2ph.SetChannelAttribute("Delay", TimeValue(Seconds(0.010)));
-    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
+    auto [remoteHost, remoteHostAddr] =
+        nrEpcHelper->SetupRemoteHost6("100Gb/s", 1500, Seconds(0.010));
+    m_remoteHostAddr = remoteHostAddr;
 
     NodeContainer ueNodes;
     NodeContainer gnbNodes;
@@ -262,6 +251,7 @@ NrIpv6RoutingTestCase::DoRun()
     mobility.Install(gnbNodes);
 
     // Install the IP stack on the UEs
+    InternetStackHelper internet;
     internet.Install(ueNodes);
 
     // Create bandwidth part
@@ -274,36 +264,10 @@ NrIpv6RoutingTestCase::DoRun()
     // Assign IP address to UEs, and install applications
     m_ueIpIface = nrEpcHelper->AssignUeIpv6Address(NetDeviceContainer(ueNrDevs));
 
-    Ipv6StaticRoutingHelper ipv6RoutingHelper;
-
-    for (uint32_t u = 0; u < ueNodes.GetN(); ++u)
-    {
-        Ptr<Node> ueNode = ueNodes.Get(u);
-        // Set the default gateway for the UE
-        Ptr<Ipv6StaticRouting> ueStaticRouting =
-            ipv6RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv6>());
-        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress6(), 1);
-    }
-
     // Attach two UEs at first eNodeB and one UE at second eNodeB
     nrHelper->AttachToGnb(ueNrDevs.Get(0), nrGnbDevs.Get(0));
     nrHelper->AttachToGnb(ueNrDevs.Get(1), nrGnbDevs.Get(0));
     nrHelper->AttachToGnb(ueNrDevs.Get(2), nrGnbDevs.Get(1));
-
-    Ipv6AddressHelper ipv6h;
-    ipv6h.SetBase(Ipv6Address("6001:db80::"), Ipv6Prefix(64));
-    Ipv6InterfaceContainer internetIpIfaces = ipv6h.Assign(internetDevices);
-
-    internetIpIfaces.SetForwarding(0, true);
-    internetIpIfaces.SetDefaultRouteInAllNodes(0);
-
-    Ptr<Ipv6StaticRouting> remoteHostStaticRouting =
-        ipv6RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv6>());
-    remoteHostStaticRouting
-        ->AddNetworkRouteTo("7777:f00d::", Ipv6Prefix(64), internetIpIfaces.GetAddress(0, 1), 1, 0);
-
-    // interface 0 is localhost, 1 is the p2p device
-    m_remoteHostAddr = internetIpIfaces.GetAddress(1, 1);
 
     // Install and start applications on UEs and remote host
     UdpEchoServerHelper echoServer1(10);
@@ -355,7 +319,7 @@ NrIpv6RoutingTestCase::DoRun()
 
     // Set Callback at SgwPgWApplication of epc to get the packets from gnb and from tunnel net
     // device
-    Ptr<Application> appPgw = pgw->GetApplication(0);
+    Ptr<Application> appPgw = nrEpcHelper->GetPgwNode()->GetApplication(0);
     appPgw->TraceConnectWithoutContext("RxFromS1u",
                                        MakeCallback(&NrIpv6RoutingTestCase::GnbToPgw, this));
     appPgw->TraceConnectWithoutContext("RxFromTun",

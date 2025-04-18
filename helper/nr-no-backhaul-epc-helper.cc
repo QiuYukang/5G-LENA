@@ -10,6 +10,7 @@
 #include "ns3/boolean.h"
 #include "ns3/icmpv6-l4-protocol.h"
 #include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/ipv6-static-routing-helper.h"
 #include "ns3/log.h"
 #include "ns3/nr-epc-gnb-application.h"
@@ -23,7 +24,6 @@
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/packet-socket-address.h"
 #include "ns3/point-to-point-helper.h"
-#include "ns3/string.h"
 
 namespace ns3
 {
@@ -521,7 +521,20 @@ NrNoBackhaulEpcHelper::GetPgwNode() const
 Ipv4InterfaceContainer
 NrNoBackhaulEpcHelper::AssignUeIpv4Address(NetDeviceContainer ueDevices)
 {
-    return m_uePgwAddressHelper.Assign(ueDevices);
+    auto ipv4ifaces = m_uePgwAddressHelper.Assign(ueDevices);
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+    for (size_t i = 0; i < ueDevices.GetN(); i++)
+    {
+        if (!DynamicCast<NrUeNetDevice>(ueDevices.Get(i)))
+        {
+            continue;
+        }
+        auto ueNode = ueDevices.Get(i)->GetNode();
+        Ptr<Ipv4StaticRouting> ueStaticRouting =
+            ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+        ueStaticRouting->SetDefaultRoute(GetUeDefaultGatewayAddress(), 1);
+    }
+    return ipv4ifaces;
 }
 
 Ipv6InterfaceContainer
@@ -532,7 +545,20 @@ NrNoBackhaulEpcHelper::AssignUeIpv6Address(NetDeviceContainer ueDevices)
         Ptr<Icmpv6L4Protocol> icmpv6 = (*iter)->GetNode()->GetObject<Icmpv6L4Protocol>();
         icmpv6->SetAttribute("DAD", BooleanValue(false));
     }
-    return m_uePgwAddressHelper6.Assign(ueDevices);
+    auto ipv6ifaces = m_uePgwAddressHelper6.Assign(ueDevices);
+    Ipv6StaticRoutingHelper ipv6RoutingHelper;
+    for (size_t i = 0; i < ueDevices.GetN(); i++)
+    {
+        if (!DynamicCast<NrUeNetDevice>(ueDevices.Get(i)))
+        {
+            continue;
+        }
+        auto ueNode = ueDevices.Get(i)->GetNode();
+        Ptr<Ipv6StaticRouting> ueStaticRouting =
+            ipv6RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv6>());
+        ueStaticRouting->SetDefaultRoute(GetUeDefaultGatewayAddress6(), 1);
+    }
+    return ipv6ifaces;
 }
 
 Ipv4Address
@@ -595,6 +621,92 @@ NrNoBackhaulEpcHelper::AssignStreams(int64_t stream)
     nc.Add(m_mme);
     currentStream += internet.AssignStreams(nc, currentStream);
     return (currentStream - stream);
+}
+
+std::pair<Ptr<Node>, Ipv4Address>
+NrNoBackhaulEpcHelper::SetupRemoteHost(std::optional<std::string> dataRate,
+                                       std::optional<uint16_t> mtu,
+                                       std::optional<Time> delay)
+{
+    // create the internet and install the IP stack on the UEs
+    // get SGW/PGW and create a single RemoteHost
+    Ptr<Node> pgw = GetPgwNode();
+    NodeContainer remoteHostContainer;
+    remoteHostContainer.Create(1);
+    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
+    InternetStackHelper internet;
+    internet.Install(remoteHostContainer);
+
+    // connect a remoteHost to pgw. Setup routing too
+    PointToPointHelper p2ph;
+    if (dataRate.has_value())
+    {
+        p2ph.SetDeviceAttribute("DataRate", StringValue(dataRate.value()));
+    }
+    if (mtu.has_value())
+    {
+        p2ph.SetDeviceAttribute("Mtu", UintegerValue(mtu.value()));
+    }
+    if (delay.has_value())
+    {
+        p2ph.SetChannelAttribute("Delay", TimeValue(delay.value()));
+    }
+    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
+
+    // Setup IPv4 addresses and routing from remoteHost to the UEs through PGW
+    Ipv4AddressHelper ipv4h;
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
+    Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign(internetDevices);
+    Ptr<Ipv4StaticRouting> remoteHostStaticRouting4 =
+        ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
+    remoteHostStaticRouting4->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
+    return std::make_pair(remoteHost, internetIpIfaces.GetAddress(0, 0));
+}
+
+std::pair<Ptr<Node>, Ipv6Address>
+NrNoBackhaulEpcHelper::SetupRemoteHost6(std::optional<std::string> dataRate,
+                                        std::optional<uint16_t> mtu,
+                                        std::optional<Time> delay)
+{
+    // create the internet and install the IP stack on the UEs
+    // get SGW/PGW and create a single RemoteHost
+    Ptr<Node> pgw = GetPgwNode();
+    NodeContainer remoteHostContainer;
+    remoteHostContainer.Create(1);
+    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
+    InternetStackHelper internet;
+    internet.Install(remoteHostContainer);
+
+    // connect a remoteHost to pgw. Setup routing too
+    PointToPointHelper p2ph;
+    if (dataRate.has_value())
+    {
+        p2ph.SetDeviceAttribute("DataRate", StringValue(dataRate.value()));
+    }
+    if (mtu.has_value())
+    {
+        p2ph.SetDeviceAttribute("Mtu", UintegerValue(mtu.value()));
+    }
+    if (delay.has_value())
+    {
+        p2ph.SetChannelAttribute("Delay", TimeValue(delay.value()));
+    }
+    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
+
+    // Setup IPv6 addresses and routing from remoteHost to the UEs through PGW
+    Ipv6AddressHelper ipv6h;
+    ipv6h.SetBase(Ipv6Address("6001:db80::"), Ipv6Prefix(64));
+    Ipv6InterfaceContainer internetIpIfaces = ipv6h.Assign(internetDevices);
+    internetIpIfaces.SetForwarding(0, true);
+    internetIpIfaces.SetDefaultRouteInAllNodes(0);
+
+    Ipv6StaticRoutingHelper ipv6RoutingHelper;
+    Ptr<Ipv6StaticRouting> remoteHostStaticRouting =
+        ipv6RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv6>());
+    remoteHostStaticRouting
+        ->AddNetworkRouteTo("7777:f00d::", Ipv6Prefix(64), internetIpIfaces.GetAddress(0, 1), 1, 0);
+    return std::make_pair(remoteHost, internetIpIfaces.GetAddress(1, 1));
 }
 
 } // namespace ns3

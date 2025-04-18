@@ -13,9 +13,12 @@
 #include "ns3/data-rate.h"
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/ipv6-address-helper.h"
+#include "ns3/node-container.h"
 #include "ns3/nr-epc-tft.h"
 #include "ns3/nr-eps-bearer.h"
 #include "ns3/object.h"
+
+#include <optional>
 
 namespace ns3
 {
@@ -166,6 +169,42 @@ class NrEpcHelper : public Object
      * @return the number of stream indices (possibly zero) that have been assigned
      */
     virtual int64_t AssignStreams(int64_t stream) = 0;
+
+    /**
+     * Setup a P2P link connecting the PGW to a remote host, and create a route
+     * from the remote host to the UEs using IPv4 networks.
+     * Addresses are hardcoded for simplicity.
+     *
+     * RemoteHost --P2P-- PGW ----- SGW -- gNB -- UEs
+     * 1.0.0.2            1.0.0.1
+     *                    7.0.0.1                 7.0.0.0/8
+     *
+     * @param dataRateValue Link speed connecting the PGW and the remote host
+     * @param mtu MTU of link connecting the PGW and the remote host
+     * @param delay One-way propagation delay of link connecting the PGW and the remote host
+     * @return a pair containing a node pointer to the remote host and its IPv4 address
+     */
+    virtual std::pair<Ptr<Node>, Ipv4Address> SetupRemoteHost(std::optional<std::string> dataRate,
+                                                              std::optional<uint16_t> mtu,
+                                                              std::optional<Time> delay) = 0;
+
+    /**
+     * Setup a P2P link connecting the PGW to a remote host, and create a route
+     * from the remote host to the UEs using IPv6 networks.
+     * Addresses are hardcoded for simplicity.
+     *
+     * RemoteHost ---------------P2P----------- PGW ---------------------- SGW -- gNB -- UEs
+     * 6001:db80:0000:0000:0200:00ff:fe00:0007  6001:db80:0000:0000:0200:00ff:fe00:0006
+     *                                          7777:f00d:0000:0000:0000:0000:0000:0001  7777:f00d:
+     *
+     * @param dataRateValue Link speed connecting the PGW and the remote host
+     * @param mtu MTU of link connecting the PGW and the remote host
+     * @param delay One-way propagation delay of link connecting the PGW and the remote host
+     * @return a pair containing a node pointer to the remote host and its IPv6 address
+     */
+    virtual std::pair<Ptr<Node>, Ipv6Address> SetupRemoteHost6(std::optional<std::string> dataRate,
+                                                               std::optional<uint16_t> mtu,
+                                                               std::optional<Time> delay) = 0;
 };
 
 } // namespace ns3

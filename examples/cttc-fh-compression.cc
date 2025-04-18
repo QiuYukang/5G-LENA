@@ -1154,28 +1154,12 @@ main(int argc, char* argv[])
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.
 
-    // create the internet and install the IP stack on the UEs
-    // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
-    NodeContainer remoteHostContainer;
-    remoteHostContainer.Create(1);
-    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
-    InternetStackHelper internet;
-    internet.Install(remoteHostContainer);
+    auto [remoteHost, remoteHostIpv4Address] =
+        nrEpcHelper->SetupRemoteHost("100Gb/s", 2500, Seconds(0.000));
+    auto remoteHostContainer = NodeContainer(remoteHost);
 
-    // connect a remoteHost to pgw. Setup routing too
-    PointToPointHelper p2ph;
-    p2ph.SetDeviceAttribute("DataRate", DataRateValue(DataRate("100Gb/s")));
-    p2ph.SetDeviceAttribute("Mtu", UintegerValue(2500));
-    p2ph.SetChannelAttribute("Delay", TimeValue(Seconds(0.000)));
-    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
-    Ipv4AddressHelper ipv4h;
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
-    Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign(internetDevices);
-    Ptr<Ipv4StaticRouting> remoteHostStaticRouting =
-        ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
-    remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
+    InternetStackHelper internet;
+
     internet.Install(gridScenario.GetUserTerminals());
 
     Ipv4InterfaceContainer ueSector1IpIface =
@@ -1184,16 +1168,6 @@ main(int argc, char* argv[])
         nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector2NetDev));
     Ipv4InterfaceContainer ueSector3IpIface =
         nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector3NetDev));
-
-    Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress(1);
-
-    // Set the default gateway for the UEs
-    for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
-    {
-        Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(
-            gridScenario.GetUserTerminals().Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
-    }
 
     // attach UEs to their gNB. Try to attach them per cellId order
     for (uint32_t u = 0; u < ueNum; ++u)
@@ -1433,7 +1407,7 @@ main(int argc, char* argv[])
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
@@ -1478,7 +1452,7 @@ main(int argc, char* argv[])
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
@@ -1523,7 +1497,7 @@ main(int argc, char* argv[])
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type

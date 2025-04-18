@@ -240,10 +240,6 @@ main(int argc, char* argv[])
     ApplicationContainer serverApps;
     for (size_t i = 0; i < ueNodes.GetN(); i++)
     {
-        // Set the default gateway for the UE
-        Ptr<Ipv4StaticRouting> ueStaticRouting =
-            ipv4RoutingHelper.GetStaticRouting(ueNodes.Get(i)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
         UdpServerHelper dlPacketSinkHelper(dlPort);
         serverApps.Add(dlPacketSinkHelper.Install(ueNodes.Get(i)));
         UdpClientHelper dlClient(ueIpIface.GetAddress(i), dlPort);

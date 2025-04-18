@@ -409,11 +409,6 @@ NrX2HandoverMeasuresTestCase::DoRun()
         for (uint32_t u = 0; u < ueNodes.GetN(); ++u)
         {
             Ptr<Node> ue = ueNodes.Get(u);
-            // Set the default gateway for the UE
-            Ptr<Ipv4StaticRouting> ueStaticRouting =
-                ipv4RoutingHelper.GetStaticRouting(ue->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
-
             UeData ueData;
 
             for (uint32_t b = 0; b < m_nDedicatedBearers; ++b)

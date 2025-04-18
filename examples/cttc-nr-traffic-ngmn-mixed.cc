@@ -924,29 +924,11 @@ main(int argc, char* argv[])
 
     // From here, it is standard NS3. In the future, we will create helpers
     // for this part as well.
+    auto [remoteHost, remoteHostIpv4Address] =
+        nrEpcHelper->SetupRemoteHost("100Gb/s", 2500, Seconds(0.000));
+    auto remoteHostContainer = NodeContainer(remoteHost);
 
-    // create the internet and install the IP stack on the UEs
-    // get SGW/PGW and create a single RemoteHost
-    Ptr<Node> pgw = nrEpcHelper->GetPgwNode();
-    NodeContainer remoteHostContainer;
-    remoteHostContainer.Create(1);
-    Ptr<Node> remoteHost = remoteHostContainer.Get(0);
     InternetStackHelper internet;
-    internet.Install(remoteHostContainer);
-
-    // connect a remoteHost to pgw. Setup routing too
-    PointToPointHelper p2ph;
-    p2ph.SetDeviceAttribute("DataRate", DataRateValue(DataRate("100Gb/s")));
-    p2ph.SetDeviceAttribute("Mtu", UintegerValue(2500));
-    p2ph.SetChannelAttribute("Delay", TimeValue(Seconds(0.000)));
-    NetDeviceContainer internetDevices = p2ph.Install(pgw, remoteHost);
-    Ipv4AddressHelper ipv4h;
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-    ipv4h.SetBase("1.0.0.0", "255.0.0.0");
-    Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign(internetDevices);
-    Ptr<Ipv4StaticRouting> remoteHostStaticRouting =
-        ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
-    remoteHostStaticRouting->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
     internet.Install(gridScenario.GetUserTerminals());
 
     // if the mixed traffic type selected then determine for each which container IDs correposnd to
@@ -1018,16 +1000,6 @@ main(int argc, char* argv[])
         nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector2NetDev));
     Ipv4InterfaceContainer ueSector3IpIface =
         nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueSector3NetDev));
-
-    Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress(1);
-
-    // Set the default gateway for the UEs
-    for (uint32_t j = 0; j < gridScenario.GetUserTerminals().GetN(); ++j)
-    {
-        Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(
-            gridScenario.GetUserTerminals().Get(j)->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
-    }
 
     // attach UEs to their gNB. Try to attach them per cellId order
     for (uint32_t u = 0; u < ueNum; ++u)
@@ -1259,11 +1231,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector1IpIface.GetAddress(i, 0);
                 AddressValue ueAddress(InetSocketAddress(ipAddress, portFtpNgmn));
                 ftpHelper.SetAttribute("Remote", ueAddress);
-                clientApps.Add(ftpHelper.Install(remoteHostContainer));
+                clientApps.Add(ftpHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
@@ -1277,11 +1249,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector2IpIface.GetAddress(i, 0);
                 AddressValue ueAddress(InetSocketAddress(ipAddress, portFtpNgmn));
                 ftpHelper.SetAttribute("Remote", ueAddress);
-                clientApps.Add(ftpHelper.Install(remoteHostContainer));
+                clientApps.Add(ftpHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
@@ -1296,11 +1268,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector3IpIface.GetAddress(i, 0);
                 AddressValue ueAddress(InetSocketAddress(ipAddress, portFtpNgmn));
                 ftpHelper.SetAttribute("Remote", ueAddress);
-                clientApps.Add(ftpHelper.Install(remoteHostContainer));
+                clientApps.Add(ftpHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
 
             // configure FTP servers
@@ -1356,11 +1328,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector1IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnVideo));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
@@ -1376,11 +1348,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector2IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnVideo));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
@@ -1396,11 +1368,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector3IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnVideo));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
 
             // configure servers
@@ -1469,11 +1441,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector1IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnGaming));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
@@ -1489,11 +1461,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector2IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnGaming));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
@@ -1509,11 +1481,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector3IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnGaming));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
 
             // configure GAMING servers
@@ -1583,11 +1555,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector1IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnVoip));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 2
             for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
@@ -1602,11 +1574,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector2IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnVoip));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
             // configure clients on sector 3
             for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
@@ -1621,11 +1593,11 @@ main(int argc, char* argv[])
                 Ipv4Address ipAddress = ueSector3IpIface.GetAddress(i, 0);
                 AddressValue remoteAddress(InetSocketAddress(ipAddress, portNgmnVoip));
                 trafficGeneratorHelper.SetAttribute("Remote", remoteAddress);
-                clientApps.Add(trafficGeneratorHelper.Install(remoteHostContainer));
+                clientApps.Add(trafficGeneratorHelper.Install(remoteHost));
                 // Seed the ARP cache by pinging early in the simulation
                 // This is a workaround until a static ARP capability is provided
                 PingHelper ping(ipAddress);
-                pingApps.Add(ping.Install(remoteHostContainer));
+                pingApps.Add(ping.Install(remoteHost));
             }
 
             // configure servers
@@ -1686,14 +1658,14 @@ main(int argc, char* argv[])
         }
 
         // 1. Create HTTP client applications
-        ThreeGppHttpClientHelper clientHelper(remoteHostAddr);
+        ThreeGppHttpClientHelper clientHelper(remoteHostIpv4Address);
         // Install HTTP clients on UEs
         ApplicationContainer clientApps = clientHelper.Install(httpUeContainer);
 
         // 2. Create HTTP server applications
-        ThreeGppHttpServerHelper serverHelper(remoteHostAddr);
+        ThreeGppHttpServerHelper serverHelper(remoteHostIpv4Address);
         // Install HTTP server on a remote host node
-        ApplicationContainer serverApps = serverHelper.Install(remoteHostContainer.Get(0));
+        ApplicationContainer serverApps = serverHelper.Install(remoteHost);
         Ptr<ThreeGppHttpServer> httpServer = serverApps.Get(0)->GetObject<ThreeGppHttpServer>();
 
         // 3. Setup HTTP variables for the server according to NGMN white paper
@@ -1721,7 +1693,7 @@ main(int argc, char* argv[])
 
             Ipv4Address ipAddress = ueSector1IpIface.GetAddress(i, 0);
             PingHelper ping(ipAddress);
-            pingApps.Add(ping.Install(remoteHostContainer));
+            pingApps.Add(ping.Install(remoteHost));
         }
         // configure clients on sector 2
         for (uint32_t i = 0; i < ueSector2IpIface.GetN(); i++)
@@ -1735,7 +1707,7 @@ main(int argc, char* argv[])
 
             Ipv4Address ipAddress = ueSector2IpIface.GetAddress(i, 0);
             PingHelper ping(ipAddress);
-            pingApps.Add(ping.Install(remoteHostContainer));
+            pingApps.Add(ping.Install(remoteHost));
         }
         // configure clients on sector 3
         for (uint32_t i = 0; i < ueSector3IpIface.GetN(); i++)
@@ -1749,7 +1721,7 @@ main(int argc, char* argv[])
 
             Ipv4Address ipAddress = ueSector3IpIface.GetAddress(i, 0);
             PingHelper ping(ipAddress);
-            pingApps.Add(ping.Install(remoteHostContainer));
+            pingApps.Add(ping.Install(remoteHost));
         }
     }
 
@@ -1780,7 +1752,7 @@ main(int argc, char* argv[])
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
@@ -1814,7 +1786,7 @@ main(int argc, char* argv[])
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
@@ -1848,7 +1820,7 @@ main(int argc, char* argv[])
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type

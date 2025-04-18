@@ -375,10 +375,6 @@ NrUplinkPowerControlTestCase::DoRun()
     internet.Install(ueNodes);
 
     Ipv4InterfaceContainer ueIpIface = nrEpcHelper->AssignUeIpv4Address(ueDevs);
-    // Set the default gateway for the UE
-    Ptr<Ipv4StaticRouting> ueStaticRouting =
-        ipv4RoutingHelper.GetStaticRouting(ueNodes.Get(0)->GetObject<Ipv4>());
-    ueStaticRouting->SetDefaultRoute(nrEpcHelper->GetUeDefaultGatewayAddress(), 1);
 
     // Attach a UE to a gNB
     nrHelper->AttachToGnb(ueDevs.Get(0), gnbDevs.Get(0));

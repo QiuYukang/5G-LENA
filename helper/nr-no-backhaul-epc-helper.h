@@ -72,6 +72,12 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
     Ipv4Address GetUeDefaultGatewayAddress() override;
     Ipv6Address GetUeDefaultGatewayAddress6() override;
     int64_t AssignStreams(int64_t stream) override;
+    std::pair<Ptr<Node>, Ipv4Address> SetupRemoteHost(std::optional<std::string> dataRate,
+                                                      std::optional<uint16_t> mtu,
+                                                      std::optional<Time> delay) override;
+    std::pair<Ptr<Node>, Ipv6Address> SetupRemoteHost6(std::optional<std::string> dataRate,
+                                                       std::optional<uint16_t> mtu,
+                                                       std::optional<Time> delay) override;
 
   protected:
     /**
