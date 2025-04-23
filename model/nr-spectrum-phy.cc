@@ -676,12 +676,6 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
             //  - or if the receiver device is either a gNB or not configured (has no RNTI)
             auto isIntendedRx = (nrDataRxParams->rnti == m_rnti) || !m_hasRnti;
 
-            // Workaround: always receive the signal, to keep performance equal to OSS code.
-            // This ensures all UEs can generate CQI feedback from data signals, even from those
-            // signals that are intended for other UEs in the same cell.
-            // TODO: implement proper CSI-RS signalling for CQI and disable this workaround
-            isIntendedRx = true;
-
             if (isIntendedRx)
             {
                 StartRxData(nrDataRxParams);
