@@ -116,11 +116,12 @@ per-commit-gcc-default:
     MODE: default
     COMPILER: g++
 
-per-commit-gcc-optimized:
+per-commit-gcc-optimized-no-lte:
   extends: .base-per-commit-compile
   variables:
     MODE: optimized
     COMPILER: g++
+    EXTRAS: --disable-module=lte
 
 per-commit-gcc-optimized-sanitizers:
   extends: .base-per-commit-compile
