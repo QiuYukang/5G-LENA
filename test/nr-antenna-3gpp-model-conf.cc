@@ -137,7 +137,7 @@ TestAntenna3gppModelConf::DoRun()
     uint32_t packetSize = 1000;
     DataRate udpRate = DataRate("2Mbps");
 
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals

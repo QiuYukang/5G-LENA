@@ -23,6 +23,7 @@
 #include "ns3/nr-gnb-phy.h"
 #include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-stats-calculator.h"
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-phy.h"
 #include "ns3/nr-ue-rrc.h"
@@ -31,7 +32,6 @@
 #include "ns3/packet.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/ptr.h"
-#include "ns3/radio-bearer-stats-calculator.h"
 #include "ns3/rng-seed-manager.h"
 #include "ns3/simulator.h"
 #include "ns3/string.h"
@@ -126,9 +126,9 @@ NrDeactivateBearerTestCase::DoRun()
     }
 
     Config::SetDefault("ns3::NrHelper::UseIdealRrc", BooleanValue(true));
-    Config::SetDefault("ns3::RadioBearerStatsCalculator::DlRlcOutputFilename",
+    Config::SetDefault("ns3::NrBearerStatsCalculator::DlRlcOutputFilename",
                        StringValue(CreateTempDirFilename("DlRlcStats.txt")));
-    Config::SetDefault("ns3::RadioBearerStatsCalculator::UlRlcOutputFilename",
+    Config::SetDefault("ns3::NrBearerStatsCalculator::UlRlcOutputFilename",
                        StringValue(CreateTempDirFilename("UlRlcStats.txt")));
 
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();

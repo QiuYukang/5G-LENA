@@ -6,13 +6,13 @@
 #define NR_SPECTRUM_PHY_H
 
 #include "beam-manager.h"
+#include "nr-chunk-processor.h"
 #include "nr-control-messages.h"
 #include "nr-harq-phy.h"
 #include "nr-interference.h"
 #include "nr-phy.h"
 #include "nr-spectrum-signal-parameters.h"
 
-#include "ns3/lte-chunk-processor.h"
 #include "ns3/matrix-based-channel-model.h"
 #include "ns3/net-device.h"
 #include "ns3/random-variable-stream.h"
