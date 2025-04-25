@@ -26,20 +26,23 @@ NS_LOG_COMPONENT_DEFINE("NrMultipanelTest");
 class NrMultipanelTestCase : public TestCase
 {
   public:
-    NrMultipanelTestCase(uint8_t panel);
+    NrMultipanelTestCase(uint8_t panel, uint8_t uePorts);
     ~NrMultipanelTestCase() override;
 
   private:
     void DoRun() override;
     uint8_t m_panel = 0;
+    uint8_t m_uePorts = 0;
 };
 
 /**
  * TestCase
  */
-NrMultipanelTestCase::NrMultipanelTestCase(uint8_t panel)
-    : TestCase("Test if 4-panel UE correctly attaches with panel " + std::to_string(panel)),
-      m_panel(panel)
+NrMultipanelTestCase::NrMultipanelTestCase(uint8_t panel, uint8_t uePorts)
+    : TestCase("Test if 4-panel UE, with " + std::to_string(uePorts) +
+               " ports each, correctly attaches with panel " + std::to_string(panel)),
+      m_panel(panel),
+      m_uePorts(uePorts)
 {
 }
 
@@ -53,9 +56,9 @@ NrMultipanelTestCase::DoRun()
     NrHelper::AntennaParams apUe;
     NrHelper::AntennaParams apGnb;
     apUe.antennaElem = "ns3::ThreeGppAntennaModel";
-    apUe.nAntCols = 2;
+    apUe.nAntCols = 8;
     apUe.nAntRows = 2;
-    apUe.nHorizPorts = 1;
+    apUe.nHorizPorts = m_uePorts;
     apUe.nVertPorts = 1;
     apUe.isDualPolarized = false;
     apGnb.antennaElem = "ns3::ThreeGppAntennaModel";
@@ -222,10 +225,13 @@ class NrMultipanelTestSuite : public TestSuite
 NrMultipanelTestSuite::NrMultipanelTestSuite()
     : TestSuite("nr-multipanel-test", Type::SYSTEM)
 {
-    AddTestCase(new NrMultipanelTestCase(0), Duration::QUICK);
-    AddTestCase(new NrMultipanelTestCase(1), Duration::QUICK);
-    AddTestCase(new NrMultipanelTestCase(2), Duration::QUICK);
-    AddTestCase(new NrMultipanelTestCase(3), Duration::QUICK);
+    for (int ports : {1, 2, 4})
+    {
+        for (int cellToPanel = 0; cellToPanel < 4; cellToPanel++)
+        {
+            AddTestCase(new NrMultipanelTestCase(cellToPanel, ports), Duration::QUICK);
+        }
+    }
 }
 
 static NrMultipanelTestSuite nrTestSuite;

@@ -320,6 +320,7 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
         i->SetBeamformingVector(uebfVector);
     }
 
+    auto gnbTxPower = DynamicCast<NrGnbNetDevice>(gnbDevice)->GetPhy(0)->GetTxPower();
     for (size_t k = 0; k < antennas.ueArrayModel.size(); k++)
     {
         for (size_t j = 0; j < m_rowBeamAngles.size(); j++)
@@ -336,7 +337,7 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
                     mobility.ueMobility,
                     antennas.gnbArrayModel,
                     antennas.ueArrayModel[k]);
-                auto eng = ComputeRxPsd(rxParam);
+                auto eng = gnbTxPower * ComputeRxPsd(rxParam);
                 if (eng > lsps.maxPsdFound)
                 {
                     lsps.maxPsdFound = eng;
