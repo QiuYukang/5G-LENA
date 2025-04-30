@@ -241,7 +241,7 @@ NrEpsBearerTagUdpClient::Send()
  *
  * @brief Custom test structure to hold information of data transmitted in the uplink per UE
  */
-struct UeUlTestData
+struct NrUeUlTestData
 {
     /**
      * Constructor
@@ -251,7 +251,7 @@ struct UeUlTestData
      * @param r the RNTI
      * @param l the BID
      */
-    UeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l);
+    NrUeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l);
 
     uint32_t numPkts; ///< the number of packets sent
     uint32_t pktSize; ///< the packet size
@@ -262,7 +262,7 @@ struct UeUlTestData
     Ptr<Application> clientApp; ///< the client application
 };
 
-UeUlTestData::UeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l)
+NrUeUlTestData::NrUeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l)
     : numPkts(n),
       pktSize(s),
       rnti(r),
@@ -278,7 +278,7 @@ UeUlTestData::UeUlTestData(uint32_t n, uint32_t s, uint16_t r, uint8_t l)
  */
 struct GnbUlTestData
 {
-    std::vector<UeUlTestData> ues; ///< the list of UEs
+    std::vector<NrUeUlTestData> ues; ///< the list of UEs
 };
 
 /**
@@ -501,16 +501,16 @@ NrEpcS1uUlTestSuite::NrEpcS1uUlTestSuite()
 {
     std::vector<GnbUlTestData> v1;
     GnbUlTestData e1;
-    UeUlTestData f1(1, 100, 1, 1);
+    NrUeUlTestData f1(1, 100, 1, 1);
     e1.ues.push_back(f1);
     v1.push_back(e1);
     AddTestCase(new NrEpcS1uUlTestCase("1 eNB, 1UE", v1), TestCase::Duration::QUICK);
 
     std::vector<GnbUlTestData> v2;
     GnbUlTestData e2;
-    UeUlTestData f2_1(1, 100, 1, 1);
+    NrUeUlTestData f2_1(1, 100, 1, 1);
     e2.ues.push_back(f2_1);
-    UeUlTestData f2_2(2, 200, 2, 1);
+    NrUeUlTestData f2_2(2, 200, 2, 1);
     e2.ues.push_back(f2_2);
     v2.push_back(e2);
     AddTestCase(new NrEpcS1uUlTestCase("1 eNB, 2UEs", v2), TestCase::Duration::QUICK);
@@ -521,11 +521,11 @@ NrEpcS1uUlTestSuite::NrEpcS1uUlTestSuite()
     AddTestCase(new NrEpcS1uUlTestCase("2 eNBs", v3), TestCase::Duration::QUICK);
 
     GnbUlTestData e3;
-    UeUlTestData f3_1(3, 50, 1, 1);
+    NrUeUlTestData f3_1(3, 50, 1, 1);
     e3.ues.push_back(f3_1);
-    UeUlTestData f3_2(5, 1472, 2, 1);
+    NrUeUlTestData f3_2(5, 1472, 2, 1);
     e3.ues.push_back(f3_2);
-    UeUlTestData f3_3(1, 1, 3, 1);
+    NrUeUlTestData f3_3(1, 1, 3, 1);
     e3.ues.push_back(f3_2);
     std::vector<GnbUlTestData> v4;
     v4.push_back(e3);
@@ -535,7 +535,7 @@ NrEpcS1uUlTestSuite::NrEpcS1uUlTestSuite()
 
     std::vector<GnbUlTestData> v5;
     GnbUlTestData e5;
-    UeUlTestData f5(10, 3000, 1, 1);
+    NrUeUlTestData f5(10, 3000, 1, 1);
     e5.ues.push_back(f5);
     v5.push_back(e5);
     AddTestCase(new NrEpcS1uUlTestCase("1 eNB, 10 pkts 3000 bytes each", v5),
@@ -543,7 +543,7 @@ NrEpcS1uUlTestSuite::NrEpcS1uUlTestSuite()
 
     std::vector<GnbUlTestData> v6;
     GnbUlTestData e6;
-    UeUlTestData f6(50, 3000, 1, 1);
+    NrUeUlTestData f6(50, 3000, 1, 1);
     e6.ues.push_back(f6);
     v6.push_back(e6);
     AddTestCase(new NrEpcS1uUlTestCase("1 eNB, 50 pkts 3000 bytes each", v6),
@@ -551,7 +551,7 @@ NrEpcS1uUlTestSuite::NrEpcS1uUlTestSuite()
 
     std::vector<GnbUlTestData> v7;
     GnbUlTestData e7;
-    UeUlTestData f7(10, 15000, 1, 1);
+    NrUeUlTestData f7(10, 15000, 1, 1);
     e7.ues.push_back(f7);
     v7.push_back(e7);
     AddTestCase(new NrEpcS1uUlTestCase("1 eNB, 10 pkts 15000 bytes each", v7),
@@ -559,7 +559,7 @@ NrEpcS1uUlTestSuite::NrEpcS1uUlTestSuite()
 
     std::vector<GnbUlTestData> v8;
     GnbUlTestData e8;
-    UeUlTestData f8(100, 15000, 1, 1);
+    NrUeUlTestData f8(100, 15000, 1, 1);
     e8.ues.push_back(f8);
     v8.push_back(e8);
     AddTestCase(new NrEpcS1uUlTestCase("1 eNB, 100 pkts 15000 bytes each", v8),

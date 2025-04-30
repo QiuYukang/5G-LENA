@@ -37,7 +37,7 @@ NS_LOG_COMPONENT_DEFINE("NrEpcTestS1uDownlink");
  *
  * @brief Custom structure for testing UE downlink data
  */
-struct UeDlTestData
+struct NrUeDlTestData
 {
     /**
      * Constructor
@@ -45,7 +45,7 @@ struct UeDlTestData
      * @param n number of packets
      * @param s packet size
      */
-    UeDlTestData(uint32_t n, uint32_t s);
+    NrUeDlTestData(uint32_t n, uint32_t s);
 
     uint32_t numPkts; ///< number of packets
     uint32_t pktSize; ///< packet size
@@ -54,7 +54,7 @@ struct UeDlTestData
     Ptr<Application> clientApp; ///< Client application
 };
 
-UeDlTestData::UeDlTestData(uint32_t n, uint32_t s)
+NrUeDlTestData::NrUeDlTestData(uint32_t n, uint32_t s)
     : numPkts(n),
       pktSize(s)
 {
@@ -68,7 +68,7 @@ UeDlTestData::UeDlTestData(uint32_t n, uint32_t s)
  */
 struct GnbDlTestData
 {
-    std::vector<UeDlTestData> ues; ///< list of data structure for different UEs
+    std::vector<NrUeDlTestData> ues; ///< list of data structure for different UEs
 };
 
 /**
@@ -238,16 +238,16 @@ NrEpcS1uDlTestSuite::NrEpcS1uDlTestSuite()
 {
     std::vector<GnbDlTestData> v1;
     GnbDlTestData e1;
-    UeDlTestData f1(1, 100);
+    NrUeDlTestData f1(1, 100);
     e1.ues.push_back(f1);
     v1.push_back(e1);
     AddTestCase(new NrEpcS1uDlTestCase("1 eNB, 1UE", v1), TestCase::Duration::QUICK);
 
     std::vector<GnbDlTestData> v2;
     GnbDlTestData e2;
-    UeDlTestData f2_1(1, 100);
+    NrUeDlTestData f2_1(1, 100);
     e2.ues.push_back(f2_1);
-    UeDlTestData f2_2(2, 200);
+    NrUeDlTestData f2_2(2, 200);
     e2.ues.push_back(f2_2);
     v2.push_back(e2);
     AddTestCase(new NrEpcS1uDlTestCase("1 eNB, 2UEs", v2), TestCase::Duration::QUICK);
@@ -258,11 +258,11 @@ NrEpcS1uDlTestSuite::NrEpcS1uDlTestSuite()
     AddTestCase(new NrEpcS1uDlTestCase("2 eNBs", v3), TestCase::Duration::QUICK);
 
     GnbDlTestData e3;
-    UeDlTestData f3_1(3, 50);
+    NrUeDlTestData f3_1(3, 50);
     e3.ues.push_back(f3_1);
-    UeDlTestData f3_2(5, 1472);
+    NrUeDlTestData f3_2(5, 1472);
     e3.ues.push_back(f3_2);
-    UeDlTestData f3_3(1, 1);
+    NrUeDlTestData f3_3(1, 1);
     e3.ues.push_back(f3_2);
     std::vector<GnbDlTestData> v4;
     v4.push_back(e3);
@@ -272,7 +272,7 @@ NrEpcS1uDlTestSuite::NrEpcS1uDlTestSuite()
 
     std::vector<GnbDlTestData> v5;
     GnbDlTestData e5;
-    UeDlTestData f5(10, 3000);
+    NrUeDlTestData f5(10, 3000);
     e5.ues.push_back(f5);
     v5.push_back(e5);
     AddTestCase(new NrEpcS1uDlTestCase("1 eNB, 10 pkts 3000 bytes each", v5),
@@ -280,7 +280,7 @@ NrEpcS1uDlTestSuite::NrEpcS1uDlTestSuite()
 
     std::vector<GnbDlTestData> v6;
     GnbDlTestData e6;
-    UeDlTestData f6(50, 3000);
+    NrUeDlTestData f6(50, 3000);
     e6.ues.push_back(f6);
     v6.push_back(e6);
     AddTestCase(new NrEpcS1uDlTestCase("1 eNB, 50 pkts 3000 bytes each", v6),
@@ -288,7 +288,7 @@ NrEpcS1uDlTestSuite::NrEpcS1uDlTestSuite()
 
     std::vector<GnbDlTestData> v7;
     GnbDlTestData e7;
-    UeDlTestData f7(10, 15000);
+    NrUeDlTestData f7(10, 15000);
     e7.ues.push_back(f7);
     v7.push_back(e7);
     AddTestCase(new NrEpcS1uDlTestCase("1 eNB, 10 pkts 15000 bytes each", v7),
@@ -296,7 +296,7 @@ NrEpcS1uDlTestSuite::NrEpcS1uDlTestSuite()
 
     std::vector<GnbDlTestData> v8;
     GnbDlTestData e8;
-    UeDlTestData f8(100, 15000);
+    NrUeDlTestData f8(100, 15000);
     e8.ues.push_back(f8);
     v8.push_back(e8);
     AddTestCase(new NrEpcS1uDlTestCase("1 eNB, 100 pkts 15000 bytes each", v8),

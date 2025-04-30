@@ -92,21 +92,21 @@ class TestUtils
     }
 };
 
-// --------------------------- CLASS RrcHeaderTestCase -----------------------------
+// --------------------------- CLASS NrRrcHeaderTestCase -----------------------------
 /**
  * @ingroup nr-test
  *
  * @brief This class provides common functions to be inherited
  * by the children TestCases
  */
-class RrcHeaderTestCase : public TestCase
+class NrRrcHeaderTestCase : public TestCase
 {
   public:
     /**
      * Constructor
      * @param s the reference name
      */
-    RrcHeaderTestCase(std::string s);
+    NrRrcHeaderTestCase(std::string s);
     void DoRun() override = 0;
     /**
      * @brief Create radio resource config dedicated
@@ -125,13 +125,13 @@ class RrcHeaderTestCase : public TestCase
     Ptr<Packet> packet; ///< the packet
 };
 
-RrcHeaderTestCase::RrcHeaderTestCase(std::string s)
+NrRrcHeaderTestCase::NrRrcHeaderTestCase(std::string s)
     : TestCase(s)
 {
 }
 
 NrRrcSap::RadioResourceConfigDedicated
-RrcHeaderTestCase::CreateRadioResourceConfigDedicated()
+NrRrcHeaderTestCase::CreateRadioResourceConfigDedicated()
 {
     NrRrcSap::RadioResourceConfigDedicated rrd;
 
@@ -186,7 +186,7 @@ RrcHeaderTestCase::CreateRadioResourceConfigDedicated()
 }
 
 void
-RrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated(
+NrRrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated(
     NrRrcSap::RadioResourceConfigDedicated rrcd1,
     NrRrcSap::RadioResourceConfigDedicated rrcd2)
 {
@@ -315,7 +315,7 @@ RrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated(
  *
  * @brief Rrc Connection Request Test Case
  */
-class NrRrcConnectionRequestTestCase : public RrcHeaderTestCase
+class NrRrcConnectionRequestTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionRequestTestCase();
@@ -323,7 +323,7 @@ class NrRrcConnectionRequestTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionRequestTestCase::NrRrcConnectionRequestTestCase()
-    : RrcHeaderTestCase("Testing RrcConnectionRequest")
+    : NrRrcHeaderTestCase("Testing RrcConnectionRequest")
 {
 }
 
@@ -367,7 +367,7 @@ NrRrcConnectionRequestTestCase::DoRun()
  *
  * @brief Rrc Connection Setup Test Case
  */
-class NrRrcConnectionSetupTestCase : public RrcHeaderTestCase
+class NrRrcConnectionSetupTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionSetupTestCase();
@@ -375,7 +375,7 @@ class NrRrcConnectionSetupTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionSetupTestCase::NrRrcConnectionSetupTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionSetupTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionSetupTestCase")
 {
 }
 
@@ -424,7 +424,7 @@ NrRrcConnectionSetupTestCase::DoRun()
  *
  * @brief Rrc Connection Setup Complete Test Case
  */
-class NrRrcConnectionSetupCompleteTestCase : public RrcHeaderTestCase
+class NrRrcConnectionSetupCompleteTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionSetupCompleteTestCase();
@@ -432,7 +432,7 @@ class NrRrcConnectionSetupCompleteTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionSetupCompleteTestCase::NrRrcConnectionSetupCompleteTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionSetupCompleteTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionSetupCompleteTestCase")
 {
 }
 
@@ -477,7 +477,7 @@ NrRrcConnectionSetupCompleteTestCase::DoRun()
  *
  * @brief Rrc Connection Reconfiguration Complete Test Case
  */
-class NrRrcConnectionReconfigurationCompleteTestCase : public RrcHeaderTestCase
+class NrRrcConnectionReconfigurationCompleteTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionReconfigurationCompleteTestCase();
@@ -485,7 +485,7 @@ class NrRrcConnectionReconfigurationCompleteTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionReconfigurationCompleteTestCase::NrRrcConnectionReconfigurationCompleteTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionReconfigurationCompleteTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionReconfigurationCompleteTestCase")
 {
 }
 
@@ -531,7 +531,7 @@ NrRrcConnectionReconfigurationCompleteTestCase::DoRun()
  *
  * @brief Rrc Connection Reconfiguration Test Case
  */
-class NrRrcConnectionReconfigurationTestCase : public RrcHeaderTestCase
+class NrRrcConnectionReconfigurationTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionReconfigurationTestCase();
@@ -539,7 +539,7 @@ class NrRrcConnectionReconfigurationTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionReconfigurationTestCase::NrRrcConnectionReconfigurationTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionReconfigurationTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionReconfigurationTestCase")
 {
 }
 
@@ -769,7 +769,7 @@ NrRrcConnectionReconfigurationTestCase::DoRun()
  *
  * @brief Handover Preparation Info Test Case
  */
-class NrHandoverPreparationInfoTestCase : public RrcHeaderTestCase
+class NrHandoverPreparationInfoTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrHandoverPreparationInfoTestCase();
@@ -777,7 +777,7 @@ class NrHandoverPreparationInfoTestCase : public RrcHeaderTestCase
 };
 
 NrHandoverPreparationInfoTestCase::NrHandoverPreparationInfoTestCase()
-    : RrcHeaderTestCase("Testing NrHandoverPreparationInfoTestCase")
+    : NrRrcHeaderTestCase("Testing NrHandoverPreparationInfoTestCase")
 {
 }
 
@@ -882,7 +882,7 @@ NrHandoverPreparationInfoTestCase::DoRun()
  *
  * @brief Rrc Connection Reestablishment Request Test Case
  */
-class NrRrcConnectionReestablishmentRequestTestCase : public RrcHeaderTestCase
+class NrRrcConnectionReestablishmentRequestTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionReestablishmentRequestTestCase();
@@ -890,7 +890,7 @@ class NrRrcConnectionReestablishmentRequestTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionReestablishmentRequestTestCase::NrRrcConnectionReestablishmentRequestTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionReestablishmentRequestTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionReestablishmentRequestTestCase")
 {
 }
 
@@ -942,7 +942,7 @@ NrRrcConnectionReestablishmentRequestTestCase::DoRun()
  *
  * @brief Rrc Connection Reestablishment Test Case
  */
-class NrRrcConnectionReestablishmentTestCase : public RrcHeaderTestCase
+class NrRrcConnectionReestablishmentTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionReestablishmentTestCase();
@@ -950,7 +950,7 @@ class NrRrcConnectionReestablishmentTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionReestablishmentTestCase::NrRrcConnectionReestablishmentTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionReestablishmentTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionReestablishmentTestCase")
 {
 }
 
@@ -998,7 +998,7 @@ NrRrcConnectionReestablishmentTestCase::DoRun()
  *
  * @brief Rrc Connection Reestablishment Complete Test Case
  */
-class NrRrcConnectionReestablishmentCompleteTestCase : public RrcHeaderTestCase
+class NrRrcConnectionReestablishmentCompleteTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionReestablishmentCompleteTestCase();
@@ -1006,7 +1006,7 @@ class NrRrcConnectionReestablishmentCompleteTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionReestablishmentCompleteTestCase::NrRrcConnectionReestablishmentCompleteTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionReestablishmentCompleteTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionReestablishmentCompleteTestCase")
 {
 }
 
@@ -1052,7 +1052,7 @@ NrRrcConnectionReestablishmentCompleteTestCase::DoRun()
  *
  * @brief Rrc Connection Reject Test Case
  */
-class NrRrcConnectionRejectTestCase : public RrcHeaderTestCase
+class NrRrcConnectionRejectTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrRrcConnectionRejectTestCase();
@@ -1060,7 +1060,7 @@ class NrRrcConnectionRejectTestCase : public RrcHeaderTestCase
 };
 
 NrRrcConnectionRejectTestCase::NrRrcConnectionRejectTestCase()
-    : RrcHeaderTestCase("Testing NrRrcConnectionRejectTestCase")
+    : NrRrcHeaderTestCase("Testing NrRrcConnectionRejectTestCase")
 {
 }
 
@@ -1105,7 +1105,7 @@ NrRrcConnectionRejectTestCase::DoRun()
  *
  * @brief Measurement Report Test Case
  */
-class NrMeasurementReportTestCase : public RrcHeaderTestCase
+class NrMeasurementReportTestCase : public NrRrcHeaderTestCase
 {
   public:
     NrMeasurementReportTestCase();
@@ -1113,7 +1113,7 @@ class NrMeasurementReportTestCase : public RrcHeaderTestCase
 };
 
 NrMeasurementReportTestCase::NrMeasurementReportTestCase()
-    : RrcHeaderTestCase("Testing NrMeasurementReportTestCase")
+    : NrRrcHeaderTestCase("Testing NrMeasurementReportTestCase")
 {
 }
 

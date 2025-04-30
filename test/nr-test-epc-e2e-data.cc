@@ -41,8 +41,8 @@ NS_LOG_COMPONENT_DEFINE("NrEpcE2eData");
  * @ingroup nr-test
  */
 
-/// BearerTestData structure
-struct BearerTestData
+/// NrBearerTestData structure
+struct NrBearerTestData
 {
     /**
      * Constructor
@@ -51,7 +51,7 @@ struct BearerTestData
      * @param s the packet size
      * @param i the inter packet interval in seconds
      */
-    BearerTestData(uint32_t n, uint32_t s, double i);
+    NrBearerTestData(uint32_t n, uint32_t s, double i);
 
     uint32_t numPkts;         ///< the number of packets
     uint32_t pktSize;         ///< the packet size
@@ -64,7 +64,7 @@ struct BearerTestData
     Ptr<Application> ulClientApp; ///< the UL client app
 };
 
-BearerTestData::BearerTestData(uint32_t n, uint32_t s, double i)
+NrBearerTestData::NrBearerTestData(uint32_t n, uint32_t s, double i)
     : numPkts(n),
       pktSize(s),
       interPacketInterval(Seconds(i))
@@ -74,7 +74,7 @@ BearerTestData::BearerTestData(uint32_t n, uint32_t s, double i)
 /// UeTestData structure
 struct UeTestData
 {
-    std::vector<BearerTestData> bearers; ///< the bearer test data
+    std::vector<NrBearerTestData> bearers; ///< the bearer test data
 };
 
 /// GnbTestData structure
@@ -231,7 +231,7 @@ NrEpcE2eDataTestCase::DoRun()
             uint16_t dlPort = 2000;
             for (uint32_t b = 0; b < gnbit->ues.at(u).bearers.size(); ++b)
             {
-                BearerTestData& bearerTestData = gnbit->ues.at(u).bearers.at(b);
+                NrBearerTestData& bearerTestData = gnbit->ues.at(u).bearers.at(b);
 
                 { // Downlink
                     ++dlPort;
@@ -380,7 +380,7 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
     std::vector<GnbTestData> v1;
     GnbTestData e1;
     UeTestData u1;
-    BearerTestData f1(1, 100, 0.01);
+    NrBearerTestData f1(1, 100, 0.01);
     u1.bearers.push_back(f1);
     e1.ues.push_back(u1);
     v1.push_back(e1);
@@ -389,11 +389,11 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
     std::vector<GnbTestData> v2;
     GnbTestData e2;
     UeTestData u2_1;
-    BearerTestData f2_1(1, 100, 0.01);
+    NrBearerTestData f2_1(1, 100, 0.01);
     u2_1.bearers.push_back(f2_1);
     e2.ues.push_back(u2_1);
     UeTestData u2_2;
-    BearerTestData f2_2(2, 200, 0.01);
+    NrBearerTestData f2_2(2, 200, 0.01);
     u2_2.bearers.push_back(f2_2);
     e2.ues.push_back(u2_2);
     v2.push_back(e2);
@@ -406,15 +406,15 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
 
     GnbTestData e4;
     UeTestData u4_1;
-    BearerTestData f4_1(3, 50, 0.01);
+    NrBearerTestData f4_1(3, 50, 0.01);
     u4_1.bearers.push_back(f4_1);
     e4.ues.push_back(u4_1);
     UeTestData u4_2;
-    BearerTestData f4_2(5, 1400, 0.01);
+    NrBearerTestData f4_2(5, 1400, 0.01);
     u4_2.bearers.push_back(f4_2);
     e4.ues.push_back(u4_2);
     UeTestData u4_3;
-    BearerTestData f4_3(1, 12, 0.01);
+    NrBearerTestData f4_3(1, 12, 0.01);
     u4_3.bearers.push_back(f4_3);
     e4.ues.push_back(u4_3);
     std::vector<GnbTestData> v4;
@@ -425,7 +425,7 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
 
     GnbTestData e5;
     UeTestData u5;
-    BearerTestData f5(5, 1000, 0.01);
+    NrBearerTestData f5(5, 1000, 0.01);
     u5.bearers.push_back(f5);
     e5.ues.push_back(u5);
     std::vector<GnbTestData> v5;
@@ -435,7 +435,7 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
 
     GnbTestData e6;
     UeTestData u6;
-    BearerTestData f6(5, 1400, 0.01);
+    NrBearerTestData f6(5, 1400, 0.01);
     u6.bearers.push_back(f6);
     e6.ues.push_back(u6);
     std::vector<GnbTestData> v6;
@@ -445,9 +445,9 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
 
     GnbTestData e7;
     UeTestData u7;
-    BearerTestData f7_1(1, 1400, 0.01);
+    NrBearerTestData f7_1(1, 1400, 0.01);
     u7.bearers.push_back(f7_1);
-    BearerTestData f7_2(1, 100, 0.01);
+    NrBearerTestData f7_2(1, 100, 0.01);
     u7.bearers.push_back(f7_2);
     e7.ues.push_back(u7);
     std::vector<GnbTestData> v7;
@@ -457,7 +457,7 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
 
     GnbTestData e8;
     UeTestData u8;
-    BearerTestData f8(50, 8000, 0.02); // watch out for ns3::NrRlcUm::MaxTxBufferSize
+    NrBearerTestData f8(50, 8000, 0.02); // watch out for ns3::NrRlcUm::MaxTxBufferSize
     u8.bearers.push_back(f8);
     e8.ues.push_back(u8);
     std::vector<GnbTestData> v8;
@@ -467,7 +467,7 @@ NrEpcE2eDataTestSuite::NrEpcE2eDataTestSuite()
 
     GnbTestData e9;
     UeTestData u9;
-    BearerTestData f9(1000, 20, 0.0001);
+    NrBearerTestData f9(1000, 20, 0.0001);
     u9.bearers.push_back(f9);
     e9.ues.push_back(u9);
     std::vector<GnbTestData> v9;
