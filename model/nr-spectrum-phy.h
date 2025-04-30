@@ -455,7 +455,7 @@ class NrSpectrumPhy : public SpectrumPhy
      * @brief Set the active antenna panel to this NrSpectrumPhy,
      * @param panelIndex Index of active panel of this NrSpectrumPhy
      */
-    void SetActivePanel(const u_int8_t panelIndex);
+    void SetActivePanel(const uint8_t panelIndex);
     /**
      * @brief Returns spectrum channel object to which is attached this spectrum phy instance
      */

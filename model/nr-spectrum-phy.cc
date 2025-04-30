@@ -472,7 +472,7 @@ NrSpectrumPhy::ConfigPanelsBearingAngles(double firstPanelBearingAngleRad)
 
 double
 NrSpectrumPhy::CircularBearingAnglesForPanels(double firstPanelBearingAngleRad,
-                                              u_int8_t panelIndex) const
+                                              uint8_t panelIndex) const
 {
     // to cover 360 based on number of ue antenna panels
     return firstPanelBearingAngleRad + 2 * M_PI * (panelIndex) / m_numPanels;
@@ -1143,7 +1143,7 @@ NrSpectrumPhy::AddPanel(const Ptr<Object> antenna)
 }
 
 void
-NrSpectrumPhy::SetActivePanel(const u_int8_t panelIndex)
+NrSpectrumPhy::SetActivePanel(const uint8_t panelIndex)
 {
     m_activePanelIndex = panelIndex;
 }

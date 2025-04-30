@@ -700,7 +700,7 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
     Ptr<SpectrumSignalParameters> fakeParams = Create<SpectrumSignalParameters>();
 
     double maxPower = 0;
-    u_int8_t activePanelIndex = 0;
+    uint8_t activePanelIndex = 0;
     BeamformingVector gnbBfv;
     BeamformingVector ueBfv;
     // configure gNB and ue beamforming vectors to be Kronecer
