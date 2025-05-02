@@ -528,6 +528,9 @@ if(NOT
       "Search-free PMI selection requires pyttb and pybind11, and only works on Unix"
   )
 else()
+  set(PYBIND11_FINDPYTHON
+      ON
+  )
   find_package(
     pybind11
     REQUIRED
