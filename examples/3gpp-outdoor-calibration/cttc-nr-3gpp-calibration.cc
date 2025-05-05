@@ -178,10 +178,8 @@ Parameters::Validate() const
                     "Realistic BF should not be enabled in when fading is disabled");
     // NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
     //                  "Shadowing must be disabled fading is disabled mode");
-    NS_ABORT_MSG_IF(
-        bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam" &&
-            bfMethod != "CellScanAzimuth",
-        "For bfMethod you can choose among Omni, CellScan, CellScanAzimuth and FixedBeam");
+    NS_ABORT_MSG_IF(bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam",
+                    "For bfMethod you can choose among Omni, CellScan, and FixedBeam");
     NS_ABORT_MSG_IF(confType != "customConf" && confType != "calibrationConf",
                     "Unrecognized Configuration type: " << confType);
 

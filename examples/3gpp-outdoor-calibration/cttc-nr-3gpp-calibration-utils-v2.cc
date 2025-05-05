@@ -662,11 +662,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                     beamformingHelper->SetAttribute("BeamformingPeriodicity",
                                                     TimeValue(MilliSeconds(10)));
                 }
-                else if (bfMethod == "CellScanAzimuth")
-                {
-                    beamformingHelper->SetBeamformingMethod(
-                        CellScanBeamformingAzimuthZenith::GetTypeId());
-                }
                 else
                 {
                     NS_ABORT_MSG("We shouldn't be here. bfMethod is: " << bfMethod);

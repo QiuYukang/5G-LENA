@@ -99,8 +99,7 @@ main(int argc, char* argv[])
                  params.enableFading);
     cmd.AddValue("enableShadowing", "If true, it enables Shadowing", params.enableShadowing);
     cmd.AddValue("bfMethod",
-                 "The BF method string. Can be a) Omni, b) CellScan c) fixedBeam"
-                 "d) CellScanAzimuth."
+                 "The BF method string. Can be a) Omni, b) CellScan c) fixedBeam."
                  "Notice that if Shadowing and Fading are disabled, fixedBeam will"
                  "be used. Default value is CellScan",
                  params.bfMethod);

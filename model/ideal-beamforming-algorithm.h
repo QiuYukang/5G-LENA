@@ -98,45 +98,6 @@ class CellScanBeamforming : public IdealBeamformingAlgorithm
 
 /**
  * @ingroup gnb-phy
- * @brief The CellScanBeamformingAzimuthZenith class
- */
-class CellScanBeamformingAzimuthZenith : public IdealBeamformingAlgorithm
-{
-  public:
-    /**
-     * @brief Get the type id
-     * @return the type id of the class
-     */
-    static TypeId GetTypeId();
-
-    /**
-     * @brief constructor
-     */
-    CellScanBeamformingAzimuthZenith() = default;
-
-    /**
-     * @brief destructor
-     */
-    ~CellScanBeamformingAzimuthZenith() override = default;
-
-    /**
-     * @brief Function that generates the beamforming vectors for a pair of
-     * communicating devices by using cell scan method
-     * @param [in] gnbSpectrumPhy the spectrum phy of the gNB
-     * @param [in] ueSpectrumPhy the spectrum phy of the UE
-     * @return the beamforming vector pair of the gNB and the UE
-     */
-    BeamformingVectorPair GetBeamformingVectors(
-        const Ptr<NrSpectrumPhy>& gnbSpectrumPhy,
-        const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
-
-  private:
-    std::vector<double> m_azimuth{-56.25, -33.75, -11.25, 11.25, 33.75, 56.25};
-    std::vector<double> m_zenith{112.5, 157.5};
-};
-
-/**
- * @ingroup gnb-phy
  * @brief The CellScanQuasiOmniBeamforming class
  */
 class CellScanQuasiOmniBeamforming : public IdealBeamformingAlgorithm

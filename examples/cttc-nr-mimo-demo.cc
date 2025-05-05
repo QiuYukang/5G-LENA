@@ -310,7 +310,6 @@ main(int argc, char* argv[])
                  scheduler);
     cmd.AddValue("beamformingMethod",
                  "The beamforming method: ns3::CellScanBeamforming,"
-                 "ns3::CellScanBeamformingAzimuthZenith,"
                  "ns3::CellScanQuasiOmniBeamforming,"
                  "ns3::DirectPathBeamforming,"
                  "ns3::QuasiOmniDirectPathBeamforming,"
