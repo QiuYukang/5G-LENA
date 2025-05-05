@@ -1035,10 +1035,19 @@ NrHelper::AttachToMaxRsrpGnb(const NetDeviceContainer& ueDevices,
                              const NetDeviceContainer& enbDevices)
 {
     NS_LOG_FUNCTION(this);
-
+    NS_ASSERT_MSG(enbDevices.GetN() > 0, "gNB container should not be empty");
     for (auto i = ueDevices.Begin(); i != ueDevices.End(); i++)
     {
-        AttachToMaxRsrpGnb(*i, enbDevices);
+        // Since UE may not be attached to any gNB, it won't be properly configured via MIB
+        // so we configure its numerology manually here. All gNBs numerology must match.
+        {
+            auto ueNetDevCast = DynamicCast<NrUeNetDevice>(*i);
+            auto gnbNetDevCast = DynamicCast<NrGnbNetDevice>(enbDevices.Get(0));
+            ueNetDevCast->GetPhy(0)->SetNumerology(gnbNetDevCast->GetPhy(0)->GetNumerology());
+        }
+
+        // attach the UE to the highest RSRP gNB (this will change with active panel)
+        Simulator::ScheduleNow([=, this]() { AttachToMaxRsrpGnb(*i, enbDevices); });
     }
 }
 

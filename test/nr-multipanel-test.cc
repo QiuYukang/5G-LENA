@@ -26,23 +26,26 @@ NS_LOG_COMPONENT_DEFINE("NrMultipanelTest");
 class NrMultipanelTestCase : public TestCase
 {
   public:
-    NrMultipanelTestCase(uint8_t panel, uint8_t uePorts);
+    NrMultipanelTestCase(uint8_t panel, uint8_t uePorts, uint8_t numerology);
     ~NrMultipanelTestCase() override;
 
   private:
     void DoRun() override;
     uint8_t m_panel = 0;
     uint8_t m_uePorts = 0;
+    uint8_t m_numerology = 0;
 };
 
 /**
  * TestCase
  */
-NrMultipanelTestCase::NrMultipanelTestCase(uint8_t panel, uint8_t uePorts)
+NrMultipanelTestCase::NrMultipanelTestCase(uint8_t panel, uint8_t uePorts, uint8_t numerology)
     : TestCase("Test if 4-panel UE, with " + std::to_string(uePorts) +
-               " ports each, correctly attaches with panel " + std::to_string(panel)),
+               " ports each, correctly attaches with panel " + std::to_string(panel) +
+               " with numerology " + std::to_string(numerology)),
       m_panel(panel),
-      m_uePorts(uePorts)
+      m_uePorts(uePorts),
+      m_numerology(numerology)
 {
 }
 
@@ -73,9 +76,8 @@ NrMultipanelTestCase::DoRun()
     apGnb.bearingAngle = 0.0 * (M_PI / 180);
     apGnb.polSlantAngle = 0.0 * (M_PI / 180);
 
-    uint16_t numerology = 0;
     double centralFrequency = 3.5e9;
-    double bandwidth = 10e6;
+    double bandwidth = 20e6;
     double txPowerGnb = 23; // dBm
     double txPowerUe = 23;  // dBm
 
@@ -149,7 +151,7 @@ NrMultipanelTestCase::DoRun()
 
     nrHelper->SetupGnbAntennas(apGnb);
     nrHelper->SetupUeAntennas(apUe);
-    nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(numerology));
+    nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(m_numerology));
     nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(txPowerGnb));
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPowerUe));
 
@@ -189,12 +191,14 @@ NrMultipanelTestCase::DoRun()
     internet.Install(ueContainer);
     nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDev));
 
-    // attach the UE to the highest RSRP gNB (this will change with active panel)
-    Simulator::ScheduleNow([&nrHelper, &ueNetDev, &gnbNetDev]() {
-        nrHelper->AttachToMaxRsrpGnb(ueNetDev, gnbNetDev);
-    });
+    // Perform initial attachment
+    nrHelper->AttachToMaxRsrpGnb(ueNetDev, gnbNetDev);
 
     Simulator::Stop(Seconds(1));
+    std::cout << "Test if 4-panel UE, with " + std::to_string(m_uePorts) +
+                     " ports each, correctly attaches with panel " + std::to_string(m_panel) +
+                     " with numerology " + std::to_string(m_numerology)
+              << std::endl;
     Simulator::Run();
 
     // Check UE was actually attached the gNB we wanted and using the correct panel
@@ -225,11 +229,15 @@ class NrMultipanelTestSuite : public TestSuite
 NrMultipanelTestSuite::NrMultipanelTestSuite()
     : TestSuite("nr-multipanel-test", Type::SYSTEM)
 {
-    for (int ports : {1, 2, 4})
+    for (int numerology : {0, 1, 2})
     {
-        for (int cellToPanel = 0; cellToPanel < 4; cellToPanel++)
+        for (int ports : {1, 2, 4})
         {
-            AddTestCase(new NrMultipanelTestCase(cellToPanel, ports), Duration::QUICK);
+            for (int cellToPanel = 0; cellToPanel < 4; cellToPanel++)
+            {
+                AddTestCase(new NrMultipanelTestCase(cellToPanel, ports, numerology),
+                            numerology == 1 ? Duration::QUICK : Duration::EXTENSIVE);
+            }
         }
     }
 }
