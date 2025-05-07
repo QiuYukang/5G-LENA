@@ -437,7 +437,7 @@ class TestRiPmiSystem : public TestSuite
 {
   public:
     TestRiPmiSystem()
-        : TestSuite("nr-test-ri-pmi-system", Type::SYSTEM)
+        : TestSuite("nr-test-ri-pmi", Type::SYSTEM)
     {
         // Fully saturated channel with 200Mbps traffic
         // Parameters (gNB-UE distance, RI selection technique, RI threshold, PMI selection
