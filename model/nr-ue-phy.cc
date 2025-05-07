@@ -1477,7 +1477,7 @@ NrUePhy::ReportUeMeasurements()
 {
     NS_LOG_FUNCTION(this);
 
-    NrUeCphySapUser::UeMeasurementsParameters ret;
+    NrUeCphySapUser::UeMeasurementsParameters ret{};
 
     std::map<uint16_t, UeMeasurementsElement>::iterator it;
     for (it = m_ueMeasurementsMap.begin(); it != m_ueMeasurementsMap.end(); it++)
