@@ -297,10 +297,10 @@ NrCsiTestCase::CsiFeedbackReceived(uint16_t cellId,
                                               "difference between high band and low band");
                         break;
                     case InterferenceType::WIDEBAND_INTERFERENCE:
-                        NS_TEST_ASSERT_MSG_EQ((newCsi.rank < oldCsi.rank) ||
-                                                  (newCsi.rank == oldCsi.rank &&
-                                                   (newCsi.lowbandCqi < oldCsi.lowbandCqi &&
-                                                    newCsi.highbandCqi < oldCsi.highbandCqi)),
+                        NS_TEST_ASSERT_MSG_EQ(((newCsi.rank < oldCsi.rank) ||
+                                               (newCsi.rank == oldCsi.rank &&
+                                                (newCsi.lowbandCqi < oldCsi.lowbandCqi &&
+                                                 newCsi.highbandCqi < oldCsi.highbandCqi))),
                                               true,
                                               "Wideband interferer is not causing the same "
                                               "interference on high and low bands");
