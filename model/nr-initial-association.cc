@@ -278,6 +278,8 @@ double
 NrInitialAssociation::ComputeRxPsd(Ptr<const SpectrumSignalParameters> spectrumSigParam) const
 {
     auto& spectrumChannelMatrix = spectrumSigParam->spectrumChannelMatrix;
+    NS_ASSERT_MSG(spectrumChannelMatrix->GetNumPages() >= m_numBandsSsb,
+                  "The primary carrier bandwidth should have at least 20 PRBs to fit SSBs");
     auto numUePorts = spectrumChannelMatrix->GetNumRows();
     double totalPsd = 0;
     for (size_t iRb = m_startSsb; iRb < m_startSsb + m_numBandsSsb; iRb++)
@@ -301,6 +303,9 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
     auto& antennas = lsps.antennaArrays;
     uint8_t activePanelIndex = GetUeActivePanel();
     antennas.gnbArrayModel = ExtractGnbParameters(gnbDevice, lsps);
+
+    NS_ASSERT_MSG(chParams.spectralModel->GetNumBands() >= m_numBandsSsb,
+                  "The primary carrier bandwidth should have at least 20 PRBs to fit SSBs");
     std::vector<int> activeRbs;
     for (size_t rbId = m_startSsb; rbId < m_numBandsSsb + m_startSsb; rbId++)
     {
