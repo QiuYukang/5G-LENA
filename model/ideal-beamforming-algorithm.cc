@@ -158,8 +158,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                             gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                             ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
 
-                    size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
-                    double power = Sum(*(rxParams->psd)) / nbands;
+                    double power = Sum(*(rxParams->psd));
 
                     NS_LOG_LOGIC(
                         " Rx power: "
@@ -314,8 +313,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
                     gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                     ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
 
-            size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
-            double power = Sum(*(rxParams->psd)) / nbands;
+            double power = Sum(*(rxParams->psd));
 
             NS_LOG_LOGIC(" Rx power: "
                          << power << "txTheta " << txTheta << " tx sector "
@@ -599,8 +597,7 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
                             gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
                             ueSpectrumPhy->GetPanelByIndex(b)->GetObject<UniformPlanarArray>());
 
-                        size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
-                        double power = Sum(*(rxParams->psd)) / nbands;
+                        double power = Sum(*(rxParams->psd));
                         if (power > maxPower)
                         {
                             maxPower = power;
@@ -709,8 +706,7 @@ KroneckerQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& g
                 gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
                 ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>());
 
-            size_t nbands = rxParams->psd->GetSpectrumModel()->GetNumBands();
-            double power = Sum(*(rxParams->psd)) / nbands;
+            double power = Sum(*(rxParams->psd));
             if (power > maxPower)
             {
                 maxPower = power;
