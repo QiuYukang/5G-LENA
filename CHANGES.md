@@ -54,42 +54,90 @@ us a note on ns-developers mailing list.
 
 ### New API:
 
-- We introduced multi panel antenna in `SpectrumPhy`.
-- We introduced a new attachment algorithm `AttachToMaxRsrpGnb`.
+- Introduced multi-panel antenna support in SpectrumPhy.
 
-- We introduced a new beamforming algorithms, `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming`.
+- Added a new attachment algorithm `NrInitialAssociation` based on maximum RSRP instead of distance.
+  It can be automatically setup via the new function `NrHelper::AttachToMaxRsrpGnb()`.
 
-- We introduced a new helper class, `NrChannelHelper`, simplifying the implementation, configuration, and assignment of different spectrum channels with various channel models to create bands. This class extends our module to support NYUSIM, Fluctuating Two-Ray, and 3GPP channel models.
+- Introduced new beamforming algorithms: `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming`.
 
-- Channel state information (CSI) can now be obtained by leveraging periodic CSI-RS signalling and CSI-IM measurements.
-New `NrSpectrumSignalParametersCsiRs` type of NR signals is introduced to represent CSI-RS signals. The type of CSI feedback
-can be configured through `NrHelper::CsiFeedbackFlags` attribute.
+- Added a new helper class, `NrChannelHelper`, to simplify the implementation, configuration, and assignment of spectrum channels with various channel models for band creation. This extends the module to support NYUSIM, Fluctuating Two-Ray (FTR), and 3GPP channel models.
 
-- New spectrum filter called `NrCsiRsFilter` is introduced to minimize the computational complexity of CSI-RS signalling, by filtering it for the receiving `SpectrumPhy` instances that should not receive such signals.
+- Introduced a new reinforcement learning–based scheduler in both TDMA and OFDMA variants: `NrMacSchedulerTdmaAi` and `NrMacSchedulerOfdmaAi`. These require additional fields to hold the observation state, provided by the new `NrMacSchedulerUeInfoAi` class. The schedulers communicate with the ns3-gym Python model via `NrMacSchedulerAiNs3GymEnv`.
 
-- We introduced a new `NrMacSchedulerUeInfo::GetDlMcs()` function that returns either the wideband MCS, or an MCS estimate based on the sub-band CQI of allocated RBGs.
+- Channel state information (CSI) can now be obtained using periodic CSI-RS signaling and CSI-IM measurements. A new signal type, `NrSpectrumSignalParametersCsiRs`, was introduced to represent CSI-RS signals. The type of CSI feedback can be configured using the `NrHelper::CsiFeedbackFlags` attribute.
 
-- We introduced new functions to `NrMacSchedulerOfdma` in order to simplify resource allocation, including: `AttemptAllocationOfCurrentResourceToUe()`, `AllocateCurrentResourceToUe()`, `DeallocateCurrentResourceFromUe()`, `ShouldScheduleUeBasedOnFronthaul()` and  `DeallocateResourcesDueToFronthaulConstraint()`.
+- Introduced a new spectrum filter, `NrCsiRsFilter`, to reduce the computational complexity of CSI-RS signaling by filtering signals for `SpectrumPhy` instances that should not receive them.
 
-- We introduced new symbols per beam scheduling options. These can be set using attribute ``NrMacSchedulerOfdma::SymPerBeamType`` to ``LOAD_BASED`` (current behavior and default value), ``ROUND_ROBIN`` and ``PROPORTIONAL_FAIR``.
+- Added a new function, `NrMacSchedulerUeInfo::GetDlMcs()`, which returns either the wideband MCS or an MCS estimate based on the sub-band CQI of allocated RBGs.
 
-### Changes to existing API:
+- Added several new functions to `NrMacSchedulerOfdma` to simplify resource allocation: `AttemptAllocationOfCurrentResourceToUe()`, `AllocateCurrentResourceToUe()`, `DeallocateCurrentResourceFromUe()`, `ShouldScheduleUeBasedOnFronthaul()`, and `DeallocateResourcesDueToFronthaulConstraint()`.
 
-- The existing scenario configuration was removed from band creation. Additionally, band initialization and channel attribute setting methods were removed from `NrHelper`.
+- Introduced new symbols-per-beam scheduling options. These can be set using the attribute NrMacSchedulerOfdma::SymPerBeamType, with available values: LOAD_BASED (default), ROUND_ROBIN, and PROPORTIONAL_FAIR.
 
-- A new attribute, ``NrRlcUm::OutOfOrderDelivery`` was added to correspond to TS 36.322 Section 5.1.2.2.3 ``rlc-OutOfOrderDelivery`` variable; it defaults to true.
+- A new function, `IsMaxSrsReached()`, was added to `NrGnbRrc`, `NrGnbMac`, `NrMacScheduler`, and `NrMacSchedulerSrs`, allowing the RRC to use the flexible SRS timings implemented in 5G-LENA instead of requiring manual configuration via `NrGnbRrc::SrsPeriodicity`.
 
-- `NrMacSchedulerCQIManagement::DlWBCQIReported()` and `NrMacSchedulerCQIManagement::DlSBCQIReported()` functions were merged into `NrMacSchedulerCQIManagement::DlCqiReported()`.
+- Added two new functions, `NrEpcHelper::SetupRemoteHost` and `NrEpcHelper::SetupRemoteHost6`, to replace the previously copy-and-pasted code for setting up remote hosts in IPv4 and IPv6 networks, respectively.
 
-- `NrAmc` pointers previously passed via function parameters by schedulers to `NrMacSchedulerUeInfo` functions, are now set during UeInfo creation.
+- Added a new attribute, `NrPmSearch::EnforceSubbandSize`, which controls whether sub-band sizes follow 3GPP specifications, providing greater flexibility.
 
-- `NrUeInfo::GetDlRBG()`, `NrUeInfo::GetUlRBG()`, `NrUeInfo::GetDlSym()`, `NrUeInfo::GetUlSym()` now return vectors instead of numbers. This is done to reflect changes to sub-band aware schedulers.
+- Introduced the attribute `NrNetDevice::ReceiveErrorModel` to support packet-drop error models, along with a new trace source, `NrNetDevice::Drop`, for tracking dropped packets.
 
+- Added new functions to `NrUeRrc: SetPrimaryUlIndex()`, `GetPrimaryUlIndex()`, `SetPrimaryDlIndex()`, and `GetPrimaryDlIndex()`—allowing explicit selection of downlink and uplink primary carriers.
 
+- Added new classes to implement alternative symbols-per-beam scheduling policies:
+  - `NrMacSchedulerOfdmaSymbolPerBeamLB` (default, load-based),
+  - `NrMacSchedulerOfdmaSymbolPerBeamRR` (round-robin),
+  - `NrMacSchedulerOfdmaSymbolPerBeamPF` (proportional fair).
 
-### Changed behavior:
+### Changes to Existing API
+- Removed the scenario configuration from band creation. Band initialization and channel attribute setting methods were removed from NrHelper.
 
-- By default, RLC SDUs received out of order will be delivered without waiting for a reordering timer to expire.  The observed latency of applications such as voice should be lower as a result.
+- Added a new attribute, `NrRlcUm::OutOfOrderDelivery`, corresponding to the TS 36.322 Section 5.1.2.2.3 rlc-OutOfOrderDelivery variable (default: false).
+
+- Merged the `NrMacSchedulerCQIManagement::DlWBCQIReported()` and `DlSBCQIReported()` functions into a single function: `DlCqiReported()`.
+
+- NrAmc pointers previously passed via parameters to `NrMacSchedulerUeInfo` functions are now set during UeInfo creation.
+
+- Functions `NrUeInfo::GetDlRBG()`, `GetUlRBG()`, `GetDlSym()`, and `GetUlSym()` now return vectors instead of single values to support sub-band–aware schedulers.
+
+- Added a new field to `NrHelper::AntennaParams` to configure antenna downtilt angles.
+
+- Removed the class `CellScanBeamformingAzimuthZenith`. The corresponding method `BeamManager::SetSectorAz(double azimuth, double zenith)` was removed in favor of the refactored `CellScanBeamforming`.
+
+- Changed the type of the sector parameter in `BeamManager::SetSector()` from uint16_t to double to support oversampling.
+
+- Removed the attribute `NrGnbRrc::SrsPeriodicity` in favor of `NrMacSchedulerSrsDefault::StartingPeriodicity`.
+
+### Changed Behavior
+- `CellScanBeamforming` and `RealisticBeamformingAlgorithm` were refactored to scan all azimuth and elevation sectors based on the number of antenna elements and the oversampling factor.
+
+- Since release 3.0, UEs received unintended transmissions in NrSpectrumPhy to estimate the channel on unused PRBs. This workaround (`isIntendedRx = true`) has now been removed, as CSI-RS and CSI-IM are sufficient for full-bandwidth estimation. Using only `NrHelper::CsiFeedbackFlags = CQI_PDSCH_MIMO` now estimates the channel exclusively on allocated RBGs.
+
+- Since release 3.2, MSG3 could be incorrectly transmitted in DL and S slots.
+  This has been fixed, and MSG3 scheduling is now restricted to F and UL slots.
+
+- Since release 3.2, FDD setup was incorrectly mixing DL and UL carriers. This has been fixed. When using FDD:
+
+  - Ensure that two bandwidth parts are used.
+  - Explicitly set the uplink primary index.
+  - Set appropriate TDD patterns.
+
+```
+// 1x10MHz in TDD, 2x5MHz in FDD
+uint8_t bands = 1 + m_isFdd;
+auto bwAndBWPPair = m_nrHelper->CreateBandwidthParts({{2.8e9, 10e6 / bands, bands}}, "UMa");
+m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 0)
+          ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|UL|UL|UL|"));
+if (m_isFdd)
+{
+    Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
+    m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 0)
+              ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
+    m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 1)
+              ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
+}
+```
 
 ---
 

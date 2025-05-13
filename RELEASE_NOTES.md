@@ -20,25 +20,46 @@ Release NR-v4.0
 
 Availability
 ------------
+Available since May 15, 2025.
 
 Cite this version
 -----------------
+DOI: 10.5281/zenodo.15422217
 
 Supported platforms
 -------------------
 This release has been tested on the following platforms:
-- Arch Linux with g++-13 and clang-16.
-- Ubuntu 20.04 with g++10.
-- Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
-- Ubuntu 23.04 with g++13.
-- Ubuntu 23.10 (Mantic Minotaur) with clang-16.
+- x86_64
+  - Arch Linux with g++-15 and clang-19.
+  - Ubuntu 20.04 with g++10.
+  - Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+  - Ubuntu 23.04 with g++13.
+  - Ubuntu 24.10 (Oracular Oriole) with clang-19.
+- ARM
+  - Ubuntu 24.10 (Oracular Oriole) with clang-19.
+  - MacOS Sequoia 15.4.1 with AppleClang 17.
 
-This release will be compatible with ns-3.4x.
+This release will be compatible with ns-3.44.
 
 Important news
 --------------
-- A method has been implemented to ensure that legacy channel models can also be utilized. This is achieved by converting the receiver's PSD (Power Spectral Density) into a spectrum channel matrix used in the module's features.
-- Previously, CSI feedback was based only on PDSCH. Now, the module is extended to support period CSI-RS and CSI-IM based CSI-feedback. Additional combinations of these modes are available for testing purposes and can be configured through `NrHelper::CsiFeedbackFlags` attribute. Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
+- This release includes major features, such as support for:
+  - CSI-RS signals for channel estimation;
+  - CSI-IM for inter-cell interference measurements;
+  - multiple single-panel antenna arrays per UE;
+  - sub-band CSI feedback;
+  - sub-band aware scheduler;
+  - alternative symbols per beam scheduler;
+  - multiple RI/PMI selection alternatives;
+  - Kronecker beamforming;
+  - initial association based on maximum RSRP instead of shortest distance;
+  - reinforced-learning based scheduler contributed by Hyerin Kim during GSoC 2024;
+  - NYUSIM, FTR and legacy channel models and the new channel helper contributed by João Albuquerque during GSoC 2024.
+
+- This release also contain important fixes. See the bugs fixed section in this document and CHANGES.md for more details.
+
+- Previously, CSI feedback was based only on PDSCH, and there was a workaround to ensure the channel was estimated even in resources allocated to different users. That workaround has been removed. See CHANGES.md for more details.
+
 - It is no longer necessary to call NrHelper::UpdateDeviceConfigs(); please remove from any examples or tests.
 
 - Remember to follow the instructions from the README.md file, i.e., to checkout
@@ -49,14 +70,11 @@ Important news
 New user-visible features
 -------------------------
 
-- We introduced CSI-RS signals and CSI-IM interference measurements to complement PDSCH-based CQI feedback.
+- We introduced CSI-RS signals and CSI-IM interference measurements to complement PDSCH-based CQI feedback. These can be configured through the `NrHelper::CsiFeedbackFlags` attribute. Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
 - We introduced a new attachment algorithm `AttachToMaxRsrpGnb` which follows 3GPP configuration to attach UE to the gNB with highest RSRP within indicates handoff margin.
 - We introduced a new beamforming algorithms, `KroneckerBeamforming` and `KroneckerQuasiOmniBeamforming` which provides Kronecker based beamforming whereas in the `KroneckerBeamforming` both gNB and UE use Kronecker, and in the `KroneckerQuasiOmniBeamforming` gNB use Kronecker vector and UE used Omni direction to do Beamforming.
-- As part of the GSoC 2024 contribution from João Albuquerque, we introduced a new helper, `NrChannelHelper`, which provides a simple interface for configuring spectrum channels with various channel models, including NYUSIM, Fluctuating Two-Ray (FTR), and 3GPP. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels. The `gsoc-nr-channel-models.cc` example demonstrates how to configure different spectrum channels for end-to-end simulations. These channels can be 'legacy' (e.g., Friis) or not (e.g., NYUSIM, 3GPP, FTR). The `nr-channel-setup-test.cc` test checks if the NrChannelHelper API can correctly create a specified
-  channel, which will be created using well-defined combinations of scenarios, channel models, and channel conditions.
-- The ns-3 implementation of NYUSIM channel model is added as a feature of the NR module. The original files are installed in utils directory,
-  with some version updates. Acknowledgments to Hitesh Poddar (NYU WIRELESS) and Tomoki Yoshimura (Sharp Laboratories of America),
-  authors of the NYUSIM channel model code implementation in ns-3. (Original code: https://github.com/hiteshPoddar/NYUSIM_in_ns3/tree/main)
+- As part of the GSoC 2024 contribution from João Albuquerque, we introduced a new helper, `NrChannelHelper`, which provides a simple interface for configuring spectrum channels with various channel models, including NYUSIM, Fluctuating Two-Ray (FTR), and 3GPP. Previously, channel configuration was done along with band creation, where the user selected the scenario for use in the 3GPP model as an argument. In addition to extending the module to support NYUSIM and FTR channels, we have also created a helper class to assist with channel configuration `NrChannelHelper`. Users can now use this helper class to configure channels. The `gsoc-nr-channel-models.cc` example demonstrates how to configure different spectrum channels for end-to-end simulations. These channels can be 'legacy' (e.g., Friis) or not (e.g., NYUSIM, 3GPP, FTR), via an adaptation to transform the receiver's PSD (Power Spectral Density) into a channel matrix approximation. The `nr-channel-setup-test.cc` test checks if the NrChannelHelper API can correctly create a specified channel, which will be created using well-defined combinations of scenarios, channel models, and channel conditions.
+- The ns-3 implementation of NYUSIM channel model is added as a feature of the NR module. The original files are installed in utils directory, with some version updates. Acknowledgments to Hitesh Poddar (NYU WIRELESS) and Tomoki Yoshimura (Sharp Laboratories of America), authors of the NYUSIM channel model code implementation in ns-3. (Original code: https://github.com/hiteshPoddar/NYUSIM_in_ns3/tree/main)
 - As part of the GSoC 2024 contribution from Hyerin Kim, we introduced a new Reinforced-Learning based MAC schedulers, `NrMacSchedulerTdmaAi` and `NrMacSchedulerOfdmaAi`, using the `ns3-gym` module.
 - We introduced sub-band CQI reporting, in addition to additional Rank Indicators (RI)/Precoding Matrix Indicator (PMI) selection techniques, as alternatives to the `NrPmSearchFull`, such as `NrPmSearchIdeal`, `NrPmSearchFast`, `NrPmSearchSasaoka` and `NrPmSearchMaleki`.
 - We introduced sub-band awareness to the MAC schedulers, which can be controlled via the attribute `NrMacSchedulerNs3::McsCsiSource`.
@@ -66,10 +84,12 @@ New user-visible features
 
 Bugs fixed
 ----------
-- With CSI-RS+CSI-IM, users are not starved due to CQI 0 preventing RBG allocation when there was no data transmission and PDSCH-based CQI feedback was used.
-- UEs numerology is now properly set via MIB, in case UEs were not explicitly attached to gNBs via `NrHelper::AttachToGnb()`.
-- UEs getting stuck in the ACTIVE state after multiple BSR transmission losses has been fixed by adjusting the UEs' state machine transitions and using the BSR expiration timer. If the timer expires without receiving any grant in response to the BSR and HARQ is not active, an SR is retransmitted. If the timer expires while HARQ is active, the UE checks whether all HARQ retransmission attempts have been completed. If so, an SR is retransmitted; otherwise, it waits for HARQ to finish all retransmissions before sending an SR again (see issue #230).
-
+- (0305c3b1) With CSI-RS+CSI-IM, users are not starved due to CQI 0 preventing RBG allocation when there was no data transmission and PDSCH-based CQI feedback was used.
+- (2ae58438) UEs numerology is now properly set via MIB, in case UEs were not explicitly attached to gNBs via `NrHelper::AttachToGnb()`.
+- (9c479cec) UEs getting stuck in the ACTIVE state after multiple BSR transmission losses have been fixed by adjusting the UEs' state machine transitions and using the BSR expiration timer. If the timer expires without receiving any grant in response to the BSR and HARQ is not active, an SR is retransmitted. If the timer expires while HARQ is active, the UE checks whether all HARQ retransmission attempts have been completed. If so, an SR is retransmitted; otherwise, it waits for HARQ to finish all retransmissions before sending an SR again (see issue #230).
+- (61ab4eb4) MSG3 is now transmitted only on UL and F slots.
+- (9cf6c894) RRC setup for FDD has been fixed, but it requires proper configuration. See CHANGES.md for more details.
+- (4955e72c) RandomPRB-based downsampling could generate an illegal offset during sub-band downsampling.
 
 Known issues
 ------------

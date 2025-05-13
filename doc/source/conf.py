@@ -37,8 +37,8 @@ html_css_files = [
     "custom.css",
 ]
 project = "NR Module"
-copyright = "2024"
+copyright = "2025"
 author = "OpenSim CTTC/CERCA"
 
-version = "3.3"
-release = "3.3"
+version = "4.0"
+release = "4.0"
