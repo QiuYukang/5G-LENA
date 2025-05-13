@@ -342,6 +342,11 @@ NrInitialAssociation::ComputeMaxRsrp(const Ptr<NetDevice>& gnbDevice, LocalSearc
                     mobility.ueMobility,
                     antennas.gnbArrayModel,
                     antennas.ueArrayModel[k]);
+                if (!rxParam->spectrumChannelMatrix)
+                {
+                    // out-of-range (see DistanceBasedThreeGppSpectrumPropagationLossModel)
+                    continue;
+                }
                 auto eng = gnbTxPower * ComputeRxPsd(rxParam);
                 if (eng > lsps.maxPsdFound)
                 {
