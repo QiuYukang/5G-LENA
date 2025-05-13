@@ -137,6 +137,11 @@ class NrMacGeneralSchedSapProvider : public NrMacSchedSapProvider
         return m_scheduler->IsHarqReTxEnable();
     };
 
+    bool IsMaxSrsReached() const override
+    {
+        return m_scheduler->IsMaxSrsReached();
+    };
+
   private:
     NrMacScheduler* m_scheduler{nullptr};
 };

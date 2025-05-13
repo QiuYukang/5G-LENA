@@ -247,6 +247,7 @@ class NrMacScheduler : public Object
 
     virtual bool IsHarqReTxEnable() const = 0;
 
+    virtual bool IsMaxSrsReached() const = 0;
     /**
      * Assign a fixed random variable stream number to the random variables
      * used by this model.  Return the number of streams (possibly zero) that

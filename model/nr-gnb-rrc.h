@@ -1429,18 +1429,6 @@ class NrGnbRrc : public Object
     void AddX2Neighbour(uint16_t cellId);
 
     /**
-     *
-     * @param p the SRS periodicity in num TTIs
-     */
-    void SetSrsPeriodicity(uint32_t p);
-
-    /**
-     *
-     * @return the current SRS periodicity
-     */
-    uint32_t GetSrsPeriodicity() const;
-
-    /**
      * @brief Associate this RRC entity with a particular CSG information.
      * @param csgId the intended Closed Subscriber Group identity
      * @param csgIndication if TRUE, only CSG members are allowed to access the
@@ -1485,7 +1473,7 @@ class NrGnbRrc : public Object
     /**
      * @return true if all the SRS indices are assigned to UEs
      */
-    bool IsMaxSrsReached();
+    bool IsMaxSrsReached() const;
 
     /**
      *
@@ -1616,13 +1604,11 @@ class NrGnbRrc : public Object
      * system information.
      */
     Time m_systemInformationPeriodicity;
-    /**
-     * The `SrsPeriodicity` attribute. The SRS periodicity in milliseconds.
-     */
-    uint16_t m_srsCurrentPeriodicityId;              ///< SRS current periodicity ID
     std::set<uint16_t> m_ueSrsConfigurationIndexSet; ///< UE SRS configuration index set
-    uint16_t m_lastAllocatedConfigurationIndex;      ///< last allocated configuration index
-    bool m_reconfigureUes;                           ///< reconfigure UEs?
+    std::set<uint16_t>
+        m_unusedUeSrsConfigurationIndexSet;     ///< UE SRS unused configuration index set
+    uint16_t m_lastAllocatedConfigurationIndex; ///< last allocated configuration index
+    bool m_reconfigureUes;                      ///< reconfigure UEs?
 
     /**
      * The `QRxLevMin` attribute. One of information transmitted within the SIB1

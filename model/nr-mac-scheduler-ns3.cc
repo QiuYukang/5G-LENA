@@ -2690,4 +2690,10 @@ NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,
     return (symAvailBeforeRach - symAvail);
 }
 
+bool
+NrMacSchedulerNs3::IsMaxSrsReached() const
+{
+    return m_schedulerSrs->IsMaxSrsReached();
+}
+
 } // namespace ns3

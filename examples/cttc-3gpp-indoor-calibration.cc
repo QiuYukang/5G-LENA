@@ -595,7 +595,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
     // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(320));
 
     if (cellScan)
     {

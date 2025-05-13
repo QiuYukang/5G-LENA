@@ -182,4 +182,11 @@ NrMacSchedulerSrsDefault::ReassignSrsValue(
     }
 }
 
+bool
+NrMacSchedulerSrsDefault::IsMaxSrsReached() const
+{
+    // Cannot increase periodicity and no offset is available
+    return m_periodicity == StandardPeriodicity.back() && m_availableOffsetValues.empty();
+}
+
 } // namespace ns3

@@ -53,6 +53,7 @@ class NrGnbMacMemberGnbCmacSapProvider : public NrGnbCmacSapProvider
     void UeUpdateConfigurationReq(UeConfig params) override;
     RachConfig GetRachConfig() override;
     AllocateNcRaPreambleReturnValue AllocateNcRaPreamble(uint16_t rnti) override;
+    bool IsMaxSrsReached() const override;
 
   private:
     NrGnbMac* m_mac;
@@ -115,6 +116,12 @@ NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue
 NrGnbMacMemberGnbCmacSapProvider::AllocateNcRaPreamble(uint16_t rnti)
 {
     return m_mac->DoAllocateNcRaPreamble(rnti);
+}
+
+bool
+NrGnbMacMemberGnbCmacSapProvider::IsMaxSrsReached() const
+{
+    return m_mac->m_macSchedSapProvider->IsMaxSrsReached();
 }
 
 // SAP interface between gNB PHY AND MAC

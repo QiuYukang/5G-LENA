@@ -174,6 +174,8 @@ class NrMacSchedSapProvider
 
     virtual bool IsHarqReTxEnable() const = 0;
 
+    virtual bool IsMaxSrsReached() const = 0;
+
   private:
 };
 

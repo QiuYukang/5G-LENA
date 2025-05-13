@@ -1835,7 +1835,6 @@ NrGnbRrc::NrGnbRrc()
       m_cphySapProvider(0),
       m_configured(false),
       m_lastAllocatedRnti(0),
-      m_srsCurrentPeriodicityId(0),
       m_lastAllocatedConfigurationIndex(0),
       m_reconfigureUes(false),
       m_numberOfComponentCarriers(0),
@@ -1935,14 +1934,6 @@ NrGnbRrc::GetTypeId()
                           TimeValue(MilliSeconds(80)),
                           MakeTimeAccessor(&NrGnbRrc::m_systemInformationPeriodicity),
                           MakeTimeChecker())
-
-            // SRS related attributes
-            .AddAttribute(
-                "SrsPeriodicity",
-                "The SRS periodicity in milliseconds",
-                UintegerValue(40),
-                MakeUintegerAccessor(&NrGnbRrc::SetSrsPeriodicity, &NrGnbRrc::GetSrsPeriodicity),
-                MakeUintegerChecker<uint32_t>())
 
             // Timeout related attributes
             .AddAttribute("ConnectionRequestTimeoutDuration",
@@ -3257,112 +3248,34 @@ NrGnbRrc::SetCsgId(uint32_t csgId, bool csgIndication)
     }
 }
 
-/// Number of distinct SRS periodicity plus one.
-static const uint8_t SRS_ENTRIES = 9;
-/**
- * Sounding Reference Symbol (SRS) periodicity (TSRS) in milliseconds. Taken
- * from 3GPP TS 36.213 Table 8.2-1. Index starts from 1.
- */
-static const uint16_t g_srsPeriodicity[SRS_ENTRIES] = {0, 2, 5, 10, 20, 40, 80, 160, 320};
-/**
- * The lower bound (inclusive) of the SRS configuration indices (ISRS) which
- * use the corresponding SRS periodicity (TSRS). Taken from 3GPP TS 36.213
- * Table 8.2-1. Index starts from 1.
- */
-static const uint16_t g_srsCiLow[SRS_ENTRIES] = {0, 0, 2, 7, 17, 37, 77, 157, 317};
-/**
- * The upper bound (inclusive) of the SRS configuration indices (ISRS) which
- * use the corresponding SRS periodicity (TSRS). Taken from 3GPP TS 36.213
- * Table 8.2-1. Index starts from 1.
- */
-static const uint16_t g_srsCiHigh[SRS_ENTRIES] = {0, 1, 6, 16, 36, 76, 156, 316, 636};
-
-void
-NrGnbRrc::SetSrsPeriodicity(uint32_t p)
-{
-    NS_LOG_FUNCTION(this << p);
-    for (uint32_t id = 1; id < SRS_ENTRIES; ++id)
-    {
-        if (g_srsPeriodicity[id] == p)
-        {
-            m_srsCurrentPeriodicityId = id;
-            return;
-        }
-    }
-    // no match found
-    std::ostringstream allowedValues;
-    for (uint32_t id = 1; id < SRS_ENTRIES; ++id)
-    {
-        allowedValues << g_srsPeriodicity[id] << " ";
-    }
-    NS_FATAL_ERROR("illecit SRS periodicity value " << p
-                                                    << ". Allowed values: " << allowedValues.str());
-}
-
-uint32_t
-NrGnbRrc::GetSrsPeriodicity() const
-{
-    NS_LOG_FUNCTION(this);
-    NS_ASSERT(m_srsCurrentPeriodicityId > 0);
-    NS_ASSERT(m_srsCurrentPeriodicityId < SRS_ENTRIES);
-    return g_srsPeriodicity[m_srsCurrentPeriodicityId];
-}
-
 uint16_t
 NrGnbRrc::GetNewSrsConfigurationIndex()
 {
     NS_LOG_FUNCTION(this << m_ueSrsConfigurationIndexSet.size());
-    // SRS
-    NS_ASSERT(m_srsCurrentPeriodicityId > 0);
-    NS_ASSERT(m_srsCurrentPeriodicityId < SRS_ENTRIES);
-    NS_LOG_DEBUG(this << " SRS p " << g_srsPeriodicity[m_srsCurrentPeriodicityId] << " set "
-                      << m_ueSrsConfigurationIndexSet.size());
-    if (m_ueSrsConfigurationIndexSet.size() >= g_srsPeriodicity[m_srsCurrentPeriodicityId])
-    {
-        NS_FATAL_ERROR("too many UEs ("
-                       << m_ueSrsConfigurationIndexSet.size() + 1
-                       << ") for current SRS periodicity "
-                       << g_srsPeriodicity[m_srsCurrentPeriodicityId]
-                       << ", consider increasing the value of ns3::NrGnbRrc::SrsPeriodicity");
-    }
 
-    if (m_ueSrsConfigurationIndexSet.empty())
+    uint16_t configIndex = 0;
+    if (IsMaxSrsReached() && m_unusedUeSrsConfigurationIndexSet.empty())
     {
-        // first entry
-        m_lastAllocatedConfigurationIndex = g_srsCiLow[m_srsCurrentPeriodicityId];
-        m_ueSrsConfigurationIndexSet.insert(m_lastAllocatedConfigurationIndex);
+        // There are absolutely no more SRS offsets, and SRS periodicity cannot be further
+        // increased, so we need to interrupt
+        NS_ABORT_MSG("Out of SRS configuration indices");
+    }
+    else if (!IsMaxSrsReached() && m_unusedUeSrsConfigurationIndexSet.empty())
+    {
+        // We ran out of configuration indices, but we still can have more
+        // since we can have more SRS offsets available, so create a new one
+        configIndex = m_lastAllocatedConfigurationIndex++;
+        m_ueSrsConfigurationIndexSet.emplace(m_lastAllocatedConfigurationIndex);
     }
     else
     {
-        // find a CI from the available ones
-        auto rit = m_ueSrsConfigurationIndexSet.rbegin();
-        NS_ASSERT(rit != m_ueSrsConfigurationIndexSet.rend());
-        NS_LOG_DEBUG(this << " lower bound " << (*rit) << " of "
-                          << g_srsCiHigh[m_srsCurrentPeriodicityId]);
-        if ((*rit) < g_srsCiHigh[m_srsCurrentPeriodicityId])
-        {
-            // got it from the upper bound
-            m_lastAllocatedConfigurationIndex = (*rit) + 1;
-            m_ueSrsConfigurationIndexSet.insert(m_lastAllocatedConfigurationIndex);
-        }
-        else
-        {
-            // look for released ones
-            for (uint16_t srcCi = g_srsCiLow[m_srsCurrentPeriodicityId];
-                 srcCi < g_srsCiHigh[m_srsCurrentPeriodicityId];
-                 srcCi++)
-            {
-                auto it = m_ueSrsConfigurationIndexSet.find(srcCi);
-                if (it == m_ueSrsConfigurationIndexSet.end())
-                {
-                    m_lastAllocatedConfigurationIndex = srcCi;
-                    m_ueSrsConfigurationIndexSet.insert(srcCi);
-                    break;
-                }
-            }
-        }
+        // We have available configuration indices, so use them
+        auto it = m_unusedUeSrsConfigurationIndexSet.begin();
+        configIndex = *it;
+        m_unusedUeSrsConfigurationIndexSet.erase(it);
+        m_ueSrsConfigurationIndexSet.emplace(configIndex);
     }
-    return m_lastAllocatedConfigurationIndex;
+    return configIndex;
 }
 
 void
@@ -3372,17 +3285,14 @@ NrGnbRrc::RemoveSrsConfigurationIndex(uint16_t srcCi)
     auto it = m_ueSrsConfigurationIndexSet.find(srcCi);
     NS_ASSERT_MSG(it != m_ueSrsConfigurationIndexSet.end(),
                   "request to remove unknown SRS CI " << srcCi);
+    m_unusedUeSrsConfigurationIndexSet.emplace(*it);
     m_ueSrsConfigurationIndexSet.erase(it);
 }
 
 bool
-NrGnbRrc::IsMaxSrsReached()
+NrGnbRrc::IsMaxSrsReached() const
 {
-    NS_ASSERT(m_srsCurrentPeriodicityId > 0);
-    NS_ASSERT(m_srsCurrentPeriodicityId < SRS_ENTRIES);
-    NS_LOG_DEBUG(this << " SRS p " << g_srsPeriodicity[m_srsCurrentPeriodicityId] << " set "
-                      << m_ueSrsConfigurationIndexSet.size());
-    return m_ueSrsConfigurationIndexSet.size() >= g_srsPeriodicity[m_srsCurrentPeriodicityId];
+    return m_cmacSapProvider.at(0)->IsMaxSrsReached();
 }
 
 uint8_t

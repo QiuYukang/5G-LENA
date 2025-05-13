@@ -350,6 +350,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
         const NrMacSchedSapProvider::SchedDlRachInfoReqParameters& params) override;
     uint8_t GetDlCtrlSyms() const override;
     uint8_t GetUlCtrlSyms() const override;
+    bool IsMaxSrsReached() const override;
 
     /**
      * @brief Assign a fixed random variable stream number to the random variables

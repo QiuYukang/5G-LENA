@@ -112,6 +112,12 @@ class NrMacSchedulerSrs
      */
     virtual bool DecreasePeriodicity(
         std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) = 0;
+
+    /**
+     * @brief Check if all SRS periodicity is at the maximum allowed and all offsets have been used
+     * @return true if all SRS offsets have been used
+     */
+    virtual bool IsMaxSrsReached() const = 0;
 };
 } // namespace ns3
 

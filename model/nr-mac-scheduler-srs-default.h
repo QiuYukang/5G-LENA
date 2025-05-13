@@ -47,6 +47,7 @@ class NrMacSchedulerSrsDefault : public NrMacSchedulerSrs, public Object
         std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) override;
     bool DecreasePeriodicity(
         std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>* ueMap) override;
+    bool IsMaxSrsReached() const override;
 
     /**
      * @brief Set the Periodicity for all the UEs

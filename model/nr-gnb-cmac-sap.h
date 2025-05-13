@@ -149,6 +149,12 @@ class NrGnbCmacSapProvider
      * @return  the newly allocated random access preamble
      */
     virtual AllocateNcRaPreambleReturnValue AllocateNcRaPreamble(uint16_t rnti) = 0;
+
+    /**
+     * @brief Check if all SRS periodicity is at the maximum allowed and all offsets have been used
+     * @return true if all SRS offsets have been used
+     */
+    virtual bool IsMaxSrsReached() const = 0;
 };
 
 /**

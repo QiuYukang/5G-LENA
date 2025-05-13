@@ -273,23 +273,6 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
     NS_LOG_FUNCTION(this << GetName());
     Config::Reset();
 
-    if (m_nUes < 25)
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(40));
-    }
-    else if (m_nUes < 60)
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(80));
-    }
-    else if (m_nUes < 120)
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(160));
-    }
-    else
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(320));
-    }
-
     // normal code
     m_nrHelper = CreateObject<NrHelper>();
     m_nrHelper->SetAttribute("CsiFeedbackFlags", UintegerValue(CsiFeedbackFlag::CQI_PDSCH_SISO));
@@ -667,23 +650,6 @@ NrRrcConnectionEstablishmentErrorTestCase::DoRun()
 {
     NS_LOG_FUNCTION(this << GetName());
     Config::Reset();
-
-    if (m_nUes < 25)
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(40));
-    }
-    else if (m_nUes < 60)
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(80));
-    }
-    else if (m_nUes < 120)
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(160));
-    }
-    else
-    {
-        Config::SetDefault("ns3::NrGnbRrc::SrsPeriodicity", UintegerValue(320));
-    }
 
     // normal code
     m_nrHelper = CreateObject<NrHelper>();
