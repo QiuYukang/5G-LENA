@@ -106,6 +106,26 @@ class ThreeGppFtpM1Helper : public Object
      */
     int64_t AssignStreams(int64_t stream);
 
+    /**
+     * @brief Set the maximum number of files that can be transferred per UE.
+     *
+     * This method allows the user to specify the maximum number of files
+     * that can be transferred for each UE during the simulation.
+     *
+     * @param maxFiles The maximum number of files per UE.
+     */
+    void SetMaxFilesNumPerUe(uint16_t maxFiles);
+
+    /**
+     * @brief Get the maximum number of files that can be transferred per UE.
+     *
+     * This method returns the maximum number of files that can be transferred
+     * for each UE as configured by the user.
+     *
+     * @return The maximum number of files per UE.
+     */
+    uint16_t GetMaxFilesNumPerUe() const;
+
   private:
     /**
      * @brief Configures FTP servers
@@ -146,6 +166,8 @@ class ThreeGppFtpM1Helper : public Object
     NodeContainer* m_clientNodes;         //!< container of client nodes
     Ipv4InterfaceContainer* m_serversIps; //!< container of IPv4 server interfaces
     ApplicationContainer m_pingApps;      //!< container of ping apps
+    uint16_t m_maxFilesNumPerUe;          // the maximum number of files per UE
+    uint16_t m_currentFilesNumPerUe{1};   // the current number of files per UE
 };
 
 };     // namespace ns3

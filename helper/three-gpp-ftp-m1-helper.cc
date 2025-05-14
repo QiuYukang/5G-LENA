@@ -17,13 +17,13 @@ ThreeGppFtpM1Helper::ThreeGppFtpM1Helper(ApplicationContainer* serverApps,
                                          NodeContainer* serverNodes,
                                          NodeContainer* clientNodes,
                                          Ipv4InterfaceContainer* serversIps)
+    : m_serverApps(serverApps),
+      m_clientApps(clientApps),
+      m_serverNodes(serverNodes),
+      m_clientNodes(clientNodes),
+      m_serversIps(serversIps)
 {
     NS_LOG_FUNCTION(this);
-    m_serverApps = serverApps;
-    m_clientApps = clientApps;
-    m_serverNodes = serverNodes;
-    m_clientNodes = clientNodes;
-    m_serversIps = serversIps;
 }
 
 ThreeGppFtpM1Helper::ThreeGppFtpM1Helper()
@@ -39,10 +39,29 @@ ThreeGppFtpM1Helper::~ThreeGppFtpM1Helper()
 TypeId
 ThreeGppFtpM1Helper::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::ThreeGppFtpM1Helper")
-                            .SetParent<Object>()
-                            .AddConstructor<ThreeGppFtpM1Helper>();
+    static TypeId tid =
+        TypeId("ns3::ThreeGppFtpM1Helper")
+            .SetParent<Object>()
+            .AddConstructor<ThreeGppFtpM1Helper>()
+            .AddAttribute("MaxFilesNumPerUe",
+                          "Maximum number of files per UE.",
+                          UintegerValue(std::numeric_limits<uint16_t>::max()),
+                          MakeUintegerAccessor(&ThreeGppFtpM1Helper::SetMaxFilesNumPerUe,
+                                               &ThreeGppFtpM1Helper::GetMaxFilesNumPerUe),
+                          MakeUintegerChecker<uint16_t>(1, std::numeric_limits<uint16_t>::max()));
     return tid;
+}
+
+void
+ThreeGppFtpM1Helper::SetMaxFilesNumPerUe(uint16_t maxFiles)
+{
+    m_maxFilesNumPerUe = maxFiles;
+}
+
+uint16_t
+ThreeGppFtpM1Helper::GetMaxFilesNumPerUe() const
+{
+    return m_maxFilesNumPerUe;
 }
 
 void
@@ -68,7 +87,7 @@ ThreeGppFtpM1Helper::DoConfigureFtpClients()
 
     for (uint32_t i = 0; i < m_serversIps->GetN(); i++)
     {
-        Ipv4Address ipAddress = m_serversIps->GetAddress(i, 0);
+        auto ipAddress = m_serversIps->GetAddress(i, 0);
         AddressValue remoteAddress(InetSocketAddress(ipAddress, m_port));
         ftpHelper.SetAttribute("Remote", remoteAddress);
         m_clientApps->Add(ftpHelper.Install(*m_clientNodes));
@@ -90,18 +109,28 @@ ThreeGppFtpM1Helper::DoStartFileTransfer()
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_lastClient >= 0 && m_lastClient < m_clientApps->GetN());
-    Ptr<Application> app = m_clientApps->Get(m_lastClient);
-    NS_ASSERT(app);
-    Ptr<TrafficGenerator> fileTransfer = DynamicCast<TrafficGenerator>(app);
-    NS_ASSERT(fileTransfer);
-    fileTransfer->SendPacketBurst();
 
-    m_lastClient += 1;
-    if (m_lastClient == m_clientApps->GetN())
+    if (auto app = m_clientApps->Get(m_lastClient); app != nullptr)
     {
-        m_lastClient = 0;
+        auto fileTransfer = DynamicCast<TrafficGenerator>(app);
+        NS_ASSERT(fileTransfer);
+        fileTransfer->SendPacketBurst();
+
+        m_lastClient += 1;
+        if (m_lastClient == m_clientApps->GetN())
+        {
+            if (m_currentFilesNumPerUe >= m_maxFilesNumPerUe)
+            {
+                NS_LOG_INFO(
+                    "The maximum number of files per UE has been reached: " << m_maxFilesNumPerUe);
+                return;
+            }
+
+            m_lastClient = 0;
+            m_currentFilesNumPerUe++;
+        }
+        Simulator::Schedule(DoGetNextTime(), &ThreeGppFtpM1Helper::DoStartFileTransfer, this);
     }
-    Simulator::Schedule(DoGetNextTime(), &ThreeGppFtpM1Helper::DoStartFileTransfer, this);
 }
 
 void
