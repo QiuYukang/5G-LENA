@@ -485,7 +485,9 @@ UlSchedulingTest::DoRun()
 
     // The client, who is transmitting, is installed in the UE (UL data),
     // with destination address set to the address of the remoteHost
-    ulClient.SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+    ulClient.SetAttribute(
+        "Remote",
+        AddressValue(addressUtils::ConvertToSocketAddress(remoteHostAddr, ulPort)));
     clientApps.Add(ulClient.Install(ueNode.Get(0)));
 
     // Activate a dedicated bearer for the traffic type

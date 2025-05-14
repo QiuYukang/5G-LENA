@@ -526,7 +526,6 @@ main(int argc, char* argv[])
      * Low-Latency configuration and object creation:
      */
     UdpClientHelper dlClientLowLat;
-    dlClientLowLat.SetAttribute("RemotePort", UintegerValue(dlPortLowLat));
     dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
@@ -543,7 +542,6 @@ main(int argc, char* argv[])
 
     // Voice configuration and object creation:
     UdpClientHelper ulClientVoice;
-    ulClientVoice.SetAttribute("RemotePort", UintegerValue(ulPortVoice));
     ulClientVoice.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
@@ -572,7 +570,9 @@ main(int argc, char* argv[])
         // with destination address set to the address of the UE
         if (enableDl)
         {
-            dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+            dlClientLowLat.SetAttribute(
+                "Remote",
+                AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
             clientApps.Add(dlClientLowLat.Install(remoteHost));
 
             nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
@@ -581,8 +581,10 @@ main(int argc, char* argv[])
         // is the one of the remote host
         if (enableUl)
         {
-            ulClientVoice.SetAttribute("RemoteAddress",
-                                       AddressValue(internetIpIfaces.GetAddress(1)));
+            ulClientVoice.SetAttribute(
+                "Remote",
+                AddressValue(addressUtils::ConvertToSocketAddress(internetIpIfaces.GetAddress(1),
+                                                                  ulPortVoice)));
             clientApps.Add(ulClientVoice.Install(ue));
 
             nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, voiceTft);

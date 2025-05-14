@@ -320,7 +320,6 @@ main(int argc, char* argv[])
     serverApps.Add(dlPacketSinkHelper.Install(ueNodes.Get(0)));
 
     UdpClientHelper dlClient;
-    dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
     dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
     dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     if (udpFullBuffer)
@@ -358,7 +357,9 @@ main(int argc, char* argv[])
 
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClient.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClient.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type

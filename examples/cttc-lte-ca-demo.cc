@@ -584,7 +584,6 @@ main(int argc, char* argv[])
      * Low-Latency configuration and object creation:
      */
     UdpClientHelper dlClientLowLat;
-    dlClientLowLat.SetAttribute("RemotePort", UintegerValue(dlPortLowLat));
     dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
@@ -601,7 +600,6 @@ main(int argc, char* argv[])
 
     // Voice configuration and object creation:
     UdpClientHelper ulClientVoice;
-    ulClientVoice.SetAttribute("RemotePort", UintegerValue(ulPortVoice));
     ulClientVoice.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
@@ -619,7 +617,6 @@ main(int argc, char* argv[])
 
     // Video configuration and object creation:
     UdpClientHelper dlClientVideo;
-    dlClientVideo.SetAttribute("RemotePort", UintegerValue(dlPortVideo));
     dlClientVideo.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientVideo.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
     dlClientVideo.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaUll)));
@@ -636,7 +633,6 @@ main(int argc, char* argv[])
 
     // Gaming configuration and object creation:
     UdpClientHelper ulClientGaming;
-    ulClientGaming.SetAttribute("RemotePort", UintegerValue(ulPortGaming));
     ulClientGaming.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClientGaming.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
     ulClientGaming.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaUll)));
@@ -665,14 +661,18 @@ main(int argc, char* argv[])
         // with destination address set to the address of the UE
         if (enableLowLat)
         {
-            dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+            dlClientLowLat.SetAttribute(
+                "Remote",
+                AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
             clientApps.Add(dlClientLowLat.Install(remoteHost));
 
             nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
         }
         if (enableVideo)
         {
-            dlClientVideo.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+            dlClientVideo.SetAttribute(
+                "Remote",
+                AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVideo)));
             clientApps.Add(dlClientVideo.Install(remoteHost));
 
             nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, videoTft);
@@ -683,7 +683,10 @@ main(int argc, char* argv[])
 
         if (enableVoice)
         {
-            ulClientVoice.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
+            ulClientVoice.SetAttribute(
+                "Remote",
+                AddressValue(
+                    addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, ulPortVoice)));
             clientApps.Add(ulClientVoice.Install(ue));
 
             nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceTft);
@@ -691,7 +694,10 @@ main(int argc, char* argv[])
 
         if (enableGaming)
         {
-            ulClientGaming.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
+            ulClientGaming.SetAttribute(
+                "Remote",
+                AddressValue(
+                    addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, ulPortGaming)));
             clientApps.Add(ulClientGaming.Install(ue));
 
             nrHelper->ActivateDedicatedEpsBearer(ueDevice, gamingBearer, gamingTft);

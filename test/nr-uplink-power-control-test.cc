@@ -397,7 +397,6 @@ NrUplinkPowerControlTestCase::DoRun()
     serverApps.Add(ulPacketSink.Install(remoteHost));
 
     UdpClientHelper dlClient;
-    dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
     dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClient.SetAttribute("PacketSize", UintegerValue(100));
     dlClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
@@ -409,7 +408,6 @@ NrUplinkPowerControlTestCase::DoRun()
     dlTft->Add(dlpf);
 
     UdpClientHelper ulClient;
-    ulClient.SetAttribute("RemotePort", UintegerValue(ulPort));
     ulClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClient.SetAttribute("PacketSize", UintegerValue(100));
     ulClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
@@ -424,11 +422,15 @@ NrUplinkPowerControlTestCase::DoRun()
     ApplicationContainer clientApps;
     // set and add downlink app to container
     Address ueAddress = ueIpIface.GetAddress(0);
-    dlClient.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+    dlClient.SetAttribute("Remote",
+                          AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPort)));
+
     clientApps.Add(dlClient.Install(remoteHost));
     nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), dlBearer, dlTft);
     // set and add uplink app to container
-    ulClient.SetAttribute("RemoteAddress", AddressValue(internetIpIfaces.GetAddress(1)));
+    ulClient.SetAttribute(
+        "Remote",
+        AddressValue(addressUtils::ConvertToSocketAddress(internetIpIfaces.GetAddress(1), ulPort)));
     clientApps.Add(ulClient.Install(ueNodes.Get(0)));
     nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), ulBearer, ulTft);
 

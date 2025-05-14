@@ -103,12 +103,16 @@ InstallApps(const Ptr<Node>& ue,
     // with destination address set to the address of the UE
     if (direction == "DL")
     {
-        dlClientLowLat->SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClientLowLat->SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
         app = dlClientLowLat->Install(remoteHost);
     }
     else
     {
-        dlClientLowLat->SetAttribute("RemoteAddress", AddressValue(remoteHostAddr));
+        dlClientLowLat->SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(remoteHostAddr, dlPortLowLat)));
         app = dlClientLowLat->Install(ue);
     }
 
@@ -877,7 +881,6 @@ Nr3gppCalibration(Parameters& params)
               << "\n    max packets: " << packetCount << std::endl;
 
     UdpClientHelper dlClientLowLat;
-    dlClientLowLat.SetAttribute("RemotePort", UintegerValue(dlPortLowLat));
     dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(packetCount));
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
     dlClientLowLat.SetAttribute("Interval", TimeValue(interval));

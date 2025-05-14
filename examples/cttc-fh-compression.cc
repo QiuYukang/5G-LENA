@@ -1281,7 +1281,6 @@ main(int argc, char* argv[])
      * Low-Latency configuration and object creation:
      */
     UdpClientHelper dlClientLowLat;
-    dlClientLowLat.SetAttribute("RemotePort", UintegerValue(dlPortLowLat));
     dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
     // dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
@@ -1402,12 +1401,17 @@ main(int argc, char* argv[])
             // with destination address set to the address of the UE
             if (direction == "DL")
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+                dlClientLowLat.SetAttribute(
+                    "Remote",
+                    AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(remoteHost));
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
+                dlClientLowLat.SetAttribute(
+                    "Remote",
+                    AddressValue(
+                        addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
@@ -1447,12 +1451,17 @@ main(int argc, char* argv[])
             // host, with destination address set to the address of the UE
             if (direction == "DL")
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+                dlClientLowLat.SetAttribute(
+                    "Remote",
+                    AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(remoteHost));
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
+                dlClientLowLat.SetAttribute(
+                    "Remote",
+                    AddressValue(
+                        addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
@@ -1492,12 +1501,17 @@ main(int argc, char* argv[])
             // with destination address set to the address of the UE
             if (direction == "DL")
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+                dlClientLowLat.SetAttribute(
+                    "Remote",
+                    AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(remoteHost));
             }
             else
             {
-                dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(remoteHostIpv4Address));
+                dlClientLowLat.SetAttribute(
+                    "Remote",
+                    AddressValue(
+                        addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type

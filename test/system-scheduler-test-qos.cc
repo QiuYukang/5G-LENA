@@ -322,7 +322,6 @@ SystemSchedulerTestQos::DoRun()
         serverAppsUlVoice = (ulPacketSinkVoice.Install(remoteHostVoice));
 
         UdpClientHelper ulClientLowlat;
-        ulClientLowlat.SetAttribute("RemotePort", UintegerValue(ulPortLowLat));
         ulClientLowlat.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
         ulClientLowlat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
         ulClientLowlat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
@@ -337,7 +336,6 @@ SystemSchedulerTestQos::DoRun()
         NrEpsBearer bearerLowLat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
         UdpClientHelper ulClientVoice;
-        ulClientVoice.SetAttribute("RemotePort", UintegerValue(ulPortVoice));
         ulClientVoice.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
         ulClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
         ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
@@ -354,8 +352,10 @@ SystemSchedulerTestQos::DoRun()
         // configure here UDP traffic flows
         for (uint32_t j = 0; j < ueLowLatContainer.GetN(); ++j)
         {
-            ulClientLowlat.SetAttribute("RemoteAddress",
-                                        AddressValue(internetIpIfacesLowLat.GetAddress(1)));
+            ulClientLowlat.SetAttribute("Remote",
+                                        AddressValue(addressUtils::ConvertToSocketAddress(
+                                            internetIpIfacesLowLat.GetAddress(1),
+                                            ulPortLowLat)));
             clientAppsUl.Add(ulClientLowlat.Install(ueLowLatContainer.Get(j)));
             nrHelper->ActivateDedicatedEpsBearer(ueLowLatNetDev.Get(j), bearerLowLat, ulLowLatTft);
         }
@@ -363,8 +363,10 @@ SystemSchedulerTestQos::DoRun()
         // configure here UDP traffic flows
         for (uint32_t j = 0; j < ueVoiceContainer.GetN(); ++j)
         {
-            ulClientVoice.SetAttribute("RemoteAddress",
-                                       AddressValue(internetIpIfacesVoice.GetAddress(1)));
+            ulClientVoice.SetAttribute("Remote",
+                                       AddressValue(addressUtils::ConvertToSocketAddress(
+                                           internetIpIfacesVoice.GetAddress(1),
+                                           ulPortVoice)));
             clientAppsUl.Add(ulClientVoice.Install(ueVoiceContainer.Get(j)));
             nrHelper->ActivateDedicatedEpsBearer(ueVoiceNetDev.Get(j), bearerVoice, ulVoiceTft);
         }

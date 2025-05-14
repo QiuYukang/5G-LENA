@@ -590,13 +590,14 @@ main(int argc, char* argv[])
          * Configure attributes for the CBR traffic generator, using user-provided
          * parameters
          */
-        dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
         dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
         dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
         dlClient.SetAttribute("Interval", TimeValue(packetInterval));
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClient.SetAttribute("RemoteAddress", AddressValue(ueIpIface.GetAddress(0)));
+        dlClient.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueIpIface.GetAddress(0), dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
         // Activate a dedicated bearer for the traffic
         nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlTft);
@@ -627,13 +628,14 @@ main(int argc, char* argv[])
          * Configure attributes for the CBR traffic generator, using user-provided
          * parameters
          */
-        dlClient.SetAttribute("RemotePort", UintegerValue(dlPort));
         dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
         dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
         dlClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClient.SetAttribute("RemoteAddress", AddressValue(ueIpIface.GetAddress(1)));
+        dlClient.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueIpIface.GetAddress(1), dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic

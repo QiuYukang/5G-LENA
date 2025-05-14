@@ -339,7 +339,6 @@ main(int argc, char* argv[])
      * Low-Latency configuration and object creation:
      */
     UdpClientHelper dlClientLowLat;
-    dlClientLowLat.SetAttribute("RemotePort", UintegerValue(dlPortLowLat));
     dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
@@ -356,7 +355,6 @@ main(int argc, char* argv[])
 
     // Voice configuration and object creation:
     UdpClientHelper dlClientVoice;
-    dlClientVoice.SetAttribute("RemotePort", UintegerValue(dlPortVoice));
     dlClientVoice.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     dlClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
@@ -381,7 +379,9 @@ main(int argc, char* argv[])
 
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClientLowLat.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClientLowLat.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
         clientApps.Add(dlClientLowLat.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
@@ -395,7 +395,9 @@ main(int argc, char* argv[])
 
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClientVoice.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClientVoice.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVoice)));
         clientApps.Add(dlClientVoice.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type

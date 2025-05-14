@@ -373,7 +373,6 @@ main(int argc, char* argv[])
      */
     /******************************************************************************/
     UdpClientHelper dlClientUe1flow;
-    dlClientUe1flow.SetAttribute("RemotePort", UintegerValue(dlPortUe1flow));
     dlClientUe1flow.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientUe1flow.SetAttribute("PacketSize", UintegerValue(udpPacketSize1));
     dlClientUe1flow.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda1)));
@@ -392,7 +391,6 @@ main(int argc, char* argv[])
     /******************************************************************************/
     // UE with 2 Flows Non GBR configuration and object creation:
     UdpClientHelper dlClientUe2flowsNgbr;
-    dlClientUe2flowsNgbr.SetAttribute("RemotePort", UintegerValue(dlPortUe2flowsNgbr));
     dlClientUe2flowsNgbr.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientUe2flowsNgbr.SetAttribute("PacketSize", UintegerValue(udpPacketSize1));
     dlClientUe2flowsNgbr.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda1)));
@@ -413,7 +411,6 @@ main(int argc, char* argv[])
 
     /******************************************************************************/
     UdpClientHelper dlClientUe2flowsDcGbr;
-    dlClientUe2flowsDcGbr.SetAttribute("RemotePort", UintegerValue(dlPortUe2flowsDcGbr));
     dlClientUe2flowsDcGbr.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClientUe2flowsDcGbr.SetAttribute("PacketSize", UintegerValue(udpPacketSize2));
     dlClientUe2flowsDcGbr.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda2)));
@@ -442,7 +439,9 @@ main(int argc, char* argv[])
 
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClientUe1flow.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClientUe1flow.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortUe1flow)));
         clientApps.Add(dlClientUe1flow.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
@@ -456,7 +455,9 @@ main(int argc, char* argv[])
 
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClientUe2flowsNgbr.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClientUe2flowsNgbr.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortUe2flowsNgbr)));
         clientApps.Add(dlClientUe2flowsNgbr.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
@@ -470,7 +471,9 @@ main(int argc, char* argv[])
 
         // The client, who is transmitting, is installed in the remote host,
         // with destination address set to the address of the UE
-        dlClientUe2flowsDcGbr.SetAttribute("RemoteAddress", AddressValue(ueAddress));
+        dlClientUe2flowsDcGbr.SetAttribute(
+            "Remote",
+            AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortUe2flowsDcGbr)));
         clientApps.Add(dlClientUe2flowsDcGbr.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
