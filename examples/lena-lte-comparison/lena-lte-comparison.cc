@@ -301,6 +301,7 @@ LenaLteComparison(const Parameters& params)
      */
     std::cout << "  max tx buffer size\n";
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     /*
      * Create the scenario. In our examples, we heavily use helpers that setup

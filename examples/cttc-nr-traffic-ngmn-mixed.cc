@@ -1130,6 +1130,9 @@ main(int argc, char* argv[])
         }
     }
 
+    // We need to increase RLC buffer sizes for large files
+    Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+
     /*
      * Let's install the applications!
      */
@@ -1923,7 +1926,8 @@ main(int argc, char* argv[])
             // Measure the duration of the flow from receiver's perspective
             // double rxDuration = i->second.timeLastRxPacket.GetSeconds () -
             // i->second.timeFirstTxPacket.GetSeconds ();
-            double rxDuration = (simTime - appStartTime).GetSeconds();
+            double rxDuration =
+                (i->second.timeLastRxPacket - i->second.timeFirstRxPacket).GetSeconds();
 
             averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
             averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
