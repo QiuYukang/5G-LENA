@@ -1582,29 +1582,20 @@ a single flow is:
 .. math::
    :nowrap:
 
-   \[
-   w =
-   \left\{
-   \begin{array}{
-     @{}% no padding
-     l@{\quad}% some padding
-     r@{}% no padding
-     >{{}}r@{}% no padding
-     >{{}}l@{}% no padding
-   }
-     (100 - P) \frac{r^{\gamma}}{R(\tau)},&       &     \text{for non-GBR and GBR} \\
-     (100 - P) \frac{r^{\gamma}}{R(\tau)},&       &     \text{for GBR} \\
-   \end{array}
-   \right.
-   \]
+    \[
+    w = \begin{cases}
+    (100 - P) \dfrac{r^{\gamma}}{R(\tau)}, & \text{for non-GBR} \\
+    \\
+    (100 - P) \dfrac{r^{\gamma}}{R(\tau)} D, & \text{for GBR}
+    \end{cases}
+    \]
 
 where :math:`P` is the default Priority Level of the QoS flow mapped to
 the DRB (lower :math:`P` indicates higher priority for scheduling),
 :math:`r` is the instantaneous achievable data rate calculated by
 the spectrum efficiency and the channel bandwidth, :math:`R(\tau)` is the
 past average data rate updated within the updated window size :math:`\tau`,
-:math:`F = 100` when the DRB has retransmission data and :math:`F = 10`
-otherwise, and :math:`\gamma` is a configurable parameter. Moreover, we include
+and :math:`\gamma` is a configurable parameter. Moreover, we include
 the newly introduced delay budget factor :math:`D`, that is the delay-aware
 weight related to the HOL packet delay and the PDB, and is calculated as:
 
