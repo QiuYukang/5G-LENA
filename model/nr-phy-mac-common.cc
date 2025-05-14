@@ -176,36 +176,36 @@ operator<<(std::ostream& os, const SlotAllocInfo& item)
        << " composed by the following allocations: " << std::endl;
     for (const auto& alloc : item.m_varTtiAllocInfo)
     {
-        std::string direction;
-        std::string type;
+        std::stringstream direction;
+        std::stringstream type;
         if (alloc.m_dci->m_type == DciInfoElementTdma::CTRL)
         {
-            type = "CTRL";
+            type << "CTRL";
         }
         else if (alloc.m_dci->m_type == DciInfoElementTdma::SRS)
         {
-            type = "SRS";
+            type << "SRS";
         }
         else if (alloc.m_dci->m_type == DciInfoElementTdma::MSG3)
         {
-            type = "MSG3";
+            type << "MSG3";
         }
         else
         {
-            type = "DATA";
+            type << "DATA";
         }
 
         if (alloc.m_dci->m_format == DciInfoElementTdma::UL)
         {
-            direction = "UL";
+            direction << "UL";
         }
         else
         {
-            direction = "DL";
+            direction << "DL";
         }
         os << "[Allocation from sym " << static_cast<uint32_t>(alloc.m_dci->m_symStart)
            << " to sym " << static_cast<uint32_t>(alloc.m_dci->m_numSym + alloc.m_dci->m_symStart)
-           << " direction " << direction << " type " << type << "]" << std::endl;
+           << " direction " << direction.str() << " type " << type.str() << "]" << std::endl;
     }
     return os;
 }

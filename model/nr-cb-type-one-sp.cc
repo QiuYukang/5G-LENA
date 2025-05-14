@@ -262,8 +262,8 @@ NrCbTypeOneSp::DoInitK1K2Rank34()
     // The factors before O1 and O2 in Table 5.2.2.2.1-4
     if (m_n1 == 2 && m_n2 == 1)
     {
-        m_k1Factors = {1};
-        m_k2Factors = {0};
+        m_k1Factors = std::vector<size_t>{1};
+        m_k2Factors = std::vector<size_t>{0};
     }
     else if (m_n1 == 4 && m_n2 == 1)
     {
