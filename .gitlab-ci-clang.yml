@@ -18,7 +18,6 @@
   only:
     variables:
       - $RELEASE == "weekly"
-      - $CLANG_BUILD_ENABLE == "True"
   before_script:
     - apt --quiet update
     - apt --quiet upgrade --yes
@@ -80,10 +79,13 @@ weekly-build-clang-14-optimized:
 .weekly-build-clang-ubuntu-rolling:
   image: ubuntu:rolling
   extends: .base-build
+  tags: ["$TAG"]
+  parallel:
+    matrix:
+      - TAG: ["CTTC", "macOS"]
   only:
     variables:
       - $RELEASE == "weekly"
-      - $CLANG_BUILD_ENABLE == "True"
   before_script:
     - apt --quiet update
     - apt --quiet upgrade --yes
