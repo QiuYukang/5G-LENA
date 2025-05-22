@@ -1885,13 +1885,10 @@ NrMacSchedulerNs3::ScheduleDl(const NrMacSchedSapProvider::SchedDlTriggerReqPara
     m_macSchedSapUser->SchedConfigInd(dlSlot);
 #ifdef NS3_ASSERT_ENABLE
     // Validates DL resource allocation
-    auto dlNotchedRBGsMask = GetDlNotchedRbgMask();
-    dlNotchedRBGsMask = dlNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
-                                                  : dlNotchedRBGsMask;
     ResourceAssignmentMatrix::CheckResourceMatrixFromVarTtiAllocInfo(
         dlSlot.m_slotAllocInfo.m_varTtiAllocInfo,
         m_ueMap,
-        dlNotchedRBGsMask,
+        GetDlBitmask(),
         14);
 #endif
 }
@@ -1960,13 +1957,10 @@ NrMacSchedulerNs3::ScheduleUl(const NrMacSchedSapProvider::SchedUlTriggerReqPara
 
 #ifdef NS3_ASSERT_ENABLE
     // Validates UL resource allocation
-    auto ulNotchedRBGsMask = GetUlNotchedRbgMask();
-    ulNotchedRBGsMask = ulNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
-                                                  : ulNotchedRBGsMask;
     ResourceAssignmentMatrix::CheckResourceMatrixFromVarTtiAllocInfo(
         ulSlot.m_slotAllocInfo.m_varTtiAllocInfo,
         m_ueMap,
-        ulNotchedRBGsMask,
+        GetUlBitmask(),
         14);
 #endif
 }
@@ -2230,8 +2224,6 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
 
         NS_LOG_INFO("UE " << rnti << " assigned symbol " << +spoint->m_sym << " for SRS tx");
 
-        std::vector<bool> rbgBitmask(GetBandwidthInRbg(), true);
-
         spoint->m_sym--;
 
         uint8_t numSym{1};
@@ -2254,7 +2246,7 @@ NrMacSchedulerNs3::DoScheduleSrs(PointInFTPlane* spoint, SlotAllocInfo* allocInf
                                                         DciInfoElementTdma::SRS,
                                                         GetBwpId(),
                                                         GetTpc());
-        dci->m_rbgBitmask = rbgBitmask;
+        dci->m_rbgBitmask = GetUlBitmask();
 
         allocInfo->m_numSymAlloc += 1;
         allocInfo->m_varTtiAllocInfo.emplace_front(dci);
@@ -2648,6 +2640,8 @@ NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,
     NS_ASSERT(sPoint->m_rbg == 0);
 
     uint8_t symAvailBeforeRach = symAvail;
+    auto rbgBitmask = GetUlBitmask();
+    uint16_t usableRbgs = std::count(rbgBitmask.begin(), rbgBitmask.end(), true);
 
     for (const auto& rachReq : m_rachList)
     {
@@ -2658,11 +2652,8 @@ NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,
         while ((tbSizeBits < rachReq.m_estimatedSize) && (symAvail - allocSymbols > 0))
         {
             allocSymbols++;
-            tbSizeBits =
-                GetUlAmc()->CalculateTbSize(m_rachUlGrantMcs,
-                                            1,
-                                            GetBandwidthInRbg() * GetNumRbPerRbg() * allocSymbols) *
-                8;
+            const auto nprbs = usableRbgs * GetNumRbPerRbg() * allocSymbols;
+            tbSizeBits = GetUlAmc()->CalculateTbSize(m_rachUlGrantMcs, 1, nprbs) * 8;
         }
 
         if (tbSizeBits < rachReq.m_estimatedSize)
@@ -2693,8 +2684,6 @@ NrMacSchedulerNs3::DoScheduleUlMsg3(PointInFTPlane* sPoint,
                                                  GetBwpId(),
                                                  GetTpc());
 
-        std::vector<bool> rbgBitmask(GetBandwidthInRbg(), true);
-
         ulMsg3Dci->m_rbgBitmask = rbgBitmask;
         symAvail -= allocSymbols;
 
@@ -2718,6 +2707,24 @@ bool
 NrMacSchedulerNs3::IsMaxSrsReached() const
 {
     return m_schedulerSrs->IsMaxSrsReached();
+}
+
+std::vector<bool>
+NrMacSchedulerNs3::GetDlBitmask() const
+{
+    auto dlNotchedRBGsMask = GetDlNotchedRbgMask();
+    dlNotchedRBGsMask = dlNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
+                                                  : dlNotchedRBGsMask;
+    return dlNotchedRBGsMask;
+}
+
+std::vector<bool>
+NrMacSchedulerNs3::GetUlBitmask() const
+{
+    auto ulNotchedRBGsMask = GetUlNotchedRbgMask();
+    ulNotchedRBGsMask = ulNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
+                                                  : ulNotchedRBGsMask;
+    return ulNotchedRBGsMask;
 }
 
 } // namespace ns3

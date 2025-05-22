@@ -124,11 +124,18 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
     uint32_t resources = symAvail;
     FTResources assigned(0, 0);
 
-    const std::vector<bool> notchedRBGsMask =
-        type == "DL" ? GetDlNotchedRbgMask() : GetUlNotchedRbgMask();
-    int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
-    uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
+    const std::vector<bool> notchedRBGsMask = type == "DL" ? GetDlBitmask() : GetUlBitmask();
+    uint32_t numOfAssignableRbgs = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), true);
     NS_ASSERT(numOfAssignableRbgs > 0);
+
+    std::set<uint32_t> remainingRbgSet;
+    for (size_t i = 0; i < notchedRBGsMask.size(); i++)
+    {
+        if (notchedRBGsMask.at(i))
+        {
+            remainingRbgSet.emplace(i);
+        }
+    }
 
     for (auto& ue : ueVector)
     {
@@ -178,7 +185,9 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
         auto& assignedRbgs = GetRBGFn(GetUe(*schedInfoIt));
         auto existingRbgs = assignedRbgs.size();
         assignedRbgs.resize(assignedRbgs.size() + numOfAssignableRbgs);
-        std::iota(assignedRbgs.begin() + existingRbgs, assignedRbgs.end(), 0);
+        std::copy(remainingRbgSet.begin(),
+                  remainingRbgSet.end(),
+                  assignedRbgs.begin() + existingRbgs);
         assigned.m_rbg += numOfAssignableRbgs;
 
         auto& assignedSymbols = GetSymFn(GetUe(*schedInfoIt));

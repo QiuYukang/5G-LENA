@@ -906,6 +906,17 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     NrFhSchedSapUser* m_nrFhSchedSapUser{nullptr};         //!< FH Control SAP user
     NrFhSchedSapProvider* m_nrFhSchedSapProvider{nullptr}; //!< FH Control SAP provider
 
+    /**
+     * @brief Returns a boolean vector indicating whether a resource is available to be scheduled
+     * (true) or not (false) in the downlink.
+     */
+    std::vector<bool> GetDlBitmask() const;
+    /**
+     * @brief Returns a boolean vector indicating whether a resource is available to be scheduled
+     * (true) or not (false) in the uplink.
+     */
+    std::vector<bool> GetUlBitmask() const;
+
   private:
     void CallNrFhControlForMapUpdate(
         const std::deque<VarTtiAllocInfo>& allocation,

@@ -355,10 +355,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
         uint32_t beamSym = symPerBeam.at(GetBeamId(el));
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assignedResources(0, 0);
-        const std::vector<bool> dlNotchedRBGsMask = GetDlNotchedRbgMask();
-        std::vector<bool> availableRbgs = !dlNotchedRBGsMask.empty()
-                                              ? dlNotchedRBGsMask
-                                              : std::vector<bool>(GetBandwidthInRbg(), true);
+        std::vector<bool> availableRbgs = GetDlBitmask();
         std::set<uint32_t> remainingRbgSet;
         for (size_t i = 0; i < availableRbgs.size(); i++)
         {
@@ -491,11 +488,18 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
         uint32_t beamSym = symPerBeam.at(GetBeamId(el));
         std::vector<UePtrAndBufferReq> ueVector;
         FTResources assigned(0, 0);
-        const std::vector<bool> ulNotchedRBGsMask = GetUlNotchedRbgMask();
-        uint32_t resources = !ulNotchedRBGsMask.empty()
-                                 ? std::count(ulNotchedRBGsMask.begin(), ulNotchedRBGsMask.end(), 1)
-                                 : GetBandwidthInRbg();
-        NS_ASSERT(resources > 0);
+
+        const std::vector<bool> availableRbgs = GetUlBitmask();
+        std::set<uint32_t> remainingRbgSet;
+        for (size_t i = 0; i < availableRbgs.size(); i++)
+        {
+            if (availableRbgs.at(i))
+            {
+                remainingRbgSet.emplace(i);
+            }
+        }
+
+        NS_ASSERT(!remainingRbgSet.empty());
 
         for (const auto& ue : GetUeVector(el))
         {
@@ -507,7 +511,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
             BeforeUlSched(ue, FTResources(beamSym * beamSym, beamSym));
         }
 
-        while (resources > 0)
+        while (!remainingRbgSet.empty())
         {
             if (m_activeUlAi)
             {
@@ -538,12 +542,13 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
                 break;
             }
 
+            auto assignedRbg = remainingRbgSet.begin();
             // Assign 1 RBG for each available symbols for the beam,
             // and then update the count of available resources
             auto& assignedRbgs = GetUe(*schedInfoIt)->m_ulRBG;
             auto existingRbgs = assignedRbgs.size();
             assignedRbgs.resize(assignedRbgs.size() + beamSym);
-            std::fill(assignedRbgs.begin() + existingRbgs, assignedRbgs.end(), resources - 1);
+            std::fill(assignedRbgs.begin() + existingRbgs, assignedRbgs.end(), *assignedRbg);
             assigned.m_rbg++;
 
             auto& assignedSymbols = GetUe(*schedInfoIt)->m_ulSym;
@@ -552,7 +557,8 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
             std::iota(assignedSymbols.begin() + existingSymbols, assignedSymbols.end(), 0);
             assigned.m_sym = beamSym;
 
-            resources -= 1; // Resources are RBG, so they do not consider the beamSym
+            remainingRbgSet.erase(
+                assignedRbg); // Resources are RBG, so they do not consider the beamSym
 
             // Update metrics
             NS_LOG_DEBUG("Assigned " << assigned.m_rbg << " UL RBG, spanned over " << beamSym

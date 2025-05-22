@@ -100,10 +100,15 @@ ResourceAssignmentMatrix::AssignOfdmaRbgDuringSymbolToUe(ResourceType type,
             "Mismatch between the symbol allocated and size of resource assignment matrix");
         NS_ASSERT_MSG(!m_notchingMask.empty(), "Notching mask was not properly configured");
         NS_ASSERT_MSG(m_notchingMask.size() > rbg, "RBG is bigger than notching mask");
-        NS_ASSERT_MSG(
-            m_notchingMask.at(rbg),
-            "Trying to assign a notched RBG"); // Notching mask 111000111 prevents allocation
-        // on set bits
+        if (type == ResourceType::DL_DATA || type == ResourceType::UL_DATA ||
+            type == ResourceType::SRS || type == ResourceType::MSG3 || type == ResourceType::HARQ)
+        {
+            // Assert should not apply to PCCCH, PDCCH nor PUCCH
+            NS_ASSERT_MSG(m_notchingMask.at(rbg),
+                          "Trying to assign a notched RBG"); // Notching mask 111000111 only allows
+                                                             // allocation on set bits
+        }
+
         auto& symbolResources = m_symbolResources.at(symbol);
 
         NS_ASSERT_MSG(symbolResources.rbgs.at(rbg).allocatedUe == EMPTY_RESOURCE_RNTI,
