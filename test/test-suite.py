@@ -77,7 +77,7 @@ def run_program(program, args, python=False, cwd=ns3_path, env=None):
         arguments = [program]
 
     if args != "":
-        arguments.extend(re.findall('(?:".*?"|\S)+', args))  # noqa
+        arguments.extend(re.findall(r'(?:".*?"|\S)+', args))  # noqa
 
     for i in range(len(arguments)):
         arguments[i] = arguments[i].replace('"', "")
