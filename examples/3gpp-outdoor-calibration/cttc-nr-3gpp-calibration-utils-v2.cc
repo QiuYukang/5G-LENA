@@ -137,72 +137,88 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
 } // unnamed namespace
 
 void
-LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
-                                          const std::string& scenario,
-                                          const std::string& confType,
-                                          const std::string& radioNetwork,
-                                          std::string errorModel,
-                                          const std::string& operationMode,
-                                          const std::string& direction,
-                                          uint16_t numerology,
-                                          const std::string& pattern,
-                                          const NodeContainer& gnbSector1Container,
-                                          const NodeContainer& gnbSector2Container,
-                                          const NodeContainer& gnbSector3Container,
-                                          const NodeContainer& ueSector1Container,
-                                          const NodeContainer& ueSector2Container,
-                                          const NodeContainer& ueSector3Container,
-                                          const Ptr<NrPointToPointEpcHelper>& baseEpcHelper,
-                                          Ptr<NrHelper>& nrHelper,
-                                          NetDeviceContainer& gnbSector1NetDev,
-                                          NetDeviceContainer& gnbSector2NetDev,
-                                          NetDeviceContainer& gnbSector3NetDev,
-                                          NetDeviceContainer& ueSector1NetDev,
-                                          NetDeviceContainer& ueSector2NetDev,
-                                          NetDeviceContainer& ueSector3NetDev,
-                                          bool enableFading,
-                                          bool enableUlPc,
-                                          std::string powerAllocation,
-                                          SinrOutputStats* sinrStats,
-                                          PowerOutputStats* ueTxPowerStats,
-                                          PowerOutputStats* gnbRxPowerStats,
-                                          SlotOutputStats* slotStats,
-                                          RbOutputStats* rbStats,
-                                          const std::string& scheduler,
-                                          uint32_t bandwidthMHz,
-                                          double startingFreq,
-                                          uint32_t freqScenario,
-                                          double gnbTxPower,
-                                          double ueTxPower,
-                                          double downtiltAngle,
-                                          const uint32_t gnbNumRows,
-                                          const uint32_t gnbNumColumns,
-                                          const uint32_t ueNumRows,
-                                          const uint32_t ueNumColumns,
-                                          bool gnbEnable3gppElement,
-                                          bool ueEnable3gppElement,
-                                          const double gnbHSpacing,
-                                          const double gnbVSpacing,
-                                          const double ueHSpacing,
-                                          const double ueVSpacing,
-                                          const double gnbNoiseFigure,
-                                          const double ueNoiseFigure,
-                                          bool enableRealBF,
-                                          bool enableShadowing,
-                                          double o2iThreshold,
-                                          double o2iLowLossThreshold,
-                                          bool linkO2iConditionToAntennaHeight,
-                                          bool crossPolarizedGnb,
-                                          bool crossPolarizedUe,
-                                          double polSlantAngleGnb1,
-                                          double polSlantAngleGnb2,
-                                          double polSlantAngleUe1,
-                                          double polSlantAngleUe2,
-                                          std::string bfMethod,
-                                          uint16_t beamConfSector,
-                                          double beamConfElevation,
-                                          double isd,
-                                          bool ueBearingAngle)
+LenaV2Utils::SetLenaV2SimulatorParameters(
+    const double sector0AngleRad,
+    const std::string& scenario,
+    const std::string& confType,
+    const std::string& radioNetwork,
+    std::string errorModel,
+    const std::string& operationMode,
+    const std::string& direction,
+    uint16_t numerology,
+    const std::string& pattern,
+    const NodeContainer& gnbSector1Container,
+    const NodeContainer& gnbSector2Container,
+    const NodeContainer& gnbSector3Container,
+    const NodeContainer& ueSector1Container,
+    const NodeContainer& ueSector2Container,
+    const NodeContainer& ueSector3Container,
+    const Ptr<NrPointToPointEpcHelper>& baseEpcHelper,
+    Ptr<NrHelper>& nrHelper,
+    NetDeviceContainer& gnbSector1NetDev,
+    NetDeviceContainer& gnbSector2NetDev,
+    NetDeviceContainer& gnbSector3NetDev,
+    NetDeviceContainer& ueSector1NetDev,
+    NetDeviceContainer& ueSector2NetDev,
+    NetDeviceContainer& ueSector3NetDev,
+    bool enableFading,
+    bool enableUlPc,
+    std::string powerAllocation,
+    SinrOutputStats* sinrStats,
+    PowerOutputStats* ueTxPowerStats,
+    PowerOutputStats* gnbRxPowerStats,
+    SlotOutputStats* slotStats,
+    RbOutputStats* rbStats,
+    const std::string& scheduler,
+    uint32_t bandwidthMHz,
+    double startingFreq,
+    uint32_t freqScenario,
+    double gnbTxPower,
+    double ueTxPower,
+    double downtiltAngle,
+    const uint32_t gnbNumRows,
+    const uint32_t gnbNumColumns,
+    const uint32_t ueNumRows,
+    const uint32_t ueNumColumns,
+    bool gnbEnable3gppElement,
+    bool ueEnable3gppElement,
+    const double gnbHSpacing,
+    const double gnbVSpacing,
+    const double ueHSpacing,
+    const double ueVSpacing,
+    const double gnbNoiseFigure,
+    const double ueNoiseFigure,
+    bool enableRealBF,
+    bool enableShadowing,
+    double o2iThreshold,
+    double o2iLowLossThreshold,
+    bool linkO2iConditionToAntennaHeight,
+    bool crossPolarizedGnb,
+    bool crossPolarizedUe,
+    double polSlantAngleGnb1,
+    double polSlantAngleGnb2,
+    double polSlantAngleUe1,
+    double polSlantAngleUe2,
+    std::string bfMethod,
+    uint16_t beamConfSector,
+    double beamConfElevation,
+    double isd,
+    bool ueBearingAngle,
+    double PolSlantAngleGnb,
+    double PolSlantAngleUe,
+    bool dualPolarizedGnb,
+    bool dualPolarizedUe,
+    uint8_t numVPortsGnb,
+    uint8_t numHPortsGnb,
+    uint8_t numVPortsUe,
+    uint8_t numHPortsUe,
+    bool enableMimo,
+    NrHelper::MimoPmiParams mimoPmiParams,
+    bool enableSubbandScheluder,
+    bool m_subbandCqiClamping,
+    EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource,
+    std::string simTag,
+    std::string outputDir)
 {
     /*
      * Create the radio network related parameters
@@ -296,7 +312,6 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     // Noise figure for the UE
     nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(ueNoiseFigure));
     nrHelper->SetUePhyAttribute("EnableUplinkPowerControl", BooleanValue(enableUlPc));
-
     if (radioNetwork == "LTE" && confType == "calibrationConf" && enableUlPc)
     {
         Config::SetDefault("ns3::NrUePowerControl::ClosedLoop", BooleanValue(false));
@@ -304,6 +319,15 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
         Config::SetDefault("ns3::NrUePowerControl::PoNominalPusch", IntegerValue(-106));
         Config::SetDefault("ns3::NrUePowerControl::Alpha",
                            DoubleValue(1.0)); // well this is the default value also
+    }
+
+    if (enableSubbandScheluder)
+    {
+        Config::SetDefault("ns3::NrMacSchedulerNs3::McsCsiSource",
+                           EnumValue<NrMacSchedulerUeInfo::McsCsiSource>(m_mcsCsiSource));
+        // 3GPP clamping to [-1,+2] of wideband, enabled by default
+        Config::SetDefault("ns3::NrPmSearch::SubbandCqiClamping",
+                           BooleanValue(m_subbandCqiClamping));
     }
 
     Config::SetDefault("ns3::NrMacSchedulerSrsDefault::StartingPeriodicity", UintegerValue(16));
@@ -336,8 +360,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     nrHelper->SetDlErrorModel(errorModel);
 
     // Both DL and UL AMC will have the same model behind.
-    nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ShannonModel));
-    nrHelper->SetGnbUlAmcAttribute("AmcModel", EnumValue(NrAmc::ShannonModel));
+    nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
+    nrHelper->SetGnbUlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
 
     /*
      * Adjust the average number of Reference symbols per RB only for LTE case,
@@ -349,6 +373,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     nrHelper->SetGnbPhyAttribute("RbOverhead", DoubleValue(rbOverhead));
     nrHelper->SetGnbPhyAttribute("N2Delay", UintegerValue(n2Delay));
     nrHelper->SetGnbPhyAttribute("N1Delay", UintegerValue(n1Delay));
+    nrHelper->SetGnbPhyAttribute("TbDecodeLatency", TimeValue(MicroSeconds(0)));
+    // TbDecodeLatency
 
     nrHelper->SetUeMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
     nrHelper->SetGnbMacAttribute("NumHarqProcess", UintegerValue(harqProcesses));
@@ -598,7 +624,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     {
         auto distanceBased3gpp =
             distanceBasedChannelFactory.Create<DistanceBasedThreeGppSpectrumPropagationLossModel>();
-        distanceBased3gpp->SetAttribute("MaxDistance", DoubleValue(2 * isd));
+        distanceBased3gpp->SetAttribute("MaxDistance", DoubleValue(200 * isd));
         distanceBased3gpp->SetChannelModelAttribute("Scenario", StringValue(scenario));
         distanceBased3gpp->SetChannelModelAttribute(
             "Frequency",
@@ -662,6 +688,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
                     beamformingHelper->SetAttribute("BeamformingPeriodicity",
                                                     TimeValue(MilliSeconds(10)));
                 }
+                else if (bfMethod == "KroneckerQuasiOmniBeamforming")
+                {
+                    beamformingHelper->SetAttribute(
+                        "BeamformingMethod",
+                        TypeIdValue(KroneckerQuasiOmniBeamforming::GetTypeId()));
+                }
                 else
                 {
                     NS_ABORT_MSG("We shouldn't be here. bfMethod is: " << bfMethod);
@@ -694,7 +726,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     {
         if (scheduler == "PF")
         {
-            nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaPF"));
+            nrHelper->SetSchedulerTypeId(
+                TypeId::LookupByName("ns3::NrMacSchedulerTdmaPF")); // NrMacSchedulerTdmaPF
         }
         else if (scheduler == "RR")
         {
@@ -725,9 +758,19 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     // Core latency
     nrEpcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
 
+    if (enableMimo)
+    {
+        nrHelper->SetupMimoPmi(mimoPmiParams);
+    }
     // Antennas for all the UEs
     nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(ueNumRows));
     nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(ueNumColumns));
+
+    nrHelper->SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(numVPortsUe));
+    nrHelper->SetUeAntennaAttribute("NumHorizontalPorts", UintegerValue(numHPortsUe));
+
+    nrHelper->SetUeAntennaAttribute("IsDualPolarized", BooleanValue(dualPolarizedUe));
+    nrHelper->SetUeAntennaAttribute("PolSlantAngle", DoubleValue(PolSlantAngleUe * M_PI / 180.0));
 
     if (ueEnable3gppElement)
     {
@@ -751,6 +794,12 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     nrHelper->SetGnbAntennaAttribute("AntennaVerticalSpacing", DoubleValue(gnbVSpacing));
 
     nrHelper->SetGnbAntennaAttribute("DowntiltAngle", DoubleValue(downtiltAngle * M_PI / 180.0));
+
+    nrHelper->SetGnbAntennaAttribute("IsDualPolarized", BooleanValue(dualPolarizedGnb));
+    nrHelper->SetGnbAntennaAttribute("PolSlantAngle", DoubleValue(PolSlantAngleGnb * M_PI / 180.0));
+    nrHelper->SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(numVPortsGnb));
+    nrHelper->SetGnbAntennaAttribute("NumHorizontalPorts", UintegerValue(numHPortsGnb));
+    // nrHelper->SetUeSpectrumAttribute("NumAntennaPanel", UintegerValue(1));
 
     if (gnbEnable3gppElement)
     {

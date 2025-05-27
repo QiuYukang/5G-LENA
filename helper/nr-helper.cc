@@ -1066,8 +1066,6 @@ NrHelper::AttachToMaxRsrpGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceCont
     nrInitAssoc->SetColBeamAngles(m_initialParams.colAngles);
     nrInitAssoc->SetRowBeamAngles(m_initialParams.rowAngles);
     nrInitAssoc->FindAssociatedGnb();
-    NS_ASSERT_MSG(nrInitAssoc->CheckNumBeamsAllowed(),
-                  "Number of gNB beams in this frequency is not supported");
     auto maxRsrpEnbDevice = nrInitAssoc->GetAssociatedGnb();
     NS_ASSERT(maxRsrpEnbDevice);
 

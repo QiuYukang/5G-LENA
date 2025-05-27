@@ -105,8 +105,13 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
      *        that will have a random antenna height > 1.5 m
      * @param speed UE speed
      * @param percentage Percentage (decimal) of UEs with random antenna height > 1.5 m
+     * @param mobilityModel Mobility model to pass for the UE with speed, default value
+     * "ns3::ConstantVelocityMobilityModel"
      */
-    void CreateScenarioWithMobility(const Vector& speed, double percentage);
+    void CreateScenarioWithMobility(
+        const Vector& speed,
+        double percentage,
+        const std::string& mobilityModel = "ns3::ConstantVelocityMobilityModel");
 
     /**
      * Assign a fixed random variable stream number to the random variables

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include "ns3/nr-module.h"
 #include "ns3/nstime.h"
 
 #include <ostream>
@@ -27,6 +28,7 @@ struct Parameters
     bool logging = false;
     bool basicTraces = false;
     bool extendedTraces = false;
+    bool attachRsrp = true;
     std::string simulator = "5GLENA";
     std::string scenario = "UMa";
     std::string radioNetwork = "";     // It must be set to NR
@@ -51,6 +53,34 @@ struct Parameters
 
     double gnbTxPower = 40;
     double ueTxPower = 23;
+    bool enableMimo = false;
+    NrHelper::MimoPmiParams mimoPmiParams;
+    NrHelper::InitialAssocParams initParams;
+
+    uint8_t numVPortsGnb = 2;
+    uint8_t numHPortsGnb = 2;
+    uint8_t numVPortsUe = 1;
+    uint8_t numHPortsUe = 1;
+
+    double polSlantAngleGnb = 0.0;
+    double polSlantAngleUe = 0.0;
+
+    bool dualPolarizedGnb = false;
+    bool dualPolarizedUe = false;
+
+    bool ftpM1Enabled = false;
+    uint16_t ftpPort = 2001;
+
+    double ftpLambda = 1.7;
+    uint32_t ftpFileSize = 512000; // in bytes
+
+    uint32_t ftpClientAppStartTimeMs = 400;
+    uint32_t ftpServerAppStartTimeMs = 400;
+    Time appStopWindow = MilliSeconds(1000);
+
+    bool enableSubbandScheluder = false;
+    bool m_subbandCqiClamping = true;
+    EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource;
 
     double isd = 1732;
     double bsHeight = 30.0;

@@ -29,7 +29,9 @@
 #include "ns3/sqlite-output.h"
 
 #include <iomanip>
+#include <iostream>
 
+using namespace std;
 /*
  * To be able to use LOG_* functions.
  */
@@ -73,6 +75,71 @@ CreateLowLatTft(uint16_t start, uint16_t end, std::string dir)
 
 template Ptr<ns3::EpcTft> CreateLowLatTft<ns3::EpcTft>(uint16_t, uint16_t, std::string);
 template Ptr<ns3::NrEpcTft> CreateLowLatTft<ns3::NrEpcTft>(uint16_t, uint16_t, std::string);
+
+static std::vector<Ptr<ThreeGppFtpM1Helper>> ftpHelpers;
+static std::vector<ApplicationContainer> ftpServerAppsVec;
+static std::vector<ApplicationContainer> ftpClientAppsVec;
+
+void
+GroupUesByCellIdAndStartFtp(NodeContainer ueNodes,
+                            Ipv4InterfaceContainer ueIpIfaces,
+                            NodeContainer remoteHostContainer,
+                            ApplicationContainer& serverApps,
+                            ApplicationContainer& clientApps,
+                            Parameters& params)
+{
+    std::map<uint16_t, NodeContainer> cellIdToUeMap;
+    std::map<uint16_t, Ipv4InterfaceContainer> cellIdToIfaceMap;
+    // Group UEs by their serving Cell ID
+    for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
+    {
+        Ptr<Node> ueNode = ueNodes.Get(i);
+        Ptr<NetDevice> dev = ueNode->GetDevice(0);
+        Ptr<NrUeNetDevice> ueNetDev = DynamicCast<NrUeNetDevice>(dev);
+        if (ueNetDev->GetRrc()->GetCellId() == 0)
+        {
+            NS_LOG_WARN("UE " << i << " has not yet attached to any cell.");
+
+            continue;
+        }
+        std::cout << "UE " << i << " attached to cell." << ueNetDev->GetRrc()->GetCellId()
+                  << std::endl;
+        uint16_t cellId = ueNetDev->GetRrc()->GetCellId();
+        cellIdToUeMap[cellId].Add(ueNode);
+        cellIdToIfaceMap[cellId].Add(ueIpIfaces.Get(i));
+    }
+
+    ftpServerAppsVec.reserve(cellIdToUeMap.size());
+    ftpClientAppsVec.reserve(cellIdToUeMap.size());
+    ftpHelpers.reserve(cellIdToUeMap.size());
+    // Create FTP apps per cell
+    for (auto& [cellId, ueGroup] : cellIdToUeMap)
+    {
+        NS_LOG_INFO("Configuring FTP for Cell ID: " << cellId << " with " << ueGroup.GetN()
+                                                    << " UEs");
+        Ipv4InterfaceContainer& ifaceGroup = cellIdToIfaceMap[cellId];
+        // FIRST push empty containers into vector
+        ftpServerAppsVec.emplace_back();
+        ftpClientAppsVec.emplace_back();
+        ftpHelpers.emplace_back(CreateObject<ThreeGppFtpM1Helper>(&ftpServerAppsVec.back(),
+                                                                  &ftpClientAppsVec.back(),
+                                                                  &ueGroup,
+                                                                  &remoteHostContainer,
+                                                                  &ifaceGroup));
+
+        ftpHelpers.back()->Configure(params.ftpPort,
+                                     MilliSeconds(params.ftpServerAppStartTimeMs),
+                                     MilliSeconds(params.ftpClientAppStartTimeMs),
+                                     MilliSeconds(params.ftpClientAppStartTimeMs) +
+                                         params.appGenerationTime + params.appStopWindow,
+                                     params.ftpLambda,
+                                     params.ftpFileSize);
+        ftpHelpers.back()->SetMaxFilesNumPerUe(1);
+        ftpHelpers.back()->Start();
+        serverApps.Add(ftpServerAppsVec.back());
+        clientApps.Add(ftpClientAppsVec.back());
+    }
+}
 
 static std::pair<ApplicationContainer, Time>
 InstallApps(const Ptr<Node>& ue,
@@ -182,8 +249,9 @@ Parameters::Validate() const
                     "Realistic BF should not be enabled in when fading is disabled");
     // NS_ABORT_MSG_IF (enableFading == false && enableShadowing == true,
     //                  "Shadowing must be disabled fading is disabled mode");
-    NS_ABORT_MSG_IF(bfMethod != "Omni" && bfMethod != "CellScan" && bfMethod != "FixedBeam",
-                    "For bfMethod you can choose among Omni, CellScan, and FixedBeam");
+    NS_ABORT_MSG_IF(bfMethod != "Omni" && bfMethod != "CellScan" &&
+                        bfMethod != "KroneckerQuasiOmniBeamforming" && bfMethod != "FixedBeam",
+                    "For bfMethod you can choose among Omni, CellScan and FixedBeam");
     NS_ABORT_MSG_IF(confType != "customConf" && confType != "calibrationConf",
                     "Unrecognized Configuration type: " << confType);
 
@@ -197,6 +265,8 @@ Parameters::Validate() const
         {
             NS_ABORT_MSG_IF(
                 (nrConfigurationScenario != "DenseA" && nrConfigurationScenario != "DenseB" &&
+                 nrConfigurationScenario != "DenseAmimo" &&
+                 nrConfigurationScenario != "DenseAmimoIntel" &&
                  nrConfigurationScenario != "RuralA" && nrConfigurationScenario != "RuralB"),
                 "NR needs one of the NR pre-defined scenarios to be specified");
         }
@@ -272,6 +342,104 @@ ChooseCalibrationScenario(Parameters& params)
                 params.downtiltAngle = 0;
                 params.gnbNoiseFigure = 5;
                 params.ueNoiseFigure = 7;
+            }
+
+            if (params.nrConfigurationScenario == "DenseAmimo")
+            {
+                // Parameters based on  RP-180524 DenseA
+                params.scenario = "UMa";
+                params.startingFreq = 4e9;
+                params.bandwidthMHz = 10;
+                params.gnbTxPower = 41;
+                params.bsHeight = 25;
+                params.uesWithRandomUtHeight = 0.8;
+                params.isd = 200;
+                params.o2iThreshold = 0.8;
+                params.o2iLowLossThreshold = 0.8;
+
+                params.linkO2iConditionToAntennaHeight = true;
+                params.minBsUtDistance = 10;
+                params.gnbNumRows = 8;
+                params.gnbNumColumns = 8;
+                params.polSlantAngleGnb = 45;
+
+                params.gnbHSpacing = 0.5;
+                params.gnbVSpacing = 0.8;
+
+                params.dualPolarizedGnb = true;
+                params.numVPortsGnb = 2;
+                params.numHPortsGnb = 1;
+                params.polSlantAngleUe = 0;
+
+                params.ueNumColumns = 2;
+                params.numVPortsUe = 1;
+                params.numHPortsUe = 2;
+                params.ueHSpacing = 0.5;
+                params.dualPolarizedUe = true;
+                params.ueEnable3gppElement = false;
+                params.downtiltAngle = 0;
+                params.gnbNoiseFigure = 5;
+                params.ueNoiseFigure = 7;
+
+                params.initParams.rowAngles = {-56.25, -33.75, -11.25, 11.25, 33.75, 56.25};
+                params.initParams.colAngles = {112.5, 157.5};
+                params.attachRsrp = true;
+            }
+
+            else if (params.nrConfigurationScenario == "DenseAmimoIntel")
+            {
+                // Parameters based on  Intel R1-1707360
+                params.freqScenario = 1;
+                params.scenario = "UMa";
+                params.startingFreq = 4e9;
+                params.bandwidthMHz = 10;
+                params.gnbTxPower = 41;
+                params.bsHeight = 25;
+                params.uesWithRandomUtHeight = 0.8;
+                params.isd = 200;
+                params.o2iThreshold = 0.8;
+                params.o2iLowLossThreshold = 0.8;
+                params.linkO2iConditionToAntennaHeight = true;
+                params.minBsUtDistance = 10;
+                params.gnbNumRows = 8;
+                params.gnbNumColumns = 2;
+                params.polSlantAngleGnb = 45;
+                params.gnbHSpacing = 0.5;
+                params.gnbVSpacing = 0.8;
+                params.dualPolarizedGnb = true;
+                params.numVPortsGnb = 2;
+                params.numHPortsGnb = 2;
+
+                params.polSlantAngleUe = 0;
+                params.ueNumRows = 1;
+                params.ueNumColumns = 2;
+                params.numVPortsUe = 1;
+                params.numHPortsUe = 2;
+                params.ueHSpacing = 0.5;
+                params.dualPolarizedUe = true;
+                params.ueEnable3gppElement = false;
+                params.gnbEnable3gppElement = true;
+                params.downtiltAngle = 100;
+                params.gnbNoiseFigure = 5;
+                params.attachRsrp = true;
+                params.ueNoiseFigure = 9;
+                params.ftpM1Enabled = true;
+                params.scheduler = "PF";
+
+                params.initParams.rowAngles = {-56.25, -33.75, -11.25, 11.25, 33.75, 56.25};
+                params.initParams.colAngles = {112.5, 157.5};
+
+                params.numerologyBwp = 0;
+                params.initParams.handoffMargin = 3;
+                params.enableMimo = true;
+                params.mimoPmiParams.rankLimit = 2;
+                params.mimoPmiParams.subbandSize = 1;
+                params.mimoPmiParams.fullSearchCb = "ns3::NrCbTypeOneSp";
+
+                params.enableSubbandScheluder = true;
+                params.m_subbandCqiClamping = true;
+                // one of  McsCsiSource::(AVG_MCS|AVG_SPEC_EFF|AVG_SINR|WIDEBAND_MCS), defaults to
+                params.m_mcsCsiSource = NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS;
             }
             else if (params.nrConfigurationScenario == "DenseB")
             {
@@ -498,8 +666,8 @@ Nr3gppCalibration(Parameters& params)
      * the instances of SetDefault, but we need it for legacy code (LTE)
      */
     std::cout << "  max tx buffer size\n";
-    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
     /*
      * Create the scenario. In our examples, we heavily use helpers that setup
@@ -544,7 +712,8 @@ Nr3gppCalibration(Parameters& params)
     gridScenario.SetMaxUeDistanceToClosestSite(params.maxUeClosestSiteDistance);
     gridScenario.CreateScenarioWithMobility(
         Vector(params.speed, 0, 0),
-        params.uesWithRandomUtHeight); // move UEs along the x axis
+        params.uesWithRandomUtHeight,
+        "ns3::FastFadingConstantPositionMobilityModel"); // move UEs along the x axis
 
     gnbNodes = gridScenario.GetBaseStations();
     ueNodes = gridScenario.GetUserTerminals();
@@ -733,7 +902,22 @@ Nr3gppCalibration(Parameters& params)
                                                   params.bfConfSector,
                                                   params.bfConfElevation,
                                                   params.isd,
-                                                  params.ueBearingAngle);
+                                                  params.ueBearingAngle,
+                                                  params.polSlantAngleGnb,
+                                                  params.polSlantAngleUe,
+                                                  params.dualPolarizedGnb,
+                                                  params.dualPolarizedUe,
+                                                  params.numVPortsGnb,
+                                                  params.numHPortsGnb,
+                                                  params.numVPortsUe,
+                                                  params.numHPortsUe,
+                                                  params.enableMimo,
+                                                  params.mimoPmiParams,
+                                                  params.enableSubbandScheluder,
+                                                  params.m_subbandCqiClamping,
+                                                  params.m_mcsCsiSource,
+                                                  params.simTag,
+                                                  params.outputDir);
     }
 
     // Check we got one valid helper
@@ -804,38 +988,46 @@ Nr3gppCalibration(Parameters& params)
         ueStaticRouting->SetDefaultRoute(gatewayAddress, 1);
     }
 
-    if (nrHelper != nullptr && params.attachToClosest)
+    if (params.attachRsrp)
     {
-        nrHelper->AttachToClosestGnb(ueNetDevs, gnbNetDevs);
+        nrHelper->SetupInitialAssoc(params.initParams);
+        nrHelper->AttachToMaxRsrpGnb(ueNetDevs, gnbNetDevs);
     }
     else
     {
-        // attach UEs to their gNB. Try to attach them per cellId order
-        std::cout << "  attach UEs to gNBs\n" << std::endl;
-        for (uint32_t ueId = 0; ueId < ueNodes.GetN(); ++ueId)
+        if (nrHelper != nullptr && params.attachToClosest)
         {
-            auto cellId = scenario->GetCellIndex(ueId);
-            Ptr<NetDevice> gnbNetDev = gnbNodes.Get(cellId)->GetDevice(0);
-            Ptr<NetDevice> ueNetDev = ueNodes.Get(ueId)->GetDevice(0);
-            if (lteHelper != nullptr)
+            nrHelper->AttachToClosestGnb(ueNetDevs, gnbNetDevs);
+        }
+        else
+        {
+            // attach UEs to their gNB. Try to attach them per cellId order
+            std::cout << "  attach UEs to gNBs\n" << std::endl;
+            for (uint32_t ueId = 0; ueId < ueNodes.GetN(); ++ueId)
             {
-                lteHelper->Attach(ueNetDev, gnbNetDev);
-            }
-            else if (nrHelper != nullptr)
-            {
-                nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
-                auto uePhyBwp0{nrHelper->GetUePhy(ueNetDev, 0)};
-                auto gnbPhyBwp0{nrHelper->GetGnbPhy(gnbNetDev, 0)};
-                Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
-                Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
-                double distance = CalculateDistance(gnbpos, uepos);
-                std::cout << "ueId " << ueId << ", cellIndex " << cellId << " ue Pos: " << uepos
-                          << " gnb Pos: " << gnbpos << ", ue freq "
-                          << uePhyBwp0->GetCentralFrequency() / 1e9 << ", gnb freq "
-                          << gnbPhyBwp0->GetCentralFrequency() / 1e9 << ", sector "
-                          << scenario->GetSectorIndex(cellId) << ", distance " << distance
-                          << ", azimuth gnb->ue:"
-                          << RadiansToDegrees(Angles(gnbpos, uepos).GetAzimuth()) << std::endl;
+                auto cellId = scenario->GetCellIndex(ueId);
+                Ptr<NetDevice> gnbNetDev = gnbNodes.Get(cellId)->GetDevice(0);
+                Ptr<NetDevice> ueNetDev = ueNodes.Get(ueId)->GetDevice(0);
+                if (lteHelper != nullptr)
+                {
+                    lteHelper->Attach(ueNetDev, gnbNetDev);
+                }
+                else if (nrHelper != nullptr)
+                {
+                    nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
+                    auto uePhyBwp0{nrHelper->GetUePhy(ueNetDev, 0)};
+                    auto gnbPhyBwp0{nrHelper->GetGnbPhy(gnbNetDev, 0)};
+                    Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
+                    Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
+                    double distance = CalculateDistance(gnbpos, uepos);
+                    std::cout << "ueId " << ueId << ", cellIndex " << cellId << " ue Pos: " << uepos
+                              << " gnb Pos: " << gnbpos << ", ue freq "
+                              << uePhyBwp0->GetCentralFrequency() / 1e9 << ", gnb freq "
+                              << gnbPhyBwp0->GetCentralFrequency() / 1e9 << ", sector "
+                              << scenario->GetSectorIndex(cellId) << ", distance " << distance
+                              << ", azimuth gnb->ue:"
+                              << RadiansToDegrees(Angles(gnbpos, uepos).GetAzimuth()) << std::endl;
+                }
             }
         }
     }
@@ -845,86 +1037,106 @@ Nr3gppCalibration(Parameters& params)
         Simulator::Schedule(MilliSeconds(100), &PrintUePosition, ueNetDevs, ueNodes);
     }
 
-    /*
-     * Traffic part. Install two kind of traffic: low-latency and voice, each
-     * identified by a particular source port.
-     */
-    std::cout << "  server factory\n";
-    uint16_t dlPortLowLat = 1234;
-
     ApplicationContainer serverApps;
-
-    // The sink will always listen to the specified ports
-    UdpServerHelper dlPacketSinkLowLat(dlPortLowLat);
-
-    // The server, that is the application which is listening, is installed in the UE
-    if (params.direction == "DL")
-    {
-        serverApps.Add(dlPacketSinkLowLat.Install(ueNodes));
-    }
-    else
-    {
-        serverApps.Add(dlPacketSinkLowLat.Install(remoteHost));
-    }
-
-    // start UDP server
-    serverApps.Start(params.udpAppStartTime);
-
-    /*
-     * Configure attributes for the different generators, using user-provided
-     * parameters for generating a CBR traffic
-     *
-     * Low-Latency configuration and object creation:
-     */
-    Time interval = Seconds(1.0 / lambda);
-    std::cout << "  client factory:"
-              << "\n    packet size: " << udpPacketSize << "\n    interval:    " << interval
-              << "\n    max packets: " << packetCount << std::endl;
-
-    UdpClientHelper dlClientLowLat;
-    dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(packetCount));
-    dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
-    dlClientLowLat.SetAttribute("Interval", TimeValue(interval));
-
-    /*
-     * Let's install the applications!
-     */
-    std::cout << "  applications\n";
     ApplicationContainer clientApps;
-    Ptr<UniformRandomVariable> startRng = CreateObject<UniformRandomVariable>();
-    startRng->SetStream(RngSeedManager::GetRun());
     Time maxStartTime;
+    /*
+     * Let's install FTP applications!
+     */
 
-    for (uint32_t ueId = 0; ueId < ueNodes.GetN(); ++ueId)
+    if (params.ftpM1Enabled)
     {
-        auto cellId = scenario->GetCellIndex(ueId);
-        auto sector = scenario->GetSectorIndex(cellId);
-        auto siteId = scenario->GetSiteIndex(cellId);
-        Ptr<Node> node = ueNodes.Get(ueId);
-        Ptr<NetDevice> dev = ueNetDevs.Get(ueId);
-        Address addr = ueIpIfaces.GetAddress(ueId);
+        // Somewhere in your main simulation setup:
 
-        std::cout << "app for ue " << ueId << ", cellId " << cellId << ", sector " << sector
-                  << ", siteId " << siteId;
-        // << ":" << std::endl;
-
-        auto app = InstallApps(node,
-                               dev,
-                               addr,
-                               params.direction,
-                               &dlClientLowLat,
-                               remoteHost,
-                               remoteHostAddr,
-                               params.udpAppStartTime,
-                               dlPortLowLat,
-                               startRng,
-                               params.appGenerationTime,
-                               lteHelper,
-                               nrHelper);
-        maxStartTime = std::max(app.second, maxStartTime);
-        clientApps.Add(app.first);
+        Simulator::Schedule(Seconds(0.3),
+                            &GroupUesByCellIdAndStartFtp,
+                            ueNodes,
+                            ueIpIfaces,
+                            remoteHostContainer,
+                            serverApps,
+                            clientApps,
+                            params);
     }
-    std::cout << clientApps.GetN() << " apps\n";
+    else // UDP
+    {
+        /*
+         * Traffic part. Install two kind of traffic: low-latency and voice, each
+         * identified by a particular source port.
+         */
+        std::cout << "  server factory\n";
+        uint16_t dlPortLowLat = 1234;
+
+        // The sink will always listen to the specified ports
+        UdpServerHelper dlPacketSinkLowLat(dlPortLowLat);
+
+        // The server, that is the application which is listening, is installed in the UE
+        if (params.direction == "DL")
+        {
+            serverApps.Add(dlPacketSinkLowLat.Install(ueNodes));
+        }
+        else
+        {
+            serverApps.Add(dlPacketSinkLowLat.Install(remoteHost));
+        }
+
+        // start UDP server
+        serverApps.Start(params.udpAppStartTime);
+
+        /*
+         * Configure attributes for the different generators, using user-provided
+         * parameters for generating a CBR traffic
+         *
+         * Low-Latency configuration and object creation:
+         */
+        Time interval = Seconds(1.0 / lambda);
+        std::cout << "  client factory:"
+                  << "\n    packet size: " << udpPacketSize << "\n    interval:    " << interval
+                  << "\n    max packets: " << packetCount << std::endl;
+
+        UdpClientHelper dlClientLowLat;
+        dlClientLowLat.SetAttribute("MaxPackets", UintegerValue(packetCount));
+        dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
+        dlClientLowLat.SetAttribute("Interval", TimeValue(interval));
+
+        /*
+         * Let's install the applications!
+         */
+        std::cout << "  applications\n";
+        ApplicationContainer clientApps;
+        Ptr<UniformRandomVariable> startRng = CreateObject<UniformRandomVariable>();
+        startRng->SetStream(RngSeedManager::GetRun());
+        Time maxStartTime;
+
+        for (uint32_t ueId = 0; ueId < ueNodes.GetN(); ++ueId)
+        {
+            auto cellId = scenario->GetCellIndex(ueId);
+            auto sector = scenario->GetSectorIndex(cellId);
+            auto siteId = scenario->GetSiteIndex(cellId);
+            Ptr<Node> node = ueNodes.Get(ueId);
+            Ptr<NetDevice> dev = ueNetDevs.Get(ueId);
+            Address addr = ueIpIfaces.GetAddress(ueId);
+
+            std::cout << "app for ue " << ueId << ", cellId " << cellId << ", sector " << sector
+                      << ", siteId " << siteId;
+
+            auto app = InstallApps(node,
+                                   dev,
+                                   addr,
+                                   params.direction,
+                                   &dlClientLowLat,
+                                   remoteHost,
+                                   remoteHostAddr,
+                                   params.udpAppStartTime,
+                                   dlPortLowLat,
+                                   startRng,
+                                   params.appGenerationTime,
+                                   lteHelper,
+                                   nrHelper);
+            maxStartTime = std::max(app.second, maxStartTime);
+            clientApps.Add(app.first);
+        }
+        std::cout << clientApps.GetN() << " apps\n";
+    }
 
     // enable the traces provided by the nr module
     std::cout << "  tracing\n";
@@ -935,7 +1147,7 @@ Nr3gppCalibration(Parameters& params)
     }
     else if (nrHelper != nullptr && params.extendedTraces)
     {
-        nrHelper->EnableTraces();
+        //  nrHelper->EnableTraces();
         nrHelper->GetPhyRxTrace()->SetSimTag(params.simTag);
         nrHelper->GetPhyRxTrace()->SetResultsFolder(params.outputDir);
     }
@@ -966,10 +1178,10 @@ Nr3gppCalibration(Parameters& params)
     std::string tableName = "e2e";
 
     Ptr<NrRadioEnvironmentMapHelper>
-        remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it gets
-                   // destroyed, and when simulation starts the object does not exist anymore, but
-                   // the scheduled REM events do (exist). So, REM events would be called with
-                   // invalid pointer to remHelper ...
+        remHelper; // Must be placed outside of block "if (generateRem)" because otherwise it
+                   // gets destroyed, and when simulation starts the object does not exist
+                   // anymore, but the scheduled REM events do (exist). So, REM events would be
+                   // called with invalid pointer to remHelper ...
     if (params.operationMode == "FDD")
     {
         Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
@@ -1065,8 +1277,7 @@ Nr3gppCalibration(Parameters& params)
     std::cout << "\n----------------------------------------\n"
               << "Start simulation" << std::endl;
     // Add some extra time for the last generated packets to be received
-    const Time appStopWindow = MilliSeconds(50);
-    Time stopTime = maxStartTime + params.appGenerationTime + appStopWindow;
+    Time stopTime = maxStartTime + params.appGenerationTime + params.appStopWindow;
     Simulator::Stop(stopTime);
     Simulator::Run();
 
@@ -1077,16 +1288,114 @@ Nr3gppCalibration(Parameters& params)
     rbStats.EmptyCache();
 
     /*
-     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
-     * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
-    GtkConfigStore config;
-    config.ConfigureAttributes ();
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its
+    configuration.
+     * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy ->
+    Numerology, GtkConfigStore config; config.ConfigureAttributes ();
     */
 
     FlowMonitorOutputStats flowMonStats;
     flowMonStats.SetDb(&db, tableName);
     flowMonStats.Save(monitor, flowmonHelper, params.outputDir + "/" + params.simTag);
-
+    /*
+     * To check what was installed in the memory, i.e., BWPs of gNB Device, and its configuration.
+     * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy -> Numerology,
+    GtkConfigStore config;
+    config.ConfigureAttributes ();
+    */
+    // Print per-flow statistics
+    monitor->CheckForLostPackets();
+    Ptr<Ipv4FlowClassifier> classifier =
+        DynamicCast<Ipv4FlowClassifier>(flowmonHelper.GetClassifier());
+    FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats();
+    // Print the number of flows (i.e., number of elements)
+    std::cout << "Number of flows i stat: " << stats.size() << std::endl;
+    double averageFlowThroughput = 0.0;
+    double averageFlowDelay = 0.0;
+    std::vector<double> delayValues;
+    std::vector<double> thrValues;
+    delayValues.reserve(stats.size());
+    thrValues.reserve(stats.size());
+    uint64_t cont = 0;
+    uint64_t cont2 = 0;
+    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
+         i != stats.end();
+         ++i)
+    {
+        Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
+        std::stringstream protoStream;
+        protoStream << (uint16_t)t.protocol;
+        if (t.protocol == 6)
+        {
+            protoStream.str("TCP");
+        }
+        if (t.protocol == 17)
+        {
+            protoStream.str("UDP");
+        }
+        if (i->second.rxPackets > 0)
+        {
+            // Measure the duration of the flow from receiver's perspective
+            double rxDuration;
+            if (params.ftpM1Enabled)
+            {
+                rxDuration = i->second.timeLastRxPacket.GetSeconds() -
+                             i->second.timeFirstTxPacket.GetSeconds(); // FTP (s)
+            }
+            else
+            {
+                rxDuration =
+                    (stopTime.GetMilliSeconds() - params.appGenerationTime.GetMilliSeconds()) /
+                    1000.0; // CBR (s)
+            }
+            averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
+            thrValues.push_back(i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000); // Mbps.
+            std::cout << "cont2:" << cont2 << ",thr value is:" << thrValues[cont2]
+                      << ", and rxBytes:" << i->second.rxBytes
+                      << ", and tx bytes:" << i->second.txBytes << ", for duration:" << rxDuration
+                      << std::endl;
+            averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
+            delayValues.push_back(1000 * i->second.delaySum.GetSeconds() /
+                                  i->second.rxPackets); // ms.
+            cont++;
+            cont2++;
+        }
+        else if (!params.ftpM1Enabled)
+        {
+            thrValues.push_back(0);
+            cont2++;
+        }
+    }
+    // std::sort(thrValues, thrValues + cont2);
+    std::stable_sort(thrValues.begin(), thrValues.end());
+    std::stable_sort(delayValues.begin(), delayValues.end());
+    double thrSum = 0.0;
+    for (uint32_t i = 0; i < cont2; i++)
+    {
+        std::cout << "thr value:" << thrValues[i] << " ";
+        // m_thrTraceFile << thrValues [i] << std::endl;
+        thrSum += thrValues[i];
+    }
+    std::cout << "Number of flows i stat: " << stats.size() << std::endl;
+    double FiftyTileFlowDelay = delayValues[cont / 2];
+    double FiftyTileThr = thrValues[cont2 / 2];
+    uint64_t index = std::floor(cont * 0.95);
+    uint64_t index2 = std::floor(cont2 * 0.95);
+    double NinetyFiveTileFlowDelay = delayValues[index];
+    double NinetyFiveTileThr = thrValues[index2];
+    index = std::floor(cont * 0.05);
+    index2 = std::floor(cont2 * 0.05);
+    double FiveTileFlowDelay = delayValues[index];
+    double FiveTileThr = thrValues[index2];
+    std::cout << "\n\n  Sum UPT: " << thrSum << "\n";
+    std::cout << "  Mean user perceived throughput: " << averageFlowThroughput / cont2 << "\n";
+    std::cout << "  95tile UPT: " << NinetyFiveTileThr << "\n";
+    std::cout << "  Median UPT: " << FiftyTileThr << "\n";
+    std::cout << "  5tile UPT: " << FiveTileThr << "\n";
+    std::cout << "  Mean delay: " << averageFlowDelay / cont << "\n";
+    std::cout << "  95tile delay: " << NinetyFiveTileFlowDelay << "\n";
+    std::cout << "  Median delay: " << FiftyTileFlowDelay << "\n";
+    std::cout << "  5tile delay: " << FiveTileFlowDelay << "\n";
     std::cout << "\n----------------------------------------\n"
               << "End simulation" << std::endl;
 

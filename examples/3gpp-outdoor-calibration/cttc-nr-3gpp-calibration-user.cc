@@ -5,6 +5,7 @@
 #include "cttc-nr-3gpp-calibration.h"
 
 #include "ns3/command-line.h"
+#include "ns3/core-module.h"
 #include "ns3/show-progress.h"
 
 using namespace ns3;
@@ -56,7 +57,7 @@ main(int argc, char* argv[])
                  params.confType);
     cmd.AddValue("nrConfigurationScenario",
                  "The NR calibration scenario string. Choose among:"
-                 "DenseA, DenseB, RuralA, RuralB"
+                 "DenseA, DenseAmimo, DenseAmimoIntel, DenseB, RuralA, RuralB"
                  "This variable must be set when calibrationConf is chosen",
                  params.nrConfigurationScenario);
     cmd.AddValue("scenario",
@@ -248,6 +249,13 @@ main(int argc, char* argv[])
                  "otherwise it is O2I.",
                  params.linkO2iConditionToAntennaHeight);
     cmd.AddValue("ueSpeed", "The UE speed.", params.speed);
+
+    cmd.AddValue("ftpM1Enabled", "Enable FTP", params.ftpM1Enabled);
+    cmd.AddValue("ftpLambda",
+                 "Lambda used in FTP (ftpM1Enabled must set to true)",
+                 params.ftpLambda);
+    cmd.AddValue("ftpFileSize", "ftpFileSize used in FTP ( must set to true)", params.ftpFileSize);
+    cmd.AddValue("enableMimo", "Enable MIMO in the simulation", params.enableMimo);
 
     // Parse the command line
     cmd.Parse(argc, argv);

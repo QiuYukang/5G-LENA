@@ -505,7 +505,9 @@ HexagonalGridScenarioHelper::CreateScenario()
 }
 
 void
-HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed, double percentage)
+HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
+                                                        double percentage,
+                                                        const std::string& mobilityModel)
 {
     m_hexagonalRadius = m_isd / 3;
 
@@ -656,13 +658,26 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed, dou
 
     if (speed.GetLength())
     {
-        ueMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        ueMobility.SetPositionAllocator(utPosVector);
-        ueMobility.Install(m_ut);
-
-        for (uint32_t i = 0; i < m_ut.GetN(); i++)
+        if (mobilityModel == "ns3::ConstantVelocityMobilityModel")
         {
-            m_ut.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(speed);
+            ueMobility.SetMobilityModel(mobilityModel);
+            ueMobility.SetPositionAllocator(utPosVector);
+            ueMobility.Install(m_ut);
+
+            for (uint32_t i = 0; i < m_ut.GetN(); i++)
+            {
+                m_ut.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(speed);
+            }
+        }
+        else if (mobilityModel == "ns3::FastFadingConstantPositionMobilityModel")
+        {
+            ueMobility.SetMobilityModel(mobilityModel, "FakeVelocity", VectorValue(speed));
+            ueMobility.SetPositionAllocator(utPosVector);
+            ueMobility.Install(m_ut);
+        }
+        else
+        {
+            NS_ABORT_MSG("not supported mobility model");
         }
     }
     else
