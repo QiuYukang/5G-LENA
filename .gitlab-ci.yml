@@ -20,7 +20,7 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 variables:
-  NS3_RELEASE_VERSION: ns-3.44
+  NS3_RELEASE_VERSION: ns-3.45
   NS3_REPOSITORY_URL: https://gitlab.com/nsnam/ns-3-dev
 
 ###################### BUILD STAGE #############################################

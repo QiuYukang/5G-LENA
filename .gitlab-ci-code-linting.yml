@@ -23,7 +23,7 @@ check-style-clang-format:
     - apt update
     - DEBIAN_FRONTEND=noninteractive apt install -y
       python3
-      clang-format-15
+      clang-format-17
       git
   script:
     - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
