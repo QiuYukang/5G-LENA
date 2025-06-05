@@ -229,6 +229,8 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-ngmn-video.cc
     utils/traffic-generators/model/traffic-generator-ngmn-voip.cc
     utils/traffic-generators/model/traffic-generator.cc
+    utils/wraparound-model/hexagonal-wraparound-model.cc
+    utils/wraparound-three-gpp-spectrum-propagation-loss-model.cc
 )
 
 set(header_files
@@ -438,6 +440,8 @@ set(header_files
     utils/traffic-generators/model/traffic-generator-ngmn-video.h
     utils/traffic-generators/model/traffic-generator-ngmn-voip.h
     utils/traffic-generators/model/traffic-generator.h
+    utils/wraparound-model/hexagonal-wraparound-model.h
+    utils/wraparound-three-gpp-spectrum-propagation-loss-model.h
 )
 
 set(test_sources
@@ -495,6 +499,7 @@ set(test_sources
     test/system-scheduler-test.cc
     test/ul-scheduling-test.cc
     utils/traffic-generators/test/traffic-generator-test.cc
+    utils/wraparound-model/wraparound-model-test.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
