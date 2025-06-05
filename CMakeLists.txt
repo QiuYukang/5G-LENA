@@ -7,8 +7,8 @@ if(${ENABLE_EIGEN})
       model/nr-mimo-matrices-eigen.cc
   )
   set(eigen_tests
-      test/nr-test-ri-pmi.cc
       test/nr-test-csi.cc
+      test/nr-test-ri-pmi.cc
   )
 else()
   message(
@@ -60,6 +60,7 @@ set(source_files
     helper/nr-bearer-stats-calculator.cc
     helper/nr-bearer-stats-connector.cc
     helper/nr-bearer-stats-simple.cc
+    helper/nr-channel-helper.cc
     helper/nr-epc-helper.cc
     helper/nr-helper.cc
     helper/nr-mac-rx-trace.cc
@@ -74,7 +75,6 @@ set(source_files
     helper/realistic-beamforming-helper.cc
     helper/scenario-parameters.cc
     helper/three-gpp-ftp-m1-helper.cc
-    helper/nr-channel-helper.cc
     model/bandwidth-part-gnb.cc
     model/bandwidth-part-ue.cc
     model/beam-id.cc
@@ -98,6 +98,7 @@ set(source_files
     model/nr-common.cc
     model/nr-component-carrier.cc
     model/nr-control-messages.cc
+    model/nr-csi-rs-filter.cc
     model/nr-eesm-cc-t1.cc
     model/nr-eesm-cc-t2.cc
     model/nr-eesm-cc.cc
@@ -122,8 +123,8 @@ set(source_files
     model/nr-eps-bearer.cc
     model/nr-error-model.cc
     model/nr-fh-control.cc
-    model/nr-fh-sched-sap.cc
     model/nr-fh-phy-sap.cc
+    model/nr-fh-sched-sap.cc
     model/nr-gnb-component-carrier-manager.cc
     model/nr-gnb-mac.cc
     model/nr-gnb-net-device.cc
@@ -170,7 +171,6 @@ set(source_files
     model/nr-mimo-chunk-processor.cc
     model/nr-mimo-matrices.cc
     model/nr-mimo-signal.cc
-    model/nr-csi-rs-filter.cc
     model/nr-net-device.cc
     model/nr-no-op-component-carrier-manager.cc
     model/nr-no-op-handover-algorithm.cc
@@ -213,6 +213,10 @@ set(source_files
     model/realistic-bf-manager.cc
     model/resource-assignment-matrix.cc
     model/sfnsf.cc
+    utils/channels/nyu/nyu-channel-condition-model.cc
+    utils/channels/nyu/nyu-channel-model.cc
+    utils/channels/nyu/nyu-propagation-loss-model.cc
+    utils/channels/nyu/nyu-spectrum-propagation-loss-model.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
     utils/traffic-generators/helper/traffic-generator-helper.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
@@ -225,16 +229,11 @@ set(source_files
     utils/traffic-generators/model/traffic-generator-ngmn-video.cc
     utils/traffic-generators/model/traffic-generator-ngmn-voip.cc
     utils/traffic-generators/model/traffic-generator.cc
-    utils/channels/nyu/nyu-channel-condition-model.cc
-    utils/channels/nyu/nyu-spectrum-propagation-loss-model.cc
-    utils/channels/nyu/nyu-propagation-loss-model.cc
-    utils/channels/nyu/nyu-channel-model.cc
 )
 
 set(header_files
     helper/beamforming-helper-base.h
     helper/cc-bwp-helper.h
-    model/nr-initial-association.h
     helper/file-scenario-helper.h
     helper/grid-scenario-helper.h
     helper/hexagonal-grid-scenario-helper.h
@@ -243,6 +242,7 @@ set(header_files
     helper/nr-bearer-stats-calculator.h
     helper/nr-bearer-stats-connector.h
     helper/nr-bearer-stats-simple.h
+    helper/nr-channel-helper.h
     helper/nr-epc-helper.h
     helper/nr-helper.h
     helper/nr-mac-rx-trace.h
@@ -257,7 +257,6 @@ set(header_files
     helper/realistic-beamforming-helper.h
     helper/scenario-parameters.h
     helper/three-gpp-ftp-m1-helper.h
-    helper/nr-channel-helper.h
     model/bandwidth-part-gnb.h
     model/bandwidth-part-ue.h
     model/beam-id.h
@@ -271,8 +270,8 @@ set(header_files
     model/nr-a2-a4-rsrq-handover-algorithm.h
     model/nr-a3-rsrp-handover-algorithm.h
     model/nr-amc.h
-    model/nr-anr.h
     model/nr-anr-sap.h
+    model/nr-anr.h
     model/nr-as-sap.h
     model/nr-asn1-header.h
     model/nr-cb-two-port.h
@@ -285,6 +284,7 @@ set(header_files
     model/nr-common.h
     model/nr-component-carrier.h
     model/nr-control-messages.h
+    model/nr-csi-rs-filter.h
     model/nr-eesm-cc-t1.h
     model/nr-eesm-cc-t2.h
     model/nr-eesm-cc.h
@@ -313,8 +313,8 @@ set(header_files
     model/nr-eps-bearer.h
     model/nr-error-model.h
     model/nr-fh-control.h
-    model/nr-fh-sched-sap.h
     model/nr-fh-phy-sap.h
+    model/nr-fh-sched-sap.h
     model/nr-gnb-cmac-sap.h
     model/nr-gnb-component-carrier-manager.h
     model/nr-gnb-cphy-sap.h
@@ -325,6 +325,7 @@ set(header_files
     model/nr-handover-algorithm.h
     model/nr-handover-management-sap.h
     model/nr-harq-phy.h
+    model/nr-initial-association.h
     model/nr-interference-base.h
     model/nr-interference.h
     model/nr-lte-amc.h
@@ -371,7 +372,6 @@ set(header_files
     model/nr-mimo-chunk-processor.h
     model/nr-mimo-matrices.h
     model/nr-mimo-signal.h
-    model/nr-csi-rs-filter.h
     model/nr-net-device.h
     model/nr-no-op-component-carrier-manager.h
     model/nr-no-op-handover-algorithm.h
@@ -421,6 +421,10 @@ set(header_files
     model/realistic-bf-manager.h
     model/resource-assignment-matrix.h
     model/sfnsf.h
+    utils/channels/nyu/nyu-channel-condition-model.h
+    utils/channels/nyu/nyu-channel-model.h
+    utils/channels/nyu/nyu-propagation-loss-model.h
+    utils/channels/nyu/nyu-spectrum-propagation-loss-model.h
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
     utils/nr-json.hpp
     utils/traffic-generators/helper/traffic-generator-helper.h
@@ -434,67 +438,63 @@ set(header_files
     utils/traffic-generators/model/traffic-generator-ngmn-video.h
     utils/traffic-generators/model/traffic-generator-ngmn-voip.h
     utils/traffic-generators/model/traffic-generator.h
-    utils/channels/nyu/nyu-channel-condition-model.h
-    utils/channels/nyu/nyu-spectrum-propagation-loss-model.h
-    utils/channels/nyu/nyu-propagation-loss-model.h
-    utils/channels/nyu/nyu-channel-model.h
 )
 
 set(test_sources
     ${eigen_tests}
     ${opengym_tests}
-    test/nr-system-test-configurations.cc
-    test/nr-test-numerology-delay.cc
-    test/nr-test-fdm-of-numerologies.cc
-    test/nr-test-sched.cc
-    test/nr-system-test-schedulers-tdma-rr.cc
-    test/nr-system-test-schedulers-tdma-pf.cc
-    test/nr-system-test-schedulers-tdma-mr.cc
-    test/nr-system-test-schedulers-ofdma-rr.cc
-    test/nr-system-test-schedulers-ofdma-pf.cc
-    test/nr-system-test-schedulers-ofdma-mr.cc
     test/nr-antenna-3gpp-model-conf.cc
-    test/nr-test-l2sm-eesm.cc
-    test/nr-lte-pattern-generation.cc
-    test/nr-phy-patterns.cc
-    test/nr-test-sfnsf.cc
-    test/nr-test-timings.cc
-    test/nr-spectrum-phy-test.cc
     test/nr-cc-bwp-configuration.cc
-    test/system-scheduler-test.cc
-    test/nr-mac-short-bsr-ce-test.cc
-    test/nr-test-notching.cc
-    test/nr-test-resource-assignment-matrix.cc
-    test/nr-realistic-beamforming-test.cc
-    test/nr-uplink-power-control-test.cc
-    test/nr-power-allocation.cc
-    test/nr-test-harq.cc
-    utils/traffic-generators/test/traffic-generator-test.cc
-    test/system-scheduler-test-qos.cc
-    test/nr-test-entities.cc
+    test/nr-channel-setup-test.cc
     test/nr-epc-test-gtpu.cc
     test/nr-epc-test-s1u-downlink.cc
     test/nr-epc-test-s1u-uplink.cc
-    test/nr-test-epc-tft-classifier.cc
+    test/nr-ideal-beamforming-test.cc
+    test/nr-lte-pattern-generation.cc
+    test/nr-mac-short-bsr-ce-test.cc
+    test/nr-multipanel-test.cc
+    test/nr-phy-patterns.cc
+    test/nr-power-allocation.cc
+    test/nr-realistic-beamforming-test.cc
     test/nr-simple-helper.cc
     test/nr-simple-net-device.cc
     test/nr-simple-spectrum-phy.cc
+    test/nr-spectrum-phy-test.cc
+    test/nr-system-test-configurations.cc
+    test/nr-system-test-schedulers-ofdma-mr.cc
+    test/nr-system-test-schedulers-ofdma-pf.cc
+    test/nr-system-test-schedulers-ofdma-rr.cc
+    test/nr-system-test-schedulers-tdma-mr.cc
+    test/nr-system-test-schedulers-tdma-pf.cc
+    test/nr-system-test-schedulers-tdma-rr.cc
     test/nr-test-asn1-encoding.cc
-    test/nr-test-rlc-header.cc
+    test/nr-test-deactivate-bearer.cc
+    test/nr-test-entities.cc
+    test/nr-test-epc-e2e-data.cc
+    test/nr-test-epc-tft-classifier.cc
+    test/nr-test-fdm-of-numerologies.cc
+    test/nr-test-harq.cc
+    test/nr-test-ipv6-routing.cc
+    test/nr-test-l2sm-eesm.cc
+    test/nr-test-notching.cc
+    test/nr-test-numerology-delay.cc
+    test/nr-test-resource-assignment-matrix.cc
     test/nr-test-rlc-am-e2e.cc
     test/nr-test-rlc-am-transmitter.cc
+    test/nr-test-rlc-header.cc
     test/nr-test-rlc-um-e2e.cc
     test/nr-test-rlc-um-transmitter.cc
     test/nr-test-rrc.cc
-    test/nr-test-ipv6-routing.cc
-    test/nr-test-epc-e2e-data.cc
-    test/nr-test-deactivate-bearer.cc
-    test/nr-channel-setup-test.cc
     test/nr-test-sched-symbols-per-beam.cc
-    test/nr-multipanel-test.cc
-    test/ul-scheduling-test.cc
+    test/nr-test-sched.cc
+    test/nr-test-sfnsf.cc
     test/nr-test-subband.cc
-    test/nr-ideal-beamforming-test.cc
+    test/nr-test-timings.cc
+    test/nr-uplink-power-control-test.cc
+    test/system-scheduler-test-qos.cc
+    test/system-scheduler-test.cc
+    test/ul-scheduling-test.cc
+    utils/traffic-generators/test/traffic-generator-test.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
