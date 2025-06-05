@@ -546,7 +546,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(const double sector0AngleRad,
     // NrChannelHelper
     ObjectFactory distanceBasedChannelFactory;
     distanceBasedChannelFactory.SetTypeId(
-        DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId());
+        WraparoundThreeGppSpectrumPropagationLossModel::GetTypeId());
     distanceBasedChannelFactory.Set("MaxDistance", DoubleValue(2 * isd));
     for (size_t i = 0; i < band0.GetBwps().size(); i++)
     {
