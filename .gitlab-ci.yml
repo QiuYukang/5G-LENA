@@ -43,8 +43,11 @@ variables:
     - cmake --version
     - ccache -z
     - ./ns3 build
-    - if [ "$MODE" != "debug" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
+    - if [ "$MODE" != "debug" ] && [ "$REGRESSION_TEST" != "true" ] && [ "`./utils/ccache-miss-rate.py`" != "0" ]; then
         ./test.py --no-build --verbose-failed -f TAKES_FOREVER;
+      fi
+    - if [ "$REGRESSION_TEST" == "true" ] && [ "$MODE" == "optimized" ]; then
+      ./contrib/nr/examples/3gpp-outdoor-calibration/test-outdoor-calibration.py;
       fi
     - ccache -s
     - ./ns3 clean
@@ -83,7 +86,6 @@ variables:
       base-devel gcc clang libc++ cmake ninja ccache
       git
       python
-      boost gsl gtk3
       openssh
       eigen
 
@@ -133,6 +135,28 @@ per-commit-gcc-optimized-sanitizers:
     EXTRAS: --enable-sanitizers
   tags:
     - CTTC
+
+weekly-regression-testing:
+  extends: .base-per-commit-compile
+  variables:
+    RELEASE: "weekly"
+    MODE: optimized
+    COMPILER: g++
+    REGRESSION_TEST: "true"
+  allow_failure: true
+  tags:
+    - CTTC
+  timeout: 48h
+  before_script:
+    - pacman-key --init
+    - pacman -Sy
+    - pacman -S --noconfirm archlinux-keyring
+    - pacman -Su --noconfirm
+      base-devel gcc clang libc++ cmake ninja ccache
+      git
+      python python-scipy python-psutil
+      openssh
+      eigen
 
 documentation:
   stage: documentation
