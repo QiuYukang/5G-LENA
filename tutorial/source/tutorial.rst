@@ -323,34 +323,34 @@ For reference, :numref:`fig-nr-gnb` and :numref:`fig-nr-ue` are also provided as
 packet being processed by each actor of the RAN, i.e., gNB and UE, respectively.
 
 This tutorial will walk through each step of the way, starting with the entry point for these packets in the RAN-- the
-``EpcGnbApplication``.
+``NrEpcGnbApplication``.
 
-EpcGnbApplication
-=================
-The ``EpcGnbApplication`` is installed on the gNB. It is responsible for receiving packets tunneled through the EPC
+NrEpcGnbApplication
+===================
+The ``NrEpcGnbApplication`` is installed on the gNB. It is responsible for receiving packets tunneled through the EPC
 model and sending them into the ``NrGnbNetDevice``.  Conceptually, this is just an application-level relay function.
-It is possible to run the ``cttc-nr-demo`` scenario by enabling the ``EpcGnbApplication`` log component, which can also
+It is possible to run the ``cttc-nr-demo`` scenario by enabling the ``NrEpcGnbApplication`` log component, which can also
 be configured to print messages at INFO level and prefix the message by stating the time of the simulation, the node ID
 of interest, and the routine that prints that message. In this way, with the following command
 
 .. sourcecode:: bash
 
-  $ NS_LOG="EpcGnbApplication=info|prefix_all" ./ns3 run 'cttc-nr-demo' > log.out 2>&1
+  $ NS_LOG="NrEpcGnbApplication=info|prefix_all" ./ns3 run 'cttc-nr-demo' > log.out 2>&1
 
 one can observe this relay function on the first packet, as follows:
 
 .. sourcecode:: text
 
-  +0.400000282s 0 EpcGnbApplication:RecvFromS1uSocket(): [INFO ] Received packet from S1-U interface with GTP TEID: 2
-  +0.400000282s 0 EpcGnbApplication:SendToNrSocket(): [INFO ] Add NrEpsBearerTag with RNTI 2 and bearer ID 2
-  +0.400000282s 0 EpcGnbApplication:SendToNrSocket(): [INFO ] Forward packet from gNB's S1-U to NR stack via IPv4 socket.
+  +0.400000282s 0 NrEpcGnbApplication:RecvFromS1uSocket(): [INFO ] Received packet from S1-U interface with GTP TEID: 2
+  +0.400000282s 0 NrEpcGnbApplication:SendToNrSocket(): [INFO ] Add NrEpsBearerTag with RNTI 2 and bearer ID 2
+  +0.400000282s 0 NrEpcGnbApplication:SendToNrSocket(): [INFO ] Forward packet from gNB's S1-U to NR stack via IPv4 socket.
 
-The file ``model/epc-gnb-application.cc`` contains the source code.
+The file ``model/nr-epc-gnb-application.cc`` contains the source code.
 
-The ``EpcGnbApplication`` adds the cell-specific UE ID (RNTI) and BID as tags through ``NrEpsBearerTag``.
+The ``NrEpcGnbApplication`` adds the cell-specific UE ID (RNTI) and BID as tags through ``NrEpsBearerTag``.
 This greatly simplifies packet processing in later sections.
 The application is able to find the right RNTI and BID given the TEID present on the GTP-U header of the received
-packet structure. This process can be found at ``EpcGnbApplication::RecvFromS1uSocket()`` source code:
+packet structure. This process can be found at ``NrEpcGnbApplication::RecvFromS1uSocket()`` source code:
 
 .. sourcecode:: cpp
 
@@ -371,7 +371,7 @@ packet structure. This process can be found at ``EpcGnbApplication::RecvFromS1uS
 
 .. TODO:
 
-  Add to EpcGnbApplication:
+  Add to NrEpcGnbApplication:
   NS_LOG_INFO("Mapped TEID "<< teid << " to RNTI "<< it->second.m_rnti << " and BID " << it->second.m_bid << " and sent to NR socket");
   so that the code listing here can be removed and the description can be greatly simplified.
 
@@ -387,13 +387,13 @@ whereas green ones are the added portions.
    :align: center
    :scale: 100%
 
-   Structure of the packet handled by ``EpcGnbApplication``
+   Structure of the packet handled by ``NrEpcGnbApplication``
 
 There is also a byte tag to trace the packet for flow statistics, which are bound to `Flow Monitor`_ and are relevant to the final results that are printed by the scenario.
 
 .. TODO  This byte tag is linked to the packet byte range ``[32-140]``. It is possible to see that such range changes at the second inspection, as the packet structure is modified, i.e., GTP-U header is removed.
 
-The new modified packet is finally sent to ``EpcGnbApplication::SendToNrSocket()``, which distinguishes the packet to
+The new modified packet is finally sent to ``NrEpcGnbApplication::SendToNrSocket()``, which distinguishes the packet to
 be sent according to its L3 type, in this case IPv4.
 
 As a final remark, the following traces can be used to track incoming and outgoing packets from this application:
@@ -406,20 +406,20 @@ As a final remark, the following traces can be used to track incoming and outgoi
 
 Packet latency
 ##############
-Packets cannot incur latency in the ``EpcGnbApplication``.
+Packets cannot incur latency in the ``NrEpcGnbApplication``.
 
 Packet drops
 ############
 Packets can be dropped if there is no association between GTP-U TEID and gNB-UE link's RNTI and BID.
 
-.. _`ns-3 manual`: https://www.nsnam.org/docs/release/3.39/models/html/packets.html
+.. _`ns-3 manual`: https://www.nsnam.org/docs/release/3.44/models/html/packets.html
 .. _`EpsFlowId_t data structure`: https://cttc-lena.gitlab.io/nr/html/structns3_1_1_nr_epc_gnb_application_1_1_eps_flow_id__t.html
-.. _`Flow Monitor`: https://www.nsnam.org/docs/release/3.39/models/html/flow-monitor.html
+.. _`Flow Monitor`: https://www.nsnam.org/docs/release/3.44/models/html/flow-monitor.html
 
 NrGnbNetDevice
 ==============
 
-After the ``EpcGnbApplication`` sends a packet, it is immediately received on the ``NrGnbNetDevice::DoSend()`` method.
+After the ``NrEpcGnbApplication`` sends a packet, it is immediately received on the ``NrGnbNetDevice::DoSend()`` method.
 We can observe this in the logs:
 
 .. sourcecode:: bash
