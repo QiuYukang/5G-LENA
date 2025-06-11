@@ -36,6 +36,7 @@ $  ./ns3 run cttc-nr-mimo-demo -- --enableMimoFeedback=0
 #include "ns3/basic-data-calculators.h"
 #include "ns3/config-store-module.h"
 #include "ns3/core-module.h"
+#include "ns3/fast-fading-constant-position-mobility-model.h"
 #include "ns3/flow-monitor-module.h"
 #include "ns3/internet-apps-module.h"
 #include "ns3/internet-module.h"
@@ -89,43 +90,6 @@ CqiFeedbackTracedCallback(std::map<uint16_t, CqiFeedbackTraceStats>* stats,
         (*stats)[rnti] = CqiFeedbackTraceStats(rank, mcs);
     }
 }
-
-namespace ns3
-{
-class FastFadingTestingMobilityModel : public ConstantPositionMobilityModel
-{
-  public:
-    static TypeId GetTypeId();
-    Vector m_fakeVelocity{0.0, 0.0, 0.0};
-
-  private:
-    Vector DoGetVelocity() const override;
-};
-
-NS_OBJECT_ENSURE_REGISTERED(FastFadingTestingMobilityModel);
-
-TypeId
-FastFadingTestingMobilityModel::GetTypeId()
-{
-    static TypeId tid =
-        TypeId("ns3::FastFadingTestingMobilityModel")
-            .SetParent<ConstantPositionMobilityModel>()
-            .SetGroupName("Mobility")
-            .AddConstructor<FastFadingTestingMobilityModel>()
-            .AddAttribute("FakeVelocity",
-                          "The current velocity of the mobility model.",
-                          VectorValue(Vector(0.0, 0.0, 0.0)), // ignored initial value.
-                          MakeVectorAccessor(&FastFadingTestingMobilityModel::m_fakeVelocity),
-                          MakeVectorChecker());
-    return tid;
-}
-
-Vector
-FastFadingTestingMobilityModel::DoGetVelocity() const
-{
-    return m_fakeVelocity;
-}
-} // namespace ns3
 
 int
 main(int argc, char* argv[])
@@ -380,7 +344,7 @@ main(int argc, char* argv[])
     gnbPositionAlloc->Add(Vector(0.0, 0.0, 25.0));
 
     MobilityHelper ueMobility;
-    ueMobility.SetMobilityModel("ns3::FastFadingTestingMobilityModel",
+    ueMobility.SetMobilityModel("ns3::FastFadingConstantPositionMobilityModel",
                                 "FakeVelocity",
                                 VectorValue(Vector{xyVelocity, xyVelocity, 0}));
     Ptr<ListPositionAllocator> uePositionAlloc = CreateObject<ListPositionAllocator>();
