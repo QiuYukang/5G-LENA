@@ -491,6 +491,7 @@ set(test_sources
     test/nr-test-rlc-um-e2e.cc
     test/nr-test-rlc-um-transmitter.cc
     test/nr-test-rrc.cc
+    test/nr-test-sched-harq.cc
     test/nr-test-sched-symbols-per-beam.cc
     test/nr-test-sched-temporal-fairness.cc
     test/nr-test-sched.cc

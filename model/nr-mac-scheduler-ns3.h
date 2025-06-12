@@ -24,6 +24,8 @@ namespace ns3
 
 class NrSchedGeneralTestCase;
 class NrSchedOfdmaSymbolPerBeamTestCase;
+class NrTestMacSchedulerHarqRrReshape;
+class NrTestMacSchedulerHarqRrScheduleDlHarq;
 class NrMacSchedulerHarqRr;
 class NrMacSchedulerSrsDefault;
 class NrMacSchedulerLcAlgorithm;
@@ -239,6 +241,8 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     friend class NrTestSchedulerAiCase;
     friend class NrSchedOfdmaSymbolPerBeamTestCase;
     friend class NrSchedGeneralTestCase;
+    friend class NrTestMacSchedulerHarqRrReshape;
+    friend class NrTestMacSchedulerHarqRrScheduleDlHarq;
 
   public:
     /**
