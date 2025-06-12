@@ -8,6 +8,8 @@
 #include "nr-mac-scheduler-ue-info.h"
 #include "nr-phy-mac-common.h"
 
+#include <unordered_set>
+
 namespace ns3
 {
 
@@ -123,12 +125,21 @@ class NrMacSchedulerHarqRr
     bool GetDoesFhAllocationFit(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank) const;
 
   private:
+    /**
+     * @brief Orders active beams of associated HARQ processes following round-robin order
+     * @return vector of BeamIds in round-robin order
+     */
+    std::vector<BeamId> GetBeamOrderRR(NrMacSchedulerNs3::ActiveHarqMap activeHarqMap) const;
+
     std::function<uint16_t()> m_getBwpId;          //!< Function to retrieve bwp id
     std::function<uint16_t()> m_getCellId;         //!< Function to retrieve cell id
     std::function<uint16_t()> m_getBwInRbg;        //!< Function to retrieve bw in rbg
     std::function<uint8_t()> m_getFhControlMethod; //!< Function to retrieve the FH Control Method
     std::function<bool(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank)>
         m_getDoesAllocationFit; //!< Function to retrieve if allocation fits
+
+    mutable std::deque<BeamId> m_rrBeams; //!< Queue of order of beams to transmit
+    mutable std::unordered_set<BeamId, BeamIdHash> m_rrBeamsSet; //!< Set of known beams
 };
 
 } // namespace ns3

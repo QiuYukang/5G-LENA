@@ -937,8 +937,8 @@ NrCsiTestSuite::NrCsiTestSuite()
         {      Duration::QUICK, 200, 20, {lbInterf},  true, 247, 1, 70000, true, CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},
 
         // Test with PDSCH MIMO
-        {  Duration::EXTENSIVE, 200, 20, {wbInterf},  true, 126, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
-        {      Duration::QUICK, 200, 20, {hbInterf},  true, 195, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
+        {  Duration::EXTENSIVE, 200, 20, {wbInterf},  true, 150, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
+        {      Duration::QUICK, 200, 20, {hbInterf},  true, 168, 1, 70000, true, CQI_PDSCH_MIMO, MCS::AVG_MCS},
 
         // Test with PDSCH MIMO, CSI-RS and CSI-IM
         {      Duration::QUICK, 200, 20, {hbInterf},  true, 236, 1, 70000, true, CQI_PDSCH_MIMO | CQI_CSI_RS | CQI_CSI_IM, MCS::AVG_MCS},

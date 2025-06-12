@@ -55,6 +55,37 @@ NrMacSchedulerHarqRr::InstallDoesFhAllocationFitFn(
     m_getDoesAllocationFit = fn;
 }
 
+std::vector<BeamId>
+NrMacSchedulerHarqRr::GetBeamOrderRR(NrMacSchedulerNs3::ActiveHarqMap activeHarqMap) const
+{
+    std::vector<BeamId> ret(activeHarqMap.size());
+
+    for (const auto& el : activeHarqMap)
+    {
+        // Add new beams to the round-robin queue
+        if (m_rrBeamsSet.find(el.first) == m_rrBeamsSet.end())
+        {
+            m_rrBeams.push_back(el.first);
+            m_rrBeamsSet.insert(el.first);
+        }
+    }
+
+    // Find first active beam in the round-robin queue
+    for (size_t i = 0; i < m_rrBeams.size(); ++i)
+    {
+        // If front beam in round-robin queue is active,
+        // put it at the beginning of the order
+        if (activeHarqMap.find(m_rrBeams.front()) != activeHarqMap.end())
+        {
+            ret[i] = m_rrBeams.front();
+        }
+        // Move round-robin front queue item to the end
+        m_rrBeams.push_back(m_rrBeams.front());
+        m_rrBeams.pop_front();
+    }
+    return ret;
+}
+
 /**
  * @brief Schedule DL HARQ in RR fashion
  * @param startingPoint starting point of the first retransmission.
@@ -82,13 +113,17 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
     NS_LOG_FUNCTION(this);
     NS_ASSERT(startingPoint->m_rbg == 0);
     uint8_t usedSym = 0;
-    uint8_t symPerBeam = symAvail / activeDlHarq.size();
 
-    NS_LOG_INFO("We have " << activeDlHarq.size() << " beams with data to RETX, each beam has "
-                           << static_cast<uint32_t>(symPerBeam) << " symb");
+    NS_LOG_INFO("We have " << activeDlHarq.size() << " beams with data to RETX");
 
-    for (const auto& beam : activeDlHarq)
+    for (const auto beamId : GetBeamOrderRR(activeDlHarq))
     {
+        if (symAvail == 0)
+        {
+            break;
+        }
+        const auto& beam = *activeDlHarq.find(beamId);
+
         std::vector<uint16_t> allocatedUe;
         NS_LOG_INFO(" Try to assign HARQ resource for Beam sector: "
                     << static_cast<uint32_t>(beam.first.GetSector())
@@ -110,14 +145,14 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
             uint32_t rbgAssigned =
                 std::count(dciInfoReTx->m_rbgBitmask.begin(), dciInfoReTx->m_rbgBitmask.end(), 1) *
                 dciInfoReTx->m_numSym;
-            uint32_t rbgAvail = (GetBandwidthInRbg() - startingPoint->m_rbg) * symPerBeam;
+            uint32_t rbgAvail = (GetBandwidthInRbg() - startingPoint->m_rbg) * symAvail;
 
             NS_LOG_INFO("Evaluating space to retransmit HARQ PID="
                         << static_cast<uint32_t>(dciInfoReTx->m_harqProcess) << " for UE="
                         << static_cast<uint32_t>(dciInfoReTx->m_rnti) << " SYM assigned previously="
                         << static_cast<uint32_t>(dciInfoReTx->m_numSym)
                         << " RBG assigned previously=" << static_cast<uint32_t>(rbgAssigned)
-                        << " SYM avail for this beam=" << static_cast<uint32_t>(symPerBeam)
+                        << " SYM avail=" << static_cast<uint32_t>(symAvail)
                         << " RBG avail for this beam=" << rbgAvail);
 
             if (std::find(allocatedUe.begin(), allocatedUe.end(), dciInfoReTx->m_rnti) !=
@@ -160,12 +195,22 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
             }
 
             allocatedUe.push_back(dciInfoReTx->m_rnti);
+            auto numSymbols = dciInfoReTx->m_numSym;
+            if (symAvail < numSymbols)
+            {
+                NS_LOG_INFO("No symbols available for this HARQ allocation, we have to buffer it");
+                BufferHARQFeedback(dlHarqFeedback,
+                                   dlHarqToRetransmit,
+                                   dciInfoReTx->m_rnti,
+                                   dciInfoReTx->m_harqProcess);
+                continue;
+            }
 
             NS_ASSERT(dciInfoReTx->m_format == DciInfoElementTdma::DL);
             auto dci = std::make_shared<DciInfoElementTdma>(dciInfoReTx->m_rnti,
                                                             dciInfoReTx->m_format,
                                                             startingPoint->m_sym,
-                                                            symPerBeam,
+                                                            numSymbols,
                                                             dciInfoReTx->m_mcs,
                                                             dciInfoReTx->m_rank,
                                                             dciInfoReTx->m_precMats,
@@ -182,32 +227,6 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
             harqProcess.m_dciElement = dci;
             dciInfoReTx = harqProcess.m_dciElement;
 
-            if (rbgAssigned % dciInfoReTx->m_numSym == 0)
-            {
-                rbgAssigned = rbgAssigned / dciInfoReTx->m_numSym;
-            }
-            else
-            {
-                rbgAssigned = rbgAssigned / dciInfoReTx->m_numSym;
-                ++rbgAssigned;
-            }
-
-            NS_ABORT_IF(static_cast<unsigned long>(rbgAssigned) > dciInfoReTx->m_rbgBitmask.size());
-
-            for (unsigned int i = 0; i < dciInfoReTx->m_rbgBitmask.size(); ++i)
-            {
-                if (startingPoint->m_rbg <= i && i < startingPoint->m_rbg + rbgAssigned)
-                {
-                    dciInfoReTx->m_rbgBitmask.at(i) = true;
-                }
-                else
-                {
-                    dciInfoReTx->m_rbgBitmask.at(i) = false;
-                }
-            }
-
-            startingPoint->m_rbg += rbgAssigned;
-
             VarTtiAllocInfo slotInfo(dciInfoReTx);
             NS_LOG_DEBUG(
                 "UE" << dciInfoReTx->m_rnti << " gets DL symbols "
@@ -223,18 +242,14 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                 slotInfo.m_rlcPduInfo.push_back(rlcPdu);
             }
             slotAlloc->m_varTtiAllocInfo.push_back(slotInfo);
-
             ueMap.find(dciInfoReTx->m_rnti)->second->m_dlMRBRetx =
                 dciInfoReTx->m_numSym * rbgAssigned;
-        }
 
-        if (!allocatedUe.empty())
-        {
-            startingPoint->m_sym += symPerBeam;
+            startingPoint->m_sym += numSymbols;
             startingPoint->m_rbg = 0;
-            usedSym += symPerBeam;
-            slotAlloc->m_numSymAlloc += symPerBeam;
-            symAvail -= symPerBeam;
+            usedSym += numSymbols;
+            slotAlloc->m_numSymAlloc += numSymbols;
+            symAvail -= numSymbols;
         }
     }
     NS_ASSERT(startingPoint->m_rbg == 0);
