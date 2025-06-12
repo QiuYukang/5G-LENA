@@ -1577,6 +1577,7 @@ main(int argc, char* argv[])
 
     double averageFlowThroughput = 0.0;
     double averageFlowDelay = 0.0;
+    double averageUpt = 0.0; // average user perceived throughput per file transfer
 
     std::ofstream outFile;
     std::string filename = outputDir + "/" + simTag;
@@ -1607,37 +1608,61 @@ main(int argc, char* argv[])
         {
             protoStream.str("UDP");
         }
-        // outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " ->
-        // " << t.destinationAddress << ":" << t.destinationPort << ") proto " << protoStream.str ()
-        // << "\n"; outFile << "  Tx Packets: " << i->second.txPackets << "\n"; outFile << "  Tx
-        // Bytes:   " << i->second.txBytes << "\n"; outFile << "  TxOffered:  " << i->second.txBytes
-        // * 8.0 / ((simTimeMs - udpAppStartTimeMs) / 1000.0) / 1000.0 / 1000.0  << " Mbps\n";
-        // outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+        outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " ->"
+                << t.destinationAddress << ":" << t.destinationPort << ") proto "
+                << protoStream.str() << "\n";
+        outFile << "  Tx Packets: " << i->second.txPackets << "\n";
+        outFile << "  Tx Bytes : " << i->second.txBytes << "\n ";
+        outFile << "  TxOffered: "
+                << (i->second.txBytes * 8.0 /
+                    (i->second.timeLastTxPacket.GetSeconds() -
+                     i->second.timeFirstTxPacket.GetSeconds())) /
+                       1e6
+                << " Mbps\n";
+        outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
         if (i->second.rxPackets > 0)
         {
             // Measure the duration of the flow from receiver's perspective
-            // double rxDuration = i->second.timeLastRxPacket.GetSeconds () -
-            // i->second.timeFirstTxPacket.GetSeconds ();
-            double rxDuration = (simTimeMs - udpAppStartTimeMs) / 1000.0;
+            double rxDuration =
+                i->second.timeLastRxPacket.GetSeconds() - i->second.timeFirstRxPacket.GetSeconds();
+            auto binsCount = i->second.flowInterruptionsHistogram.GetNBins();
+            double rxInterruptions = 0;
+            for (uint32_t bi = 0; bi < binsCount; bi++)
+            {
+                // interruptions threshold to count time between file transferes of the same flow
+                if ((i->second.flowInterruptionsHistogram.GetBinStart(bi)) >= 0.150)
+                {
+                    rxInterruptions += i->second.flowInterruptionsHistogram.GetBinEnd(bi) *
+                                       i->second.flowInterruptionsHistogram.GetBinCount(bi);
+                }
+            }
+            double upt =
+                ((i->second.rxBytes * 8.0) /
+                 (((i->second.timeLastRxPacket - i->second.timeFirstRxPacket).GetSeconds()) -
+                  rxInterruptions)) /
+                1e6;
+            averageUpt += upt;
 
             averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
             averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
             delayValues[cont] = 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
             cont++;
 
-            // outFile << "  Throughput: " << i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000  <<
-            // " Mbps\n"; outFile << "  Mean delay:  " << 1000 * i->second.delaySum.GetSeconds () /
-            // i->second.rxPackets << " ms\n"; outFile << "  Mean upt:  " << i->second.uptSum /
-            // i->second.rxPackets / 1000/1000 << " Mbps \n"; outFile << "  Mean jitter:  " << 1000
-            // * i->second.jitterSum.GetSeconds () / i->second.rxPackets  << " ms\n";
+            outFile << "  Throughput: " << (i->second.rxBytes * 8.0 / rxDuration) / 1e6
+                    << " Mbps\n";
+            outFile << "  Mean delay: "
+                    << 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets << " ms\n";
+            outFile << "  Mean jitter: "
+                    << 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets << " ms\n";
+            outFile << "  Upt: " << upt << " Mbps \n";
         }
         else
         {
-            // outFile << "  Throughput:  0 Mbps\n";
-            // outFile << "  Mean delay:  0 ms\n";
-            // outFile << "  Mean jitter: 0 ms\n";
+            outFile << "  Throughput:  0 Mbps\n";
+            outFile << "  Mean delay:  0 ms\n";
+            outFile << "  Mean jitter: 0 ms\n";
         }
-        // outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
+        outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
     std::stable_sort(delayValues.begin(), delayValues.end());
     // for (uint32_t i = 0; i < stats.size(); i++)
@@ -1650,6 +1675,9 @@ main(int argc, char* argv[])
     outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
     outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
     outFile << "  Median flow delay: " << FiftyTileFlowDelay << "\n";
+    outFile << "  Mean UPT: " << averageUpt / stats.size() << " Mbps\n";
+    outFile << "  Mean delay: " << averageFlowDelay / stats.size() << "\n";
+    outFile << "  Median delay: " << FiftyTileFlowDelay << "\n";
 
     outFile.close();
 

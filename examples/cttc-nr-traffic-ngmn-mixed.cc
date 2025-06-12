@@ -662,7 +662,7 @@ main(int argc, char* argv[])
     Time serverAppStartTime = MilliSeconds(400);
     // Simulation parameters. Please don't use double to indicate seconds, use
     // milliseconds and integers to avoid representation errors.
-    uint32_t simTimeMs = 1400;
+    uint32_t simTimeMs = 3000;
     Time appStartTime = MilliSeconds(400);
     std::string direction = "DL";
     bool uniformLambda = true;
@@ -1880,6 +1880,7 @@ main(int argc, char* argv[])
 
     double averageFlowThroughput = 0.0;
     double averageFlowDelay = 0.0;
+    double averageUpt = 0.0; // average user perceived throughput per file transfer
 
     std::ofstream outFile;
     std::string filename = outputDir + "/" + simTag;
@@ -1924,11 +1925,27 @@ main(int argc, char* argv[])
         if (i->second.rxPackets > 0)
         {
             // Measure the duration of the flow from receiver's perspective
-            // double rxDuration = i->second.timeLastRxPacket.GetSeconds () -
-            // i->second.timeFirstTxPacket.GetSeconds ();
             double rxDuration =
                 (i->second.timeLastRxPacket - i->second.timeFirstRxPacket).GetSeconds();
 
+            auto binsCount = i->second.flowInterruptionsHistogram.GetNBins();
+            double rxDurationWoInterruptions = 0;
+            for (uint32_t bi = 0; bi < binsCount; bi++)
+            {
+                // interruptions threshold to count time between file transferes of the same flow
+                if ((i->second.flowInterruptionsHistogram.GetBinStart(bi)) >= 0.050)
+                {
+                    rxDurationWoInterruptions +=
+                        i->second.flowInterruptionsHistogram.GetBinEnd(bi) *
+                        i->second.flowInterruptionsHistogram.GetBinCount(bi);
+                }
+            }
+            double upt =
+                ((i->second.rxBytes * 8.0) /
+                 (((i->second.timeLastRxPacket - i->second.timeFirstRxPacket).GetSeconds()) -
+                  rxDurationWoInterruptions)) /
+                1e6;
+            averageUpt += upt;
             averageFlowThroughput += i->second.rxBytes * 8.0 / rxDuration / 1000 / 1000;
             averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
             delayValues[cont] = 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
@@ -1939,19 +1956,18 @@ main(int argc, char* argv[])
             std::cout << "  Mean delay:  "
                       << double(1000 * i->second.delaySum.GetSeconds()) / (i->second.rxPackets)
                       << " ms\n";
-            std::cout << "  Last packet delay: " << i->second.lastDelay.As(Time::MS) << "\n";
-            // std::cout << "  Mean upt:  " << i->second.uptSum / i->second.rxPackets / 1000/1000 <<
-            // " Mbps \n";
+            std::cout << "  Last packet delay: " << i->second.lastDelay.As(Time::MS) << " ms\n";
             std::cout << "  Mean jitter:  "
                       << 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets << " ms\n";
+            std::cout << "  UPT: " << upt << " Mbps\n";
         }
         else
         {
-            // outFile << "  Throughput:  0 Mbps\n";
-            // outFile << "  Mean delay:  0 ms\n";
-            // outFile << "  Mean jitter: 0 ms\n";
+            outFile << "  Throughput:  0 Mbps\n";
+            outFile << "  Mean delay:  0 ms\n";
+            outFile << "  Mean jitter: 0 ms\n";
         }
-        // outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
+        outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
     }
     std::stable_sort(delayValues.begin(), delayValues.end());
     // for (uint32_t i = 0; i < stats.size(); i++)
@@ -1961,9 +1977,10 @@ main(int argc, char* argv[])
     // double FiftyTileFlowDelay = (delayValues[stats.size()/2] + delayValues[stats.size()/2 -1])/2;
     double FiftyTileFlowDelay = delayValues[stats.size() / 2];
 
-    outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
-    outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
-    outFile << "  Median flow delay: " << FiftyTileFlowDelay << "\n";
+    outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << " Mbps\n";
+    outFile << "  Mean UPT: " << averageUpt / stats.size() << " Mbps\n";
+    outFile << "  Mean delay: " << averageFlowDelay / stats.size() << " ms\n";
+    outFile << "  Median delay: " << FiftyTileFlowDelay << " ms\n";
 
     outFile.close();
 
