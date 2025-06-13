@@ -140,25 +140,25 @@ main(int argc, char* argv[])
     bool logging = false;
 
     std::string nrConfigurationScenario = "DenseA";
-    std::string deployment = "HEX";
+    std::string deployment = "SIMPLE";
     uint32_t freqScenario = 0; // 0 is NON-OVERLAPPING, 1 OVERLAPPING
 
     // set simulation time and mobility
-    uint32_t appDurationParam = 10000;
+    uint32_t appDurationParam = 5000;
     Time appStartTimeMs = MilliSeconds(400);
 
-    uint16_t arUeNum = 0;
-    uint16_t vrUeNum = 0;
-    uint16_t cgUeNum = 0;
-    uint16_t voiceUeNum = 0;
+    uint16_t arUeNum = 3;
+    uint16_t vrUeNum = 3;
+    uint16_t cgUeNum = 3;
+    uint16_t voiceUeNum = 3;
 
-    double centralFrequency = 4e9;
-    double bandwidth = 10e6;
-    double txPower = 41;
+    double centralFrequency = 30e9;
+    double bandwidth = 400e6;
+    double txPower = 30;
     double ueTxPower = 23;
-    uint16_t numerology = 1;
+    uint16_t numerology = 3;
     std::string pattern = "DL|DL|DL|DL|UL|DL|DL|DL|DL|UL|";
-    bool enableTDD4_1 = false;
+    bool enableTDD4_1 = true;
 
     std::string propScenario = "UMa";
     std::string propChannelCondition = "Default";
@@ -171,12 +171,12 @@ main(int argc, char* argv[])
     double speed = 0;
     double antennaOffset = 1.0;
     double uesWithRandomUtHeight = 0;
-    double distance = 200;
+    double distance = 2;
 
     double gnbNoiseFigure = 5.0;
     double ueNoiseFigure = 7.0;
 
-    bool enableMimoFeedback = false;
+    bool enableMimoFeedback = true;
 
     bool isGnbDualPolarized = false;
     uint32_t gnbNumRows = 4;
@@ -210,27 +210,27 @@ main(int argc, char* argv[])
     mimoPmiParams.subbandSize = 8;
 
     bool enableOfdma = true;
-    std::string schedulerType = "RR";
+    std::string schedulerType = "PF";
 
-    bool isLos = false;
-    int channelUpdatePeriod = 20;
-    int channelConditionUpdatePeriod = 100;
+    bool isLos = true;
+    int channelUpdatePeriod = 0;
+    int channelConditionUpdatePeriod = 0;
 
     double o2iThreshold = 0;
     double o2iLowLossThreshold =
         1.0; // shows the percentage of low losses. Default value is 100% low
     bool linkO2iConditionToAntennaHeight = false;
 
-    bool enableShadowing = true;
+    bool enableShadowing = false;
     uint8_t fixedMcs = 0;
     bool useFixedMcs = false;
     std::string errorModel = "ns3::NrEesmIrT2";
 
     // modulation compression parameters:
-    uint32_t fhCapacity = 10000;                 // in Mbps
+    uint32_t fhCapacity = 100000;                // in Mbps
     uint8_t ohDyn = 100;                         // in bits
     std::string fhControlMethod = "OptimizeMcs"; // The FH Control Method to be applied
-    // (Dropping, Postponing, OptimmizeMcs, OptimizeRBs)
+    // (Dropping, Postponing, OptimizeMcs, OptimizeRBs)
 
     bool isMx1 = true;
     bool enableHarqRetx = true;
@@ -245,9 +245,9 @@ main(int argc, char* argv[])
     uint16_t vrFps = 60;
     double cgDataRate = 5; // Mbps
 
-    bool enablePdcpDiscarding = false;
+    bool enablePdcpDiscarding = true;
     uint32_t discardTimerMs = 0;
-    uint32_t reorderingTimerMs = 100;
+    uint32_t reorderingTimerMs = 10;
 
     bool enableNrHelperTraces = false;
     bool enableQosTrafficTraces = true;
@@ -297,7 +297,7 @@ main(int argc, char* argv[])
     cmd.AddValue("bsHeight", "The gNB antenna height", bsHeight);
     cmd.AddValue("distance",
                  "The radius of the disc (in meters) that the UEs will be distributed."
-                 "Default value is 200m",
+                 "Default value is 2m",
                  distance);
     cmd.AddValue("enableMimoFeedback", "Enables MIMO feedback", enableMimoFeedback);
     cmd.AddValue("gnbNumRows", "The number of rows of the phased array of the gNB", gnbNumRows);
