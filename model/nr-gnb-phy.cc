@@ -1055,6 +1055,12 @@ NrGnbPhy::DoStartSlot()
 
     PrepareRbgAllocationMap(m_currSlotAllocInfo.m_varTtiAllocInfo);
 
+    if (m_nrFhPhySapProvider &&
+        m_nrFhPhySapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Dropping)
+    {
+        HandleFhDropping();
+    }
+
     FillTheEvent();
 }
 
@@ -1094,6 +1100,67 @@ NrGnbPhy::PrepareRbgAllocationMap(const std::deque<VarTtiAllocInfo>& allocations
     }
 
     m_rbgAllocationPerSymDataStat.clear();
+}
+
+void
+NrGnbPhy::HandleFhDropping()
+{
+    NS_LOG_FUNCTION(this);
+    NS_LOG_DEBUG("Dropping FH control messages that do not fit in the available FH BW");
+    std::vector<size_t> indexesToDelete;
+    std::vector<size_t> shuffledIndexes(m_currSlotAllocInfo.m_varTtiAllocInfo.size());
+    std::iota(shuffledIndexes.begin(), shuffledIndexes.end(), 0); // Fill with 0, 1, …, n-1
+    // Shuffle the indexes to randomize the order of processing
+    auto rng = std::default_random_engine{};
+    std::shuffle(shuffledIndexes.begin(), shuffledIndexes.end(), rng);
+    // Example usage: Access elements using shuffled indexes
+    for (size_t index : shuffledIndexes)
+    {
+        std::shared_ptr<DciInfoElementTdma> dci =
+            m_currSlotAllocInfo.m_varTtiAllocInfo[index].m_dci; // Access by shuffled index
+
+        NS_ASSERT(dci != nullptr);
+        if (dci->m_type == DciInfoElementTdma::DATA && dci->m_format == DciInfoElementTdma::DL)
+        {
+            NS_LOG_DEBUG("Checking DCI " << *dci << " for FH allocation fit");
+            // Check if the DCI allocation fits in the FH BW
+            // If it does not fit, mark it for deletion
+            // If it fits, update traces based on dropped data
+            long rbgAssigned = std::count(dci->m_rbgBitmask.begin(), dci->m_rbgBitmask.end(), 1);
+
+            if (DoesFhAllocationFit(GetBwpId(),
+                                    dci->m_mcs,
+                                    rbgAssigned * dci->m_numSym,
+                                    dci->m_rank) == 0)
+            {
+                NS_LOG_DEBUG("Dropping DCI " << *dci << " because it does not fit in FH BW");
+                indexesToDelete.push_back(index); // Add index to the list
+            }
+            else
+            {
+                m_nrFhPhySapProvider->UpdateTracesBasedOnDroppedData(GetBwpId(),
+                                                                     dci->m_mcs,
+                                                                     rbgAssigned,
+                                                                     dci->m_numSym,
+                                                                     dci->m_rank);
+            }
+        }
+        else
+        {
+            NS_LOG_DEBUG("Skipping non-DL CTRL DCI " << *dci);
+            continue; // Skip non-DL CTRL DCIs
+        }
+    }
+
+    // Sort indexesToDelete in ascending order
+    std::sort(indexesToDelete.begin(), indexesToDelete.end());
+
+    // Delete elements in reverse order to avoid invalidating indexes
+    for (auto it = indexesToDelete.rbegin(); it != indexesToDelete.rend(); ++it)
+    {
+        m_currSlotAllocInfo.m_varTtiAllocInfo.erase(m_currSlotAllocInfo.m_varTtiAllocInfo.begin() +
+                                                    *it);
+    }
 }
 
 void
@@ -1476,7 +1543,8 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
             // Even if we change the beamforming vector, we hope that the scheduler
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
-            // Beamforming vector should be available only when the node has a UPA antenna device
+            // Beamforming vector should be available only when the node has a UPA antenna
+            // device
             if (DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
             {
                 ChangeBeamformingVector(i); // assume the control signal is omni
@@ -1536,7 +1604,8 @@ NrGnbPhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
             // Even if we change the beamforming vector, we hope that the scheduler
             // has scheduled UEs within the same beam (and, therefore, have the same
             // beamforming vector)
-            // Beamforming vector should be available only when the node has a UPA antenna device
+            // Beamforming vector should be available only when the node has a UPA antenna
+            // device
             if (DynamicCast<UniformPlanarArray>(m_spectrumPhy->GetAntenna()))
             {
                 ChangeBeamformingVector(i); // assume the control signal is omni
@@ -1710,59 +1779,8 @@ NrGnbPhy::SendCtrlChannels(const Time& varTtiPeriod)
     // bandwidth.
     SetSubChannels(fullBwRb, fullBwRb.size());
 
-    if (m_nrFhPhySapProvider &&
-        m_nrFhPhySapProvider->GetFhControlMethod() == NrFhControl::FhControlMethod::Dropping)
-    {
-        std::vector<Ptr<NrControlMessage>> fhCtrlMsgs(m_ctrlMsgs.begin(), m_ctrlMsgs.end());
-        auto rng = std::default_random_engine{};
-        std::shuffle(std::begin(fhCtrlMsgs), std::end(fhCtrlMsgs), rng);
-
-        for (auto ctrlIt = fhCtrlMsgs.begin(); ctrlIt != fhCtrlMsgs.end(); /* no incr */)
-        {
-            Ptr<NrControlMessage> msg = (*ctrlIt);
-            if (msg->GetMessageType() == NrControlMessage::DL_DCI)
-            {
-                auto dciMsg = DynamicCast<NrDlDciMessage>(msg);
-                auto dciInfoElem = dciMsg->GetDciInfoElement();
-                long rbgAssigned = std::count(dciInfoElem->m_rbgBitmask.begin(),
-                                              dciInfoElem->m_rbgBitmask.end(),
-                                              1);
-
-                if (DoesFhAllocationFit(GetBwpId(),
-                                        dciInfoElem->m_mcs,
-                                        rbgAssigned * dciInfoElem->m_numSym,
-                                        dciInfoElem->m_rank) == 0)
-                {
-                    // drop DL DCI because data does not fit in available FH BW
-                    ctrlIt = fhCtrlMsgs.erase(ctrlIt);
-                    m_ctrlMsgs.remove(msg);
-                }
-                else
-                {
-                    ++ctrlIt;
-                    m_nrFhPhySapProvider->UpdateTracesBasedOnDroppedData(GetBwpId(),
-                                                                         dciInfoElem->m_mcs,
-                                                                         rbgAssigned,
-                                                                         dciInfoElem->m_numSym,
-                                                                         dciInfoElem->m_rank);
-                }
-            }
-            else
-            {
-                ++ctrlIt;
-            }
-        }
-        if (!m_ctrlMsgs.empty())
-        {
-            m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
-        }
-        m_ctrlMsgs.clear();
-    }
-    else
-    {
-        m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
-        m_ctrlMsgs.clear();
-    }
+    m_spectrumPhy->StartTxDlControlFrames(m_ctrlMsgs, varTtiPeriod);
+    m_ctrlMsgs.clear();
 }
 
 void

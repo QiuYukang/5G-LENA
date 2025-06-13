@@ -794,6 +794,14 @@ class NrGnbPhy : public NrPhy
      * @param allocations scheduler allocation for this slot.
      */
     void PrepareRbgAllocationMap(const std::deque<VarTtiAllocInfo>& allocations);
+    /**
+     * @brief Handle the FH dropping, i.e., the channel access manager has
+     *        indicated that the channel is not available.
+     *
+     * The method will set the channel status to TO_LOSE, and will schedule
+     * a call to DoCheckOrReleaseChannel() at the end of the slot.
+     */
+    void HandleFhDropping();
 
     /**
      * @brief Prepare and schedule all the events needed for the current slot.
