@@ -260,6 +260,11 @@ cpp_examples = [
         "True",
     ),
     (
+        "cttc-nr-fh-xr --fhCapacity=1500 --fhControlMethod=Dropping --frequency=30e9 --bandwidth=400e6 --numerology=3 --deployment=SIMPLE --arUeNum=0 --vrUeNum=15 --cgUeNum=2 --voiceUeNum=0 --appDuration=1000 --enableTDD4_1=1 --enableMimoFeedback=1 --txPower=30 --distance=2 --channelUpdatePeriod=0 --channelConditionUpdatePeriod=0 --enableShadowing=0 --isLos=1 --enableHarqRetx=1 --useFixedMcs=0 --enableInterServ=0 --enablePdcpDiscarding=1 --schedulerType=PF --reorderingTimerMs=10",
+        "True",
+        "True",
+    ),
+    (
         "cttc-nr-fh-xr --fhCapacity=5000 --fhControlMethod=OptimizeRBs --frequency=30e9 --bandwidth=400e6 --numerology=3 --deployment=SIMPLE --arUeNum=3 --vrUeNum=3 --cgUeNum=3 --voiceUeNum=3 --appDuration=3000 --enableTDD4_1=1 --enableMimoFeedback=1 --txPower=30 --distance=2 --channelUpdatePeriod=0 --channelConditionUpdatePeriod=0 --enableShadowing=0 --isLos=1 --enableHarqRetx=1 --useFixedMcs=0 --enableInterServ=0 --enablePdcpDiscarding=1 --schedulerType=PF --reorderingTimerMs=10",
         "True",
         "True",
