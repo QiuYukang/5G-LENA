@@ -372,63 +372,104 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
             ueVector.emplace_back(ue);
             BeforeDlSched(ueVector.back(), FTResources(beamSym, beamSym));
         }
-
-        // While there are resources to schedule
-        while (!remainingRbgSet.empty())
+        bool reapingResources = true;
+        while (reapingResources)
         {
-            // Keep track if resources are being allocated. If not, then stop.
-            const auto prevRemaining = remainingRbgSet.size();
-
-            if (m_activeDlAi)
+            // While there are resources to schedule
+            while (!remainingRbgSet.empty())
             {
-                CallNotifyDlFn(ueVector);
-            }
-            // Sort UEs based on the selected scheduler policy (PF, RR, QoS, AI)
-            std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareDlFn());
+                // Keep track if resources are being allocated. If not, then stop.
+                const auto prevRemaining = remainingRbgSet.size();
 
-            // Select the first UE
-            auto schedInfoIt = ueVector.begin();
-
-            // Advance schedInfoIt iterator to the next UE to schedule
-            while (AdvanceToNextUeToSchedule(schedInfoIt, ueVector.end(), beamSym))
-            {
-                // Try to allocate the resource to the current UE
-                // If it fails, try again for the next UE
-                if (!AttemptAllocationOfCurrentResourceToUe(schedInfoIt,
-                                                            remainingRbgSet,
-                                                            beamSym,
-                                                            assignedResources,
-                                                            availableRbgs))
+                if (m_activeDlAi)
                 {
-                    std::advance(schedInfoIt, 1); // Get the next UE
-                    continue;
+                    CallNotifyDlFn(ueVector);
                 }
-                // Update metrics
-                GetFirst GetUe;
-                NS_LOG_DEBUG("assignedResources " << GetUe(*schedInfoIt)->m_dlRBG.back()
-                                                  << " DL RBG, spanned over " << beamSym
-                                                  << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
+                // Sort UEs based on the selected scheduler policy (PF, RR, QoS, AI)
+                std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareDlFn());
 
-                // Update metrics for the unsuccessful UEs (who did not get any resource in this
-                // iteration)
-                for (auto& ue : ueVector)
+                // Select the first UE
+                auto schedInfoIt = ueVector.begin();
+
+                // Advance schedInfoIt iterator to the next UE to schedule
+                while (AdvanceToNextUeToSchedule(schedInfoIt, ueVector.end(), beamSym))
                 {
-                    if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
+                    // Try to allocate the resource to the current UE
+                    // If it fails, try again for the next UE
+                    if (!AttemptAllocationOfCurrentResourceToUe(schedInfoIt,
+                                                                remainingRbgSet,
+                                                                beamSym,
+                                                                assignedResources,
+                                                                availableRbgs))
                     {
-                        NotAssignedDlResources(ue,
-                                               FTResources(beamSym, beamSym),
-                                               assignedResources);
+                        std::advance(schedInfoIt, 1); // Get the next UE
+                        continue;
                     }
-                }
-                break; // Successful allocation
-            }
-            // No more UEs to allocate in the current beam
-            if (prevRemaining == remainingRbgSet.size())
-            {
-                break;
-            }
-        }
+                    // Update metrics
+                    GetFirst GetUe;
+                    NS_LOG_DEBUG("assignedResources "
+                                 << GetUe(*schedInfoIt)->m_dlRBG.back() << " DL RBG, spanned over "
+                                 << beamSym << " SYM, to UE " << GetUe(*schedInfoIt)->m_rnti);
 
+                    // Update metrics for the unsuccessful UEs (who did not get any resource in this
+                    // iteration)
+                    for (auto& ue : ueVector)
+                    {
+                        if (GetUe(ue)->m_rnti != GetUe(*schedInfoIt)->m_rnti)
+                        {
+                            NotAssignedDlResources(ue,
+                                                   FTResources(beamSym, beamSym),
+                                                   assignedResources);
+                        }
+                    }
+                    break; // Successful allocation
+                }
+                // No more UEs to allocate in the current beam
+                if (prevRemaining == remainingRbgSet.size())
+                {
+                    break;
+                }
+            }
+
+            // If we got here, we either allocated all resources (remainingRbgSet.empty()),
+            // or the remaining RBGs do not improve TBS of UEs (prevRemaining ==
+            // remainingRbgSet.size()).
+
+            // Now we need to check if there is a UE with less than the minimal TBS.
+            std::sort(ueVector.begin(), ueVector.end(), [](auto a, auto b) {
+                GetFirst GetUe;
+                return GetUe(a)->m_dlTbSize > GetUe(b)->m_dlTbSize;
+            });
+
+            // In case there is, reap its resources and redistribute to other UEs at same beam.
+            if (!ueVector.empty() && ueVector.back().first->m_dlTbSize < 10)
+            {
+                auto& ue = ueVector.back();
+                while (!ue.first->m_dlRBG.empty())
+                {
+                    auto reapedRbg = ue.first->m_dlRBG.back();
+                    DeallocateCurrentResourceFromUe(ue.first,
+                                                    reapedRbg,
+                                                    beamSym,
+                                                    assignedResources,
+                                                    availableRbgs);
+                    remainingRbgSet.emplace(reapedRbg);
+                }
+                // Update DL metrics
+                AssignedDlResources(ue, FTResources(beamSym, beamSym), assignedResources);
+
+                // After all resources were reaped, update statistics
+                for (auto& uev : ueVector)
+                {
+                    NotAssignedDlResources(uev, FTResources(beamSym, beamSym), assignedResources);
+                }
+
+                // Remove UE from allocation vector (it won't receive more resources in this round)
+                ueVector.pop_back();
+                continue;
+            }
+            reapingResources = false;
+        }
         if (m_nrFhSchedSapProvider)
         {
             if (m_nrFhSchedSapProvider->GetFhControlMethod() ==
