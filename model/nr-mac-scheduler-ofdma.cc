@@ -258,7 +258,7 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
 
     // Check if the allocated RBG had a bad MCS and lowered our overall tbsize
     const auto currentTbSize = currentUe->m_dlTbSize;
-    if (currentTbSize < previousTbSize * 0.99)
+    if (currentTbSize < previousTbSize * 0.99 && currentUe->GetDlMcs() > 0)
     {
         // Undo allocation
         DeallocateCurrentResourceFromUe(currentUe,
