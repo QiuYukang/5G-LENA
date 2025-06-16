@@ -1570,13 +1570,21 @@ NrGnbPhy::UlData(const std::shared_ptr<DciInfoElementTdma>& dci)
 void
 NrGnbPhy::ChangeBeamformingVector(Ptr<NrNetDevice> dev)
 {
-    m_spectrumPhy->GetBeamManager()->ChangeBeamformingVector(dev);
+    auto beamManager = m_spectrumPhy->GetBeamManager();
+    if (beamManager)
+    {
+        beamManager->ChangeBeamformingVector(dev);
+    }
 }
 
 void
 NrGnbPhy::ChangeToQuasiOmniBeamformingVector()
 {
-    m_spectrumPhy->GetBeamManager()->ChangeToQuasiOmniBeamformingVector();
+    auto beamManager = m_spectrumPhy->GetBeamManager();
+    if (beamManager)
+    {
+        beamManager->ChangeToQuasiOmniBeamformingVector();
+    }
 }
 
 Time

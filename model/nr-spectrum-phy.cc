@@ -438,7 +438,11 @@ NrSpectrumPhy::GetBeamManager()
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(m_numPanels == m_antennaPanels.size(), "mismatch of number of Panels");
-    return m_beamManagers.at(m_activePanelIndex);
+    if (!m_beamManagers.empty())
+    {
+        return m_beamManagers.at(m_activePanelIndex);
+    }
+    return nullptr;
 }
 
 void
