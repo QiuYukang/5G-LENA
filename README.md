@@ -139,9 +139,35 @@ Install eigen3 (enables optional MIMO features):
 apt-get install libeigen3-dev
 ```
 
+For optional Maleki's PM search, use:
+
+```
+pip install git+https://gitlab.com/cttc-lena/pyttb typing_extensions pybind11
+```
+
 Notice that ns-3 and nr prerequisites are required to use all nr features.
 Otherwise, you will get a warning at configuration time
 and/or an error message during compilation or execution.
+
+## For MacOS users:
+
+SQLite comes preinstalled on MacOS.
+
+For eigen3 (enables optional MIMO features), use:
+```
+brew install eigen
+```
+
+For optional Maleki's PM search, use:
+
+```
+python3 -m venv ns3env
+source ./ns3env/bin/activate
+pip install git+https://gitlab.com/cttc-lena/pyttb typing_extensions pybind11
+```
+
+Note: for CMake to correctly identify the venv packages, a patch meant for ns-3.46 is necessary.
+It can be found in ns-3 merge request: https://gitlab.com/nsnam/ns-3-dev/-/merge_requests/2481.
 
 ### gsoc-nr-rl-based-sched Prerequisites
 
