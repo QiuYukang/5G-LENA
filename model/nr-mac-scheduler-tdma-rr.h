@@ -6,24 +6,26 @@
 
 #include "nr-mac-scheduler-tdma.h"
 
+#include <unordered_set>
+
 namespace ns3
 {
 
 /**
- * @ingroup scheduler
- * @brief Assign entire symbols in a round-robin fashion
+ * @class NrMacSchedulerTdmaRR
+ * @brief Implements a Round-Robin (RR) Time-Division Multiple Access (TDMA) MAC scheduler for NR
+ * (New Radio).
  *
- * Each UE will receive a proportional number of symbols. With \f$n\f$ UE,
- * each one will receive:
+ * This class extends NrMacSchedulerTdma and provides a Round-Robin scheduling mechanism for user
+ * equipment (UE). The scheduler allocates resources to UEs in a cyclic and fair manner using RR
+ * principles.
  *
- * \f$ sym_{i} = \frac{totSym}{n} \f$
- *
- * If \f$ n > totSym \f$, then there will be UEs which will not have any
- * symbol assigned. The class does not remember the UEs which did not get
- * any symbol in the previous slot, so this opens the door to a possible
- * starvation.
- *
- * @see NrMacSchedulerUeInfoRR
+ * Key functionalities include:
+ * - Managing UE representations using NrMacSchedulerUeInfoRR.
+ * - Providing comparison functions to handle Downlink (DL) and Uplink (UL) UE scheduling based on
+ * RR policy.
+ * - Updating resource allocation metrics for UEs after DL/UL assignments.
+ * - Maintaining relevant data structures to track UEs in the scheduling queue.
  */
 class NrMacSchedulerTdmaRR : public NrMacSchedulerTdma
 {
@@ -118,6 +120,17 @@ class NrMacSchedulerTdmaRR : public NrMacSchedulerTdma
                        const FTResources& assignableInIteration) const override
     {
     }
+
+  private:
+    /**
+     * Deque used to keep priority order of round-robin.
+     * Higher-priority UEs will be at front.
+     * Lower-priority UEs will be at end.
+     * Active UEs are pulled from anywhere when a new resource is allocated to them,
+     * and put at the end whenever the scheduling is done.
+     */
+    mutable std::deque<uint16_t> m_dlRrRntiDeque;
+    mutable std::unordered_set<uint16_t> m_dlRntiSet; ///< Set of known RNTIs in RR deque
 };
 
 } // namespace ns3

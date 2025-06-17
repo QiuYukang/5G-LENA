@@ -6,6 +6,8 @@
 
 #include "nr-mac-scheduler-ofdma.h"
 
+#include <unordered_set>
+
 namespace ns3
 {
 
@@ -119,6 +121,17 @@ class NrMacSchedulerOfdmaRR : public NrMacSchedulerOfdma
                        const FTResources& assignableInIteration) const override
     {
     }
+
+  private:
+    /**
+     * Deque used to keep priority order of round-robin.
+     * Higher-priority UEs will be at front.
+     * Lower-priority UEs will be at end.
+     * Active UEs are pulled from anywhere when a new resource is allocated to them,
+     * and put at the end whenever the scheduling is done.
+     */
+    mutable std::deque<uint16_t> m_dlRrRntiDeque;
+    mutable std::unordered_set<uint16_t> m_dlRntiSet; ///< set of known RNTIs in RR deque
 };
 
 } // namespace ns3
