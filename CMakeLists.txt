@@ -542,10 +542,12 @@ else()
   set(PYBIND11_FINDPYTHON
       ON
   )
+  disable_cmake_warnings()
   find_package(
     pybind11
     REQUIRED
   )
+  enable_cmake_warnings()
   link_libraries(
     pybind11::headers
     pybind11::embed
