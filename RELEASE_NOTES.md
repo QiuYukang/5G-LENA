@@ -15,6 +15,63 @@ http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
+Release NR-v4.1
+---------------
+
+Availability
+------------
+TBD.
+
+Cite this version
+-----------------
+TDB.
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- x86_64
+  - Arch Linux with g++-15 and clang-19.
+  - Ubuntu 20.04 with g++10.
+  - Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+  - Ubuntu 23.04 with g++13.
+  - Ubuntu 24.10 (Oracular Oriole) with clang-19.
+- ARM
+  - Ubuntu 24.10 (Oracular Oriole) with clang-19.
+  - MacOS Sequoia 15.4.1 with AppleClang 17.
+
+This release will be compatible with ns-3.45.
+
+Important news
+--------------
+- This release includes some features, such as:
+  - Resource assignment matrix (current used to ensure there are no overlapping allocated resources);
+  - Wraparound model and support for hexagonal deployments, which allows for higher interference without requiring the simulation of additional rings, which can drastically speed up simulations;
+
+- Remember to follow the instructions from the README.md file, i.e., to checkout
+  the correct release branch of both ns-3 and the NR module. The information about
+  compatibility with the corresponding ns-3 release branch is stated in the
+  `README.md` file.
+
+New user-visible features
+-------------------------
+- We introduced CSI-RS signals and CSI-IM interference measurements to complement PDSCH-based CQI feedback. These can be configured through the `NrHelper::CsiFeedbackFlags` attribute. Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
+
+
+Bugs fixed
+----------
+- (255f1183) Fix data DCIs that were not reflecting notching masks.
+- (242f43d4) Fix fronthaul dropping policy, by preventing the transmission of data DCI if control DCI is discarded.
+- (e41779bf) Fix temporal fairness of PF and QoS schedulers.
+- (84aae4d1) Fix temporal fairness of RR schedulers.
+- (90146c43) Allow NR to work without beam managers set, to support legacy channel and antenna models.
+- (2e135f9c) Prevent starvation of UEs with MCS0 on OFDMA schedulers.
+- (5f7dc147) Reap and redistribute insufficient scheduled resources to other UEs.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
 Release NR-v4.0
 ---------------
 
