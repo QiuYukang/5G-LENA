@@ -629,7 +629,7 @@ Nr3gppCalibration(Parameters& params)
     }
 
     std::cout << "  statistics\n";
-    SQLiteOutput db(params.outputDir + "/" + params.simTag + ".db");
+    SQLiteOutput db(params.outputDir + "/" + params.dbName + ".db");
     SinrOutputStats sinrStats;
     PowerOutputStats ueTxPowerStats;
     PowerOutputStats gnbRxPowerStats;
@@ -703,6 +703,7 @@ Nr3gppCalibration(Parameters& params)
     HexagonalGridScenarioHelper gridScenario;
 
     std::cout << "  hexagonal grid: ";
+    gridScenario.InstallWraparound(params.enableWraparound);
     gridScenario.SetScenarioParameters(scenarioParams);
     gridScenario.SetSimTag(params.simTag);
     gridScenario.SetResultsDir(params.outputDir);
@@ -920,9 +921,7 @@ Nr3gppCalibration(Parameters& params)
                                                   params.mimoPmiParams,
                                                   params.enableSubbandScheluder,
                                                   params.m_subbandCqiClamping,
-                                                  params.m_mcsCsiSource,
-                                                  params.simTag,
-                                                  params.outputDir);
+                                                  params.m_mcsCsiSource);
     }
 
     // Check we got one valid helper
@@ -1152,7 +1151,7 @@ Nr3gppCalibration(Parameters& params)
     }
     else if (nrHelper != nullptr && params.extendedTraces)
     {
-        //  nrHelper->EnableTraces();
+        nrHelper->EnableTraces();
         nrHelper->GetPhyRxTrace()->SetSimTag(params.simTag);
         nrHelper->GetPhyRxTrace()->SetResultsFolder(params.outputDir);
     }
@@ -1298,6 +1297,24 @@ Nr3gppCalibration(Parameters& params)
      * Example is: Node 1 -> Device 0 -> BandwidthPartMap -> {0,1} BWPs -> NrGnbPhy ->
     Numerology, GtkConfigStore config; config.ConfigureAttributes ();
     */
+
+    // filtering UEs results for wraparound benchmark purpose
+    std::set<Ipv4Address> uesBelongingToNotFilteredRings;
+    if (params.nrConfigurationScenario == "DenseAWraparoundBenchmark" && !params.enableWraparound)
+    {
+        for (uint32_t i = 0; i < ueNodes.GetN(); ++i)
+        {
+            // When filtering UEs for the wraparound benchmark purpose, only those that are in the
+            // inner 0th and 1st ring are considered in the results.
+            // (1 + 6 * 1) * 3 = 21 gNBs = 21 cellIds
+            // The following code relies on how HexagonalGridScenarioHelper::CreateScenario()
+            // generates UE positions.
+            if (i % scenario->GetNumCells() < 21)
+            {
+                uesBelongingToNotFilteredRings.insert(ueIpIfaces.GetAddress(i));
+            }
+        }
+    }
 
     FlowMonitorOutputStats flowMonStats;
     flowMonStats.SetDb(&db, tableName);

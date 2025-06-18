@@ -51,7 +51,8 @@ FlowMonitorOutputStats::SetDb(SQLiteOutput* db, const std::string& tableName)
 void
 FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
                              FlowMonitorHelper& flowmonHelper,
-                             const std::string& filename)
+                             const std::string& filename,
+                             std::set<Ipv4Address> addressesToConsider)
 {
     bool ret;
     monitor->CheckForLostPackets();
@@ -75,6 +76,14 @@ FlowMonitorOutputStats::Save(const Ptr<FlowMonitor>& monitor,
     for (const auto& flowStat : flowStats)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(flowStat.first);
+
+        // Filter: Skip if neither src nor dst IP is in the allowed set
+        if (!addressesToConsider.empty() && (!addressesToConsider.contains(t.sourceAddress) &&
+                                             !addressesToConsider.contains(t.destinationAddress)))
+        {
+            continue; // Skip this flow
+        }
+
         std::stringstream protoStream;
         protoStream << (uint16_t)t.protocol;
         if (t.protocol == 6)

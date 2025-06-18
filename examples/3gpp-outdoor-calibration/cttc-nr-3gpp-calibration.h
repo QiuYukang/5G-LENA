@@ -41,6 +41,8 @@ struct Parameters
     // milliseconds and integers to avoid representation errors.
     Time appGenerationTime = MilliSeconds(1000);
     Time udpAppStartTime = MilliSeconds(400);
+    // Add some extra time for the last generated packets to be received
+    Time appStopWindow = MilliSeconds(1000);
     std::string direction = "DL";
 
     // Spectrum parameters. We will take the input from the command line, and then
@@ -76,7 +78,6 @@ struct Parameters
 
     uint32_t ftpClientAppStartTimeMs = 400;
     uint32_t ftpServerAppStartTimeMs = 400;
-    Time appStopWindow = MilliSeconds(1000);
 
     bool enableSubbandScheluder = false;
     bool m_subbandCqiClamping = true;
@@ -100,6 +101,7 @@ struct Parameters
 
     // Where we will store the output files.
     std::string simTag = "default";
+    std::string dbName = "default";
     std::string outputDir = "./";
 
     // Error models
@@ -139,7 +141,7 @@ struct Parameters
     uint32_t remSector = 0;
     bool useLastUeForRem = false;
 
-    Time progressInterval = Seconds(1);
+    Time progressInterval = Seconds(30); // each half a minute is enough
 
     // Antenna Parameters
     uint32_t gnbNumRows = 4;
@@ -169,6 +171,7 @@ struct Parameters
     bool ueEnable3gppElement = false;
 
     bool checkUeMobility = false;
+    bool enableWraparound = false;
 };
 
 extern void Nr3gppCalibration(Parameters& params);

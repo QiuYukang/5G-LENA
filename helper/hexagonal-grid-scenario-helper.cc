@@ -182,7 +182,7 @@ PlotHexagonalDeployment(const Ptr<const ListPositionAllocator>& sitePosVector,
 
     // Try to open a new GNUPLOT file
     std::ofstream topologyOutfile;
-    std::string topologyFileRoot = resultsDir + "./hexagonal-topology";
+    std::string topologyFileRoot = resultsDir + "/hexagonal-topology";
     std::string topologyFileName = topologyFileRoot + simTag + ".gnuplot";
     topologyOutfile.open(topologyFileName.c_str(), std::ios_base::out | std::ios_base::trunc);
     if (!topologyOutfile.is_open())
@@ -374,15 +374,9 @@ HexagonalGridScenarioHelper::GetHexagonalCellCenter(const Vector& sitePos, uint1
 }
 
 void
-HexagonalGridScenarioHelper::EnableWraparound()
+HexagonalGridScenarioHelper::InstallWraparound(bool installWraparoundModel)
 {
-    m_wraparound = true;
-}
-
-void
-HexagonalGridScenarioHelper::DisableWraparound()
-{
-    m_wraparound = false;
+    m_installWraparound = installWraparoundModel;
 }
 
 void
@@ -408,7 +402,7 @@ HexagonalGridScenarioHelper::CreateScenario()
     Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator>();
 
     Ptr<HexagonalWraparoundModel> wraparound = nullptr;
-    if (m_wraparound)
+    if (m_installWraparound)
     {
         wraparound = CreateObject<HexagonalWraparoundModel>(m_isd, GetNumSites());
     }
@@ -485,7 +479,7 @@ HexagonalGridScenarioHelper::CreateScenario()
 
     mobility.SetPositionAllocator(utPosVector);
     mobility.Install(m_ut);
-    if (wraparound)
+    if (m_installWraparound)
     {
         for (std::size_t i = 0; i < m_bs.GetN(); i++)
         {
@@ -533,7 +527,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
     Ptr<ListPositionAllocator> utPosVector = CreateObject<ListPositionAllocator>();
 
     Ptr<HexagonalWraparoundModel> wraparound = nullptr;
-    if (m_wraparound)
+    if (m_installWraparound)
     {
         wraparound = CreateObject<HexagonalWraparoundModel>(m_isd, GetNumSites());
     }
@@ -686,7 +680,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
         mobility.SetPositionAllocator(utPosVector);
         mobility.Install(m_ut);
     }
-    if (wraparound)
+    if (m_installWraparound)
     {
         for (std::size_t i = 0; i < m_bs.GetN(); i++)
         {

@@ -61,10 +61,13 @@ class FlowMonitorOutputStats
      * @param monitor Flow Monitor
      * @param flowmonHelper Flow Monitor Helper
      * @param filename filename for a text output
+     * @param addressesToConsider An optional parameter that contains the addresses
+     * of the flows which will be saved into a database, others will be filtered out.
      */
     void Save(const Ptr<FlowMonitor>& monitor,
               FlowMonitorHelper& flowmonHelper,
-              const std::string& filename);
+              const std::string& filename,
+              std::set<Ipv4Address> addressesToConsider = {});
 
   private:
     static void DeleteWhere(SQLiteOutput* p, uint32_t seed, uint32_t run, const std::string& table);

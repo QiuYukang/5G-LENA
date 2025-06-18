@@ -216,9 +216,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
     NrHelper::MimoPmiParams mimoPmiParams,
     bool enableSubbandScheluder,
     bool m_subbandCqiClamping,
-    EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource,
-    std::string simTag,
-    std::string outputDir)
+    EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource)
 {
     /*
      * Create the radio network related parameters

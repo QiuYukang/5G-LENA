@@ -102,9 +102,7 @@ class LenaV2Utils
         NrHelper::MimoPmiParams mimoPmiParams,
         bool enableSubbandScheluder,
         bool m_subbandCqiClamping,
-        EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource,
-        std::string simTag,
-        std::string outputDir);
+        EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource);
 
     static void ReportSinrNr(SinrOutputStats* stats,
                              uint16_t cellId,

@@ -70,6 +70,10 @@ main(int argc, char* argv[])
     cmd.AddValue("appGenerationTime",
                  "Duration applications will generate traffic.",
                  params.appGenerationTime);
+    cmd.AddValue("appStopWindow",
+                 "When application generation finishes, add some extra time in the simulation for "
+                 "the last generated packets to be received.",
+                 params.appStopWindow);
     cmd.AddValue("numerologyBwp", "The numerology to be used (NR only)", params.numerologyBwp);
     cmd.AddValue("pattern", "The TDD pattern to use", params.pattern);
     cmd.AddValue("direction", "The flow direction (DL or UL)", params.direction);
@@ -83,8 +87,9 @@ main(int argc, char* argv[])
                  "The network operation mode can be TDD or FDD",
                  params.operationMode);
     cmd.AddValue("simTag",
-                 "tag to be appended to output filenames to distinguish simulation campaigns",
+                 "Tag to be appended to output filenames to distinguish simulation campaigns",
                  params.simTag);
+    cmd.AddValue("dbName", "Database name to be used for the simulation campaign", params.dbName);
     cmd.AddValue("outputDir", "directory where to store simulation results", params.outputDir);
     cmd.AddValue("errorModelType",
                  "Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, "
@@ -249,7 +254,9 @@ main(int argc, char* argv[])
                  "otherwise it is O2I.",
                  params.linkO2iConditionToAntennaHeight);
     cmd.AddValue("ueSpeed", "The UE speed.", params.speed);
-
+    cmd.AddValue("enableWraparound",
+                 "Enable wraparound model in the simulation",
+                 params.enableWraparound);
     cmd.AddValue("ftpM1Enabled", "Enable FTP", params.ftpM1Enabled);
     cmd.AddValue("ftpLambda",
                  "Lambda used in FTP (ftpM1Enabled must set to true)",
