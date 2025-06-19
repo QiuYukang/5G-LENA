@@ -4,6 +4,8 @@
 
 #include "wraparound-three-gpp-spectrum-propagation-loss-model.h"
 
+#include "fast-fading-constant-position-mobility-model.h"
+
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/constant-velocity-mobility-model.h"
 #include "ns3/double.h"
@@ -34,9 +36,15 @@ GetWraparoundMobilityModel(Ptr<const MobilityModel> b, Ptr<const MobilityModel> 
     {
         c = Copy(StaticCast<const ConstantVelocityMobilityModel>(a));
     }
+    else if (FastFadingConstantPositionMobilityModel::GetTypeId() == a->GetInstanceTypeId())
+    {
+        c = Copy(StaticCast<const FastFadingConstantPositionMobilityModel>(a));
+    }
     else
     {
-        NS_ABORT_MSG("Unsupported mobility model");
+        NS_ABORT_MSG(
+            "Unsupported mobility model. Add it to the list of supported mobility models in "
+            << __FILE__ << ".");
     }
     // Set NodeId for models that retrieve that later
     c->UnidirectionalAggregateObject(a->GetObject<Node>());
