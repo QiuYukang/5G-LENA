@@ -204,6 +204,10 @@ NrInitialAssociation::ExtractUeParameters() const
     auto phy = ueDev->GetPhy(m_primaryCarrierIndex);
     auto spectrumPhy = phy->GetSpectrumPhy();
     auto spectrumChannel = spectrumPhy->GetSpectrumChannel();
+
+    NS_ASSERT_MSG(spectrumChannel->GetPhasedArraySpectrumPropagationLossModel(),
+                  "NrInitialAssociation requires channel fading. "
+                  "Check NrChannelHelper or manually setup settings.");
     auto spectrumPropModel = StaticCast<ThreeGppSpectrumPropagationLossModel>(
         spectrumChannel->GetPhasedArraySpectrumPropagationLossModel());
     AntennaArrayModels antModel;
