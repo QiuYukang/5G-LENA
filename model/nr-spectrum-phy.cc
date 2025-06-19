@@ -642,6 +642,13 @@ NrSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params)
     Time duration = params->duration;
     NS_LOG_INFO("Start receiving signal: " << params->psd << " duration= " << duration);
 
+    // all-zero psd is out-of-range
+    if (std::count(rxPsd->ConstValuesBegin(), rxPsd->ConstValuesEnd(), 0.0) == rxPsd->GetValuesN())
+    {
+        NS_LOG_INFO("Received all-zero psd, ignoring signal.");
+        return;
+    }
+
     // phased-array mimo expects a channel
     if (!params->spectrumChannelMatrix &&
         GetSpectrumChannel()->GetPhasedArraySpectrumPropagationLossModel())
