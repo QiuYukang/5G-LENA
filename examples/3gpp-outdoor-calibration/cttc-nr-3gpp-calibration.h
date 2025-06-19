@@ -28,7 +28,7 @@ struct Parameters
     bool logging = false;
     bool basicTraces = false;
     bool extendedTraces = false;
-    bool attachRsrp = true;
+    bool attachRsrp = false;
     std::string simulator = "5GLENA";
     std::string scenario = "UMa";
     std::string radioNetwork = "";     // It must be set to NR

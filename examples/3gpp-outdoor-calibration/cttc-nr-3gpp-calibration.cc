@@ -280,6 +280,9 @@ Parameters::Validate() const
         attachToClosest == true && freqScenario == 0,
         "attachToClosest option should be activated only in overlapping frequency scenario");
 
+    NS_ABORT_MSG_IF(attachRsrp && !enableFading,
+                    "Fading is required by RSRP-based initial association");
+
     if (dlRem || ulRem)
     {
         NS_ABORT_MSG_IF(simulator != "5GLENA",
@@ -383,6 +386,7 @@ ChooseCalibrationScenario(Parameters& params)
 
                 params.initParams.rowAngles = {-56.25, -33.75, -11.25, 11.25, 33.75, 56.25};
                 params.initParams.colAngles = {112.5, 157.5};
+                params.enableFading = true; // required by attachRsrp
                 params.attachRsrp = true;
             }
 
@@ -421,6 +425,7 @@ ChooseCalibrationScenario(Parameters& params)
                 params.gnbEnable3gppElement = true;
                 params.downtiltAngle = 100;
                 params.gnbNoiseFigure = 5;
+                params.enableFading = true; // required by attachRsrp
                 params.attachRsrp = true;
                 params.ueNoiseFigure = 9;
                 params.ftpM1Enabled = true;
