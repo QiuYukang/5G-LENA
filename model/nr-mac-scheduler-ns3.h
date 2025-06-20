@@ -238,6 +238,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
 {
     friend class NrTestSchedulerAiCase;
     friend class NrSchedOfdmaSymbolPerBeamTestCase;
+    friend class NrSchedGeneralTestCase;
 
   public:
     /**
@@ -971,8 +972,6 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     TypeId m_schedLcType; //!< Type of the LC scheduling algorithm
 
     uint32_t m_srsSlotCounter{0}; //!< Counter for UL slots
-
-    friend NrSchedGeneralTestCase;
 
     bool m_enableHarqReTx{true}; //!< Flag to enable or disable HARQ ReTx (attribute)
 
