@@ -6,6 +6,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/core-module.h"
+#include "ns3/flow-monitor-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/nr-eps-bearer-tag.h"
@@ -72,8 +73,8 @@ struct DroppingParameters
 {
     bool ueAntennaPolarization;
     bool gnbAntennaPolarization;
-    uint8_t numVPortsGnb = 1;
-    uint8_t numHPortsGnb = 1;
+    uint8_t numVPortsGnb = 2;
+    uint8_t numHPortsGnb = 2;
     uint8_t numVPortsUe = 1;
     uint8_t numHPortsUe = 1;
     DroppingParameters()
@@ -139,6 +140,7 @@ class Nr3gppIndoorCalibration
      * @param bandwidthBand The band bandwidth
      * @param numerology The numerology
      * @param totalTxPower The gNB power
+     * @param ueTxPower The UE power
      * @param gNbAntennaModel antenna model to be used by gNB device, can be ISO
      * directional 3GPP
      * @param ueAntennaModel antenna model to be used by gNB device, can be ISO
@@ -157,7 +159,11 @@ class Nr3gppIndoorCalibration
              double bandwidthBand,
              uint16_t numerology,
              double totalTxPower,
-             bool cellScan,
+             double ueTxPower,
+             std::string beamformingMethod,
+             bool enableShadowing,
+             bool enableInitialAssoc,
+             NrHelper::InitialAssocParams Initparams,
              bool gNbAntennaModel,
              bool ueAntennaModel,
              std::string indoorScenario,
@@ -165,6 +171,8 @@ class Nr3gppIndoorCalibration
              std::string resultsDirPath,
              std::string tag,
              uint32_t duration,
+             uint8_t numUePanel,
+             uint16_t ueCount,
              DroppingParameters dropParam = DroppingParameters());
     /**
      * @brief Destructor that closes the output file stream and finished the
@@ -367,7 +375,11 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              double bandwidthBand,
                              uint16_t numerology,
                              double totalTxPower,
-                             bool cellScan,
+                             double ueTxPower,
+                             std::string beamformingMethod,
+                             bool enableShadowing,
+                             bool enableInitialAssoc,
+                             NrHelper::InitialAssocParams Initparams,
                              bool gNbAntennaModel,
                              bool ueAntennaModel,
                              std::string indoorScenario,
@@ -375,18 +387,16 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              std::string resultsDirPath,
                              std::string tag,
                              uint32_t duration,
+                             uint8_t numUePanel,
+                             uint16_t ueCount,
                              DroppingParameters dropParam)
 {
     Time simTime = MilliSeconds(duration);
     Time udpAppStartTimeDl = MilliSeconds(100);
     Time udpAppStopTimeDl = MilliSeconds(duration);
     uint32_t packetSize = 1000;
-    DataRate udpRate = DataRate("0.1kbps");
-    // initially created 240 UE nodes, out of which will be selected 120 UEs that
-    // are well placed respecting the minimum distance parameter that is configured
-    uint16_t ueCount = 240;
-    // the minimum distance parameter
-    double minDistance = 0;
+    DataRate udpRate = DataRate("60Mbps");
+
     // BS atnenna height is 3 meters
     double gNbHeight = 3;
     // UE antenna height is 1.5 meters
@@ -459,6 +469,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     NodeContainer gNbNodes;
     NodeContainer ueNodes;
     MobilityHelper mobility;
+    MobilityHelper ueMobility;
 
     gNbNodes.Create(12);
     ueNodes.Create(ueCount);
@@ -487,54 +498,27 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // R11700144, uniformly randombly distributed in the rectangular area
 
     NodeContainer selectedUeNodes;
-    for (uint8_t j = 0; j < 2; j++)
-    {
-        double minSmallBoxY = minBigBoxY + j * (maxBigBoxY - minBigBoxY) / 2;
+    selectedUeNodes.Add(ueNodes);
 
-        for (uint8_t i = 0; i < 6; i++)
-        {
-            double minSmallBoxX = minBigBoxX + i * (maxBigBoxX - minBigBoxX) / 6;
-            Ptr<UniformRandomVariable> ueRandomVarX = CreateObject<UniformRandomVariable>();
+    ueMobility.SetMobilityModel("ns3::FastFadingConstantPositionMobilityModel",
+                                "FakeVelocity",
+                                VectorValue(Vector{speed, 0, 0}));
 
-            double minX = minSmallBoxX;
-            double maxX = minSmallBoxX + (maxBigBoxX - minBigBoxX) / 6 - 0.0001;
-            double minY = minSmallBoxY;
-            double maxY = minSmallBoxY + (maxBigBoxY - minBigBoxY) / 2 - 0.0001;
-
-            Ptr<RandomBoxPositionAllocator> ueRandomRectPosAlloc =
-                CreateObject<RandomBoxPositionAllocator>();
-            ueRandomVarX->SetAttribute("Min", DoubleValue(minX));
-            ueRandomVarX->SetAttribute("Max", DoubleValue(maxX));
-            ueRandomRectPosAlloc->SetX(ueRandomVarX);
-            Ptr<UniformRandomVariable> ueRandomVarY = CreateObject<UniformRandomVariable>();
-            ueRandomVarY->SetAttribute("Min", DoubleValue(minY));
-            ueRandomVarY->SetAttribute("Max", DoubleValue(maxY));
-            ueRandomRectPosAlloc->SetY(ueRandomVarY);
-            Ptr<ConstantRandomVariable> ueRandomVarZ = CreateObject<ConstantRandomVariable>();
-            ueRandomVarZ->SetAttribute("Constant", DoubleValue(ueHeight));
-            ueRandomRectPosAlloc->SetZ(ueRandomVarZ);
-
-            uint8_t smallBoxIndex = j * 6 + i;
-
-            NodeContainer smallBoxCandidateNodes;
-            NodeContainer smallBoxGnbNode;
-
-            smallBoxGnbNode.Add(gNbNodes.Get(smallBoxIndex));
-
-            for (uint32_t n = smallBoxIndex * ueCount / 12;
-                 n < smallBoxIndex * static_cast<uint32_t>(ueCount / 12) +
-                         static_cast<uint32_t>(ueCount / 12);
-                 n++)
-            {
-                smallBoxCandidateNodes.Add(ueNodes.Get(n));
-            }
-            mobility.SetPositionAllocator(ueRandomRectPosAlloc);
-            mobility.Install(smallBoxCandidateNodes);
-            NodeContainer sn =
-                SelectWellPlacedUes(smallBoxCandidateNodes, smallBoxGnbNode, minDistance, 10);
-            selectedUeNodes.Add(sn);
-        }
-    }
+    Ptr<RandomBoxPositionAllocator> ueRandomRectPosAlloc =
+        CreateObject<RandomBoxPositionAllocator>();
+    Ptr<UniformRandomVariable> ueRandomVarX = CreateObject<UniformRandomVariable>();
+    ueRandomVarX->SetAttribute("Min", DoubleValue(minBigBoxX));
+    ueRandomVarX->SetAttribute("Max", DoubleValue(maxBigBoxX));
+    ueRandomRectPosAlloc->SetX(ueRandomVarX);
+    Ptr<UniformRandomVariable> ueRandomVarY = CreateObject<UniformRandomVariable>();
+    ueRandomVarY->SetAttribute("Min", DoubleValue(minBigBoxY));
+    ueRandomVarY->SetAttribute("Max", DoubleValue(maxBigBoxY));
+    ueRandomRectPosAlloc->SetY(ueRandomVarY);
+    Ptr<ConstantRandomVariable> ueRandomVarZ = CreateObject<ConstantRandomVariable>();
+    ueRandomVarZ->SetAttribute("Constant", DoubleValue(ueHeight));
+    ueRandomRectPosAlloc->SetZ(ueRandomVarZ);
+    ueMobility.SetPositionAllocator(ueRandomRectPosAlloc);
+    ueMobility.Install(selectedUeNodes);
 
     for (uint32_t j = 0; j < selectedUeNodes.GetN(); j++)
     {
@@ -590,24 +574,36 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // Set and create the channel for the band
     channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
 
     // Disable channel matrix update to speed up the simulation execution
     // Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
     // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999));
+    // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999))
 
-    if (cellScan)
+    if (beamformingMethod == "KroneckerBeamforming")
     {
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
-                                             TypeIdValue(CellScanBeamforming::GetTypeId()));
+                                             TypeIdValue(KroneckerBeamforming::GetTypeId()));
     }
-    else
+    else if (beamformingMethod == "KroneckerQuasiOmniBeamforming")
+    {
+        idealBeamformingHelper->SetAttribute(
+            "BeamformingMethod",
+            TypeIdValue(KroneckerQuasiOmniBeamforming::GetTypeId()));
+    }
+    else if (beamformingMethod == "DirectPathBeamforming")
     {
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                              TypeIdValue(DirectPathBeamforming::GetTypeId()));
     }
 
+    else
+    {
+        NS_ABORT_MSG("Unsupported Beamforming Method");
+    }
     nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaPF"));
+    nrHelper->SetSchedulerAttribute("EnableHarqReTx", BooleanValue(false));
 
     // Antennas for all the UEs - Should be 2x4 = 8 antenna elements
     nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(2));
@@ -639,18 +635,26 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     }
 
     // Setting antenna polarization for gNB and UE
+    double downtiltAnglegNB = 90;
+    double polSlantAnglegNB = 45;
     if (dropParam.gnbAntennaPolarization)
     {
-        nrHelper->SetGnbAntennaAttribute("IsPolarized", BooleanValue(true));
+        nrHelper->SetGnbAntennaAttribute("IsDualPolarized", BooleanValue(true));
+        nrHelper->SetGnbAntennaAttribute("DowntiltAngle",
+                                         DoubleValue(downtiltAnglegNB * M_PI / 180.0));
+        nrHelper->SetGnbAntennaAttribute("PolSlantAngle",
+                                         DoubleValue(polSlantAnglegNB * M_PI / 180.0));
     }
     if (dropParam.ueAntennaPolarization)
     {
-        nrHelper->SetUeAntennaAttribute("IsPolarized", BooleanValue(true));
+        nrHelper->SetUeAntennaAttribute("IsDualPolarized", BooleanValue(true));
+        nrHelper->SetUeAntennaAttribute("PolSlantAngle", DoubleValue(0 * M_PI / 180.0));
     }
     nrHelper->SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsGnb));
     nrHelper->SetGnbAntennaAttribute("NumHorizontalPorts", UintegerValue(dropParam.numHPortsGnb));
     nrHelper->SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsUe));
     nrHelper->SetUeAntennaAttribute("NumHorizontalPorts", UintegerValue(dropParam.numHPortsUe));
+    nrHelper->SetUeSpectrumAttribute("NumAntennaPanel", UintegerValue(numUePanel));
     // mobility.SetPositionAllocator (ueRandomRectPosAlloc);
     // install nr net devices
     NetDeviceContainer gNbDevs = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
@@ -673,6 +677,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         // UE noise figure shall be set to 10 dB
         nrHelper->GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("NoiseFigure", DoubleValue(10));
+        nrHelper->GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("TxPower", DoubleValue(ueTxPower));
     }
 
     // create the internet and install the IP stack on the UEs
@@ -686,7 +691,15 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     ueIpIface = nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNetDevs));
 
     // attach UEs to the closest gNB
-    nrHelper->AttachToClosestGnb(ueNetDevs, gNbDevs);
+    if (enableInitialAssoc)
+    {
+        nrHelper->SetupInitialAssoc(Initparams);
+        nrHelper->AttachToMaxRsrpGnb(ueNetDevs, gNbDevs);
+    }
+    else
+    {
+        nrHelper->AttachToClosestGnb(ueNetDevs, gNbDevs);
+    }
 
     // assign IP address to UEs, and install UDP downlink applications
     uint16_t dlPort = 1234;
@@ -734,35 +747,126 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
             "RssiPerProcessedChunk",
             MakeBoundCallback(&UeRssiPerProcessedChunkTrace, this));
     }
-
+    // enable the traces provided by the nr module
+    nrHelper->EnableTraces();
+    nrHelper->GetPhyRxTrace()->SetResultsFolder(resultsDirPath + tag);
+    nrHelper->EnableDlDataPhyTraces();
+    nrHelper->EnableDlCtrlPhyTraces();
+    nrHelper->EnableDlCtrlPhyTraces();
+    nrHelper->EnablePathlossTraces();
+    nrHelper->EnableDlDataPathlossTraces(ueNetDevs);
+    nrHelper->EnableDlCtrlPathlossTraces(ueNetDevs);
+    nrHelper->EnableUlPhyTraces();
+    FlowMonitorHelper flowmonHelper;
+    NodeContainer endpointNodes;
+    endpointNodes.Add(remoteHost);
+    endpointNodes.Add(selectedUeNodes);
+    Ptr<ns3::FlowMonitor> monitor = flowmonHelper.Install(endpointNodes);
+    monitor->SetAttribute("DelayBinWidth", DoubleValue(0.001));
+    monitor->SetAttribute("JitterBinWidth", DoubleValue(0.001));
+    monitor->SetAttribute("PacketSizeBinWidth", DoubleValue(20));
     Simulator::Stop(simTime);
     Simulator::Run();
+    // Print per-flow statistics
+    monitor->CheckForLostPackets();
+    Ptr<Ipv4FlowClassifier> classifier =
+        DynamicCast<Ipv4FlowClassifier>(flowmonHelper.GetClassifier());
+    FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats();
+    double averageFlowThroughput = 0.0;
+    double averageFlowDelay = 0.0;
+    std::ofstream outFile;
+    std::string filename = resultsDirPath + "/" + tag + "flow";
+    outFile.open(filename.c_str(), std::ofstream::out | std::ofstream::trunc);
+    if (!outFile.is_open())
+    {
+        std::cerr << "Can't open file " << filename << std::endl;
+    }
+    outFile.setf(std::ios_base::fixed);
+    double flowDuration = (udpAppStopTimeDl - udpAppStartTimeDl).GetSeconds();
+    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
+         i != stats.end();
+         ++i)
+    {
+        Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
+        std::stringstream protoStream;
+        protoStream << (uint16_t)t.protocol;
+        if (t.protocol == 6)
+        {
+            protoStream.str("TCP");
+        }
+        if (t.protocol == 17)
+        {
+            protoStream.str("UDP");
+        }
+        outFile << "Flow " << i->first << " (" << t.sourceAddress << ":" << t.sourcePort << " -> "
+                << t.destinationAddress << ":" << t.destinationPort << ") proto "
+                << protoStream.str() << "\n";
+        outFile << "  Tx Packets: " << i->second.txPackets << "\n";
+        outFile << "  Tx Bytes:   " << i->second.txBytes << "\n";
+        outFile << "  TxOffered:  " << i->second.txBytes * 8.0 / flowDuration / 1000.0 / 1000.0
+                << " Mbps\n";
+        outFile << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+        if (i->second.rxPackets > 0)
+        {
+            // Measure the duration of the flow from receiver's perspective
+            averageFlowThroughput += i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000;
+            averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
+            outFile << "  Throughput: " << i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000
+                    << " Mbps\n";
+            outFile << "  Mean delay:  "
+                    << 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets << " ms\n";
+            outFile << "  Mean jitter:  "
+                    << 1000 * i->second.jitterSum.GetSeconds() / i->second.rxPackets << " ms\n";
+        }
+        else
+        {
+            outFile << "  Throughput:  0 Mbps\n";
+            outFile << "  Mean delay:  0 ms\n";
+            outFile << "  Mean jitter: 0 ms\n";
+        }
+        outFile << "  Rx Packets: " << i->second.rxPackets << "\n";
+    }
+    outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << "\n";
+    outFile << "  Mean flow delay: " << averageFlowDelay / stats.size() << "\n";
+    outFile.close();
+    std::ifstream f(filename.c_str());
+    if (f.is_open())
+    {
+        std::cout << f.rdbuf();
+    }
     Simulator::Destroy();
 }
 
 int
 main(int argc, char* argv[])
 {
-    // Parameters according to R1-1703534 3GPP TSG RAN WG1 Meetging #88, 2017
+    // Parameters according to RP-180524 Indoor Hotspot Config B,
     // Evaluation assumptions for Phase 1 NR MIMO system level calibration,
     double centralFrequencyBand = 30e9;
     double bandwidthBand = 40e6;
     uint16_t numerology = 2;
-    double totalTxPower = 23;
-
+    double totalTxPower = 20;
+    double ueTxPower = 23;
+    bool enableInitialAssoc = true;
     uint32_t duration = 150;
-    bool cellScan = false;
-    bool enableGnbIso = true;
-    bool enableUeIso = true;
+    bool enableGnbIso = false;
+    bool enableUeIso = false;
+    bool enableShadowing = false;
     std::string indoorScenario = "InH-OfficeOpen";
+    std::string beamformingMethod = "KroneckerBeamforming";
     double speed = 3.00;
-    bool polarizedAntennas = false;
+    bool polarizedAntennas = true;
     std::string outdir = "./";
     std::string simTag = "";
-    uint8_t numVPortsGnb = 1;
-    uint8_t numHPortsGnb = 1;
+    uint8_t numVPortsGnb = 2;
+    uint8_t numHPortsGnb = 2;
     uint8_t numVPortsUe = 1;
     uint8_t numHPortsUe = 1;
+    uint8_t numUePanel = 2;
+    uint16_t ueCount = 120;
+    NrHelper::InitialAssocParams Initparams;
+    Initparams.rowAngles = {-67.5, -22.5, 22.5, 67.5};
+    Initparams.colAngles = {45, 135};
 
     CommandLine cmd(__FILE__);
 
@@ -770,15 +874,25 @@ main(int argc, char* argv[])
                  "Simulation duration in ms, should be greater than 100 ms to allow the collection "
                  "of traces",
                  duration);
-    cmd.AddValue("cellScan",
-                 "Use beam search method to determine beamforming vector,"
-                 "true to use cell scanning method",
-                 cellScan);
     cmd.AddValue("enableGnbIso", "Enable Isotropic antenna for the gNB", enableGnbIso);
     cmd.AddValue("enableGnbIso", "Enable Isotropic antenna for the UE", enableUeIso);
     cmd.AddValue("indoorScenario",
                  "The indoor scenario to be used can be: InH-OfficeMixed or InH-OfficeOpen",
                  indoorScenario);
+    cmd.AddValue("beamformingMethod",
+                 "pass one of the available beamforming methods: "
+                 "'KronQuasiOmniBeamforming','KronBeamforming', "
+                 "'CellScanBeamforming','DirectPathBeamforming',",
+                 beamformingMethod);
+    cmd.AddValue("numUePanel", "Number of UE panels in spectrum phy ", numUePanel);
+    cmd.AddValue("handoffMargin",
+                 "Hand-off margin in initial association to attach UEs,",
+                 Initparams.handoffMargin);
+    cmd.AddValue("ueCount", "Number of UE count ", ueCount);
+    cmd.AddValue("enableShadowing", "Enable shadowing in the channel modeling", enableShadowing);
+    cmd.AddValue("enableInitialAssoc",
+                 "Enable RSRP based initial association for UE's attachment",
+                 enableInitialAssoc);
     cmd.AddValue("speed", "UE speed in km/h", speed);
     cmd.AddValue("outdir", "directory where to store the simulation results", outdir);
     cmd.AddValue("polarizedAntennas",
@@ -805,12 +919,15 @@ main(int argc, char* argv[])
                                     numHPortsGnb,
                                     numVPortsUe,
                                     numHPortsUe};
-
     phase1CalibrationScenario.Run(centralFrequencyBand,
                                   bandwidthBand,
                                   numerology,
                                   totalTxPower,
-                                  cellScan,
+                                  ueTxPower,
+                                  beamformingMethod,
+                                  enableShadowing,
+                                  enableInitialAssoc,
+                                  Initparams,
                                   enableGnbIso,
                                   enableUeIso,
                                   indoorScenario,
@@ -818,6 +935,8 @@ main(int argc, char* argv[])
                                   outdir,
                                   simTag,
                                   duration,
+                                  numUePanel,
+                                  ueCount,
                                   dropParam);
     return 0;
 }
