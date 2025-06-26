@@ -267,6 +267,7 @@ Parameters::Validate() const
                 (nrConfigurationScenario != "DenseA" && nrConfigurationScenario != "DenseB" &&
                  nrConfigurationScenario != "DenseAmimo" &&
                  nrConfigurationScenario != "DenseAmimoIntel" &&
+                 nrConfigurationScenario != "DenseAWraparoundBenchmark" &&
                  nrConfigurationScenario != "RuralA" && nrConfigurationScenario != "RuralB"),
                 "NR needs one of the NR pre-defined scenarios to be specified");
         }
@@ -389,7 +390,6 @@ ChooseCalibrationScenario(Parameters& params)
                 params.enableFading = true; // required by attachRsrp
                 params.attachRsrp = true;
             }
-
             else if (params.nrConfigurationScenario == "DenseAmimoIntel")
             {
                 // Parameters based on  Intel R1-1707360
@@ -444,6 +444,67 @@ ChooseCalibrationScenario(Parameters& params)
                 params.enableSubbandScheluder = true;
                 params.m_subbandCqiClamping = true;
                 // one of  McsCsiSource::(AVG_MCS|AVG_SPEC_EFF|AVG_SINR|WIDEBAND_MCS), defaults to
+                params.m_mcsCsiSource = NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS;
+            }
+            else if (params.nrConfigurationScenario == "DenseAWraparoundBenchmark")
+            {
+                // Parameters based on  Intel R1-1707360, and adapted for wraparound benchmark
+                params.bfMethod = "KroneckerQuasiOmniBeamforming";
+                params.errorModel = "ns3::NrEesmIrT1";
+                params.ueNumPergNb = 4;
+                params.appGenerationTime = MilliSeconds(300);
+                params.appStopWindow = MilliSeconds(10);
+
+                params.freqScenario = 1;
+                params.scenario = "UMa";
+                params.startingFreq = 4e9;
+                params.bandwidthMHz = 10;
+                params.gnbTxPower = 41;
+                params.bsHeight = 25;
+                params.uesWithRandomUtHeight = 0.8;
+                params.isd = 200;
+                params.o2iThreshold = 0.8;
+                params.o2iLowLossThreshold = 0.8;
+                params.linkO2iConditionToAntennaHeight = true;
+                params.minBsUtDistance = 10;
+                params.gnbNumRows = 8;
+                params.gnbNumColumns = 8;
+                params.polSlantAngleGnb = 45;
+                params.gnbHSpacing = 0.5;
+                params.gnbVSpacing = 0.8;
+                params.dualPolarizedGnb = true;
+                params.numVPortsGnb = 1;
+                params.numHPortsGnb = 8;
+
+                params.polSlantAngleUe = 0;
+                params.ueNumRows = 1;
+                params.ueNumColumns = 2;
+                params.numVPortsUe = 1;
+                params.numHPortsUe = 2;
+
+                params.ueHSpacing = 0.5;
+                params.dualPolarizedUe = true;
+                params.ueEnable3gppElement = false;
+                params.gnbEnable3gppElement = true;
+                params.downtiltAngle = 0;
+                params.gnbNoiseFigure = 5;
+                params.attachRsrp = true;
+                params.ueNoiseFigure = 9;
+                params.scheduler = "RR";
+                params.ftpM1Enabled = false;
+
+                params.initParams.rowAngles = {-56.25, -33.75, -11.25, 11.25, 33.75, 56.25};
+                params.initParams.colAngles = {112.5, 157.5};
+
+                params.numerologyBwp = 0;
+                params.initParams.handoffMargin = 3;
+                params.enableMimo = true;
+                params.mimoPmiParams.rankLimit = 2;
+                params.mimoPmiParams.subbandSize = 4;
+                params.mimoPmiParams.fullSearchCb = "ns3::NrCbTypeOneSp";
+
+                params.enableSubbandScheluder = true;
+                params.m_subbandCqiClamping = true;
                 params.m_mcsCsiSource = NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS;
             }
             else if (params.nrConfigurationScenario == "DenseB")
@@ -629,7 +690,9 @@ Nr3gppCalibration(Parameters& params)
     }
 
     std::cout << "  statistics\n";
-    SQLiteOutput db(params.outputDir + "/" + params.dbName + ".db");
+    std::string dbName =
+        (params.dbName == "default" && params.simTag != "default") ? params.simTag : params.dbName;
+    SQLiteOutput db(params.outputDir + "/" + dbName + ".db");
     SinrOutputStats sinrStats;
     PowerOutputStats ueTxPowerStats;
     PowerOutputStats gnbRxPowerStats;

@@ -55,11 +55,12 @@ main(int argc, char* argv[])
                  "calibration scenarios. Please notice that if b) is selected"
                  "custom parameters should not be set through the command line",
                  params.confType);
-    cmd.AddValue("nrConfigurationScenario",
-                 "The NR calibration scenario string. Choose among:"
-                 "DenseA, DenseAmimo, DenseAmimoIntel, DenseB, RuralA, RuralB"
-                 "This variable must be set when calibrationConf is chosen",
-                 params.nrConfigurationScenario);
+    cmd.AddValue(
+        "nrConfigurationScenario",
+        "The NR calibration scenario string. Choose among:"
+        "DenseA, DenseAmimo, DenseAmimoIntel, DenseAWraparoundBenchmark, DenseB, RuralA, RuralB"
+        "This variable must be set when calibrationConf is chosen",
+        params.nrConfigurationScenario);
     cmd.AddValue("scenario",
                  "The urban scenario string (UMa, RMa, UMi_StreeCanyon)",
                  params.scenario);
