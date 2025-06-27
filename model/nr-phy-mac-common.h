@@ -222,6 +222,58 @@ struct DciInfoElementTdma
     {
     }
 
+    /**
+     * @brief Constructor used in NrMacSchedulerHarqRr to reshape allocations
+     * @param symStart Sym start
+     * @param numSym Num sym
+     * @param rbgBitmask Bitmask of RBG
+     * @param o Original DCI to copy remaining fields
+     */
+    DciInfoElementTdma(uint8_t symStart,
+                       uint8_t numSym,
+                       const std::vector<bool>& rbgBitmask,
+                       const DciInfoElementTdma& o)
+        : m_rnti(o.m_rnti),
+          m_format(o.m_format),
+          m_symStart(symStart),
+          m_numSym(numSym),
+          m_mcs(o.m_mcs),
+          m_rank(o.m_rank),
+          m_precMats(o.m_precMats),
+          m_tbSize(o.m_tbSize),
+          m_ndi(o.m_ndi),
+          m_rv(o.m_rv),
+          m_type(o.m_type),
+          m_bwpIndex(o.m_bwpIndex),
+          m_harqProcess(o.m_harqProcess),
+          m_rbgBitmask(rbgBitmask),
+          m_tpc(o.m_tpc)
+    {
+    }
+
+    /**
+     * @brief Copy constructor
+     * @param o Original DCI to copy remaining fields
+     */
+    DciInfoElementTdma(const DciInfoElementTdma& o)
+        : m_rnti(o.m_rnti),
+          m_format(o.m_format),
+          m_symStart(o.m_symStart),
+          m_numSym(o.m_numSym),
+          m_mcs(o.m_mcs),
+          m_rank(o.m_rank),
+          m_precMats(o.m_precMats),
+          m_tbSize(o.m_tbSize),
+          m_ndi(o.m_ndi),
+          m_rv(o.m_rv),
+          m_type(o.m_type),
+          m_bwpIndex(o.m_bwpIndex),
+          m_harqProcess(o.m_harqProcess),
+          m_rbgBitmask(o.m_rbgBitmask),
+          m_tpc(o.m_tpc)
+    {
+    }
+
     const uint16_t m_rnti{0};     //!< RNTI of the UE
     const DciFormat m_format{DL}; //!< DCI format
     const uint8_t m_symStart{0};  //!< starting symbol index for flexible TTI scheme
