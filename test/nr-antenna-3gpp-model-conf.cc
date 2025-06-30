@@ -112,12 +112,12 @@ TestAntenna3gppModelConf::TestAntenna3gppModelConf(const std::string& name,
     m_ueOmniAntennaElem = ueOmniAntennaElem;
     m_ueNoOfAntennas = ueNoOfAntennas;
     m_losCondition = losCondition;
-    m_sinrCell1 = Create<MinMaxAvgTotalCalculator<double>>();
-    m_sinrCell2 = Create<MinMaxAvgTotalCalculator<double>>();
-    m_mcsCell1 = Create<MinMaxAvgTotalCalculator<double>>();
-    m_mcsCell2 = Create<MinMaxAvgTotalCalculator<double>>();
-    m_rbNumCell1 = Create<MinMaxAvgTotalCalculator<double>>();
-    m_rbNumCell2 = Create<MinMaxAvgTotalCalculator<double>>();
+    m_sinrCell1 = CreateObject<MinMaxAvgTotalCalculator<double>>();
+    m_sinrCell2 = CreateObject<MinMaxAvgTotalCalculator<double>>();
+    m_mcsCell1 = CreateObject<MinMaxAvgTotalCalculator<double>>();
+    m_mcsCell2 = CreateObject<MinMaxAvgTotalCalculator<double>>();
+    m_rbNumCell1 = CreateObject<MinMaxAvgTotalCalculator<double>>();
+    m_rbNumCell2 = CreateObject<MinMaxAvgTotalCalculator<double>>();
 }
 
 // This destructor does nothing but we include it as a reminder that
