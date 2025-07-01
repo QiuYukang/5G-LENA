@@ -131,7 +131,7 @@ NrMacSchedulerOfdmaSymbolPerBeamRR::GetSymPerBeam(
         // Find first active beam in the round-robin queue
         for (size_t i = 0; i < m_rrBeams.size(); ++i)
         {
-            // If front beam in round-robing queue is active,
+            // If front beam in round-robin queue is active,
             // allocate one available symbols to it
             if (activeDl.find(m_rrBeams.front()) != activeDl.end())
             {
@@ -142,7 +142,7 @@ NrMacSchedulerOfdmaSymbolPerBeamRR::GetSymPerBeam(
                 ret[m_rrBeams.front()] += 1;
                 i = m_rrBeams.size(); // delayed break
             }
-            // Move round-robing front queue item to the end
+            // Move round-robin front queue item to the end
             m_rrBeams.push_back(m_rrBeams.front());
             m_rrBeams.pop_front();
         }
