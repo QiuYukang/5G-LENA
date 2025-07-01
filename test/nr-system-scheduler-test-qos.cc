@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#include "system-scheduler-test-qos.h"
+#include "nr-system-scheduler-test-qos.h"
 
 #include "ns3/antenna-module.h"
 #include "ns3/applications-module.h"

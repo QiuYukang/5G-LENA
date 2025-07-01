@@ -503,7 +503,7 @@ set(test_sources
     test/nr-test-subband.cc
     test/nr-test-timings.cc
     test/nr-uplink-power-control-test.cc
-    test/system-scheduler-test-qos.cc
+        test/nr-system-scheduler-test-qos.cc
     test/system-scheduler-test.cc
     test/ul-scheduling-test.cc
     utils/traffic-generators/test/traffic-generator-test.cc
