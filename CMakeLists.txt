@@ -156,12 +156,14 @@ set(source_files
     model/nr-mac-scheduler-ofdma-qos.cc
     model/nr-mac-scheduler-ofdma-rr.cc
     model/nr-mac-scheduler-ofdma-symbol-per-beam.cc
+    model/nr-mac-scheduler-ofdma-random.cc
     model/nr-mac-scheduler-ofdma.cc
     model/nr-mac-scheduler-srs-default.cc
     model/nr-mac-scheduler-tdma-mr.cc
     model/nr-mac-scheduler-tdma-pf.cc
     model/nr-mac-scheduler-tdma-qos.cc
     model/nr-mac-scheduler-tdma-rr.cc
+    model/nr-mac-scheduler-tdma-random.cc
     model/nr-mac-scheduler-tdma.cc
     model/nr-mac-scheduler-ue-info-pf.cc
     model/nr-mac-scheduler-ue-info-qos.cc
@@ -357,6 +359,7 @@ set(header_files
     model/nr-mac-scheduler-ofdma-qos.h
     model/nr-mac-scheduler-ofdma-rr.h
     model/nr-mac-scheduler-ofdma-symbol-per-beam.h
+    model/nr-mac-scheduler-ofdma-random.h
     model/nr-mac-scheduler-ofdma.h
     model/nr-mac-scheduler-srs-default.h
     model/nr-mac-scheduler-srs.h
@@ -364,6 +367,7 @@ set(header_files
     model/nr-mac-scheduler-tdma-pf.h
     model/nr-mac-scheduler-tdma-qos.h
     model/nr-mac-scheduler-tdma-rr.h
+    model/nr-mac-scheduler-tdma-random.h
     model/nr-mac-scheduler-tdma.h
     model/nr-mac-scheduler-ue-info-mr.h
     model/nr-mac-scheduler-ue-info-pf.h

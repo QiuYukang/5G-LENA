@@ -228,6 +228,30 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
     {
     }
 
+    typedef std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
+                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
+        CompareUeFn;
+    typedef std::function<CompareUeFn()> GetCompareUeFn;
+    /**
+     * @brief Sorts the given vector of UE pointers and buffer requests.
+     *
+     * This method sorts the provided `ueVector` in-place using a stable sort algorithm, based on
+     * the comparison function specified by `GetCompareFn`.
+     *
+     * Note: This function is inherited and overridden by nr-mac-scheduler-tdma-random to implement
+     * random scheduler in which GetCompareFn is not used.
+     *
+     * @param ueVector A pointer to the vector containing UE pointers and their corresponding buffer
+     * requests. The elements within this vector will be sorted according to the comparison criteria
+     * defined by the `GetCompareFn`.
+     * @param GetCompareFn A constant reference to a comparison function object that defines the
+     * sorting order for the elements in the `ueVector`. This function should take two arguments of
+     * type `UePtrAndBufferReq` and return a boolean indicating whether the first argument is less
+     * than the second.
+     */
+    virtual void SortUeVector(std::vector<UePtrAndBufferReq>* ueVector,
+                              [[maybe_unused]] const GetCompareUeFn& GetCompareFn) const;
+
   private:
     /**
      * @brief Retrieve the UE vector from an ActiveUeMap
@@ -238,7 +262,6 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
      */
     static std::vector<UePtrAndBufferReq> GetUeVectorFromActiveUeMap(const ActiveUeMap& activeUes);
 
-  private:
     typedef std::function<void(const UePtrAndBufferReq&, const FTResources&)>
         BeforeSchedFn; //!< Before scheduling function
     /**
@@ -256,10 +279,6 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
     typedef std::function<uint32_t&(const UePtr& ue)> GetTBSFn; //!< Getter for the TBS of an UE
     typedef std::function<std::vector<uint8_t>&(const UePtr& ue)>
         GetSymFn; //!< Getter for the number of symbols of an UE
-    typedef std::function<bool(const NrMacSchedulerNs3::UePtrAndBufferReq& lhs,
-                               const NrMacSchedulerNs3::UePtrAndBufferReq& rhs)>
-        CompareUeFn;
-    typedef std::function<CompareUeFn()> GetCompareUeFn;
     typedef std::function<void(std::vector<UePtrAndBufferReq>& ueVector)> CallNotifyFn;
 
     BeamSymbolMap AssignRBGTDMA(uint32_t symAvail,

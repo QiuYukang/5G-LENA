@@ -386,7 +386,7 @@ NrMacSchedulerOfdma::AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl)
                     CallNotifyDlFn(ueVector);
                 }
                 // Sort UEs based on the selected scheduler policy (PF, RR, QoS, AI)
-                std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareDlFn());
+                SortUeVector(&ueVector, std::bind(&NrMacSchedulerOfdma::GetUeCompareDlFn, this));
 
                 // Select the first UE
                 auto schedInfoIt = ueVector.begin();
@@ -559,7 +559,7 @@ NrMacSchedulerOfdma::AssignULRBG(uint32_t symAvail, const ActiveUeMap& activeUl)
                 CallNotifyUlFn(ueVector);
             }
             GetFirst GetUe;
-            std::stable_sort(ueVector.begin(), ueVector.end(), GetUeCompareUlFn());
+            SortUeVector(&ueVector, std::bind(&NrMacSchedulerOfdma::GetUeCompareUlFn, this));
             auto schedInfoIt = ueVector.begin();
 
             // Ensure fairness: pass over UEs which already has enough resources to transmit

@@ -150,9 +150,8 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
         }
         GetFirst GetUe;
 
+        SortUeVector(&ueVector, GetCompareFn);
         auto schedInfoIt = ueVector.begin();
-
-        std::stable_sort(ueVector.begin(), ueVector.end(), GetCompareFn());
 
         // Ensure fairness: pass over UEs which already has enough resources to transmit
         while (schedInfoIt != ueVector.end())
@@ -228,6 +227,13 @@ NrMacSchedulerTdma::AssignRBGTDMA(uint32_t symAvail,
         ret.insert(std::make_pair(el.first, symOfBeam));
     }
     return ret;
+}
+
+void
+NrMacSchedulerTdma::SortUeVector(std::vector<UePtrAndBufferReq>* ueVector,
+                                 const GetCompareUeFn& GetCompareFn) const
+{
+    std::stable_sort(ueVector->begin(), ueVector->end(), GetCompareFn());
 }
 
 /**
