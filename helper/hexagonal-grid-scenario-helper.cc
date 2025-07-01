@@ -30,6 +30,7 @@ HexagonalGridScenarioHelper::HexagonalGridScenarioHelper()
 {
     m_r = CreateObject<UniformRandomVariable>();
     m_theta = CreateObject<UniformRandomVariable>();
+    m_resultsDir = ".";
 }
 
 HexagonalGridScenarioHelper::~HexagonalGridScenarioHelper()
