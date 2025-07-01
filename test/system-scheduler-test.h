@@ -8,8 +8,11 @@
 #include "ns3/ptr.h"
 #include "ns3/test.h"
 
+#include <map>
+
 namespace ns3
 {
+class Ipv4Address;
 
 class Packet;
 
@@ -63,6 +66,8 @@ class SystemSchedulerTest : public TestCase
   private:
     void DoRun() override;
     void CountPkts(Ptr<const Packet> pkt);
+    void CountUlRx(Ptr<const Packet> pkt);
+    void CountDlRx(Ptr<const Packet> pkt);
 
     uint32_t m_numerology;      //!< the numerology to be used
     double m_bw1;               //!< bandwidth of bandwidth part 1
@@ -74,7 +79,8 @@ class SystemSchedulerTest : public TestCase
     std::string m_name;          //!< Name of the test
     uint32_t m_packets{0};       //!< Packets received correctly
     uint32_t m_limit{0}; //!< Total amount of packets, depending on the parameters of the test
+    std::map<Ipv4Address, uint32_t> m_dlServerAppAddresses;
+    std::map<Ipv4Address, uint32_t> m_ulServerAppAddresses;
 };
-
 } // namespace ns3
 #endif // SYSTEM_SCHEDULER_TEST_H

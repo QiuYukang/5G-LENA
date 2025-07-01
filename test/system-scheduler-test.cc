@@ -28,6 +28,35 @@ SystemSchedulerTest::CountPkts([[maybe_unused]] Ptr<const Packet> pkt)
     }
 }
 
+void
+SystemSchedulerTest::CountDlRx([[maybe_unused]] Ptr<const Packet> pkt)
+{
+    Ipv4Header ipv4Header;
+    if (pkt->PeekHeader(ipv4Header))
+    {
+        // Increment the count for this address, starting at 0 if it doesn't exist
+        m_dlServerAppAddresses[ipv4Header.GetDestination()]++;
+    }
+    else
+    {
+        NS_ABORT_MSG("Ipv6 isn't supported in this test currently.");
+    }
+}
+
+void
+SystemSchedulerTest::CountUlRx([[maybe_unused]] Ptr<const Packet> pkt)
+{
+    Ipv4Header ipv4Header;
+    if (pkt->PeekHeader(ipv4Header))
+    {
+        m_ulServerAppAddresses[ipv4Header.GetSource()]++;
+    }
+    else
+    {
+        NS_ABORT_MSG("Ipv6 isn't supported in this test currently.");
+    }
+}
+
 SystemSchedulerTest::SystemSchedulerTest(const std::string& name,
                                          uint32_t usersPerBeamNum,
                                          uint32_t numOfBeams,
@@ -350,6 +379,18 @@ SystemSchedulerTest::DoRun()
                                           MakeCallback(&SystemSchedulerTest::CountPkts, this));
     }
 
+    for (auto it = gNbNetDevs.Begin(); it != gNbNetDevs.End(); ++it)
+    {
+        (*it)->TraceConnectWithoutContext("Rx",
+                                          MakeCallback(&SystemSchedulerTest::CountUlRx, this));
+    }
+
+    for (auto it = ueNetDevs.Begin(); it != ueNetDevs.End(); ++it)
+    {
+        (*it)->TraceConnectWithoutContext("Rx",
+                                          MakeCallback(&SystemSchedulerTest::CountDlRx, this));
+    }
+
     // nrHelper->EnableTraces();
     Simulator::Stop(simTime);
     Simulator::Run();
@@ -382,6 +423,10 @@ SystemSchedulerTest::DoRun()
                               expectedBitRate,
                               expectedBitRate * 0.05,
                               "Wrong total DL + UL throughput");
+
+    NS_TEST_ASSERT_MSG_EQ(ueNodes.GetN() * (m_isDownlink + m_isUplink),
+                          m_dlServerAppAddresses.size() + m_ulServerAppAddresses.size(),
+                          "Not all applications achieved non zero throughput");
 
     Simulator::Destroy();
 }
