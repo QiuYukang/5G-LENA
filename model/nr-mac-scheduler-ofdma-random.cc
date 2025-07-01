@@ -65,5 +65,8 @@ void
 NrMacSchedulerOfdmaRandom::SortUeVector(std::vector<UePtrAndBufferReq>* ueVector,
                                         const GetCompareUeFn& GetCompareFn) const
 {
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::shuffle(ueVector->begin(), ueVector->end(), generator);
 }
 } // namespace ns3
