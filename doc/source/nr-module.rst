@@ -1513,19 +1513,23 @@ The time-domain scheduling (1) of the symbols per beam can be performed with dif
 
 
 The frequency-domain scheduling (2) of RBGs can be performed using different scheduling algorithms
-(round robin, proportional fair, max rate, RL-based). Which decide how RBGs are allocated among
+(round robin, proportional fair, max rate, QoS, RL-based, random). Which decide how RBGs are allocated among
 different UEs associated to the same beam. Multiple fairness checks can be ensured in between
 each level of scheduling - the time domain and the frequency domain. For instance, a UE that
 already has its needs covered by a portion of the assigned resources can free these
 resources for others to use.
 
-The NR module currently offers three specializations of the OFMA schedulers.
+The NR module currently offers several specializations of the OFDMA schedulers.
 These specializations perform the downlink scheduling in a round robin (RR), proportional fair
-(PF) and max rate (MR) manner, respectively, as explained in the following:
+(PF), max rate (MR), QoS, AI RL-based, or random manner, respectively, as explained in the following:
 
-* RR: the available RBGs are divided evenly among UEs associated to that beam
+* RR: the available RBGs are divided evenly among UEs associated to that beam.
 * PF: the available RBGs are distributed among the UEs according to a PF metric that considers the actual rate (based on the CQI) elevated to :math:`\alpha` and the average rate that has been provided in the previous slots to the different UEs. Changing the α parameter changes the PF metric. For :math:`\alpha=0`, the scheduler selects the UE with the lowest average rate. For :math:`\alpha=1`, the scheduler selects the UE with the largest ratio between actual rate and average rate.
 * MR: the total available RBGs are distributed among the UEs according to a maximum rate (MR) metric that considers the actual rate (based on the CQI) of the different UEs.
+* QoS: the available RBGs are distributed among the UEs based on their traffic requirements by considering QoS profile of each QoS flow (the 5QI information, such as the resource type, the priority level and the Packet Delay
+Budget (PDB), along with real-time measurements as provided at the MAC layer, i.e., the head-of-line delay (HOL) and the PF metric.
+* AI RL-based: the available RBGs are distributed based on the RL model whose objective is to meet latency requirements. AI RL-based scheduler considers QoS profile of each QoS flow together with HOL delay.
+* Random: the available RBGs are divided among UEs in a random manner to ensure that all UEs get assigned, with no clear preference to a particular UE. The generated interference is random in the power/time/frequency/spatial domains because of the random selection of UEs.
 
 Each of these OFDMA schedulers is performing a load-based scheduling of
 symbols per beam in time-domain for the downlink. In the uplink,
@@ -1534,11 +1538,14 @@ the scheduling is done by the TDMA schedulers.
 The base class for TDMA schedulers is ``NrMacSchedulerTdma``.
 This scheduler performs TDMA scheduling for both, the UL and the DL traffic.
 The TDMA schedulers perform the scheduling only in the time-domain, i.e.,
-by distributing OFDM symbols among the active UEs. 'NR' module offers three
-specializations of TDMA schedulers: RR, PF, and MR, where
+by distributing OFDM symbols among the active UEs. 'NR' module offers several
+specializations of TDMA schedulers: RR, PF, MR, QoS, AI and the random where
 the scheduling criteria is the same as in the corresponding OFDMA
 schedulers, while the scheduling is performed in time-domain instead of
 the frequency-domain, and thus the resources being allocated are symbols instead of RBGs.
+
+Sub-band scheduling
+===================
 
 Since nr-4.0, sub-band CQI information can be used by the schedulers to avoid allocating interfered RBGs.
 This can be achieved by changing the ``NrMacSchedulerNs3::McsCsiSource``.
@@ -2822,14 +2829,17 @@ https://cttc-lena.gitlab.io/nr/html/nr-test-fdm-of-numerologies_8cc.html
 Test for NR schedulers
 ======================
 To test the NR schedulers, we have implemented various system tests called
-``nr-system-test-schedulers-tdma/ofdma-mr/pf/rr`` whose purpose is to test that the
+``nr-system-test-schedulers-tdma/ofdma-mr/pf/rr/random`` whose purpose is to test that the
 NR schedulers provide a required amount of resources to all UEs, for both cases,
 the downlink and the uplink. The topology consists of a single gNB and
 variable number of UEs, which are distributed among variable number of beams.
 Test cases are designed in such a way that the offered rate for the flow
 of each UE is dimensioned in such a way that each of the schedulers under the
 selected topology shall provide at least the required service to each of the UEs.
-Different system tests cases are available for the various modes of scheduling (OFDMA and TDMA) and different scheduling algorithms (RR, PR, MR) supported in the simulator. Each of the test cases checks different system configuration by choosing
+Different system tests cases are available for the various modes of scheduling (OFDMA and TDMA)
+and different scheduling algorithms (RR, PR, MR, random) supported in the simulator.
+For QoS and AI RL-based scheduler are created more specialized tests.
+Each of the test cases checks different system configuration by choosing
 different number of UEs, number of beams, numerology, traffic direction (DL, UL,
 DL and UL).
 
