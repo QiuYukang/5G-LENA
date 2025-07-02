@@ -307,7 +307,7 @@ class CheckPrefix(BaseCheck):
                 )
                 shorter_prefix = ", ".join(changed_files_not_sharing_prefix + [f"{max_prefix}-*"])
                 if shorter_prefix not in commit_info.header:
-                    errors.append(f'Prefix is too large: use "{shorter_prefix}"')
+                    errors.append(f'Prefix is too large (> 40): use "{shorter_prefix}"')
 
             for component in components:
                 if component.endswith("*"):
