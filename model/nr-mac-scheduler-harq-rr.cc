@@ -11,6 +11,7 @@
 
 #include "nr-fh-control.h"
 
+#include "ns3/boolean.h"
 #include "ns3/log.h"
 
 #include <algorithm>
@@ -19,6 +20,21 @@ namespace ns3
 {
 
 NS_LOG_COMPONENT_DEFINE("NrMacSchedulerHarqRr");
+NS_OBJECT_ENSURE_REGISTERED(NrMacSchedulerHarqRr);
+
+TypeId
+NrMacSchedulerHarqRr::GetTypeId()
+{
+    static TypeId tid =
+        TypeId("ns3::NrMacSchedulerHarqRr")
+            .SetParent<Object>()
+            .AddAttribute("ConsolidateHarqRetx",
+                          "Consolidate HARQ DCI through reshaping to improve resource utilization",
+                          BooleanValue(false),
+                          MakeBooleanAccessor(&NrMacSchedulerHarqRr::m_consolidateHarqRetx),
+                          MakeBooleanChecker());
+    return tid;
+}
 
 NrMacSchedulerHarqRr::NrMacSchedulerHarqRr()
 {
@@ -55,6 +71,18 @@ NrMacSchedulerHarqRr::InstallDoesFhAllocationFitFn(
     m_getDoesAllocationFit = fn;
 }
 
+void
+NrMacSchedulerHarqRr::InstallReshapeAllocation(
+    const std::function<
+        const std::vector<DciInfoElementTdma>(const std::vector<DciInfoElementTdma>& dcis,
+                                              uint8_t& startingSymbol,
+                                              uint8_t& numSymbols,
+                                              std::vector<bool>& bitmask,
+                                              const bool isDl)>& fn)
+{
+    m_getReshapeAllocation = fn;
+}
+
 std::vector<BeamId>
 NrMacSchedulerHarqRr::GetBeamOrderRR(NrMacSchedulerNs3::ActiveHarqMap activeHarqMap) const
 {
@@ -86,6 +114,16 @@ NrMacSchedulerHarqRr::GetBeamOrderRR(NrMacSchedulerNs3::ActiveHarqMap activeHarq
     return ret;
 }
 
+std::ostream&
+operator<<(std::ostream& os, const std::vector<bool>& h)
+{
+    for (auto hb : h)
+    {
+        os << (int)hb;
+    }
+    return os;
+}
+
 /**
  * @brief Schedule DL HARQ in RR fashion
  * @param startingPoint starting point of the first retransmission.
@@ -112,18 +150,17 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT(startingPoint->m_rbg == 0);
-    uint8_t usedSym = 0;
+    const auto preexistingDciNum = slotAlloc->m_varTtiAllocInfo.size();
+    auto currStartingSymbol = startingPoint->m_sym;
 
+    const bool isDl = true;
+    auto dlBitmask = m_getDlBitmask();
     NS_LOG_INFO("We have " << activeDlHarq.size() << " beams with data to RETX");
-
     for (const auto beamId : GetBeamOrderRR(activeDlHarq))
     {
-        if (symAvail == 0)
-        {
-            break;
-        }
         const auto& beam = *activeDlHarq.find(beamId);
-
+        const auto preexistingDciNumToBeam = slotAlloc->m_varTtiAllocInfo.size();
+        auto beamStartingSymbol = currStartingSymbol;
         std::vector<uint16_t> allocatedUe;
         NS_LOG_INFO(" Try to assign HARQ resource for Beam sector: "
                     << static_cast<uint32_t>(beam.first.GetSector())
@@ -194,7 +231,62 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                 }
             }
 
-            allocatedUe.push_back(dciInfoReTx->m_rnti);
+            // Pass copies, not to have to commit to any changes
+            uint8_t symAvailBackup = symAvail;
+            auto dlBitmaskBackup = dlBitmask;
+            auto currStartingSymbolBackup = currStartingSymbol;
+            std::vector<DciInfoElementTdma> reshapedDcis;
+            if (m_consolidateHarqRetx)
+            {
+                reshapedDcis = m_getReshapeAllocation({*harqProcess.m_dciElement},
+                                                      currStartingSymbolBackup,
+                                                      symAvailBackup,
+                                                      dlBitmaskBackup,
+                                                      isDl);
+            }
+            else
+            {
+                // If not reshaping, we just change at most the starting symbol.
+                // But first we check if there are collisions.
+                symAvailBackup -= harqProcess.m_dciElement->m_numSym;
+                bool collision = false;
+                for (std::size_t i = 0; i < dlBitmaskBackup.size(); i++)
+                {
+                    if (harqProcess.m_dciElement->m_rbgBitmask.at(i))
+                    {
+                        if (!dlBitmaskBackup.at(i))
+                        {
+                            collision = true;
+                            break;
+                        }
+                        dlBitmaskBackup.at(i) = false;
+                    }
+                }
+                if (!collision)
+                {
+                    reshapedDcis.emplace_back(currStartingSymbolBackup,
+                                              harqProcess.m_dciElement->m_numSym,
+                                              harqProcess.m_dciElement->m_rbgBitmask,
+                                              *harqProcess.m_dciElement);
+                }
+            }
+
+            // If allocation reshaping did not work, buffer DCI
+            if (reshapedDcis.empty())
+            {
+                NS_LOG_INFO("This HARQ allocation collides with a previously allocated HARQ, "
+                            "we have to buffer it");
+                BufferHARQFeedback(dlHarqFeedback,
+                                   dlHarqToRetransmit,
+                                   dciInfoReTx->m_rnti,
+                                   dciInfoReTx->m_harqProcess);
+                continue;
+            }
+
+            // This code currently only passes one DCI at a time for reshaping, while the
+            // function actually supports multiple. So here we only consume the first element.
+            harqProcess.m_dciElement = std::make_shared<DciInfoElementTdma>(reshapedDcis.front());
+            dciInfoReTx = harqProcess.m_dciElement;
             auto numSymbols = dciInfoReTx->m_numSym;
             if (symAvail < numSymbols)
             {
@@ -206,11 +298,18 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                 continue;
             }
 
+            // Commit changes made to number of symbols, RBG bitmask and starting symbol
+            // during reshaping
+            symAvail = symAvailBackup;
+            dlBitmask = dlBitmaskBackup;
+            currStartingSymbol = currStartingSymbolBackup;
+            allocatedUe.push_back(dciInfoReTx->m_rnti);
+
             NS_ASSERT(dciInfoReTx->m_format == DciInfoElementTdma::DL);
             auto dci = std::make_shared<DciInfoElementTdma>(dciInfoReTx->m_rnti,
                                                             dciInfoReTx->m_format,
-                                                            startingPoint->m_sym,
-                                                            numSymbols,
+                                                            dciInfoReTx->m_symStart,
+                                                            dciInfoReTx->m_numSym,
                                                             dciInfoReTx->m_mcs,
                                                             dciInfoReTx->m_rank,
                                                             dciInfoReTx->m_precMats,
@@ -234,9 +333,8 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
                      << static_cast<uint32_t>(dciInfoReTx->m_symStart + dciInfoReTx->m_numSym - 1)
                      << " tbs " << dciInfoReTx->m_tbSize << " harqId "
                      << static_cast<uint32_t>(dciInfoReTx->m_harqProcess) << " rv "
-                     << static_cast<uint32_t>(dciInfoReTx->m_rv)
-                     << " RBG start: " << static_cast<uint32_t>(startingPoint->m_rbg - rbgAssigned)
-                     << " RBG end: " << static_cast<uint32_t>(startingPoint->m_rbg) << " RETX");
+                     << static_cast<uint32_t>(dciInfoReTx->m_rv) << " RETX on RBGs"
+                     << dciInfoReTx->m_rbgBitmask);
             for (const auto& rlcPdu : harqProcess.m_rlcPduInfo)
             {
                 slotInfo.m_rlcPduInfo.push_back(rlcPdu);
@@ -244,16 +342,30 @@ NrMacSchedulerHarqRr::ScheduleDlHarq(
             slotAlloc->m_varTtiAllocInfo.push_back(slotInfo);
             ueMap.find(dciInfoReTx->m_rnti)->second->m_dlMRBRetx =
                 dciInfoReTx->m_numSym * rbgAssigned;
-
-            startingPoint->m_sym += numSymbols;
-            startingPoint->m_rbg = 0;
-            usedSym += numSymbols;
-            slotAlloc->m_numSymAlloc += numSymbols;
-            symAvail -= numSymbols;
+        }
+        // If there are still symbols left for the next beam, reset RBG mask
+        if (symAvail > 0)
+        {
+            dlBitmask = m_getDlBitmask();
+            // Advance symbol for OFDMA to prevent overlapping allocations with different beams
+            if (beamStartingSymbol == currStartingSymbol)
+            {
+                auto symbolsUsedForBeam = nr::CountUsedSymbolsFromVarAllocTtiRange(
+                    startingPoint->m_sym,
+                    slotAlloc->m_varTtiAllocInfo.begin() + preexistingDciNumToBeam,
+                    slotAlloc->m_varTtiAllocInfo.end());
+                currStartingSymbol += symbolsUsedForBeam;
+                symAvail -= symbolsUsedForBeam;
+            }
         }
     }
     NS_ASSERT(startingPoint->m_rbg == 0);
-    return usedSym;
+
+    auto usedSymbols = nr::CountUsedSymbolsFromVarAllocTtiRange(
+        startingPoint->m_sym,
+        slotAlloc->m_varTtiAllocInfo.begin() + preexistingDciNum,
+        slotAlloc->m_varTtiAllocInfo.end());
+    return usedSymbols;
 }
 
 /**
@@ -462,6 +574,18 @@ NrMacSchedulerHarqRr::GetDoesFhAllocationFit(uint16_t bwpId,
                                              uint8_t dlRank) const
 {
     return m_getDoesAllocationFit(bwpId, mcs, nRegs, dlRank);
+}
+
+void
+NrMacSchedulerHarqRr::InstallGetDlBitmask(const std::function<std::vector<bool>()>& fn)
+{
+    m_getDlBitmask = fn;
+}
+
+void
+NrMacSchedulerHarqRr::InstallGetUlBitmask(const std::function<std::vector<bool>()>& fn)
+{
+    m_getUlBitmask = fn;
 }
 
 } // namespace ns3

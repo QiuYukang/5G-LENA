@@ -516,4 +516,147 @@ NrMacSchedulerTdma::CreateDci(NrMacSchedulerNs3::PointInFTPlane* spoint,
     return dci;
 }
 
+std::vector<DciInfoElementTdma>
+NrMacSchedulerTdma::DoReshapeAllocation(
+    const std::vector<DciInfoElementTdma>& dcis,
+    uint8_t& startingSymbol,
+    uint8_t& numSymbols,
+    std::vector<bool>& bitmask,
+    const bool isDl,
+    const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap)
+{
+    // Declare lambda function to compute MCS based on sub-band information
+    auto computeMcs = [isDl](const std::shared_ptr<NrMacSchedulerUeInfo>& ueInfo,
+                             std::vector<uint16_t>& rbgVector) -> double {
+        if (isDl)
+        {
+            double currentMcs = ueInfo->m_dlMcs; // Wideband MCS
+            if (!rbgVector.empty())
+            {
+                const auto sum = std::transform_reduce(
+                    rbgVector.begin(),
+                    rbgVector.end(),
+                    0.0,
+                    std::plus<>(),
+                    [ueInfo](auto a) {
+                        return ueInfo->m_dlSbMcsInfo.at(ueInfo->m_rbgToSb.at(a)).mcs;
+                    });
+                currentMcs = sum / rbgVector.size();
+            }
+            return currentMcs;
+        }
+        else
+        {
+            return ueInfo->m_ulMcs;
+        }
+    };
+    // clang-format off
+    /**
+     * TDMA DCI consolidation/defragmentation follows these steps
+     * 1. Pick a DCI
+     * 2. Compute number of resources required by DCI
+     * 3. Give all available RBGs to UE
+     * 4. Sort RBGs based on best sub-band
+     * 5. Check if we have any chance of meeting the number of resources at the MCS specified at the DCI
+     * 5.1 If not, we try to remove the lowest RBG (go back to 4).
+     * 5.2 If yes, we found our allocation, continue.
+     * 6. If this is not the last DCI and there are remaining RBGs, go back to 1. Else, continue.
+     * 7. If all DCIs were allocated, and we still have RBGs available, try to reduce number of
+     * symbols used, by spreading DCIs in remaining RBGs, to free up symbols to other beams.
+     */
+    // clang-format on
+    uint8_t availableSymbols = numSymbols;
+    std::vector<DciInfoElementTdma> reshapedDcis{};
+
+    // Step 1, pick a dci
+    for (auto dci : dcis)
+    {
+        auto& ueInfo = ueMap.at(dci.m_rnti);
+
+        // Step 2, compute the number of resources needed
+        const std::size_t numResources =
+            dci.m_numSym * std::count(dci.m_rbgBitmask.begin(), dci.m_rbgBitmask.end(), true);
+
+        // Step 3, allocate all RBGs to UE
+        std::vector<uint16_t> allocatedRbgs;
+        for (std::size_t i = 0; i < bitmask.size(); i++)
+        {
+            if (bitmask.at(i))
+            {
+                allocatedRbgs.push_back(i);
+            }
+        }
+
+        // We want to find the set of RBGs that return the maximum MCS
+        if (isDl && !ueInfo->m_rbgToSb.empty())
+        {
+            auto prevMcs = computeMcs(ueInfo, allocatedRbgs);
+
+            // Step 4, sort RBGs based on sub-band MCS (from highest to lowest)
+            std::stable_sort(allocatedRbgs.begin(),
+                             allocatedRbgs.end(),
+                             [&](uint16_t a, uint16_t b) {
+                                 return ueInfo->m_dlSbMcsInfo.at(ueInfo->m_rbgToSb.at(a)).mcs >
+                                        ueInfo->m_dlSbMcsInfo.at(ueInfo->m_rbgToSb.at(b)).mcs;
+                             });
+            // While we have remaining RBGs and the DCI number of resources fit into the remaining
+            // resources, we try to remove bad RBGs to increase overall MCS
+            while ((!allocatedRbgs.empty()) &&
+                   (((allocatedRbgs.size() - 1) * availableSymbols) >= numResources))
+            {
+                if (ueInfo->m_dlSbMcsInfo.at(ueInfo->m_rbgToSb.at(allocatedRbgs.back())).mcs >=
+                    std::min(dci.m_mcs, ueInfo->m_dlMcs))
+                {
+                    // There will be no MCS improvement in removing additional RBGs
+                    break;
+                }
+
+                // If sub-band MCS is lower than wideband, we take this RBG out
+                auto currRbg = allocatedRbgs.back();
+                allocatedRbgs.pop_back();
+                auto currMcs = computeMcs(ueInfo, allocatedRbgs);
+
+                // Things will only get worse if we continue removing
+                if (currMcs <= prevMcs)
+                {
+                    allocatedRbgs.push_back(currRbg);
+                    break;
+                }
+            }
+        }
+
+        // Compute the number of required symbols
+        uint8_t minSymbols = ceil((double)numResources / allocatedRbgs.size());
+
+        // Remove RBGs or increase number of symbols until we match the number of resources
+        uint32_t currResources = minSymbols * allocatedRbgs.size();
+        while ((numResources != currResources) && (!allocatedRbgs.empty()))
+        {
+            if (currResources < numResources)
+            {
+                minSymbols += 1;
+            }
+            else if (currResources > numResources)
+            {
+                allocatedRbgs.pop_back();
+            }
+            currResources = minSymbols * allocatedRbgs.size();
+        }
+
+        if (minSymbols <= availableSymbols && currResources == numResources)
+        {
+            std::vector<bool> allocatedBitmask(bitmask.size(), false);
+            for (auto rbg : allocatedRbgs)
+            {
+                allocatedBitmask.at(rbg) = true;
+            }
+            // Update DCI after reshaping
+            reshapedDcis.emplace_back(startingSymbol, minSymbols, allocatedBitmask, dci);
+            availableSymbols -= minSymbols;
+            startingSymbol += minSymbols;
+            numSymbols -= minSymbols;
+        }
+    }
+    return reshapedDcis;
+}
 } // namespace ns3

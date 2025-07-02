@@ -22,11 +22,12 @@ namespace ns3
  * has the same signature of the methods in NrMacSchedulerNs3. For the
  * details about the HARQ scheduling, please refer to the method documentation.
  */
-class NrMacSchedulerHarqRr
+class NrMacSchedulerHarqRr : public Object
 {
   public:
     using Ns3Sched = NrMacSchedulerNs3;
 
+    static TypeId GetTypeId();
     /**
      * @brief NrMacSchedulerHarqRr constructor
      */
@@ -70,6 +71,28 @@ class NrMacSchedulerHarqRr
     void InstallDoesFhAllocationFitFn(
         const std::function<bool(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank)>&
             fn);
+    /**
+     * @brief Install a function to retrieve whether the allocation
+     *        fits when FH Control is enabled
+     * @param fn the function
+     */
+    void InstallReshapeAllocation(const std::function<const std::vector<DciInfoElementTdma>(
+                                      const std::vector<DciInfoElementTdma>& dcis,
+                                      uint8_t& startingSymbol,
+                                      uint8_t& numSymbols,
+                                      std::vector<bool>& bitmask,
+                                      const bool isDl)>& fn);
+
+    /**
+     * @brief Install a function to the downlink bitmask from the scheduler
+     * @param fn the function
+     */
+    void InstallGetDlBitmask(const std::function<std::vector<bool>()>& fn);
+    /**
+     * @brief Install a function to the uplink bitmask from the scheduler
+     * @param fn the function
+     */
+    void InstallGetUlBitmask(const std::function<std::vector<bool>()>& fn);
 
     virtual uint8_t ScheduleDlHarq(
         NrMacSchedulerNs3::PointInFTPlane* startingPoint,
@@ -137,9 +160,19 @@ class NrMacSchedulerHarqRr
     std::function<uint8_t()> m_getFhControlMethod; //!< Function to retrieve the FH Control Method
     std::function<bool(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRank)>
         m_getDoesAllocationFit; //!< Function to retrieve if allocation fits
+    std::function<std::vector<DciInfoElementTdma>(const std::vector<DciInfoElementTdma>& dcis,
+                                                  uint8_t& startingSymbol,
+                                                  uint8_t& numSymbols,
+                                                  std::vector<bool>& bitmask,
+                                                  const bool isDl)>
+        m_getReshapeAllocation; //!< Function to reshape allocation to maximize MCS and reduce
+                                //!< number of symbols
+    std::function<std::vector<bool>()> m_getDlBitmask; //!< Retrieve DL bitmask from scheduler
+    std::function<std::vector<bool>()> m_getUlBitmask; //!< Retrieve UL bitmask from scheduler
 
     mutable std::deque<BeamId> m_rrBeams; //!< Queue of order of beams to transmit
     mutable std::unordered_set<BeamId, BeamIdHash> m_rrBeamsSet; //!< Set of known beams
+    bool m_consolidateHarqRetx; //!< Flag configured by attribute ConsolidateHarqRetx
 };
 
 } // namespace ns3

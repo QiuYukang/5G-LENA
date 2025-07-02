@@ -283,6 +283,14 @@ class NrMacSchedulerTdma : public NrMacSchedulerNs3
         uint8_t rank,
         Ptr<const ComplexMatrixArray> precMats,
         uint8_t numSym) const;
+
+    std::vector<DciInfoElementTdma> DoReshapeAllocation(
+        const std::vector<DciInfoElementTdma>& dcis,
+        uint8_t& startingSymbol,
+        uint8_t& numSymbols,
+        std::vector<bool>& bitmask,
+        const bool isDl,
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap) override;
 };
 
 } // namespace ns3

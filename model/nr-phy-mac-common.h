@@ -835,6 +835,22 @@ struct MacCeListElement_s
     struct MacCeValue_u m_macCeValue; ///< MAC CE value
 };
 
+/**
+ * Counts the number of symbols used within a specified VarTtiAllocInfo's DCI range.
+ *
+ * This function iterates over a range of DCIs objects stored in a VarTtiAllocInfo, and calculates
+ * the total count of used symbols used from a starting symbol (startSym).
+ *
+ * @param startSym The starting symbol index from which counting begins.
+ * @param begin Iterator pointing to the beginning of the specified range of VarTtiAllocInfo.
+ * @param end Iterator pointing to the end of the specified range of VarTtiAllocInfo.
+ * @return The total count of used symbols within the specified range starting from the given
+ * symbol.
+ */
+uint8_t CountUsedSymbolsFromVarAllocTtiRange(uint8_t startSym,
+                                             std::deque<VarTtiAllocInfo>::iterator begin,
+                                             std::deque<VarTtiAllocInfo>::iterator end);
+
 } // namespace nr
 
 std::ostream& operator<<(std::ostream& os, const DciInfoElementTdma& item);

@@ -918,6 +918,22 @@ class NrMacSchedulerNs3 : public NrMacScheduler
      */
     std::vector<bool> GetUlBitmask() const;
 
+    // Generic function serves as trampoline to Tdma and Ofdma, plus gives access to ueInfo map
+    std::vector<DciInfoElementTdma> ReshapeAllocation(const std::vector<DciInfoElementTdma>& dcis,
+                                                      uint8_t& startingSymbol,
+                                                      uint8_t& numSymbols,
+                                                      std::vector<bool>& bitmask,
+                                                      const bool isDl);
+
+    // Implementation from Tdma and Ofdma schedulers
+    virtual std::vector<DciInfoElementTdma> DoReshapeAllocation(
+        const std::vector<DciInfoElementTdma>& dcis,
+        uint8_t& startingSymbol,
+        uint8_t& numSymbols,
+        std::vector<bool>& bitmask,
+        const bool isDl,
+        const std::unordered_map<uint16_t, std::shared_ptr<NrMacSchedulerUeInfo>>& ueMap) = 0;
+
   private:
     void CallNrFhControlForMapUpdate(
         const std::deque<VarTtiAllocInfo>& allocation,
@@ -964,7 +980,7 @@ class NrMacSchedulerNs3 : public NrMacScheduler
     std::vector<bool> m_dlNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the DL
     std::vector<bool> m_ulNotchedRbgsMask; //!< The mask of notched (blank) RBGs for the UL
 
-    std::unique_ptr<NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
+    Ptr<NrMacSchedulerHarqRr> m_schedHarq; //!< Pointer to the real HARQ scheduler
 
     Ptr<NrMacSchedulerSrsDefault> m_schedulerSrs; //!< Pointer to the SRS algorithm
     Ptr<NrMacSchedulerLcAlgorithm>

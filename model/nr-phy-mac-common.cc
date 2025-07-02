@@ -276,4 +276,38 @@ operator<<(std::ostream& os, const DciInfoElementTdma& item)
     return os;
 }
 
+namespace nr
+{
+uint8_t
+CountUsedSymbolsFromVarAllocTtiRange(uint8_t startSym,
+                                     std::deque<VarTtiAllocInfo>::iterator begin,
+                                     std::deque<VarTtiAllocInfo>::iterator end)
+{
+    auto usedSymbols = 0;
+    if (std::distance(begin, end) == 0)
+    {
+        return usedSymbols;
+    }
+
+    // Count number of allocated symbols from newly scheduled DCIs
+    auto smallestStartSymbol = std::numeric_limits<uint8_t>::max();
+    auto largestFinalSymbol = startSym;
+    for (auto it = begin; it != end; it++)
+    {
+        if (smallestStartSymbol > it->m_dci->m_symStart)
+        {
+            smallestStartSymbol = it->m_dci->m_symStart;
+        }
+        if (largestFinalSymbol < (it->m_dci->m_symStart + it->m_dci->m_numSym))
+        {
+            largestFinalSymbol = it->m_dci->m_symStart + it->m_dci->m_numSym;
+        }
+    }
+    NS_ASSERT_MSG(smallestStartSymbol != std::numeric_limits<uint8_t>::max(),
+                  "There must have been a valid starting symbol");
+    usedSymbols = largestFinalSymbol - smallestStartSymbol;
+    return usedSymbols;
+}
+
+} // namespace nr
 } // namespace ns3

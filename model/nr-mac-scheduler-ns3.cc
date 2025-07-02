@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <ranges>
 #include <unordered_set>
 
 namespace ns3
@@ -40,7 +41,7 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
     NS_LOG_FUNCTION_NOARGS();
 
     // Hardcoded, but the type can be a parameter if needed
-    m_schedHarq = std::make_unique<NrMacSchedulerHarqRr>();
+    m_schedHarq = CreateObject<NrMacSchedulerHarqRr>();
     m_schedHarq->InstallGetBwInRBG(std::bind(&NrMacSchedulerNs3::GetBandwidthInRbg, this));
     m_schedHarq->InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_schedHarq->InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
@@ -48,7 +49,10 @@ NrMacSchedulerNs3::NrMacSchedulerNs3()
         std::bind(&NrMacSchedulerNs3::GetFhControlMethod, this));
     m_schedHarq->InstallDoesFhAllocationFitFn(
         std::bind_front(&NrMacSchedulerNs3::DoesFhAllocationFit, this));
-
+    m_schedHarq->InstallReshapeAllocation(
+        std::bind_front(&NrMacSchedulerNs3::ReshapeAllocation, this));
+    m_schedHarq->InstallGetDlBitmask(std::bind_front(&NrMacSchedulerNs3::GetDlBitmask, this));
+    m_schedHarq->InstallGetUlBitmask(std::bind_front(&NrMacSchedulerNs3::GetUlBitmask, this));
     m_cqiManagement.InstallGetBwpIdFn(std::bind(&NrMacSchedulerNs3::GetBwpId, this));
     m_cqiManagement.InstallGetCellIdFn(std::bind(&NrMacSchedulerNs3::GetCellId, this));
     m_cqiManagement.InstallGetNrAmcDlFn([this]() { return m_dlAmc; });
@@ -2378,8 +2382,11 @@ NrMacSchedulerNs3::DoScheduleDl(const std::vector<DlHarqInfo>& dlHarqFeedback,
                                           &m_dlHarqToRetransmit,
                                           dlHarqFeedback,
                                           allocInfo);
-        NS_ASSERT(dlSymAvail >= usedHarq);
+        NS_ASSERT_MSG(dlSymAvail >= usedHarq,
+                      "DlSymAvail (" << +dlSymAvail << ") < usedHarq (" << +usedHarq << ")");
         dlSymAvail -= usedHarq;
+        dlAssignationStartPoint.m_sym += usedHarq;
+        allocInfo->m_numSymAlloc += usedHarq;
     }
 
     GetSecond GetUeInfoList;
@@ -2725,6 +2732,20 @@ NrMacSchedulerNs3::GetUlBitmask() const
     ulNotchedRBGsMask = ulNotchedRBGsMask.empty() ? std::vector<bool>(GetBandwidthInRbg(), true)
                                                   : ulNotchedRBGsMask;
     return ulNotchedRBGsMask;
+}
+
+std::vector<DciInfoElementTdma>
+NrMacSchedulerNs3::ReshapeAllocation(const std::vector<DciInfoElementTdma>& dcis,
+                                     uint8_t& startingSymbol,
+                                     uint8_t& numSymbols,
+                                     std::vector<bool>& bitmask,
+                                     const bool isDl)
+{
+    if (dcis.empty())
+    {
+        return {};
+    }
+    return DoReshapeAllocation(dcis, startingSymbol, numSymbols, bitmask, isDl, m_ueMap);
 }
 
 } // namespace ns3
