@@ -8,6 +8,8 @@
 
 #include "ns3/nr-module.h"
 #include "ns3/object.h"
+#include "ns3/parse-string-to-vector.h"
+#include "ns3/string.h"
 
 #include <numeric>
 
@@ -45,9 +47,31 @@ NrInitialAssociation::GetTypeId()
                           UintegerValue(6),
                           MakeDoubleAccessor(&NrInitialAssociation::SetNumMainInterfererGnb,
                                              &NrInitialAssociation::GetNumMainInterfererGnb),
-                          MakeDoubleChecker<double>());
+                          MakeDoubleChecker<double>())
+            .AddAttribute("ColumnAngles",
+                          "Column angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&NrInitialAssociation::ParseColBeamAngles),
+                          MakeStringChecker())
+            .AddAttribute("RowAngles",
+                          "Row angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&NrInitialAssociation::ParseRowBeamAngles),
+                          MakeStringChecker());
 
     return tid;
+}
+
+void
+NrInitialAssociation::ParseColBeamAngles(std::string colAngles)
+{
+    SetColBeamAngles(ParseVBarSeparatedValuesStringToVector(colAngles));
+}
+
+void
+NrInitialAssociation::ParseRowBeamAngles(std::string rowAngles)
+{
+    SetRowBeamAngles(ParseVBarSeparatedValuesStringToVector(rowAngles));
 }
 
 void

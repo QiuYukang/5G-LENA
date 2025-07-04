@@ -315,10 +315,30 @@ class KroneckerBeamforming : public IdealBeamformingAlgorithm
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
   private:
-    std::vector<double> m_colRxBeamAngles{0, 90};
-    std::vector<double> m_colTxBeamAngles{0, 90};
-    std::vector<double> m_rowRxBeamAngles{0, 90};
-    std::vector<double> m_rowTxBeamAngles{0, 90};
+    /***
+     * @brief Parse string with angles and set column angles of transmitter
+     * @param colAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseColTxBeamAngles(std::string colAngles);
+    /***
+     * @brief Parse string with angles and set row angles of transmitter
+     * @param rowAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseRowTxBeamAngles(std::string rowAngles);
+    /***
+     * @brief Parse string with angles and set column angles of receiver
+     * @param colAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseColRxBeamAngles(std::string colAngles);
+    /***
+     * @brief Parse string with angles and set row angles of receiver
+     * @param rowAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseRowRxBeamAngles(std::string rowAngles);
+    std::vector<double> m_colRxBeamAngles;
+    std::vector<double> m_colTxBeamAngles;
+    std::vector<double> m_rowRxBeamAngles;
+    std::vector<double> m_rowTxBeamAngles;
 };
 
 /**
@@ -376,8 +396,18 @@ class KroneckerQuasiOmniBeamforming : public IdealBeamformingAlgorithm
         const Ptr<NrSpectrumPhy>& ueSpectrumPhy) const override;
 
   private:
-    std::vector<double> m_colBeamAngles{0, 90};
-    std::vector<double> m_rowBeamAngles{0, 90};
+    /***
+     * @brief Parse string with angles and set column angles of transmitter
+     * @param colAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseColBeamAngles(std::string colAngles);
+    /***
+     * @brief Parse string with angles and set row angles of transmitter
+     * @param rowAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseRowBeamAngles(std::string rowAngles);
+    std::vector<double> m_colBeamAngles;
+    std::vector<double> m_rowBeamAngles;
 };
 } // namespace ns3
 #endif

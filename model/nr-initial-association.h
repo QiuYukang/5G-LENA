@@ -257,6 +257,17 @@ class NrInitialAssociation : public Object
     /// @param lsps search parameters specific to initial association
     void PopulateRsrps(LocalSearchParams& lsps);
 
+    /***
+     * @brief Parse string with angles and set column angles
+     * @param colAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseColBeamAngles(std::string colAngles);
+    /***
+     * @brief Parse string with angles and set row angles
+     * @param rowAngles String with angles separated by vertical bar e.g. 0|10|20
+     */
+    void ParseRowBeamAngles(std::string rowAngles);
+
     Ptr<const NetDevice> m_ueDevice{
         nullptr};                    ///< UE device for which associated gNB needs to be found
     NetDeviceContainer m_gnbDevices; ///< Set of gNB devices among which a UE will be associated to
@@ -276,10 +287,10 @@ class NrInitialAssociation : public Object
     std::vector<NrAnglePair> m_bestBfVectors; ///< vector of best BF vectors from gNBs to UE
     PhasedArrayModel::ComplexVector m_beamformingVector; ///< Beamforming vector resulting in
                                                          ///< highest RSRP with the associated gNB
-    std::vector<double> m_rowBeamAngles{0, 90}; ///< Set of row angles in degrees of beamforming
-                                                ///< vectors used in the initial access/association
-    std::vector<double> m_colBeamAngles{0, 90}; ///< Set of column angles in degrees of beamforming
-                                                ///< vectors used in the initial access/association
+    std::vector<double> m_rowBeamAngles; ///< Set of row angles in degrees of beamforming
+                                         ///< vectors used in the initial access/association
+    std::vector<double> m_colBeamAngles; ///< Set of column angles in degrees of beamforming
+                                         ///< vectors used in the initial access/association
 
     double m_primaryCarrierIndex{0}; ////< Primary carrier bandwidth part index
 };

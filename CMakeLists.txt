@@ -221,6 +221,7 @@ set(source_files
     utils/channels/nyu/nyu-spectrum-propagation-loss-model.cc
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.cc
     utils/fast-fading-constant-position-mobility-model.cc
+    utils/parse-string-to-vector.cc
     utils/traffic-generators/helper/traffic-generator-helper.cc
     utils/traffic-generators/helper/xr-traffic-mixer-helper.cc
     utils/traffic-generators/model/traffic-generator-3gpp-audio-data.cc
@@ -435,6 +436,7 @@ set(header_files
     utils/distance-based-three-gpp-spectrum-propagation-loss-model.h
     utils/fast-fading-constant-position-mobility-model.h
     utils/nr-json.hpp
+    utils/parse-string-to-vector.h
     utils/traffic-generators/helper/traffic-generator-helper.h
     utils/traffic-generators/helper/xr-traffic-mixer-helper.h
     utils/traffic-generators/model/traffic-generator-3gpp-audio-data.h
@@ -504,7 +506,7 @@ set(test_sources
     test/nr-test-subband.cc
     test/nr-test-timings.cc
     test/nr-uplink-power-control-test.cc
-        test/nr-system-scheduler-test-qos.cc
+    test/nr-system-scheduler-test-qos.cc
     test/system-scheduler-test.cc
     test/ul-scheduling-test.cc
     utils/traffic-generators/test/traffic-generator-test.cc

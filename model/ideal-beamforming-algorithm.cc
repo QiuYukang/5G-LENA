@@ -11,6 +11,8 @@
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/node.h"
 #include "ns3/nr-spectrum-value-helper.h"
+#include "ns3/parse-string-to-vector.h"
+#include "ns3/string.h"
 #include "ns3/uinteger.h"
 #include "ns3/uniform-planar-array.h"
 
@@ -475,10 +477,55 @@ OptimalCovMatrixBeamforming::GetBeamformingVectors(
 TypeId
 KroneckerBeamforming::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::KroneckerBeamforming")
-                            .SetParent<IdealBeamformingAlgorithm>()
-                            .AddConstructor<KroneckerBeamforming>();
+    static TypeId tid =
+        TypeId("ns3::KroneckerBeamforming")
+            .SetParent<IdealBeamformingAlgorithm>()
+            .AddConstructor<KroneckerBeamforming>()
+            .AddAttribute("TxColumnAngles",
+                          "Column angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&KroneckerBeamforming::ParseColTxBeamAngles),
+                          MakeStringChecker())
+            .AddAttribute("TxRowAngles",
+                          "Row angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&KroneckerBeamforming::ParseRowTxBeamAngles),
+                          MakeStringChecker())
+            .AddAttribute("RxColumnAngles",
+                          "Column angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&KroneckerBeamforming::ParseColRxBeamAngles),
+                          MakeStringChecker())
+            .AddAttribute("RxRowAngles",
+                          "Row angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&KroneckerBeamforming::ParseRowRxBeamAngles),
+                          MakeStringChecker());
     return tid;
+}
+
+void
+KroneckerBeamforming::ParseColTxBeamAngles(std::string colAngles)
+{
+    SetColTxBeamAngles(ParseVBarSeparatedValuesStringToVector(colAngles));
+}
+
+void
+KroneckerBeamforming::ParseRowTxBeamAngles(std::string rowAngles)
+{
+    SetRowTxBeamAngles(ParseVBarSeparatedValuesStringToVector(rowAngles));
+}
+
+void
+KroneckerBeamforming::ParseColRxBeamAngles(std::string colAngles)
+{
+    SetColRxBeamAngles(ParseVBarSeparatedValuesStringToVector(colAngles));
+}
+
+void
+KroneckerBeamforming::ParseRowRxBeamAngles(std::string rowAngles)
+{
+    SetRowRxBeamAngles(ParseVBarSeparatedValuesStringToVector(rowAngles));
 }
 
 void
@@ -619,10 +666,33 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
 TypeId
 KroneckerQuasiOmniBeamforming::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::KroneckerQuasiOmniBeamforming")
-                            .SetParent<IdealBeamformingAlgorithm>()
-                            .AddConstructor<KroneckerQuasiOmniBeamforming>();
+    static TypeId tid =
+        TypeId("ns3::KroneckerQuasiOmniBeamforming")
+            .SetParent<IdealBeamformingAlgorithm>()
+            .AddConstructor<KroneckerQuasiOmniBeamforming>()
+            .AddAttribute("ColumnAngles",
+                          "Column angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&KroneckerQuasiOmniBeamforming::ParseColBeamAngles),
+                          MakeStringChecker())
+            .AddAttribute("RowAngles",
+                          "Row angles separated by |",
+                          StringValue("0|90"),
+                          MakeStringAccessor(&KroneckerQuasiOmniBeamforming::ParseRowBeamAngles),
+                          MakeStringChecker());
     return tid;
+}
+
+void
+KroneckerQuasiOmniBeamforming::ParseColBeamAngles(std::string colAngles)
+{
+    SetColBeamAngles(ParseVBarSeparatedValuesStringToVector(colAngles));
+}
+
+void
+KroneckerQuasiOmniBeamforming::ParseRowBeamAngles(std::string rowAngles)
+{
+    SetRowBeamAngles(ParseVBarSeparatedValuesStringToVector(rowAngles));
 }
 
 void
