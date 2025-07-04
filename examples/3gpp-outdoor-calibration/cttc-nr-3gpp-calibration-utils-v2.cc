@@ -558,14 +558,14 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
     // Configure the spectrum channel with the scenario
     channelHelper->ConfigureFactories(scenario, "Default");
     // Set the channel condition attributes
-    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(100)));
+    channelHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
     channelHelper->SetChannelConditionModelAttribute("LinkO2iConditionToAntennaHeight",
                                                      BooleanValue(linkO2iConditionToAntennaHeight));
     channelHelper->SetChannelConditionModelAttribute("O2iThreshold", DoubleValue(o2iThreshold));
     channelHelper->SetChannelConditionModelAttribute("O2iLowLossThreshold",
                                                      DoubleValue(o2iLowLossThreshold));
     channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
     // Configure Distance-based spectrum manually because it is not possible to set it via
     // NrChannelHelper
     ObjectFactory distanceBasedChannelFactory;

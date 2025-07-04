@@ -406,13 +406,13 @@ ChooseCalibrationScenario(Parameters& params)
                 params.linkO2iConditionToAntennaHeight = true;
                 params.minBsUtDistance = 10;
                 params.gnbNumRows = 8;
-                params.gnbNumColumns = 2;
+                params.gnbNumColumns = 8;
                 params.polSlantAngleGnb = 45;
                 params.gnbHSpacing = 0.5;
                 params.gnbVSpacing = 0.8;
                 params.dualPolarizedGnb = true;
-                params.numVPortsGnb = 2;
-                params.numHPortsGnb = 2;
+                params.numVPortsGnb = 1;
+                params.numHPortsGnb = 8;
 
                 params.polSlantAngleUe = 0;
                 params.ueNumRows = 1;
@@ -423,18 +423,26 @@ ChooseCalibrationScenario(Parameters& params)
                 params.dualPolarizedUe = true;
                 params.ueEnable3gppElement = false;
                 params.gnbEnable3gppElement = true;
-                params.downtiltAngle = 100;
+                params.downtiltAngle = 10;
                 params.gnbNoiseFigure = 5;
                 params.enableFading = true; // required by attachRsrp
                 params.attachRsrp = true;
                 params.ueNoiseFigure = 9;
                 params.ftpM1Enabled = true;
                 params.scheduler = "PF";
+                Config::SetDefault("ns3::NrMacSchedulerTdmaPF::FairnessIndex", DoubleValue(0.2));
+                Config::SetDefault("ns3::NrHelper::CsiFeedbackFlags",
+                                   UintegerValue(CQI_PDSCH_MIMO));
+                Config::SetDefault("ns3::KroneckerQuasiOmniBeamforming::ColumnAngles",
+                                   StringValue("112.5|157.5"));
+                Config::SetDefault("ns3::KroneckerQuasiOmniBeamforming::RowAngles",
+                                   StringValue("-56.25|-33.75|-11.25|11.25|33.75|56.25"));
+                Config::SetDefault("ns3::NrInitialAssociation::ColumnAngles",
+                                   StringValue("112.5|157.5"));
+                Config::SetDefault("ns3::NrInitialAssociation::RowAngles",
+                                   StringValue("-56.25|-33.75|-11.25|11.25|33.75|56.25"));
 
-                params.initParams.rowAngles = {-56.25, -33.75, -11.25, 11.25, 33.75, 56.25};
-                params.initParams.colAngles = {112.5, 157.5};
-
-                params.numerologyBwp = 0;
+                params.numerologyBwp = 1;
                 params.initParams.handoffMargin = 3;
                 params.enableMimo = true;
                 params.mimoPmiParams.rankLimit = 2;
