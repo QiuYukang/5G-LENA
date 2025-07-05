@@ -200,3 +200,4 @@ include:
   - '.gitlab-ci-clang.yml'
   - '.gitlab-ci-gcc.yml'
   - '.gitlab-ci-code-linting.yml'
+  - '.gitlab-ci-mac.yml'

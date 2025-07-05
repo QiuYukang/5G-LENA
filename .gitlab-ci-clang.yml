@@ -82,7 +82,7 @@ weekly-build-clang-14-optimized:
   tags: ["$TAG"]
   parallel:
     matrix:
-      - TAG: ["CTTC", "macOS"]
+      - TAG: ["CTTC", "arm64"]
   only:
     variables:
       - $RELEASE == "weekly"

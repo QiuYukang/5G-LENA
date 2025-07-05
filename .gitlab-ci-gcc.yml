@@ -161,7 +161,7 @@ weekly-build-gcc-13-optimized-noeigen:
   tags: ["$TAG"]
   parallel:
     matrix:
-      - TAG: ["CTTC", "macOS"]
+      - TAG: ["CTTC", "arm64"]
   rules:
     - if: $RELEASE == "weekly"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'

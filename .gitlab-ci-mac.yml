@@ -1,0 +1,41 @@
+# Copyright (c) 2025 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
+# NR3 CI script for MacOS
+
+# Check if everything builds fine under debug, default, and optimized, on MacOS.
+
+.build-macos-base:
+  extends: .base-build
+  tags:
+    - macOS
+  before_script:
+    - brew update
+    - brew upgrade
+    - brew install ninja cmake ccache libxml2 eigen git
+  rules:
+    - if: $RELEASE == "weekly"
+    - if: $RELEASE == "daily"
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+  when: manual
+  allow_failure: true
+
+scheduled-macos-debug:
+  extends: .build-macos-base
+  variables:
+    MODE: debug
+    COMPILER: clang++
+
+scheduled-macos-default:
+  extends: .build-macos-base
+  variables:
+    MODE: default
+    COMPILER: clang++
+
+scheduled-macos-optimized:
+  extends: .build-macos-base
+  variables:
+    MODE: optimized
+    COMPILER: clang++
