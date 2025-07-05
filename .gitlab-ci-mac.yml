@@ -19,8 +19,7 @@
     - if: $RELEASE == "daily"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: manual
-  when: manual
-  allow_failure: true
+      allow_failure: true
 
 scheduled-macos-debug:
   extends: .build-macos-base

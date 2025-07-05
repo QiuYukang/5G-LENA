@@ -166,8 +166,7 @@ weekly-build-gcc-13-optimized-noeigen:
     - if: $RELEASE == "weekly"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: manual
-  when: manual
-  allow_failure: true
+      allow_failure: true
   before_script:
     - apt --quiet update
     - apt --quiet upgrade --yes
