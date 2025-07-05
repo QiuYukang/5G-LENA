@@ -136,28 +136,6 @@ per-commit-gcc-optimized-sanitizers:
   tags:
     - CTTC
 
-weekly-regression-testing:
-  extends: .base-per-commit-compile
-  variables:
-    RELEASE: "weekly"
-    MODE: optimized
-    COMPILER: g++
-    REGRESSION_TEST: "true"
-  allow_failure: true
-  tags:
-    - CTTC
-  timeout: 48h
-  before_script:
-    - pacman-key --init
-    - pacman -Sy
-    - pacman -S --noconfirm archlinux-keyring
-    - pacman -Su --noconfirm
-      base-devel gcc clang libc++ cmake ninja ccache
-      git
-      python python-scipy python-psutil
-      openssh
-      eigen
-
 documentation:
   stage: documentation
   before_script:

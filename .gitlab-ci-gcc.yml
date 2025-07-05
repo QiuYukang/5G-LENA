@@ -162,9 +162,12 @@ weekly-build-gcc-13-optimized-noeigen:
   parallel:
     matrix:
       - TAG: ["CTTC", "macOS"]
-  only:
-    variables:
-      - $RELEASE == "weekly"
+  rules:
+    - if: $RELEASE == "weekly"
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+  when: manual
+  allow_failure: true
   before_script:
     - apt --quiet update
     - apt --quiet upgrade --yes
@@ -198,3 +201,34 @@ weekly-build-gcc-rolling-optimized:
   extends: .weekly-build-gcc-ubuntu-rolling
   variables:
     MODE: optimized
+
+weekly-regression-testing:
+  image: ubuntu:rolling
+  extends: .base-build
+  tags:
+    - CTTC
+  rules:
+    - if: $RELEASE == "weekly"
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+  variables:
+    MODE: optimized
+    COMPILER: g++
+    REGRESSION_TEST: "true"
+  allow_failure: true
+  timeout: 48h
+  before_script:
+    - apt --quiet update
+    - apt --quiet upgrade --yes
+    - apt --quiet install --yes --no-install-recommends
+      ca-certificates
+      g++ cmake ninja-build ccache build-essential
+      git
+      libboost-all-dev
+      libeigen3-dev
+      libgsl-dev $LIBGSL gsl-bin
+      libgtk-3-0 libgtk-3-dev
+      libsqlite3-dev sqlite3
+      libxml2 libxml2-dev
+      python3 python3-dev python3-scipy python3-psutil
+      ssh
