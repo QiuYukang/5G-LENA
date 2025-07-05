@@ -6,6 +6,8 @@
 
 #include "nr-mac-scheduler-ofdma.h"
 
+#include "ns3/random-variable-stream.h"
+
 namespace ns3
 {
 
@@ -98,6 +100,12 @@ class NrMacSchedulerOfdmaRandom : public NrMacSchedulerOfdma
 
     void SortUeVector(std::vector<UePtrAndBufferReq>* ueVector,
                       [[maybe_unused]] const GetCompareUeFn& GetCompareFn) const override;
+
+    int64_t AssignStreams(int64_t stream) override;
+
+  private:
+    //!< uniform random variable used to shuffle vector of users for scheduling
+    Ptr<UniformRandomVariable> m_uniformRvShuffle;
 };
 
 } // namespace ns3

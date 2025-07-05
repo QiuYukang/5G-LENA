@@ -5,8 +5,7 @@
 #include "nr-mac-scheduler-ofdma-random.h"
 
 #include "ns3/log.h"
-
-#include <random>
+#include "ns3/shuffle.h"
 
 namespace ns3
 {
@@ -26,6 +25,7 @@ NrMacSchedulerOfdmaRandom::NrMacSchedulerOfdmaRandom()
     : NrMacSchedulerOfdma()
 {
     NS_LOG_FUNCTION(this);
+    m_uniformRvShuffle = CreateObject<UniformRandomVariable>();
 }
 
 void
@@ -65,8 +65,22 @@ void
 NrMacSchedulerOfdmaRandom::SortUeVector(std::vector<UePtrAndBufferReq>* ueVector,
                                         const GetCompareUeFn& GetCompareFn) const
 {
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    std::shuffle(ueVector->begin(), ueVector->end(), generator);
+    NS_LOG_FUNCTION(this);
+    if (ueVector == nullptr)
+    {
+        return;
+    }
+
+    Shuffle(ueVector->begin(), ueVector->end(), m_uniformRvShuffle);
 }
+
+int64_t
+NrMacSchedulerOfdmaRandom::AssignStreams(int64_t stream)
+{
+    NS_LOG_FUNCTION(this << stream);
+    NrMacSchedulerNs3::AssignStreams(stream);
+    m_uniformRvShuffle->SetStream(stream);
+    return 1;
+}
+
 } // namespace ns3
