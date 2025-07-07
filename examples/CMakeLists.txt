@@ -6,7 +6,6 @@ set(base_examples
     cttc-3gpp-channel-example
     cttc-3gpp-channel-simple-ran
     cttc-3gpp-channel-simple-fdm
-    cttc-3gpp-indoor-calibration
     cttc-3gpp-channel-nums
     cttc-3gpp-channel-nums-fdm
     cttc-nr-cc-bwp-demo
@@ -112,6 +111,34 @@ else()
     )
   endforeach()
 
+  set(example
+      cttc-realistic-beamforming
+  )
+  set(source_files
+      ${example}.cc
+  )
+  set(libraries_to_link
+      ${libnr}
+      ${libflow-monitor}
+      ${SQLite3_LIBRARIES}
+  )
+  build_lib_example(
+    NAME ${example}
+    SOURCE_FILES ${source_files}
+    LIBRARIES_TO_LINK ${libraries_to_link}
+  )
+endif()
+
+if((NOT
+    ${ENABLE_SQLITE})
+   OR (NOT
+       ${ENABLE_EIGEN})
+)
+  message(
+    WARNING
+      "cttc-nr-3gpp-calibration and cttc-3gpp-indoor-calibration require sqlite and eigen"
+  )
+else()
   set(3gpp-outdoor-calibration_source_files
       3gpp-outdoor-calibration/cttc-nr-3gpp-calibration.cc
       3gpp-outdoor-calibration/sinr-output-stats.cc
@@ -133,22 +160,11 @@ else()
       ${libstats}
       ${liblte}
   )
-
-  set(example
-      cttc-realistic-beamforming
-  )
-  set(source_files
-      ${example}.cc
-  )
-  set(libraries_to_link
-      ${libnr}
-      ${libflow-monitor}
-      ${SQLite3_LIBRARIES}
-  )
   build_lib_example(
-    NAME ${example}
-    SOURCE_FILES ${source_files}
-    LIBRARIES_TO_LINK ${libraries_to_link}
+    NAME cttc-3gpp-indoor-calibration
+    SOURCE_FILES cttc-3gpp-indoor-calibration.cc
+    LIBRARIES_TO_LINK ${libnr}
+                      ${libflow-monitor}
   )
 endif()
 
