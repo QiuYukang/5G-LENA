@@ -48,6 +48,24 @@ the cracks, unfortunately.  If you, as a user, can suggest improvements
 to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
+## Changes from NR-v4.0 to v4.1
+
+### New API:
+
+- ``ThreeGppFtpM1Helper`` has two new functions ``GetMaxFilesNumPerUe()`` and ``SetMaxFilesNumPerUe()`` that allows users to limit the maximum number of files sent per UE.
+- ``NrInitialAssociation`` and ``KroneckerQuasiOmniBeamforming`` have two additional attributes to set beam column and row angles: ``ColumnAngles`` and ``RowAngles``. These can also be set with the new functions ``ParseColBeamAngles()`` and ``ParseRowBeamAngles()``.
+- ``KroneckerBeamforming`` has four additional attributes to set beam column and row angles for transmitter and receiver: ``TxColumnAngles``, ``TxRowAngles``, ``RxColumnAngles``, and ``RxRowAngles``. These can also be set with the new functions ``ParseColTxBeamAngles()``, ``ParseRowTxBeamAngles()``, ``ParseColRxBeamAngles()``, and ``ParseRowRxBeamAngles()``.
+- ``NrMacSchedulerNs3`` has a new function ``ReshapeAllocation()``, which calls ``NrMacSchedulerTdma::DoReshapeAllocation()`` to perform DCI consolidation, using as many RBGs as possible without reducing MCS.
+- New class ``ResourceAssignmentMatrix``, which can create a resource assignment matrix, which can set beam per symbol, plus RNTI and usage type per RBG. When asserts are enabled, the matrix is used to validate ``NrMacSchedulerNs3::ScheduleDl()`` and ``NrMacSchedulerNs3::ScheduleUl()`` allocations. The matrix can also be printed for visual inspection.
+
+### Changes to Existing API
+
+
+### Changed Behavior
+- Schedulers now have memory, and maintaining their fairness over time. As a result, users should observe less UEs with 0 throughput.
+- Downlink HARQ is now scheduled using a round-robin per beam fashion.
+- To minimize symbols used while maintaining a high MCS, downlink HARQ now passes through a consolidation step implemented in function ``NrMacSchedulerNs3::ReshapeAllocation()``.
+
 ---
 
 ## Changes from NR-v3.3 to v4.0

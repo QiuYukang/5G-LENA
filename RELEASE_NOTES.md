@@ -20,11 +20,11 @@ Release NR-v4.1
 
 Availability
 ------------
-TBD.
+Available since July 7, 2025.
 
 Cite this version
 -----------------
-TDB.
+DOI: 10.5281/zenodo.15830121
 
 Supported platforms
 -------------------
@@ -44,8 +44,16 @@ This release will be compatible with ns-3.45.
 Important news
 --------------
 - This release includes some features, such as:
-  - Resource assignment matrix (current used to ensure there are no overlapping allocated resources);
+  - Resource assignment matrix (currently used to ensure there are no overlapping allocated resources);
   - Wraparound model and support for hexagonal deployments, which allows for higher interference without requiring the simulation of additional rings, which can drastically speed up simulations;
+  - FastFadingConstantPositionMobilityModel, a static mobility model with non-zero velocity to exercise channel fading code;
+  - Indoor and Outdoor calibration examples were updated to reflect RP-180524;
+  - Add new random TDMA and OFDMA schedulers, to maximize the chance of interference between network nodes (used for testing);
+  - Add CI jobs to test nr on MacOS, and to perform periodic regression testing with outdoor calibration.
+
+- This release includes important fixes, such as:
+  - Schedulers now have memory, maintaining their fairness over time;
+  - Downlink HARQ is now transmitted in scenarios where there are more active transmissions than symbols.
 
 - Remember to follow the instructions from the README.md file, i.e., to checkout
   the correct release branch of both ns-3 and the NR module. The information about
@@ -54,18 +62,21 @@ Important news
 
 New user-visible features
 -------------------------
-- We introduced CSI-RS signals and CSI-IM interference measurements to complement PDSCH-based CQI feedback. These can be configured through the `NrHelper::CsiFeedbackFlags` attribute. Example `cttc-nr-mimo-demo.cc` is extended to show how to configure different types of the feedback.
-
 
 Bugs fixed
 ----------
-- (255f1183) Fix data DCIs that were not reflecting notching masks.
+
+- (bd722156) Prevent downlink HARQ from never transmitting (in case there are more active transmissions than symbols).
+- (dd44a226) Use CreateObject<> for Object derived classes. Create<>() results in uninitialized attributes.
+- (484144cd) Discard out-of-range signals (all-zero PSD) at nr-spectrum-phy (a result from DistanceBasedThreeGppSpectrumPropagationLossModel).
+- (a5cf6fde) Add assert to check for required for phased array propagation loss model in RSRP-based initial association.
+- (b3274e23) Fix data DCIs that were not reflecting notching masks.
 - (242f43d4) Fix fronthaul dropping policy, by preventing the transmission of data DCI if control DCI is discarded.
-- (e41779bf) Fix temporal fairness of PF and QoS schedulers.
-- (84aae4d1) Fix temporal fairness of RR schedulers.
-- (90146c43) Allow NR to work without beam managers set, to support legacy channel and antenna models.
-- (2e135f9c) Prevent starvation of UEs with MCS0 on OFDMA schedulers.
-- (5f7dc147) Reap and redistribute insufficient scheduled resources to other UEs.
+- (83b2c1b3) Fix temporal fairness of PF and QoS schedulers.
+- (8b92cd08) Fix temporal fairness of RR schedulers.
+- (e23a296e) Allow NR to work without beam managers set, to support legacy channel and antenna models.
+- (8a4a3cc4) Prevent starvation of UEs with MCS0 on OFDMA schedulers.
+- (b0343c64) Reap and redistribute insufficient scheduled resources to other UEs.
 
 Known issues
 ------------
