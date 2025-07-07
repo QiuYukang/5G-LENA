@@ -13,10 +13,11 @@
 
 .weekly-build-gcc-base:
   extends: .base-build
-  only:
-    variables:
-      - $RELEASE == "weekly"
-      - $UBUNTU == "True"
+  rules:
+    - if: $RELEASE == "weekly"
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+      allow_failure: true
   before_script:
     - apt update
     - apt upgrade --yes

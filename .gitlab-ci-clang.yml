@@ -15,9 +15,11 @@
 .weekly-build-clang-ubuntu22.04:
   image: ubuntu:22.04
   extends: .base-build
-  only:
-    variables:
-      - $RELEASE == "weekly"
+  rules:
+    - if: $RELEASE == "weekly"
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+      allow_failure: true
   before_script:
     - apt --quiet update
     - apt --quiet upgrade --yes
@@ -83,9 +85,11 @@ weekly-build-clang-14-optimized:
   parallel:
     matrix:
       - TAG: ["CTTC", "arm64"]
-  only:
-    variables:
-      - $RELEASE == "weekly"
+  rules:
+    - if: $RELEASE == "weekly"
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+      allow_failure: true
   before_script:
     - apt --quiet update
     - apt --quiet upgrade --yes
