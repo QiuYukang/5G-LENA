@@ -453,6 +453,7 @@ ChooseCalibrationScenario(Parameters& params)
                 params.m_subbandCqiClamping = true;
                 // one of  McsCsiSource::(AVG_MCS|AVG_SPEC_EFF|AVG_SINR|WIDEBAND_MCS), defaults to
                 params.m_mcsCsiSource = NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS;
+                params.enableWraparound = true;
             }
             else if (params.nrConfigurationScenario == "DenseAWraparoundBenchmark")
             {
@@ -514,6 +515,7 @@ ChooseCalibrationScenario(Parameters& params)
                 params.enableSubbandScheluder = true;
                 params.m_subbandCqiClamping = true;
                 params.m_mcsCsiSource = NrMacSchedulerUeInfo::McsCsiSource::WIDEBAND_MCS;
+                params.enableWraparound = true;
             }
             else if (params.nrConfigurationScenario == "DenseB")
             {
