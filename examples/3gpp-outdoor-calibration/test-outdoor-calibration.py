@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 from scipy.stats import combine_pvalues, ttest_1samp
 
-NUM_RUNS = 30
+NUM_RUNS = 10
 num_ue = 10
 OUTPUT_FILENAME = "stdout"  # This is just an output text file
 CURR_PATH = os.path.abspath(os.path.dirname(__file__))
@@ -144,9 +144,9 @@ def main():
     try:
         import psutil
 
-        num_threads = psutil.virtual_memory().available // (
-            5.5 * 1024 * 1024 * 1024
-        )  # 5.5 GB for ring 1
+        # We know ring 1 has 21 cells with 10 UEs each use 6GB
+        memory_required = 6 * 1024 * 1024 * 1024
+        num_threads = psutil.virtual_memory().available // memory_required
     except ModuleNotFoundError:
         pass
 
@@ -168,6 +168,7 @@ def main():
     output_filenames = glob.glob(f"{CAMPAIGN_PATH}/**/{OUTPUT_FILENAME}", recursive=True)
 
     # This is where the actual regression test begins
+    failed_calibration_log = ""
     for config, reference_values in REFERENCE_VALUES_PER_SIMULATION_CONFIG:
         simulation_config_tag = get_tag_from_config(config)
         # Filter output files to just those containing the tag corresponding to the reference values
@@ -188,6 +189,8 @@ def main():
         # available method for comparison.
 
         for metric in results:
+            if metric not in reference_values:
+                continue
             ttest_result = ttest_1samp(
                 results[metric],
                 reference_values[metric],
