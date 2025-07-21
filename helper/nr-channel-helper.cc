@@ -99,6 +99,10 @@ Ptr<SpectrumChannel>
 NrChannelHelper::CreateChannel(uint8_t flags)
 {
     auto channel = CreateObject<MultiModelSpectrumChannel>();
+    if (m_wraparoundModel)
+    {
+        channel->UnidirectionalAggregateObject(m_wraparoundModel);
+    }
     Ptr<ChannelConditionModel> channelConditionModel;
     if (m_channelConditionModel.IsTypeIdSet())
     {
@@ -399,4 +403,11 @@ NrChannelHelper::AddNrCsiRsFilter(Ptr<SpectrumChannel> channel)
         NS_LOG_DEBUG("Adding NrCsiRsFilter to channel " << channel);
     }
 }
+
+void
+NrChannelHelper::SetWraparoundModel(Ptr<WraparoundModel> wraparoundModel)
+{
+    m_wraparoundModel = wraparoundModel;
+}
+
 } // namespace ns3

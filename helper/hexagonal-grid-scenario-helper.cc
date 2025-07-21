@@ -482,14 +482,7 @@ HexagonalGridScenarioHelper::CreateScenario()
     mobility.Install(m_ut);
     if (m_installWraparound)
     {
-        for (std::size_t i = 0; i < m_bs.GetN(); i++)
-        {
-            m_bs.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
-        }
-        for (std::size_t i = 0; i < m_ut.GetN(); i++)
-        {
-            m_ut.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
-        }
+        m_wraparound = wraparound;
     }
     PlotHexagonalDeployment(sitePosVector,
                             bsCenterVector,
@@ -683,14 +676,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
     }
     if (m_installWraparound)
     {
-        for (std::size_t i = 0; i < m_bs.GetN(); i++)
-        {
-            m_bs.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
-        }
-        for (std::size_t i = 0; i < m_ut.GetN(); i++)
-        {
-            m_ut.Get(i)->GetObject<MobilityModel>()->UnidirectionalAggregateObject(wraparound);
-        }
+        m_wraparound = wraparound;
     }
     PlotHexagonalDeployment(sitePosVector,
                             bsCenterVector,
@@ -713,6 +699,12 @@ HexagonalGridScenarioHelper::SetMaxUeDistanceToClosestSite(double maxUeDistanceT
 {
     NS_ASSERT(maxUeDistanceToClosestSite > 0 + (m_minBsUtDistance > 0) ? m_minBsUtDistance : 0);
     m_maxUeDistanceToClosestSite = maxUeDistanceToClosestSite;
+}
+
+Ptr<WraparoundModel>
+HexagonalGridScenarioHelper::GetWraparoundModel() const
+{
+    return m_wraparound;
 }
 
 } // namespace ns3

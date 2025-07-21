@@ -39,6 +39,7 @@
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-phy.h"
 #include "ns3/nr-ue-rrc.h"
+#include "ns3/nr-wraparound-utils.h"
 #include "ns3/pointer.h"
 #include "ns3/three-gpp-channel-model.h"
 #include "ns3/three-gpp-propagation-loss-model.h"
@@ -1092,14 +1093,10 @@ NrHelper::AttachToClosestGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceCont
     Ptr<SpectrumChannel> channel = GetUePhy(ueDevice, 0)->GetSpectrumPhy()->GetSpectrumChannel();
     for (auto i = gnbDevices.Begin(); i != gnbDevices.End(); ++i)
     {
-        Vector gnbpos = (*i)->GetNode()->GetObject<MobilityModel>()->GetPosition();
+        auto gnbMm =
+            GetVirtualMobilityModel(channel, (*i)->GetNode()->GetObject<MobilityModel>(), ueMm);
+        Vector gnbpos = gnbMm->GetPosition();
         Vector uepos = ueDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
-        auto wraparoundModel =
-            ueDevice->GetNode()->GetObject<MobilityModel>()->GetObject<HexagonalWraparoundModel>();
-        if (wraparoundModel)
-        {
-            uepos = wraparoundModel->GetRelativeVirtualPosition(gnbpos, uepos);
-        }
 
         double distance = CalculateDistance(uepos, gnbpos);
         if (distance < minDistance)

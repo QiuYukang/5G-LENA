@@ -7,6 +7,7 @@
 #include "beamforming-vector.h"
 
 #include "ns3/nr-module.h"
+#include "ns3/nr-wraparound-utils.h"
 #include "ns3/object.h"
 #include "ns3/parse-string-to-vector.h"
 #include "ns3/string.h"
@@ -278,7 +279,9 @@ NrInitialAssociation::ExtractGnbParameters(const Ptr<NetDevice>& gnbDevice,
     // affected
     antenna.gnbArrayModel =
         Copy<UniformPlanarArray>(DynamicCast<UniformPlanarArray>(bPhasedArrayModel));
-    mobility.gnbMobility = spectrumPhy->GetMobility();
+    mobility.gnbMobility = GetVirtualMobilityModel(spectrumPhy->GetSpectrumChannel(),
+                                                   spectrumPhy->GetMobility(),
+                                                   mobility.ueMobility);
     const auto rowElemsPerPort = antenna.gnbArrayModel->GetVElemsPerPort();
     const auto colElemsPerPort = antenna.gnbArrayModel->GetHElemsPerPort();
 

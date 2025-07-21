@@ -216,7 +216,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
     NrHelper::MimoPmiParams mimoPmiParams,
     bool enableSubbandScheluder,
     bool m_subbandCqiClamping,
-    EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource)
+    EnumValue<NrMacSchedulerUeInfo::McsCsiSource> m_mcsCsiSource,
+    Ptr<WraparoundModel> wraparoundModel)
 {
     /*
      * Create the radio network related parameters
@@ -565,12 +566,13 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
     channelHelper->SetChannelConditionModelAttribute("O2iLowLossThreshold",
                                                      DoubleValue(o2iLowLossThreshold));
     channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
+    channelHelper->SetWraparoundModel(wraparoundModel);
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
     // Configure Distance-based spectrum manually because it is not possible to set it via
     // NrChannelHelper
     ObjectFactory distanceBasedChannelFactory;
     distanceBasedChannelFactory.SetTypeId(
-        WraparoundThreeGppSpectrumPropagationLossModel::GetTypeId());
+        DistanceBasedThreeGppSpectrumPropagationLossModel::GetTypeId());
     distanceBasedChannelFactory.Set("MaxDistance", DoubleValue(2 * isd));
     for (size_t i = 0; i < band0.GetBwps().size(); i++)
     {

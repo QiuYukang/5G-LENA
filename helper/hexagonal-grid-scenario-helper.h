@@ -9,6 +9,7 @@
 
 #include "ns3/random-variable-stream.h"
 #include "ns3/vector.h"
+#include "ns3/wraparound-model.h"
 
 #include <optional>
 
@@ -125,6 +126,12 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
      */
     void SetMaxUeDistanceToClosestSite(double maxUeDistanceToClosestSite);
 
+    /**
+     * @brief Retrieve associated wraparound model
+     * @return Associated wraparound model
+     */
+    Ptr<WraparoundModel> GetWraparoundModel() const;
+
   private:
     uint8_t m_numRings{0}; //!< Number of outer rings of sites around the central site
     Vector m_centralPos{Vector(0, 0, 0)}; //!< Central site position
@@ -142,7 +149,8 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
     std::string m_resultsDir; //!< results directory for the gnuplot file
     std::string m_simTag;     //!< simTag for the gnuplot file
 
-    bool m_installWraparound{false}; //!< Whether to install wraparound model
+    bool m_installWraparound{false};   //!< Whether to install wraparound model
+    Ptr<WraparoundModel> m_wraparound; //!< Pointer to wraparound model, if set
 };
 
 } // namespace ns3

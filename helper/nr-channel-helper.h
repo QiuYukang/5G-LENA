@@ -12,6 +12,7 @@
 #include "ns3/object-factory.h"
 #include "ns3/object.h"
 #include "ns3/spectrum-channel.h"
+#include "ns3/wraparound-model.h"
 
 namespace ns3
 {
@@ -146,6 +147,12 @@ class NrChannelHelper : public Object
         const std::vector<std::reference_wrapper<OperationBandInfo>>& bandInfos,
         uint8_t flags = INIT_PROPAGATION | INIT_FADING);
 
+    /**
+     * Install wraparound model to channels and propagation models created by this helper
+     * @param wraparoundModel the wraparound model which will be installed
+     */
+    void SetWraparoundModel(Ptr<WraparoundModel> wraparoundModel);
+
   private:
     /**
      * @brief Different types for the propagation loss model
@@ -276,6 +283,8 @@ class NrChannelHelper : public Object
     ObjectFactory m_pathLossModel;         //!< The path loss object factory
     ObjectFactory m_spectrumModel;         //!< The phased spectrum object factory
     ObjectFactory m_channelConditionModel; //!< The channel condition object factory
+    Ptr<WraparoundModel>
+        m_wraparoundModel; //!< Wraparound model to aggregate to channel and propagation models
 };
 } // namespace ns3
 #endif /* NR_CHANNEL_HELPER_H */

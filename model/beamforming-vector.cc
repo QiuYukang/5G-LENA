@@ -122,7 +122,7 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
     auto wraparoundModel = b->GetObject<Node>()->GetObject<HexagonalWraparoundModel>();
     if (wraparoundModel)
     {
-        bPos = wraparoundModel->GetRelativeVirtualPosition(aPos, bPos);
+        bPos = wraparoundModel->GetVirtualPosition(aPos, bPos);
     }
 
     // compute the azimuth and the elevation angles

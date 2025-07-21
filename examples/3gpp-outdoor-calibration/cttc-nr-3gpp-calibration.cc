@@ -797,7 +797,7 @@ Nr3gppCalibration(Parameters& params)
     gnbNodes = gridScenario.GetBaseStations();
     ueNodes = gridScenario.GetUserTerminals();
     scenario = &gridScenario;
-
+    auto wraparoundModel = gridScenario.GetWraparoundModel();
     // Log the configuration
     std::cout << "\n    Topology configuration: " << gnbSites << " sites, " << sectors
               << " sectors/site, " << gnbNodes.GetN() << " cells, " << ueNodes.GetN() << " UEs\n";
@@ -994,7 +994,8 @@ Nr3gppCalibration(Parameters& params)
                                                   params.mimoPmiParams,
                                                   params.enableSubbandScheluder,
                                                   params.m_subbandCqiClamping,
-                                                  params.m_mcsCsiSource);
+                                                  params.m_mcsCsiSource,
+                                                  wraparoundModel);
     }
 
     // Check we got one valid helper

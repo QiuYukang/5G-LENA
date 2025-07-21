@@ -11,6 +11,7 @@
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/node.h"
 #include "ns3/nr-spectrum-value-helper.h"
+#include "ns3/nr-wraparound-utils.h"
 #include "ns3/parse-string-to-vector.h"
 #include "ns3/string.h"
 #include "ns3/uinteger.h"
@@ -68,6 +69,9 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
             ->GetSpectrumChannel(); // SpectrumChannel should be const.. but need to change ns-3-dev
     Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel();
 
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
     Ptr<const PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel =
         gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
     Ptr<const PhasedArraySpectrumPropagationLossModel> ueThreeGppSpectrumPropModel =
@@ -155,7 +159,7 @@ CellScanBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectrum
                     Ptr<SpectrumSignalParameters> rxParams =
                         gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
                             fakeParams,
-                            gnbSpectrumPhy->GetMobility(),
+                            gnbMobility,
                             ueSpectrumPhy->GetMobility(),
                             gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                             ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
@@ -254,6 +258,9 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
     NS_ABORT_MSG_IF(distance == 0,
                     "Beamforming method cannot be performed between two devices that are placed in "
                     "the same position.");
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
 
     Ptr<const PhasedArraySpectrumPropagationLossModel> txThreeGppSpectrumPropModel =
         gnbSpectrumPhy->GetSpectrumChannel()->GetPhasedArraySpectrumPropagationLossModel();
@@ -310,7 +317,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
             Ptr<SpectrumSignalParameters> rxParams =
                 txThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
                     fakeParams,
-                    gnbSpectrumPhy->GetMobility(),
+                    gnbMobility,
                     ueSpectrumPhy->GetMobility(),
                     gnbSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>(),
                     ueSpectrumPhy->GetAntenna()->GetObject<PhasedArrayModel>());
@@ -338,7 +345,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
 
     NS_LOG_DEBUG(
         "Beamforming vectors for gNB with node id: "
-        << gnbSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
+        << gnbMobility->GetObject<Node>()->GetId()
         << " and UE with node id: " << ueSpectrumPhy->GetMobility()->GetObject<Node>()->GetId()
         << " are txTheta " << maxTxTheta << " tx sector "
         << (M_PI * static_cast<double>(maxTxSector) / static_cast<double>(txNumCols) - 0.5 * M_PI) /
@@ -366,17 +373,18 @@ DirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectr
         gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
     Ptr<const UniformPlanarArray> ueAntenna =
         ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
 
     PhasedArrayModel::ComplexVector gNbAntennaWeights =
-        CreateDirectPathBfv(gnbSpectrumPhy->GetMobility(),
-                            ueSpectrumPhy->GetMobility(),
-                            gnbAntenna);
+        CreateDirectPathBfv(gnbMobility, ueSpectrumPhy->GetMobility(), gnbAntenna);
     // store the antenna weights
     BeamformingVector gnbBfv =
         BeamformingVector(std::make_pair(gNbAntennaWeights, BeamId::GetEmptyBeamId()));
 
     PhasedArrayModel::ComplexVector ueAntennaWeights =
-        CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbSpectrumPhy->GetMobility(), ueAntenna);
+        CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbMobility, ueAntenna);
     // store the antenna weights
     BeamformingVector ueBfv =
         BeamformingVector(std::make_pair(ueAntennaWeights, BeamId::GetEmptyBeamId()));
@@ -402,6 +410,9 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
         gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
     Ptr<const UniformPlanarArray> ueAntenna =
         ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
 
     // configure gNb beamforming vector to be quasi omni
     UintegerValue numCols;
@@ -412,7 +423,7 @@ QuasiOmniDirectPathBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
 
     // configure UE beamforming vector to be directed towards gNB
     PhasedArrayModel::ComplexVector ueAntennaWeights =
-        CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbSpectrumPhy->GetMobility(), ueAntenna);
+        CreateDirectPathBfv(ueSpectrumPhy->GetMobility(), gnbMobility, ueAntenna);
     // store the antenna weights
     BeamformingVector ueBfv = BeamformingVector({ueAntennaWeights, BeamId::GetEmptyBeamId()});
     return BeamformingVectorPair(std::make_pair(gnbBfv, ueBfv));
@@ -436,6 +447,9 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
         gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
     Ptr<const UniformPlanarArray> ueAntenna =
         ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>();
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
 
     // configure ue beamforming vector to be quasi omni
     UintegerValue numCols;
@@ -446,9 +460,7 @@ DirectPathQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& 
 
     // configure gNB beamforming vector to be directed towards UE
     PhasedArrayModel::ComplexVector gnbAntennaWeights =
-        CreateDirectPathBfv(gnbSpectrumPhy->GetMobility(),
-                            ueSpectrumPhy->GetMobility(),
-                            gnbAntenna);
+        CreateDirectPathBfv(gnbMobility, ueSpectrumPhy->GetMobility(), gnbAntenna);
     // store the antenna weights
     BeamformingVector gnbBfv = {gnbAntennaWeights, BeamId::GetEmptyBeamId()};
 
@@ -585,6 +597,9 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
 
     Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel();
     Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel();
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
 
     Ptr<const PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel =
         gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
@@ -639,7 +654,7 @@ KroneckerBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gnbSpectru
                         fakeParams->psd = Copy<SpectrumValue>(fakePsd);
                         auto rxParams = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
                             fakeParams,
-                            gnbSpectrumPhy->GetMobility(),
+                            gnbMobility,
                             ueSpectrumPhy->GetMobility(),
                             gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
                             ueSpectrumPhy->GetPanelByIndex(b)->GetObject<UniformPlanarArray>());
@@ -728,6 +743,9 @@ KroneckerQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& g
 
     Ptr<SpectrumChannel> gnbSpectrumChannel = gnbSpectrumPhy->GetSpectrumChannel();
     Ptr<SpectrumChannel> ueSpectrumChannel = ueSpectrumPhy->GetSpectrumChannel();
+    auto gnbMobility = GetVirtualMobilityModel(gnbSpectrumPhy->GetSpectrumChannel(),
+                                               gnbSpectrumPhy->GetMobility(),
+                                               ueSpectrumPhy->GetMobility());
 
     Ptr<const PhasedArraySpectrumPropagationLossModel> gnbThreeGppSpectrumPropModel =
         gnbSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel();
@@ -771,7 +789,7 @@ KroneckerQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& g
             fakeParams->psd = Copy<SpectrumValue>(fakePsd);
             auto rxParams = gnbThreeGppSpectrumPropModel->CalcRxPowerSpectralDensity(
                 fakeParams,
-                gnbSpectrumPhy->GetMobility(),
+                gnbMobility,
                 ueSpectrumPhy->GetMobility(),
                 gnbSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>(),
                 ueSpectrumPhy->GetAntenna()->GetObject<UniformPlanarArray>());
