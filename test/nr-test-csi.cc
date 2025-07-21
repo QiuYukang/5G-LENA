@@ -156,7 +156,7 @@ NrCsiTestCase::UeReception(RxPacketTraceParams params)
 
     if (params.m_cellId == 1)
     {
-        m_tbErrorSlidingWindow.push_back({Simulator::Now(), params.m_corrupt});
+        m_tbErrorSlidingWindow.emplace_back(Simulator::Now(), params.m_corrupt);
         if (m_tbErrorSlidingWindow.size() > 10)
         {
             m_tbErrorSlidingWindow.pop_front();
@@ -365,8 +365,8 @@ NrCsiTestCase::LogApplicationState(Ptr<OnOffApplication> app, bool beforeState, 
     entry["state"] = afterState;
     outputJson[m_description]["appState"][appStr].push_back(entry);
 
-    m_interferers[m_interfAppToString[app]].timestampAndState.push_back(
-        {Simulator::Now(), afterState});
+    m_interferers[m_interfAppToString[app]].timestampAndState.emplace_back(Simulator::Now(),
+                                                                           afterState);
     if (!m_interfAppToString.at(app).empty())
     {
         StateMachineStep(afterState ? WAITING_FOR_UP_TO_DATE_INTERFERED_CQI
@@ -815,8 +815,8 @@ NrCsiTestCase::DoRun()
             }
             m_interferers[m_interfAppToString[app]] = {};
             m_interferers[m_interfAppToString[app]].type = type;
-            m_interferers[m_interfAppToString[app]].timestampAndState.push_back(
-                {Simulator::Now(), false});
+            m_interferers[m_interfAppToString[app]].timestampAndState.emplace_back(Simulator::Now(),
+                                                                                   false);
         }
     }
 
@@ -866,9 +866,7 @@ NrCsiTestCase::DoRun()
     FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats();
 
     double flowDuration = (simTime - udpAppStartTime).GetSeconds();
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         auto rxPackets = i->second.rxPackets;
         auto rxThrMbps = i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000;

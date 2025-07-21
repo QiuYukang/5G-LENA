@@ -133,7 +133,7 @@ main(int argc, char* argv[])
     // enable logging or not
     if (logging)
     {
-        LogLevel logLevel1 =
+        auto logLevel1 =
             (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO);
         LogComponentEnable("NrMacSchedulerNs3", logLevel1);
         LogComponentEnable("NrMacSchedulerTdma", logLevel1);
@@ -594,9 +594,7 @@ main(int argc, char* argv[])
     outFile.setf(std::ios_base::fixed);
 
     double flowDuration = (simTime - udpAppStartTime).GetSeconds();
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
 

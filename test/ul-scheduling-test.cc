@@ -318,10 +318,10 @@ UlSchedulingTest::gNBRxCtrl(SfnSf sfn,
 void
 UlSchedulingTest::DoRun()
 {
-    LogLevel logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
-    LogLevel logLevel1 =
+    auto logLevel = (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_LEVEL_ALL);
+    auto logLevel1 =
         (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO);
-    LogLevel logLevel2 =
+    auto logLevel2 =
         (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
     LogComponentEnable("UlSchedulingTestCase", logLevel);
     LogComponentEnable("UlSchedulingTestCase", logLevel1);
@@ -549,9 +549,7 @@ UlSchedulingTest::DoRun()
     outFile.setf(std::ios_base::fixed);
 
     double flowDuration = (simTime - udpAppStartTimeUl).GetSeconds();
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
         std::stringstream protoStream;

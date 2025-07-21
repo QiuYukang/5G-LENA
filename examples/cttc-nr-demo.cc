@@ -596,9 +596,7 @@ main(int argc, char* argv[])
     outFile.setf(std::ios_base::fixed);
 
     double flowDuration = (simTime - udpAppStartTime).GetSeconds();
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
         std::stringstream protoStream;

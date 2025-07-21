@@ -282,7 +282,7 @@ NrBearerStatsConnector::ConnectSrb0Traces(std::string context,
     CellIdRnti key;
     key.cellId = cellId;
     key.rnti = rnti;
-    std::map<CellIdRnti, std::string>::iterator it = m_ueManagerPathByCellIdRnti.find(key);
+    auto it = m_ueManagerPathByCellIdRnti.find(key);
     NS_ASSERT(it != m_ueManagerPathByCellIdRnti.end());
     std::string ueManagerPath = it->second;
     NS_LOG_LOGIC(this << " ueManagerPath: " << ueManagerPath);

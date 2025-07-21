@@ -318,7 +318,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
     for (const auto& band : bands)
     {
         std::string label = "n";
-        uint16_t bandId = static_cast<uint16_t>(band->m_bandId);
+        auto bandId = static_cast<uint16_t>(band->m_bandId);
         label += std::to_string(bandId);
         PlotFrequencyBand(outFile,
                           index,
@@ -330,7 +330,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
         index++;
         for (auto& cc : band->m_cc)
         {
-            uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
+            auto ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
             PlotFrequencyBand(outFile,
                               index,
@@ -342,7 +342,7 @@ CcBwpCreator::PlotNrCaBwpConfiguration(const std::vector<OperationBandInfo*>& ba
             index++;
             for (auto& bwp : cc->m_bwp)
             {
-                uint16_t bwpId = static_cast<uint16_t>(bwp->m_bwpId);
+                auto bwpId = static_cast<uint16_t>(bwp->m_bwpId);
                 label = "BWP" + std::to_string(bwpId);
                 PlotFrequencyBand(outFile,
                                   index,
@@ -407,7 +407,7 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
     for (const auto& band : bands)
     {
         std::string label = "n";
-        uint16_t bandId = static_cast<uint16_t>(band->m_bandId);
+        auto bandId = static_cast<uint16_t>(band->m_bandId);
         label += std::to_string(bandId);
         PlotFrequencyBand(outFile,
                           index,
@@ -419,7 +419,7 @@ CcBwpCreator::PlotLteCaConfiguration(const std::vector<OperationBandInfo*>& band
         index++;
         for (auto& cc : band->m_cc)
         {
-            uint16_t ccId = static_cast<uint16_t>(cc->m_ccId);
+            auto ccId = static_cast<uint16_t>(cc->m_ccId);
             label = "CC" + std::to_string(ccId);
             PlotFrequencyBand(outFile,
                               index,

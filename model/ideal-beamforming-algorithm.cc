@@ -283,7 +283,7 @@ CellScanQuasiOmniBeamforming::GetBeamformingVectors(const Ptr<NrSpectrumPhy>& gn
 
     UintegerValue uintValue;
     gnbSpectrumPhy->GetAntenna()->GetAttribute("NumColumns", uintValue);
-    uint16_t txNumCols = static_cast<uint16_t>(uintValue.Get());
+    auto txNumCols = static_cast<uint16_t>(uintValue.Get());
 
     ueSpectrumPhy->GetBeamManager()
         ->ChangeToQuasiOmniBeamformingVector(); // we have to set it immediately to q-omni so that

@@ -1443,8 +1443,7 @@ NrUePhy::ReceivePss(uint16_t cellId, const Ptr<SpectrumValue>& p)
                                         << " for Cell Id: " << cellId << " RNTI: " << m_rnti);
 
     // store RSRP measurements
-    std::map<uint16_t, UeMeasurementsElement>::iterator itMeasMap =
-        m_ueMeasurementsMap.find(cellId);
+    auto itMeasMap = m_ueMeasurementsMap.find(cellId);
     if (itMeasMap == m_ueMeasurementsMap.end())
     {
         // insert new entry

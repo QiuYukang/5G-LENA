@@ -368,7 +368,7 @@ NrMacSchedulerTdma::CreateDlDci(PointInFTPlane* spoint,
     int zeroes = std::count(notchedRBGsMask.begin(), notchedRBGsMask.end(), 0);
     uint32_t numOfAssignableRbgs = GetBandwidthInRbg() - zeroes;
 
-    uint8_t numSym = static_cast<uint8_t>(ueInfo->m_dlRBG.size() / numOfAssignableRbgs);
+    auto numSym = static_cast<uint8_t>(ueInfo->m_dlRBG.size() / numOfAssignableRbgs);
 
     auto dci = CreateDci(spoint,
                          ueInfo,

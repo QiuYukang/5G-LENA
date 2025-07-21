@@ -64,7 +64,7 @@ NrMacSchedulerOfdmaSymbolPerBeamLB::GetSymPerBeam(
         }
 
         double tmp = symAvail / bufTotal;
-        uint32_t symForBeam = static_cast<uint32_t>(bufSizeBeam * tmp);
+        auto symForBeam = static_cast<uint32_t>(bufSizeBeam * tmp);
         symUsed += symForBeam;
         ret.emplace(std::make_pair(GetBeamId(el), symForBeam));
         NS_LOG_DEBUG("Assigned to beam " << GetBeamId(el) << " symbols " << symForBeam);
@@ -76,7 +76,7 @@ NrMacSchedulerOfdmaSymbolPerBeamLB::GetSymPerBeam(
         uint8_t symToRedistribute = symAvail - symUsed;
         while (symToRedistribute > 0)
         {
-            NrMacSchedulerNs3::BeamSymbolMap::iterator min = ret.end();
+            auto min = ret.end();
             for (auto it = ret.begin(); it != ret.end(); ++it)
             {
                 if (min == ret.end() || it->second < min->second)

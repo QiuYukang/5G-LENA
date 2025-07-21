@@ -450,15 +450,15 @@ RealisticBeamformingAlgorithm::GetEstimatedLongTermComponent(
         uW = aW;
     }
 
-    uint16_t sAntenna = static_cast<uint16_t>(sW.GetSize());
-    uint16_t uAntenna = static_cast<uint16_t>(uW.GetSize());
+    auto sAntenna = static_cast<uint16_t>(sW.GetSize());
+    auto uAntenna = static_cast<uint16_t>(uW.GetSize());
 
     NS_LOG_DEBUG("Calculate the estimation of the long term component with sAntenna: "
                  << sAntenna << " uAntenna: " << uAntenna);
     NS_ABORT_IF(srsSinr == 0);
 
     double varError = 1 / (srsSinr); // SINR the SINR from UL SRS reception
-    uint8_t numCluster = static_cast<uint8_t>(channelMatrix->m_channel.GetNumPages());
+    auto numCluster = static_cast<uint8_t>(channelMatrix->m_channel.GetNumPages());
 
     UniformPlanarArray::ComplexVector estimatedlongTerm(numCluster);
     for (uint8_t cIndex = 0; cIndex < numCluster; cIndex++)

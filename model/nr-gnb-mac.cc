@@ -703,8 +703,7 @@ NrGnbMac::ProcessRaPreambles(const SfnSf& sfnSf)
         else
         {
             uint16_t rnti;
-            std::map<uint8_t, NcRaPreambleInfo>::iterator jt =
-                m_allocatedNcRaPreambleMap.find(it->first);
+            auto jt = m_allocatedNcRaPreambleMap.find(it->first);
             if (jt != m_allocatedNcRaPreambleMap.end())
             {
                 rnti = jt->second.rnti;
@@ -1052,8 +1051,7 @@ NrGnbMac::DoDlHarqFeedback(const DlHarqInfo& params)
 {
     NS_LOG_FUNCTION(this);
     // Update HARQ buffer
-    std::unordered_map<uint16_t, NrDlHarqProcessesBuffer_t>::iterator it =
-        m_miDlHarqProcessesPackets.find(params.m_rnti);
+    auto it = m_miDlHarqProcessesPackets.find(params.m_rnti);
     NS_ASSERT(it != m_miDlHarqProcessesPackets.end());
 
     if (params.m_harqStatus == DlHarqInfo::ACK)
@@ -1249,20 +1247,18 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                 }
 
                 // new data -> force emptying correspondent harq pkt buffer
-                std::unordered_map<uint16_t, NrDlHarqProcessesBuffer_t>::iterator harqIt =
-                    m_miDlHarqProcessesPackets.find(rnti);
+                auto harqIt = m_miDlHarqProcessesPackets.find(rnti);
                 NS_ASSERT(harqIt != m_miDlHarqProcessesPackets.end());
                 Ptr<PacketBurst> pb = CreateObject<PacketBurst>();
                 harqIt->second.at(harqId).m_pktBurst = pb;
                 harqIt->second.at(harqId).m_lcidList.clear();
 
-                std::unordered_map<uint32_t, struct NrMacPduInfo>::iterator pduMapIt = mapRet.first;
+                auto pduMapIt = mapRet.first;
                 // for each LC j
                 for (auto& j : rlcPduInfo)
                 {
                     NS_ASSERT_MSG(rntiIt != m_rlcAttached.end(), "could not find RNTI" << rnti);
-                    std::unordered_map<uint8_t, NrMacSapUser*>::iterator lcidIt =
-                        rntiIt->second.find(j.m_lcid);
+                    auto lcidIt = rntiIt->second.find(j.m_lcid);
                     NS_ASSERT_MSG(lcidIt != rntiIt->second.end(),
                                   "could not find LCID" << std::to_string(j.m_lcid));
                     NS_LOG_INFO("Notifying RLC of TX opportunity for HARQ Process ID "
@@ -1301,12 +1297,10 @@ NrGnbMac::DoSchedConfigIndication(NrMacSchedSapUser::SchedConfigIndParameters in
                 NS_LOG_INFO("DL retransmission");
                 if (dciElem->m_tbSize > 0)
                 {
-                    std::unordered_map<uint16_t, NrDlHarqProcessesBuffer_t>::iterator it =
-                        m_miDlHarqProcessesPackets.find(rnti);
+                    auto it = m_miDlHarqProcessesPackets.find(rnti);
                     NS_ASSERT(it != m_miDlHarqProcessesPackets.end());
                     Ptr<PacketBurst> pb = it->second.at(harqId).m_pktBurst;
-                    for (std::list<Ptr<Packet>>::const_iterator j = pb->Begin(); j != pb->End();
-                         ++j)
+                    for (auto j = pb->Begin(); j != pb->End(); ++j)
                     {
                         Ptr<Packet> pkt = (*j)->Copy();
                         m_phySapProvider->SendMacPdu(pkt,
@@ -1509,10 +1503,9 @@ NrGnbMac::DoAddLc(NrGnbCmacSapProvider::LcInfo lcinfo, NrMacSapUser* msu)
     NS_LOG_FUNCTION(this);
     NS_LOG_FUNCTION(this);
 
-    std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>>::iterator rntiIt =
-        m_rlcAttached.find(lcinfo.rnti);
+    auto rntiIt = m_rlcAttached.find(lcinfo.rnti);
     NS_ASSERT_MSG(rntiIt != m_rlcAttached.end(), "RNTI not found");
-    std::unordered_map<uint8_t, NrMacSapUser*>::iterator lcidIt = rntiIt->second.find(lcinfo.lcId);
+    auto lcidIt = rntiIt->second.find(lcinfo.lcId);
     if (lcidIt == rntiIt->second.end())
     {
         rntiIt->second.insert(std::pair<uint8_t, NrMacSapUser*>(lcinfo.lcId, msu));
@@ -1561,8 +1554,7 @@ void
 NrGnbMac::DoReleaseLc(uint16_t rnti, uint8_t lcid)
 {
     // Find user based on rnti and then erase lcid stored against the same
-    std::unordered_map<uint16_t, std::unordered_map<uint8_t, NrMacSapUser*>>::iterator rntiIt =
-        m_rlcAttached.find(rnti);
+    auto rntiIt = m_rlcAttached.find(rnti);
     rntiIt->second.erase(lcid);
 
     struct NrMacCschedSapProvider::CschedLcReleaseReqParameters params;
@@ -1603,8 +1595,7 @@ NrGnbMac::DoAllocateNcRaPreamble(uint16_t rnti)
     uint8_t preambleId;
     for (preambleId = m_numberOfRaPreambles; preambleId < 64; ++preambleId)
     {
-        std::map<uint8_t, NcRaPreambleInfo>::iterator it =
-            m_allocatedNcRaPreambleMap.find(preambleId);
+        auto it = m_allocatedNcRaPreambleMap.find(preambleId);
         /**
          * Allocate preamble only if its free. The non-contention preamble
          * assigned to UE during handover or PDCCH order is valid only until the

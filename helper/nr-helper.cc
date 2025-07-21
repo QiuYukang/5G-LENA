@@ -294,7 +294,7 @@ NrHelper::InstallUeDevice(const NodeContainer& c,
 {
     NS_LOG_FUNCTION(this);
     NetDeviceContainer devices;
-    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
+    for (auto i = c.Begin(); i != c.End(); ++i)
     {
         Ptr<Node> node = *i;
         Ptr<NetDevice> device = InstallSingleUeDevice(node, allBwps);
@@ -310,7 +310,7 @@ NrHelper::InstallGnbDevice(const NodeContainer& c,
 {
     NS_LOG_FUNCTION(this);
     NetDeviceContainer devices;
-    for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
+    for (auto i = c.Begin(); i != c.End(); ++i)
     {
         Ptr<Node> node = *i;
         Ptr<NetDevice> device = InstallSingleGnbDevice(node, allBwps);
@@ -1078,7 +1078,7 @@ NrHelper::AttachToClosestGnb(const NetDeviceContainer& ueDevices,
 {
     NS_LOG_FUNCTION(this);
 
-    for (NetDeviceContainer::Iterator i = ueDevices.Begin(); i != ueDevices.End(); i++)
+    for (auto i = ueDevices.Begin(); i != ueDevices.End(); i++)
     {
         AttachToClosestGnb(*i, gnbDevices);
     }
@@ -1091,7 +1091,9 @@ NrHelper::AttachToClosestGnb(const Ptr<NetDevice>& ueDevice, const NetDeviceCont
     NS_ASSERT_MSG(gnbDevices.GetN() > 0, "empty gnb device container");
     double minDistance = std::numeric_limits<double>::infinity();
     Ptr<NetDevice> closestGnbDevice;
-    for (NetDeviceContainer::Iterator i = gnbDevices.Begin(); i != gnbDevices.End(); ++i)
+    Ptr<MobilityModel> ueMm = ueDevice->GetNode()->GetObject<MobilityModel>();
+    Ptr<SpectrumChannel> channel = GetUePhy(ueDevice, 0)->GetSpectrumPhy()->GetSpectrumChannel();
+    for (auto i = gnbDevices.Begin(); i != gnbDevices.End(); ++i)
     {
         Vector gnbpos = (*i)->GetNode()->GetObject<MobilityModel>()->GetPosition();
         Vector uepos = ueDevice->GetNode()->GetObject<MobilityModel>()->GetPosition();
@@ -1186,7 +1188,7 @@ NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
                                      Ptr<NrEpcTft> tft)
 {
     NS_LOG_FUNCTION(this);
-    for (NetDeviceContainer::Iterator i = ueDevices.Begin(); i != ueDevices.End(); ++i)
+    for (auto i = ueDevices.Begin(); i != ueDevices.End(); ++i)
     {
         uint8_t bearerId = ActivateDedicatedEpsBearer(*i, bearer, tft);
         return bearerId;
@@ -1408,7 +1410,7 @@ NrHelper::EnableFhControl()
 void
 NrHelper::ConfigureFhControl(NetDeviceContainer gnbNetDevices)
 {
-    for (NetDeviceContainer::Iterator i = gnbNetDevices.Begin(); i != gnbNetDevices.End(); ++i)
+    for (auto i = gnbNetDevices.Begin(); i != gnbNetDevices.End(); ++i)
     {
         Ptr<NrGnbNetDevice> gnbNetDev = DynamicCast<NrGnbNetDevice>(*i);
 
@@ -1430,7 +1432,7 @@ NrHelper::AssignStreams(NetDeviceContainer c, int64_t stream)
 {
     int64_t currentStream = stream;
     Ptr<NetDevice> netDevice;
-    for (NetDeviceContainer::Iterator i = c.Begin(); i != c.End(); ++i)
+    for (auto i = c.Begin(); i != c.End(); ++i)
     {
         netDevice = (*i);
         Ptr<NrGnbNetDevice> nrGnb = DynamicCast<NrGnbNetDevice>(netDevice);
@@ -1627,7 +1629,7 @@ void
 NrHelper::ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrEpsBearer bearer)
 {
     NS_LOG_FUNCTION(this);
-    for (NetDeviceContainer::Iterator i = ueDevices.Begin(); i != ueDevices.End(); ++i)
+    for (auto i = ueDevices.Begin(); i != ueDevices.End(); ++i)
     {
         ActivateDataRadioBearer(*i, bearer);
     }

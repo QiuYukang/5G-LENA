@@ -103,7 +103,7 @@ void
 NrFhControl::SetNrFhPhySapUser(uint16_t bwpId, NrFhPhySapUser* s)
 {
     NS_LOG_FUNCTION(this << s);
-    std::map<uint16_t, NrFhPhySapUser*>::iterator it = m_fhPhySapUser.find(bwpId);
+    auto it = m_fhPhySapUser.find(bwpId);
 
     if (it != m_fhPhySapUser.end())
     {
@@ -128,7 +128,7 @@ NrFhControl::SetNrFhSchedSapUser(uint16_t bwpId, NrFhSchedSapUser* s)
 {
     NS_LOG_FUNCTION(this << s);
 
-    std::map<uint16_t, NrFhSchedSapUser*>::iterator it = m_fhSchedSapUser.find(bwpId);
+    auto it = m_fhSchedSapUser.find(bwpId);
 
     if (it != m_fhSchedSapUser.end())
     {
@@ -476,7 +476,7 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti, 
 
     Time slotLength = MicroSeconds(
         static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
-    uint32_t overheadMac = static_cast<uint32_t>(
+    auto overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 /
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
@@ -493,8 +493,8 @@ NrFhControl::DoGetMaxMcsAssignable(uint16_t bwpId, uint32_t reg, uint32_t rnti, 
                         Kp * (m_overheadDyn + overheadMac + (12 * 2 * 10)),
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
-    uint32_t num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
-                                         Kp * (m_overheadDyn - overheadMac - (12 * 2 * 10)));
+    auto num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
+                                     Kp * (m_overheadDyn - overheadMac - (12 * 2 * 10)));
     if (Kp == 0)
     {
         return 0;
@@ -533,7 +533,7 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, 
 
     Time slotLength = MicroSeconds(
         static_cast<uint16_t>(1000 / std::pow(2, m_numerologyPerBwp.at(bwpId)))); // slot length
-    uint32_t overheadMac = static_cast<uint32_t>(
+    auto overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 /
         std::pow(2, m_numerologyPerBwp.at(bwpId))); // bits (10e6 (bps) x slot length (in s))
 
@@ -550,8 +550,8 @@ NrFhControl::DoGetMaxRegAssignable(uint16_t bwpId, uint32_t mcs, uint32_t rnti, 
                         Kp * (overheadDyn + overheadMac + (12 * 2 * 10)),
                     "Not enough fronthaul capacity to send intra-PHY split overhead");
 
-    uint32_t num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
-                                         Kp * (overheadDyn - overheadMac - (12 * 2 * 10)));
+    auto num = static_cast<uint32_t>(availableCapacity * 1e6 * slotLength.GetSeconds() -
+                                     Kp * (overheadDyn - overheadMac - (12 * 2 * 10)));
     if (Kp == 0)
     {
         return 0;
@@ -671,7 +671,7 @@ NrFhControl::GetFhThr(uint16_t bwpId, uint32_t mcs, uint32_t nRegs, uint8_t dlRa
                   " Numerology has not been configured properly for bwpId: " << bwpId);
     Time slotLength =
         MicroSeconds(static_cast<uint16_t>(1000 / std::pow(2, numerology))); // slot length
-    uint32_t overheadMac = static_cast<uint32_t>(
+    auto overheadMac = static_cast<uint32_t>(
         10e6 * 1e-3 / std::pow(2, numerology)); // bits (10e6 (bps) x slot length (in s))
 
     uint32_t effectiveModulationOrder =

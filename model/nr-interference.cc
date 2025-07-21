@@ -301,11 +301,11 @@ NrInterference::AppendEvent(Time startTime, Time endTime, double rxPowerW)
 
     if (!m_receiving)
     {
-        NiChanges::iterator nowIterator = GetPosition(now);
+        auto nowIterator = GetPosition(now);
         // We empty the list until the current moment. To do so we
         // first we sum all the energies until the current moment
         // and save it in m_firstPower.
-        for (NiChanges::iterator i = m_niChanges.begin(); i != nowIterator; i++)
+        for (auto i = m_niChanges.begin(); i != nowIterator; i++)
         {
             m_firstPower += i->GetDelta();
         }

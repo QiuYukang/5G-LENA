@@ -218,9 +218,7 @@ SchedTemporalFairnessTestCase::DoRun()
     std::deque<std::pair<double, Ipv4Address>> flowThroughputs;
 
     // Measure the duration of the flow from receiver's perspective
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         // Retrieve flow src/tgt addresses and ports
         Ipv4FlowClassifier::FiveTuple t =
@@ -237,7 +235,7 @@ SchedTemporalFairnessTestCase::DoRun()
         NS_TEST_EXPECT_MSG_GT(flowThr,
                               0,
                               "Expected throughput higher than zero at " << t.destinationAddress);
-        flowThroughputs.push_back({flowThr, t.destinationAddress});
+        flowThroughputs.emplace_back(flowThr, t.destinationAddress);
         avgThr += flowThr;
     }
     avgThr /= flowThroughputs.size();

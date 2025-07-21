@@ -258,7 +258,7 @@ modulo(int n, uint32_t m)
 static int32_t
 ReturnHarqSlot(const std::vector<LteNrTddSlotType>& pattern, uint32_t pos, uint32_t n1)
 {
-    int32_t k1 = static_cast<int32_t>(n1);
+    auto k1 = static_cast<int32_t>(n1);
 
     uint32_t index = modulo(static_cast<int>(pos) + k1, static_cast<uint32_t>(pattern.size()));
 
@@ -345,7 +345,7 @@ NrGnbPhy::GenerateStructuresFromPattern(const std::vector<LteNrTddSlotType>& pat
                                         uint32_t n1,
                                         uint32_t l1l2CtrlLatency)
 {
-    const uint32_t n = static_cast<uint32_t>(pattern.size());
+    const auto n = static_cast<uint32_t>(pattern.size());
 
     // Create a pattern that is all F.
     std::vector<LteNrTddSlotType> fddGenerationPattern;
@@ -1235,7 +1235,7 @@ NrGnbPhy::RetrieveDciFromAllocation(const SlotAllocInfo& alloc,
         }
         if (kDelay != 0)
         {
-            ctrlMsgs.push_back(ulMsg3DciMsg);
+            ctrlMsgs.emplace_back(ulMsg3DciMsg);
         }
     }
 
@@ -1979,7 +1979,7 @@ NrGnbPhy::DoRemoveUe(uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << rnti);
 
-    std::set<uint16_t>::iterator it = m_ueAttachedRnti.find(rnti);
+    auto it = m_ueAttachedRnti.find(rnti);
     if (it != m_ueAttachedRnti.end())
     {
         m_ueAttachedRnti.erase(it);

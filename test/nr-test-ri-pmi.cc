@@ -399,9 +399,7 @@ RiPmiTestCase::DoRun()
                           "Not all UEs have generated CQI feedback.");
 
     double flowDuration = (simTime - udpAppStartTime).GetSeconds();
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         if (i->second.rxPackets > 0)
         {

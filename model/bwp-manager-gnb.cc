@@ -180,11 +180,10 @@ void
 BwpManagerGnb::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams)
 {
     NS_LOG_FUNCTION(this);
-    std::map<uint16_t, NrUeInfo>::iterator rntiIt = m_ueInfo.find(txOpParams.rnti);
+    auto rntiIt = m_ueInfo.find(txOpParams.rnti);
     NS_ASSERT_MSG(rntiIt != m_ueInfo.end(), "could not find RNTI" << txOpParams.rnti);
 
-    std::map<uint8_t, NrMacSapUser*>::iterator lcidIt =
-        rntiIt->second.m_ueAttached.find(txOpParams.lcid);
+    auto lcidIt = rntiIt->second.m_ueAttached.find(txOpParams.lcid);
     NS_ASSERT_MSG(lcidIt != rntiIt->second.m_ueAttached.end(),
                   "could not find LCID " << (uint16_t)txOpParams.lcid);
 

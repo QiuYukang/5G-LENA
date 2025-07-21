@@ -832,7 +832,7 @@ NrUeMac::TransmitRetx()
 
     NS_ASSERT(pb->GetNPackets() > 0);
 
-    for (std::list<Ptr<Packet>>::const_iterator j = pb->Begin(); j != pb->End(); ++j)
+    for (auto j = pb->Begin(); j != pb->End(); ++j)
     {
         Ptr<Packet> pkt = (*j)->Copy();
         NrRadioBearerTag bearerTag;

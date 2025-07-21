@@ -52,7 +52,7 @@ NrMacSchedulerCQIManagement::UlSBCQIReported(
     }
 
     SpectrumValue specVals(model);
-    Values::iterator specIt = specVals.ValuesBegin();
+    auto specIt = specVals.ValuesBegin();
 
     std::stringstream out;
 

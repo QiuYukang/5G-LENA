@@ -331,13 +331,13 @@ Nr3gppIndoorCalibration::SelectWellPlacedUes(const NodeContainer ueNodes,
     NodeContainer ueNodesFiltered;
     bool correctDistance = true;
 
-    for (NodeContainer::Iterator itUe = ueNodes.Begin(); itUe != ueNodes.End(); itUe++)
+    for (auto itUe = ueNodes.Begin(); itUe != ueNodes.End(); itUe++)
     {
         correctDistance = true;
         Ptr<MobilityModel> ueMm = (*itUe)->GetObject<MobilityModel>();
         Vector uePos = ueMm->GetPosition();
 
-        for (NodeContainer::Iterator itGnb = gnbNodes.Begin(); itGnb != gnbNodes.End(); itGnb++)
+        for (auto itGnb = gnbNodes.Begin(); itGnb != gnbNodes.End(); itGnb++)
         {
             Ptr<MobilityModel> gnbMm = (*itGnb)->GetObject<MobilityModel>();
             Vector gnbPos = gnbMm->GetPosition();
@@ -783,9 +783,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     }
     outFile.setf(std::ios_base::fixed);
     double flowDuration = (udpAppStopTimeDl - udpAppStartTimeDl).GetSeconds();
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
         std::stringstream protoStream;

@@ -460,9 +460,7 @@ main(int argc, char* argv[])
     double averageFlowThroughput = 0.0;
     double averageFlowDelay = 0.0;
 
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
         std::stringstream protoStream;

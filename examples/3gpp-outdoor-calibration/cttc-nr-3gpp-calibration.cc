@@ -1411,9 +1411,7 @@ Nr3gppCalibration(Parameters& params)
     thrValues.reserve(stats.size());
     uint64_t cont = 0;
     uint64_t cont2 = 0;
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
         std::stringstream protoStream;

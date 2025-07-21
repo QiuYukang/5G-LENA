@@ -238,7 +238,7 @@ NrPhyRxTrace::UlSinrTraceCallback(Ptr<NrPhyRxTrace> phyStats,
     FILE* log_file;
     std::string fname = "UE_" + std::to_string(imsi) + "_UL_SINR_dB.txt";
     log_file = fopen(fname.c_str(), "a");
-    Values::iterator it = sinr.ValuesBegin();
+    auto it = sinr.ValuesBegin();
     while (it != sinr.ValuesEnd())
     {
         // fprintf(log_file, "%d\t%d\t%f\t \n", tti_count/2, rb_count, 10*log10(*it));
@@ -673,7 +673,7 @@ NrPhyRxTrace::ReportInterferenceTrace(uint64_t imsi, SpectrumValue& sinr)
     FILE* log_file;
     std::string fname = "UE_" + std::to_string(imsi) + "_SINR_dB.txt";
     log_file = fopen(fname.c_str(), "a");
-    Values::iterator it = sinr.ValuesBegin();
+    auto it = sinr.ValuesBegin();
     while (it != sinr.ValuesEnd())
     {
         // fprintf(log_file, "%d\t%d\t%f\t \n", tti_count/2, rb_count, 10*log10(*it));
@@ -698,7 +698,7 @@ NrPhyRxTrace::ReportPowerTrace(uint64_t imsi, SpectrumValue& power)
     FILE* log_file;
     std::string fname = "UE_" + std::to_string(imsi) + "_ReceivedPower_dB.txt";
     log_file = fopen(fname.c_str(), "a");
-    Values::iterator it = power.ValuesBegin();
+    auto it = power.ValuesBegin();
     while (it != power.ValuesEnd())
     {
         fprintf(log_file,

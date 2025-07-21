@@ -278,7 +278,7 @@ StaticInformation::RecordAggregationInfo(std::string a, std::string b)
         return;
     }
 
-    m_aggregates.push_back(std::make_pair(aTid, bTid));
+    m_aggregates.emplace_back(aTid, bTid);
 }
 
 void
@@ -307,7 +307,7 @@ void
 StaticInformation::RecordOutput(TypeId tid)
 {
     NS_LOG_FUNCTION(this << tid);
-    m_output.push_back(std::make_pair(tid, GetCurrentPath()));
+    m_output.emplace_back(tid, GetCurrentPath());
 }
 
 bool
@@ -390,8 +390,7 @@ StaticInformation::DoGather(TypeId tid)
     for (uint32_t i = 0; i < tid.GetAttributeN(); ++i)
     {
         struct TypeId::AttributeInformation info = tid.GetAttribute(i);
-        const PointerChecker* ptrChecker =
-            dynamic_cast<const PointerChecker*>(PeekPointer(info.checker));
+        const auto* ptrChecker = dynamic_cast<const PointerChecker*>(PeekPointer(info.checker));
         if (ptrChecker != nullptr)
         {
             TypeId pointee = ptrChecker->GetPointeeTypeId();
@@ -416,7 +415,7 @@ StaticInformation::DoGather(TypeId tid)
             continue;
         }
         // attempt to cast to an object vector.
-        const ObjectPtrContainerChecker* vectorChecker =
+        const auto* vectorChecker =
             dynamic_cast<const ObjectPtrContainerChecker*>(PeekPointer(info.checker));
         if (vectorChecker != nullptr)
         {
@@ -679,7 +678,7 @@ PrintAttributesTid(std::ostream& os, const TypeId tid)
 
                 if (valType == "ns3::PointerValue")
                 {
-                    const PointerChecker* ptrChecker =
+                    const auto* ptrChecker =
                         dynamic_cast<const PointerChecker*>(PeekPointer(info.checker));
                     if (ptrChecker != nullptr)
                     {
@@ -690,7 +689,7 @@ PrintAttributesTid(std::ostream& os, const TypeId tid)
                 }
                 else if (valType == "ns3::ObjectPtrContainerValue")
                 {
-                    const ObjectPtrContainerChecker* ptrChecker =
+                    const auto* ptrChecker =
                         dynamic_cast<const ObjectPtrContainerChecker*>(PeekPointer(info.checker));
                     if (ptrChecker != nullptr)
                     {
@@ -1028,7 +1027,7 @@ PrintAllGlobals(std::ostream& os)
     os << "This is a list of all" << reference << "ns3::GlobalValue instances.\n" << std::endl;
 
     os << listStart << std::endl;
-    for (GlobalValue::Iterator i = GlobalValue::Begin(); i != GlobalValue::End(); ++i)
+    for (auto i = GlobalValue::Begin(); i != GlobalValue::End(); ++i)
     {
         StringValue val;
         (*i)->GetValue(val);

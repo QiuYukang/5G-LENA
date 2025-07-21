@@ -300,7 +300,7 @@ NrTestNumerologyDelayCase1::DoRun()
 Time
 NrTestNumerologyDelayCase1::GetSlotTime(uint32_t numerology)
 {
-    uint16_t slotsPerSubframe = static_cast<uint16_t>(std::pow(2, numerology));
+    auto slotsPerSubframe = static_cast<uint16_t>(std::pow(2, numerology));
     return Seconds(0.001 / slotsPerSubframe);
 }
 

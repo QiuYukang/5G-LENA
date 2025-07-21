@@ -5,8 +5,7 @@
 # Apply all checks from ns-3
 InheritParentConfig: true
 # Plus our additional checks
-Checks: >
-  -modernize-use-auto,
-  -modernize-use-emplace,
+#Checks: >
+#  -modernize-use-auto,
 
 HeaderFilterRegex: ".*(ns|NS).*/(contrib|examples|src|scratch|utils)/*/^((?!nr-json).)*h"

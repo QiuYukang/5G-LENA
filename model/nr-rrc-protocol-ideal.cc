@@ -164,9 +164,9 @@ NrUeRrcProtocolIdeal::SetGnbRrcSapProvider()
 
     // walk list of all nodes to get the peer gNB
     Ptr<NrGnbNetDevice> gnbDev;
-    NodeList::Iterator listEnd = NodeList::End();
+    auto listEnd = NodeList::End();
     bool found = false;
-    for (NodeList::Iterator i = NodeList::Begin(); (i != listEnd) && (!found); ++i)
+    for (auto i = NodeList::Begin(); (i != listEnd) && (!found); ++i)
     {
         Ptr<Node> node = *i;
         int nDevs = node->GetNDevices();
@@ -273,7 +273,7 @@ NrGnbRrcProtocolIdeal::DoSendSystemInformation(uint16_t cellId, NrRrcSap::System
     NS_LOG_FUNCTION(this << cellId);
     // walk list of all nodes to get UEs with this cellId
     Ptr<NrUeRrc> ueRrc;
-    for (NodeList::Iterator i = NodeList::Begin(); i != NodeList::End(); ++i)
+    for (auto i = NodeList::Begin(); i != NodeList::End(); ++i)
     {
         Ptr<Node> node = *i;
         int nDevs = node->GetNDevices();
@@ -471,8 +471,7 @@ NrGnbRrcProtocolIdeal::DoDecodeHandoverPreparationInformation(Ptr<Packet> p)
     p->RemoveHeader(h);
     uint32_t msgId = h.GetMsgId();
     NS_LOG_INFO(" decoding msgId = " << msgId);
-    std::map<uint32_t, NrRrcSap::HandoverPreparationInfo>::iterator it =
-        g_handoverPreparationInfoMsgMap.find(msgId);
+    auto it = g_handoverPreparationInfoMsgMap.find(msgId);
     NS_ASSERT_MSG(it != g_handoverPreparationInfoMsgMap.end(), "msgId " << msgId << " not found");
     NrRrcSap::HandoverPreparationInfo msg = it->second;
     g_handoverPreparationInfoMsgMap.erase(it);
@@ -578,8 +577,7 @@ NrGnbRrcProtocolIdeal::DoDecodeHandoverCommand(Ptr<Packet> p)
     p->RemoveHeader(h);
     uint32_t msgId = h.GetMsgId();
     NS_LOG_INFO(" decoding msgId = " << msgId);
-    std::map<uint32_t, NrRrcSap::RrcConnectionReconfiguration>::iterator it =
-        g_handoverCommandMsgMap.find(msgId);
+    auto it = g_handoverCommandMsgMap.find(msgId);
     NS_ASSERT_MSG(it != g_handoverCommandMsgMap.end(), "msgId " << msgId << " not found");
     NrRrcSap::RrcConnectionReconfiguration msg = it->second;
     g_handoverCommandMsgMap.erase(it);

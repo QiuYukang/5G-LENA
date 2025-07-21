@@ -419,7 +419,7 @@ NrCbTypeOneSp::CreateVecV(size_t l, size_t m) const
     for (size_t i = 0; i < m_n1; i++)
     {
         auto phase = (2.0 * M_PI * l * i) / static_cast<double>(m_o1 * m_n1);
-        vecH.push_back({cos(phase), sin(phase)});
+        vecH.emplace_back(cos(phase), sin(phase));
     }
     NS_ASSERT_MSG(vecH.size() == m_n1, "Horizontal beamforming vector size mismatch");
     return Kroneckerproduct(vecH, CreateVecU(m));
@@ -432,7 +432,7 @@ NrCbTypeOneSp::CreateVecVtilde(size_t l, size_t m) const
     for (size_t i = 0; i < m_n1 / 2; i++)
     {
         auto phase = (4.0 * M_PI * l * i) / static_cast<double>(m_o1 * m_n1);
-        vecH.push_back({cos(phase), sin(phase)});
+        vecH.emplace_back(cos(phase), sin(phase));
     }
     NS_ASSERT_MSG(vecH.size() == m_n1 / 2, "Horizontal beamforming vector size mismatch");
     return Kroneckerproduct(vecH, CreateVecU(m));
@@ -468,7 +468,7 @@ NrCbTypeOneSp::CreateVecU(size_t m) const
         for (size_t i = 0; i < m_n2; i++)
         {
             auto phase = (2 * M_PI * m * i) / (m_o2 * m_n2);
-            vecU.push_back({cos(phase), sin(phase)});
+            vecU.emplace_back(cos(phase), sin(phase));
         }
     }
     return vecU;

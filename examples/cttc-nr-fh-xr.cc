@@ -546,7 +546,7 @@ main(int argc, char* argv[])
 
     if (logging)
     {
-        LogLevel logLevel1 =
+        auto logLevel1 =
             (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO);
         // LogLevel logLevel2 =
         //     (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_DEBUG);
@@ -1525,7 +1525,7 @@ main(int argc, char* argv[])
         .direction = "DL",
 
     };
-    for (auto [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
+    for (const auto& [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
     {
         for (uint32_t i = 0; i < nodeContainer.GetN(); ++i)
         {
@@ -1543,7 +1543,7 @@ main(int argc, char* argv[])
         voiceAppSettings.bearer = voiceUlBearer;
         voiceAppSettings.tft = voiceUlTft;
         voiceAppSettings.direction = "UL";
-        for (auto [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
+        for (const auto& [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
         {
             for (uint32_t i = 0; i < nodeContainer.GetN(); ++i)
             {
@@ -1920,8 +1920,7 @@ main(int argc, char* argv[])
         nrHelper->EnableTraces();
     }
 
-    for (NetDeviceContainer::Iterator i = gnbSector1NetDev.Begin(); i != gnbSector1NetDev.End();
-         ++i)
+    for (auto i = gnbSector1NetDev.Begin(); i != gnbSector1NetDev.End(); ++i)
     {
         Ptr<NrGnbNetDevice> gnbNetDev = DynamicCast<NrGnbNetDevice>(*i);
         gnbNetDev->GetNrFhControl()->TraceConnectWithoutContext("RequiredFhDlThroughput",
@@ -1932,8 +1931,7 @@ main(int argc, char* argv[])
 
     if (deployment == "HEX")
     {
-        for (NetDeviceContainer::Iterator i = gnbSector2NetDev.Begin(); i != gnbSector2NetDev.End();
-             ++i)
+        for (auto i = gnbSector2NetDev.Begin(); i != gnbSector2NetDev.End(); ++i)
         {
             Ptr<NrGnbNetDevice> gnbNetDev = DynamicCast<NrGnbNetDevice>(*i);
             gnbNetDev->GetNrFhControl()->TraceConnectWithoutContext("RequiredFhDlThroughput",
@@ -1942,8 +1940,7 @@ main(int argc, char* argv[])
                                                                     MakeCallback(&ReportAiTrace));
         }
 
-        for (NetDeviceContainer::Iterator i = gnbSector3NetDev.Begin(); i != gnbSector3NetDev.End();
-             ++i)
+        for (auto i = gnbSector3NetDev.Begin(); i != gnbSector3NetDev.End(); ++i)
         {
             Ptr<NrGnbNetDevice> gnbNetDev = DynamicCast<NrGnbNetDevice>(*i);
             gnbNetDev->GetNrFhControl()->TraceConnectWithoutContext("RequiredFhDlThroughput",
@@ -2100,9 +2097,7 @@ main(int argc, char* argv[])
                        << "\n";
     }
 
-    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-         i != stats.end();
-         ++i)
+    for (auto i = stats.begin(); i != stats.end(); ++i)
     {
         Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
 

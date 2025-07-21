@@ -92,7 +92,7 @@ BeamManager::SaveBeamformingVector(const BeamformingVector& bfv, const Ptr<const
 
     if (device != nullptr)
     {
-        BeamformingStorage::iterator iter = m_beamformingVectorMap.find(device);
+        auto iter = m_beamformingVectorMap.find(device);
         if (iter != m_beamformingVectorMap.end())
         {
             (*iter).second = bfv;
@@ -109,7 +109,7 @@ BeamManager::ChangeBeamformingVector(const Ptr<const NetDevice>& device)
 {
     NS_LOG_FUNCTION(this);
 
-    BeamformingStorage::iterator it = m_beamformingVectorMap.find(device);
+    auto it = m_beamformingVectorMap.find(device);
     if (it == m_beamformingVectorMap.end())
     {
         NS_LOG_INFO("Could not find the beamforming vector for the provided device");
@@ -173,7 +173,7 @@ BeamManager::GetBeamformingVector(const Ptr<NetDevice>& device) const
 {
     NS_LOG_FUNCTION(this);
     PhasedArrayModel::ComplexVector beamformingVector;
-    BeamformingStorage::const_iterator it = m_beamformingVectorMap.find(device);
+    auto it = m_beamformingVectorMap.find(device);
     if (it != m_beamformingVectorMap.end())
     {
         beamformingVector = it->second.first;
@@ -198,7 +198,7 @@ BeamId
 BeamManager::GetBeamId(const Ptr<NetDevice>& device) const
 {
     BeamId beamId;
-    BeamformingStorage::const_iterator it = m_beamformingVectorMap.find(device);
+    auto it = m_beamformingVectorMap.find(device);
     if (it != m_beamformingVectorMap.end())
     {
         beamId = it->second.second;

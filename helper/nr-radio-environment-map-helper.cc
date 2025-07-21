@@ -324,8 +324,7 @@ NrRadioEnvironmentMapHelper::ConfigureRtdList(const NetDeviceContainer& rtdDevs)
 {
     NS_LOG_FUNCTION(this);
 
-    for (NetDeviceContainer::Iterator netDevIt = rtdDevs.Begin(); netDevIt != rtdDevs.End();
-         ++netDevIt)
+    for (auto netDevIt = rtdDevs.Begin(); netDevIt != rtdDevs.End(); ++netDevIt)
     {
         Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find(*netDevIt)->second;
         if (rtdPhy->GetSpectrumModel() != m_rrd.spectrumModel)
@@ -509,8 +508,7 @@ NrRadioEnvironmentMapHelper::CreateRem(const NetDeviceContainer& rtdNetDev,
 {
     NS_LOG_FUNCTION(this);
 
-    for (NetDeviceContainer::Iterator netDevIt = rtdNetDev.Begin(); netDevIt != rtdNetDev.End();
-         ++netDevIt)
+    for (auto netDevIt = rtdNetDev.Begin(); netDevIt != rtdNetDev.End(); ++netDevIt)
     {
         Ptr<NrGnbNetDevice> gnbRtdNetDevice = DynamicCast<NrGnbNetDevice>(*netDevIt);
         Ptr<NrUeNetDevice> ueRtdNetDevice = DynamicCast<NrUeNetDevice>(*netDevIt);
@@ -574,9 +572,7 @@ NrRadioEnvironmentMapHelper::SaveAntennasWithUserDefinedBeams(const NetDeviceCon
     m_deviceToAntenna.insert(std::make_pair(
         rrdDevice,
         Copy(m_rrdPhy->GetSpectrumPhy()->GetAntenna()->GetObject<UniformPlanarArray>())));
-    for (NetDeviceContainer::Iterator rtdNetDevIt = rtdNetDev.Begin();
-         rtdNetDevIt != rtdNetDev.End();
-         ++rtdNetDevIt)
+    for (auto rtdNetDevIt = rtdNetDev.Begin(); rtdNetDevIt != rtdNetDev.End(); ++rtdNetDevIt)
     {
         Ptr<NrPhy> rtdPhy = m_rtdDeviceToPhy.find(*rtdNetDevIt)->second;
         m_deviceToAntenna.insert(std::make_pair(
@@ -856,13 +852,11 @@ NrRadioEnvironmentMapHelper::CalculateMaxSinr(
     // interferers
     std::list<double> sinrList;
 
-    for (std::list<Ptr<SpectrumValue>>::const_iterator it = receivedPowerList.begin();
-         it != receivedPowerList.end();
-         it++)
+    for (auto it = receivedPowerList.begin(); it != receivedPowerList.end(); it++)
     {
         // all signals - rxPower = interference
         std::list<Ptr<SpectrumValue>> interferenceSignals;
-        std::list<Ptr<SpectrumValue>>::const_iterator tempit = it;
+        auto tempit = it;
 
         if (it != receivedPowerList.begin())
         {
@@ -884,13 +878,11 @@ NrRadioEnvironmentMapHelper::CalculateMaxSir(
     // interferers
     std::list<double> sirList;
 
-    for (std::list<Ptr<SpectrumValue>>::const_iterator it = receivedPowerList.begin();
-         it != receivedPowerList.end();
-         it++)
+    for (auto it = receivedPowerList.begin(); it != receivedPowerList.end(); it++)
     {
         // all signals - rxPower = interference
         std::list<Ptr<SpectrumValue>> interferenceSignals;
-        std::list<Ptr<SpectrumValue>>::const_iterator tempit = it;
+        auto tempit = it;
 
         if (it != receivedPowerList.begin())
         {
@@ -912,8 +904,7 @@ NrRadioEnvironmentMapHelper::CalcBeamShapeRemMap()
     uint32_t remSizeNextReport = m_rem.size() / 100;
     uint32_t remPointCounter = 0;
 
-    for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin(); itRemPoint != m_rem.end();
-         ++itRemPoint)
+    for (auto itRemPoint = m_rem.begin(); itRemPoint != m_rem.end(); ++itRemPoint)
     {
         // perform calculation m_numOfIterationsToAverage times and get the average value
         double sumSnr = 0.0;
@@ -1037,8 +1028,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap()
     uint32_t remSizeNextReport = m_rem.size() / 100;
     uint32_t remPointCounter = 0;
 
-    for (std::list<RemPoint>::iterator itRemPoint = m_rem.begin(); itRemPoint != m_rem.end();
-         ++itRemPoint)
+    for (auto itRemPoint = m_rem.begin(); itRemPoint != m_rem.end(); ++itRemPoint)
     {
         // perform calculation m_numOfIterationsToAverage times and get the average value
         double sumSnr = 0.0;
@@ -1065,9 +1055,7 @@ NrRadioEnvironmentMapHelper::CalcCoverageAreaRemMap()
 
             // For each beam configuration at RemPoint/RRD we should calculate SINR, there are as
             // many beam configurations at RemPoint as many RTDs
-            for (std::list<RemDevice>::iterator itRtdBeam = m_remDev.begin();
-                 itRtdBeam != m_remDev.end();
-                 ++itRtdBeam)
+            for (auto itRtdBeam = m_remDev.begin(); itRtdBeam != m_remDev.end(); ++itRtdBeam)
             {
                 // configure RRD beam toward RTD
                 ConfigureDirectPathBfv(m_rrd, *itRtdBeam, m_rrd.antenna);
@@ -1360,7 +1348,7 @@ NrRadioEnvironmentMapHelper::PrintGnuplottableBuildingListToFile(const std::stri
 
     uint32_t index = 0;
 
-    for (BuildingList::Iterator it = BuildingList::Begin(); it != BuildingList::End(); ++it)
+    for (auto it = BuildingList::Begin(); it != BuildingList::End(); ++it)
     {
         ++index;
         Box box = (*it)->GetBoundaries();

@@ -181,8 +181,8 @@ NrTestMacSchedulerHarqRrReshape::DoRun()
         ueConfig.push_back(config);
     }
 
-    TestSchedSapUserHarq* schedSapUser = new TestSchedSapUserHarq();
-    TestCschedSapUserHarq* cschedSapUser = new TestCschedSapUserHarq();
+    auto* schedSapUser = new TestSchedSapUserHarq();
+    auto* cschedSapUser = new TestCschedSapUserHarq();
 
     for (bool isTdma : {true, false})
     {
@@ -417,10 +417,9 @@ NrTestMacSchedulerHarqRrScheduleDlHarq::DoRun()
         ueConfig.push_back(config);
     }
 
-    TestSchedSapUserHarq* schedSapUser =
-        new TestSchedSapUserHarq([this](auto params) { CheckSchedule(params); },
-                                 [this]() { return m_numSymbols; });
-    TestCschedSapUserHarq* cschedSapUser = new TestCschedSapUserHarq();
+    auto* schedSapUser = new TestSchedSapUserHarq([this](auto params) { CheckSchedule(params); },
+                                                  [this]() { return m_numSymbols; });
+    auto* cschedSapUser = new TestCschedSapUserHarq();
 
     Ptr<NrMacSchedulerNs3> sched;
 
