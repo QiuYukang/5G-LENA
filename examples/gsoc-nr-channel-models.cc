@@ -119,6 +119,7 @@ main(int argc, char* argv[])
     hexGrid.SetBsNumber(numGnbs); // Number of gNBs
     // Create a scenario with mobility
     hexGrid.CreateScenarioWithMobility(Vector(ueSpeed, 0.0, 0.0),
+                                       Vector(ueSpeed, 0.0, 0.0),
                                        0); // move UE with 3 km/h in x-axis
 
     auto ueNodes = hexGrid.GetUserTerminals();

@@ -6,6 +6,7 @@
 
 #include "ns3/constant-velocity-mobility-model.h"
 #include "ns3/double.h"
+#include "ns3/fast-fading-constant-position-mobility-model.h"
 #include "ns3/hexagonal-wraparound-model.h"
 #include "ns3/mobility-helper.h"
 
@@ -493,7 +494,8 @@ HexagonalGridScenarioHelper::CreateScenario()
 }
 
 void
-HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
+HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& indoorUeSpeed,
+                                                        const Vector& outdoorUeSpeed,
                                                         double percentage,
                                                         const std::string& mobilityModel)
 {
@@ -578,7 +580,8 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
     m_theta->SetAttribute("Max", DoubleValue(M_PI));
 
     // UT position
-
+    NodeContainer indoorUes;
+    NodeContainer outdoorUes;
     uint32_t numUesWithRandomUtHeight = 0;
     if (percentage != 0)
     {
@@ -616,6 +619,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
 
         if (numUesWithRandomUtHeight > 0)
         {
+            indoorUes.Add(m_ut.Get(utId));
             Ptr<UniformRandomVariable> uniformRandomVariable =
                 CreateObject<UniformRandomVariable>();
             double Nfl = uniformRandomVariable->GetValue(4, 8);
@@ -635,6 +639,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
         else
         {
             utPos.z = m_utHeight;
+            outdoorUes.Add(m_ut.Get(utId));
         }
 
         utPosVector->Add(utPos);
@@ -644,7 +649,7 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
     mobility.SetPositionAllocator(bsPosVector);
     mobility.Install(m_bs);
 
-    if (speed.GetLength())
+    if (indoorUeSpeed.GetLength() || outdoorUeSpeed.GetLength())
     {
         if (mobilityModel == "ns3::ConstantVelocityMobilityModel")
         {
@@ -652,16 +657,28 @@ HexagonalGridScenarioHelper::CreateScenarioWithMobility(const Vector& speed,
             ueMobility.SetPositionAllocator(utPosVector);
             ueMobility.Install(m_ut);
 
-            for (uint32_t i = 0; i < m_ut.GetN(); i++)
+            for (uint32_t i = 0; i < indoorUes.GetN(); i++)
             {
-                m_ut.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(speed);
+                indoorUes.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(
+                    indoorUeSpeed);
+            }
+            for (uint32_t i = 0; i < outdoorUes.GetN(); i++)
+            {
+                outdoorUes.Get(i)->GetObject<ConstantVelocityMobilityModel>()->SetVelocity(
+                    outdoorUeSpeed);
             }
         }
         else if (mobilityModel == "ns3::FastFadingConstantPositionMobilityModel")
         {
-            ueMobility.SetMobilityModel(mobilityModel, "FakeVelocity", VectorValue(speed));
+            ueMobility.SetMobilityModel(mobilityModel, "FakeVelocity", VectorValue(indoorUeSpeed));
             ueMobility.SetPositionAllocator(utPosVector);
             ueMobility.Install(m_ut);
+            for (uint32_t i = 0; i < outdoorUes.GetN(); i++)
+            {
+                outdoorUes.Get(i)
+                    ->GetObject<FastFadingConstantPositionMobilityModel>()
+                    ->SetAttribute("FakeVelocity", VectorValue(outdoorUeSpeed));
+            }
         }
         else
         {

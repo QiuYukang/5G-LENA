@@ -168,7 +168,8 @@ main(int argc, char* argv[])
     double utHeight = 1.5;
     double maxUeClosestSiteDistance = 1000;
     double minBsUtDistance = 10.0;
-    double speed = 0;
+    double indoorSpeed = 0;
+    double outoorUeSpeed = 0;
     double antennaOffset = 1.0;
     double uesWithRandomUtHeight = 0;
     double distance = 2;
@@ -605,7 +606,8 @@ main(int argc, char* argv[])
 
         // Creates and plots the network deployment
         gridScenario.SetMaxUeDistanceToClosestSite(maxUeClosestSiteDistance);
-        gridScenario.CreateScenarioWithMobility(Vector(speed, 0, 0),
+        gridScenario.CreateScenarioWithMobility(Vector(indoorSpeed, 0, 0),
+                                                Vector(outoorUeSpeed, 0, 0),
                                                 uesWithRandomUtHeight); // move UEs along the x axis
 
         gnbNodes = gridScenario.GetBaseStations();

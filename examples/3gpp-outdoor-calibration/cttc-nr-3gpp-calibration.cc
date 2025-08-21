@@ -313,7 +313,8 @@ ChooseCalibrationScenario(Parameters& params)
                 params.trafficScenario = 0; // full buffer
             }
             params.ueTxPower = 23;
-            params.speed = 0.8333; // in m/s (3 km/h)
+            params.indoorUeSpeed = 0.8333; // in m/s (3 km/h)
+            params.outdoorUeSpeed = 8.33;  // in m/s (30Km/h)
 
             params.ueNumRows = 1; // only in DenseB we have 2x4
             params.ueNumColumns = 1;
@@ -790,7 +791,8 @@ Nr3gppCalibration(Parameters& params)
     // Creates and plots the network deployment
     gridScenario.SetMaxUeDistanceToClosestSite(params.maxUeClosestSiteDistance);
     gridScenario.CreateScenarioWithMobility(
-        Vector(params.speed, 0, 0),
+        Vector(params.indoorUeSpeed, 0, 0),
+        Vector(params.outdoorUeSpeed, 0, 0),
         params.uesWithRandomUtHeight,
         "ns3::FastFadingConstantPositionMobilityModel"); // move UEs along the x axis
 

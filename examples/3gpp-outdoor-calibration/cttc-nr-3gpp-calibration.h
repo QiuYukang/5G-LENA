@@ -95,7 +95,8 @@ struct Parameters
         1.0; // shows the percentage of low losses. Default value is 100% low
     bool linkO2iConditionToAntennaHeight = false;
 
-    double speed = 0;
+    double indoorUeSpeed = 0;
+    double outdoorUeSpeed = 0;
 
     double maxUeClosestSiteDistance = 1000;
 

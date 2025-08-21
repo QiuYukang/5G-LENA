@@ -254,7 +254,7 @@ main(int argc, char* argv[])
                  "the UE height, i.e. if the UE height is 1.5 then it is O2O,"
                  "otherwise it is O2I.",
                  params.linkO2iConditionToAntennaHeight);
-    cmd.AddValue("ueSpeed", "The UE speed.", params.speed);
+    cmd.AddValue("ueSpeed", "The UE speed.", params.indoorUeSpeed);
     cmd.AddValue("enableWraparound",
                  "Enable wraparound model in the simulation",
                  params.enableWraparound);

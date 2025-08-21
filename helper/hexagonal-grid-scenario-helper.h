@@ -100,13 +100,15 @@ class HexagonalGridScenarioHelper : public NodeDistributionScenarioInterface
      * @brief This function can be used to create a scenario with
      *        UEs with mobility and define a percentage of UEs, if needed,
      *        that will have a random antenna height > 1.5 m
-     * @param speed UE speed
+     * @param indoorUespeed Indoor UE speed
+     * @param outdoorUeSpeed Outdoor UE speed
      * @param percentage Percentage (decimal) of UEs with random antenna height > 1.5 m
      * @param mobilityModel Mobility model to pass for the UE with speed, default value
      * "ns3::ConstantVelocityMobilityModel"
      */
     void CreateScenarioWithMobility(
-        const Vector& speed,
+        const Vector& indoorUespeed,
+        const Vector& outdoorUeSpeed,
         double percentage,
         const std::string& mobilityModel = "ns3::ConstantVelocityMobilityModel");
 
