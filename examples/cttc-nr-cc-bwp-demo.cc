@@ -710,6 +710,8 @@ main(int argc, char* argv[])
 
     outFile.close();
 
+    bool failed = averageFlowThroughput == 0.0 || stats.empty();
+
     std::ifstream f(filename.c_str());
 
     if (f.is_open())
@@ -718,5 +720,5 @@ main(int argc, char* argv[])
     }
 
     Simulator::Destroy();
-    return 0;
+    return failed;
 }
