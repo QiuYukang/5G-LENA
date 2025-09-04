@@ -690,7 +690,13 @@ NrUeMac::RecvRaResponse(NrBuildRarListElement_s raResponse)
                          << +m_raPreambleId
                          << ", setting T-C-RNTI = " << raResponse.ulMsg3Dci->m_rnti
                          << " at: " << Simulator::Now().As(Time::MS));
+    // Save data for MSG3
     m_rnti = raResponse.ulMsg3Dci->m_rnti;
+    m_ulDciSfnsf = m_currentSlot;
+    m_ulDciSfnsf.Add(raResponse.k2Delay);
+    m_ulDciTotalUsed = 0;
+    m_ulDci = raResponse.ulMsg3Dci;
+
     m_cmacSapUser->SetTemporaryCellRnti(m_rnti);
     // in principle we should wait for contention resolution,
     // but in the current NR model when two or more identical
