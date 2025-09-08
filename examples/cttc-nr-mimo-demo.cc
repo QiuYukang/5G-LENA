@@ -403,7 +403,6 @@ main(int argc, char* argv[])
     channelHelper->AssignChannelsToBands({band});
 
     // Configure NrHelper, prepare most of the parameters that will be used in the simulation.
-    nrHelper->SetAttribute("CsiFeedbackFlags", UintegerValue(csiFlags));
     nrHelper->SetDlErrorModel(errorModel);
     nrHelper->SetUlErrorModel(errorModel);
     nrHelper->SetGnbDlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
@@ -421,13 +420,13 @@ main(int argc, char* argv[])
         // structure
         if (useConfigSetDefault)
         {
-            Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
             Config::SetDefault("ns3::NrPmSearch::SubbandSize", UintegerValue(16));
         }
         else
         {
             nrHelper->SetupMimoPmi(mimoPmiParams);
         }
+        nrHelper->SetAttribute("CsiFeedbackFlags", UintegerValue(csiFlags));
     }
 
     /**

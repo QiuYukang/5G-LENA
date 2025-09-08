@@ -975,13 +975,11 @@ class NrHelper : public Object
                          uint16_t targetCellId);
 
   private:
-    bool m_enableMimoFeedback{false}; ///< Let UE compute MIMO feedback with PMI and RI
-    ObjectFactory m_pmSearchFactory;  ///< Factory for precoding matrix search algorithm
+    bool IsMimoFeedbackEnabled() const; ///< Let UE compute MIMO feedback with PMI and RI
+    ObjectFactory m_pmSearchFactory;    ///< Factory for precoding matrix search algorithm
     uint8_t m_csiFeedbackFlags{
-        CQI_CSI_IM | CQI_CSI_RS |
-        CQI_PDSCH_MIMO}; //!< CSI feedback flags that indicate whether for CSI feedback is used
+        CQI_PDSCH_SISO}; //!< CSI feedback flags that indicate whether for CSI feedback is used
                          //!< CSI-RS, CSI-IM, PDSCH MIMO, or only PDSCH SISO.
-
     /**
      * Assign a fixed random variable stream number to the channel and propagation
      * objects. This function will save the objects to which it has assigned stream

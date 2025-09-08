@@ -454,8 +454,6 @@ NrCsiTestCase::DoRun()
 {
     RngSeedManager::SetSeed(1);
     RngSeedManager::SetRun(1);
-    Config::SetDefault("ns3::NrHelper::EnableMimoFeedback",
-                       BooleanValue(m_params.m_enableCsiFeedback));
     Config::SetDefault("ns3::NrGnbPhy::PowerAllocationType",
                        EnumValue<NrSpectrumValueHelper::PowerAllocationType>(
                            NrSpectrumValueHelper::UNIFORM_POWER_ALLOCATION_BW));

@@ -489,7 +489,7 @@ main(int argc, char* argv[])
 
         if (enableMimoFeedback)
         {
-            Config::SetDefault("ns3::NrHelper::EnableMimoFeedback", BooleanValue(true));
+            Config::SetDefault("ns3::NrHelper::CsiFeedbackFlags", UintegerValue(CQI_PDSCH_MIMO));
 
             isGnbDualPolarized = true;
             gnbHorizPorts = 1;

@@ -1285,10 +1285,13 @@ and adds the necessary callbacks. These callbacks are:
  * ``NrSpectrumPhy::UpdateMimoSinrPerceived`` which is called to provide MIMO SINR feedback
  *  ``NrUePhy::GenerateDlCqiReportMimo`` which is called to provide MIMO signal to functions that perform PMI search and create CQI/PMI/RI feedback
 
-To enable MIMO in the simulation, the ``EnableMimoFeedback`` attribute of the ``NrHelper`` should be set to true.
-To configure PMI search parameters (such as rank limit, PMI search method, the codebook,) ``NrHelper`` provides a function ``SetupMimoPmi``.
+Until nr-4.1, enabling MIMO in the simulation required setting the ``EnableMimoFeedback`` attribute of the ``NrHelper`` to true.
 The ``EnableMimoFeedback`` enables MIMO feedback including PMI/RI/CQI, while ``RankLimit`` limits the possible RI value
 (e.g., to 1 stream). So, even if RI is limited to 1, the usage of MIMO feedback can provide benefits because of the PMI feedback.
+
+Since nr-4.2, MIMO feedback is enabled based on the ``CsiFeedbackFlags`` attribute of the ``NrHelper``.
+It is implied based on the presence of ``CQI_PDSCH_MIMO`` or ``CQI_CSI_IM``, as checked by the ``NrHelper::IsMimoFeedbackEnabled()`` function.
+To configure PMI search parameters (such as rank limit, PMI search method, the codebook,) ``NrHelper`` provides a function ``SetupMimoPmi``.
 
 
 CSI-RS and CSI-IM
@@ -2742,7 +2745,7 @@ Configuring SU-MIMO
 ###################
 
 The example shows how to configure some of the main parameters to enable SU-MIMO in the
-simulation, such as: ``NrHelper::EnableMimoFeedback``, and how to setup most of the MIMO related parameters
+simulation, such as: ``NrHelper::CsiFeedbackFlags``, and how to setup most of the MIMO related parameters
 through a structure ``NrHelper::MimoPmiParams`` that is being passed to ``NrHelper``.
 Some of the SU-MIMO related parameters that are being configured through this structure are: the type of the
 precoding matrix search, i.e., the type of ``NrPmSearch`` algorithm; ``RankLimit`` which is the parameter of ``PmSearch``

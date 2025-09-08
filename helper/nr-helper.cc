@@ -110,19 +110,16 @@ NrHelper::GetTypeId()
         TypeId("ns3::NrHelper")
             .SetParent<Object>()
             .AddConstructor<NrHelper>()
-            .AddAttribute("EnableMimoFeedback",
-                          "Generate CQI feedback with RI and PMI for MIMO support",
-                          BooleanValue(false),
-                          MakeBooleanAccessor(&NrHelper::m_enableMimoFeedback),
-                          MakeBooleanChecker())
             .AddAttribute(
                 "CsiFeedbackFlags",
                 "Signals and measurements that will be used for CQI feedback if available."
+                "CQI_PDSCH_SISO imply SISO feedback."
+                "CQI_PSDCH_MIMO and CQI_CSI_IM imply MIMO feedback."
                 "Supported configurations are: CQI_PDSCH_MIMO = 1, CQI_CSI_RS = 2, "
                 "CQI_PDSCH_MIMO|CQI_CSI_RS = 3, "
                 "CQI_CSI_RS|CQI_CSI_IM = 6, CQI_PDSCH_MIMO|CQI_CSI_RS|CQI_CSI_IM = 7, and "
                 "CQI_PDSCH_SISO = 8.",
-                UintegerValue(CQI_PDSCH_MIMO),
+                UintegerValue(CQI_PDSCH_SISO),
                 MakeUintegerAccessor(&NrHelper::m_csiFeedbackFlags),
                 MakeUintegerChecker<uint8_t>(0x0, 0x08))
             .AddAttribute("PmSearchMethod",
@@ -1144,7 +1141,7 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         Ptr<NrEpcUeNas> ueNas = ueNetDev->GetNas();
         ueNas->Connect(gnbNetDev->GetBwpId(i), gnbNetDev->GetEarfcn(i));
 
-        if (m_enableMimoFeedback)
+        if (IsMimoFeedbackEnabled())
         {
             // Initialize parameters for MIMO precoding matrix search (PMI feedback)
             auto pmSearch = m_pmSearchFactory.Create<NrPmSearch>();
@@ -2003,8 +2000,13 @@ NrHelper::SetupUeAntennas(const NrHelper::AntennaParams& ap)
 void
 NrHelper::SetupMimoPmi(const NrHelper::MimoPmiParams& mp)
 {
+    // If NrHelper is using default PDSCH_SISO CSI feedback flag,
+    // replace it with PDSCH_MIMO to implicitly enable MIMO feedback
+    if (m_csiFeedbackFlags == CQI_PDSCH_SISO)
+    {
+        SetAttribute("CsiFeedbackFlags", UintegerValue(CQI_PDSCH_MIMO));
+    }
     // Set parameters for MIMO precoding matrix search
-    SetAttribute("EnableMimoFeedback", BooleanValue(true));
     auto searchTypeId = TypeId::LookupByName(mp.pmSearchMethod);
     SetPmSearchTypeId(searchTypeId);
     SetPmSearchAttribute("RankLimit", UintegerValue(mp.rankLimit));
@@ -2027,4 +2029,22 @@ NrHelper::SetupInitialAssoc(const NrHelper::InitialAssocParams& params)
     SetInitialAssocAttribute("HandoffMargin", DoubleValue(params.handoffMargin));
     SetInitialAssocAttribute("PrimaryCarrierIndex", DoubleValue(params.primaryCarrierIndex));
 }
+
+bool
+NrHelper::IsMimoFeedbackEnabled() const
+{
+    if (m_csiFeedbackFlags == CQI_PDSCH_SISO)
+    {
+        return false;
+    }
+    if ((m_csiFeedbackFlags == CQI_PDSCH_MIMO) ||
+        (m_csiFeedbackFlags == (CQI_PDSCH_MIMO | CQI_CSI_RS)) ||
+        (m_csiFeedbackFlags == (CQI_PDSCH_MIMO | CQI_CSI_RS | CQI_CSI_IM)) ||
+        (m_csiFeedbackFlags == (CQI_CSI_RS | CQI_CSI_IM)))
+    {
+        return true;
+    }
+    NS_ABORT_MSG("Unsupported NrHelper::CsiFeedbackFlags combination");
+}
+
 } // namespace ns3
