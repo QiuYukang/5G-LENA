@@ -802,11 +802,6 @@ class NrUePhy : public NrPhy
      */
     uint16_t DoGetCellId() const;
     /**
-     * Get DL ARFCN
-     * @returns DL ARFCN
-     */
-    uint32_t DoGetArfcn();
-    /**
      * @brief Function that is called by RRC SAP.
      * TODO This function and its name can be updated once NR RRC SAP is implemented
      */

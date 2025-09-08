@@ -441,7 +441,7 @@ class TestRiPmiSystem : public TestSuite
         // Parameters (gNB-UE distance, RI selection technique, RI threshold, PMI selection
         // technique, expected throughput, latency, mean RI and mean MCS)
         // clang-format off
-        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,    "ns3::NrPmSearchFull", 133.0, 150.0, 3.1, 25.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,    "ns3::NrPmSearchFull", 133.0, 157.0, 3.1, 25.0), Duration::QUICK);
         AddTestCase(new RiPmiTestCase(500,             "",  0.0,    "ns3::NrPmSearchFull", 104.0, 243.7, 2.3, 26.6), Duration::QUICK);
         AddTestCase(new RiPmiTestCase( 20,             "",  0.0,   "ns3::NrPmSearchIdeal", 154.0,  71.4, 3.5, 25.3), Duration::QUICK);
         AddTestCase(new RiPmiTestCase(500,             "",  0.0,   "ns3::NrPmSearchIdeal", 106.2, 205.4, 2.9, 24.0), Duration::QUICK);

@@ -397,6 +397,51 @@ class NrPhy : public Object
      */
     enum NrSpectrumValueHelper::PowerAllocationType GetPowerAllocationType() const;
 
+    /**
+     * Converts an Absolute Radio Frequency Channel Number (ARFCN) to its corresponding frequency in
+     * Hz.
+     *
+     * This method calculates the frequency of a physical radio channel based on the given ARFCN
+     * value according to 3GPP TS 38.104 Release 19. The calculation is performed across
+     * different frequency ranges, including FR1, FR1 extended, FR2, and FR3.
+     *
+     * Frequency ranges handled:
+     * - FR1 (0–3 GHz)
+     * - FR1 extended (3–24.25 GHz)
+     * - FR2 (24.25–100 GHz)
+     * - FR3 (100–114.25 GHz), experimental based on patent WO2021033328A1
+     *
+     * If the ARFCN is outside the supported ranges, an error is triggered.
+     *
+     * @param arfcn The Absolute Radio Frequency Channel Number for which the frequency is to be
+     * calculated.
+     * @return The corresponding frequency in Hz.
+     */
+    static double ArfcnToFrequencyHz(uint32_t arfcn);
+    /**
+     * Converts a given frequency in Hz to its corresponding ARFCN (Absolute Radio Frequency Channel
+     * Number).
+     *
+     * The function performs the conversion based on the frequency range specified in
+     * 3GPP TS 38.104 Release 19, which includes three frequency ranges (FR1, FR2, and an
+     * experimental FR3 in higher frequency ranges).
+     *
+     * Frequency ranges and corresponding raster granularity:
+     * - FR1 (subdivided):
+     *   - 0–3 GHz (ΔF = 5 kHz)
+     *   - 3–24.25 GHz (ΔF = 15 kHz)
+     * - FR2:
+     *   - 24.25–100 GHz (ΔF = 60 kHz)
+     * - Experimental FR3 (based on patent WO2021033328A1):
+     *   - 100–114.25 GHz (ΔF = 240 kHz)
+     *
+     * If the input frequency falls outside these ranges, the function will abort execution.
+     *
+     * @param freqHz A frequency value in Hz.
+     * @return The ARFCN corresponding to the given frequency as per the 3GPP specification.
+     */
+    static uint32_t FrequencyHzToArfcn(double freqHz);
+
   protected:
     /**
      * @brief DoDispose method inherited from Object
@@ -553,7 +598,21 @@ class NrPhy : public Object
      */
     virtual std::list<Ptr<NrControlMessage>> PopCurrentSlotCtrlMsgs();
 
-  protected:
+    /**
+     * Retrieves the Absolute Radio Frequency Channel Number (ARFCN)
+     * of BWP associated with current NrPhy instance.
+     *
+     * @return The current ARFCN value.
+     */
+    uint32_t DoGetArfcn() const;
+
+    /**
+     * Set the Absolute Radio Frequency Channel Number (ARFCN)
+     * to match the frequency of an associated BWP of the current NrPhy instance.
+     * @param arfcn The ARFCN value to be set.
+     */
+    void DoSetArfcn(uint32_t arfcn);
+
     Ptr<NrNetDevice> m_netDevice;     //!< Pointer to the owner netDevice.
     Ptr<NrSpectrumPhy> m_spectrumPhy; //!< Pointer to the (owned) spectrum phy
 
@@ -578,6 +637,8 @@ class NrPhy : public Object
 
     Time m_tbDecodeLatencyUs{MicroSeconds(100)}; //!< transport block decode latency
     double m_centralFrequency{-1.0};             //!< Channel central frequency -- set by the helper
+    uint32_t m_arfcn{
+        0}; //!< Absolute Radio Frequency Channel Number -- set by the helper and/or RRC messages
     uint16_t m_channelBandwidth{
         0}; //!< Value in kHz * 100. Set by RRC.
             // E.g. if set to 200, the bandwidth will be 20 MHz (= 200 * 100 KHz)

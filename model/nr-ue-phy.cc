@@ -1624,17 +1624,6 @@ NrUePhy::DoGetCellId() const
     return GetCellId();
 }
 
-uint32_t
-NrUePhy::DoGetArfcn()
-{
-    // TBD See how to get rid of this function in future
-    // Added for the compatibility with 810 MR to LTE.
-    NS_LOG_FUNCTION(this);
-    NS_LOG_WARN("DoGetArfcn function is called. This function should be removed in future once "
-                "NR has its own RRC.");
-    return 0;
-}
-
 void
 NrUePhy::DoSetDlBandwidth(uint16_t dlBandwidth)
 {

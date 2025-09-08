@@ -487,7 +487,7 @@ NrHelper::InstallSingleUeDevice(
                         "A bandwidth of " << bwInKhz / 100.0 << " kHz cannot be represented");
         cc->SetUlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
         cc->SetDlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
-        cc->SetArfcn(0); // Used for nothing..
+        cc->SetArfcn(NrPhy::FrequencyHzToArfcn(allBwps[bwpId].get()->m_centralFrequency));
 
         auto mac = CreateUeMac();
         cc->SetMac(mac);
@@ -763,7 +763,7 @@ NrHelper::InstallSingleGnbDevice(
 
         cc->SetUlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
         cc->SetDlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
-        cc->SetArfcn(0);       // Argh... handover not working
+        cc->SetArfcn(NrPhy::FrequencyHzToArfcn(allBwps[bwpId].get()->m_centralFrequency));
         cc->SetCellId(cellId); // CellId is set just for easier debugging
         cc->SetBwpId(bwpId);   // CC BwpId is used to map BWPs to the correct CC PHY/MAC
         cc->SetCsgId(0);       // Assume single group

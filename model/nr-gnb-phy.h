@@ -682,7 +682,6 @@ class NrGnbPhy : public NrPhy
 
     // NrGnbCphySapProvider forwarded methods
     void DoSetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth);
-    void DoSetArfcn(uint16_t arfcn);
     void DoAddUe(uint16_t rnti);
     void DoRemoveUe(uint16_t rnti);
     void DoSetPa(uint16_t rnti, double pa);

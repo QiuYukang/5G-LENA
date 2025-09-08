@@ -1957,12 +1957,6 @@ NrGnbPhy::DoSetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth)
 }
 
 void
-NrGnbPhy::DoSetArfcn(uint16_t arfcn)
-{
-    NS_LOG_FUNCTION(this << arfcn);
-}
-
-void
 NrGnbPhy::DoAddUe([[maybe_unused]] uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << rnti);

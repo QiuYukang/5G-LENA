@@ -235,7 +235,8 @@ NrPhy::InstallCentralFrequency(double f)
 {
     NS_LOG_FUNCTION(this);
     NS_ABORT_IF(m_centralFrequency >= 0.0);
-    m_centralFrequency = f;
+    m_arfcn = FrequencyHzToArfcn(f);
+    m_centralFrequency = ArfcnToFrequencyHz(m_arfcn);
 }
 
 void
@@ -888,6 +889,86 @@ Time
 NrPhy::GetTbDecodeLatency() const
 {
     return m_tbDecodeLatencyUs;
+}
+
+uint32_t
+NrPhy::DoGetArfcn() const
+{
+    return m_arfcn;
+}
+
+void
+NrPhy::DoSetArfcn(uint32_t arfcn)
+{
+    m_arfcn = arfcn;
+    m_centralFrequency = ArfcnToFrequencyHz(arfcn);
+}
+
+uint32_t
+NrPhy::FrequencyHzToArfcn(double freqHz)
+{
+    uint32_t arfcn = 0;
+
+    if (freqHz >= 0 && freqHz < 3000000000.0)
+    {
+        // FR1 segment 1: 0–3 GHz (ΔF = 5 kHz)
+        arfcn = static_cast<uint32_t>(freqHz / 5000.0);
+    }
+    else if (freqHz >= 3000000000.0 && freqHz < 24250080000.0)
+    {
+        // FR1 segment 2: 3–24.25 GHz (ΔF = 15 kHz)
+        arfcn = 600000 + static_cast<uint32_t>((freqHz - 3000000000.0) / 15000.0);
+    }
+    else if (freqHz >= 24250080000.0 && freqHz < 100000000000.0)
+    {
+        // FR2: 24.25–100 GHz (ΔF = 60 kHz)
+        arfcn = 2016667 + static_cast<uint32_t>((freqHz - 24250080000.0) / 60000.0);
+    }
+    else if (freqHz >= 100000000000.0 && freqHz <= 114250000000.0)
+    {
+        // FR3 (non-standardized, up to 114.25 GHz)
+        // Based on Patent WO2021033328A1
+        arfcn = 3279166 + static_cast<uint32_t>((freqHz - 100000000000.0) / 240.0);
+    }
+    else
+    {
+        NS_ABORT_MSG("Frequency out of supported FR1/FR2/FR3 range");
+    }
+
+    return arfcn;
+}
+
+double
+NrPhy::ArfcnToFrequencyHz(uint32_t arfcn)
+{
+    double freq = -1.0;
+
+    if (arfcn < 600000)
+    {
+        // FR1 (0–3 GHz)
+        freq = static_cast<double>(arfcn) * 5000.0;
+    }
+    else if (arfcn >= 600000 && arfcn < 2016667)
+    {
+        // FR1 extended (3–24.25 GHz)
+        freq = 3000000000.0 + static_cast<double>(arfcn - 600000) * 15000.0;
+    }
+    else if (arfcn >= 2016667 && arfcn < 3279166)
+    {
+        // FR2 (24.25–100 GHz)
+        freq = 24250080000.0 + static_cast<double>(arfcn - 2016667) * 60000.0;
+    }
+    else if (arfcn >= 3279166 && arfcn <= 62654166)
+    {
+        // FR3 (100–114.25 GHz)
+        // Based on Patent WO2021033328A1
+        freq = 100000000000.0 + static_cast<double>(arfcn - 3279166) * 240.0;
+    }
+    else
+    {
+        NS_ABORT_MSG("ARFCN out of supported FR1/FR2/Patent range");
+    }
+    return freq;
 }
 
 } // namespace ns3

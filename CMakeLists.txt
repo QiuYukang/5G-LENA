@@ -489,6 +489,7 @@ set(test_sources
     test/nr-test-l2sm-eesm.cc
     test/nr-test-notching.cc
     test/nr-test-numerology-delay.cc
+    test/nr-test-phy.cc
     test/nr-test-resource-assignment-matrix.cc
     test/nr-test-rlc-am-e2e.cc
     test/nr-test-rlc-am-transmitter.cc
