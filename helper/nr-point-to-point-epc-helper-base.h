@@ -49,6 +49,9 @@ class NrPointToPointEpcHelperBase : public NrNoBackhaulEpcHelper
                 Ptr<NetDevice> nrGnbNetDevice,
                 std::vector<uint16_t> cellIds) override;
 
+  protected:
+    void NotifyConstructionCompleted() override;
+
   private:
     /**
      * S1-U interfaces

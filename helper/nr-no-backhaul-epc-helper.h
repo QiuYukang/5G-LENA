@@ -80,6 +80,8 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
                                                        std::optional<Time> delay) override;
 
   protected:
+    void NotifyConstructionCompleted() override;
+
     /**
      * @brief DoAddX2Interface: Call AddX2Interface on top of the Gnb device pointers
      *

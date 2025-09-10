@@ -26,8 +26,14 @@ NrPointToPointEpcHelperBase::NrPointToPointEpcHelperBase()
     : NrNoBackhaulEpcHelper()
 {
     NS_LOG_FUNCTION(this);
-    // To access the attribute value within the constructor
-    ObjectBase::ConstructSelf(AttributeConstructionList());
+}
+
+void
+NrPointToPointEpcHelperBase::NotifyConstructionCompleted()
+{
+    NrNoBackhaulEpcHelper::NotifyConstructionCompleted();
+
+    NS_LOG_FUNCTION(this);
 
     // since we use point-to-point links for the backhaul links,
     // we use a /30 subnet which can hold exactly two addresses
