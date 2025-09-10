@@ -160,7 +160,7 @@ UlSchedulingTest::UeMacStateMachine(
     int retxActive,
     std::string funcName)
 {
-    std::string basePath = "contrib/nr";
+    std::string basePath = "build/contrib/nr";
     std::string state = "INACTIVE";
     Time grantRxTime = MilliSeconds(10);
     if (srState == 0)
@@ -264,7 +264,7 @@ UlSchedulingTest::CheckGrantRxState(SfnSf sfn, uint16_t rnti)
 std::ofstream
 UlSchedulingTest::OpenResultFile(uint16_t testNumber, uint16_t rnti)
 {
-    std::string basePath = "contrib/nr";
+    std::string basePath = "build/contrib/nr";
     fs::path testUlTxPath = fs::path(basePath) / "results" / "test_ulTx";
     fs::path filePath =
         testUlTxPath / ("test" + std::to_string(testNumber) + "_" + std::to_string(rnti) + ".txt");
