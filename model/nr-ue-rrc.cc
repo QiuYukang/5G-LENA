@@ -684,7 +684,7 @@ NrUeRrc::DoNotifyRandomAccessSuccessful()
         // we just received a RAR with a T-C-RNTI and an UL grant
         // send RRC connection request as message 3 of the random access procedure
         SwitchToState(IDLE_CONNECTING);
-        NrRrcSap::RrcConnectionRequest msg;
+        NrRrcSap::RrcConnectionRequest msg{};
         msg.ueIdentity = m_imsi;
         m_rrcSapUser->SendRrcConnectionRequest(msg);
         m_connectionTimeout = Simulator::Schedule(m_t300, &NrUeRrc::ConnectionTimeout, this);
@@ -692,7 +692,7 @@ NrUeRrc::DoNotifyRandomAccessSuccessful()
     break;
 
     case CONNECTED_HANDOVER: {
-        NrRrcSap::RrcConnectionReconfigurationCompleted msg;
+        NrRrcSap::RrcConnectionReconfigurationCompleted msg{};
         msg.rrcTransactionIdentifier = m_lastRrcTransactionIdentifier;
         m_rrcSapUser->SendRrcConnectionReconfigurationCompleted(msg);
 
@@ -1178,7 +1178,7 @@ NrUeRrc::DoRecvRrcConnectionReconfiguration(NrRrcSap::RrcConnectionReconfigurati
             {
                 ApplyMeasConfig(msg.measConfig);
             }
-            NrRrcSap::RrcConnectionReconfigurationCompleted msg2;
+            NrRrcSap::RrcConnectionReconfigurationCompleted msg2{};
             msg2.rrcTransactionIdentifier = msg.rrcTransactionIdentifier;
             m_rrcSapUser->SendRrcConnectionReconfigurationCompleted(msg2);
             m_connectionReconfigurationTrace(m_imsi, m_cellId, m_rnti);
@@ -1944,7 +1944,7 @@ NrUeRrc::SaveUeMeasurements(uint16_t cellId,
     }
 
     NS_LOG_DEBUG(this << " IMSI " << m_imsi << " state " << ToString(m_state) << ", measured cell "
-                      << cellId << ", carrier component Id " << componentCarrierId << ", new RSRP "
+                      << cellId << ", carrier component Id " << +componentCarrierId << ", new RSRP "
                       << rsrp << " stored " << storedMeasIt->second.rsrp << ", new RSRQ " << rsrq
                       << " stored " << storedMeasIt->second.rsrq);
 

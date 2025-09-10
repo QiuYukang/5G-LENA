@@ -397,7 +397,7 @@ class NrRrcAsn1Header : public NrAsn1Header
                NrRrcSap::RadioResourceConfigDedicated radioResourceConfigDedicated) const;
 
     /// Stores RRC message type, according to 3GPP TS 36.331
-    int m_messageType;
+    int m_messageType{0};
 };
 
 /**
@@ -731,7 +731,7 @@ class NrRrcConnectionReconfigurationCompleteHeader : public NrRrcUlDcchMessage
     uint8_t GetRrcTransactionIdentifier() const;
 
   private:
-    uint8_t m_rrcTransactionIdentifier; ///< RRC transaction identifier
+    uint8_t m_rrcTransactionIdentifier{0}; ///< RRC transaction identifier
 };
 
 /**

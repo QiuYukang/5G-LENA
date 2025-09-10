@@ -5220,7 +5220,7 @@ uint32_t
 NrRrcConnectionReconfigurationCompleteHeader::Deserialize(Buffer::Iterator bIterator)
 {
     std::bitset<0> bitset0;
-    int n;
+    int n{0};
 
     bIterator = DeserializeUlDcchMessage(bIterator);
     bIterator = DeserializeSequence(&bitset0, false, bIterator);
@@ -7126,7 +7126,7 @@ Buffer::Iterator
 NrRrcUlDcchMessage::DeserializeUlDcchMessage(Buffer::Iterator bIterator)
 {
     std::bitset<0> bitset0;
-    int n;
+    int n{0};
 
     bIterator = DeserializeSequence(&bitset0, false, bIterator);
     bIterator = DeserializeChoice(2, false, &n, bIterator);

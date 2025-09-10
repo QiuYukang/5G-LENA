@@ -121,7 +121,7 @@ NrRlcTm::DoNotifyTxOpportunity(NrMacSapUser::TxOpportunityParameters txOpParams)
     m_txPdu(m_rnti, m_lcid, packet->GetSize());
 
     // Send RLC PDU to MAC layer
-    NrMacSapProvider::TransmitPduParameters params;
+    NrMacSapProvider::TransmitPduParameters params{};
     params.pdu = packet;
     params.rnti = m_rnti;
     params.lcid = m_lcid;
@@ -172,7 +172,7 @@ NrRlcTm::DoTransmitBufferStatusReport()
         queueSize = m_txBufferSize; // just data in tx queue (no header overhead for RLC TM)
     }
 
-    NrMacSapProvider::BufferStatusReportParameters r;
+    NrMacSapProvider::BufferStatusReportParameters r{};
     r.rnti = m_rnti;
     r.lcid = m_lcid;
     r.txQueueSize = queueSize;

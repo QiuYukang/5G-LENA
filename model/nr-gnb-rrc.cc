@@ -1612,11 +1612,11 @@ NrRrcSap::RadioResourceConfigDedicated
 NrUeManager::BuildRadioResourceConfigDedicated()
 {
     NS_LOG_FUNCTION(this);
-    NrRrcSap::RadioResourceConfigDedicated rrcd;
+    NrRrcSap::RadioResourceConfigDedicated rrcd{};
 
     if (m_srb1)
     {
-        NrRrcSap::SrbToAddMod stam;
+        NrRrcSap::SrbToAddMod stam{};
         stam.srbIdentity = m_srb1->m_srbIdentity;
         stam.logicalChannelConfig = m_srb1->m_logicalChannelConfig;
         rrcd.srbToAddModList.push_back(stam);
@@ -1624,7 +1624,7 @@ NrUeManager::BuildRadioResourceConfigDedicated()
 
     for (auto it = m_drbMap.begin(); it != m_drbMap.end(); ++it)
     {
-        NrRrcSap::DrbToAddMod dtam;
+        NrRrcSap::DrbToAddMod dtam{};
         dtam.epsBearerIdentity = it->second->m_epsBearerIdentity;
         dtam.drbIdentity = it->second->m_drbIdentity;
         dtam.rlcConfig = it->second->m_rlcConfig;
@@ -3323,7 +3323,7 @@ NrGnbRrc::SendSystemInformation()
     {
         uint8_t ccId = it.first;
 
-        NrRrcSap::SystemInformation si;
+        NrRrcSap::SystemInformation si{};
         si.haveSib2 = true;
         si.sib2.freqInfo.ulCarrierFreq = it.second->GetUlEarfcn();
         si.sib2.freqInfo.ulBandwidth = it.second->GetUlBandwidth();
@@ -3332,7 +3332,7 @@ NrGnbRrc::SendSystemInformation()
         si.sib2.radioResourceConfigCommon.pdschConfigCommon.pb = 0;
 
         NrGnbCmacSapProvider::RachConfig rc = m_cmacSapProvider.at(ccId)->GetRachConfig();
-        NrRrcSap::RachConfigCommon rachConfigCommon;
+        NrRrcSap::RachConfigCommon rachConfigCommon{};
         rachConfigCommon.preambleInfo.numberOfRaPreambles = rc.numberOfRaPreambles;
         rachConfigCommon.raSupervisionInfo.preambleTransMax = rc.preambleTransMax;
         rachConfigCommon.raSupervisionInfo.raResponseWindowSize = rc.raResponseWindowSize;

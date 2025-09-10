@@ -104,12 +104,12 @@ UeRrcProtocolReal::DoSendRrcConnectionRequest(NrRrcSap::RrcConnectionRequest msg
 
     Ptr<Packet> packet = Create<Packet>();
 
-    NrRrcConnectionRequestHeader rrcConnectionRequestHeader;
+    NrRrcConnectionRequestHeader rrcConnectionRequestHeader{};
     rrcConnectionRequestHeader.SetMessage(msg);
 
     packet->AddHeader(rrcConnectionRequestHeader);
 
-    NrRlcSapProvider::TransmitPdcpPduParameters transmitPdcpPduParameters;
+    NrRlcSapProvider::TransmitPdcpPduParameters transmitPdcpPduParameters{};
     transmitPdcpPduParameters.pdcpPdu = packet;
     transmitPdcpPduParameters.rnti = m_rnti;
     transmitPdcpPduParameters.lcid = 0;
@@ -150,7 +150,7 @@ UeRrcProtocolReal::DoSendRrcConnectionReconfigurationCompleted(
 
     Ptr<Packet> packet = Create<Packet>();
 
-    NrRrcConnectionReconfigurationCompleteHeader rrcConnectionReconfigurationCompleteHeader;
+    NrRrcConnectionReconfigurationCompleteHeader rrcConnectionReconfigurationCompleteHeader{};
     rrcConnectionReconfigurationCompleteHeader.SetMessage(msg);
 
     packet->AddHeader(rrcConnectionReconfigurationCompleteHeader);
@@ -558,12 +558,12 @@ NrGnbRrcProtocolReal::DoSendRrcConnectionSetup(uint16_t rnti, NrRrcSap::RrcConne
 {
     Ptr<Packet> packet = Create<Packet>();
 
-    NrRrcConnectionSetupHeader rrcConnectionSetupHeader;
+    NrRrcConnectionSetupHeader rrcConnectionSetupHeader{};
     rrcConnectionSetupHeader.SetMessage(msg);
 
     packet->AddHeader(rrcConnectionSetupHeader);
 
-    NrRlcSapProvider::TransmitPdcpPduParameters transmitPdcpPduParameters;
+    NrRlcSapProvider::TransmitPdcpPduParameters transmitPdcpPduParameters{};
     transmitPdcpPduParameters.pdcpPdu = packet;
     transmitPdcpPduParameters.rnti = rnti;
     transmitPdcpPduParameters.lcid = 0;
@@ -595,12 +595,12 @@ NrGnbRrcProtocolReal::DoSendRrcConnectionReconfiguration(uint16_t rnti,
 {
     Ptr<Packet> packet = Create<Packet>();
 
-    NrRrcConnectionReconfigurationHeader rrcConnectionReconfigurationHeader;
+    NrRrcConnectionReconfigurationHeader rrcConnectionReconfigurationHeader{};
     rrcConnectionReconfigurationHeader.SetMessage(msg);
 
     packet->AddHeader(rrcConnectionReconfigurationHeader);
 
-    NrPdcpSapProvider::TransmitPdcpSduParameters transmitPdcpSduParameters;
+    NrPdcpSapProvider::TransmitPdcpSduParameters transmitPdcpSduParameters{};
     transmitPdcpSduParameters.pdcpSdu = packet;
     transmitPdcpSduParameters.rnti = rnti;
     transmitPdcpSduParameters.lcid = 1;
@@ -717,20 +717,20 @@ void
 NrGnbRrcProtocolReal::DoReceivePdcpSdu(NrPdcpSapUser::ReceivePdcpSduParameters params)
 {
     // Get type of message received
-    NrRrcUlDcchMessage rrcUlDcchMessage;
+    NrRrcUlDcchMessage rrcUlDcchMessage{};
     params.pdcpSdu->PeekHeader(rrcUlDcchMessage);
 
     // Declare possible headers to receive
-    NrMeasurementReportHeader measurementReportHeader;
-    NrRrcConnectionReconfigurationCompleteHeader rrcConnectionReconfigurationCompleteHeader;
-    NrRrcConnectionReestablishmentCompleteHeader rrcConnectionReestablishmentCompleteHeader;
-    NrRrcConnectionSetupCompleteHeader rrcConnectionSetupCompleteHeader;
+    NrMeasurementReportHeader measurementReportHeader{};
+    NrRrcConnectionReconfigurationCompleteHeader rrcConnectionReconfigurationCompleteHeader{};
+    NrRrcConnectionReestablishmentCompleteHeader rrcConnectionReestablishmentCompleteHeader{};
+    NrRrcConnectionSetupCompleteHeader rrcConnectionSetupCompleteHeader{};
 
     // Declare possible messages to receive
-    NrRrcSap::MeasurementReport measurementReportMsg;
-    NrRrcSap::RrcConnectionReconfigurationCompleted rrcConnectionReconfigurationCompleteMsg;
-    NrRrcSap::RrcConnectionReestablishmentComplete rrcConnectionReestablishmentCompleteMsg;
-    NrRrcSap::RrcConnectionSetupCompleted rrcConnectionSetupCompletedMsg;
+    NrRrcSap::MeasurementReport measurementReportMsg{};
+    NrRrcSap::RrcConnectionReconfigurationCompleted rrcConnectionReconfigurationCompleteMsg{};
+    NrRrcSap::RrcConnectionReestablishmentComplete rrcConnectionReestablishmentCompleteMsg{};
+    NrRrcSap::RrcConnectionSetupCompleted rrcConnectionSetupCompletedMsg{};
 
     // Deserialize packet and call member recv function with appropriate structure
     switch (rrcUlDcchMessage.GetMessageType())

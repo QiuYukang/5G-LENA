@@ -668,10 +668,10 @@ class NrRrcSap
     /// CgiInfo structure
     struct CgiInfo
     {
-        uint32_t plmnIdentity;                ///< PLMN identity
-        uint32_t cellIdentity;                ///< cell identity
-        uint16_t trackingAreaCode;            ///< tracking area code
-        std::list<uint32_t> plmnIdentityList; ///< PLMN identity list
+        uint32_t plmnIdentity{0};               ///< PLMN identity
+        uint32_t cellIdentity{0};               ///< cell identity
+        uint16_t trackingAreaCode{0};           ///< tracking area code
+        std::list<uint32_t> plmnIdentityList{}; ///< PLMN identity list
     };
 
     /// MeasResultPCell structure
