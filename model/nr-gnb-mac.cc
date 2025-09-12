@@ -425,7 +425,7 @@ NrGnbMac::GetTypeId()
             .AddTraceSource("UlScheduling",
                             "Information regarding UL scheduling.",
                             MakeTraceSourceAccessor(&NrGnbMac::m_ulScheduling),
-                            "ns3::NrGnbMac::SchedulingTracedCallback")
+                            "ns3::NrGnbMac::UlSchedulingTracedCallback")
             .AddTraceSource("SrReq",
                             "Information regarding received scheduling request.",
                             MakeTraceSourceAccessor(&NrGnbMac::m_srCallback),
