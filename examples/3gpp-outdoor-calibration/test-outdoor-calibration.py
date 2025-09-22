@@ -29,6 +29,7 @@ REFERENCE_VALUES_PER_SIMULATION_CONFIG = [
         # Config
         {
             "trafficScenario": 0,  # just to make validation happy, but unused
+            "configurationType": "calibrationConf",
             "technology": "NR",
             "nrConfigurationScenario": "DenseAmimoIntel",
             "bfMethod": "KroneckerQuasiOmniBeamforming",
@@ -69,6 +70,14 @@ def get_tag_from_config(config):
         .replace("::", "__")
         .replace("|", "")
         .replace('"', "")
+        .replace("Beamforming", "bf")
+        .replace("operationMode", "opMode")
+        .replace("appGenerationTime", "appGenTime")
+        .replace("Configuration", "Conf")
+        .replace("technology", "tech")
+        .replace("Scenario", "Scen")
+        .replace("configurationType", "confType")
+        .replace("calibrationConf", "calibConf")
     )
 
 
@@ -197,14 +206,13 @@ def main():
             )
 
             if ttest_result.pvalue < 0.05:
-                failed_calibration = True
                 failed_calibration_log += (
                     f"{simulation_config_tag} failed calibration at {metric} "
                     f"with p-value {ttest_result.pvalue:.3f} and "
                     f"p-statistic {ttest_result.statistic:.3f}: "
                     f"got {mean(results[metric]):.3f} while expecting {reference_values[metric]:.3f}\n"
                 )
-    if failed_calibration:
+    if failed_calibration_log:
         print(failed_calibration_log)
         return -1
     else:
