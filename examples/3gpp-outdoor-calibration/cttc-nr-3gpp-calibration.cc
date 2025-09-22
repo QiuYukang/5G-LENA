@@ -446,7 +446,7 @@ ChooseCalibrationScenario(Parameters& params)
                 params.initParams.handoffMargin = 3;
                 params.enableMimo = true;
                 params.mimoPmiParams.rankLimit = 2;
-                params.mimoPmiParams.subbandSize = 1;
+                params.mimoPmiParams.subbandSize = 4;
                 params.mimoPmiParams.fullSearchCb = "ns3::NrCbTypeOneSp";
 
                 params.enableSubbandScheluder = true;
