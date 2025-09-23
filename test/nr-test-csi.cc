@@ -701,7 +701,7 @@ NrCsiTestCase::DoRun()
             // Set notched mask for interfering gNB to restrict its interference to specific
             // sub-bands
             Ptr<NrMacSchedulerNs3> schedulerBwp1 =
-                DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(gnbNetDev.Get(i), 0));
+                DynamicCast<NrMacSchedulerNs3>(NrHelper::GetScheduler(gnbNetDev.Get(i), 0));
             schedulerBwp1->SetDlNotchedRbgMask(m_params.m_interfPattern.at(i - 1));
             schedulerBwp1->SetUlNotchedRbgMask(m_params.m_interfPattern.at(i - 1));
             // Increase TxPower of interferers, since they are farther away

@@ -325,7 +325,7 @@ NrUplinkPowerControlTestCase::DoRun()
     gnbDevs = nrHelper->InstallGnbDevice(gnbNodes, allBwps);
     ueDevs = nrHelper->InstallUeDevice(ueNodes, allBwps);
 
-    Ptr<NrUePhy> uePhy = nrHelper->GetUePhy(ueDevs.Get(0), 0);
+    Ptr<NrUePhy> uePhy = NrHelper::GetUePhy(ueDevs.Get(0), 0);
 
     m_ueUpc = uePhy->GetUplinkPowerControl();
 
@@ -335,7 +335,7 @@ NrUplinkPowerControlTestCase::DoRun()
                                         MakeBoundCallback(&PucchTxPowerReport, this));
 
     Ptr<const NrSpectrumPhy> txSpectrumPhy =
-        nrHelper->GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy();
+        NrHelper::GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy();
     Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
     Ptr<ThreeGppPropagationLossModel> propagationLossModel =
         DynamicCast<ThreeGppPropagationLossModel>(txSpectrumChannel->GetPropagationLossModel());

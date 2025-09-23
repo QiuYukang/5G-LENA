@@ -825,7 +825,7 @@ NYUChannelModel::GenerateChannelParameters(const Ptr<const ChannelCondition> cha
     }
 
     // Stores the total number of subpaths after BW adjustment and excluding weak subpaths
-    channelParams->totalSubpaths = channelParams->powerSpectrum.size();
+    channelParams->totalSubpaths = static_cast<uint8_t>(channelParams->powerSpectrum.size());
 
     NS_LOG_DEBUG("Total Number of SP is:" << channelParams->totalSubpaths);
 

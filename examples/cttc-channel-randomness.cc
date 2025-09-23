@@ -233,11 +233,8 @@ main(int argc, char* argv[])
 
     Ptr<const SpectrumModel> sm1 =
         NrSpectrumValueHelper::GetSpectrumModel(rbNum, frequency, subcarrierSpacing);
-    std::vector<int> activeRbs;
-    for (size_t rbId = 0; rbId < sm1->GetNumBands(); rbId++)
-    {
-        activeRbs.push_back(rbId);
-    }
+    std::vector<int> activeRbs(sm1->GetNumBands());
+    std::iota(activeRbs.begin(), activeRbs.end(), 0);
     Ptr<const SpectrumValue> txPsd1 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
         txPower,
         activeRbs,
@@ -289,11 +286,8 @@ main(int argc, char* argv[])
 
     Ptr<const SpectrumModel> sm2 =
         NrSpectrumValueHelper::GetSpectrumModel(rbNum, frequency, subcarrierSpacing);
-    std::vector<int> activeRbs2;
-    for (size_t rbId = 0; rbId < sm2->GetNumBands(); rbId++)
-    {
-        activeRbs2.push_back(rbId);
-    }
+    std::vector<int> activeRbs2(sm2->GetNumBands());
+    std::iota(activeRbs2.begin(), activeRbs2.end(), 0);
     Ptr<const SpectrumValue> txPsd2 = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
         txPower,
         activeRbs2,

@@ -290,7 +290,7 @@ RiPmiTestCase::DoRun()
     for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
     {
         auto cqiCb = MakeBoundCallback(&CqiFeedbackTracedCallback, &cqiTraces);
-        nrHelper->GetUePhy(*it, 0)->TraceConnectWithoutContext("CqiFeedbackTrace", cqiCb);
+        NrHelper::GetUePhy(*it, 0)->TraceConnectWithoutContext("CqiFeedbackTrace", cqiCb);
     }
 
     // create the Internet and install the IP stack on the UEs

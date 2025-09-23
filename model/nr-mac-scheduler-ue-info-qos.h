@@ -264,12 +264,12 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                     ueMinPriority = LCPtr->m_priority;
                 }
 
-                ue.first->PrintLcInfo(ue.first->m_rnti,
-                                      ueLcg.first,
-                                      lcId,
-                                      LCPtr->m_qci,
-                                      LCPtr->m_priority,
-                                      ueMinPriority);
+                ns3::NrMacSchedulerUeInfo::PrintLcInfo(ue.first->m_rnti,
+                                                       ueLcg.first,
+                                                       lcId,
+                                                       LCPtr->m_qci,
+                                                       LCPtr->m_priority,
+                                                       ueMinPriority);
             }
         }
         return ueMinPriority;
@@ -303,12 +303,12 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                     ueMinPriority = LCPtr->m_priority;
                 }
 
-                ue.first->PrintLcInfo(ue.first->m_rnti,
-                                      ueLcg.first,
-                                      lcId,
-                                      LCPtr->m_qci,
-                                      LCPtr->m_priority,
-                                      ueMinPriority);
+                ns3::NrMacSchedulerUeInfo::PrintLcInfo(ue.first->m_rnti,
+                                                       ueLcg.first,
+                                                       lcId,
+                                                       LCPtr->m_qci,
+                                                       LCPtr->m_priority,
+                                                       ueMinPriority);
             }
         }
         return ueMinPriority;

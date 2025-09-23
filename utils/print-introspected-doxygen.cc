@@ -396,9 +396,7 @@ StaticInformation::DoGather(TypeId tid)
             TypeId pointee = ptrChecker->GetPointeeTypeId();
 
             // See if this is a pointer to an Object.
-            Ptr<Object> object = CreateObject<Object>();
-            TypeId objectTypeId = object->GetTypeId();
-            if (objectTypeId == pointee)
+            if (Object::GetTypeId() == pointee)
             {
                 // Stop the recursion at this attribute if it is a
                 // pointer to an Object, which create too many spurious

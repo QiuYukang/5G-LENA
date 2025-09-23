@@ -1356,7 +1356,7 @@ NrMacSchedulerNs3::ComputeActiveUe(ActiveUeMap* activeUe,
             totBuffer += lcg->GetTotalSize();
         }
 
-        auto harqV = GetHarqVector(ue);
+        const auto& harqV = GetHarqVector(ue);
 
         if (totBuffer > 0 && harqV.CanInsert())
         {

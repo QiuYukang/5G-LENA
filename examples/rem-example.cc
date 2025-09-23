@@ -450,8 +450,8 @@ main(int argc, char* argv[])
 
     for (uint32_t i = 0; i < gNbNum; ++i)
     {
-        nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)->SetTxPower(txPower);
-        nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)->SetTxPower(txPower);
+        NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
     }
 

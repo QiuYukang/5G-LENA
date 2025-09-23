@@ -689,11 +689,8 @@ NrRadioEnvironmentMapHelper::CalcRxPsdValue(RemDevice& device, RemDevice& otherD
 {
     PropagationModels tempPropModels = CreateTemporalPropagationModels();
 
-    std::vector<int> activeRbs;
-    for (size_t rbId = 0; rbId < device.spectrumModel->GetNumBands(); rbId++)
-    {
-        activeRbs.push_back(rbId);
-    }
+    std::vector<int> activeRbs(device.spectrumModel->GetNumBands());
+    std::iota(activeRbs.begin(), activeRbs.end(), 0);
 
     Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
         device.txPower,
@@ -823,7 +820,7 @@ NrRadioEnvironmentMapHelper::CalculateSir(
     if (interferenceSignals.empty())
     {
         // return CalculateSnr (usefulSignal);
-        SpectrumValue signal = (*usefulSignal);
+        const SpectrumValue& signal = (*usefulSignal);
         return RatioToDb(Sum(signal) / signal.GetSpectrumModel()->GetNumBands());
     }
     else

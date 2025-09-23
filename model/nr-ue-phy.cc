@@ -965,11 +965,8 @@ NrUePhy::UlSrs(const std::shared_ptr<DciInfoElementTdma>& dci)
 {
     NS_LOG_FUNCTION(this);
 
-    std::vector<int> channelRbs;
-    for (uint32_t i = 0; i < GetRbNum(); i++)
-    {
-        channelRbs.push_back(static_cast<int>(i));
-    }
+    std::vector<int> channelRbs(GetRbNum());
+    std::iota(channelRbs.begin(), channelRbs.end(), 0);
     SetSubChannelsForTransmission(channelRbs, dci->m_numSym);
 
     std::list<Ptr<NrControlMessage>> srsMsg;
@@ -1035,11 +1032,8 @@ NrUePhy::UlCtrl(const std::shared_ptr<DciInfoElementTdma>& dci)
         }
     }
 
-    std::vector<int> channelRbs;
-    for (uint32_t i = 0; i < GetRbNum(); i++)
-    {
-        channelRbs.push_back(static_cast<int>(i));
-    }
+    std::vector<int> channelRbs(GetRbNum());
+    std::iota(channelRbs.begin(), channelRbs.end(), 0);
 
     if (m_enableUplinkPowerControl)
     {

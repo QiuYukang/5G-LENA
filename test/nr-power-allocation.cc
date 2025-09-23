@@ -51,10 +51,8 @@ PowerAllocationTestCase::DoRun()
     NS_LOG_INFO("Testing for number of RBs:" << sm->GetNumBands());
 
     // fill in all RBs
-    for (size_t rbId = 0; rbId < sm->GetNumBands(); rbId++)
-    {
-        activeRbs.push_back(rbId);
-    }
+    activeRbs.resize(sm->GetNumBands());
+    std::iota(activeRbs.begin(), activeRbs.end(), 0);
 
     txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
         totalPower,

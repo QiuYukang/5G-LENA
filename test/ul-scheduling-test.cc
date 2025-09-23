@@ -421,7 +421,7 @@ UlSchedulingTest::DoRun()
 
     NetDeviceContainer gnbDevice = nrHelper->InstallGnbDevice(gNbNode, allBwps);
     gnbDevices.Add(gnbDevice);
-    nrHelper->GetGnbPhy(gnbDevices.Get(0), 0)->SetAttribute("TxPower", DoubleValue(35));
+    NrHelper::GetGnbPhy(gnbDevices.Get(0), 0)->SetAttribute("TxPower", DoubleValue(35));
 
     NetDeviceContainer ueDevice = nrHelper->InstallUeDevice(ueNode, allBwps);
     ueDevices.Add(ueDevice);
@@ -511,14 +511,14 @@ UlSchedulingTest::DoRun()
     monitor->SetAttribute("PacketSizeBinWidth", DoubleValue(20));
 
     // UE MAC state machine trace
-    nrHelper->GetUeMac(ueDevices.Get(0), 0)
+    NrHelper::GetUeMac(ueDevices.Get(0), 0)
         ->TraceConnectWithoutContext("UeMacStateMachineTrace",
                                      MakeCallback(&UlSchedulingTest::UeMacStateMachine, this));
     // gNB MAC info traces
-    nrHelper->GetGnbMac(gnbDevices.Get(0), 0)
+    NrHelper::GetGnbMac(gnbDevices.Get(0), 0)
         ->TraceConnectWithoutContext("UlScheduling",
                                      MakeCallback(&UlSchedulingTest::gNBUlToSch, this));
-    nrHelper->GetGnbMac(gnbDevices.Get(0), 0)
+    NrHelper::GetGnbMac(gnbDevices.Get(0), 0)
         ->TraceConnectWithoutContext("GnbMacRxedCtrlMsgsTrace",
                                      MakeCallback(&UlSchedulingTest::gNBRxCtrl, this));
 

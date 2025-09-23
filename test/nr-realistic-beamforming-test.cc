@@ -203,10 +203,10 @@ NrRealisticBeamformingTestCase::DoRun()
                         DynamicCast<NrGnbNetDevice>(*it)->ConfigureCell();
                     }
 
-                    Ptr<NrUePhy> uePhy = nrHelper->GetUePhy(ueDevs.Get(0), 0);
+                    Ptr<NrUePhy> uePhy = NrHelper::GetUePhy(ueDevs.Get(0), 0);
 
                     Ptr<NrSpectrumPhy> txSpectrumPhy =
-                        nrHelper->GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy();
+                        NrHelper::GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy();
                     Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
                     Ptr<ThreeGppPropagationLossModel> propagationLossModel =
                         DynamicCast<ThreeGppPropagationLossModel>(

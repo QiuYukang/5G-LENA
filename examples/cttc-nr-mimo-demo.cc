@@ -464,24 +464,24 @@ main(int argc, char* argv[])
 
     if (enableInterfNode)
     {
-        nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(1), 0)
             ->GetSpectrumPhy()
             ->GetAntenna()
             ->SetAttribute("BearingAngle", DoubleValue(0));
-        nrHelper->GetUePhy(ueNetDev.Get(1), 0)
+        NrHelper::GetUePhy(ueNetDev.Get(1), 0)
             ->GetSpectrumPhy()
             ->GetAntenna()
             ->SetAttribute("BearingAngle", DoubleValue(M_PI));
         if (interfPolSlantDelta)
         {
             // reconfigure the polarization slant angle of the interferer
-            nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)
+            NrHelper::GetGnbPhy(gnbNetDev.Get(1), 0)
                 ->GetSpectrumPhy()
                 ->GetAntenna()
                 ->SetAttribute(
                     "PolSlantAngle",
                     DoubleValue((polSlantAngleGnb + interfPolSlantDelta) * (M_PI / 180)));
-            nrHelper->GetUePhy(ueNetDev.Get(1), 0)
+            NrHelper::GetUePhy(ueNetDev.Get(1), 0)
                 ->GetSpectrumPhy()
                 ->GetAntenna()
                 ->SetAttribute("PolSlantAngle",
@@ -502,7 +502,7 @@ main(int argc, char* argv[])
     for (auto it = ueNetDev.Begin(); it != ueNetDev.End(); ++it)
     {
         auto cqiCb = MakeBoundCallback(&CqiFeedbackTracedCallback, &cqiTraces);
-        nrHelper->GetUePhy(*it, 0)->TraceConnectWithoutContext("CqiFeedbackTrace", cqiCb);
+        NrHelper::GetUePhy(*it, 0)->TraceConnectWithoutContext("CqiFeedbackTrace", cqiCb);
     }
 
     // create the Internet and install the IP stack on the UEs

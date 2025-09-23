@@ -253,12 +253,12 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
     // Set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0)/(1)
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp1));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp2));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPowerPerBwp);
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetTxPower(txPowerPerBwp);
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPowerPerBwp);
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetTxPower(txPowerPerBwp);
 
     InternetStackHelper internet;
     internet.Install(gridScenario.GetUserTerminals());

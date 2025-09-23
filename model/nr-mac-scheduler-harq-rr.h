@@ -34,11 +34,6 @@ class NrMacSchedulerHarqRr : public Object
     NrMacSchedulerHarqRr();
 
     /**
-     * @brief Default deconstructor
-     */
-    virtual ~NrMacSchedulerHarqRr() = default;
-
-    /**
      * @brief Install a function to retrieve the bwp id
      * @param fn the function
      */

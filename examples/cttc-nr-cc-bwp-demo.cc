@@ -437,59 +437,59 @@ main(int argc, char* argv[])
     {
         // Manually set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0),
         // (1), ...
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 3)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 3)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(0.25 * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("Pattern", StringValue(pattern));
     }
     else
     {
         // Set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0), (1), ...
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute("Numerology", UintegerValue(numerologyCc0Bwp0));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(10 *
                             log10((band.GetBwpAt(0, 0)->m_channelBandwidth / bandwidthBand) * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute("Numerology", UintegerValue(numerologyCc0Bwp1));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(10 *
                             log10((band.GetBwpAt(1, 0)->m_channelBandwidth / bandwidthBand) * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
 
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("Numerology", UintegerValue(numerologyCc1Bwp0));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(10 *
                             log10((band.GetBwpAt(1, 1)->m_channelBandwidth / bandwidthBand) * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
     }
 
     // create the internet and install the IP stack on the UEs

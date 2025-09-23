@@ -144,7 +144,7 @@ class NrFhControl;
 \verbatim
   ...
   NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice (gnbContainer, allBwps);
-  nrHelper->GetGnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (2));
+  NrHelper::GetGnbPhy (gnbNetDev.Get (0), 0)->SetAttribute ("Numerology", UintegerValue (2));
 \endverbatim
  *
  * In the snippet, we are selecting the first gnb (`gnbNetDev.Get (0)`) and

@@ -465,7 +465,7 @@ class NYUChannelModel : public MatrixBasedChannelModel
         int numberOfTimeClusters = 0;    //!< value containing the number of Time Clusters
         int numberOfAoaSpatialLobes = 0; //!< value containing the number of AOA Spatial Lobes
         int numberOfAodSpatialLobes = 0; //!< value containing the number of AOD Spatial Lobes
-        int totalSubpaths = 0;           //!< value containing the total number of Subpaths
+        uint8_t totalSubpaths = 0;       //!< value containing the total number of Subpaths
         MatrixBasedChannelModel::DoubleVector
             numberOfSubpathInTimeCluster; //!< value containing the number of Subpaths in each time
                                           //!< cluster

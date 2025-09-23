@@ -479,63 +479,63 @@ main(int argc, char* argv[])
     double totalBandwidth = numCcs * bandwidth;
 
     // Band40: CC0 - BWP0 & Band38: CC1 - BWP1
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp0));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute(
             "TxPower",
             DoubleValue(10 *
                         log10((band40.GetBwpAt(0, 0)->m_channelBandwidth / totalBandwidth) * x)));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("RbOverhead", DoubleValue(0.1));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Pattern", StringValue(pattern));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("RbOverhead", DoubleValue(0.1));
 
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp1));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute(
             "TxPower",
             DoubleValue(10 *
                         log10((band38.GetBwpAt(0, 0)->m_channelBandwidth / totalBandwidth) * x)));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("RbOverhead", DoubleValue(0.1));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Pattern", StringValue(pattern));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("RbOverhead", DoubleValue(0.1));
 
     // Band38: CC2 - BWP2
     if (operationMode == "TDD")
     {
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("Numerology", UintegerValue(numerologyBwp2));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(
                     10 * log10((band38.GetBwpAt(1, 0)->m_channelBandwidth / totalBandwidth) * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("RbOverhead", DoubleValue(0.1));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(pattern));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("RbOverhead", DoubleValue(0.1));
     }
     else // FDD case
     {
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute("Numerology", UintegerValue(numerologyBwpDl));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
             ->SetAttribute(
                 "TxPower",
                 DoubleValue(
                     10 * log10((band38.GetBwpAt(1, 0)->m_channelBandwidth / totalBandwidth) * x)));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(patternDL));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("RbOverhead", DoubleValue(0.1));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Pattern", StringValue(patternDL));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("RbOverhead", DoubleValue(0.1));
 
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 3)
             ->SetAttribute("Numerology", UintegerValue(numerologyBwpUl));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("Pattern", StringValue(patternUL));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("RbOverhead", DoubleValue(0.1));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("Pattern", StringValue(patternUL));
+        NrHelper::GetGnbPhy(gnbNetDev.Get(0), 3)->SetAttribute("RbOverhead", DoubleValue(0.1));
 
         // Link the two FDD BWP:
-        nrHelper->GetBwpManagerGnb(gnbNetDev.Get(0))->SetOutputLink(3, 2);
+        NrHelper::GetBwpManagerGnb(gnbNetDev.Get(0))->SetOutputLink(3, 2);
 
         // Set the UE routing:
         for (uint32_t i = 0; i < ueNetDev.GetN(); i++)
         {
-            nrHelper->GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(2, 3);
+            NrHelper::GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(2, 3);
         }
 
         // enable 4rth flow

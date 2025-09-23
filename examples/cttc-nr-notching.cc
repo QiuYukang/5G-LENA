@@ -431,38 +431,38 @@ main(int argc, char* argv[])
     {
         // Manually set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0),
         // (1), ...
-        nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
-        nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
+        NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)
             ->SetAttribute("TxPower", DoubleValue(10 * log10(x)));
 
         // Set the mask
         Ptr<NrMacSchedulerNs3> schedulerBwp1 =
-            DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(gnbNetDev.Get(i), 0));
+            DynamicCast<NrMacSchedulerNs3>(NrHelper::GetScheduler(gnbNetDev.Get(i), 0));
         schedulerBwp1->SetDlNotchedRbgMask(notchedMaskDl);
 
         if (operationMode == "TDD")
         {
-            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)->SetAttribute("Pattern", StringValue(pattern));
+            NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)->SetAttribute("Pattern", StringValue(pattern));
             schedulerBwp1->SetUlNotchedRbgMask(notchedMaskUl);
         }
         else
         {
-            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
+            NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)
                 ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
 
-            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 1)
+            NrHelper::GetGnbPhy(gnbNetDev.Get(i), 1)
                 ->SetAttribute("Numerology", UintegerValue(numerology));
-            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 1)->SetAttribute("TxPower", DoubleValue(-30.0));
-            nrHelper->GetGnbPhy(gnbNetDev.Get(i), 1)
+            NrHelper::GetGnbPhy(gnbNetDev.Get(i), 1)->SetAttribute("TxPower", DoubleValue(-30.0));
+            NrHelper::GetGnbPhy(gnbNetDev.Get(i), 1)
                 ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
             Ptr<NrMacSchedulerNs3> schedulerBwp2 =
-                DynamicCast<NrMacSchedulerNs3>(nrHelper->GetScheduler(gnbNetDev.Get(i), 1));
+                DynamicCast<NrMacSchedulerNs3>(NrHelper::GetScheduler(gnbNetDev.Get(i), 1));
             schedulerBwp2->SetUlNotchedRbgMask(notchedMaskUl);
 
             // Link the two FDD BWPs:
-            nrHelper->GetBwpManagerGnb(gnbNetDev.Get(i))->SetOutputLink(1, 0);
+            NrHelper::GetBwpManagerGnb(gnbNetDev.Get(i))->SetOutputLink(1, 0);
         }
     }
 
@@ -471,7 +471,7 @@ main(int argc, char* argv[])
         // Set the UE routing:
         for (uint32_t i = 0; i < ueNetDev.GetN(); i++)
         {
-            nrHelper->GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(0, 1);
+            NrHelper::GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(0, 1);
         }
     }
 

@@ -666,18 +666,18 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
 
     for (uint32_t i = 0; i < gNbDevs.GetN(); i++)
     {
-        nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)
+        NrHelper::GetGnbPhy(gNbDevs.Get(i), 0)
             ->SetAttribute("Numerology", UintegerValue(numerology));
         // Remove log operation when input is in dBm
-        nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)->SetAttribute("TxPower", DoubleValue(totalTxPower));
+        NrHelper::GetGnbPhy(gNbDevs.Get(i), 0)->SetAttribute("TxPower", DoubleValue(totalTxPower));
         // gNB noise figure shall be set to 7 dB
-        nrHelper->GetGnbPhy(gNbDevs.Get(i), 0)->SetAttribute("NoiseFigure", DoubleValue(7));
+        NrHelper::GetGnbPhy(gNbDevs.Get(i), 0)->SetAttribute("NoiseFigure", DoubleValue(7));
     }
     for (uint32_t j = 0; j < ueNetDevs.GetN(); j++)
     {
         // UE noise figure shall be set to 10 dB
-        nrHelper->GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("NoiseFigure", DoubleValue(10));
-        nrHelper->GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("TxPower", DoubleValue(ueTxPower));
+        NrHelper::GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("NoiseFigure", DoubleValue(10));
+        NrHelper::GetUePhy(ueNetDevs.Get(j), 0)->SetAttribute("TxPower", DoubleValue(ueTxPower));
     }
 
     // create the internet and install the IP stack on the UEs

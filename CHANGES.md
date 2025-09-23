@@ -145,14 +145,14 @@ us a note on ns-developers mailing list.
 // 1x10MHz in TDD, 2x5MHz in FDD
 uint8_t bands = 1 + m_isFdd;
 auto bwAndBWPPair = m_nrHelper->CreateBandwidthParts({{2.8e9, 10e6 / bands, bands}}, "UMa");
-m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 0)
+NrHelper::GetGnbPhy(gnbDevs.Get(i), 0)
           ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|UL|UL|UL|"));
 if (m_isFdd)
 {
     Config::SetDefault("ns3::NrUeNetDevice::PrimaryUlIndex", UintegerValue(1));
-    m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 0)
+    NrHelper::GetGnbPhy(gnbDevs.Get(i), 0)
               ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-    m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 1)
+    NrHelper::GetGnbPhy(gnbDevs.Get(i), 1)
               ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 }
 ```

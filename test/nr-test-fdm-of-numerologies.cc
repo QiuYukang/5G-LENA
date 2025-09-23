@@ -167,24 +167,24 @@ NrTestFdmOfNumerologiesCase1::DoRun()
 
     double x = pow(10, totalTxPower / 10);
 
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(m_numerology));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("Numerology", UintegerValue(m_numerology));
 
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw1 / totalBandwidth) * x)));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw2 / totalBandwidth) * x)));
 
-    nrHelper->GetUePhy(ueNetDev.Get(0), 0)
+    NrHelper::GetUePhy(ueNetDev.Get(0), 0)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw1 / totalBandwidth) * x)));
-    nrHelper->GetUePhy(ueNetDev.Get(0), 1)
+    NrHelper::GetUePhy(ueNetDev.Get(0), 1)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw2 / totalBandwidth) * x)));
 
-    nrHelper->GetUePhy(ueNetDev.Get(1), 0)
+    NrHelper::GetUePhy(ueNetDev.Get(1), 0)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw1 / totalBandwidth) * x)));
-    nrHelper->GetUePhy(ueNetDev.Get(1), 1)
+    NrHelper::GetUePhy(ueNetDev.Get(1), 1)
         ->SetAttribute("TxPower", DoubleValue(10 * log10((m_bw2 / totalBandwidth) * x)));
 
     for (uint32_t j = 0; j < gNbNodes.GetN(); ++j)
@@ -193,7 +193,7 @@ NrTestFdmOfNumerologiesCase1::DoRun()
         for (uint8_t bwpId = 0; bwpId < 2; bwpId++)
         {
             Ptr<const NrSpectrumPhy> txSpectrumPhy =
-                nrHelper->GetGnbPhy(gnbNetDev.Get(j), bwpId)->GetSpectrumPhy();
+                NrHelper::GetGnbPhy(gnbNetDev.Get(j), bwpId)->GetSpectrumPhy();
             Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
             Ptr<ThreeGppPropagationLossModel> propagationLossModel =
                 DynamicCast<ThreeGppPropagationLossModel>(
@@ -219,7 +219,7 @@ NrTestFdmOfNumerologiesCase1::DoRun()
         for (uint8_t bwpId = 0; bwpId < 2; bwpId++)
         {
             Ptr<const NrSpectrumPhy> txSpectrumPhy =
-                nrHelper->GetUePhy(ueNetDev.Get(j), bwpId)->GetSpectrumPhy();
+                NrHelper::GetUePhy(ueNetDev.Get(j), bwpId)->GetSpectrumPhy();
             Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
             Ptr<ThreeGppPropagationLossModel> propagationLossModel =
                 DynamicCast<ThreeGppPropagationLossModel>(

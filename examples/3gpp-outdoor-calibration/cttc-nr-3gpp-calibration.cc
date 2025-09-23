@@ -1093,8 +1093,8 @@ Nr3gppCalibration(Parameters& params)
                 else if (nrHelper != nullptr)
                 {
                     nrHelper->AttachToGnb(ueNetDev, gnbNetDev);
-                    auto uePhyBwp0{nrHelper->GetUePhy(ueNetDev, 0)};
-                    auto gnbPhyBwp0{nrHelper->GetGnbPhy(gnbNetDev, 0)};
+                    auto uePhyBwp0{NrHelper::GetUePhy(ueNetDev, 0)};
+                    auto gnbPhyBwp0{NrHelper::GetGnbPhy(gnbNetDev, 0)};
                     Vector gnbpos = gnbNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                     Vector uepos = ueNetDev->GetNode()->GetObject<MobilityModel>()->GetPosition();
                     double distance = CalculateDistance(gnbpos, uepos);
@@ -1500,7 +1500,7 @@ std::ostream&
 operator<<(std::ostream& os, const Parameters& parameters)
 {
     // Use p as shorthand for arg parametersx
-    auto p{parameters};
+    const auto& p{parameters};
 
 #define MSG(m)                                                                                     \
     os << "\n" << m << std::left << std::setw(40 - strlen(m)) << (strlen(m) > 0 ? ":" : "")

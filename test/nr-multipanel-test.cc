@@ -168,7 +168,7 @@ NrMultipanelTestCase::DoRun()
     // Point all gNB antennas to center
     for (size_t i = 0; i < gnbNetDev.GetN(); i++)
     {
-        auto ant = nrHelper->GetGnbPhy(gnbNetDev.Get(i), 0)
+        auto ant = NrHelper::GetGnbPhy(gnbNetDev.Get(i), 0)
                        ->GetSpectrumPhy()
                        ->GetAntenna()
                        ->GetObject<UniformPlanarArray>();

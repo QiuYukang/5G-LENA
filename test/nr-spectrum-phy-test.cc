@@ -12,6 +12,8 @@
 #include "ns3/nr-spectrum-phy.h"
 #include "ns3/nr-spectrum-value-helper.h"
 
+#include <numeric>
+
 namespace ns3
 {
 
@@ -132,11 +134,8 @@ SetNoisePsdTestCase::DoRun()
     Ptr<const SpectrumModel> sm =
         NrSpectrumValueHelper::GetSpectrumModel(rbNum, centerFrequency, subcarrierSpacing);
 
-    std::vector<int> activeRbs;
-    for (size_t rbId = 0; rbId < sm->GetNumBands(); rbId++)
-    {
-        activeRbs.push_back(rbId);
-    }
+    std::vector<int> activeRbs(sm->GetNumBands());
+    std::iota(activeRbs.begin(), activeRbs.end(), 0);
 
     Ptr<const SpectrumValue> txPsd = NrSpectrumValueHelper::CreateTxPowerSpectralDensity(
         m_txPower,

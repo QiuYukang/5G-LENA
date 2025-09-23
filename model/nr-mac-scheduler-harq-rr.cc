@@ -405,7 +405,7 @@ NrMacSchedulerHarqRr::ScheduleUlHarq(
 
     for (uint16_t i = 0; i < ulHarqFeedback.size() && symAvail > 0; i++)
     {
-        UlHarqInfo harqInfo = ulHarqFeedback.at(i);
+        const UlHarqInfo& harqInfo = ulHarqFeedback.at(i);
         uint8_t harqId = harqInfo.m_harqProcessId;
         uint16_t rnti = harqInfo.m_rnti;
 

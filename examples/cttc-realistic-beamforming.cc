@@ -806,13 +806,13 @@ CttcRealisticBeamforming::RunSimulation()
 
     for (uint32_t i = 0; i < gNbDev.GetN(); i++)
     {
-        nrHelper->GetGnbPhy(gNbDev.Get(i), 0)
+        NrHelper::GetGnbPhy(gNbDev.Get(i), 0)
             ->SetAttribute("Numerology", UintegerValue(m_numerology));
-        nrHelper->GetGnbPhy(gNbDev.Get(i), 0)->SetAttribute("TxPower", DoubleValue(m_gNbTxPower));
+        NrHelper::GetGnbPhy(gNbDev.Get(i), 0)->SetAttribute("TxPower", DoubleValue(m_gNbTxPower));
     }
     for (uint32_t j = 0; j < ueNetDev.GetN(); j++)
     {
-        nrHelper->GetUePhy(ueNetDev.Get(j), 0)->SetAttribute("TxPower", DoubleValue(m_ueTxPower));
+        NrHelper::GetUePhy(ueNetDev.Get(j), 0)->SetAttribute("TxPower", DoubleValue(m_ueTxPower));
     }
 
     // Create the internet and install the IP stack on the UEs, get SGW/PGW and create a single

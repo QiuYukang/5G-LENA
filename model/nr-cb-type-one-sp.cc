@@ -100,7 +100,7 @@ NrCbTypeOneSp::GetBasePrecMatFromIndex(size_t i11, size_t i12, size_t i13, size_
     for (size_t layer = 0; layer < m_rank; layer++)
     {
         // The beamforming vector for the first polarization
-        auto v = uniqueBfvs[m_uniqueBfvInds[layer]];
+        const auto& v = uniqueBfvs[m_uniqueBfvInds[layer]];
         NS_ASSERT_MSG(v.size() == m_nPorts / 2,
                       "Size of a per-polarization beamforming vector must be nPorts/2");
         for (size_t vIdx = 0; vIdx < v.size(); vIdx++)

@@ -261,8 +261,8 @@ NrTestNumerologyDelayCase1::DoRun()
     NetDeviceContainer gnbNetDev = nrHelper->InstallGnbDevice(gNbNode, allBwps);
     NetDeviceContainer ueNetDev = nrHelper->InstallUeDevice(ueNode, allBwps);
 
-    m_l1l2 = nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->GetL1L2CtrlLatency();
-    m_tbDecodeLatency = nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->GetTbDecodeLatency();
+    m_l1l2 = NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->GetL1L2CtrlLatency();
+    m_tbDecodeLatency = NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->GetTbDecodeLatency();
 
     InternetStackHelper internet;
     internet.Install(ueNode);

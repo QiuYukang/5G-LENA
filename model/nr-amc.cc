@@ -387,7 +387,7 @@ NrAmc::ExtractSbFromMat(const uint8_t sbIndex,
                         const size_t subbandSize,
                         const NrSinrMatrix& sinrMat) const
 {
-    const auto rank = sinrMat.GetNumRows();
+    const auto rank = static_cast<uint8_t>(sinrMat.GetNumRows());
     DoubleMatrixArray sinrSb(rank, sinrMat.GetNumCols());
     for (uint8_t r = 0; r < rank; r++)
     {

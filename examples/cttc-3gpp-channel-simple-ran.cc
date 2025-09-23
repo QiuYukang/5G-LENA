@@ -221,7 +221,7 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
     // Set the attribute of the netdevice (gnbNetDev.Get (0)) and bandwidth part (0)
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Numerology", UintegerValue(numerologyBwp1));
 
     InternetStackHelper internet;

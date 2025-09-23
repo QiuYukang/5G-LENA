@@ -214,8 +214,8 @@ main(int argc, char* argv[])
     randomStream += nrHelper->AssignStreams(gnbNetDev, randomStream);
     randomStream += nrHelper->AssignStreams(ueNetDev, randomStream);
 
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPower);
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)->SetTxPower(txPower);
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetTxPower(txPower);
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 0)->SetTxPower(txPower);
 
     // create the internet and install the IP stack on the UEs
     // get SGW/PGW and create a single RemoteHost

@@ -321,20 +321,20 @@ NrRrcConnectionEstablishmentTestCase::DoRun()
     {
         for (uint32_t i = 0; i < gnbDevs.GetN(); i++)
         {
-            m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 0)
+            NrHelper::GetGnbPhy(gnbDevs.Get(i), 0)
                 ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
 
-            m_nrHelper->GetGnbPhy(gnbDevs.Get(i), 1)
+            NrHelper::GetGnbPhy(gnbDevs.Get(i), 1)
                 ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
             // Link the two FDD BWPs at gNBs
-            m_nrHelper->GetBwpManagerGnb(gnbDevs.Get(i))->SetOutputLink(1, 0);
+            NrHelper::GetBwpManagerGnb(gnbDevs.Get(i))->SetOutputLink(1, 0);
         }
 
         // Link the two FDD BWPs at UEs
         for (uint32_t i = 0; i < ueDevs.GetN(); i++)
         {
-            m_nrHelper->GetBwpManagerUe(ueDevs.Get(i))->SetOutputLink(0, 1);
+            NrHelper::GetBwpManagerUe(ueDevs.Get(i))->SetOutputLink(0, 1);
         }
     }
 

@@ -1286,7 +1286,7 @@ main(int argc, char* argv[])
         for (uint32_t cellId = 0; cellId < gnbNetDevs.GetN(); ++cellId)
         {
             Ptr<NetDevice> gnb = gnbNetDevs.Get(cellId);
-            uint32_t numBwps = nrHelper->GetNumberBwp(gnb);
+            uint32_t numBwps = NrHelper::GetNumberBwp(gnb);
             if (numBwps > 2)
             {
                 NS_ABORT_MSG("Incorrect number of BWPs per CC");
@@ -1961,8 +1961,8 @@ main(int argc, char* argv[])
         NetDeviceContainer remNd;
         Ptr<NetDevice> remDevice;
 
-        std::vector<NetDeviceContainer*> remNdBySector{gnbNdBySector};
-        std::vector<NetDeviceContainer*> remDevBySector{ueNdBySector};
+        const std::vector<NetDeviceContainer*>& remNdBySector{gnbNdBySector};
+        const std::vector<NetDeviceContainer*>& remDevBySector{ueNdBySector};
 
         uint32_t sectorIndex = 0;
         // Reverse order so we get sector 1 for the remSector == 0 case
@@ -2242,7 +2242,7 @@ ConfigurePhy(Ptr<NrHelper> nrHelper,
              double beamConfElevation)
 {
     // Change the antenna orientation
-    Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0); // BWP 0
+    Ptr<NrGnbPhy> phy0 = NrHelper::GetGnbPhy(gnb, 0); // BWP 0
     Ptr<UniformPlanarArray> antenna0 = ConstCast<UniformPlanarArray>(
         phy0->GetSpectrumPhy()->GetAntenna()->GetObject<UniformPlanarArray>());
     antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));

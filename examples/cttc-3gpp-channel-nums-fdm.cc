@@ -225,100 +225,100 @@ main(int argc, char* argv[])
     // -------------- First GNB:
 
     // BWP0, the TDD one
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Numerology", UintegerValue(0));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("Numerology", UintegerValue(0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)
         ->SetAttribute("Pattern", StringValue("F|F|F|F|F|F|F|F|F|F|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 0)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP1, FDD-DL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Numerology", UintegerValue(0));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("Numerology", UintegerValue(0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)
         ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 1)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP2, FDD-UL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Numerology", UintegerValue(0));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("Numerology", UintegerValue(0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)
         ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("TxPower", DoubleValue(0.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(0), 2)->SetAttribute("TxPower", DoubleValue(0.0));
 
     // Link the two FDD BWP:
-    nrHelper->GetBwpManagerGnb(gnbNetDev.Get(0))->SetOutputLink(2, 1);
+    NrHelper::GetBwpManagerGnb(gnbNetDev.Get(0))->SetOutputLink(2, 1);
 
     // -------------- Second GNB:
 
     // BWP0, the TDD one
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)->SetAttribute("Numerology", UintegerValue(1));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 0)->SetAttribute("Numerology", UintegerValue(1));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 0)
         ->SetAttribute("Pattern", StringValue("F|F|F|F|F|F|F|F|F|F|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 0)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 0)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP1, FDD-DL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 1)->SetAttribute("Numerology", UintegerValue(1));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 1)->SetAttribute("Numerology", UintegerValue(1));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 1)
         ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 1)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 1)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP2, FDD-UL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 2)->SetAttribute("Numerology", UintegerValue(1));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 2)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 2)->SetAttribute("Numerology", UintegerValue(1));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 2)
         ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(1), 2)->SetAttribute("TxPower", DoubleValue(0.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(1), 2)->SetAttribute("TxPower", DoubleValue(0.0));
 
     // Link the two FDD BWP:
-    nrHelper->GetBwpManagerGnb(gnbNetDev.Get(1))->SetOutputLink(2, 1);
+    NrHelper::GetBwpManagerGnb(gnbNetDev.Get(1))->SetOutputLink(2, 1);
 
     // -------------- Third GNB:
 
     // BWP0, the TDD one
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 0)->SetAttribute("Numerology", UintegerValue(2));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 0)->SetAttribute("Numerology", UintegerValue(2));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 0)
         ->SetAttribute("Pattern", StringValue("F|F|F|F|F|F|F|F|F|F|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 0)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 0)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP1, FDD-DL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 1)->SetAttribute("Numerology", UintegerValue(2));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 1)->SetAttribute("Numerology", UintegerValue(2));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 1)
         ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 1)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 1)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP2, FDD-UL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 2)->SetAttribute("Numerology", UintegerValue(2));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 2)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 2)->SetAttribute("Numerology", UintegerValue(2));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 2)
         ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(2), 2)->SetAttribute("TxPower", DoubleValue(0.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(2), 2)->SetAttribute("TxPower", DoubleValue(0.0));
 
     // Link the two FDD BWP:
-    nrHelper->GetBwpManagerGnb(gnbNetDev.Get(2))->SetOutputLink(2, 1);
+    NrHelper::GetBwpManagerGnb(gnbNetDev.Get(2))->SetOutputLink(2, 1);
 
     // -------------- Fourth GNB:
 
     // BWP0, the TDD one
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 0)->SetAttribute("Numerology", UintegerValue(3));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 0)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 0)->SetAttribute("Numerology", UintegerValue(3));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 0)
         ->SetAttribute("Pattern", StringValue("F|F|F|F|F|F|F|F|F|F|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 0)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 0)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP1, FDD-DL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 1)->SetAttribute("Numerology", UintegerValue(3));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 1)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 1)->SetAttribute("Numerology", UintegerValue(3));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 1)
         ->SetAttribute("Pattern", StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 1)->SetAttribute("TxPower", DoubleValue(4.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 1)->SetAttribute("TxPower", DoubleValue(4.0));
 
     // BWP2, FDD-UL
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 2)->SetAttribute("Numerology", UintegerValue(3));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 2)
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 2)->SetAttribute("Numerology", UintegerValue(3));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 2)
         ->SetAttribute("Pattern", StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
-    nrHelper->GetGnbPhy(gnbNetDev.Get(3), 2)->SetAttribute("TxPower", DoubleValue(0.0));
+    NrHelper::GetGnbPhy(gnbNetDev.Get(3), 2)->SetAttribute("TxPower", DoubleValue(0.0));
 
     // Link the two FDD BWP:
-    nrHelper->GetBwpManagerGnb(gnbNetDev.Get(3))->SetOutputLink(2, 1);
+    NrHelper::GetBwpManagerGnb(gnbNetDev.Get(3))->SetOutputLink(2, 1);
 
     // Set the UE routing:
 
     for (uint32_t i = 0; i < ueNetDev.GetN(); i++)
     {
-        nrHelper->GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(1, 2);
+        NrHelper::GetBwpManagerUe(ueNetDev.Get(i))->SetOutputLink(1, 2);
     }
 
     // From here, it is standard NS3. In the future, we will create helpers

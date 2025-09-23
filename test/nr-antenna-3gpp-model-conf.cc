@@ -321,7 +321,7 @@ TestAntenna3gppModelConf::DoRun()
     serverAppsDl.Stop(udpAppStopTimeDl);
     clientAppsDl.Stop(udpAppStopTimeDl);
 
-    Ptr<NrSpectrumPhy> ue1SpectrumPhy = nrHelper->GetUePhy(ueNetDevs.Get(0), 0)->GetSpectrumPhy();
+    Ptr<NrSpectrumPhy> ue1SpectrumPhy = NrHelper::GetUePhy(ueNetDevs.Get(0), 0)->GetSpectrumPhy();
     ue1SpectrumPhy->TraceConnectWithoutContext("RxPacketTraceUe",
                                                MakeBoundCallback(&UETraceReception, this));
 

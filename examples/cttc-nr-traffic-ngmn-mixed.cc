@@ -424,40 +424,40 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     for (uint32_t numCell = 0; numCell < gnbSector1NetDev.GetN(); ++numCell)
     {
         Ptr<NetDevice> gnb = gnbSector1NetDev.Get(numCell);
-        uint32_t numBwps = nrHelper->GetNumberBwp(gnb);
+        uint32_t numBwps = NrHelper::GetNumberBwp(gnb);
         if (numBwps == 1) // TDD
         {
             // Change the antenna orientation
-            Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
+            Ptr<NrGnbPhy> phy = NrHelper::GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
                 DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
-            nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
+            NrHelper::GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
                                                       StringValue("F|F|F|F|F|F|F|F|F|F|"));
         }
 
         else if (numBwps == 2) // FDD
         {
             // Change the antenna orientation
-            Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
+            Ptr<NrGnbPhy> phy0 = NrHelper::GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
                 DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
-            Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
+            Ptr<NrGnbPhy> phy1 = NrHelper::GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
                 DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
-            nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
+            NrHelper::GetGnbPhy(gnb, 0)->SetAttribute(
                 "Pattern",
                 StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-            nrHelper->GetGnbPhy(gnb, 1)->SetAttribute(
+            NrHelper::GetGnbPhy(gnb, 1)->SetAttribute(
                 "Pattern",
                 StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
 
             // Link the two FDD BWP
-            nrHelper->GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
+            NrHelper::GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
         }
 
         else
@@ -470,39 +470,39 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     for (uint32_t numCell = 0; numCell < gnbSector2NetDev.GetN(); ++numCell)
     {
         Ptr<NetDevice> gnb = gnbSector2NetDev.Get(numCell);
-        uint32_t numBwps = nrHelper->GetNumberBwp(gnb);
+        uint32_t numBwps = NrHelper::GetNumberBwp(gnb);
         if (numBwps == 1) // TDD
         {
             // Change the antenna orientation
-            Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
+            Ptr<NrGnbPhy> phy = NrHelper::GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
                 DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
-            nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
+            NrHelper::GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
                                                       StringValue("F|F|F|F|F|F|F|F|F|F|"));
         }
 
         else if (numBwps == 2) // FDD
         {
             // Change the antenna orientation
-            Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
+            Ptr<NrGnbPhy> phy0 = NrHelper::GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
                 DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
-            Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
+            Ptr<NrGnbPhy> phy1 = NrHelper::GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
                 DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
-            nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
+            NrHelper::GetGnbPhy(gnb, 0)->SetAttribute(
                 "Pattern",
                 StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-            nrHelper->GetGnbPhy(gnb, 1)->SetAttribute(
+            NrHelper::GetGnbPhy(gnb, 1)->SetAttribute(
                 "Pattern",
                 StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
             // Link the two FDD BWP
-            nrHelper->GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
+            NrHelper::GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
         }
 
         else
@@ -515,39 +515,39 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     for (uint32_t numCell = 0; numCell < gnbSector3NetDev.GetN(); ++numCell)
     {
         Ptr<NetDevice> gnb = gnbSector3NetDev.Get(numCell);
-        uint32_t numBwps = nrHelper->GetNumberBwp(gnb);
+        uint32_t numBwps = NrHelper::GetNumberBwp(gnb);
         if (numBwps == 1) // TDD
         {
             // Change the antenna orientation
-            Ptr<NrGnbPhy> phy = nrHelper->GetGnbPhy(gnb, 0);
+            Ptr<NrGnbPhy> phy = NrHelper::GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna =
                 DynamicCast<UniformPlanarArray>(phy->GetSpectrumPhy()->GetAntenna());
             antenna->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
-            nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
+            NrHelper::GetGnbPhy(gnb, 0)->SetAttribute("Pattern",
                                                       StringValue("F|F|F|F|F|F|F|F|F|F|"));
         }
 
         else if (numBwps == 2) // FDD
         {
             // Change the antenna orientation
-            Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0);
+            Ptr<NrGnbPhy> phy0 = NrHelper::GetGnbPhy(gnb, 0);
             Ptr<UniformPlanarArray> antenna0 =
                 DynamicCast<UniformPlanarArray>(phy0->GetSpectrumPhy()->GetAntenna());
             antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
-            Ptr<NrGnbPhy> phy1 = nrHelper->GetGnbPhy(gnb, 1);
+            Ptr<NrGnbPhy> phy1 = NrHelper::GetGnbPhy(gnb, 1);
             Ptr<UniformPlanarArray> antenna1 =
                 DynamicCast<UniformPlanarArray>(phy1->GetSpectrumPhy()->GetAntenna());
             antenna1->SetAttribute("BearingAngle", DoubleValue(orientationRads));
             // Set TDD pattern
-            nrHelper->GetGnbPhy(gnb, 0)->SetAttribute(
+            NrHelper::GetGnbPhy(gnb, 0)->SetAttribute(
                 "Pattern",
                 StringValue("DL|DL|DL|DL|DL|DL|DL|DL|DL|DL|"));
-            nrHelper->GetGnbPhy(gnb, 1)->SetAttribute(
+            NrHelper::GetGnbPhy(gnb, 1)->SetAttribute(
                 "Pattern",
                 StringValue("UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|"));
             // Link the two FDD BWP
-            nrHelper->GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
+            NrHelper::GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
         }
 
         else
@@ -562,17 +562,17 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
     {
         for (uint32_t i = 0; i < ueSector1NetDev.GetN(); i++)
         {
-            nrHelper->GetBwpManagerUe(ueSector1NetDev.Get(i))->SetOutputLink(0, 1);
+            NrHelper::GetBwpManagerUe(ueSector1NetDev.Get(i))->SetOutputLink(0, 1);
         }
 
         for (uint32_t i = 0; i < ueSector2NetDev.GetN(); i++)
         {
-            nrHelper->GetBwpManagerUe(ueSector2NetDev.Get(i))->SetOutputLink(0, 1);
+            NrHelper::GetBwpManagerUe(ueSector2NetDev.Get(i))->SetOutputLink(0, 1);
         }
 
         for (uint32_t i = 0; i < ueSector3NetDev.GetN(); i++)
         {
-            nrHelper->GetBwpManagerUe(ueSector3NetDev.Get(i))->SetOutputLink(0, 1);
+            NrHelper::GetBwpManagerUe(ueSector3NetDev.Get(i))->SetOutputLink(0, 1);
         }
     }
 }

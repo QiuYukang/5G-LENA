@@ -115,7 +115,7 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
              double beamConfElevation)
 {
     // Change the antenna orientation
-    Ptr<NrGnbPhy> phy0 = nrHelper->GetGnbPhy(gnb, 0); // BWP 0
+    Ptr<NrGnbPhy> phy0 = NrHelper::GetGnbPhy(gnb, 0); // BWP 0
     Ptr<UniformPlanarArray> antenna0 = ConstCast<UniformPlanarArray>(
         phy0->GetSpectrumPhy()->GetAntenna()->GetObject<UniformPlanarArray>());
     antenna0->SetAttribute("BearingAngle", DoubleValue(orientationRads));
@@ -125,13 +125,13 @@ ConfigurePhy(Ptr<NrHelper>& nrHelper,
     phy0->GetSpectrumPhy()->GetBeamManager()->SetPredefinedBeam(beamConfSector, beamConfElevation);
 
     // Set numerology
-    nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Numerology", UintegerValue(numerology)); // BWP
+    NrHelper::GetGnbPhy(gnb, 0)->SetAttribute("Numerology", UintegerValue(numerology)); // BWP
 
     // Set TX power
-    nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("TxPower", DoubleValue(txPowerBs));
+    NrHelper::GetGnbPhy(gnb, 0)->SetAttribute("TxPower", DoubleValue(txPowerBs));
 
     // Set TDD pattern
-    nrHelper->GetGnbPhy(gnb, 0)->SetAttribute("Pattern", StringValue(pattern));
+    NrHelper::GetGnbPhy(gnb, 0)->SetAttribute("Pattern", StringValue(pattern));
 }
 
 } // unnamed namespace
@@ -897,7 +897,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
     for (uint32_t cellId = 0; cellId < gnbNetDevs.GetN(); ++cellId)
     {
         Ptr<NetDevice> gnb = gnbNetDevs.Get(cellId);
-        uint32_t numBwps = nrHelper->GetNumberBwp(gnb);
+        uint32_t numBwps = NrHelper::GetNumberBwp(gnb);
         if (numBwps > 2)
         {
             NS_ABORT_MSG("Incorrect number of BWPs per CC");
@@ -933,7 +933,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
                          beamConfSector,
                          beamConfElevation);
             // Link the two FDD BWP
-            nrHelper->GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
+            NrHelper::GetBwpManagerGnb(gnb)->SetOutputLink(1, 0);
         }
     }
 
@@ -943,7 +943,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
     // Set the UE routing:
     for (auto nd = ueNetDevs.Begin(); nd != ueNetDevs.End(); ++nd)
     {
-        auto uePhyFirst = nrHelper->GetUePhy(*nd, 0);
+        auto uePhyFirst = NrHelper::GetUePhy(*nd, 0);
         auto uePhySecond{uePhyFirst};
 
         ObjectVectorValue ueSpectrumPhysFirstBwp;
@@ -971,8 +971,8 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
 
         if (operationMode == "FDD")
         {
-            nrHelper->GetBwpManagerUe(*nd)->SetOutputLink(0, 1);
-            uePhySecond = nrHelper->GetUePhy(*nd, 1);
+            NrHelper::GetBwpManagerUe(*nd)->SetOutputLink(0, 1);
+            uePhySecond = NrHelper::GetUePhy(*nd, 1);
             uePhySecond->SetUplinkPowerControl(uePhyFirst->GetUplinkPowerControl());
 
             ObjectVectorValue ueSpectrumPhysSecondBwp;
@@ -994,7 +994,7 @@ LenaV2Utils::SetLenaV2SimulatorParameters(
         {
             bwpId = 1;
         }
-        auto gnbPhy = nrHelper->GetGnbPhy(*nd, bwpId);
+        auto gnbPhy = NrHelper::GetGnbPhy(*nd, bwpId);
         gnbPhy->TraceConnectWithoutContext("SlotDataStats",
                                            MakeBoundCallback(&ReportSlotStatsNr, slotStats));
         gnbPhy->TraceConnectWithoutContext("RBDataStats",

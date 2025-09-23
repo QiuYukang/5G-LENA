@@ -806,11 +806,11 @@ NrTimingsTest::UeMacRx(SfnSf sfn,
 // Ugly pre-processor macro, to speed up writing. The best way would be to use
 // static functions... so please forget them, and remember that they work
 // only here in the DoRun function, as it is all hard-coded
-#define GET_GNB_PHY(X, Y) nrHelper->GetGnbPhy(gnbNetDev.Get(X), Y)
-#define GET_GNB_MAC(X, Y) nrHelper->GetGnbMac(gnbNetDev.Get(X), Y)
+#define GET_GNB_PHY(X, Y) NrHelper::GetGnbPhy(gnbNetDev.Get(X), Y)
+#define GET_GNB_MAC(X, Y) NrHelper::GetGnbMac(gnbNetDev.Get(X), Y)
 
-#define GET_UE_PHY(X, Y) nrHelper->GetUePhy(ueNetDev.Get(X), Y)
-#define GET_UE_MAC(X, Y) nrHelper->GetUeMac(ueNetDev.Get(X), Y)
+#define GET_UE_PHY(X, Y) NrHelper::GetUePhy(ueNetDev.Get(X), Y)
+#define GET_UE_MAC(X, Y) NrHelper::GetUeMac(ueNetDev.Get(X), Y)
 
 void
 NrTimingsTest::DoRun()
