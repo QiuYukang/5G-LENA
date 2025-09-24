@@ -88,14 +88,14 @@ spell-check:
   timeout: 1h
 
 # Clang-tidy
-clang-tidy-17:
+clang-tidy-19:
   stage: code-linting
-  image: ubuntu:rolling
+  image: ubuntu:latest
   before_script:
     - apt update
     - DEBIAN_FRONTEND=noninteractive apt install -y
       clang cmake
-      clang-tidy clang-tidy-17
+      clang-tidy clang-tidy-19
       git libsqlite3-dev libeigen3-dev
   script:
     - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
@@ -105,7 +105,7 @@ clang-tidy-17:
     - echo "Trimming compile_commands.json to filter out non-nr code"
     - ./contrib/nr/tools/trim_compile_commands.py ./cmake-cache/compile_commands.json
     - echo "Running full clang-tidy for nr"
-    - run-clang-tidy-17 -p cmake-cache/ -quiet 1> ../clang-tidy-output.log 2> /dev/null
+    - run-clang-tidy-19 -p cmake-cache/ -quiet 1> ../clang-tidy-output.log 2> /dev/null
     # Check job results
     - (! egrep -v "file not found \[clang-diagnostic-error\]" ../clang-tidy-output.log | egrep -A3 "error:|warning:|note:")
     - echo "No clang-tidy errors found"
