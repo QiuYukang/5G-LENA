@@ -8,12 +8,11 @@
 # "RELEASE", that has a value "weekly". Also, a variable "CLANG" should be set
 # to True.
 
-# We support CLANG 11 - 14
-# We test only 11 and 14 on Ubuntu 22.04
+# We support CLANG >17
 # The test is done under Linux.
 
-.weekly-build-clang-ubuntu22.04:
-  image: ubuntu:22.04
+.weekly-build-clang-ubuntu24.04:
+  image: ubuntu:24.04
   extends: .base-build
   rules:
     - if: $RELEASE == "weekly"
@@ -25,8 +24,8 @@
     - apt --quiet upgrade --yes
     - apt --quiet install --yes --no-install-recommends
       ca-certificates
-      clang-$CLANG cmake ninja-build ccache build-essential
-      git
+      clang-$CLANG lld-$CLANG libc++-$CLANG-dev libc++abi-$CLANG-dev
+      cmake ninja-build ccache build-essential
       libboost-all-dev
       libeigen3-dev
       libgsl-dev $LIBGSL gsl-bin
@@ -34,47 +33,28 @@
       libsqlite3-dev sqlite3
       libxml2 libxml2-dev
       python3 python3-dev
-      ssh
+      ssh git
   variables:
     COMPILER: clang++-$CLANG
     LIBGSL: libgsl27
 
-# CLANG 11
-weekly-build-clang-11-debug:
-  extends: .weekly-build-clang-ubuntu22.04
+# CLANG 17
+weekly-build-clang-17-debug:
+  extends: .weekly-build-clang-ubuntu24.04
   variables:
-    CLANG: 11
+    CLANG: 17
     MODE: debug
 
-weekly-build-clang-11-default:
-  extends: .weekly-build-clang-ubuntu22.04
+weekly-build-clang-17-default:
+  extends: .weekly-build-clang-ubuntu24.04
   variables:
-    CLANG: 11
+    CLANG: 17
     MODE: default
 
-weekly-build-clang-11-optimized:
-  extends: .weekly-build-clang-ubuntu22.04
+weekly-build-clang-17-optimized:
+  extends: .weekly-build-clang-ubuntu24.04
   variables:
-    CLANG: 11
-    MODE: optimized
-
-# CLANG 14
-weekly-build-clang-14-debug:
-  extends: .weekly-build-clang-ubuntu22.04
-  variables:
-    CLANG: 14
-    MODE: debug
-
-weekly-build-clang-14-default:
-  extends: .weekly-build-clang-ubuntu22.04
-  variables:
-    CLANG: 14
-    MODE: default
-
-weekly-build-clang-14-optimized:
-  extends: .weekly-build-clang-ubuntu22.04
-  variables:
-    CLANG: 14
+    CLANG: 17
     MODE: optimized
 
 # CLANG rolling
