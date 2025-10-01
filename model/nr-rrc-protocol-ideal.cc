@@ -16,7 +16,7 @@
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
 
-NS_LOG_COMPONENT_DEFINE("nrRrcProtocolIdeal");
+NS_LOG_COMPONENT_DEFINE("NrRrcProtocolIdeal");
 
 namespace ns3
 {
@@ -160,7 +160,7 @@ NrUeRrcProtocolIdeal::DoSendIdealUeContextRemoveRequest(uint16_t rnti)
 void
 NrUeRrcProtocolIdeal::SetGnbRrcSapProvider()
 {
-    uint16_t bwpId = m_rrc->GetCellId();
+    uint16_t cellId = m_rrc->GetCellId();
 
     // walk list of all nodes to get the peer gNB
     Ptr<NrGnbNetDevice> gnbDev;
@@ -173,20 +173,14 @@ NrUeRrcProtocolIdeal::SetGnbRrcSapProvider()
         for (int j = 0; (j < nDevs) && (!found); j++)
         {
             gnbDev = node->GetDevice(j)->GetObject<NrGnbNetDevice>();
-            if (gnbDev != nullptr)
+            if (gnbDev != nullptr && gnbDev->GetCellId() == cellId)
             {
-                for (uint32_t h = 0; h < gnbDev->GetCcMapSize(); ++h)
-                {
-                    if (gnbDev->GetBwpId(h) == bwpId)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
+                found = true;
+                break;
             }
         }
     }
-    NS_ASSERT_MSG(found, " Unable to find gNB with BwpID =" << bwpId);
+    NS_ASSERT_MSG(found, " Unable to find gNB with CellID =" << cellId);
     m_gnbRrcSapProvider = gnbDev->GetRrc()->GetNrGnbRrcSapProvider();
     Ptr<NrGnbRrcProtocolIdeal> gnbRrcProtocolIdeal =
         gnbDev->GetRrc()->GetObject<NrGnbRrcProtocolIdeal>();
@@ -272,7 +266,6 @@ NrGnbRrcProtocolIdeal::DoSendSystemInformation(uint16_t cellId, NrRrcSap::System
 {
     NS_LOG_FUNCTION(this << cellId);
     // walk list of all nodes to get UEs with this cellId
-    Ptr<NrUeRrc> ueRrc;
     for (auto i = NodeList::Begin(); i != NodeList::End(); ++i)
     {
         Ptr<Node> node = *i;

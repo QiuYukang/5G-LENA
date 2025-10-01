@@ -133,4 +133,17 @@ BandwidthPartGnb::SetCellId(uint16_t cellId)
     m_cellId = cellId;
 }
 
+void
+BandwidthPartGnb::SetBwpId(uint16_t bwpId)
+{
+    NS_LOG_FUNCTION(this << bwpId);
+    m_bwpId = bwpId;
+}
+
+uint16_t
+BandwidthPartGnb::GetBwpId() const
+{
+    return m_bwpId;
+}
+
 } // namespace ns3

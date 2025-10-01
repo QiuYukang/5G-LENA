@@ -965,6 +965,12 @@ class NrGnbRrc : public Object
     bool HasCellId(uint16_t cellId) const;
 
     /**
+     * @param bwpId Bandwidth-part ID
+     * @return true if bwpId is served by this gNB
+     */
+    bool HasBwpId(uint16_t bwpId) const;
+
+    /**
      * Enqueue an IP data packet on the proper bearer for downlink
      * transmission. Normally expected to be called by the NetDevice
      * forwarding a packet coming from the NrEpcGnbApplication

@@ -574,6 +574,7 @@ NrUeManager::ReleaseDataRadioBearer(uint8_t drbid)
     m_drbMap.erase(it);
     std::vector<uint8_t> ccToRelease =
         m_rrc->m_ccmRrcSapProvider->ReleaseDataRadioBearer(m_rnti, lcid);
+
     auto itCcToRelease = ccToRelease.begin();
     NS_ASSERT_MSG(itCcToRelease != ccToRelease.end(),
                   "request to remove radio bearer with unknown drbid (ComponentCarrierManager)");
@@ -683,124 +684,59 @@ NrUeManager::PrepareHandover(uint16_t cellId)
             m_rrc->m_componentCarrierPhyConf.at(m_componentCarrierId));
         NS_ASSERT(m_targetCellId != sourceComponentCarrier->GetCellId());
 
-        if (m_rrc->HasCellId(cellId))
-        {
-            // Intra-gNB handover
-            NS_LOG_DEBUG("Intra-gNB handover for cellId " << cellId);
-            uint8_t componentCarrierId = m_rrc->CellToComponentCarrierId(cellId);
-            uint16_t rnti = m_rrc->AddUe(NrUeManager::HANDOVER_JOINING, componentCarrierId);
-            NrGnbCmacSapProvider::AllocateNcRaPreambleReturnValue anrcrv =
-                m_rrc->m_cmacSapProvider.at(componentCarrierId)->AllocateNcRaPreamble(rnti);
-            if (!anrcrv.valid)
-            {
-                NS_LOG_INFO(this << " failed to allocate a preamble for non-contention based RA => "
-                                    "cannot perform HO");
-                NS_FATAL_ERROR("should trigger HO Preparation Failure, but it is not implemented");
-                return;
-            }
+        // Inter-gNB aka X2 handover
+        NS_LOG_DEBUG("Inter-gNB handover (i.e., X2) for cellId " << cellId);
+        NrEpcX2SapProvider::HandoverRequestParams params;
+        params.oldGnbUeX2apId = m_rnti;
+        params.cause = NrEpcX2SapProvider::HandoverDesirableForRadioReason;
+        params.sourceCellId = m_rrc->ComponentCarrierToCellId(m_componentCarrierId);
+        params.targetCellId = cellId;
+        params.mmeUeS1apId = m_imsi;
+        params.ueAggregateMaxBitRateDownlink = 200 * 1000;
+        params.ueAggregateMaxBitRateUplink = 100 * 1000;
+        params.bearers = GetErabList();
 
-            Ptr<NrUeManager> ueManager = m_rrc->GetUeManager(rnti);
-            ueManager->SetSource(sourceComponentCarrier->GetCellId(), m_rnti);
-            ueManager->SetImsi(m_imsi);
+        NrRrcSap::HandoverPreparationInfo hpi;
+        hpi.asConfig.sourceUeIdentity = m_rnti;
+        hpi.asConfig.sourceDlCarrierFreq = sourceComponentCarrier->GetDlEarfcn();
+        hpi.asConfig.sourceMeasConfig = m_rrc->m_ueMeasConfig;
+        hpi.asConfig.sourceRadioResourceConfig = GetRadioResourceConfigForHandoverPreparationInfo();
+        hpi.asConfig.sourceMasterInformationBlock.dlBandwidth =
+            sourceComponentCarrier->GetDlBandwidth();
+        hpi.asConfig.sourceMasterInformationBlock.systemFrameNumber = 0;
+        hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.plmnIdentityInfo
+            .plmnIdentity = m_rrc->m_sib1.at(m_componentCarrierId)
+                                .cellAccessRelatedInfo.plmnIdentityInfo.plmnIdentity;
+        hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.cellIdentity =
+            m_rrc->ComponentCarrierToCellId(m_componentCarrierId);
+        hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.csgIndication =
+            m_rrc->m_sib1.at(m_componentCarrierId).cellAccessRelatedInfo.csgIndication;
+        hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.csgIdentity =
+            m_rrc->m_sib1.at(m_componentCarrierId).cellAccessRelatedInfo.csgIdentity;
+        NrGnbCmacSapProvider::RachConfig rc =
+            m_rrc->m_cmacSapProvider.at(m_componentCarrierId)->GetRachConfig();
+        hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon.rachConfigCommon
+            .preambleInfo.numberOfRaPreambles = rc.numberOfRaPreambles;
+        hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon.rachConfigCommon
+            .raSupervisionInfo.preambleTransMax = rc.preambleTransMax;
+        hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon.rachConfigCommon
+            .raSupervisionInfo.raResponseWindowSize = rc.raResponseWindowSize;
+        hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon.rachConfigCommon
+            .txFailParam.connEstFailCount = rc.connEstFailCount;
+        hpi.asConfig.sourceSystemInformationBlockType2.freqInfo.ulCarrierFreq =
+            sourceComponentCarrier->GetUlEarfcn();
+        hpi.asConfig.sourceSystemInformationBlockType2.freqInfo.ulBandwidth =
+            sourceComponentCarrier->GetUlBandwidth();
+        params.rrcContext = m_rrc->m_rrcSapUser->EncodeHandoverPreparationInformation(hpi);
 
-            // Setup data radio bearers
-            for (auto& it : m_drbMap)
-            {
-                ueManager->SetupDataRadioBearer(it.second->m_epsBearer,
-                                                it.second->m_epsBearerIdentity,
-                                                it.second->m_gtpTeid,
-                                                it.second->m_transportLayerAddress);
-            }
+        NS_LOG_LOGIC("oldGnbUeX2apId = " << params.oldGnbUeX2apId);
+        NS_LOG_LOGIC("sourceCellId = " << params.sourceCellId);
+        NS_LOG_LOGIC("targetCellId = " << params.targetCellId);
+        NS_LOG_LOGIC("mmeUeS1apId = " << params.mmeUeS1apId);
+        NS_LOG_LOGIC("rrcContext   = " << params.rrcContext);
 
-            NrRrcSap::RrcConnectionReconfiguration handoverCommand =
-                GetRrcConnectionReconfigurationForHandover(componentCarrierId);
-
-            handoverCommand.mobilityControlInfo.newUeIdentity = rnti;
-            handoverCommand.mobilityControlInfo.haveRachConfigDedicated = true;
-            handoverCommand.mobilityControlInfo.rachConfigDedicated.raPreambleIndex =
-                anrcrv.raPreambleId;
-            handoverCommand.mobilityControlInfo.rachConfigDedicated.raPrachMaskIndex =
-                anrcrv.raPrachMaskIndex;
-
-            NrGnbCmacSapProvider::RachConfig rc =
-                m_rrc->m_cmacSapProvider.at(componentCarrierId)->GetRachConfig();
-            handoverCommand.mobilityControlInfo.radioResourceConfigCommon.rachConfigCommon
-                .preambleInfo.numberOfRaPreambles = rc.numberOfRaPreambles;
-            handoverCommand.mobilityControlInfo.radioResourceConfigCommon.rachConfigCommon
-                .raSupervisionInfo.preambleTransMax = rc.preambleTransMax;
-            handoverCommand.mobilityControlInfo.radioResourceConfigCommon.rachConfigCommon
-                .raSupervisionInfo.raResponseWindowSize = rc.raResponseWindowSize;
-
-            m_rrc->m_rrcSapUser->SendRrcConnectionReconfiguration(m_rnti, handoverCommand);
-
-            // We skip handover preparation
-            SwitchToState(HANDOVER_LEAVING);
-            m_handoverLeavingTimeout = Simulator::Schedule(m_rrc->m_handoverLeavingTimeoutDuration,
-                                                           &NrGnbRrc::HandoverLeavingTimeout,
-                                                           m_rrc,
-                                                           m_rnti);
-            m_rrc->m_handoverStartTrace(m_imsi,
-                                        sourceComponentCarrier->GetCellId(),
-                                        m_rnti,
-                                        handoverCommand.mobilityControlInfo.targetPhysCellId);
-        }
-        else
-        {
-            // Inter-gNB aka X2 handover
-            NS_LOG_DEBUG("Inter-gNB handover (i.e., X2) for cellId " << cellId);
-            NrEpcX2SapProvider::HandoverRequestParams params;
-            params.oldGnbUeX2apId = m_rnti;
-            params.cause = NrEpcX2SapProvider::HandoverDesirableForRadioReason;
-            params.sourceCellId = m_rrc->ComponentCarrierToCellId(m_componentCarrierId);
-            params.targetCellId = cellId;
-            params.mmeUeS1apId = m_imsi;
-            params.ueAggregateMaxBitRateDownlink = 200 * 1000;
-            params.ueAggregateMaxBitRateUplink = 100 * 1000;
-            params.bearers = GetErabList();
-
-            NrRrcSap::HandoverPreparationInfo hpi;
-            hpi.asConfig.sourceUeIdentity = m_rnti;
-            hpi.asConfig.sourceDlCarrierFreq = sourceComponentCarrier->GetDlEarfcn();
-            hpi.asConfig.sourceMeasConfig = m_rrc->m_ueMeasConfig;
-            hpi.asConfig.sourceRadioResourceConfig =
-                GetRadioResourceConfigForHandoverPreparationInfo();
-            hpi.asConfig.sourceMasterInformationBlock.dlBandwidth =
-                sourceComponentCarrier->GetDlBandwidth();
-            hpi.asConfig.sourceMasterInformationBlock.systemFrameNumber = 0;
-            hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.plmnIdentityInfo
-                .plmnIdentity = m_rrc->m_sib1.at(m_componentCarrierId)
-                                    .cellAccessRelatedInfo.plmnIdentityInfo.plmnIdentity;
-            hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.cellIdentity =
-                m_rrc->ComponentCarrierToCellId(m_componentCarrierId);
-            hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.csgIndication =
-                m_rrc->m_sib1.at(m_componentCarrierId).cellAccessRelatedInfo.csgIndication;
-            hpi.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.csgIdentity =
-                m_rrc->m_sib1.at(m_componentCarrierId).cellAccessRelatedInfo.csgIdentity;
-            NrGnbCmacSapProvider::RachConfig rc =
-                m_rrc->m_cmacSapProvider.at(m_componentCarrierId)->GetRachConfig();
-            hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon
-                .rachConfigCommon.preambleInfo.numberOfRaPreambles = rc.numberOfRaPreambles;
-            hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon
-                .rachConfigCommon.raSupervisionInfo.preambleTransMax = rc.preambleTransMax;
-            hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon
-                .rachConfigCommon.raSupervisionInfo.raResponseWindowSize = rc.raResponseWindowSize;
-            hpi.asConfig.sourceSystemInformationBlockType2.radioResourceConfigCommon
-                .rachConfigCommon.txFailParam.connEstFailCount = rc.connEstFailCount;
-            hpi.asConfig.sourceSystemInformationBlockType2.freqInfo.ulCarrierFreq =
-                sourceComponentCarrier->GetUlEarfcn();
-            hpi.asConfig.sourceSystemInformationBlockType2.freqInfo.ulBandwidth =
-                sourceComponentCarrier->GetUlBandwidth();
-            params.rrcContext = m_rrc->m_rrcSapUser->EncodeHandoverPreparationInformation(hpi);
-
-            NS_LOG_LOGIC("oldGnbUeX2apId = " << params.oldGnbUeX2apId);
-            NS_LOG_LOGIC("sourceCellId = " << params.sourceCellId);
-            NS_LOG_LOGIC("targetCellId = " << params.targetCellId);
-            NS_LOG_LOGIC("mmeUeS1apId = " << params.mmeUeS1apId);
-            NS_LOG_LOGIC("rrcContext   = " << params.rrcContext);
-
-            m_rrc->m_x2SapProvider->SendHandoverRequest(params);
-            SwitchToState(HANDOVER_PREPARATION);
-        }
+        m_rrc->m_x2SapProvider->SendHandoverRequest(params);
+        SwitchToState(HANDOVER_PREPARATION);
     }
     break;
 
@@ -2378,15 +2314,17 @@ NrGnbRrc::AddUeMeasReportConfig(NrRrcSap::ReportConfigEutra config)
 void
 NrGnbRrc::ConfigureCell(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccPhyConf)
 {
-    auto it = ccPhyConf.begin();
-    NS_ASSERT(it != ccPhyConf.end());
-    uint16_t ulBandwidth = it->second->GetUlBandwidth();
-    uint16_t dlBandwidth = it->second->GetDlBandwidth();
-    uint32_t ulEarfcn = it->second->GetUlEarfcn();
-    uint32_t dlEarfcn = it->second->GetDlEarfcn();
-    NS_LOG_FUNCTION(this << ulBandwidth << dlBandwidth << ulEarfcn << dlEarfcn);
-    NS_ASSERT_MSG(!m_configured, "NrGnbRrc::ConfigureCell called more than once");
+    {
+        auto it = ccPhyConf.begin();
+        NS_ASSERT(it != ccPhyConf.end());
+        m_ulBandwidth = it->second->GetUlBandwidth();
+        m_dlBandwidth = it->second->GetDlBandwidth();
+        m_ulEarfcn = it->second->GetUlEarfcn();
+        m_dlEarfcn = it->second->GetDlEarfcn();
 
+        NS_LOG_FUNCTION(this << m_ulBandwidth << m_dlBandwidth << m_ulEarfcn << m_dlEarfcn);
+        NS_ASSERT_MSG(!m_configured, "NrGnbRrc::ConfigureCell called more than once");
+    }
     for (const auto& it : ccPhyConf)
     {
         m_cphySapProvider.at(it.first)->SetBandwidth(it.second->GetUlBandwidth(),
@@ -2397,11 +2335,6 @@ NrGnbRrc::ConfigureCell(const std::map<uint8_t, Ptr<BandwidthPartGnb>>& ccPhyCon
         m_cmacSapProvider.at(it.first)->ConfigureMac(it.second->GetUlBandwidth(),
                                                      it.second->GetDlBandwidth());
     }
-
-    m_dlEarfcn = dlEarfcn;
-    m_ulEarfcn = ulEarfcn;
-    m_dlBandwidth = dlBandwidth;
-    m_ulBandwidth = ulBandwidth;
 
     /*
      * Initializing the list of measurement objects.
@@ -2505,6 +2438,19 @@ NrGnbRrc::HasCellId(uint16_t cellId) const
     for (auto& it : m_componentCarrierPhyConf)
     {
         if (it.second->GetCellId() == cellId)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+NrGnbRrc::HasBwpId(uint16_t bwpId) const
+{
+    for (auto& it : m_componentCarrierPhyConf)
+    {
+        if (it.second->GetBwpId() == bwpId)
         {
             return true;
         }
@@ -2806,7 +2752,7 @@ NrGnbRrc::DoRecvHandoverRequest(NrEpcX2SapUser::HandoverRequestParams req)
          * handover has failed and source cell is notified to release the RRC connection and delete
          * the UE context at eNodeB and SGW/PGW.
          */
-        Ptr<NrUeManager> ueManager = GetUeManager(rnti);
+        ueManager = GetUeManager(rnti);
         NrEpcX2Sap::HandoverPreparationFailureParams msg = ueManager->BuildHoPrepFailMsg();
         m_x2SapProvider->SendHandoverPreparationFailure(msg);
         RemoveUe(rnti); // remove the UE from the target eNB

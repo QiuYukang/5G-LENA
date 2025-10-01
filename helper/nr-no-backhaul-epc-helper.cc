@@ -306,11 +306,9 @@ NrNoBackhaulEpcHelper::DoDispose()
 }
 
 void
-NrNoBackhaulEpcHelper::AddGnb(Ptr<Node> gnb,
-                              Ptr<NetDevice> nrGnbNetDevice,
-                              std::vector<uint16_t> cellIds)
+NrNoBackhaulEpcHelper::AddGnb(Ptr<Node> gnb, Ptr<NetDevice> nrGnbNetDevice, uint16_t cellId)
 {
-    NS_LOG_FUNCTION(this << gnb << nrGnbNetDevice << cellIds.size());
+    NS_LOG_FUNCTION(this << gnb << nrGnbNetDevice << cellId);
     NS_ASSERT(gnb == nrGnbNetDevice->GetNode());
 
     int retval;
@@ -351,9 +349,9 @@ NrNoBackhaulEpcHelper::AddGnb(Ptr<Node> gnb,
     retval = nrGnbSocket6->Connect(nrGnbSocketConnectAddress6);
     NS_ASSERT(retval == 0);
 
-    NS_LOG_INFO("Create NrEpcGnbApplication for cell ID " << cellIds.at(0));
+    NS_LOG_INFO("Create NrEpcGnbApplication for cell ID " << cellId);
     Ptr<NrEpcGnbApplication> gnbApp =
-        CreateObject<NrEpcGnbApplication>(nrGnbSocket, nrGnbSocket6, cellIds.at(0));
+        CreateObject<NrEpcGnbApplication>(nrGnbSocket, nrGnbSocket6, cellId);
     gnb->AddApplication(gnbApp);
     NS_ASSERT(gnb->GetNApplications() == 1);
     NS_ASSERT_MSG(gnb->GetApplication(0)->GetObject<NrEpcGnbApplication>(),
@@ -423,17 +421,14 @@ NrNoBackhaulEpcHelper::DoAddX2Interface(const Ptr<NrEpcX2>& gnb1X2,
     NS_ABORT_MSG_IF(!gnb1NrDevice, "Unable to find NrGnbNetDevice for the first gNB");
     NS_ABORT_MSG_IF(!gnb2NrDevice, "Unable to find NrGnbNetDevice for the second gNB");
 
-    std::vector<uint16_t> gnb1CellIds = gnb1NrDevice->GetCellIds();
-    std::vector<uint16_t> gnb2CellIds = gnb2NrDevice->GetCellIds();
-
-    uint16_t gnb1CellId = gnb1CellIds.at(0);
-    uint16_t gnb2CellId = gnb2CellIds.at(0);
+    uint16_t gnb1CellId = gnb1NrDevice->GetCellId();
+    uint16_t gnb2CellId = gnb2NrDevice->GetCellId();
 
     NS_LOG_LOGIC("NrGnbNetDevice #1 = " << gnb1NrDev << " - CellId = " << gnb1CellId);
     NS_LOG_LOGIC("NrGnbNetDevice #2 = " << gnb2NrDev << " - CellId = " << gnb2CellId);
 
-    gnb1X2->AddX2Interface(gnb1CellId, gnb1X2Address, gnb2CellIds, gnb2X2Address);
-    gnb2X2->AddX2Interface(gnb2CellId, gnb2X2Address, gnb1CellIds, gnb1X2Address);
+    gnb1X2->AddX2Interface(gnb1CellId, gnb1X2Address, gnb2NrDevice->GetBwpIds(), gnb2X2Address);
+    gnb2X2->AddX2Interface(gnb2CellId, gnb2X2Address, gnb1NrDevice->GetBwpIds(), gnb1X2Address);
 
     gnb1NrDevice->GetRrc()->AddX2Neighbour(gnb2CellId);
     gnb2NrDevice->GetRrc()->AddX2Neighbour(gnb1CellId);
@@ -589,9 +584,9 @@ void
 NrNoBackhaulEpcHelper::AddS1Interface(Ptr<Node> gnb,
                                       Ipv4Address gnbAddress,
                                       Ipv4Address sgwAddress,
-                                      std::vector<uint16_t> cellIds)
+                                      uint16_t cellId)
 {
-    NS_LOG_FUNCTION(this << gnb << gnbAddress << sgwAddress << cellIds.size());
+    NS_LOG_FUNCTION(this << gnb << gnbAddress << sgwAddress << cellId);
 
     // create S1-U socket for the gNB
     Ptr<Socket> gnbS1uSocket =
@@ -604,12 +599,9 @@ NrNoBackhaulEpcHelper::AddS1Interface(Ptr<Node> gnb,
     gnbApp->AddS1Interface(gnbS1uSocket, gnbAddress, sgwAddress);
 
     NS_LOG_INFO("Connect S1-AP interface");
-    for (uint16_t cellId : cellIds)
-    {
-        NS_LOG_DEBUG("Adding MME and SGW for cell ID " << cellId);
-        m_mmeApp->AddGnb(cellId, gnbAddress, gnbApp->GetS1apSapGnb());
-        m_sgwApp->AddGnb(cellId, gnbAddress, sgwAddress);
-    }
+    NS_LOG_DEBUG("Adding MME and SGW for cell ID " << cellId);
+    m_mmeApp->AddGnb(cellId, gnbAddress, gnbApp->GetS1apSapGnb());
+    m_sgwApp->AddGnb(cellId, gnbAddress, sgwAddress);
     gnbApp->SetS1apSapMme(m_mmeApp->GetS1apSapMme());
 }
 

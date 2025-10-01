@@ -131,9 +131,7 @@ class NrPointToPointEpcHelper : public NrNoBackhaulEpcHelper
     void DoDispose() override;
 
     // inherited from NrEpcHelper
-    void AddGnb(Ptr<Node> gnbNode,
-                Ptr<NetDevice> nrGnbNetDevice,
-                std::vector<uint16_t> cellIds) override;
+    void AddGnb(Ptr<Node> gnbNode, Ptr<NetDevice> nrGnbNetDevice, uint16_t cellId) override;
 
   protected:
     void NotifyConstructionCompleted() override;

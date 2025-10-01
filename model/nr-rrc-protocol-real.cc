@@ -271,12 +271,8 @@ UeRrcProtocolReal::SetGnbRrcSapProvider()
                 {
                     continue;
                 }
-                auto cells = gnbDev->GetCellIds();
                 // Populate a table to avoid repeating this
-                for (auto cell : cells)
-                {
-                    m_knownGnb[cell] = gnbDev;
-                }
+                m_knownGnb[gnbDev->GetCellId()] = gnbDev;
             }
         }
         NS_ABORT_MSG_IF(m_knownGnb.find(cellId) == m_knownGnb.end(),

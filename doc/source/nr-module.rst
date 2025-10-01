@@ -96,7 +96,7 @@ All the nodes in the simulation will have the same number of BWPs. Each one will
    +------------+------------+---------------+---------------+---------------+
    |                                Band 1                                   |
    +------------+------------+---------------+---------------+---------------+
-   |   CC 0                  |       CC 1                    |     CC 2      |
+   |           CC 0          |              CC 1             |     CC 2      |
    +------------+------------+---------------+---------------+---------------+
    |          BWP0           |              BWP1             |      BWP2     |
    +------------+------------+---------------+---------------+---------------+
@@ -111,16 +111,17 @@ The ccId numbering is, for some untrained eyes, weird. But that is because some 
    +------------+------------+---------------+---------------+---------------+
    |    GNB     |  Cell ID   | CcId for BWP0 | CcId for BWP1 | CcId for BWP2 |
    +============+============+===============+===============+===============+
-   |   GNB 0    |      1     |       1       |       2       |      3        |
+   |   GNB 0    |      1     |       0       |       1       |      2        |
    +------------+------------+---------------+---------------+---------------+
-   |   GNB 1    |      4     |       4       |       5       |      6        |
+   |   GNB 1    |      2     |       0       |       1       |      2        |
    +------------+------------+---------------+---------------+---------------+
-   |   GNB 2    |      7     |       7       |       8       |      9        |
+   |   GNB 2    |      3     |       0       |       1       |      2        |
    +------------+------------+---------------+---------------+---------------+
-   |   GNB 3    |      10    |       10      |       11      |      12       |
+   |   GNB 3    |      4     |       0       |       1       |      2        |
    +------------+------------+---------------+---------------+---------------+
 
-If we would use this as a simulation scenario, the messages that come from the CcId 1, 4, 7, 10, would refer to the same portion of the spectrum. These IDs, internally at the GNB, would be translated into the BWP 0 in all the cases. The BWP 1 will be associated with the CcId 2, 5, 8, 11 (respectively), and everything else follows.
+If we would use this as a simulation scenario, the messages that come from the same CcId number (e.g. 0), would refer to the same portion of the spectrum (if the same BWPs are configured to all devices).
+These IDs, internally at the GNB, would be translated into the BWP 0 in all the cases. The BWP 1 will be associated with the CcId 1 (respectively), and everything else follows.
 
 PHY layer
 *********

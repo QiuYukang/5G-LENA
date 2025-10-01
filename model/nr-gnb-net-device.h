@@ -48,7 +48,7 @@ class NrGnbNetDevice : public NrNetDevice
 
     Ptr<BwpManagerGnb> GetBwpManager() const;
 
-    uint16_t GetBwpId(uint8_t index) const;
+    uint16_t GetCellId(uint8_t index) const;
 
     /**
      * @return the cell id
@@ -56,9 +56,9 @@ class NrGnbNetDevice : public NrNetDevice
     uint16_t GetCellId() const;
 
     /**
-     * @return the cell ids belonging to this gNB
+     * @return the BWP IDs of this gNB
      */
-    std::vector<uint16_t> GetCellIds() const;
+    std::vector<uint16_t> GetBwpIds() const;
 
     /**
      * @brief Set this gnb cell id
@@ -163,32 +163,32 @@ class NrGnbNetDevice : public NrNetDevice
     bool IsCellConfigured() const;
 
     /**
-     * @brief Get downlink bandwidth for a given physical cell Id
-     * @param cellId Physical cell Id
+     * @brief Get downlink bandwidth for a given bandwidth part id
+     * @param bwpId Bandwidth part Id
      * @return number of RBs
      */
-    uint16_t GetCellIdDlBandwidth(uint16_t cellId) const;
+    uint16_t GetBwpDlBandwidth(uint16_t bwpId) const;
 
     /**
-     * @brief Get uplink bandwidth for a given physical cell Id
-     * @param cellId Physical cell Id
+     * @brief Get uplink bandwidth for a given bandwidth part id
+     * @param bwpId Bandwidth part Id
      * @return number of RBs
      */
-    uint16_t GetCellIdUlBandwidth(uint16_t cellId) const;
+    uint16_t GetBwpUlBandwidth(uint16_t bwpId) const;
 
     /**
-     * @brief Get uplink earfcn for a given physical cell Id
-     * @param cellId Physical cell Id
+     * @brief Get uplink earfcn for a given bandwidth part id
+     * @param bwpId Bandwidth part Id
      * @return downlink earfcn
      */
-    uint32_t GetCellIdDlEarfcn(uint16_t cellId) const;
+    uint32_t GetBwpDlEarfcn(uint16_t bwpId) const;
 
     /**
-     * @brief Get uplink earfcn for a given physical cell Id
-     * @param cellId Physical cell Id
+     * @brief Get uplink earfcn for a given bandwidth part id
+     * @param bwpId Bandwidth part Id
      * @return uplink earfcn
      */
-    uint32_t GetCellIdUlEarfcn(uint16_t cellId) const;
+    uint32_t GetBwpUlEarfcn(uint16_t bwpId) const;
 
   protected:
     void DoInitialize() override;

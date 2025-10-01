@@ -100,6 +100,18 @@ class BandwidthPartGnb : public NrComponentCarrier
      */
     void SetCellId(uint16_t cellId);
 
+    /**
+     * Set bwpId for cell
+     * @param bwpId BWP ID for cell
+     */
+    void SetBwpId(uint16_t bwpId);
+
+    /**
+     * Get bwpId for cell
+     * @param bwpId BWP ID for cell
+     */
+    uint16_t GetBwpId() const;
+
   protected:
     /**
      * @brief DoDispose method inherited from Object
@@ -111,6 +123,7 @@ class BandwidthPartGnb : public NrComponentCarrier
     Ptr<NrGnbMac> m_mac;             ///< the MAC instance of this eNodeB component carrier
     Ptr<NrMacScheduler> m_scheduler; ///< the scheduler instance of this eNodeB component carrier
     uint16_t m_cellId{0};            ///< Cell identifier
+    uint16_t m_bwpId{0};             ///< BWP identifier
 };
 
 } // namespace ns3

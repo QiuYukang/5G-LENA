@@ -538,7 +538,7 @@ NrX2HandoverTestCase::CheckConnected(Ptr<NetDevice> ueDevice, Ptr<NetDevice> gnb
     NS_ASSERT_MSG(ueManagerState == NrUeManager::CONNECTED_NORMALLY, "Wrong NrUeManager state!");
 
     uint16_t ueCellId = ueRrc->GetCellId();
-    std::vector<uint16_t> gnbCellId = nrGnbDevice->GetCellIds();
+    uint16_t gnbCellId = nrGnbDevice->GetCellId();
     bool gnbCellIdFound =
         std::find(gnbCellId.begin(), gnbCellId.end(), ueCellId) != gnbCellId.end();
     NS_TEST_ASSERT_MSG_EQ(gnbCellIdFound, true, "gNB does not contain UE cellId");

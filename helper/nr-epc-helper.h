@@ -66,9 +66,7 @@ class NrEpcHelper : public Object
      * @param nrGnbNetDevice the NrGnbNetDevice of the gNB node
      * @param cellIds IDs of cells served by this gNB
      */
-    virtual void AddGnb(Ptr<Node> gnbNode,
-                        Ptr<NetDevice> nrGnbNetDevice,
-                        std::vector<uint16_t> cellIds) = 0;
+    virtual void AddGnb(Ptr<Node> gnbNode, Ptr<NetDevice> nrGnbNetDevice, uint16_t cellId) = 0;
 
     /**
      * Notify the EPC of the existence of a new UE which might attach at a later time
@@ -97,7 +95,7 @@ class NrEpcHelper : public Object
     virtual void AddS1Interface(Ptr<Node> gnb,
                                 Ipv4Address gnbAddress,
                                 Ipv4Address sgwAddress,
-                                std::vector<uint16_t> cellIds) = 0;
+                                uint16_t cellId) = 0;
 
     /**
      * Activate an EPS bearer, setting up the corresponding S1-U tunnel.

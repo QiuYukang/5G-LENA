@@ -48,6 +48,22 @@ the cracks, unfortunately.  If you, as a user, can suggest improvements
 to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
+## Changes from NR-v4.1.1 to v4.2
+
+### New API:
+- Add ``Get/SetBwpId()`` functions to ``BandwidthPartGnb``. These will be used instead of ``Get/SetCellId()``,
+  minimizing confusion between the use of BwpId as "Physical" CellIds.
+
+### Changes to Existing API
+- Changed std:vector<uint16_t> cellIds parameters with a single cellId. In LTE we had multiple cells per gNB netdevice,
+  while in NR we don't. All BWPs will now refer to the same RRC, as configured in the RRC. This affects primarily
+  ``NrEpcHelper``, ``NrHelper``, ``NrNoBackhaulEpcHelper``, ``NrPointToPointEpcHelper`` and tests.
+
+### Changed Behavior
+- The numeration of BWPs was changed, so that BWP Ids match the order they are installed.
+
+---
+
 ## Changes from NR-v4.1 to v4.1.1
 
 ### New API:

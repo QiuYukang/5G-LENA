@@ -52,15 +52,13 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
     void DoDispose() override;
 
     // inherited from NrEpcHelper
-    void AddGnb(Ptr<Node> gnbNode,
-                Ptr<NetDevice> nrGnbNetDevice,
-                std::vector<uint16_t> cellIds) override;
+    void AddGnb(Ptr<Node> gnbNode, Ptr<NetDevice> nrGnbNetDevice, uint16_t cellId) override;
     void AddUe(Ptr<NetDevice> ueNrDevice, uint64_t imsi) override;
     void AddX2Interface(Ptr<Node> gnbNode1, Ptr<Node> gnbNode2) override;
     void AddS1Interface(Ptr<Node> gnb,
                         Ipv4Address gnbAddress,
                         Ipv4Address sgwAddress,
-                        std::vector<uint16_t> cellIds) override;
+                        uint16_t cellId) override;
     uint8_t ActivateEpsBearer(Ptr<NetDevice> ueNrDevice,
                               uint64_t imsi,
                               Ptr<NrEpcTft> tft,

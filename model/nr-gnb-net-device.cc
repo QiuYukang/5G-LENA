@@ -184,16 +184,16 @@ NrGnbNetDevice::GetCellId() const
 }
 
 std::vector<uint16_t>
-NrGnbNetDevice::GetCellIds() const
+NrGnbNetDevice::GetBwpIds() const
 {
-    std::vector<uint16_t> cellIds;
+    std::vector<uint16_t> bwpIds;
 
-    cellIds.reserve(m_ccMap.size());
+    bwpIds.reserve(m_ccMap.size());
     for (auto& it : m_ccMap)
     {
-        cellIds.push_back(it.second->GetCellId());
+        bwpIds.push_back(it.second->GetBwpId());
     }
-    return cellIds;
+    return bwpIds;
 }
 
 void
@@ -204,7 +204,7 @@ NrGnbNetDevice::SetCellId(uint16_t cellId)
 }
 
 uint16_t
-NrGnbNetDevice::GetBwpId(uint8_t index) const
+NrGnbNetDevice::GetCellId(uint8_t index) const
 {
     NS_LOG_FUNCTION(this);
     return m_ccMap.at(index)->GetCellId();
@@ -268,14 +268,13 @@ NrGnbNetDevice::IsCellConfigured() const
 }
 
 uint16_t
-NrGnbNetDevice::GetCellIdDlBandwidth(uint16_t cellId) const
+NrGnbNetDevice::GetBwpDlBandwidth(uint16_t bwpId) const
 {
-    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
-    if (m_rrc->HasCellId(cellId))
+    if (m_rrc->HasBwpId(bwpId))
     {
         for (const auto& [key, cc] : m_ccMap)
         {
-            if (cc->GetCellId() == cellId)
+            if (cc->GetBwpId() == bwpId)
             {
                 return cc->GetDlBandwidth();
             }
@@ -285,14 +284,14 @@ NrGnbNetDevice::GetCellIdDlBandwidth(uint16_t cellId) const
 }
 
 uint16_t
-NrGnbNetDevice::GetCellIdUlBandwidth(uint16_t cellId) const
+NrGnbNetDevice::GetBwpUlBandwidth(uint16_t bwpId) const
 {
-    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
-    if (m_rrc->HasCellId(cellId))
+    NS_ASSERT_MSG(m_rrc->HasBwpId(bwpId), "Unknown bwpId");
+    if (m_rrc->HasBwpId(bwpId))
     {
         for (const auto& [key, cc] : m_ccMap)
         {
-            if (cc->GetCellId() == cellId)
+            if (cc->GetBwpId() == bwpId)
             {
                 return cc->GetUlBandwidth();
             }
@@ -302,14 +301,14 @@ NrGnbNetDevice::GetCellIdUlBandwidth(uint16_t cellId) const
 }
 
 uint32_t
-NrGnbNetDevice::GetCellIdDlEarfcn(uint16_t cellId) const
+NrGnbNetDevice::GetBwpDlEarfcn(uint16_t bwpId) const
 {
-    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
-    if (m_rrc->HasCellId(cellId))
+    NS_ASSERT_MSG(m_rrc->HasBwpId(bwpId), "Unknown bwpId");
+    if (m_rrc->HasBwpId(bwpId))
     {
         for (const auto& [key, cc] : m_ccMap)
         {
-            if (cc->GetCellId() == cellId)
+            if (cc->GetBwpId() == bwpId)
             {
                 return cc->GetDlEarfcn();
             }
@@ -319,14 +318,14 @@ NrGnbNetDevice::GetCellIdDlEarfcn(uint16_t cellId) const
 }
 
 uint32_t
-NrGnbNetDevice::GetCellIdUlEarfcn(uint16_t cellId) const
+NrGnbNetDevice::GetBwpUlEarfcn(uint16_t bwpId) const
 {
-    NS_ASSERT_MSG(m_rrc->HasCellId(cellId), "Unknown cellId");
-    if (m_rrc->HasCellId(cellId))
+    NS_ASSERT_MSG(m_rrc->HasBwpId(bwpId), "Unknown bwpId");
+    if (m_rrc->HasBwpId(bwpId))
     {
         for (const auto& [key, cc] : m_ccMap)
         {
-            if (cc->GetCellId() == cellId)
+            if (cc->GetBwpId() == bwpId)
             {
                 return cc->GetUlEarfcn();
             }

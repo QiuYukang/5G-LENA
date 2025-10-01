@@ -476,17 +476,18 @@ NrRrcConnectionEstablishmentTestCase::CheckConnected(Ptr<NetDevice> ueDevice,
     // Verifying other attributes on both sides.
 
     uint16_t ueCellId = ueRrc->GetCellId();
-    std::vector<uint16_t> gnbCellIds = nrGnbDevice->GetCellIds();
+    uint16_t ueDlBwp = ueRrc->GetPrimaryDlIndex();
+    uint16_t ueUlBwp = ueRrc->GetPrimaryUlIndex();
     uint16_t ueImsi = ueNrDevice->GetImsi();
 
     uint8_t ueDlBandwidth = ueRrc->GetDlBandwidth();
-    uint8_t gnbDlBandwidth = nrGnbDevice->GetCellIdDlBandwidth(ueCellId);
+    uint8_t gnbDlBandwidth = nrGnbDevice->GetBwpDlBandwidth(ueDlBwp);
     uint8_t ueUlBandwidth = ueRrc->GetUlBandwidth();
-    uint8_t gnbUlBandwidth = nrGnbDevice->GetCellIdUlBandwidth(ueCellId);
+    uint8_t gnbUlBandwidth = nrGnbDevice->GetBwpUlBandwidth(ueUlBwp);
     uint8_t ueDlEarfcn = ueRrc->GetDlEarfcn();
-    uint8_t gnbDlEarfcn = nrGnbDevice->GetCellIdDlEarfcn(ueCellId);
+    uint8_t gnbDlEarfcn = nrGnbDevice->GetBwpDlEarfcn(ueDlBwp);
     uint8_t ueUlEarfcn = ueRrc->GetUlEarfcn();
-    uint8_t gnbUlEarfcn = nrGnbDevice->GetCellIdUlEarfcn(ueCellId);
+    uint8_t gnbUlEarfcn = nrGnbDevice->GetBwpUlEarfcn(ueUlBwp);
 
     NS_TEST_ASSERT_MSG_EQ(gnbRrc->HasCellId(ueCellId), true, "inconsistent CellId");
     NS_TEST_ASSERT_MSG_EQ(ueDlBandwidth, gnbDlBandwidth, "inconsistent DlBandwidth");

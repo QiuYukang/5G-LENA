@@ -94,13 +94,11 @@ NrPointToPointEpcHelper::DoDispose()
 }
 
 void
-NrPointToPointEpcHelper::AddGnb(Ptr<Node> gnb,
-                                Ptr<NetDevice> nrGnbNetDevice,
-                                std::vector<uint16_t> cellIds)
+NrPointToPointEpcHelper::AddGnb(Ptr<Node> gnb, Ptr<NetDevice> nrGnbNetDevice, uint16_t cellId)
 {
-    NS_LOG_FUNCTION(this << gnb << nrGnbNetDevice << cellIds.size());
+    NS_LOG_FUNCTION(this << gnb << nrGnbNetDevice << cellId);
 
-    NrNoBackhaulEpcHelper::AddGnb(gnb, nrGnbNetDevice, cellIds);
+    NrNoBackhaulEpcHelper::AddGnb(gnb, nrGnbNetDevice, cellId);
 
     // create a point to point link between the gNB and the SGW with
     // the corresponding new NetDevices on each side
@@ -127,7 +125,7 @@ NrPointToPointEpcHelper::AddGnb(Ptr<Node> gnb,
     Ipv4Address gnbS1uAddress = gnbSgwIpIfaces.GetAddress(0);
     Ipv4Address sgwS1uAddress = gnbSgwIpIfaces.GetAddress(1);
 
-    NrNoBackhaulEpcHelper::AddS1Interface(gnb, gnbS1uAddress, sgwS1uAddress, cellIds);
+    NrNoBackhaulEpcHelper::AddS1Interface(gnb, gnbS1uAddress, sgwS1uAddress, cellId);
 }
 
 } // namespace ns3

@@ -380,9 +380,7 @@ NrEpcS1uUlTestCase::DoRun()
         Ptr<NetDevice> gnbDevice = cellDevices.Get(cellDevices.GetN() - 1);
 
         // Note that the NrEpcGnbApplication won't care of the actual NetDevice type
-        std::vector<uint16_t> cellIds;
-        cellIds.push_back(cellId);
-        nrEpcHelper->AddGnb(gnb, gnbDevice, cellIds);
+        nrEpcHelper->AddGnb(gnb, gnbDevice, cellId);
 
         // Plug test RRC entity
         Ptr<NrEpcGnbApplication> gnbApp = gnb->GetApplication(0)->GetObject<NrEpcGnbApplication>();

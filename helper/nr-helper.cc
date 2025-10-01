@@ -764,10 +764,11 @@ NrHelper::InstallSingleGnbDevice(
 
         cc->SetUlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
         cc->SetDlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
-        cc->SetDlEarfcn(0);              // Argh... handover not working
-        cc->SetUlEarfcn(0);              // Argh... handover not working
-        cc->SetCellId(cellId);           // All CCs have the same cellId
-        cc->SetCsgId(m_cellIdCounter++); // CSG IDs starts matching cellId, then gets incremented
+        cc->SetDlEarfcn(0);    // Argh... handover not working
+        cc->SetUlEarfcn(0);    // Argh... handover not working
+        cc->SetCellId(cellId); // CellId is set just for easier debugging
+        cc->SetBwpId(bwpId);   // CC BwpId is used to map BWPs to the correct CC PHY/MAC
+        cc->SetCsgId(0);       // Assume single group
 
         auto phy = CreateGnbPhy(
             n,
@@ -917,7 +918,7 @@ NrHelper::InstallSingleGnbDevice(
     if (m_nrEpcHelper != nullptr)
     {
         NS_LOG_INFO("adding this gNB to the EPC");
-        m_nrEpcHelper->AddGnb(n, dev, dev->GetCellIds());
+        m_nrEpcHelper->AddGnb(n, dev, cellId);
         Ptr<NrEpcGnbApplication> gnbApp = n->GetApplication(0)->GetObject<NrEpcGnbApplication>();
         NS_ASSERT_MSG(gnbApp != nullptr, "cannot retrieve NrEpcGnbApplication");
 
@@ -1125,7 +1126,7 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
     for (uint32_t i = 0; i < gnbNetDev->GetCcMapSize(); ++i)
     {
         gnbNetDev->GetPhy(i)->RegisterUe(ueNetDev->GetImsi(), ueNetDev);
-        ueNetDev->GetPhy(i)->RegisterToGnb(gnbNetDev->GetBwpId(i));
+        ueNetDev->GetPhy(i)->RegisterToGnb(gnbNetDev->GetCellId());
         ueNetDev->GetPhy(i)->SetDlAmc(
             DynamicCast<NrMacSchedulerNs3>(gnbNetDev->GetScheduler(i))->GetDlAmc());
         ueNetDev->GetPhy(i)->SetDlCtrlSyms(gnbNetDev->GetMac(i)->GetDlCtrlSyms());
@@ -1136,7 +1137,7 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         ueNetDev->GetPhy(i)->SetNumerology(gnbNetDev->GetPhy(i)->GetNumerology());
         ueNetDev->GetPhy(i)->SetPattern(gnbNetDev->GetPhy(i)->GetPattern());
         Ptr<NrEpcUeNas> ueNas = ueNetDev->GetNas();
-        ueNas->Connect(gnbNetDev->GetBwpId(i), gnbNetDev->GetEarfcn(i));
+        ueNas->Connect(gnbNetDev->GetCellId(), gnbNetDev->GetEarfcn(i));
 
         if (IsMimoFeedbackEnabled())
         {
@@ -1601,7 +1602,7 @@ NrDrbActivator::ActivateDrb(uint64_t imsi, uint16_t cellId, uint16_t rnti)
     {
         Ptr<NrUeRrc> ueRrc = m_ueDevice->GetObject<NrUeNetDevice>()->GetRrc();
         NS_ASSERT(ueRrc->GetState() == NrUeRrc::CONNECTED_NORMALLY);
-        uint16_t rnti = ueRrc->GetRnti();
+        NS_ASSERT(rnti == ueRrc->GetRnti());
         Ptr<const NrGnbNetDevice> nrGnbDevice =
             m_ueDevice->GetObject<NrUeNetDevice>()->GetTargetGnb();
         Ptr<NrGnbRrc> gnbRrc = nrGnbDevice->GetObject<NrGnbNetDevice>()->GetRrc();
