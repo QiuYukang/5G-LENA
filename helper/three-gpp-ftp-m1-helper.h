@@ -170,5 +170,5 @@ class ThreeGppFtpM1Helper : public Object
     uint16_t m_currentFilesNumPerUe{1};   // the current number of files per UE
 };
 
-};     // namespace ns3
+}; // namespace ns3
 #endif // THREE_GPP_FTP_M1_HELPER_H

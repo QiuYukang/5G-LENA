@@ -176,7 +176,7 @@ class NrRrComponentCarrierManager : public NrNoOpComponentCarrierManager
 
   private:
     uint8_t m_lastCcIdForSr{0}; //!< Last CCID to which a SR was routed
-};                              // end of class NrRrComponentCarrierManager
+}; // end of class NrRrComponentCarrierManager
 
 } // end of namespace ns3
 

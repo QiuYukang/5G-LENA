@@ -1295,9 +1295,9 @@ NrUePhy::EnqueueDlHarqFeedback(const DlHarqInfo& m)
 
     auto k1It = m_harqIdToK1Map.find(m.m_harqProcessId);
 
-    NS_LOG_DEBUG("ReceiveNrDlHarqFeedback"
-                 << " Harq Process " << static_cast<uint32_t>(k1It->first)
-                 << " K1: " << k1It->second << " Frame " << m_currentSlot);
+    NS_LOG_DEBUG("ReceiveNrDlHarqFeedback" << " Harq Process " << static_cast<uint32_t>(k1It->first)
+                                           << " K1: " << k1It->second << " Frame "
+                                           << m_currentSlot);
 
     Time event = m_lastSlotStart + (GetSlotPeriod() * k1It->second);
     if (event <= Simulator::Now())

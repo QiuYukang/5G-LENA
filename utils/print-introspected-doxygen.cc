@@ -702,7 +702,7 @@ PrintAttributesTid(std::ostream& os, const TypeId tid)
                 {
                   public:
                     StringBeginMatcher(const std::string s)
-                        : m_string(s){};
+                        : m_string(s) {};
 
                     bool operator()(const std::string t)
                     {

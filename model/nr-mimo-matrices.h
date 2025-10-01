@@ -23,7 +23,7 @@ class NrCovMat : public ComplexMatrixArray
   public:
     NrCovMat() = default;
     NrCovMat(ComplexMatrixArray arr)
-        : ComplexMatrixArray(arr){};
+        : ComplexMatrixArray(arr) {};
 
     /// Add an interference signal: this += rhs * rhs.HermitianTranspose()
     /// @param rhs the full channel matrix (including precoding)
@@ -65,7 +65,7 @@ class NrIntfNormChanMat : public ComplexMatrixArray
   public:
     NrIntfNormChanMat() = default;
     NrIntfNormChanMat(ComplexMatrixArray arr)
-        : ComplexMatrixArray(arr){};
+        : ComplexMatrixArray(arr) {};
 
     /// @brief Compute the MIMO SINR when a specific precoder is applied.
     /// @param precMats the precoding matrices (dim: nTxPorts * rank * nRbs)
@@ -123,11 +123,11 @@ class NrSinrMatrix : public DoubleMatrixArray
   public:
     NrSinrMatrix() = default;
     NrSinrMatrix(DoubleMatrixArray arr)
-        : DoubleMatrixArray(arr){};
+        : DoubleMatrixArray(arr) {};
     NrSinrMatrix(const std::valarray<double>& values)
-        : DoubleMatrixArray(values){};
+        : DoubleMatrixArray(values) {};
     NrSinrMatrix(uint8_t rank, size_t nRbs)
-        : DoubleMatrixArray(rank, nRbs){};
+        : DoubleMatrixArray(rank, nRbs) {};
 
     uint8_t GetRank() const;
     size_t GetNumRbs() const;

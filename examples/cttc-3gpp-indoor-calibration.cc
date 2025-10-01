@@ -79,15 +79,15 @@ struct DroppingParameters
     uint8_t numHPortsUe = 1;
     DroppingParameters()
         : ueAntennaPolarization(false),
-          gnbAntennaPolarization(false){};
+          gnbAntennaPolarization(false) {};
     DroppingParameters(bool isUePolarized, bool isGnbPolarized)
         : ueAntennaPolarization(isUePolarized),
-          gnbAntennaPolarization(isGnbPolarized){};
+          gnbAntennaPolarization(isGnbPolarized) {};
     DroppingParameters(bool isUePolarized, bool isGnbPolarized, uint8_t nVGnb, uint8_t nHGnb)
         : ueAntennaPolarization(isUePolarized),
           gnbAntennaPolarization(isGnbPolarized),
           numVPortsGnb(nVGnb),
-          numHPortsGnb(nHGnb){};
+          numHPortsGnb(nHGnb) {};
     DroppingParameters(bool isUePolarized,
                        bool isGnbPolarized,
                        uint8_t nVGnb,
@@ -99,7 +99,7 @@ struct DroppingParameters
           numVPortsGnb(nVGnb),
           numHPortsGnb(nHGnb),
           numVPortsUe(nVUe),
-          numHPortsUe(nHUe){};
+          numHPortsUe(nHUe) {};
 };
 
 /**

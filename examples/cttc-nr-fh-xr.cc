@@ -932,9 +932,8 @@ main(int argc, char* argv[])
     }
     else if (deployment == "HEX" && freqScenario == 0) // NON_OVERLAPPING
     {
-        NS_LOG_LOGIC("NON_OVERLAPPING, "
-                     << ": " << bandwidthBand << ":" << bandwidthCc << ", " << (int)numCcPerBand
-                     << ", " << (int)numBwp);
+        NS_LOG_LOGIC("NON_OVERLAPPING, " << ": " << bandwidthBand << ":" << bandwidthCc << ", "
+                                         << (int)numCcPerBand << ", " << (int)numBwp);
 
         NS_LOG_LOGIC("bandConf0: " << bandCenter << " " << bandwidthBand);
         CcBwpCreator::SimpleOperationBandConf bandConf0(bandCenter, bandwidthBand, numCcPerBand);

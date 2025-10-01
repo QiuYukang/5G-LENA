@@ -57,7 +57,7 @@ NrMacSchedulerUeInfo::GetDlMcs(const UePtr& ue)
 template <typename T>
 uint8_t
 ComputeMcs(const NrMacSchedulerUeInfo* ueInfo,
-           T NrMacSchedulerUeInfo::SbMcsInfo::*field,
+           T NrMacSchedulerUeInfo::SbMcsInfo::* field,
            std::function<uint8_t(double)> postProcessing)
 {
     // Compute average field of allocated RBGs

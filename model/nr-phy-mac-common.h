@@ -646,7 +646,7 @@ struct RxPacketTraceParams
           m_corrupt(errorModelEnabled && tbInfo.m_isCorrupted),
           m_bwpId(bwpId),
           m_rbAssignedNum(static_cast<uint32_t>(tbInfo.m_expected.m_rbBitmap.size())),
-          m_cqi(cqi){};
+          m_cqi(cqi) {};
     uint64_t m_cellId{0};
     uint16_t m_rnti{0};
     uint32_t m_frameNum{std::numeric_limits<uint32_t>::max()};
@@ -749,7 +749,7 @@ namespace nr
  */
 struct VendorSpecificValue : public SimpleRefCount<VendorSpecificValue>
 {
-    virtual ~VendorSpecificValue(){};
+    virtual ~VendorSpecificValue() {};
 };
 
 /**

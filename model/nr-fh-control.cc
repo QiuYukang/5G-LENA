@@ -586,9 +586,8 @@ NrFhControl::DoUpdateTracesBasedOnDroppedData(uint16_t bwpId,
     // bwpId not in the map
     if (m_reqFhDlThrTracedValuePerBwp.find(bwpId) == m_reqFhDlThrTracedValuePerBwp.end())
     {
-        NS_LOG_DEBUG("Create pair for"
-                     << " m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
-                     << "): " << GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank));
+        NS_LOG_DEBUG("Create pair for" << " m_reqFhDlThrTracedValuePerBwp.at(" << bwpId
+                                       << "): " << GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank));
     }
     m_reqFhDlThrTracedValuePerBwp[bwpId] += GetFhThr(bwpId, mcs, (numRbs * nSymb), dlRank);
     NS_LOG_DEBUG("Update m_reqFhDlThrTracedValuePerBwp.at("

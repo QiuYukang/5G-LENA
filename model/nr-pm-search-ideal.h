@@ -1,4 +1,3 @@
-
 // Copyright (c) 2024 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 //
 // SPDX-License-Identifier: GPL-2.0-only
@@ -22,7 +21,7 @@ class NrPmSearchIdeal : public NrPmSearchFull
 
     /// @brief Constructor for NrPmSearchIdeal
     NrPmSearchIdeal()
-        : NrPmSearchFull(){};
+        : NrPmSearchFull() {};
 
     /**
      * @brief Create CQI feedback with optimal rank, optimal PMI, and corresponding CQI values.
