@@ -43,7 +43,7 @@ check-style-clang-format:
 # Check cmake format
 cmake-format:
   stage: code-linting
-  image: python:latest
+  image: python:3.13
   before_script:
     - pip install pyyaml cmake cmake-format ninja
   script:
