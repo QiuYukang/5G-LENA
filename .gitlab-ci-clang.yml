@@ -82,7 +82,7 @@ weekly-build-clang-17-optimized:
       libgsl-dev $LIBGSL gsl-bin
       libgtk-3-0 libgtk-3-dev
       libsqlite3-dev sqlite3
-      libxml2 libxml2-dev
+      libxml2-16 libxml2-dev
       python3 python3-dev
       ssh
   variables:
