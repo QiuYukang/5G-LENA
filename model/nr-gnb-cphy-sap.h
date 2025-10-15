@@ -49,12 +49,11 @@ class NrGnbCphySapProvider
     virtual void SetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth) = 0;
 
     /**
-     * Set EARFCN
+     * Set ARFCN
      *
-     * @param ulEarfcn the UL EARFCN
-     * @param dlEarfcn the DL EARFCN
+     * @param arfcn the ARFCN
      */
-    virtual void SetEarfcn(uint32_t ulEarfcn, uint32_t dlEarfcn) = 0;
+    virtual void SetArfcn(uint32_t arfcn) = 0;
 
     /**
      * Add a new UE to the cell
@@ -152,7 +151,7 @@ class MemberNrGnbCphySapProvider : public NrGnbCphySapProvider
     // inherited from NrGnbCphySapProvider
     void SetCellId(uint16_t cellId) override;
     void SetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth) override;
-    void SetEarfcn(uint32_t ulEarfcn, uint32_t dlEarfcn) override;
+    void SetArfcn(uint32_t arfcn) override;
     void AddUe(uint16_t rnti) override;
     void RemoveUe(uint16_t rnti) override;
     void SetPa(uint16_t rnti, double pa) override;
@@ -188,9 +187,9 @@ MemberNrGnbCphySapProvider<C>::SetBandwidth(uint16_t ulBandwidth, uint16_t dlBan
 
 template <class C>
 void
-MemberNrGnbCphySapProvider<C>::SetEarfcn(uint32_t ulEarfcn, uint32_t dlEarfcn)
+MemberNrGnbCphySapProvider<C>::SetArfcn(uint32_t arfcn)
 {
-    m_owner->DoSetEarfcn(ulEarfcn, dlEarfcn);
+    m_owner->DoSetArfcn(arfcn);
 }
 
 template <class C>

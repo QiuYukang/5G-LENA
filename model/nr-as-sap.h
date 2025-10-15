@@ -38,17 +38,17 @@ class NrAsSapProvider
     /**
      * @brief Initiate Idle mode cell selection procedure.
      *
-     * @param dlEarfcn the downlink carrier frequency (EARFCN)
+     * @param arfcn the downlink carrier frequency (ARFCN)
      */
-    virtual void StartCellSelection(uint32_t dlEarfcn) = 0;
+    virtual void StartCellSelection(uint32_t arfcn) = 0;
 
     /**
      * @brief Force the RRC entity to stay camped on a certain eNodeB.
      *
      * @param cellId the cell ID identifying the eNodeB
-     * @param dlEarfcn the downlink carrier frequency (EARFCN)
+     * @param arfcn the downlink carrier frequency (ARFCN)
      */
-    virtual void ForceCampedOnGnb(uint16_t cellId, uint32_t dlEarfcn) = 0;
+    virtual void ForceCampedOnGnb(uint16_t cellId, uint32_t arfcn) = 0;
 
     /**
      * @brief Tell the RRC entity to enter Connected mode.
@@ -129,8 +129,8 @@ class MemberNrAsSapProvider : public NrAsSapProvider
 
     // inherited from NrAsSapProvider
     void SetCsgWhiteList(uint32_t csgId) override;
-    void StartCellSelection(uint32_t dlEarfcn) override;
-    void ForceCampedOnGnb(uint16_t cellId, uint32_t dlEarfcn) override;
+    void StartCellSelection(uint32_t arfcn) override;
+    void ForceCampedOnGnb(uint16_t cellId, uint32_t arfcn) override;
     void Connect() override;
     void SendData(Ptr<Packet> packet, uint8_t bid) override;
     void Disconnect() override;
@@ -154,16 +154,16 @@ MemberNrAsSapProvider<C>::SetCsgWhiteList(uint32_t csgId)
 
 template <class C>
 void
-MemberNrAsSapProvider<C>::StartCellSelection(uint32_t dlEarfcn)
+MemberNrAsSapProvider<C>::StartCellSelection(uint32_t arfcn)
 {
-    m_owner->DoStartCellSelection(dlEarfcn);
+    m_owner->DoStartCellSelection(arfcn);
 }
 
 template <class C>
 void
-MemberNrAsSapProvider<C>::ForceCampedOnGnb(uint16_t cellId, uint32_t dlEarfcn)
+MemberNrAsSapProvider<C>::ForceCampedOnGnb(uint16_t cellId, uint32_t arfcn)
 {
-    m_owner->DoForceCampedOnGnb(cellId, dlEarfcn);
+    m_owner->DoForceCampedOnGnb(cellId, arfcn);
 }
 
 template <class C>

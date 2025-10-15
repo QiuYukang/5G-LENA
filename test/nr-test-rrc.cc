@@ -474,26 +474,27 @@ NrRrcConnectionEstablishmentTestCase::CheckConnected(Ptr<NetDevice> ueDevice,
     }
 
     // Verifying other attributes on both sides.
-
     uint16_t ueCellId = ueRrc->GetCellId();
     uint16_t ueDlBwp = ueRrc->GetPrimaryDlIndex();
     uint16_t ueUlBwp = ueRrc->GetPrimaryUlIndex();
+    uint8_t ueDlArfcn = ueNrDevice->GetArfcn(ueDlBwp);
+    uint8_t ueUlArfcn = ueNrDevice->GetArfcn(ueUlBwp);
     uint16_t ueImsi = ueNrDevice->GetImsi();
-
     uint8_t ueDlBandwidth = ueRrc->GetDlBandwidth();
-    uint8_t gnbDlBandwidth = nrGnbDevice->GetBwpDlBandwidth(ueDlBwp);
     uint8_t ueUlBandwidth = ueRrc->GetUlBandwidth();
-    uint8_t gnbUlBandwidth = nrGnbDevice->GetBwpUlBandwidth(ueUlBwp);
-    uint8_t ueDlEarfcn = ueRrc->GetDlEarfcn();
-    uint8_t gnbDlEarfcn = nrGnbDevice->GetBwpDlEarfcn(ueDlBwp);
-    uint8_t ueUlEarfcn = ueRrc->GetUlEarfcn();
-    uint8_t gnbUlEarfcn = nrGnbDevice->GetBwpUlEarfcn(ueUlBwp);
+
+    uint16_t gnbDlBwp = nrGnbDevice->GetArfcnBwpId(ueDlArfcn);
+    uint16_t gnbUlBwp = nrGnbDevice->GetArfcnBwpId(ueUlArfcn);
+    uint8_t gnbDlBandwidth = nrGnbDevice->GetBwpDlBandwidth(gnbDlBwp);
+    uint8_t gnbUlBandwidth = nrGnbDevice->GetBwpUlBandwidth(gnbUlBwp);
+    uint8_t gnbDlArfcn = nrGnbDevice->GetBwpArfcn(gnbDlBwp);
+    uint8_t gnbUlArfcn = nrGnbDevice->GetBwpArfcn(gnbUlBwp);
 
     NS_TEST_ASSERT_MSG_EQ(gnbRrc->HasCellId(ueCellId), true, "inconsistent CellId");
     NS_TEST_ASSERT_MSG_EQ(ueDlBandwidth, gnbDlBandwidth, "inconsistent DlBandwidth");
     NS_TEST_ASSERT_MSG_EQ(ueUlBandwidth, gnbUlBandwidth, "inconsistent UlBandwidth");
-    NS_TEST_ASSERT_MSG_EQ(ueDlEarfcn, gnbDlEarfcn, "inconsistent DlEarfcn");
-    NS_TEST_ASSERT_MSG_EQ(ueUlEarfcn, gnbUlEarfcn, "inconsistent UlEarfcn");
+    NS_TEST_ASSERT_MSG_EQ(ueDlArfcn, gnbDlArfcn, "inconsistent DlArfcn");
+    NS_TEST_ASSERT_MSG_EQ(ueUlArfcn, gnbUlArfcn, "inconsistent UlArfcn");
 
     if (hasContext)
     {

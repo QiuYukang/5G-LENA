@@ -487,8 +487,7 @@ NrHelper::InstallSingleUeDevice(
                         "A bandwidth of " << bwInKhz / 100.0 << " kHz cannot be represented");
         cc->SetUlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
         cc->SetDlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
-        cc->SetDlEarfcn(0); // Used for nothing..
-        cc->SetUlEarfcn(0); // Used for nothing..
+        cc->SetArfcn(0); // Used for nothing..
 
         auto mac = CreateUeMac();
         cc->SetMac(mac);
@@ -764,8 +763,7 @@ NrHelper::InstallSingleGnbDevice(
 
         cc->SetUlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
         cc->SetDlBandwidth(static_cast<uint16_t>(bwInKhz / 100));
-        cc->SetDlEarfcn(0);    // Argh... handover not working
-        cc->SetUlEarfcn(0);    // Argh... handover not working
+        cc->SetArfcn(0);       // Argh... handover not working
         cc->SetCellId(cellId); // CellId is set just for easier debugging
         cc->SetBwpId(bwpId);   // CC BwpId is used to map BWPs to the correct CC PHY/MAC
         cc->SetCsgId(0);       // Assume single group
@@ -1137,7 +1135,7 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         ueNetDev->GetPhy(i)->SetNumerology(gnbNetDev->GetPhy(i)->GetNumerology());
         ueNetDev->GetPhy(i)->SetPattern(gnbNetDev->GetPhy(i)->GetPattern());
         Ptr<NrEpcUeNas> ueNas = ueNetDev->GetNas();
-        ueNas->Connect(gnbNetDev->GetCellId(), gnbNetDev->GetEarfcn(i));
+        ueNas->Connect(gnbNetDev->GetCellId(), gnbNetDev->GetArfcn(i));
 
         if (IsMimoFeedbackEnabled())
         {

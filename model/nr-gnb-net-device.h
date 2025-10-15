@@ -66,7 +66,7 @@ class NrGnbNetDevice : public NrNetDevice
      */
     void SetCellId(uint16_t cellId);
 
-    uint16_t GetEarfcn(uint8_t index) const;
+    uint16_t GetArfcn(uint8_t index) const;
 
     void SetRrc(Ptr<NrGnbRrc> rrc);
 
@@ -177,18 +177,18 @@ class NrGnbNetDevice : public NrNetDevice
     uint16_t GetBwpUlBandwidth(uint16_t bwpId) const;
 
     /**
-     * @brief Get uplink earfcn for a given bandwidth part id
+     * @brief Get earfcn for a given bandwidth part id
      * @param bwpId Bandwidth part Id
-     * @return downlink earfcn
+     * @return earfcn
      */
-    uint32_t GetBwpDlEarfcn(uint16_t bwpId) const;
+    uint32_t GetBwpArfcn(uint16_t bwpId) const;
 
     /**
-     * @brief Get uplink earfcn for a given bandwidth part id
-     * @param bwpId Bandwidth part Id
-     * @return uplink earfcn
+     * @brief Get the local bandwidth part id for a target arfcn
+     * @param arfcn target ARFCN of BWP
+     * @return Bandwidth part Id
      */
-    uint32_t GetBwpUlEarfcn(uint16_t bwpId) const;
+    uint16_t GetArfcnBwpId(uint32_t arfcn) const;
 
   protected:
     void DoInitialize() override;

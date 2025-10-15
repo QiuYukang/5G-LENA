@@ -282,14 +282,9 @@ class NrUeRrc : public Object
     uint8_t GetDlBandwidth() const;
 
     /**
-     * @return the downlink carrier frequency (EARFCN)
+     * @return the downlink carrier frequency (ARFCN)
      */
-    uint32_t GetDlEarfcn() const;
-
-    /**
-     * @return the uplink carrier frequency (EARFCN)
-     */
-    uint32_t GetUlEarfcn() const;
+    uint32_t GetArfcn() const;
 
     /**
      *
@@ -456,15 +451,15 @@ class NrUeRrc : public Object
      * Force camped on gNB function
      *
      * @param cellId the cell ID
-     * @param dlEarfcn the DL EARFCN
+     * @param arfcn the DL ARFCN
      */
-    void DoForceCampedOnGnb(uint16_t cellId, uint32_t dlEarfcn);
+    void DoForceCampedOnGnb(uint16_t cellId, uint32_t arfcn);
     /**
      * Start cell selection function
      *
-     * @param dlEarfcn the DL EARFCN
+     * @param arfcn the DL ARFCN
      */
-    void DoStartCellSelection(uint32_t dlEarfcn);
+    void DoStartCellSelection(uint32_t arfcn);
     /// Connect function
     void DoConnect();
     /**
@@ -845,8 +840,9 @@ class NrUeRrc : public Object
     uint16_t m_dlBandwidth; /**< Downlink bandwidth in RBs. */
     uint16_t m_ulBandwidth; /**< Uplink bandwidth in RBs. */
 
-    uint32_t m_dlEarfcn;                                    /**< Downlink carrier frequency. */
-    uint32_t m_ulEarfcn;                                    /**< Uplink carrier frequency. */
+    uint32_t m_initDlArfcn; /**< Downlink carrier frequency to listen for gNBs. */
+    uint32_t m_initUlArfcn; /**< Initial BWP UL carrier frequency set by SIB2. */
+
     std::list<NrRrcSap::SCellToAddMod> m_sCellToAddModList; /**< Secondary carriers. */
 
     /**

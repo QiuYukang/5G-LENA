@@ -41,21 +41,21 @@ class NrUeCphySapProvider
     /**
      * @brief Tell the PHY entity to listen to PSS from surrounding cells and
      *        measure the RSRP.
-     * @param dlEarfcn the downlink carrier frequency (EARFCN) to listen to
+     * @param arfcn the downlink carrier frequency (ARFCN) to listen to
      *
      * This function will instruct this PHY instance to listen to the DL channel
      * over the bandwidth of 6 RB at the frequency associated with the given
-     * EARFCN.
+     * ARFCN.
      *
      * After this, it will start receiving Primary Synchronization Signal (PSS)
      * and periodically returning measurement reports to RRC via
      * NrUeCphySapUser::ReportUeMeasurements function.
      */
-    virtual void StartCellSearch(uint32_t dlEarfcn) = 0;
+    virtual void StartCellSearch(uint32_t arfcn) = 0;
 
     /**
      * @brief Tell the PHY entity to synchronize with a given eNodeB over the
-     *        currently active EARFCN for communication purposes.
+     *        currently active ARFCN for communication purposes.
      * @param cellId the ID of the eNodeB to synchronize with
      *
      * By synchronizing, the PHY will start receiving various information
@@ -71,10 +71,10 @@ class NrUeCphySapProvider
     virtual void SynchronizeWithGnb(uint16_t cellId) = 0;
 
     /**
-     * @brief Tell the PHY entity to align to the given EARFCN and synchronize
+     * @brief Tell the PHY entity to align to the given ARFCN and synchronize
      *        with a given eNodeB for communication purposes.
      * @param cellId the ID of the eNodeB to synchronize with
-     * @param dlEarfcn the downlink carrier frequency (EARFCN)
+     * @param arfcn the downlink carrier frequency (ARFCN)
      *
      * By synchronizing, the PHY will start receiving various information
      * transmitted by the eNodeB. For instance, when receiving system information,
@@ -86,7 +86,7 @@ class NrUeCphySapProvider
      * NrUeCphySapProvider::SetDlBandwidth can be called afterwards to increase
      * the bandwidth.
      */
-    virtual void SynchronizeWithGnb(uint16_t cellId, uint32_t dlEarfcn) = 0;
+    virtual void SynchronizeWithGnb(uint16_t cellId, uint32_t arfcn) = 0;
 
     /**
      * @brief Get PHY cell ID
@@ -95,10 +95,10 @@ class NrUeCphySapProvider
     virtual uint16_t GetCellId() = 0;
 
     /**
-     * @brief Get PHY DL EARFCN
-     * @return DL EARFCN this PHY is synchronized to
+     * @brief Get PHY DL ARFCN
+     * @return DL ARFCN this PHY is synchronized to
      */
-    virtual uint32_t GetDlEarfcn() = 0;
+    virtual uint32_t GetArfcn() = 0;
 
     /**
      * Set numerology
@@ -115,10 +115,10 @@ class NrUeCphySapProvider
     /**
      * @brief Configure uplink (normally done after reception of SIB2)
      *
-     * @param ulEarfcn the uplink carrier frequency (EARFCN)
+     * @param arfcn the uplink carrier frequency (ARFCN)
      * @param ulBandwidth the UL bandwidth in number of PRBs
      */
-    virtual void ConfigureUplink(uint32_t ulEarfcn, uint16_t ulBandwidth) = 0;
+    virtual void ConfigureUplink(uint32_t arfcn, uint16_t ulBandwidth) = 0;
 
     /**
      * @brief Configure referenceSignalPower
@@ -308,13 +308,13 @@ class MemberNrUeCphySapProvider : public NrUeCphySapProvider
     // inherited from NrUeCphySapProvider
     void SetNumerology(uint16_t numerology) override;
     void Reset() override;
-    void StartCellSearch(uint32_t dlEarfcn) override;
+    void StartCellSearch(uint32_t arfcn) override;
     void SynchronizeWithGnb(uint16_t cellId) override;
-    void SynchronizeWithGnb(uint16_t cellId, uint32_t dlEarfcn) override;
+    void SynchronizeWithGnb(uint16_t cellId, uint32_t arfcn) override;
     uint16_t GetCellId() override;
-    uint32_t GetDlEarfcn() override;
+    uint32_t GetArfcn() override;
     void SetDlBandwidth(uint16_t dlBandwidth) override;
-    void ConfigureUplink(uint32_t ulEarfcn, uint16_t ulBandwidth) override;
+    void ConfigureUplink(uint32_t arfcn, uint16_t ulBandwidth) override;
     void ConfigureReferenceSignalPower(int8_t referenceSignalPower) override;
     void SetRnti(uint16_t rnti) override;
     void SetTransmissionMode(uint8_t txMode) override;
@@ -345,9 +345,9 @@ MemberNrUeCphySapProvider<C>::Reset()
 
 template <class C>
 void
-MemberNrUeCphySapProvider<C>::StartCellSearch(uint32_t dlEarfcn)
+MemberNrUeCphySapProvider<C>::StartCellSearch(uint32_t arfcn)
 {
-    m_owner->DoStartCellSearch(dlEarfcn);
+    m_owner->DoStartCellSearch(arfcn);
 }
 
 template <class C>
@@ -359,9 +359,9 @@ MemberNrUeCphySapProvider<C>::SynchronizeWithGnb(uint16_t cellId)
 
 template <class C>
 void
-MemberNrUeCphySapProvider<C>::SynchronizeWithGnb(uint16_t cellId, uint32_t dlEarfcn)
+MemberNrUeCphySapProvider<C>::SynchronizeWithGnb(uint16_t cellId, uint32_t arfcn)
 {
-    m_owner->DoSynchronizeWithGnb(cellId, dlEarfcn);
+    m_owner->DoSynchronizeWithGnb(cellId, arfcn);
 }
 
 template <class C>
@@ -373,9 +373,9 @@ MemberNrUeCphySapProvider<C>::GetCellId()
 
 template <class C>
 uint32_t
-MemberNrUeCphySapProvider<C>::GetDlEarfcn()
+MemberNrUeCphySapProvider<C>::GetArfcn()
 {
-    return m_owner->DoGetDlEarfcn();
+    return m_owner->DoGetArfcn();
 }
 
 template <class C>
@@ -394,9 +394,9 @@ MemberNrUeCphySapProvider<C>::SetDlBandwidth(uint16_t dlBandwidth)
 
 template <class C>
 void
-MemberNrUeCphySapProvider<C>::ConfigureUplink(uint32_t ulEarfcn, uint16_t ulBandwidth)
+MemberNrUeCphySapProvider<C>::ConfigureUplink(uint32_t arfcn, uint16_t ulBandwidth)
 {
-    m_owner->DoConfigureUplink(ulEarfcn, ulBandwidth);
+    m_owner->DoConfigureUplink(arfcn, ulBandwidth);
 }
 
 template <class C>

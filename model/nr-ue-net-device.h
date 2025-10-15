@@ -194,6 +194,8 @@ class NrUeNetDevice : public NrNetDevice
     NS_DEPRECATED("Obsolete method")
     void UpdateConfig();
 
+    uint16_t GetArfcn(uint8_t index) const;
+
   protected:
     // inherited from Object
     void DoInitialize() override;

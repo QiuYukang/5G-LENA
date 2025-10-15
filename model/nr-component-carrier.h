@@ -57,24 +57,14 @@ class NrComponentCarrier : public Object
     virtual void SetDlBandwidth(uint16_t bw);
 
     /**
-     * @return the downlink carrier frequency (EARFCN)
+     * @return the carrier frequency (ARFCN)
      */
-    uint32_t GetDlEarfcn() const;
+    uint32_t GetArfcn() const;
 
     /**
-     * @param earfcn the downlink carrier frequency (EARFCN)
+     * @param earfcn the carrier frequency (ARFCN)
      */
-    void SetDlEarfcn(uint32_t earfcn);
-
-    /**
-     * @return the uplink carrier frequency (EARFCN)
-     */
-    uint32_t GetUlEarfcn() const;
-
-    /**
-     * @param earfcn the uplink carrier frequency (EARFCN)
-     */
-    void SetUlEarfcn(uint32_t earfcn);
+    void SetArfcn(uint32_t earfcn);
 
     /**
      * @brief Returns the CSG ID of the eNodeB.
@@ -142,8 +132,7 @@ class NrComponentCarrier : public Object
     uint16_t m_dlBandwidth{0}; ///< downlink bandwidth in RBs */
     uint16_t m_ulBandwidth{0}; ///< uplink bandwidth in RBs */
 
-    uint32_t m_dlEarfcn{0}; ///< downlink carrier frequency */
-    uint32_t m_ulEarfcn{0}; ///< uplink carrier frequency */
+    uint32_t m_arfcn{0}; ///< carrier frequency */
 };
 
 } // namespace ns3

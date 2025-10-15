@@ -322,4 +322,11 @@ NrUeNetDevice::GetTargetGnb() const
     return m_targetGnb;
 }
 
+uint16_t
+NrUeNetDevice::GetArfcn(uint8_t index) const
+{
+    NS_LOG_FUNCTION(this);
+    return m_ccMap.at(index)->GetArfcn(); // Ul or Dl doesn't matter, they are the same
+}
+
 } // namespace ns3

@@ -93,9 +93,9 @@ class NrEpcUeNas : public Object
     /**
      * @brief Causes NAS to tell AS to find a suitable cell and camp to it.
      *
-     * @param dlEarfcn the DL frequency of the gNB
+     * @param arfcn the DL frequency of the gNB
      */
-    void StartCellSelection(uint32_t dlEarfcn);
+    void StartCellSelection(uint32_t arfcn);
 
     /**
      * @brief Causes NAS to tell AS to go to ACTIVE state.
@@ -108,13 +108,13 @@ class NrEpcUeNas : public Object
      * @brief Causes NAS to tell AS to camp to a specific cell and go to ACTIVE
      *        state.
      * @param cellId the id of the gNB to camp on
-     * @param dlEarfcn the DL frequency of the gNB
+     * @param arfcn the DL frequency of the gNB
      *
      * The end result is equivalent with EMM Registered + ECM Connected states.
      * Since RRC Idle Mode cell selection is not supported yet, we force the UE
      * RRC to be camped on a specific gNB.
      */
-    void Connect(uint16_t cellId, uint32_t dlEarfcn);
+    void Connect(uint16_t cellId, uint32_t arfcn);
 
     /**
      * instruct the NAS to disconnect

@@ -211,10 +211,10 @@ NrGnbNetDevice::GetCellId(uint8_t index) const
 }
 
 uint16_t
-NrGnbNetDevice::GetEarfcn(uint8_t index) const
+NrGnbNetDevice::GetArfcn(uint8_t index) const
 {
     NS_LOG_FUNCTION(this);
-    return m_ccMap.at(index)->GetDlEarfcn(); // Ul or Dl doesn't matter, they are the same
+    return m_ccMap.at(index)->GetArfcn(); // Ul or Dl doesn't matter, they are the same
 }
 
 void
@@ -301,7 +301,7 @@ NrGnbNetDevice::GetBwpUlBandwidth(uint16_t bwpId) const
 }
 
 uint32_t
-NrGnbNetDevice::GetBwpDlEarfcn(uint16_t bwpId) const
+NrGnbNetDevice::GetBwpArfcn(uint16_t bwpId) const
 {
     NS_ASSERT_MSG(m_rrc->HasBwpId(bwpId), "Unknown bwpId");
     if (m_rrc->HasBwpId(bwpId))
@@ -310,28 +310,24 @@ NrGnbNetDevice::GetBwpDlEarfcn(uint16_t bwpId) const
         {
             if (cc->GetBwpId() == bwpId)
             {
-                return cc->GetDlEarfcn();
+                return cc->GetArfcn();
             }
         }
     }
     return 0;
 }
 
-uint32_t
-NrGnbNetDevice::GetBwpUlEarfcn(uint16_t bwpId) const
+uint16_t
+NrGnbNetDevice::GetArfcnBwpId(uint32_t arfcn) const
 {
-    NS_ASSERT_MSG(m_rrc->HasBwpId(bwpId), "Unknown bwpId");
-    if (m_rrc->HasBwpId(bwpId))
+    for (std::size_t i = 0; i < m_ccMap.size(); i++)
     {
-        for (const auto& [key, cc] : m_ccMap)
+        if (m_ccMap.at(i)->GetArfcn() == arfcn)
         {
-            if (cc->GetBwpId() == bwpId)
-            {
-                return cc->GetUlEarfcn();
-            }
+            return (uint16_t)i;
         }
     }
-    return 0;
+    NS_ABORT_MSG("gNB should have the searched arfcn");
 }
 
 } // namespace ns3

@@ -482,16 +482,9 @@ NrUeRrc::GetDlBandwidth() const
 }
 
 uint32_t
-NrUeRrc::GetDlEarfcn() const
+NrUeRrc::GetArfcn() const
 {
-    return m_dlEarfcn;
-}
-
-uint32_t
-NrUeRrc::GetUlEarfcn() const
-{
-    NS_LOG_FUNCTION(this);
-    return m_ulEarfcn;
+    return m_initDlArfcn;
 }
 
 NrUeRrc::State
@@ -765,27 +758,27 @@ NrUeRrc::DoSetCsgWhiteList(uint32_t csgId)
 }
 
 void
-NrUeRrc::DoStartCellSelection(uint32_t dlEarfcn)
+NrUeRrc::DoStartCellSelection(uint32_t arfcn)
 {
-    NS_LOG_FUNCTION(this << m_imsi << dlEarfcn);
+    NS_LOG_FUNCTION(this << m_imsi << arfcn);
     NS_ASSERT_MSG(m_state == IDLE_START,
                   "cannot start cell selection from state " << ToString(m_state));
-    m_dlEarfcn = dlEarfcn;
-    m_cphySapProvider.at(GetPrimaryDlIndex())->StartCellSearch(dlEarfcn);
+    m_initDlArfcn = arfcn;
+    m_cphySapProvider.at(GetPrimaryDlIndex())->StartCellSearch(arfcn);
     SwitchToState(IDLE_CELL_SEARCH);
 }
 
 void
-NrUeRrc::DoForceCampedOnGnb(uint16_t cellId, uint32_t dlEarfcn)
+NrUeRrc::DoForceCampedOnGnb(uint16_t cellId, uint32_t arfcn)
 {
-    NS_LOG_FUNCTION(this << m_imsi << cellId << dlEarfcn);
+    NS_LOG_FUNCTION(this << m_imsi << cellId << arfcn);
 
     switch (m_state)
     {
     case IDLE_START:
         m_cellId = cellId;
-        m_dlEarfcn = dlEarfcn;
-        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(m_cellId, m_dlEarfcn);
+        m_initDlArfcn = arfcn;
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(m_cellId, m_initDlArfcn);
         SwitchToState(IDLE_WAIT_MIB);
         break;
 
@@ -1002,7 +995,7 @@ NrUeRrc::DoRecvSystemInformation(NrRrcSap::SystemInformation msg)
         case CONNECTED_REESTABLISHING:
             m_hasReceivedSib2 = true;
             m_ulBandwidth = msg.sib2.freqInfo.ulBandwidth;
-            m_ulEarfcn = msg.sib2.freqInfo.ulCarrierFreq;
+            m_initUlArfcn = msg.sib2.freqInfo.ulCarrierFreq;
             m_sib2ReceivedTrace(m_imsi, m_cellId, m_rnti);
             NrUeCmacSapProvider::RachConfig rc;
             rc.numberOfRaPreambles = msg.sib2.radioResourceConfigCommon.rachConfigCommon
@@ -1018,9 +1011,10 @@ NrUeRrc::DoRecvSystemInformation(NrRrcSap::SystemInformation msg)
                           "SIB2 msg contains wrong value " << m_connEstFailCountLimit
                                                            << "of connEstFailCount");
             m_cmacSapProvider.at(GetPrimaryUlIndex())->ConfigureRach(rc);
-            m_cphySapProvider.at(GetPrimaryUlIndex())->ConfigureUplink(m_ulEarfcn, m_ulBandwidth);
+            m_cphySapProvider.at(GetPrimaryUlIndex())
+                ->ConfigureUplink(m_initUlArfcn, m_ulBandwidth);
             m_cphySapProvider.at(GetPrimaryDlIndex())
-                ->ConfigureUplink(m_ulEarfcn,
+                ->ConfigureUplink(m_initUlArfcn,
                                   m_ulBandwidth); // also needs to know that UL is configured, e.g.,
             // when FDD used it is necessary, otherwise CQI
             // will not be generated and routed to UL UE PHY
@@ -1308,7 +1302,7 @@ NrUeRrc::SynchronizeToStrongestCell()
     {
         NS_LOG_LOGIC(this << " cell " << maxRsrpCellId
                           << " is the strongest untried surrounding cell");
-        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(maxRsrpCellId, m_dlEarfcn);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(maxRsrpCellId, m_initDlArfcn);
         SwitchToState(IDLE_WAIT_MIB_SIB1);
     }
 
@@ -1353,7 +1347,7 @@ NrUeRrc::EvaluateCellForSelection()
     if (isSuitableCell)
     {
         m_cellId = cellId;
-        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(cellId, m_dlEarfcn);
+        m_cphySapProvider.at(GetPrimaryDlIndex())->SynchronizeWithGnb(cellId, m_initDlArfcn);
         m_cphySapProvider.at(GetPrimaryDlIndex())->SetDlBandwidth(m_dlBandwidth);
         m_initialCellSelectionEndOkTrace(m_imsi, cellId);
         // Once the UE is connected, m_connectionPending is
@@ -1416,18 +1410,18 @@ NrUeRrc::ApplyRadioResourceConfigDedicatedSecondaryCarrier(
         uint16_t physCellId = scell.cellIdentification.physCellId;
         uint16_t ulBand =
             scell.radioResourceConfigCommonSCell.ulConfiguration.ulFreqInfo.ulBandwidth;
-        uint32_t ulEarfcn =
+        m_initUlArfcn =
             scell.radioResourceConfigCommonSCell.ulConfiguration.ulFreqInfo.ulCarrierFreq;
         uint16_t dlBand = scell.radioResourceConfigCommonSCell.nonUlConfiguration.dlBandwidth;
-        uint32_t dlEarfcn = scell.cellIdentification.dlCarrierFreq;
+        m_initDlArfcn = scell.cellIdentification.dlCarrierFreq;
         uint8_t txMode = scell.radioResourceConfigDedicatedSCell.physicalConfigDedicatedSCell
                              .antennaInfo.transmissionMode;
         uint16_t srsIndex = scell.radioResourceConfigDedicatedSCell.physicalConfigDedicatedSCell
                                 .soundingRsUlConfigDedicated.srsConfigIndex;
 
-        m_cphySapProvider.at(ccId)->SynchronizeWithGnb(physCellId, dlEarfcn);
+        m_cphySapProvider.at(ccId)->SynchronizeWithGnb(physCellId, m_initDlArfcn);
         m_cphySapProvider.at(ccId)->SetDlBandwidth(dlBand);
-        m_cphySapProvider.at(ccId)->ConfigureUplink(ulEarfcn, ulBand);
+        m_cphySapProvider.at(ccId)->ConfigureUplink(m_initUlArfcn, ulBand);
         m_cphySapProvider.at(ccId)->ConfigureReferenceSignalPower(
             scell.radioResourceConfigCommonSCell.nonUlConfiguration.pdschConfigCommon
                 .referenceSignalPower);
@@ -1935,7 +1929,7 @@ NrUeRrc::SaveUeMeasurements(uint16_t cellId,
         MeasValues v;
         v.rsrp = rsrp;
         v.rsrq = rsrq;
-        v.carrierFreq = m_cphySapProvider.at(componentCarrierId)->GetDlEarfcn();
+        v.carrierFreq = m_cphySapProvider.at(componentCarrierId)->GetArfcn();
 
         std::pair<uint16_t, MeasValues> val(cellId, v);
         auto ret = m_storedMeasValues.insert(val);
@@ -1992,7 +1986,7 @@ NrUeRrc::MeasurementReportTriggering(uint8_t measId)
     uint16_t servingCellId = 0;
     for (auto cphySapProvider : m_cphySapProvider)
     {
-        if (cphySapProvider->GetDlEarfcn() == measObjectEutra.carrierFreq)
+        if (cphySapProvider->GetArfcn() == measObjectEutra.carrierFreq)
         {
             servingCellId = cphySapProvider->GetCellId();
         }
@@ -3212,7 +3206,7 @@ NrUeRrc::LeaveConnectedMode()
         m_cphySapProvider.at(i)->ResetPhyAfterRlf(); // reset the PHY
     }
     SwitchToState(IDLE_START);
-    DoStartCellSelection(m_dlEarfcn);
+    DoStartCellSelection(m_initDlArfcn);
     // Save the cell id UE was attached to
     StorePreviousCellId(m_cellId);
     m_cellId = 0;

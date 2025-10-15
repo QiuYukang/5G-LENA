@@ -778,9 +778,9 @@ class NrUePhy : public NrPhy
 
     // SAP methods
     virtual void DoReset();
-    void DoStartCellSearch(uint16_t dlEarfcn);
+    void DoStartCellSearch(uint16_t arfcn);
     void DoSynchronizeWithGnb(uint16_t cellId);
-    void DoSynchronizeWithGnb(uint16_t cellId, uint16_t dlEarfcn);
+    void DoSynchronizeWithGnb(uint16_t cellId, uint16_t arfcn);
     void DoSetPa(double pa);
     /**
      * @param rsrpFilterCoefficient value. Determines the strength of
@@ -802,10 +802,10 @@ class NrUePhy : public NrPhy
      */
     uint16_t DoGetCellId() const;
     /**
-     * Get DL EARFCN
-     * @returns DL EARFCN
+     * Get DL ARFCN
+     * @returns DL ARFCN
      */
-    uint32_t DoGetDlEarfcn();
+    uint32_t DoGetArfcn();
     /**
      * @brief Function that is called by RRC SAP.
      * TODO This function and its name can be updated once NR RRC SAP is implemented
@@ -815,7 +815,7 @@ class NrUePhy : public NrPhy
      * @brief Function that is called by RRC SAP.
      * TODO This function and its name can be updated once NR RRC SAP is implemented
      */
-    void DoConfigureUplink(uint16_t ulEarfcn, uint8_t ulBandwidth);
+    void DoConfigureUplink(uint16_t arfcn, uint8_t ulBandwidth);
     void DoConfigureReferenceSignalPower(int8_t referenceSignalPower);
     void DoSetRnti(uint16_t rnti);
     void DoSetTransmissionMode(uint8_t txMode);

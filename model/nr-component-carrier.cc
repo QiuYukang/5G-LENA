@@ -39,20 +39,13 @@ NrComponentCarrier::GetTypeId()
                 MakeUintegerAccessor(&NrComponentCarrier::SetDlBandwidth,
                                      &NrComponentCarrier::GetDlBandwidth),
                 MakeUintegerChecker<uint8_t>())
-            .AddAttribute("DlEarfcn",
-                          "Downlink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) "
-                          "as per 3GPP 36.101 Section 5.7.3.",
-                          UintegerValue(100),
-                          MakeUintegerAccessor(&NrComponentCarrier::SetDlEarfcn,
-                                               &NrComponentCarrier::GetDlEarfcn),
-                          MakeUintegerChecker<uint32_t>(0, 262143))
-            .AddAttribute("UlEarfcn",
-                          "Uplink E-UTRA Absolute Radio Frequency Channel Number (EARFCN) "
-                          "as per 3GPP 36.101 Section 5.7.3.",
-                          UintegerValue(18100),
-                          MakeUintegerAccessor(&NrComponentCarrier::SetUlEarfcn,
-                                               &NrComponentCarrier::GetUlEarfcn),
-                          MakeUintegerChecker<uint32_t>(18000, 262143))
+            .AddAttribute(
+                "Arfcn",
+                "Downlink E-UTRA Absolute Radio Frequency Channel Number (ARFCN) "
+                "as per 3GPP 36.101 Section 5.7.3.",
+                UintegerValue(100),
+                MakeUintegerAccessor(&NrComponentCarrier::SetArfcn, &NrComponentCarrier::GetArfcn),
+                MakeUintegerChecker<uint32_t>(0, 262143))
             .AddAttribute(
                 "CsgId",
                 "The Closed Subscriber Group (CSG) identity that this eNodeB belongs to",
@@ -152,29 +145,16 @@ NrComponentCarrier::SetDlBandwidth(uint16_t bw)
 }
 
 uint32_t
-NrComponentCarrier::GetDlEarfcn() const
+NrComponentCarrier::GetArfcn() const
 {
-    return m_dlEarfcn;
+    return m_arfcn;
 }
 
 void
-NrComponentCarrier::SetDlEarfcn(uint32_t earfcn)
+NrComponentCarrier::SetArfcn(uint32_t earfcn)
 {
     NS_LOG_FUNCTION(this << earfcn);
-    m_dlEarfcn = earfcn;
-}
-
-uint32_t
-NrComponentCarrier::GetUlEarfcn() const
-{
-    return m_ulEarfcn;
-}
-
-void
-NrComponentCarrier::SetUlEarfcn(uint32_t earfcn)
-{
-    NS_LOG_FUNCTION(this << earfcn);
-    m_ulEarfcn = earfcn;
+    m_arfcn = earfcn;
 }
 
 uint32_t

@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 #define MAX_DRB 11 // According to section 6.4 3GPP TS 36.331
-#define MAX_EARFCN 262143
+#define MAX_ARFCN 262143
 #define MAX_RAT_CAPABILITIES 8
 #define MAX_SI_MESSAGE 32
 #define MAX_SIB 32
@@ -660,7 +660,7 @@ NrRrcAsn1Header::SerializeSystemInformationBlockType2(
 
     // freqInfo
     SerializeSequence(std::bitset<2>(3), false);
-    SerializeInteger((int)systemInformationBlockType2.freqInfo.ulCarrierFreq, 0, MAX_EARFCN);
+    SerializeInteger((int)systemInformationBlockType2.freqInfo.ulCarrierFreq, 0, MAX_ARFCN);
     SerializeEnum(6, BandwidthToEnum(systemInformationBlockType2.freqInfo.ulBandwidth));
 
     SerializeInteger(29, 1, 32); // additionalSpectrumEmission
@@ -1155,7 +1155,7 @@ NrRrcAsn1Header::SerializeMeasConfig(NrRrcSap::MeasConfig measConfig) const
             SerializeSequence(measObjOpts, true);
 
             // Serialize carrierFreq
-            SerializeInteger(it->measObjectEutra.carrierFreq, 0, MAX_EARFCN);
+            SerializeInteger(it->measObjectEutra.carrierFreq, 0, MAX_ARFCN);
 
             // Serialize  allowedMeasBandwidth
             SerializeEnum(6, BandwidthToEnum(it->measObjectEutra.allowedMeasBandwidth));
@@ -1837,7 +1837,7 @@ NrRrcAsn1Header::SerializeNonCriticalExtensionConfiguration(
             SerializeSequence(cellIdentification_r10, false);
 
             SerializeInteger(it.cellIdentification.physCellId, 1, 65536);
-            SerializeInteger(it.cellIdentification.dlCarrierFreq, 1, MAX_EARFCN);
+            SerializeInteger(it.cellIdentification.dlCarrierFreq, 1, MAX_ARFCN);
 
             // Serialize RadioResourceConfigCommonSCell
             SerializeRadioResourceConfigCommonSCell(it.radioResourceConfigCommonSCell);
@@ -1908,7 +1908,7 @@ NrRrcAsn1Header::SerializeRadioResourceConfigCommonSCell(
         FreqInfo_r10.set(0, false); // additionalSpectrumEmissionSCell-r10 Not Implemented
         SerializeSequence(FreqInfo_r10, false);
 
-        SerializeInteger(rrccsc.ulConfiguration.ulFreqInfo.ulCarrierFreq, 0, MAX_EARFCN);
+        SerializeInteger(rrccsc.ulConfiguration.ulFreqInfo.ulCarrierFreq, 0, MAX_ARFCN);
         SerializeInteger(rrccsc.ulConfiguration.ulFreqInfo.ulBandwidth, 6, 100);
 
         // Serialize UlPowerControlCommonSCell
@@ -2781,7 +2781,7 @@ NrRrcAsn1Header::DeserializeCellIdentification(NrRrcSap::CellIdentification* ci,
     ci->physCellId = n1;
     int n2;
     NS_ASSERT(cellIdentification_r10[0]); // dl-CarrierFreq-r10
-    bIterator = DeserializeInteger(&n2, 1, MAX_EARFCN, bIterator);
+    bIterator = DeserializeInteger(&n2, 1, MAX_ARFCN, bIterator);
     ci->dlCarrierFreq = n2;
 
     return bIterator;
@@ -2825,7 +2825,7 @@ NrRrcAsn1Header::DeserializeRadioResourceConfigCommonSCell(
         std::bitset<3> FreqInfo_r10;
         bIterator = DeserializeSequence(&FreqInfo_r10, false, bIterator);
         int n;
-        bIterator = DeserializeInteger(&n, 0, MAX_EARFCN, bIterator);
+        bIterator = DeserializeInteger(&n, 0, MAX_ARFCN, bIterator);
         rrccsc->ulConfiguration.ulFreqInfo.ulCarrierFreq = n;
         bIterator = DeserializeInteger(&n, 6, 100, bIterator);
         rrccsc->ulConfiguration.ulFreqInfo.ulBandwidth = n;
@@ -3274,7 +3274,7 @@ NrRrcAsn1Header::DeserializeSystemInformationBlockType2(
     if (freqInfoOpts[1])
     {
         // Deserialize ul-CarrierFreq
-        bIterator = DeserializeInteger(&n, 0, MAX_EARFCN, bIterator);
+        bIterator = DeserializeInteger(&n, 0, MAX_ARFCN, bIterator);
         systemInformationBlockType2->freqInfo.ulCarrierFreq = n;
     }
     if (freqInfoOpts[0])
@@ -3987,7 +3987,7 @@ NrRrcAsn1Header::DeserializeMeasConfig(NrRrcSap::MeasConfig* measConfig, Buffer:
                 bIterator = DeserializeSequence(&measObjectEutraOpts, true, bIterator);
 
                 // carrierFreq
-                bIterator = DeserializeInteger(&n, 0, MAX_EARFCN, bIterator);
+                bIterator = DeserializeInteger(&n, 0, MAX_ARFCN, bIterator);
                 elem.measObjectEutra.carrierFreq = n;
 
                 // allowedMeasBandwidth
@@ -5339,8 +5339,8 @@ NrRrcConnectionReconfigurationHeader::PreSerialize() const
         if (m_mobilityControlInfo.haveCarrierFreq)
         {
             SerializeSequence(std::bitset<1>(1), false);
-            SerializeInteger(m_mobilityControlInfo.carrierFreq.dlCarrierFreq, 0, MAX_EARFCN);
-            SerializeInteger(m_mobilityControlInfo.carrierFreq.ulCarrierFreq, 0, MAX_EARFCN);
+            SerializeInteger(m_mobilityControlInfo.carrierFreq.dlCarrierFreq, 0, MAX_ARFCN);
+            SerializeInteger(m_mobilityControlInfo.carrierFreq.ulCarrierFreq, 0, MAX_ARFCN);
         }
 
         if (m_mobilityControlInfo.haveCarrierBandwidth)
@@ -5472,12 +5472,12 @@ NrRrcConnectionReconfigurationHeader::Deserialize(Buffer::Iterator bIterator)
                     std::bitset<1> ulCarrierFreqPresent;
                     bIterator = DeserializeSequence(&ulCarrierFreqPresent, false, bIterator);
 
-                    bIterator = DeserializeInteger(&n, 0, MAX_EARFCN, bIterator);
+                    bIterator = DeserializeInteger(&n, 0, MAX_ARFCN, bIterator);
                     m_mobilityControlInfo.carrierFreq.dlCarrierFreq = n;
 
                     if (ulCarrierFreqPresent[0])
                     {
-                        bIterator = DeserializeInteger(&n, 0, MAX_EARFCN, bIterator);
+                        bIterator = DeserializeInteger(&n, 0, MAX_ARFCN, bIterator);
                         m_mobilityControlInfo.carrierFreq.ulCarrierFreq = n;
                     }
                 }
@@ -6040,7 +6040,7 @@ NrHandoverPreparationInfoHeader::PreSerialize() const
     SerializeEnum(4, 0); // antennaPortsCount
 
     // Serialize sourceDlCarrierFreq
-    SerializeInteger(m_asConfig.sourceDlCarrierFreq, 0, MAX_EARFCN);
+    SerializeInteger(m_asConfig.sourceDlCarrierFreq, 0, MAX_ARFCN);
 
     // Finish serialization
     FinalizeSerialization();
@@ -6149,7 +6149,7 @@ NrHandoverPreparationInfoHeader::Deserialize(Buffer::Iterator bIterator)
                 bIterator = DeserializeEnum(4, &n, bIterator); // antennaPortsCount
 
                 // Deserialize sourceDl-CarrierFreq
-                bIterator = DeserializeInteger(&n, 0, MAX_EARFCN, bIterator);
+                bIterator = DeserializeInteger(&n, 0, MAX_ARFCN, bIterator);
                 m_asConfig.sourceDlCarrierFreq = n;
             }
             if (handoverPrepInfoOpts[2])

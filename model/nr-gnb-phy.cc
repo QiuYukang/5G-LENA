@@ -1957,9 +1957,9 @@ NrGnbPhy::DoSetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth)
 }
 
 void
-NrGnbPhy::DoSetEarfcn(uint16_t ulEarfcn, uint16_t dlEarfcn)
+NrGnbPhy::DoSetArfcn(uint16_t arfcn)
 {
-    NS_LOG_FUNCTION(this << ulEarfcn << dlEarfcn);
+    NS_LOG_FUNCTION(this << arfcn);
 }
 
 void

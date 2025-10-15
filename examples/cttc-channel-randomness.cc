@@ -107,7 +107,7 @@ main(int argc, char* argv[])
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("frequency",
-                 "The operating frequency in Hz (2125.0e6 corresponds to EARFCN 2100)",
+                 "The operating frequency in Hz (2125.0e6 corresponds to ARFCN 2100)",
                  frequency);
     cmd.AddValue("rbNum", "The system BW in number of resource blocks", rbNum);
     cmd.AddValue("subcarrierSpacing", "The subcarrier spacing", subcarrierSpacing);

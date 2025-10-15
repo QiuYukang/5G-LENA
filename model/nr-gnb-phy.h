@@ -682,7 +682,7 @@ class NrGnbPhy : public NrPhy
 
     // NrGnbCphySapProvider forwarded methods
     void DoSetBandwidth(uint16_t ulBandwidth, uint16_t dlBandwidth);
-    void DoSetEarfcn(uint16_t dlEarfcn, uint16_t ulEarfcn);
+    void DoSetArfcn(uint16_t arfcn);
     void DoAddUe(uint16_t rnti);
     void DoRemoveUe(uint16_t rnti);
     void DoSetPa(uint16_t rnti, double pa);
@@ -690,7 +690,6 @@ class NrGnbPhy : public NrPhy
     void DoSetSrsConfigurationIndex(uint16_t rnti, uint16_t srcCi);
     void DoSetMasterInformationBlock(NrRrcSap::MasterInformationBlock mib);
     void DoSetSystemInformationBlockType1(NrRrcSap::SystemInformationBlockType1 sib1);
-    void DoSetEarfcn(uint16_t Earfcn);
 
     /**
      * @brief Store the RBG allocation in the symStart, rbg map.

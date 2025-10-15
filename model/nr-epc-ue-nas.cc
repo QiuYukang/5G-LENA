@@ -127,10 +127,10 @@ NrEpcUeNas::SetForwardUpCallback(Callback<void, Ptr<Packet>> cb)
 }
 
 void
-NrEpcUeNas::StartCellSelection(uint32_t dlEarfcn)
+NrEpcUeNas::StartCellSelection(uint32_t arfcn)
 {
-    NS_LOG_FUNCTION(this << dlEarfcn);
-    m_asSapProvider->StartCellSelection(dlEarfcn);
+    NS_LOG_FUNCTION(this << arfcn);
+    m_asSapProvider->StartCellSelection(arfcn);
 }
 
 void
@@ -143,12 +143,12 @@ NrEpcUeNas::Connect()
 }
 
 void
-NrEpcUeNas::Connect(uint16_t cellId, uint32_t dlEarfcn)
+NrEpcUeNas::Connect(uint16_t cellId, uint32_t arfcn)
 {
-    NS_LOG_FUNCTION(this << cellId << dlEarfcn);
+    NS_LOG_FUNCTION(this << cellId << arfcn);
 
     // force the UE RRC to be camped on a specific eNB
-    m_asSapProvider->ForceCampedOnGnb(cellId, dlEarfcn);
+    m_asSapProvider->ForceCampedOnGnb(cellId, arfcn);
 
     // tell RRC to go into connected mode
     m_asSapProvider->Connect();
