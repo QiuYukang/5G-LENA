@@ -35,8 +35,8 @@ add_function_parentheses = True
 copyright = "2025"
 author = ""
 
-version = "4.1"
-release = "4.1"
+version = "4.1.1"
+release = "4.1.1"
 
 # -- Options for LaTeX output ---------------------------------------------
 

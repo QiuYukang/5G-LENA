@@ -198,6 +198,7 @@ for each nr release.
 
 | nr version     | ns-3 version  | Build system  | Release date       |
 | :------------: | :-----------: | :-----------: | ------------------ |
+| 5g-lena-v4.1.1 | ns-3.46       | cmake         | October 16, 2025   |
 | 5g-lena-v4.1.y | ns-3.45       | cmake         | July 7, 2025       |
 | 5g-lena-v4.0.y | ns-3.44       | cmake         | May 15, 2025       |
 | 5g-lena-v3.3.y | ns-3.42       | cmake         | October 15, 2024   |
@@ -226,7 +227,7 @@ Download then checkout the compatible version of ns-3:
 ```
 git clone https://gitlab.com/nsnam/ns-3-dev.git
 cd ns-3-dev
-git checkout -b ns-3.44 ns-3.44
+git checkout -b ns-3.46 ns-3.46
 ```
 
 To make sure everything is working properly, run the ns-3 tests:
@@ -247,7 +248,7 @@ Download then checkout the compatible version of nr:
 cd contrib
 git clone https://gitlab.com/cttc-lena/nr.git
 cd nr
-git checkout -b 5g-lena-v4.0.y origin/5g-lena-v4.0.y
+git checkout -b 5g-lena-v4.1.1 origin/5g-lena-v4.1.1
 ```
 
 Notice that since these are two independent git repositories, when you run

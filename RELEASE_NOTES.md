@@ -15,6 +15,64 @@ http://www.nsnam.org including tutorials: https://www.nsnam.org/documentation/
 Consult the file CHANGES.md for more detailed information about changed
 API and behavior across releases.
 
+Release NR-v4.1.1
+-----------------
+
+Availability
+------------
+Available since October 16, 2025.
+
+Cite this version
+-----------------
+DOI: 10.5281/zenodo.17366429
+
+Supported platforms
+-------------------
+This release has been tested on the following platforms:
+- x86_64
+  - Arch Linux with g++-15 and clang-20.
+  - Ubuntu 22.04 with g++11 and 12 and clang-11 and 14.
+  - Ubuntu 23.04 with g++13.
+  - Ubuntu 25.10 (Questing Quokka) with g++15 and clang-20.
+- ARM
+  - Ubuntu 25.10 (Oracular Oriole) with g++15 and clang-20.
+  - MacOS Sequoia 15.4.1 with AppleClang 17.
+
+This release is compatible with ns-3.46.
+
+Important news
+--------------
+- This release includes one important change, which is using the upstreamed hexagonal wraparound model in ns-3.46.
+
+- This release includes important fixes, such as:
+  - To avoid misconfigurations, the attribute ``NrHelper::EnableMimoFeedback`` was removed.
+    The MIMO feedback is now implicitly enabled/disabled based on ``NrHelper::CsiFeedbackFlags``.
+
+- A lot of code changes are related to the upgrade of clang-format (17->20) and clang-tidy (17->19),
+  used with ns-3.46.
+
+- Remember to follow the instructions from the README.md file, i.e., to checkout
+  the correct release branch of both ns-3 and the NR module. The information about
+  compatibility with the corresponding ns-3 release branch is stated in the
+  `README.md` file.
+
+New user-visible features
+-------------------------
+
+Bugs fixed
+----------
+
+- (9cb800b2) Imply MIMO feedback based on `NrHelper::CsiFeedbackFlags` to prevent misconfiguration such as `NrHelper::EnableMimoFeedback=True` and `NrHelper::CsiFeedbackFlags=CQI_PDSCH_SISO`.
+- (1d5a12ce) Set standard compliant sub-band size for DenseAmimoIntel settings.
+- (518e061d) Do not call ConstructSelf from objects derived from Object.
+- (2fa3e26d) Add missing flag to properly load outdoor calibration settings.
+- (3c7a8b44) Enable wraparound by default in Intel R1-1707360 based scenarios.
+
+Known issues
+------------
+In general, known issues are tracked on the project tracker available
+at https://gitlab.com/cttc-lena/nr/-/issues
+
 Release NR-v4.1
 ---------------
 

@@ -48,6 +48,26 @@ the cracks, unfortunately.  If you, as a user, can suggest improvements
 to this file based on your experience, please contribute a patch or drop
 us a note on ns-developers mailing list.
 
+## Changes from NR-v4.1 to v4.1.1
+
+### New API:
+
+- ``NrHelper::IsMimoFeedbackEnabled()`` function was added to check whether MIMO feedback should be enabled or not, based on ``NrHelper::CsiFeedbackFlags``.
+- ``NrChannelHelper::SetWraparoundModel()`` function was added to automatically aggregate a wraparound model to created channels.
+- ``GetVirtualMobilityModel()`` function was added to get the wrapped position of an UE related to another position, given a channel which may have
+  or not an aggregated wraparound model. This is necessary in cases where we do not effectively transmit in the channel (which now transparently
+  applies wraparound for real transmissions), such as in ``NrInitialAssociation`` and ideal beamforming techniques.
+
+### Changes to Existing API
+
+- ``NrHelper::EnableMimoFeedback`` attribute was removed. To check if MIMO feedback should be enabled, call the new ``NrHelper::IsMimoFeedbackEnabled()`` function.
+- ``WraparoundThreeGppSpectrumPropagationLossModel`` and ``HexagonalWraparoundModel`` were removed.
+  Now wraparound is transparently applied by the ``MultiModelSpectrumChannel`` and ``SingleModelSpectrumChannel`` if a wraparound model is aggregated to it.
+
+### Changed Behavior
+
+---
+
 ## Changes from NR-v4.0 to v4.1
 
 ### New API:
