@@ -51,14 +51,13 @@ NrMacSchedulerLcRR::AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& u
                                     uint32_t tbs) const
 {
     NS_LOG_FUNCTION(this);
-    GetFirst GetLCGID;
     GetSecond GetLCG;
 
     std::vector<NrMacSchedulerLcAlgorithm::Assignation> ret;
 
     NS_LOG_INFO("To distribute: " << tbs << " bytes over " << ueLCG.size() << " LCG");
 
-    uint32_t activeLc = 0;
+    std::map<std::pair<uint8_t, uint8_t>, std::pair<uint32_t, uint32_t>> activeLc;
     for (const auto& lcg : ueLCG)
     {
         std::vector<uint8_t> lcs = GetLCG(lcg)->GetLCId();
@@ -66,34 +65,72 @@ NrMacSchedulerLcRR::AssignBytesToLC(const std::unordered_map<uint8_t, LCGPtr>& u
         {
             if (GetLCG(lcg)->GetTotalSizeOfLC(lcId) > 0)
             {
-                ++activeLc;
+                activeLc[{lcg.first, lcId}] = {GetLCG(lcg)->GetTotalSizeOfLC(lcId), 0};
             }
         }
     }
 
-    if (activeLc == 0)
+    if (activeLc.empty())
     {
         return ret;
     }
 
-    uint32_t amountPerLC = tbs / activeLc;
-    NS_LOG_INFO("Total LC: " << activeLc << " each one will receive " << amountPerLC << " bytes");
-
-    for (const auto& lcg : ueLCG)
+    while (tbs > 0)
     {
-        std::vector<uint8_t> lcs = GetLCG(lcg)->GetLCId();
-        for (const auto& lcId : lcs)
+        // Count how many logical channels still need bytes
+        auto numActive = std::count_if(activeLc.begin(), activeLc.end(), [](const auto& lc) {
+            return lc.second.first > 0;
+        });
+
+        // Calculate bytes to assign per LC this round
+        uint32_t assignBlockSize = (numActive > 0) ? tbs / numActive : 1;
+
+        // Cap block size to smallest remaining buffer
+        for (const auto& [lcId, lcData] : activeLc)
         {
-            if (GetLCG(lcg)->GetTotalSizeOfLC(lcId) > 0)
+            if (lcData.first > 0)
             {
-                NS_LOG_INFO("Assigned to LCID " << static_cast<uint32_t>(lcId) << " inside LCG "
-                                                << static_cast<uint32_t>(GetLCGID(lcg))
-                                                << " an amount of " << amountPerLC << " B");
-                ret.emplace_back(GetLCGID(lcg), lcId, amountPerLC);
+                assignBlockSize = std::min(assignBlockSize, lcData.first);
+            }
+        }
+
+        // Ensure at least 1 byte per assignment when many LCs compete
+        assignBlockSize = std::max(assignBlockSize, 1u);
+
+        // Distribute bytes to each LC
+        for (auto& [lcId, lcData] : activeLc)
+        {
+            auto& unallocatedBytes = lcData.first;
+            auto& allocatedBytes = lcData.second;
+
+            // Skip satisfied LCs while others remain active
+            if (unallocatedBytes == 0 && numActive > 0)
+            {
+                continue;
+            }
+
+            // Assign block to this LC
+            tbs -= assignBlockSize;
+            unallocatedBytes -= assignBlockSize;
+            allocatedBytes += assignBlockSize;
+
+            if (tbs == 0)
+            {
+                break;
             }
         }
     }
 
+    for (auto& activeLcEntry : activeLc)
+    {
+        const auto lcg = activeLcEntry.first.first;
+        const auto lcId = activeLcEntry.first.second;
+        const auto amountPerLC = activeLcEntry.second.second;
+        ret.emplace_back(lcg, lcId, amountPerLC);
+        NS_LOG_INFO("Assigned to LCID " << static_cast<uint32_t>(lcId) << " inside LCG "
+                                        << static_cast<uint32_t>(lcg) << " an amount of "
+                                        << amountPerLC << " B");
+    }
     return ret;
 }
 
