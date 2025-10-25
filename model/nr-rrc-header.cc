@@ -15,7 +15,8 @@
 #include <stdio.h>
 
 #define MAX_DRB 11 // According to section 6.4 3GPP TS 36.331
-#define MAX_ARFCN 262143
+#define MAX_ARFCN                                                                                  \
+    62654166 // 3279165 for standard 100 GHz, but we use a higher number to support up to 114.25 GHz
 #define MAX_RAT_CAPABILITIES 8
 #define MAX_SI_MESSAGE 32
 #define MAX_SIB 32

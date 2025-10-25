@@ -432,6 +432,30 @@ NrAsn1Header::SerializeInteger(int n, int nmin, int nmax) const
     case 20:
         SerializeBitset<20>(std::bitset<20>(n));
         break;
+    case 21:
+        SerializeBitset<21>(std::bitset<21>(n));
+        break;
+    case 22:
+        SerializeBitset<22>(std::bitset<22>(n));
+        break;
+    case 23:
+        SerializeBitset<23>(std::bitset<23>(n));
+        break;
+    case 24:
+        SerializeBitset<24>(std::bitset<24>(n));
+        break;
+    case 25:
+        SerializeBitset<25>(std::bitset<25>(n));
+        break;
+    case 26:
+        SerializeBitset<26>(std::bitset<26>(n));
+        break;
+    case 27:
+        SerializeBitset<27>(std::bitset<27>(n));
+        break;
+    case 28:
+        SerializeBitset<28>(std::bitset<28>(n));
+        break;
     default: {
         std::cout << "SerializeInteger " << requiredBits << " Out of range!!" << std::endl;
         exit(1);
@@ -613,6 +637,14 @@ NrAsn1Header::DeserializeInteger(int* n, int nmin, int nmax, Buffer::Iterator bI
     std::bitset<18> bitsRead18;
     std::bitset<19> bitsRead19;
     std::bitset<20> bitsRead20;
+    std::bitset<21> bitsRead21;
+    std::bitset<22> bitsRead22;
+    std::bitset<23> bitsRead23;
+    std::bitset<24> bitsRead24;
+    std::bitset<25> bitsRead25;
+    std::bitset<26> bitsRead26;
+    std::bitset<27> bitsRead27;
+    std::bitset<28> bitsRead28;
 
     switch (requiredBits)
     {
@@ -695,6 +727,38 @@ NrAsn1Header::DeserializeInteger(int* n, int nmin, int nmax, Buffer::Iterator bI
     case 20:
         bIterator = DeserializeBitset<20>(&bitsRead20, bIterator);
         *n = (int)bitsRead20.to_ulong();
+        break;
+    case 21:
+        bIterator = DeserializeBitset<21>(&bitsRead21, bIterator);
+        *n = (int)bitsRead21.to_ulong();
+        break;
+    case 22:
+        bIterator = DeserializeBitset<22>(&bitsRead22, bIterator);
+        *n = (int)bitsRead22.to_ulong();
+        break;
+    case 23:
+        bIterator = DeserializeBitset<23>(&bitsRead23, bIterator);
+        *n = (int)bitsRead23.to_ulong();
+        break;
+    case 24:
+        bIterator = DeserializeBitset<24>(&bitsRead24, bIterator);
+        *n = (int)bitsRead24.to_ulong();
+        break;
+    case 25:
+        bIterator = DeserializeBitset<25>(&bitsRead25, bIterator);
+        *n = (int)bitsRead25.to_ulong();
+        break;
+    case 26:
+        bIterator = DeserializeBitset<26>(&bitsRead26, bIterator);
+        *n = (int)bitsRead26.to_ulong();
+        break;
+    case 27:
+        bIterator = DeserializeBitset<27>(&bitsRead27, bIterator);
+        *n = (int)bitsRead27.to_ulong();
+        break;
+    case 28:
+        bIterator = DeserializeBitset<28>(&bitsRead28, bIterator);
+        *n = (int)bitsRead28.to_ulong();
         break;
     default: {
         std::cout << "SerializeInteger Out of range!!" << std::endl;
