@@ -38,7 +38,7 @@ NrEpcPgwApplication::NrUeInfo::AddBearer(uint8_t bearerId, uint32_t teid, Ptr<Nr
 {
     NS_LOG_FUNCTION(this << (uint16_t)bearerId << teid << rule);
     m_teidByBearerIdMap[bearerId] = teid;
-    return m_tftClassifier.Add(rule, teid);
+    return m_qosRuleClassifier.Add(rule, teid);
 }
 
 void
@@ -46,7 +46,7 @@ NrEpcPgwApplication::NrUeInfo::RemoveBearer(uint8_t bearerId)
 {
     NS_LOG_FUNCTION(this << (uint16_t)bearerId);
     auto it = m_teidByBearerIdMap.find(bearerId);
-    m_tftClassifier.Delete(it->second); // delete rule
+    m_qosRuleClassifier.Delete(it->second); // delete rule
     m_teidByBearerIdMap.erase(bearerId);
 }
 
@@ -57,7 +57,7 @@ NrEpcPgwApplication::NrUeInfo::Classify(Ptr<Packet> p, uint16_t protocolNumber)
     // we hardcode DOWNLINK direction since the PGW is expected to
     // classify only downlink packets (uplink packets will go to the
     // internet without any classification).
-    return m_tftClassifier.Classify(p, NrQosRule::DOWNLINK, protocolNumber);
+    return m_qosRuleClassifier.Classify(p, NrQosRule::DOWNLINK, protocolNumber);
 }
 
 Ipv4Address

@@ -59,6 +59,7 @@ us a note on ns-developers mailing list.
   while in NR we don't. All BWPs will now refer to the same RRC, as configured in the RRC. This affects primarily
   ``NrEpcHelper``, ``NrHelper``, ``NrNoBackhaulEpcHelper``, ``NrPointToPointEpcHelper`` and tests.
 - ``NrQosRule`` replaces previous use of ``NrEpcTft` to reflect 5G terminology
+- ``NrEpcTftClassifier`` class was renamed to ``NrQosRuleClassifier`` to reflect 5G terminology
 
 ### Changed Behavior
 - The numeration of BWPs was changed, so that BWP Ids match the order they are installed.

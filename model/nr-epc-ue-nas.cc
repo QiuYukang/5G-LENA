@@ -191,7 +191,7 @@ NrEpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
     switch (m_state)
     {
     case ACTIVE: {
-        uint32_t id = m_tftClassifier.Classify(packet, NrQosRule::UPLINK, protocolNumber);
+        uint32_t id = m_qosRuleClassifier.Classify(packet, NrQosRule::UPLINK, protocolNumber);
         NS_ASSERT((id & 0xFFFFFF00) == 0);
         auto bid = (uint8_t)(id & 0x000000FF);
         if (bid == 0)
@@ -243,7 +243,7 @@ NrEpcUeNas::DoNotifyConnectionReleased()
     // remove rules
     while (m_bidCounter > 0)
     {
-        m_tftClassifier.Delete(m_bidCounter);
+        m_qosRuleClassifier.Delete(m_bidCounter);
         m_bidCounter--;
     }
     // restore the bearer list to be activated for the next RRC connection
@@ -258,7 +258,7 @@ NrEpcUeNas::DoActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule)
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(m_bidCounter < 11, "cannot have more than 11 EPS bearers");
     uint8_t bid = ++m_bidCounter;
-    m_tftClassifier.Add(rule, bid);
+    m_qosRuleClassifier.Add(rule, bid);
 }
 
 NrEpcUeNas::State

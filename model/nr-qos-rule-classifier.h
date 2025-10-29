@@ -4,8 +4,8 @@
 //
 // Author: Nicola Baldo  <nbaldo@cttc.es>
 
-#ifndef NR_EPC_TFT_CLASSIFIER_H
-#define NR_EPC_TFT_CLASSIFIER_H
+#ifndef NR_QOS_RULE_CLASSIFIER_H
+#define NR_QOS_RULE_CLASSIFIER_H
 
 #include "nr-qos-rule.h"
 
@@ -36,10 +36,10 @@ class Packet;
  * When we cannot cache the port info, the QoS rule of the default bearer is used. This may happen
  * if there is reordering or losses of IP packets.
  */
-class NrEpcTftClassifer : public SimpleRefCount<NrEpcTftClassifer>
+class NrQosRuleClassifier : public SimpleRefCount<NrQosRuleClassifier>
 {
   public:
-    NrEpcTftClassifer();
+    NrQosRuleClassifier();
 
     /**
      * add a QoS rule to the Classifier
@@ -70,7 +70,7 @@ class NrEpcTftClassifer : public SimpleRefCount<NrEpcTftClassifer>
     uint32_t Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint16_t protocolNumber);
 
   protected:
-    std::map<uint32_t, Ptr<NrQosRule>> m_tftMap; ///< TFT map
+    std::map<uint32_t, Ptr<NrQosRule>> m_qosRuleMap; ///< QoS rule map
 
     std::map<std::tuple<uint32_t, uint32_t, uint8_t, uint16_t>, std::pair<uint32_t, uint32_t>>
         m_classifiedIpv4Fragments; ///< Map with already classified IPv4 Fragments
@@ -84,4 +84,4 @@ class NrEpcTftClassifer : public SimpleRefCount<NrEpcTftClassifer>
 
 } // namespace ns3
 
-#endif /* NR_TFT_CLASSIFIER_H */
+#endif /* NR_QOS_RULE_CLASSIFIER_H */

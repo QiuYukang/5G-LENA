@@ -13,7 +13,7 @@
 #include "ns3/ipv6-header.h"
 #include "ns3/ipv6-l3-protocol.h"
 #include "ns3/log.h"
-#include "ns3/nr-epc-tft-classifier.h"
+#include "ns3/nr-qos-rule-classifier.h"
 #include "ns3/packet.h"
 #include "ns3/tcp-header.h"
 #include "ns3/tcp-l4-protocol.h"
@@ -25,98 +25,98 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("NrTestEpcTftClassifier");
+NS_LOG_COMPONENT_DEFINE("NrTestQosRuleClassifier");
 
 /**
  * @ingroup nr-test
  *
- * @brief Test case to check the functionality of the Tft Classifier. Test
- * consist of defining different TFT configurations, i.e. direction, ports,
+ * @brief Test case to check the functionality of the QoS rule Classifier. Test
+ * consist of defining different QoS rule configurations, i.e. direction, ports,
  * address, and it is checking if the clasiffication of UDP packets is
  * done correctly.
  */
-class NrEpcTftClassiferTestCase : public TestCase
+class NrQosRuleClassifierTestCase : public TestCase
 {
   public:
     /**
      * Constructor
      *
-     * @param c the EPC TFT classifier
-     * @param d the EPC TFT direction
+     * @param c the QoS rule classifier
+     * @param d the QoS rule direction
      * @param sa the source address (in IPv4 format)
      * @param da the destination address (in IPv4 format)
      * @param sp the source port
      * @param dp the destination port
      * @param tos the TOS
-     * @param tftId the TFT ID
+     * @param ruleId the QoS rule ID
      * @param useIpv6 use IPv6 or IPv4 addresses. If set, addresses will be used as IPv4 mapped
      * addresses
      */
-    NrEpcTftClassiferTestCase(Ptr<NrEpcTftClassifer> c,
-                              NrQosRule::Direction d,
-                              std::string sa,
-                              std::string da,
-                              uint16_t sp,
-                              uint16_t dp,
-                              uint8_t tos,
-                              uint32_t tftId,
-                              bool useIpv6);
+    NrQosRuleClassifierTestCase(Ptr<NrQosRuleClassifier> c,
+                                NrQosRule::Direction d,
+                                std::string sa,
+                                std::string da,
+                                uint16_t sp,
+                                uint16_t dp,
+                                uint8_t tos,
+                                uint32_t ruleId,
+                                bool useIpv6);
 
-    ~NrEpcTftClassiferTestCase() override;
+    ~NrQosRuleClassifierTestCase() override;
 
   private:
-    Ptr<NrEpcTftClassifer> m_c; ///< the EPC TFT classifier
-    NrQosRule::Direction m_d;   ///< the EPC TFT direction
-    uint8_t m_tftId;            ///< the TFT ID
-    bool m_useIpv6;             ///< use IPv4 or IPv6 header/addresses
-    Ipv4Header m_ipHeader;      ///< the IPv4 header
-    Ipv6Header m_ipv6Header;    ///< the IPv6 header
-    UdpHeader m_udpHeader;      ///< the UDP header
-    TcpHeader m_tcpHeader;      ///< the TCP header
+    Ptr<NrQosRuleClassifier> m_c; ///< the QoS rule classifier
+    NrQosRule::Direction m_d;     ///< the QoS rule direction
+    uint8_t m_ruleId;             ///< the QoS rule ID
+    bool m_useIpv6;               ///< use IPv4 or IPv6 header/addresses
+    Ipv4Header m_ipHeader;        ///< the IPv4 header
+    Ipv6Header m_ipv6Header;      ///< the IPv6 header
+    UdpHeader m_udpHeader;        ///< the UDP header
+    TcpHeader m_tcpHeader;        ///< the TCP header
 
     /**
      * Build name string
-     * @param c the EPC TFT classifier
-     * @param d the EPC TFT direction
+     * @param c the QoS rule classifier
+     * @param d the QoS rule direction
      * @param sa the source address
      * @param da the destination address
      * @param sp the source port
      * @param dp the destination port
      * @param tos the TOS
-     * @param tftId the TFT ID
+     * @param ruleId the QoS rule ID
      * @param useIpv6 use IPv6 or IPv4 addresses. If set, addresses will be used as IPv4
      * mapped addresses
      * @returns the name string
      */
-    static std::string BuildNameString(Ptr<NrEpcTftClassifer> c,
+    static std::string BuildNameString(Ptr<NrQosRuleClassifier> c,
                                        NrQosRule::Direction d,
                                        std::string sa,
                                        std::string da,
                                        uint16_t sp,
                                        uint16_t dp,
                                        uint8_t tos,
-                                       uint32_t tftId,
+                                       uint32_t ruleId,
                                        bool useIpv6);
 
     void DoRun() override;
 };
 
-NrEpcTftClassiferTestCase::NrEpcTftClassiferTestCase(Ptr<NrEpcTftClassifer> c,
-                                                     NrQosRule::Direction d,
-                                                     std::string sa,
-                                                     std::string da,
-                                                     uint16_t sp,
-                                                     uint16_t dp,
-                                                     uint8_t tos,
-                                                     uint32_t tftId,
-                                                     bool useIpv6)
-    : TestCase(BuildNameString(c, d, sa, da, sp, dp, tos, tftId, useIpv6)),
+NrQosRuleClassifierTestCase::NrQosRuleClassifierTestCase(Ptr<NrQosRuleClassifier> c,
+                                                         NrQosRule::Direction d,
+                                                         std::string sa,
+                                                         std::string da,
+                                                         uint16_t sp,
+                                                         uint16_t dp,
+                                                         uint8_t tos,
+                                                         uint32_t ruleId,
+                                                         bool useIpv6)
+    : TestCase(BuildNameString(c, d, sa, da, sp, dp, tos, ruleId, useIpv6)),
       m_c(c),
       m_d(d),
-      m_tftId(tftId),
+      m_ruleId(ruleId),
       m_useIpv6(useIpv6)
 {
-    NS_LOG_FUNCTION(this << c << d << sa << da << sp << dp << tos << tftId << useIpv6);
+    NS_LOG_FUNCTION(this << c << d << sa << da << sp << dp << tos << ruleId << useIpv6);
 
     if (m_useIpv6)
     {
@@ -139,20 +139,20 @@ NrEpcTftClassiferTestCase::NrEpcTftClassiferTestCase(Ptr<NrEpcTftClassifer> c,
     m_udpHeader.SetDestinationPort(dp);
 }
 
-NrEpcTftClassiferTestCase::~NrEpcTftClassiferTestCase()
+NrQosRuleClassifierTestCase::~NrQosRuleClassifierTestCase()
 {
 }
 
 std::string
-NrEpcTftClassiferTestCase::BuildNameString(Ptr<NrEpcTftClassifer> c,
-                                           NrQosRule::Direction d,
-                                           std::string sa,
-                                           std::string da,
-                                           uint16_t sp,
-                                           uint16_t dp,
-                                           uint8_t tos,
-                                           uint32_t tftId,
-                                           bool useIpv6)
+NrQosRuleClassifierTestCase::BuildNameString(Ptr<NrQosRuleClassifier> c,
+                                             NrQosRule::Direction d,
+                                             std::string sa,
+                                             std::string da,
+                                             uint16_t sp,
+                                             uint16_t dp,
+                                             uint8_t tos,
+                                             uint32_t ruleId,
+                                             bool useIpv6)
 {
     std::ostringstream oss;
     oss << c << "  d = " << d;
@@ -166,12 +166,12 @@ NrEpcTftClassiferTestCase::BuildNameString(Ptr<NrEpcTftClassifer> c,
         oss << ", sa = " << sa << ", da = " << da;
     }
     oss << ", sp = " << sp << ", dp = " << dp << ", tos = 0x" << std::hex << (int)tos
-        << " --> tftId = " << tftId;
+        << " --> ruleId = " << ruleId;
     return oss.str();
 }
 
 void
-NrEpcTftClassiferTestCase::DoRun()
+NrQosRuleClassifierTestCase::DoRun()
 {
     ns3::PacketMetadata::Enable();
 
@@ -186,32 +186,32 @@ NrEpcTftClassiferTestCase::DoRun()
         udpPacket->AddHeader(m_ipHeader);
     }
     NS_LOG_LOGIC(this << *udpPacket);
-    uint32_t obtainedTftId =
+    uint32_t obtainedRuleId =
         m_c->Classify(udpPacket,
                       m_d,
                       m_useIpv6 ? Ipv6L3Protocol::PROT_NUMBER : Ipv4L3Protocol::PROT_NUMBER);
-    NS_TEST_ASSERT_MSG_EQ(obtainedTftId, (uint16_t)m_tftId, "bad classification of UDP packet");
+    NS_TEST_ASSERT_MSG_EQ(obtainedRuleId, (uint16_t)m_ruleId, "bad classification of UDP packet");
 }
 
 /**
  * @ingroup nr-test
  *
- * @brief Epc Tft Classifier Test Suite
+ * @brief QoS Rule Classifier Test Suite
  */
-class NrEpcTftClassiferTestSuite : public TestSuite
+class NrQosRuleClassifierTestSuite : public TestSuite
 {
   public:
-    NrEpcTftClassiferTestSuite();
+    NrQosRuleClassifierTestSuite();
 };
 
 /**
  * @ingroup nr-test
  * Static variable for test initialization
  */
-static NrEpcTftClassiferTestSuite g_nrTftClassifierTestSuite;
+static NrQosRuleClassifierTestSuite g_nrQosRuleClassifierTestSuite;
 
-NrEpcTftClassiferTestSuite::NrEpcTftClassiferTestSuite()
-    : TestSuite("nr-epc-tft-classifier", Type::UNIT)
+NrQosRuleClassifierTestSuite::NrQosRuleClassifierTestSuite()
+    : TestSuite("nr-qos-rule-classifier", Type::UNIT)
 {
     NS_LOG_FUNCTION(this);
 
@@ -225,12 +225,12 @@ NrEpcTftClassiferTestSuite::NrEpcTftClassiferTestSuite()
     for (bool useIpv6 : {false, true})
     {
         //////////////////////////
-        // check some TFT matches
+        // check some rule matches
         //////////////////////////
 
-        Ptr<NrEpcTftClassifer> c1 = Create<NrEpcTftClassifer>();
+        Ptr<NrQosRuleClassifier> c1 = Create<NrQosRuleClassifier>();
 
-        Ptr<NrQosRule> tft1_1 = Create<NrQosRule>();
+        Ptr<NrQosRule> rule1_1 = Create<NrQosRule>();
 
         NrQosRule::PacketFilter pf1_1_1;
         if (useIpv6)
@@ -247,7 +247,7 @@ NrEpcTftClassiferTestSuite::NrEpcTftClassiferTestSuite()
             pf1_1_1.localAddress.Set("2.0.0.0");
             pf1_1_1.localMask.Set(0xff000000);
         }
-        tft1_1->Add(pf1_1_1);
+        rule1_1->Add(pf1_1_1);
 
         NrQosRule::PacketFilter pf1_1_2;
         if (useIpv6)
@@ -264,745 +264,745 @@ NrEpcTftClassiferTestSuite::NrEpcTftClassiferTestSuite()
             pf1_1_2.localAddress.Set("4.4.4.0");
             pf1_1_2.localMask.Set(0xffffff00);
         }
-        tft1_1->Add(pf1_1_2);
+        rule1_1->Add(pf1_1_2);
 
-        c1->Add(tft1_1, 1);
+        c1->Add(rule1_1, 1);
 
-        Ptr<NrQosRule> tft1_2 = Create<NrQosRule>();
+        Ptr<NrQosRule> rule1_2 = Create<NrQosRule>();
 
         NrQosRule::PacketFilter pf1_2_1;
         pf1_2_1.remotePortStart = 1024;
         pf1_2_1.remotePortEnd = 1035;
-        tft1_2->Add(pf1_2_1);
+        rule1_2->Add(pf1_2_1);
 
         NrQosRule::PacketFilter pf1_2_2;
         pf1_2_2.localPortStart = 3456;
         pf1_2_2.localPortEnd = 3489;
-        tft1_2->Add(pf1_2_2);
+        rule1_2->Add(pf1_2_2);
 
         NrQosRule::PacketFilter pf1_2_3;
         pf1_2_3.localPortStart = 7895;
         pf1_2_3.localPortEnd = 7895;
-        tft1_2->Add(pf1_2_3);
+        rule1_2->Add(pf1_2_3);
 
         NrQosRule::PacketFilter pf1_2_4;
         pf1_2_4.remotePortStart = 5897;
         pf1_2_4.remotePortEnd = 5897;
-        tft1_2->Add(pf1_2_4);
+        rule1_2->Add(pf1_2_4);
 
-        c1->Add(tft1_2, 2);
+        c1->Add(rule1_2, 2);
 
-        // --------------------------------classifier----direction-------src_addr---dst_addr--src_port--dst_port--ToS--TFT_id
+        // --------------------------------classifier----direction-------src_addr---dst_addr--src_port--dst_port--ToS--rule_id
 
         // test IP addresses
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "2.2.3.4",
-                                                  "1.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "2.2.3.4",
+                                                    "1.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "2.2.3.4",
-                                                  "1.0.0.0",
-                                                  2,
-                                                  123,
-                                                  5,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "2.2.3.4",
+                                                    "1.0.0.0",
+                                                    2,
+                                                    123,
+                                                    5,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "6.2.3.4",
-                                                  "1.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "6.2.3.4",
+                                                    "1.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "3.3.3.4",
-                                                  "4.4.4.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "3.3.3.4",
+                                                    "4.4.4.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "3.3.4.4",
-                                                  "4.4.4.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "3.3.4.4",
+                                                    "4.4.4.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "3.3.3.4",
-                                                  "4.4.2.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "3.3.3.4",
+                                                    "4.4.2.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         // test remote port
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1024,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1024,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1025,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1025,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1035,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1035,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1024,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1024,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1025,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1025,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1035,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1035,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         // test local port
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3456,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3456,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3457,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3457,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3489,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3489,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  3456,
-                                                  6,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    3456,
+                                                    6,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  3461,
-                                                  3461,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    3461,
+                                                    3461,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  3489,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    3489,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  7895,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    7895,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  7895,
-                                                  10,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    7895,
+                                                    10,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  5897,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    5897,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c1,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  5897,
-                                                  10,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c1,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    5897,
+                                                    10,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         ///////////////////////////
-        // check default TFT
+        // check default rule
         ///////////////////////////
 
-        Ptr<NrEpcTftClassifer> c2 = Create<NrEpcTftClassifer>();
+        Ptr<NrQosRuleClassifier> c2 = Create<NrQosRuleClassifier>();
         c2->Add(NrQosRule::Default(), 1);
 
-        // --------------------------------classifier---direction--------src_addr---dst_addr--src_port--dst_port--ToS--TFT
+        // --------------------------------classifier---direction--------src_addr---dst_addr--src_port--dst_port--ToS--rule
         // id
 
         // test IP addresses
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "2.2.3.4",
-                                                  "1.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "2.2.3.4",
+                                                    "1.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "2.2.3.4",
-                                                  "1.0.0.0",
-                                                  2,
-                                                  123,
-                                                  5,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "2.2.3.4",
+                                                    "1.0.0.0",
+                                                    2,
+                                                    123,
+                                                    5,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "6.2.3.4",
-                                                  "1.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "6.2.3.4",
+                                                    "1.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "3.3.3.4",
-                                                  "4.4.4.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "3.3.3.4",
+                                                    "4.4.4.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "3.3.4.4",
-                                                  "4.4.4.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "3.3.4.4",
+                                                    "4.4.4.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "3.3.3.4",
-                                                  "4.4.2.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "3.3.3.4",
+                                                    "4.4.2.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         // test remote port
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1024,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1024,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1025,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1025,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1035,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1035,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1024,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1024,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1025,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1025,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1035,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1035,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         // test local port
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3456,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3456,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3457,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3457,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3489,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3489,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  3456,
-                                                  6,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    3456,
+                                                    6,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  3461,
-                                                  3461,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    3461,
+                                                    3461,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c2,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  3489,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c2,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    3489,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         ///////////////////////////////////////////
-        // check default TFT plus dedicated ones
+        // check default rule plus dedicated ones
         ///////////////////////////////////////////
 
-        Ptr<NrEpcTftClassifer> c3 = Create<NrEpcTftClassifer>();
+        Ptr<NrQosRuleClassifier> c3 = Create<NrQosRuleClassifier>();
         c3->Add(NrQosRule::Default(), 1);
-        c3->Add(tft1_1, 2);
-        c3->Add(tft1_2, 3);
+        c3->Add(rule1_1, 2);
+        c3->Add(rule1_2, 3);
 
-        // --------------------------------classifier---direction--------src_addr---dst_addr---src_port--dst_port--ToS--TFT_id
+        // --------------------------------classifier---direction--------src_addr---dst_addr---src_port--dst_port--ToS--rule_id
 
         // test IP addresses
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "2.2.3.4",
-                                                  "1.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "2.2.3.4",
+                                                    "1.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "2.2.3.4",
-                                                  "1.0.0.0",
-                                                  2,
-                                                  123,
-                                                  5,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "2.2.3.4",
+                                                    "1.0.0.0",
+                                                    2,
+                                                    123,
+                                                    5,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "6.2.3.4",
-                                                  "1.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "6.2.3.4",
+                                                    "1.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "3.3.3.4",
-                                                  "4.4.4.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "3.3.3.4",
+                                                    "4.4.4.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "3.3.4.4",
-                                                  "4.4.4.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "3.3.4.4",
+                                                    "4.4.4.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "3.3.3.4",
-                                                  "4.4.2.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "3.3.3.4",
+                                                    "4.4.2.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         // test remote port
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1024,
-                                                  0,
-                                                  3,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1024,
+                                                    0,
+                                                    3,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1025,
-                                                  0,
-                                                  3,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1025,
+                                                    0,
+                                                    3,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1035,
-                                                  0,
-                                                  3,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1035,
+                                                    0,
+                                                    3,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1234,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1234,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1024,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1024,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1025,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1025,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  1035,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    1035,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         // test local port
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3456,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3456,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3457,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3457,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  4,
-                                                  3489,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    4,
+                                                    3489,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  3456,
-                                                  6,
-                                                  0,
-                                                  3,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    3456,
+                                                    6,
+                                                    0,
+                                                    3,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  3461,
-                                                  3461,
-                                                  0,
-                                                  3,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    3461,
+                                                    3461,
+                                                    0,
+                                                    3,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c3,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  3489,
-                                                  0,
-                                                  3,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c3,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    3489,
+                                                    0,
+                                                    3,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
 
         ///////////////////////////////////////////
-        // check two TFTs with different ports
+        // check two rules with different ports
         ///////////////////////////////////////////
 
-        Ptr<NrEpcTftClassifer> c4 = Create<NrEpcTftClassifer>();
-        Ptr<NrQosRule> tft4_1 = Create<NrQosRule>();
-        tft4_1->Add(pf1_2_3);
-        c4->Add(tft4_1, 1);
-        Ptr<NrQosRule> tft4_2 = Create<NrQosRule>();
-        tft4_2->Add(pf1_2_4);
-        c4->Add(tft4_2, 2);
-        AddTestCase(new NrEpcTftClassiferTestCase(c4,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  3489,
-                                                  0,
-                                                  0,
-                                                  useIpv6),
+        Ptr<NrQosRuleClassifier> c4 = Create<NrQosRuleClassifier>();
+        Ptr<NrQosRule> rule4_1 = Create<NrQosRule>();
+        rule4_1->Add(pf1_2_3);
+        c4->Add(rule4_1, 1);
+        Ptr<NrQosRule> rule4_2 = Create<NrQosRule>();
+        rule4_2->Add(pf1_2_4);
+        c4->Add(rule4_2, 2);
+        AddTestCase(new NrQosRuleClassifierTestCase(c4,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    3489,
+                                                    0,
+                                                    0,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c4,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  7895,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c4,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    7895,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c4,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  7895,
-                                                  10,
-                                                  0,
-                                                  1,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c4,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    7895,
+                                                    10,
+                                                    0,
+                                                    1,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c4,
-                                                  NrQosRule::UPLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  9,
-                                                  5897,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c4,
+                                                    NrQosRule::UPLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    9,
+                                                    5897,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
-        AddTestCase(new NrEpcTftClassiferTestCase(c4,
-                                                  NrQosRule::DOWNLINK,
-                                                  "9.1.1.1",
-                                                  "8.1.1.1",
-                                                  5897,
-                                                  10,
-                                                  0,
-                                                  2,
-                                                  useIpv6),
+        AddTestCase(new NrQosRuleClassifierTestCase(c4,
+                                                    NrQosRule::DOWNLINK,
+                                                    "9.1.1.1",
+                                                    "8.1.1.1",
+                                                    5897,
+                                                    10,
+                                                    0,
+                                                    2,
+                                                    useIpv6),
                     TestCase::Duration::QUICK);
     }
 }

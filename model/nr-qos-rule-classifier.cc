@@ -4,11 +4,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
 // Authors:
-//   Nicola Baldo <nbaldo@cttc.es> (the NrEpcTftClassifer class)
-//   Giuseppe Piro <g.piro@poliba.it> (part of the code in NrEpcTftClassifer::Classify ()
+//   Nicola Baldo <nbaldo@cttc.es> (the NrQosRuleClassifier class)
+//   Giuseppe Piro <g.piro@poliba.it> (part of the code in NrQosRuleClassifier::Classify ()
 //       which comes from RrcEntity::Classify of the GSoC 2010 LTE module)
 
-#include "nr-epc-tft-classifier.h"
+#include "nr-qos-rule-classifier.h"
 
 #include "nr-qos-rule.h"
 
@@ -28,32 +28,34 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("NrEpcTftClassifer");
+NS_LOG_COMPONENT_DEFINE("NrQosRuleClassifier");
 
-NrEpcTftClassifer::NrEpcTftClassifer()
+NrQosRuleClassifier::NrQosRuleClassifier()
 {
     NS_LOG_FUNCTION(this);
 }
 
 void
-NrEpcTftClassifer::Add(Ptr<NrQosRule> rule, uint32_t id)
+NrQosRuleClassifier::Add(Ptr<NrQosRule> rule, uint32_t id)
 {
     NS_LOG_FUNCTION(this << rule << id);
-    m_tftMap[id] = rule;
+    m_qosRuleMap[id] = rule;
 
-    // simple sanity check: there shouldn't be more than 16 bearers (hence TFTs) per UE
-    NS_ASSERT(m_tftMap.size() <= 16);
+    // simple sanity check: there shouldn't be more than 16 bearers (hence rules) per UE
+    NS_ASSERT(m_qosRuleMap.size() <= 16);
 }
 
 void
-NrEpcTftClassifer::Delete(uint32_t id)
+NrQosRuleClassifier::Delete(uint32_t id)
 {
     NS_LOG_FUNCTION(this << id);
-    m_tftMap.erase(id);
+    m_qosRuleMap.erase(id);
 }
 
 uint32_t
-NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint16_t protocolNumber)
+NrQosRuleClassifier::Classify(Ptr<Packet> p,
+                              NrQosRule::Direction direction,
+                              uint16_t protocolNumber)
 {
     NS_LOG_FUNCTION(this << p << p->GetSize() << direction);
 
@@ -243,7 +245,7 @@ NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint1
     }
     else
     {
-        NS_ABORT_MSG("NrEpcTftClassifer::Classify - Unknown IP type...");
+        NS_ABORT_MSG("NrQosRuleClassifier::Classify - Unknown IP type...");
     }
 
     if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
@@ -258,11 +260,11 @@ NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint1
         // This way, since the default bearer is expected to be added first, it will be evaluated
         // last.
         std::map<uint32_t, Ptr<NrQosRule>>::const_reverse_iterator it;
-        NS_LOG_LOGIC("TFT MAP size: " << m_tftMap.size());
+        NS_LOG_LOGIC("QoS rule MAP size: " << m_qosRuleMap.size());
 
-        for (it = m_tftMap.rbegin(); it != m_tftMap.rend(); ++it)
+        for (it = m_qosRuleMap.rbegin(); it != m_qosRuleMap.rend(); ++it)
         {
-            NS_LOG_LOGIC("TFT id: " << it->first);
+            NS_LOG_LOGIC("QoS rule id: " << it->first);
             NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
             Ptr<NrQosRule> rule = it->second;
             if (rule->Matches(direction,
@@ -272,8 +274,8 @@ NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint1
                               localPort,
                               tos))
             {
-                NS_LOG_LOGIC("matches with TFT ID = " << it->first);
-                return it->first; // the id of the matching TFT
+                NS_LOG_LOGIC("matches with QoS rule ID = " << it->first);
+                return it->first; // the id of the matching QoS rule
             }
         }
     }
@@ -289,11 +291,11 @@ NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint1
         // This way, since the default bearer is expected to be added first, it will be evaluated
         // last.
         std::map<uint32_t, Ptr<NrQosRule>>::const_reverse_iterator it;
-        NS_LOG_LOGIC("TFT MAP size: " << m_tftMap.size());
+        NS_LOG_LOGIC("QoS rule MAP size: " << m_qosRuleMap.size());
 
-        for (it = m_tftMap.rbegin(); it != m_tftMap.rend(); ++it)
+        for (it = m_qosRuleMap.rbegin(); it != m_qosRuleMap.rend(); ++it)
         {
-            NS_LOG_LOGIC("TFT id: " << it->first);
+            NS_LOG_LOGIC("QoS rule id: " << it->first);
             NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
             Ptr<NrQosRule> rule = it->second;
             if (rule->Matches(direction,
@@ -303,8 +305,8 @@ NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint1
                               localPort,
                               tos))
             {
-                NS_LOG_LOGIC("matches with TFT ID = " << it->first);
-                return it->first; // the id of the matching TFT
+                NS_LOG_LOGIC("matches with QoS rule ID = " << it->first);
+                return it->first; // the id of the matching QoS rule
             }
         }
     }

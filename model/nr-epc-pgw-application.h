@@ -9,7 +9,7 @@
 #define NR_EPC_PGW_APPLICATION_H
 
 #include "nr-epc-gtpc-header.h"
-#include "nr-epc-tft-classifier.h"
+#include "nr-qos-rule-classifier.h"
 
 #include "ns3/application.h"
 #include "ns3/socket.h"
@@ -260,7 +260,7 @@ class NrEpcPgwApplication : public Application
         Ipv4Address m_ueAddr;                            ///< UE IPv4 address
         Ipv6Address m_ueAddr6;                           ///< UE IPv6 address
         Ipv4Address m_sgwAddr;                           ///< SGW IPv4 address
-        NrEpcTftClassifer m_tftClassifier;               ///< TFT classifier
+        NrQosRuleClassifier m_qosRuleClassifier;         ///< QoS rule classifier
         std::map<uint8_t, uint32_t> m_teidByBearerIdMap; ///< TEID By bearer ID Map
     };
 

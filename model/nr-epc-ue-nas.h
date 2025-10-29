@@ -8,8 +8,8 @@
 #define NR_EPC_UE_NAS_H
 
 #include "nr-as-sap.h"
-#include "nr-epc-tft-classifier.h"
 #include "nr-eps-bearer.h"
+#include "nr-qos-rule-classifier.h"
 
 #include "ns3/object.h"
 #include "ns3/traced-callback.h"
@@ -219,8 +219,8 @@ class NrEpcUeNas : public Object
     /// NR SAP user
     NrAsSapUser* m_asSapUser;
 
-    uint8_t m_bidCounter;              ///< bid counter
-    NrEpcTftClassifer m_tftClassifier; ///< tft classifier
+    uint8_t m_bidCounter;                    ///< bid counter
+    NrQosRuleClassifier m_qosRuleClassifier; ///< QoS rule classifier
 
     Callback<void, Ptr<Packet>> m_forwardUpCallback; ///< upward callback
 
