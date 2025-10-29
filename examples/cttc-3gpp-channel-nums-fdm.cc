@@ -380,11 +380,11 @@ main(int argc, char* argv[])
     NrEpsBearer videoBearer(NrEpsBearer::GBR_CONV_VIDEO);
 
     // The filter for the low-latency traffic
-    Ptr<NrEpcTft> videoTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVideo;
+    Ptr<NrQosRule> videoRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVideo;
     dlpfVideo.localPortStart = dlPortVideo;
     dlpfVideo.localPortEnd = dlPortVideo;
-    videoTft->Add(dlpfVideo);
+    videoRule->Add(dlpfVideo);
 
     // Voice configuration and object creation:
     UdpClientHelper dlClientVoice;
@@ -396,11 +396,11 @@ main(int argc, char* argv[])
     NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
-    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVoice;
+    Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVoice;
     dlpfVoice.localPortStart = dlPortVoice;
     dlpfVoice.localPortEnd = dlPortVoice;
-    voiceTft->Add(dlpfVoice);
+    voiceRule->Add(dlpfVoice);
 
     // Gaming configuration and object creation:
     UdpClientHelper ulClientGaming;
@@ -412,12 +412,12 @@ main(int argc, char* argv[])
     NrEpsBearer gamingBearer(NrEpsBearer::GBR_GAMING);
 
     // The filter for the gaming traffic
-    Ptr<NrEpcTft> gamingTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpfGaming;
+    Ptr<NrQosRule> gamingRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpfGaming;
     ulpfGaming.remotePortStart = ulPortGaming;
     ulpfGaming.remotePortEnd = ulPortGaming;
-    ulpfGaming.direction = NrEpcTft::UPLINK;
-    gamingTft->Add(ulpfGaming);
+    ulpfGaming.direction = NrQosRule::UPLINK;
+    gamingRule->Add(ulpfGaming);
 
     /*
      * Let's install the applications!
@@ -439,7 +439,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVoice)));
             clientApps.Add(dlClientVoice.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceRule);
         }
 
         if (enableVideo)
@@ -449,7 +449,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVideo)));
             clientApps.Add(dlClientVideo.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, videoTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, videoRule);
         }
 
         // For the uplink, the installation happens in the UE, and the remote address
@@ -463,7 +463,7 @@ main(int argc, char* argv[])
                     addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, ulPortGaming)));
             clientApps.Add(ulClientGaming.Install(ue));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, gamingBearer, gamingTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, gamingBearer, gamingRule);
         }
     }
 

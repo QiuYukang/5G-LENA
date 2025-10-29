@@ -34,11 +34,11 @@ NrEpcPgwApplication::NrUeInfo::NrUeInfo()
 }
 
 void
-NrEpcPgwApplication::NrUeInfo::AddBearer(uint8_t bearerId, uint32_t teid, Ptr<NrEpcTft> tft)
+NrEpcPgwApplication::NrUeInfo::AddBearer(uint8_t bearerId, uint32_t teid, Ptr<NrQosRule> rule)
 {
-    NS_LOG_FUNCTION(this << (uint16_t)bearerId << teid << tft);
+    NS_LOG_FUNCTION(this << (uint16_t)bearerId << teid << rule);
     m_teidByBearerIdMap[bearerId] = teid;
-    return m_tftClassifier.Add(tft, teid);
+    return m_tftClassifier.Add(rule, teid);
 }
 
 void
@@ -46,7 +46,7 @@ NrEpcPgwApplication::NrUeInfo::RemoveBearer(uint8_t bearerId)
 {
     NS_LOG_FUNCTION(this << (uint16_t)bearerId);
     auto it = m_teidByBearerIdMap.find(bearerId);
-    m_tftClassifier.Delete(it->second); // delete tft
+    m_tftClassifier.Delete(it->second); // delete rule
     m_teidByBearerIdMap.erase(bearerId);
 }
 
@@ -57,7 +57,7 @@ NrEpcPgwApplication::NrUeInfo::Classify(Ptr<Packet> p, uint16_t protocolNumber)
     // we hardcode DOWNLINK direction since the PGW is expected to
     // classify only downlink packets (uplink packets will go to the
     // internet without any classification).
-    return m_tftClassifier.Classify(p, NrEpcTft::DOWNLINK, protocolNumber);
+    return m_tftClassifier.Classify(p, NrQosRule::DOWNLINK, protocolNumber);
 }
 
 Ipv4Address
@@ -313,7 +313,7 @@ NrEpcPgwApplication::DoRecvCreateSessionRequest(Ptr<Packet> packet)
         NS_LOG_DEBUG("bearerId " << (uint16_t)bearerContext.epsBearerId << " SGW "
                                  << bearerContext.sgwS5uFteid.addr << " TEID " << teid);
 
-        ueit->second->AddBearer(bearerContext.epsBearerId, teid, bearerContext.tft);
+        ueit->second->AddBearer(bearerContext.epsBearerId, teid, bearerContext.rule);
 
         NrGtpcCreateSessionResponseMessage::BearerContextCreated bearerContextOut;
         bearerContextOut.fteid.interfaceType = NrGtpcHeader::S5_PGW_GTPU;
@@ -321,7 +321,7 @@ NrEpcPgwApplication::DoRecvCreateSessionRequest(Ptr<Packet> packet)
         bearerContextOut.fteid.addr = m_pgwS5Addr;
         bearerContextOut.epsBearerId = bearerContext.epsBearerId;
         bearerContextOut.bearerLevelQos = bearerContext.bearerLevelQos;
-        bearerContextOut.tft = bearerContext.tft;
+        bearerContextOut.rule = bearerContext.rule;
         bearerContextsCreated.push_back(bearerContextOut);
     }
 

@@ -343,12 +343,12 @@ NrRadioLinkFailureTestCase::DoRun()
                                                 InetSocketAddress(Ipv4Address::GetAny(), ulPort));
             ulServerApps.Add(ulPacketSinkHelper.Install(remoteHost));
 
-            Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-            NrEpcTft::PacketFilter dlpf;
+            Ptr<NrQosRule> tft = Create<NrQosRule>();
+            NrQosRule::PacketFilter dlpf;
             dlpf.localPortStart = dlPort;
             dlpf.localPortEnd = dlPort;
             tft->Add(dlpf);
-            NrEpcTft::PacketFilter ulpf;
+            NrQosRule::PacketFilter ulpf;
             ulpf.remotePortStart = ulPort;
             ulpf.remotePortEnd = ulPort;
             tft->Add(ulpf);

@@ -61,7 +61,7 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
                         uint16_t cellId) override;
     uint8_t ActivateEpsBearer(Ptr<NetDevice> ueNrDevice,
                               uint64_t imsi,
-                              Ptr<NrEpcTft> tft,
+                              Ptr<NrQosRule> rule,
                               NrEpsBearer bearer) override;
     Ptr<Node> GetSgwNode() const override;
     Ptr<Node> GetPgwNode() const override;
@@ -100,11 +100,11 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
     /**
      * @brief DoActivateEpsBearerForUe: Schedule ActivateEpsBearer on the UE
      * @param ueDevice NR device for the UE
-     * @param tft TFT
+     * @param rule QoS rule
      * @param bearer Bearer
      */
     virtual void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                          const Ptr<NrEpcTft>& tft,
+                                          const Ptr<NrQosRule>& rule,
                                           const NrEpsBearer& bearer) const;
 
   private:

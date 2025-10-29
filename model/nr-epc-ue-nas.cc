@@ -163,7 +163,7 @@ NrEpcUeNas::Disconnect()
 }
 
 void
-NrEpcUeNas::ActivateEpsBearer(NrEpsBearer bearer, Ptr<NrEpcTft> tft)
+NrEpcUeNas::ActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
     switch (m_state)
@@ -176,7 +176,7 @@ NrEpcUeNas::ActivateEpsBearer(NrEpsBearer bearer, Ptr<NrEpcTft> tft)
     default:
         BearerToBeActivated btba;
         btba.bearer = bearer;
-        btba.tft = tft;
+        btba.rule = rule;
         m_bearersToBeActivatedList.push_back(btba);
         m_bearersToBeActivatedListForReconnection.push_back(btba);
         break;
@@ -191,7 +191,7 @@ NrEpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
     switch (m_state)
     {
     case ACTIVE: {
-        uint32_t id = m_tftClassifier.Classify(packet, NrEpcTft::UPLINK, protocolNumber);
+        uint32_t id = m_tftClassifier.Classify(packet, NrQosRule::UPLINK, protocolNumber);
         NS_ASSERT((id & 0xFFFFFF00) == 0);
         auto bid = (uint8_t)(id & 0x000000FF);
         if (bid == 0)
@@ -240,7 +240,7 @@ void
 NrEpcUeNas::DoNotifyConnectionReleased()
 {
     NS_LOG_FUNCTION(this);
-    // remove tfts
+    // remove rules
     while (m_bidCounter > 0)
     {
         m_tftClassifier.Delete(m_bidCounter);
@@ -253,12 +253,12 @@ NrEpcUeNas::DoNotifyConnectionReleased()
 }
 
 void
-NrEpcUeNas::DoActivateEpsBearer(NrEpsBearer bearer, Ptr<NrEpcTft> tft)
+NrEpcUeNas::DoActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
     NS_ASSERT_MSG(m_bidCounter < 11, "cannot have more than 11 EPS bearers");
     uint8_t bid = ++m_bidCounter;
-    m_tftClassifier.Add(tft, bid);
+    m_tftClassifier.Add(rule, bid);
 }
 
 NrEpcUeNas::State
@@ -285,7 +285,7 @@ NrEpcUeNas::SwitchToState(State newState)
         for (auto it = m_bearersToBeActivatedList.begin(); it != m_bearersToBeActivatedList.end();
              m_bearersToBeActivatedList.erase(it++))
         {
-            DoActivateEpsBearer(it->bearer, it->tft);
+            DoActivateEpsBearer(it->bearer, it->rule);
         }
         break;
 

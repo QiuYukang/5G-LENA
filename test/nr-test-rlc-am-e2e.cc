@@ -173,7 +173,7 @@ NrRlcAmE2eTestCase::DoRun()
     //   }
 
     //   nrSimpleHelper->ActivateEpsBearer (ueNrDevs, NrEpsBearer
-    //   (NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT), NrEpcTft::Default ());
+    //   (NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT), NrQosRule::Default ());
 
     // Error models: downlink and uplink
     Ptr<RateErrorModel> dlEm = CreateObject<RateErrorModel>();

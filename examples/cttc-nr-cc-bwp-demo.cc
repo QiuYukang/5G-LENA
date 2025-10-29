@@ -528,12 +528,12 @@ main(int argc, char* argv[])
                 dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
                 clientApps.Add(dlClient.Install(remoteHost));
 
-                Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-                NrEpcTft::PacketFilter dlpf;
+                Ptr<NrQosRule> rule = Create<NrQosRule>();
+                NrQosRule::PacketFilter dlpf;
                 dlpf.localPortStart = dlPort;
                 dlpf.localPortEnd = dlPort;
                 ++dlPort;
-                tft->Add(dlpf);
+                rule->Add(dlpf);
 
                 enum NrEpsBearer::Qci q;
                 if (flow == 0)
@@ -557,7 +557,7 @@ main(int argc, char* argv[])
                     q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
                 }
                 NrEpsBearer bearer(q);
-                nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
+                nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, rule);
             }
 
             if (!disableUl)
@@ -573,12 +573,12 @@ main(int argc, char* argv[])
                 ulClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
                 clientApps.Add(ulClient.Install(ueNodes.Get(u)));
 
-                Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-                NrEpcTft::PacketFilter ulpf;
+                Ptr<NrQosRule> rule = Create<NrQosRule>();
+                NrQosRule::PacketFilter ulpf;
                 ulpf.remotePortStart = ulPort;
                 ulpf.remotePortEnd = ulPort;
                 ++ulPort;
-                tft->Add(ulpf);
+                rule->Add(ulpf);
 
                 enum NrEpsBearer::Qci q;
                 if (flow == 0)
@@ -602,7 +602,7 @@ main(int argc, char* argv[])
                     q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
                 }
                 NrEpsBearer bearer(q);
-                nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, tft);
+                nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, rule);
             }
         }
     }

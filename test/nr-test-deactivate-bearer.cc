@@ -231,7 +231,7 @@ NrDeactivateBearerTestCase::DoRun()
         bearer.arp.priorityLevel = 15 - (u + 1);
         bearer.arp.preemptionCapability = true;
         bearer.arp.preemptionVulnerability = true;
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, NrEpcTft::Default());
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, NrQosRule::Default());
     }
 
     // Install downlink and uplink applications

@@ -592,8 +592,8 @@ main(int argc, char* argv[])
     NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
-    Ptr<NrEpcTft> lowLatTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfLowLat;
+    Ptr<NrQosRule> lowLatTft = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfLowLat;
     dlpfLowLat.localPortStart = dlPortLowLat;
     dlpfLowLat.localPortEnd = dlPortLowLat;
     lowLatTft->Add(dlpfLowLat);
@@ -608,11 +608,11 @@ main(int argc, char* argv[])
     NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
-    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpfVoice;
+    Ptr<NrQosRule> voiceTft = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpfVoice;
     ulpfVoice.localPortStart = ulPortVoice;
     ulpfVoice.localPortEnd = ulPortVoice;
-    ulpfVoice.direction = NrEpcTft::UPLINK;
+    ulpfVoice.direction = NrQosRule::UPLINK;
     voiceTft->Add(ulpfVoice);
 
     // Video configuration and object creation:
@@ -625,8 +625,8 @@ main(int argc, char* argv[])
     NrEpsBearer videoBearer(NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM);
 
     // The filter for the video traffic
-    Ptr<NrEpcTft> videoTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVideo;
+    Ptr<NrQosRule> videoTft = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVideo;
     dlpfVideo.localPortStart = dlPortVideo;
     dlpfVideo.localPortEnd = dlPortVideo;
     videoTft->Add(dlpfVideo);
@@ -641,11 +641,11 @@ main(int argc, char* argv[])
     NrEpsBearer gamingBearer(NrEpsBearer::NGBR_VOICE_VIDEO_GAMING);
 
     // The filter for the gaming traffic
-    Ptr<NrEpcTft> gamingTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpfGaming;
+    Ptr<NrQosRule> gamingTft = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpfGaming;
     ulpfGaming.remotePortStart = ulPortGaming;
     ulpfGaming.remotePortEnd = ulPortGaming;
-    ulpfGaming.direction = NrEpcTft::UPLINK;
+    ulpfGaming.direction = NrQosRule::UPLINK;
     gamingTft->Add(ulpfGaming);
 
     //  Install the applications

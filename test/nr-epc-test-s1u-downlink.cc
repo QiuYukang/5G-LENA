@@ -196,7 +196,7 @@ NrEpcS1uDlTestCase::DoRun()
             nrEpcHelper->AddUe(ueNrDevice, imsi);
             nrEpcHelper->ActivateEpsBearer(ueNrDevice,
                                            imsi,
-                                           NrEpcTft::Default(),
+                                           NrQosRule::Default(),
                                            NrEpsBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT));
             Simulator::Schedule(MilliSeconds(10),
                                 &NrEpcGnbS1SapProvider::InitialUeMessage,

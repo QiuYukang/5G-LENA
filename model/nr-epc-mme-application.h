@@ -91,11 +91,11 @@ class NrEpcMmeApplication : public Application
      * connected state.
      *
      * @param imsi UE identifier
-     * @param tft traffic flow template of the bearer
+     * @param rule QoS rule of the bearer
      * @param bearer QoS characteristics of the bearer
      * @returns bearer ID
      */
-    uint8_t AddBearer(uint64_t imsi, Ptr<NrEpcTft> tft, NrEpsBearer bearer);
+    uint8_t AddBearer(uint64_t imsi, Ptr<NrQosRule> rule, NrEpsBearer bearer);
 
   private:
     // S1-AP SAP MME forwarded methods
@@ -177,9 +177,9 @@ class NrEpcMmeApplication : public Application
      */
     struct BearerInfo
     {
-        Ptr<NrEpcTft> tft;  ///< traffic flow template
-        NrEpsBearer bearer; ///< bearer QOS characteristics
-        uint8_t bearerId;   ///< bearer ID
+        Ptr<NrQosRule> rule; ///< QoS rule
+        NrEpsBearer bearer;  ///< bearer QOS characteristics
+        uint8_t bearerId;    ///< bearer ID
     };
 
     /**

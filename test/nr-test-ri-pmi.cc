@@ -327,11 +327,11 @@ RiPmiTestCase::DoRun()
     NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
-    Ptr<NrEpcTft> dlTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlPktFilter;
+    Ptr<NrQosRule> dlRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlPktFilter;
     dlPktFilter.localPortStart = dlPort;
     dlPktFilter.localPortEnd = dlPort;
-    dlTft->Add(dlPktFilter);
+    dlRule->Add(dlPktFilter);
 
     /**
      * Let's install the applications!
@@ -353,7 +353,7 @@ RiPmiTestCase::DoRun()
         clientApps.Add(dlClient.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlRule);
     }
 
     // start UDP server and client apps

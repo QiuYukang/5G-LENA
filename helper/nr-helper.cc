@@ -1159,7 +1159,7 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
         // activate default EPS bearer
         m_nrEpcHelper->ActivateEpsBearer(ueDevice,
                                          ueNetDev->GetImsi(),
-                                         NrEpcTft::Default(),
+                                         NrQosRule::Default(),
                                          NrEpsBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
@@ -1178,26 +1178,28 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
 uint8_t
 NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
                                      NrEpsBearer bearer,
-                                     Ptr<NrEpcTft> tft)
+                                     Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
     for (auto i = ueDevices.Begin(); i != ueDevices.End(); ++i)
     {
-        uint8_t bearerId = ActivateDedicatedEpsBearer(*i, bearer, tft);
+        uint8_t bearerId = ActivateDedicatedEpsBearer(*i, bearer, rule);
         return bearerId;
     }
     return 0;
 }
 
 uint8_t
-NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer, Ptr<NrEpcTft> tft)
+NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
+                                     NrEpsBearer bearer,
+                                     Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
 
     NS_ASSERT_MSG(m_nrEpcHelper, "dedicated EPS bearers cannot be set up when the EPC is not used");
 
     uint64_t imsi = ueDevice->GetObject<NrUeNetDevice>()->GetImsi();
-    uint8_t bearerId = m_nrEpcHelper->ActivateEpsBearer(ueDevice, imsi, tft, bearer);
+    uint8_t bearerId = m_nrEpcHelper->ActivateEpsBearer(ueDevice, imsi, rule, bearer);
     return bearerId;
 }
 

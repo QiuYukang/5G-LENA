@@ -536,11 +536,11 @@ main(int argc, char* argv[])
     NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
-    Ptr<NrEpcTft> dlTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlPktFilter;
+    Ptr<NrQosRule> dlRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlPktFilter;
     dlPktFilter.localPortStart = dlPort;
     dlPktFilter.localPortEnd = dlPort;
-    dlTft->Add(dlPktFilter);
+    dlRule->Add(dlPktFilter);
 
     /**
      * Let's install the applications!
@@ -563,7 +563,7 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueIpIface.GetAddress(0), dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlRule);
     }
     else if (trafficType == "ftp")
     {
@@ -581,7 +581,7 @@ main(int argc, char* argv[])
                                AddressValue(InetSocketAddress(ueIpIface.GetAddress(0, 0), dlPort)));
         clientApps.Add(ftpHelper.Install(remoteHost));
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlRule);
     }
 
     if (enableInterfNode)
@@ -602,7 +602,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClient.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(1), epsBearer, dlTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(1), epsBearer, dlRule);
     }
 
     // start UDP server and client apps

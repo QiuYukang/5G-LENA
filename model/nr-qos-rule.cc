@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
 // Author: Nicola Baldo <nbaldo@cttc.es>
+//
+// Ported from LteEpcTft
 
-#include "nr-epc-tft.h"
+#include "nr-qos-rule.h"
 
 #include "ns3/abort.h"
 #include "ns3/log.h"
@@ -12,24 +14,24 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("NrEpcTft");
+NS_LOG_COMPONENT_DEFINE("NrQosRule");
 
 /**
- * Output stream operator for EPC TFT direction
+ * Output stream operator for QoS rule direction
  *
  * @param os output stream
- * @param d EPC TFT direction
+ * @param d NrQosRule direction
  * @return ostream
  */
 std::ostream&
-operator<<(std::ostream& os, const NrEpcTft::Direction& d)
+operator<<(std::ostream& os, const NrQosRule::Direction& d)
 {
     switch (d)
     {
-    case NrEpcTft::DOWNLINK:
+    case NrQosRule::DOWNLINK:
         os << "DOWNLINK";
         break;
-    case NrEpcTft::UPLINK:
+    case NrQosRule::UPLINK:
         os << "UPLINK";
         break;
     default:
@@ -40,14 +42,14 @@ operator<<(std::ostream& os, const NrEpcTft::Direction& d)
 }
 
 /**
- * Output stream for EPC TFT packet filter
+ * Output stream for QoS rule packet filter
  *
  * @param os output stream
- * @param f EPC TFT packet filter
+ * @param f QoS rule packet filter
  * @return ostream
  */
 std::ostream&
-operator<<(std::ostream& os, const NrEpcTft::PacketFilter& f)
+operator<<(std::ostream& os, const NrQosRule::PacketFilter& f)
 {
     os << " direction: " << f.direction << " remoteAddress: " << f.remoteAddress
        << " remoteMask: " << f.remoteMask << " remoteIpv6Address: " << f.remoteIpv6Address
@@ -61,7 +63,7 @@ operator<<(std::ostream& os, const NrEpcTft::PacketFilter& f)
     return os;
 }
 
-NrEpcTft::PacketFilter::PacketFilter()
+NrQosRule::PacketFilter::PacketFilter()
     : precedence(255),
       direction(BIDIRECTIONAL),
       remoteMask("0.0.0.0"),
@@ -77,12 +79,12 @@ NrEpcTft::PacketFilter::PacketFilter()
 }
 
 bool
-NrEpcTft::PacketFilter::Matches(Direction d,
-                                Ipv4Address ra,
-                                Ipv4Address la,
-                                uint16_t rp,
-                                uint16_t lp,
-                                uint8_t tos)
+NrQosRule::PacketFilter::Matches(Direction d,
+                                 Ipv4Address ra,
+                                 Ipv4Address la,
+                                 uint16_t rp,
+                                 uint16_t lp,
+                                 uint8_t tos)
 {
     NS_LOG_FUNCTION(this << d << ra << la << rp << lp << (uint16_t)tos);
     if (d & direction)
@@ -145,12 +147,12 @@ NrEpcTft::PacketFilter::Matches(Direction d,
 }
 
 bool
-NrEpcTft::PacketFilter::Matches(Direction d,
-                                Ipv6Address ra,
-                                Ipv6Address la,
-                                uint16_t rp,
-                                uint16_t lp,
-                                uint8_t tos)
+NrQosRule::PacketFilter::Matches(Direction d,
+                                 Ipv6Address ra,
+                                 Ipv6Address la,
+                                 uint16_t rp,
+                                 uint16_t lp,
+                                 uint8_t tos)
 {
     NS_LOG_FUNCTION(this << d << ra << la << rp << lp << (uint16_t)tos);
     if (d & direction)
@@ -212,26 +214,26 @@ NrEpcTft::PacketFilter::Matches(Direction d,
     return false;
 }
 
-Ptr<NrEpcTft>
-NrEpcTft::Default()
+Ptr<NrQosRule>
+NrQosRule::Default()
 {
-    Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter defaultPacketFilter;
-    tft->Add(defaultPacketFilter);
-    return tft;
+    Ptr<NrQosRule> rule = Create<NrQosRule>();
+    NrQosRule::PacketFilter defaultPacketFilter;
+    rule->Add(defaultPacketFilter);
+    return rule;
 }
 
-NrEpcTft::NrEpcTft()
+NrQosRule::NrQosRule()
     : m_numFilters(0)
 {
     NS_LOG_FUNCTION(this);
 }
 
 uint8_t
-NrEpcTft::Add(PacketFilter f)
+NrQosRule::Add(PacketFilter f)
 {
     NS_LOG_FUNCTION(this << f);
-    NS_ABORT_IF(m_numFilters >= 16);
+    NS_ABORT_MSG_IF(m_numFilters >= 16, "Maximum number of packet filters limited to 16");
 
     std::list<PacketFilter>::iterator it;
     for (it = m_filters.begin(); (it != m_filters.end()) && (it->precedence <= f.precedence); ++it)
@@ -243,12 +245,12 @@ NrEpcTft::Add(PacketFilter f)
 }
 
 bool
-NrEpcTft::Matches(Direction direction,
-                  Ipv4Address remoteAddress,
-                  Ipv4Address localAddress,
-                  uint16_t remotePort,
-                  uint16_t localPort,
-                  uint8_t typeOfService)
+NrQosRule::Matches(Direction direction,
+                   Ipv4Address remoteAddress,
+                   Ipv4Address localAddress,
+                   uint16_t remotePort,
+                   uint16_t localPort,
+                   uint8_t typeOfService)
 {
     NS_LOG_FUNCTION(this << direction << remoteAddress << localAddress << std::dec << remotePort
                          << localPort << (uint16_t)typeOfService);
@@ -268,12 +270,12 @@ NrEpcTft::Matches(Direction direction,
 }
 
 bool
-NrEpcTft::Matches(Direction direction,
-                  Ipv6Address remoteAddress,
-                  Ipv6Address localAddress,
-                  uint16_t remotePort,
-                  uint16_t localPort,
-                  uint8_t typeOfService)
+NrQosRule::Matches(Direction direction,
+                   Ipv6Address remoteAddress,
+                   Ipv6Address localAddress,
+                   uint16_t remotePort,
+                   uint16_t localPort,
+                   uint8_t typeOfService)
 {
     NS_LOG_FUNCTION(this << direction << remoteAddress << localAddress << std::dec << remotePort
                          << localPort << (uint16_t)typeOfService);
@@ -292,8 +294,8 @@ NrEpcTft::Matches(Direction direction,
     return false;
 }
 
-std::list<NrEpcTft::PacketFilter>
-NrEpcTft::GetPacketFilters() const
+std::list<NrQosRule::PacketFilter>
+NrQosRule::GetPacketFilters() const
 {
     NS_LOG_FUNCTION(this);
     return m_filters;

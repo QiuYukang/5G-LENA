@@ -459,7 +459,7 @@ UlSchedulingTest::DoRun()
     nrHelper->AttachToClosestGnb(ueDevices, gnbDevices);
 
     // Configure Traffic //
-    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
+    Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
     UdpClientHelper ulClient;
     ApplicationContainer serverApps;
     ApplicationContainer clientApps;
@@ -478,10 +478,10 @@ UlSchedulingTest::DoRun()
     ulClient.SetAttribute("PacketSize", UintegerValue(m_packetSize));
 
     // The filter for the UL traffic (if it is DL this would be localPort)
-    NrEpcTft::PacketFilter ulpf;
+    NrQosRule::PacketFilter ulpf;
     ulpf.remotePortStart = ulPort;
     ulpf.remotePortEnd = ulPort;
-    voiceTft->Add(ulpf);
+    voiceRule->Add(ulpf);
 
     // The client, who is transmitting, is installed in the UE (UL data),
     // with destination address set to the address of the remoteHost
@@ -493,7 +493,7 @@ UlSchedulingTest::DoRun()
     // Activate a dedicated bearer for the traffic type
     // The bearer that will carry voice traffic
     NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
-    nrHelper->ActivateDedicatedEpsBearer(ueDevices.Get(0), voiceBearer, voiceTft);
+    nrHelper->ActivateDedicatedEpsBearer(ueDevices.Get(0), voiceBearer, voiceRule);
 
     serverApps.Start(udpAppStartTimeUl);
     clientApps.Start(udpAppStartTimeUl);

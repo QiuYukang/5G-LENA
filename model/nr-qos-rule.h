@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
 // Author: Nicola Baldo  <nbaldo@cttc.es>
+//
+// Ported from LteEpcTft
 
-#ifndef NR_EPC_TFT_H
-#define NR_EPC_TFT_H
+#ifndef NR_QOS_RULE_H
+#define NR_QOS_RULE_H
 
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
@@ -17,19 +19,19 @@ namespace ns3
 {
 
 /**
- * This class implements the EPS bearer Traffic Flow Template (TFT),
- * which is the set of all packet filters associated with an EPS bearer.
- *
+ * This class implements the model for a 5G NR QoS rule
+ * which is the set of all packet filters associated with a
+ * data radio bearer, as well as selected QoS parameters
  */
-class NrEpcTft : public SimpleRefCount<NrEpcTft>
+class NrQosRule : public SimpleRefCount<NrQosRule>
 {
   public:
     /**
-     * creates a TFT matching any traffic
+     * creates a QoS rule matching any traffic
      *
-     * @return a newly created TFT that will match any traffic
+     * @return a newly created QoS rule that will match any traffic
      */
-    static Ptr<NrEpcTft> Default();
+    static Ptr<NrQosRule> Default();
 
     /**
      * Indicates the direction of the traffic that is to be classified.
@@ -42,17 +44,15 @@ class NrEpcTft : public SimpleRefCount<NrEpcTft>
     };
 
     /**
-     * Implement the data structure representing a TrafficFlowTemplate
-     * Packet Filter.
-     * See 3GPP TS 24.008 version 8.7.0 Release 8, Table 10.5.162/3GPP TS
-     * 24.008: Traffic flow template information element
+     * Implement the data structure representing a QoS rule packet filter.
+     * This was originally designed for 4G LTE (see 3GPP TS 24.008 version
+     * 8.7.0 Release 8, Table 10.5.162/3GPP TS  24.008: Traffic flow template
+     * information element) but it should generally align with the 5G NR
+     * equivalent (3GPP TS 24.501, Section 9.11.4.13 QoS rules).
      *
-     * With respect to the Packet Filter specification in the above doc,
+     * With respect to the packet filter specification in the above doc,
      * the following features are NOT supported:
-     *  - IPv6 filtering (including flow labels)
      *  - IPSec filtering
-     *  - filter precedence field is not evaluated, hence it is recommended to setup
-     *    the TFTs within a PDP context such that TFTs are mutually exclusive
      */
     struct PacketFilter
     {
@@ -97,7 +97,7 @@ class NrEpcTft : public SimpleRefCount<NrEpcTft>
                      uint8_t tos);
 
         /// Used to specify the precedence for the packet filter among all packet filters in the
-        /// TFT; higher values will be evaluated last.
+        /// QoS rule; higher values will be evaluated last.
         uint8_t precedence;
 
         /// Whether the filter needs to be applied to uplink / downlink only, or in both cases
@@ -122,15 +122,15 @@ class NrEpcTft : public SimpleRefCount<NrEpcTft>
         uint8_t typeOfServiceMask; //!< type of service field mask
     };
 
-    NrEpcTft();
+    NrQosRule();
 
     /**
-     * add a PacketFilter to the Traffic Flow Template
+     * add a PacketFilter to the QosRule
      *
      * @param f the PacketFilter to be added
      *
      * @return the id( 0 <= id < 16) of the newly added filter, if the addition was successful. Will
-     * fail if you try to add more than 15 filters. This is to be compliant with TS 24.008.
+     * fail if you try to add more than 16 filters, due to a legacy constraint from TS 24.008.
      */
     uint8_t Add(PacketFilter f);
 
@@ -143,7 +143,7 @@ class NrEpcTft : public SimpleRefCount<NrEpcTft>
      * @param localPort
      * @param typeOfService
      *
-     * @return true if any PacketFilter in the TFT matches with the
+     * @return true if any PacketFilter in the QoS rule matches with the
      * parameters, false otherwise.
      */
     bool Matches(Direction direction,
@@ -162,7 +162,7 @@ class NrEpcTft : public SimpleRefCount<NrEpcTft>
      * @param localPort
      * @param typeOfService
      *
-     * @return true if any PacketFilter in the TFT matches with the
+     * @return true if any PacketFilter in the QoS rule matches with the
      * parameters, false otherwise.
      */
     bool Matches(Direction direction,
@@ -180,11 +180,11 @@ class NrEpcTft : public SimpleRefCount<NrEpcTft>
 
   private:
     std::list<PacketFilter> m_filters; ///< packet filter list
-    uint8_t m_numFilters;              ///< number of packet filters applied to this TFT
+    uint8_t m_numFilters;              ///< number of packet filters applied to this QoS rule
 };
 
-std::ostream& operator<<(std::ostream& os, const NrEpcTft::Direction& d);
+std::ostream& operator<<(std::ostream& os, const NrQosRule::Direction& d);
 
 } // namespace ns3
 
-#endif /* NR_EPC_TFT_H */
+#endif /* NR_QOS_RULE_H */

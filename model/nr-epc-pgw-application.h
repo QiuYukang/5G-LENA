@@ -190,9 +190,9 @@ class NrEpcPgwApplication : public Application
          *
          * @param bearerId the ID of the EPS Bearer to be activated
          * @param teid  the TEID of the new bearer
-         * @param tft the Traffic Flow Template of the new bearer to be added
+         * @param rule the QoS rule of the new bearer to be added
          */
-        void AddBearer(uint8_t bearerId, uint32_t teid, Ptr<NrEpcTft> tft);
+        void AddBearer(uint8_t bearerId, uint32_t teid, Ptr<NrQosRule> rule);
 
         /**
          * Delete context of bearer for this UE on PGW side
@@ -202,7 +202,7 @@ class NrEpcPgwApplication : public Application
         void RemoveBearer(uint8_t bearerId);
 
         /**
-         * Classify the packet according to TFTs of this UE
+         * Classify the packet according to QoS rules of this UE
          *
          * @param p the IPv4 or IPv6 packet from the internet to be classified
          * @param protocolNumber identifies the type of packet.
@@ -210,7 +210,7 @@ class NrEpcPgwApplication : public Application
          *
          * @return the corresponding bearer ID > 0 identifying the bearer
          * among all the bearers of this UE;  returns 0 if no bearers
-         * matches with the previously declared TFTs
+         * matches with the previously declared QoS rules
          */
         uint32_t Classify(Ptr<Packet> p, uint16_t protocolNumber);
 
@@ -260,7 +260,7 @@ class NrEpcPgwApplication : public Application
         Ipv4Address m_ueAddr;                            ///< UE IPv4 address
         Ipv6Address m_ueAddr6;                           ///< UE IPv6 address
         Ipv4Address m_sgwAddr;                           ///< SGW IPv4 address
-        NrEpcTftClassifier m_tftClassifier;              ///< TFT classifier
+        NrEpcTftClassifer m_tftClassifier;               ///< TFT classifier
         std::map<uint8_t, uint32_t> m_teidByBearerIdMap; ///< TEID By bearer ID Map
     };
 

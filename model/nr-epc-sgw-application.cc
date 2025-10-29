@@ -262,7 +262,7 @@ NrEpcSgwApplication::DoRecvCreateSessionRequest(Ptr<Packet> packet)
         bearerContextOut.sgwS5uFteid.addr = gnbit->second.sgwAddr;
         bearerContextOut.epsBearerId = bearerContext.epsBearerId;
         bearerContextOut.bearerLevelQos = bearerContext.bearerLevelQos;
-        bearerContextOut.tft = bearerContext.tft;
+        bearerContextOut.rule = bearerContext.rule;
         bearerContextsOut.push_back(bearerContextOut);
     }
 
@@ -408,7 +408,7 @@ NrEpcSgwApplication::DoRecvCreateSessionResponse(Ptr<Packet> packet)
         bearerContextOut.fteid.addr = m_s5Addr;
         bearerContextOut.epsBearerId = bearerContext.epsBearerId;
         bearerContextOut.bearerLevelQos = bearerContext.bearerLevelQos;
-        bearerContextOut.tft = bearerContext.tft;
+        bearerContextOut.rule = bearerContext.rule;
         bearerContextsOut.push_back(bearerContext);
     }
     msgOut.SetBearerContextsCreated(bearerContextsOut);

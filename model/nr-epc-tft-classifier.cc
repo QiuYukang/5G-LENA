@@ -4,13 +4,13 @@
 // SPDX-License-Identifier: GPL-2.0-only
 //
 // Authors:
-//   Nicola Baldo <nbaldo@cttc.es> (the NrEpcTftClassifier class)
-//   Giuseppe Piro <g.piro@poliba.it> (part of the code in NrEpcTftClassifier::Classify ()
+//   Nicola Baldo <nbaldo@cttc.es> (the NrEpcTftClassifer class)
+//   Giuseppe Piro <g.piro@poliba.it> (part of the code in NrEpcTftClassifer::Classify ()
 //       which comes from RrcEntity::Classify of the GSoC 2010 LTE module)
 
 #include "nr-epc-tft-classifier.h"
 
-#include "nr-epc-tft.h"
+#include "nr-qos-rule.h"
 
 #include "ns3/icmpv4-l4-protocol.h"
 #include "ns3/icmpv6-l4-protocol.h"
@@ -28,32 +28,32 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("NrEpcTftClassifier");
+NS_LOG_COMPONENT_DEFINE("NrEpcTftClassifer");
 
-NrEpcTftClassifier::NrEpcTftClassifier()
+NrEpcTftClassifer::NrEpcTftClassifer()
 {
     NS_LOG_FUNCTION(this);
 }
 
 void
-NrEpcTftClassifier::Add(Ptr<NrEpcTft> tft, uint32_t id)
+NrEpcTftClassifer::Add(Ptr<NrQosRule> rule, uint32_t id)
 {
-    NS_LOG_FUNCTION(this << tft << id);
-    m_tftMap[id] = tft;
+    NS_LOG_FUNCTION(this << rule << id);
+    m_tftMap[id] = rule;
 
     // simple sanity check: there shouldn't be more than 16 bearers (hence TFTs) per UE
     NS_ASSERT(m_tftMap.size() <= 16);
 }
 
 void
-NrEpcTftClassifier::Delete(uint32_t id)
+NrEpcTftClassifer::Delete(uint32_t id)
 {
     NS_LOG_FUNCTION(this << id);
     m_tftMap.erase(id);
 }
 
 uint32_t
-NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint16_t protocolNumber)
+NrEpcTftClassifer::Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint16_t protocolNumber)
 {
     NS_LOG_FUNCTION(this << p << p->GetSize() << direction);
 
@@ -76,14 +76,14 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
         Ipv4Header ipv4Header;
         pCopy->RemoveHeader(ipv4Header);
 
-        if (direction == NrEpcTft::UPLINK)
+        if (direction == NrQosRule::UPLINK)
         {
             localAddressIpv4 = ipv4Header.GetSource();
             remoteAddressIpv4 = ipv4Header.GetDestination();
         }
         else
         {
-            NS_ASSERT(direction == NrEpcTft::DOWNLINK);
+            NS_ASSERT(direction == NrQosRule::DOWNLINK);
             remoteAddressIpv4 = ipv4Header.GetSource();
             localAddressIpv4 = ipv4Header.GetDestination();
         }
@@ -111,7 +111,7 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
             {
                 UdpHeader udpHeader;
                 pCopy->RemoveHeader(udpHeader);
-                if (direction == NrEpcTft::UPLINK)
+                if (direction == NrQosRule::UPLINK)
                 {
                     localPort = udpHeader.GetSourcePort();
                     remotePort = udpHeader.GetDestinationPort();
@@ -136,7 +136,7 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
             {
                 TcpHeader tcpHeader;
                 pCopy->RemoveHeader(tcpHeader);
-                if (direction == NrEpcTft::UPLINK)
+                if (direction == NrQosRule::UPLINK)
                 {
                     localPort = tcpHeader.GetSourcePort();
                     remotePort = tcpHeader.GetDestinationPort();
@@ -192,14 +192,14 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
         Ipv6Header ipv6Header;
         pCopy->RemoveHeader(ipv6Header);
 
-        if (direction == NrEpcTft::UPLINK)
+        if (direction == NrQosRule::UPLINK)
         {
             localAddressIpv6 = ipv6Header.GetSource();
             remoteAddressIpv6 = ipv6Header.GetDestination();
         }
         else
         {
-            NS_ASSERT(direction == NrEpcTft::DOWNLINK);
+            NS_ASSERT(direction == NrQosRule::DOWNLINK);
             remoteAddressIpv6 = ipv6Header.GetSource();
             localAddressIpv6 = ipv6Header.GetDestination();
         }
@@ -214,7 +214,7 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
             UdpHeader udpHeader;
             pCopy->RemoveHeader(udpHeader);
 
-            if (direction == NrEpcTft::UPLINK)
+            if (direction == NrQosRule::UPLINK)
             {
                 localPort = udpHeader.GetSourcePort();
                 remotePort = udpHeader.GetDestinationPort();
@@ -229,7 +229,7 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
         {
             TcpHeader tcpHeader;
             pCopy->RemoveHeader(tcpHeader);
-            if (direction == NrEpcTft::UPLINK)
+            if (direction == NrQosRule::UPLINK)
             {
                 localPort = tcpHeader.GetSourcePort();
                 remotePort = tcpHeader.GetDestinationPort();
@@ -243,7 +243,7 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
     }
     else
     {
-        NS_ABORT_MSG("NrEpcTftClassifier::Classify - Unknown IP type...");
+        NS_ABORT_MSG("NrEpcTftClassifer::Classify - Unknown IP type...");
     }
 
     if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
@@ -257,20 +257,20 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
         // we use a reverse iterator since filter priority is not implemented properly.
         // This way, since the default bearer is expected to be added first, it will be evaluated
         // last.
-        std::map<uint32_t, Ptr<NrEpcTft>>::const_reverse_iterator it;
+        std::map<uint32_t, Ptr<NrQosRule>>::const_reverse_iterator it;
         NS_LOG_LOGIC("TFT MAP size: " << m_tftMap.size());
 
         for (it = m_tftMap.rbegin(); it != m_tftMap.rend(); ++it)
         {
             NS_LOG_LOGIC("TFT id: " << it->first);
-            NS_LOG_LOGIC(" Ptr<NrEpcTft>: " << it->second);
-            Ptr<NrEpcTft> tft = it->second;
-            if (tft->Matches(direction,
-                             remoteAddressIpv4,
-                             localAddressIpv4,
-                             remotePort,
-                             localPort,
-                             tos))
+            NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
+            Ptr<NrQosRule> rule = it->second;
+            if (rule->Matches(direction,
+                              remoteAddressIpv4,
+                              localAddressIpv4,
+                              remotePort,
+                              localPort,
+                              tos))
             {
                 NS_LOG_LOGIC("matches with TFT ID = " << it->first);
                 return it->first; // the id of the matching TFT
@@ -288,20 +288,20 @@ NrEpcTftClassifier::Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint1
         // we use a reverse iterator since filter priority is not implemented properly.
         // This way, since the default bearer is expected to be added first, it will be evaluated
         // last.
-        std::map<uint32_t, Ptr<NrEpcTft>>::const_reverse_iterator it;
+        std::map<uint32_t, Ptr<NrQosRule>>::const_reverse_iterator it;
         NS_LOG_LOGIC("TFT MAP size: " << m_tftMap.size());
 
         for (it = m_tftMap.rbegin(); it != m_tftMap.rend(); ++it)
         {
             NS_LOG_LOGIC("TFT id: " << it->first);
-            NS_LOG_LOGIC(" Ptr<NrEpcTft>: " << it->second);
-            Ptr<NrEpcTft> tft = it->second;
-            if (tft->Matches(direction,
-                             remoteAddressIpv6,
-                             localAddressIpv6,
-                             remotePort,
-                             localPort,
-                             tos))
+            NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
+            Ptr<NrQosRule> rule = it->second;
+            if (rule->Matches(direction,
+                              remoteAddressIpv6,
+                              localAddressIpv6,
+                              remotePort,
+                              localPort,
+                              tos))
             {
                 NS_LOG_LOGIC("matches with TFT ID = " << it->first);
                 return it->first; // the id of the matching TFT

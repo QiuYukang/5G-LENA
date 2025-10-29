@@ -735,11 +735,11 @@ NrCsiTestCase::DoRun()
     NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
-    Ptr<NrEpcTft> dlTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlPktFilter;
+    Ptr<NrQosRule> dlRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlPktFilter;
     dlPktFilter.localPortStart = dlPort;
     dlPktFilter.localPortEnd = dlPort;
-    dlTft->Add(dlPktFilter);
+    dlRule->Add(dlPktFilter);
 
     /**
      * Let's install the applications!
@@ -790,7 +790,7 @@ NrCsiTestCase::DoRun()
                                         (i == 0 ? NanoSeconds(0) : MilliSeconds(100)));
 
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlRule);
         if (i > 0)
         {
             std::stringstream ss;

@@ -7,8 +7,8 @@
 #ifndef NR_EPC_S11_SAP_H
 #define NR_EPC_S11_SAP_H
 
-#include "nr-epc-tft.h"
 #include "nr-eps-bearer.h"
+#include "nr-qos-rule.h"
 
 #include "ns3/address.h"
 #include "ns3/object.h"
@@ -70,7 +70,7 @@ class NrEpcS11SapMme : public NrEpcS11Sap
         NrEpcS11Sap::Fteid sgwFteid; ///< EPC FTEID
         uint8_t epsBearerId;         ///< EPS bearer ID
         NrEpsBearer bearerLevelQos;  ///< EPS bearer
-        Ptr<NrEpcTft> tft;           ///< traffic flow template
+        Ptr<NrQosRule> rule;         ///< QoS rule
     };
 
     /**
@@ -151,7 +151,7 @@ class NrEpcS11SapSgw : public NrEpcS11Sap
         NrEpcS11Sap::Fteid sgwFteid; ///< FTEID
         uint8_t epsBearerId;         ///< EPS bearer ID
         NrEpsBearer bearerLevelQos;  ///< bearer QOS level
-        Ptr<NrEpcTft> tft;           ///< traffic flow template
+        Ptr<NrQosRule> rule;         ///< QoS rule
     };
 
     /**

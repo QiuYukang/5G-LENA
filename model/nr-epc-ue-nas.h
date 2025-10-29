@@ -126,9 +126,9 @@ class NrEpcUeNas : public Object
      * Activate an EPS bearer
      *
      * @param bearer the characteristics of the bearer to be created
-     * @param tft the TFT identifying the traffic that will go on this bearer
+     * @param rule the QoS rule identifying the traffic that will go on this bearer
      */
-    void ActivateEpsBearer(NrEpsBearer bearer, Ptr<NrEpcTft> tft);
+    void ActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule);
 
     /**
      * Enqueue an IP packet on the proper bearer for uplink transmission
@@ -186,9 +186,9 @@ class NrEpcUeNas : public Object
     /**
      * Activate EPS Bearer
      * @param bearer the EPS bearer
-     * @param tft the EPC TFT
+     * @param rule the QoS rule
      */
-    void DoActivateEpsBearer(NrEpsBearer bearer, Ptr<NrEpcTft> tft);
+    void DoActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule);
     /**
      * Switch the UE RRC to the given state.
      * @param s the destination state
@@ -219,16 +219,16 @@ class NrEpcUeNas : public Object
     /// NR SAP user
     NrAsSapUser* m_asSapUser;
 
-    uint8_t m_bidCounter;               ///< bid counter
-    NrEpcTftClassifier m_tftClassifier; ///< tft classifier
+    uint8_t m_bidCounter;              ///< bid counter
+    NrEpcTftClassifer m_tftClassifier; ///< tft classifier
 
     Callback<void, Ptr<Packet>> m_forwardUpCallback; ///< upward callback
 
     /// BearerToBeActivated structure
     struct BearerToBeActivated
     {
-        NrEpsBearer bearer; ///< EPS bearer
-        Ptr<NrEpcTft> tft;  ///< TFT
+        NrEpsBearer bearer;  ///< EPS bearer
+        Ptr<NrQosRule> rule; ///< QoS rule
     };
 
     std::list<BearerToBeActivated> m_bearersToBeActivatedList; ///< bearers to be activated list

@@ -446,7 +446,7 @@ NrNoBackhaulEpcHelper::AddUe(Ptr<NetDevice> ueDevice, uint64_t imsi)
 uint8_t
 NrNoBackhaulEpcHelper::ActivateEpsBearer(Ptr<NetDevice> ueDevice,
                                          uint64_t imsi,
-                                         Ptr<NrEpcTft> tft,
+                                         Ptr<NrQosRule> rule,
                                          NrEpsBearer bearer)
 {
     NS_LOG_FUNCTION(this << ueDevice << imsi);
@@ -480,15 +480,15 @@ NrNoBackhaulEpcHelper::ActivateEpsBearer(Ptr<NetDevice> ueDevice,
             m_pgwApp->SetUeAddress6(imsi, ueAddr6);
         }
     }
-    uint8_t bearerId = m_mmeApp->AddBearer(imsi, tft, bearer);
-    DoActivateEpsBearerForUe(ueDevice, tft, bearer);
+    uint8_t bearerId = m_mmeApp->AddBearer(imsi, rule, bearer);
+    DoActivateEpsBearerForUe(ueDevice, rule, bearer);
 
     return bearerId;
 }
 
 void
 NrNoBackhaulEpcHelper::DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                                const Ptr<NrEpcTft>& tft,
+                                                const Ptr<NrQosRule>& rule,
                                                 const NrEpsBearer& bearer) const
 {
     NS_LOG_FUNCTION(this);
@@ -507,7 +507,7 @@ NrNoBackhaulEpcHelper::DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
                                        &NrEpcUeNas::ActivateEpsBearer,
                                        ueNrDevice->GetNas(),
                                        bearer,
-                                       tft);
+                                       rule);
     }
 }
 

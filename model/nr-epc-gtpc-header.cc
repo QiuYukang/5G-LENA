@@ -316,13 +316,13 @@ NrGtpcIes::DeserializeBearerQos(Buffer::Iterator& i, NrEpsBearer& bearerQos)
 }
 
 void
-NrGtpcIes::SerializeBearerTft(Buffer::Iterator& i,
-                              std::list<NrEpcTft::PacketFilter> packetFilters) const
+NrGtpcIes::SerializeBearerQosRule(Buffer::Iterator& i,
+                                  std::list<NrQosRule::PacketFilter> packetFilters) const
 {
-    i.WriteU8(84); // IE Type = EPS Bearer Level Fraffic Flow Template (Bearer TFT)
+    i.WriteU8(84); // IE Type = EPS Bearer Level QoS rule (Bearer QoS rule)
     i.WriteHtonU16(1 + packetFilters.size() * serializedSizePacketFilter);
     i.WriteU8(0);                                    // Spare + Instance
-    i.WriteU8(0x20 + (packetFilters.size() & 0x0f)); // Create new TFT + Number of packet filters
+    i.WriteU8(0x20 + (packetFilters.size() & 0x0f)); // Create new rule + Number of packet filters
 
     for (auto& pf : packetFilters)
     {
@@ -349,18 +349,18 @@ NrGtpcIes::SerializeBearerTft(Buffer::Iterator& i,
 }
 
 uint32_t
-NrGtpcIes::DeserializeBearerTft(Buffer::Iterator& i, Ptr<NrEpcTft> epcTft) const
+NrGtpcIes::DeserializeBearerQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const
 {
     uint8_t type = i.ReadU8();
-    NS_ASSERT_MSG(type == 84, "Wrong Bearer TFT IE type = " << (uint16_t)type);
+    NS_ASSERT_MSG(type == 84, "Wrong Bearer QoS rule IE type = " << (uint16_t)type);
     i.ReadNtohU16();
     i.ReadU8();
     uint8_t numberOfPacketFilters = i.ReadU8() & 0x0f;
 
     for (uint8_t pf = 0; pf < numberOfPacketFilters; ++pf)
     {
-        NrEpcTft::PacketFilter packetFilter;
-        packetFilter.direction = NrEpcTft::Direction((i.ReadU8() & 0x30) >> 4);
+        NrQosRule::PacketFilter packetFilter;
+        packetFilter.direction = NrQosRule::Direction((i.ReadU8() & 0x30) >> 4);
         packetFilter.precedence = i.ReadU8();
         i.ReadU8(); // Length of Packet filter contents
         i.ReadU8();
@@ -378,14 +378,14 @@ NrGtpcIes::DeserializeBearerTft(Buffer::Iterator& i, Ptr<NrEpcTft> epcTft) const
         i.ReadU8();
         packetFilter.typeOfService = i.ReadU8();
         packetFilter.typeOfServiceMask = i.ReadU8();
-        epcTft->Add(packetFilter);
+        rule->Add(packetFilter);
     }
 
-    return GetSerializedSizeBearerTft(epcTft->GetPacketFilters());
+    return GetSerializedSizeBearerQosRule(rule->GetPacketFilters());
 }
 
 uint32_t
-NrGtpcIes::GetSerializedSizeBearerTft(std::list<NrEpcTft::PacketFilter> packetFilters) const
+NrGtpcIes::GetSerializedSizeBearerQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const
 {
     return (5 + packetFilters.size() * serializedSizePacketFilter);
 }
@@ -504,7 +504,7 @@ NrGtpcCreateSessionRequestMessage::GetMessageSize() const
     for (auto& bc : m_bearerContextsToBeCreated)
     {
         serializedSize += serializedSizeBearerContextHeader + serializedSizeEbi +
-                          GetSerializedSizeBearerTft(bc.tft->GetPacketFilters()) +
+                          GetSerializedSizeBearerQosRule(bc.rule->GetPacketFilters()) +
                           serializedSizeFteid + serializedSizeBearerQos;
     }
 
@@ -529,14 +529,15 @@ NrGtpcCreateSessionRequestMessage::Serialize(Buffer::Iterator start) const
 
     for (auto& bc : m_bearerContextsToBeCreated)
     {
-        std::list<NrEpcTft::PacketFilter> packetFilters = bc.tft->GetPacketFilters();
+        std::list<NrQosRule::PacketFilter> packetFilters = bc.rule->GetPacketFilters();
 
         SerializeBearerContextHeader(i,
-                                     serializedSizeEbi + GetSerializedSizeBearerTft(packetFilters) +
+                                     serializedSizeEbi +
+                                         GetSerializedSizeBearerQosRule(packetFilters) +
                                          serializedSizeFteid + serializedSizeBearerQos);
 
         SerializeEbi(i, bc.epsBearerId);
-        SerializeBearerTft(i, packetFilters);
+        SerializeBearerQosRule(i, packetFilters);
         SerializeFteid(i, bc.sgwS5uFteid);
         SerializeBearerQos(i, bc.bearerLevelQos);
     }
@@ -561,9 +562,9 @@ NrGtpcCreateSessionRequestMessage::Deserialize(Buffer::Iterator start)
         BearerContextToBeCreated bearerContext;
         DeserializeEbi(i, bearerContext.epsBearerId);
 
-        Ptr<NrEpcTft> epcTft = Create<NrEpcTft>();
-        DeserializeBearerTft(i, epcTft);
-        bearerContext.tft = epcTft;
+        Ptr<NrQosRule> rule = Create<NrQosRule>();
+        DeserializeBearerQosRule(i, rule);
+        bearerContext.rule = rule;
 
         DeserializeFteid(i, bearerContext.sgwS5uFteid);
         DeserializeBearerQos(i, bearerContext.bearerLevelQos);
@@ -666,7 +667,7 @@ NrGtpcCreateSessionResponseMessage::GetMessageSize() const
     for (auto& bc : m_bearerContextsCreated)
     {
         serializedSize += serializedSizeBearerContextHeader + serializedSizeEbi +
-                          GetSerializedSizeBearerTft(bc.tft->GetPacketFilters()) +
+                          GetSerializedSizeBearerQosRule(bc.rule->GetPacketFilters()) +
                           serializedSizeFteid + serializedSizeBearerQos;
     }
 
@@ -690,14 +691,15 @@ NrGtpcCreateSessionResponseMessage::Serialize(Buffer::Iterator start) const
 
     for (auto& bc : m_bearerContextsCreated)
     {
-        std::list<NrEpcTft::PacketFilter> packetFilters = bc.tft->GetPacketFilters();
+        std::list<NrQosRule::PacketFilter> packetFilters = bc.rule->GetPacketFilters();
 
         SerializeBearerContextHeader(i,
-                                     serializedSizeEbi + GetSerializedSizeBearerTft(packetFilters) +
+                                     serializedSizeEbi +
+                                         GetSerializedSizeBearerQosRule(packetFilters) +
                                          serializedSizeFteid + serializedSizeBearerQos);
 
         SerializeEbi(i, bc.epsBearerId);
-        SerializeBearerTft(i, packetFilters);
+        SerializeBearerQosRule(i, packetFilters);
         SerializeFteid(i, bc.fteid);
         SerializeBearerQos(i, bc.bearerLevelQos);
     }
@@ -721,9 +723,9 @@ NrGtpcCreateSessionResponseMessage::Deserialize(Buffer::Iterator start)
         DeserializeBearerContextHeader(i, length);
         DeserializeEbi(i, bearerContext.epsBearerId);
 
-        Ptr<NrEpcTft> epcTft = Create<NrEpcTft>();
-        DeserializeBearerTft(i, epcTft);
-        bearerContext.tft = epcTft;
+        Ptr<NrQosRule> rule = Create<NrQosRule>();
+        DeserializeBearerQosRule(i, rule);
+        bearerContext.rule = rule;
 
         DeserializeFteid(i, bearerContext.fteid);
         DeserializeBearerQos(i, bearerContext.bearerLevelQos);

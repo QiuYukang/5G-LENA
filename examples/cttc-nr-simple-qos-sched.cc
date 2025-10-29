@@ -347,11 +347,11 @@ main(int argc, char* argv[])
     NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
-    Ptr<NrEpcTft> lowLatTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfLowLat;
+    Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfLowLat;
     dlpfLowLat.localPortStart = dlPortLowLat;
     dlpfLowLat.localPortEnd = dlPortLowLat;
-    lowLatTft->Add(dlpfLowLat);
+    lowLatRule->Add(dlpfLowLat);
 
     // Voice configuration and object creation:
     UdpClientHelper dlClientVoice;
@@ -363,11 +363,11 @@ main(int argc, char* argv[])
     NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
-    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVoice;
+    Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVoice;
     dlpfVoice.localPortStart = dlPortVoice;
     dlpfVoice.localPortEnd = dlPortVoice;
-    voiceTft->Add(dlpfVoice);
+    voiceRule->Add(dlpfVoice);
 
     //  Install the applications
     ApplicationContainer clientApps;
@@ -385,7 +385,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientLowLat.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
     }
 
     for (uint32_t i = 0; i < ueVoiceContainer.GetN(); ++i)
@@ -401,7 +401,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientVoice.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceRule);
     }
 
     // start UDP server and client apps

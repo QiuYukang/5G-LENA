@@ -87,7 +87,7 @@ struct VoiceApplicationSettings
     Ptr<NetDevice> ueNetDev;
     Ptr<NrHelper> nrHelper;
     NrEpsBearer& bearer;
-    Ptr<NrEpcTft> tft;
+    Ptr<NrQosRule> rule;
     ApplicationContainer& serverApps;
     ApplicationContainer& clientApps;
     ApplicationContainer& pingApps;
@@ -118,9 +118,9 @@ void ConfigureXrApp(NodeContainer& ueContainer,
                     NetDeviceContainer& ueNetDev,
                     Ptr<NrHelper> nrHelper,
                     NrEpsBearer& bearer,
-                    Ptr<NrEpcTft> tft,
+                    Ptr<NrQosRule> rule,
                     bool isMx1,
-                    std::vector<Ptr<NrEpcTft>>& tfts,
+                    std::vector<Ptr<NrQosRule>>& rules,
                     ApplicationContainer& serverApps,
                     ApplicationContainer& clientApps,
                     ApplicationContainer& pingApps,
@@ -1411,26 +1411,26 @@ main(int argc, char* argv[])
     // The bearer that will carry AR traffic (QCI80)
     NrEpsBearer arBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<NrEpcTft> arTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfAr;
-    std::vector<Ptr<NrEpcTft>> arTfts;
+    Ptr<NrQosRule> arRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfAr;
+    std::vector<Ptr<NrQosRule>> arRules;
 
     if (isMx1)
     {
         dlpfAr.localPortStart = dlPortArStart;
         dlpfAr.localPortEnd = dlPortArStop;
-        arTft->Add(dlpfAr);
+        arRule->Add(dlpfAr);
     }
     else
     {
-        // create 3 xrTfts for 1x1 mapping
+        // create 3 xrRules for 1x1 mapping
         for (uint32_t i = 0; i < 3; i++)
         {
-            Ptr<NrEpcTft> tempTft = Create<NrEpcTft>();
+            Ptr<NrQosRule> tempRule = Create<NrQosRule>();
             dlpfAr.localPortStart = dlPortArStart + i;
             dlpfAr.localPortEnd = dlPortArStart + i;
-            tempTft->Add(dlpfAr);
-            arTfts.push_back(tempTft);
+            tempRule->Add(dlpfAr);
+            arRules.push_back(tempRule);
         }
     }
 
@@ -1439,68 +1439,68 @@ main(int argc, char* argv[])
         enableInterServ == 0 ? NrEpsBearer::NGBR_LOW_LAT_EMBB : NrEpsBearer::DGBR_INTER_SERV_87;
     NrEpsBearer vrBearer(vrConfig);
 
-    Ptr<NrEpcTft> vrTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVr;
+    Ptr<NrQosRule> vrRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVr;
     dlpfVr.localPortStart = dlPortVrStart;
     dlpfVr.localPortEnd = dlPortVrStart;
-    vrTft->Add(dlpfVr);
+    vrRule->Add(dlpfVr);
 
     // The bearer that will carry CG traffic (QCI80)
     NrEpsBearer cgBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<NrEpcTft> cgTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfCg;
+    Ptr<NrQosRule> cgRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfCg;
     dlpfCg.localPortStart = dlPortCgStart;
     dlpfCg.localPortEnd = dlPortCgStart;
-    cgTft->Add(dlpfCg);
+    cgRule->Add(dlpfCg);
 
     // The bearer that will carry VoIP traffic
     NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
 
-    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVoice;
+    Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVoice;
     dlpfVoice.localPortStart = dlPortVoiceStart;
     dlpfVoice.localPortEnd = dlPortVoiceStart;
-    voiceTft->Add(dlpfVoice);
+    voiceRule->Add(dlpfVoice);
 
     // UL
     //  The bearer that will carry UL AR traffic (QCI80)
     NrEpsBearer arUlBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<NrEpcTft> arUlTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpfAr;
-    std::vector<Ptr<NrEpcTft>> arUlTfts;
+    Ptr<NrQosRule> arUlRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpfAr;
+    std::vector<Ptr<NrQosRule>> arUlRules;
 
     if (isMx1)
     {
         ulpfAr.localPortStart = ulPortArStart;
         ulpfAr.localPortEnd = ulPortArStop;
-        ulpfAr.direction = NrEpcTft::UPLINK;
-        arUlTft->Add(ulpfAr);
+        ulpfAr.direction = NrQosRule::UPLINK;
+        arUlRule->Add(ulpfAr);
     }
     else
     {
-        // create 3 xrTfts for 1x1 mapping
+        // create 3 xrRules for 1x1 mapping
         for (uint32_t i = 0; i < 3; i++)
         {
-            Ptr<NrEpcTft> tempTft = Create<NrEpcTft>();
+            Ptr<NrQosRule> tempRule = Create<NrQosRule>();
             ulpfAr.localPortStart = ulPortArStart + i;
             ulpfAr.localPortEnd = ulPortArStart + i;
-            ulpfAr.direction = NrEpcTft::UPLINK;
-            tempTft->Add(ulpfAr);
-            arUlTfts.push_back(tempTft);
+            ulpfAr.direction = NrQosRule::UPLINK;
+            tempRule->Add(ulpfAr);
+            arUlRules.push_back(tempRule);
         }
     }
 
     // The bearer that will carry UL VoIP traffic
     NrEpsBearer voiceUlBearer(NrEpsBearer::GBR_CONV_VOICE);
 
-    Ptr<NrEpcTft> voiceUlTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpfVoice;
+    Ptr<NrQosRule> voiceUlRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpfVoice;
     ulpfVoice.localPortStart = ulPortVoiceStart;
     ulpfVoice.localPortEnd = ulPortVoiceStart;
-    ulpfVoice.direction = NrEpcTft::UPLINK;
-    voiceUlTft->Add(ulpfVoice);
+    ulpfVoice.direction = NrQosRule::UPLINK;
+    voiceUlRule->Add(ulpfVoice);
 
     // Install traffic generators
     ApplicationContainer clientApps;
@@ -1517,7 +1517,7 @@ main(int argc, char* argv[])
         .transportProtocol = transportProtocol,
         .nrHelper = nrHelper,
         .bearer = voiceBearer,
-        .tft = voiceTft,
+        .rule = voiceRule,
         .serverApps = serverApps,
         .clientApps = clientApps,
         .pingApps = pingApps,
@@ -1540,7 +1540,7 @@ main(int argc, char* argv[])
     if (enableUl)
     {
         voiceAppSettings.bearer = voiceUlBearer;
-        voiceAppSettings.tft = voiceUlTft;
+        voiceAppSettings.rule = voiceUlRule;
         voiceAppSettings.direction = "UL";
         for (const auto& [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
         {
@@ -1572,9 +1572,9 @@ main(int argc, char* argv[])
                        ueArSector1NetDev,
                        nrHelper,
                        arBearer,
-                       arTft,
+                       arRule,
                        isMx1,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1608,9 +1608,9 @@ main(int argc, char* argv[])
                        ueArSector2NetDev,
                        nrHelper,
                        arBearer,
-                       arTft,
+                       arRule,
                        isMx1,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1635,9 +1635,9 @@ main(int argc, char* argv[])
                        ueArSector3NetDev,
                        nrHelper,
                        arBearer,
-                       arTft,
+                       arRule,
                        isMx1,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1666,9 +1666,9 @@ main(int argc, char* argv[])
                            ueArSector1NetDev,
                            nrHelper,
                            arUlBearer,
-                           arUlTft,
+                           arUlRule,
                            isMx1,
-                           arUlTfts,
+                           arUlRules,
                            serverApps,
                            clientApps,
                            pingApps,
@@ -1694,9 +1694,9 @@ main(int argc, char* argv[])
                            ueArSector2NetDev,
                            nrHelper,
                            arUlBearer,
-                           arUlTft,
+                           arUlRule,
                            isMx1,
-                           arUlTfts,
+                           arUlRules,
                            serverApps,
                            clientApps,
                            pingApps,
@@ -1722,9 +1722,9 @@ main(int argc, char* argv[])
                            ueArSector3NetDev,
                            nrHelper,
                            arUlBearer,
-                           arUlTft,
+                           arUlRule,
                            isMx1,
-                           arUlTfts,
+                           arUlRules,
                            serverApps,
                            clientApps,
                            pingApps,
@@ -1752,9 +1752,9 @@ main(int argc, char* argv[])
                        ueVrSector1NetDev,
                        nrHelper,
                        vrBearer,
-                       vrTft,
+                       vrRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1779,9 +1779,9 @@ main(int argc, char* argv[])
                        ueVrSector2NetDev,
                        nrHelper,
                        vrBearer,
-                       vrTft,
+                       vrRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1806,9 +1806,9 @@ main(int argc, char* argv[])
                        ueVrSector3NetDev,
                        nrHelper,
                        vrBearer,
-                       vrTft,
+                       vrRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1834,9 +1834,9 @@ main(int argc, char* argv[])
                        ueCgSector1NetDev,
                        nrHelper,
                        cgBearer,
-                       cgTft,
+                       cgRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1861,9 +1861,9 @@ main(int argc, char* argv[])
                        ueCgSector2NetDev,
                        nrHelper,
                        cgBearer,
-                       cgTft,
+                       cgRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -1888,9 +1888,9 @@ main(int argc, char* argv[])
                        ueCgSector3NetDev,
                        nrHelper,
                        cgBearer,
-                       cgTft,
+                       cgRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps,
@@ -2262,9 +2262,9 @@ ConfigureXrApp(NodeContainer& ueContainer,
                NetDeviceContainer& ueNetDev,
                Ptr<NrHelper> nrHelper,
                NrEpsBearer& bearer,
-               Ptr<NrEpcTft> tft,
+               Ptr<NrQosRule> rule,
                bool isMx1,
-               std::vector<Ptr<NrEpcTft>>& tfts,
+               std::vector<Ptr<NrQosRule>>& rules,
                ApplicationContainer& serverApps,
                ApplicationContainer& clientApps,
                ApplicationContainer& pingApps,
@@ -2317,19 +2317,19 @@ ConfigureXrApp(NodeContainer& ueContainer,
     Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
 
     // Activate a dedicated bearer for the traffic type per node
-    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
 
     // Activate a dedicated bearer for the traffic type per node
     if (isMx1)
     {
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
     }
     else
     {
-        NS_ASSERT(tfts.size() >= currentUeClientApps.GetN());
+        NS_ASSERT(rules.size() >= currentUeClientApps.GetN());
         for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
         {
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tfts[j]);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rules[j]);
         }
     }
 
@@ -2401,7 +2401,7 @@ ConfigureVoiceApp(VoiceApplicationSettings& voiceAppSettings)
     // Activate a dedicated bearer for the traffic type per node
     voiceAppSettings.nrHelper->ActivateDedicatedEpsBearer(ueDevice,
                                                           voiceAppSettings.bearer,
-                                                          voiceAppSettings.tft);
+                                                          voiceAppSettings.rule);
 
     InetSocketAddress localAddress(Ipv4Address::GetAny(), port);
     PacketSinkHelper dlPacketSinkHelper(voiceAppSettings.transportProtocol, localAddress);

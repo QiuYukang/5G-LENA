@@ -534,11 +534,11 @@ main(int argc, char* argv[])
     NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
-    Ptr<NrEpcTft> lowLatTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfLowLat;
+    Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfLowLat;
     dlpfLowLat.localPortStart = dlPortLowLat;
     dlpfLowLat.localPortEnd = dlPortLowLat;
-    lowLatTft->Add(dlpfLowLat);
+    lowLatRule->Add(dlpfLowLat);
 
     // Voice configuration and object creation:
     UdpClientHelper ulClientVoice;
@@ -550,12 +550,12 @@ main(int argc, char* argv[])
     NrEpsBearer videoBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the voice traffic
-    Ptr<NrEpcTft> voiceTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpfVoice;
+    Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpfVoice;
     ulpfVoice.remotePortStart = ulPortVoice;
     ulpfVoice.remotePortEnd = ulPortVoice;
-    ulpfVoice.direction = NrEpcTft::UPLINK;
-    voiceTft->Add(ulpfVoice);
+    ulpfVoice.direction = NrQosRule::UPLINK;
+    voiceRule->Add(ulpfVoice);
 
     //  Install the applications
     ApplicationContainer clientApps;
@@ -575,7 +575,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
             clientApps.Add(dlClientLowLat.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
         }
         // For the uplink, the installation happens in the UE, and the remote address
         // is the one of the remote host
@@ -587,7 +587,7 @@ main(int argc, char* argv[])
                                                                   ulPortVoice)));
             clientApps.Add(ulClientVoice.Install(ue));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, voiceTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, voiceRule);
         }
     }
 

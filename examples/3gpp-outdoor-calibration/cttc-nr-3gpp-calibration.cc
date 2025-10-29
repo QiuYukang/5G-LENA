@@ -74,7 +74,7 @@ CreateLowLatTft(uint16_t start, uint16_t end, std::string dir)
 }
 
 template Ptr<ns3::EpcTft> CreateLowLatTft<ns3::EpcTft>(uint16_t, uint16_t, std::string);
-template Ptr<ns3::NrEpcTft> CreateLowLatTft<ns3::NrEpcTft>(uint16_t, uint16_t, std::string);
+template Ptr<ns3::NrQosRule> CreateLowLatTft<ns3::NrQosRule>(uint16_t, uint16_t, std::string);
 
 static std::vector<Ptr<ThreeGppFtpM1Helper>> ftpHelpers;
 static std::vector<ApplicationContainer> ftpServerAppsVec;
@@ -164,7 +164,7 @@ InstallApps(const Ptr<Node>& ue,
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> lowLatTft = CreateLowLatTft<EpcTft>(dlPortLowLat, dlPortLowLat, direction);
-    Ptr<NrEpcTft> nrLowLatTft = CreateLowLatTft<NrEpcTft>(dlPortLowLat, dlPortLowLat, direction);
+    Ptr<NrQosRule> nrLowLatTft = CreateLowLatTft<NrQosRule>(dlPortLowLat, dlPortLowLat, direction);
 
     // The client, who is transmitting, is installed in the remote host,
     // with destination address set to the address of the UE

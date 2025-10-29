@@ -7,7 +7,7 @@
 #ifndef NR_EPC_TFT_CLASSIFIER_H
 #define NR_EPC_TFT_CLASSIFIER_H
 
-#include "nr-epc-tft.h"
+#include "nr-qos-rule.h"
 
 #include "ns3/ptr.h"
 #include "ns3/simple-ref-count.h"
@@ -17,11 +17,11 @@
 namespace ns3
 {
 
-class NrEpcTft;
+class NrQosRule;
 class Packet;
 
 /**
- * @brief classifies IP packets according to Traffic Flow Templates (TFTs)
+ * @brief classifies IP packets according to QoS rules
  *
  * @note this implementation works with IPv4 and IPv6.
  * When there is fragmentation of IP packets, UDP/TCP ports maybe missing.
@@ -33,27 +33,27 @@ class Packet;
  *  - Port info is used for the next fragments.
  *  - Port info is deleted, when the last fragment is processed.
  *
- * When we cannot cache the port info, the TFT of the default bearer is used. This may happen
+ * When we cannot cache the port info, the QoS rule of the default bearer is used. This may happen
  * if there is reordering or losses of IP packets.
  */
-class NrEpcTftClassifier : public SimpleRefCount<NrEpcTftClassifier>
+class NrEpcTftClassifer : public SimpleRefCount<NrEpcTftClassifer>
 {
   public:
-    NrEpcTftClassifier();
+    NrEpcTftClassifer();
 
     /**
-     * add a TFT to the Classifier
+     * add a QoS rule to the Classifier
      *
-     * @param tft the TFT to be added
-     * @param id the ID of the bearer which will be classified by specified TFT classifier
+     * @param rule the QoS rule to be added
+     * @param id the ID of the bearer which will be classified
      *
      */
-    void Add(Ptr<NrEpcTft> tft, uint32_t id);
+    void Add(Ptr<NrQosRule> rule, uint32_t id);
 
     /**
-     * delete an existing TFT from the classifier
+     * delete an existing QoS rule from the classifier
      *
-     * @param id the identifier of the TFT to be deleted
+     * @param id the identifier of the QoS rule to be deleted
      */
     void Delete(uint32_t id);
 
@@ -61,16 +61,16 @@ class NrEpcTftClassifier : public SimpleRefCount<NrEpcTftClassifier>
      * classify an IP packet
      *
      * @param p the IP packet. The outmost header can only be an IPv4 or an IPv6 header.
-     * @param direction the EPC TFT direction (can be downlink, uplink or bi-directional)
+     * @param direction the QoS rule direction (can be downlink, uplink or bi-directional)
      * @param protocolNumber the protocol of the packet. Only IPv4 and IPv6 are supported.
      *
-     * @return the identifier (>0) of the first TFT that matches with the IP packet; 0 if no TFT
+     * @return the identifier (>0) of the first rule that matches with the IP packet; 0 if no rule
      * matched.
      */
-    uint32_t Classify(Ptr<Packet> p, NrEpcTft::Direction direction, uint16_t protocolNumber);
+    uint32_t Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint16_t protocolNumber);
 
   protected:
-    std::map<uint32_t, Ptr<NrEpcTft>> m_tftMap; ///< TFT map
+    std::map<uint32_t, Ptr<NrQosRule>> m_tftMap; ///< TFT map
 
     std::map<std::tuple<uint32_t, uint32_t, uint8_t, uint16_t>, std::pair<uint32_t, uint32_t>>
         m_classifiedIpv4Fragments; ///< Map with already classified IPv4 Fragments

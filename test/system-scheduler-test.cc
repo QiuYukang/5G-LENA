@@ -314,11 +314,11 @@ SystemSchedulerTest::DoRun()
                                          // short time, how much traffic can handle each BWP
             clientAppsUl.Add(ulClient.Install(ueNodes.Get(j)));
 
-            Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-            NrEpcTft::PacketFilter ulpf;
+            Ptr<NrQosRule> tft = Create<NrQosRule>();
+            NrQosRule::PacketFilter ulpf;
             ulpf.remotePortStart = ulPort;
             ulpf.remotePortEnd = ulPort;
-            ulpf.direction = NrEpcTft::UPLINK;
+            ulpf.direction = NrQosRule::UPLINK;
             tft->Add(ulpf);
 
             NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
@@ -348,11 +348,11 @@ SystemSchedulerTest::DoRun()
                                          // short time, how much traffic can handle each BWP
             clientAppsDl.Add(dlClient.Install(remoteHost));
 
-            Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-            NrEpcTft::PacketFilter dlpf;
+            Ptr<NrQosRule> tft = Create<NrQosRule>();
+            NrQosRule::PacketFilter dlpf;
             dlpf.localPortStart = dlPort;
             dlpf.localPortEnd = dlPort;
-            dlpf.direction = NrEpcTft::DOWNLINK;
+            dlpf.direction = NrQosRule::DOWNLINK;
             tft->Add(dlpf);
 
             NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);

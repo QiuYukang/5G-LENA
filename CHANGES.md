@@ -58,6 +58,7 @@ us a note on ns-developers mailing list.
 - Changed std:vector<uint16_t> cellIds parameters with a single cellId. In LTE we had multiple cells per gNB netdevice,
   while in NR we don't. All BWPs will now refer to the same RRC, as configured in the RRC. This affects primarily
   ``NrEpcHelper``, ``NrHelper``, ``NrNoBackhaulEpcHelper``, ``NrPointToPointEpcHelper`` and tests.
+- ``NrQosRule`` replaces previous use of ``NrEpcTft` to reflect 5G terminology
 
 ### Changed Behavior
 - The numeration of BWPs was changed, so that BWP Ids match the order they are installed.

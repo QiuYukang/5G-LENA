@@ -381,11 +381,11 @@ main(int argc, char* argv[])
     NrEpsBearer ue1flowBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
     // The filter for the UE with 1 flow Non GBR traffic
-    Ptr<NrEpcTft> ue1flowTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfUe1flow;
+    Ptr<NrQosRule> ue1flowRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfUe1flow;
     dlpfUe1flow.localPortStart = dlPortUe1flow;
     dlpfUe1flow.localPortEnd = dlPortUe1flow;
-    ue1flowTft->Add(dlpfUe1flow);
+    ue1flowRule->Add(dlpfUe1flow);
     /******************************************************************************/
 
     /******************************************************************************/
@@ -402,11 +402,11 @@ main(int argc, char* argv[])
     NrEpsBearer ue2flowsNgbrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB); // qosInfoInterServ2);
 
     // The filter for the UE with 2 Flows Non GBR traffic
-    Ptr<NrEpcTft> ue2flowsNgbrTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfUe2flowsNgbr;
+    Ptr<NrQosRule> ue2flowsNgbrRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfUe2flowsNgbr;
     dlpfUe2flowsNgbr.localPortStart = dlPortUe2flowsNgbr;
     dlpfUe2flowsNgbr.localPortEnd = dlPortUe2flowsNgbr;
-    ue2flowsNgbrTft->Add(dlpfUe2flowsNgbr);
+    ue2flowsNgbrRule->Add(dlpfUe2flowsNgbr);
     /******************************************************************************/
 
     /******************************************************************************/
@@ -422,11 +422,11 @@ main(int argc, char* argv[])
     NrEpsBearer ue2flowsDcGbrBearer(NrEpsBearer::DGBR_INTER_SERV_87, qosUe2flowsDcGbr);
 
     // The filter for the 2 Flows DC GBR traffic
-    Ptr<NrEpcTft> ue2FlowsDcGbrTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfUe2flowsDcGbr;
+    Ptr<NrQosRule> ue2FlowsDcGbrRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfUe2flowsDcGbr;
     dlpfUe2flowsDcGbr.localPortStart = dlPortUe2flowsDcGbr;
     dlpfUe2flowsDcGbr.localPortEnd = dlPortUe2flowsDcGbr;
-    ue2FlowsDcGbrTft->Add(dlpfUe2flowsDcGbr);
+    ue2FlowsDcGbrRule->Add(dlpfUe2flowsDcGbr);
     /******************************************************************************/
 
     //  Install the applications
@@ -445,7 +445,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientUe1flow.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue1flowBearer, ue1flowTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue1flowBearer, ue1flowRule);
     }
 
     for (uint32_t i = 0; i < ue2flowsContainer.GetN(); ++i)
@@ -461,7 +461,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientUe2flowsNgbr.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue2flowsNgbrBearer, ue2flowsNgbrTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue2flowsNgbrBearer, ue2flowsNgbrRule);
     }
 
     for (uint32_t i = 0; i < ue2flowsContainer.GetN(); ++i)
@@ -477,7 +477,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientUe2flowsDcGbr.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue2flowsDcGbrBearer, ue2FlowsDcGbrTft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue2flowsDcGbrBearer, ue2FlowsDcGbrRule);
     }
 
     // start UDP server and client apps

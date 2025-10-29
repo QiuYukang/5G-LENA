@@ -305,8 +305,8 @@ TestAntenna3gppModelConf::DoRun()
     dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     clientAppsDl.Add(dlClient.Install(remoteHost));
 
-    Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpf;
+    Ptr<NrQosRule> tft = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
     dlpf.localPortEnd = dlPort;
     tft->Add(dlpf);

@@ -27,7 +27,7 @@ class SpectrumChannel;
 class NrSpectrumValueHelper;
 class NrGnbMac;
 class NrEpcHelper;
-class NrEpcTft;
+class NrQosRule;
 class NrBearerStatsCalculator;
 class NrMacRxTrace;
 class NrPhyRxTrace;
@@ -383,24 +383,24 @@ class NrHelper : public Object
      *
      * @param ueDevices the set of UE devices
      * @param bearer the characteristics of the bearer to be activated
-     * @param tft the Traffic Flow Template that identifies the traffic to go on this bearer
+     * @param rule the QoS rule that identifies the traffic to go on this bearer
      * @returns bearer ID
      */
     uint8_t ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
                                        NrEpsBearer bearer,
-                                       Ptr<NrEpcTft> tft);
+                                       Ptr<NrQosRule> rule);
 
     /**
      * Activate a dedicated EPS bearer on a given UE device.
      *
      * @param ueDevice the UE device
      * @param bearer the characteristics of the bearer to be activated
-     * @param tft the Traffic Flow Template that identifies the traffic to go on this bearer.
+     * @param rule the QoS rule that identifies the traffic to go on this bearer.
      * @returns bearer ID
      */
     uint8_t ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
                                        NrEpsBearer bearer,
-                                       Ptr<NrEpcTft> tft);
+                                       Ptr<NrQosRule> rule);
 
     /**
      *  @brief Manually trigger dedicated bearer de-activation at specific simulation time

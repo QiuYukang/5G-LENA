@@ -1090,21 +1090,21 @@ main(int argc, char* argv[])
     NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
-    Ptr<NrEpcTft> lowLatTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfLowLat;
+    Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfLowLat;
     if (direction == "DL")
     {
         dlpfLowLat.localPortStart = dlPortLowLat;
         dlpfLowLat.localPortEnd = dlPortLowLat;
-        dlpfLowLat.direction = NrEpcTft::DOWNLINK;
+        dlpfLowLat.direction = NrQosRule::DOWNLINK;
     }
     else
     {
         dlpfLowLat.remotePortStart = dlPortLowLat;
         dlpfLowLat.remotePortEnd = dlPortLowLat;
-        dlpfLowLat.direction = NrEpcTft::UPLINK;
+        dlpfLowLat.direction = NrQosRule::UPLINK;
     }
-    lowLatTft->Add(dlpfLowLat);
+    lowLatRule->Add(dlpfLowLat);
 
     std::vector<uint32_t> lambdaPerCell(gridScenario.GetNumCells());
 
@@ -1763,7 +1763,7 @@ main(int argc, char* argv[])
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
         }
 
         for (uint32_t i = 0; i < ueSector2Container.GetN(); ++i)
@@ -1802,7 +1802,7 @@ main(int argc, char* argv[])
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
         }
 
         for (uint32_t i = 0; i < ueSector3Container.GetN(); ++i)
@@ -1841,7 +1841,7 @@ main(int argc, char* argv[])
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
             // Activate a dedicated bearer for the traffic type
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
         }
     }
 

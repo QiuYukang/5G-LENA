@@ -89,7 +89,7 @@ NrEpcMmeApplication::AddUe(uint64_t imsi)
 }
 
 uint8_t
-NrEpcMmeApplication::AddBearer(uint64_t imsi, Ptr<NrEpcTft> tft, NrEpsBearer bearer)
+NrEpcMmeApplication::AddBearer(uint64_t imsi, Ptr<NrQosRule> rule, NrEpsBearer bearer)
 {
     NS_LOG_FUNCTION(this << imsi);
     auto it = m_ueInfoMap.find(imsi);
@@ -98,7 +98,7 @@ NrEpcMmeApplication::AddBearer(uint64_t imsi, Ptr<NrEpcTft> tft, NrEpsBearer bea
                   "too many bearers already! " << it->second->bearerCounter);
     BearerInfo bearerInfo;
     bearerInfo.bearerId = ++(it->second->bearerCounter);
-    bearerInfo.tft = tft;
+    bearerInfo.rule = rule;
     bearerInfo.bearer = bearer;
     it->second->bearersToBeActivated.push_back(bearerInfo);
     return bearerInfo.bearerId;
@@ -134,7 +134,7 @@ NrEpcMmeApplication::DoInitialUeMessage(uint64_t mmeUeS1Id,
     {
         NrGtpcCreateSessionRequestMessage::BearerContextToBeCreated bearerContext{};
         bearerContext.epsBearerId = bit->bearerId;
-        bearerContext.tft = bit->tft;
+        bearerContext.rule = bit->rule;
         bearerContext.bearerLevelQos = bit->bearer;
         bearerContexts.push_back(bearerContext);
     }

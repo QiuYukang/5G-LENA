@@ -14,8 +14,8 @@
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/ipv6-address-helper.h"
 #include "ns3/node-container.h"
-#include "ns3/nr-epc-tft.h"
 #include "ns3/nr-eps-bearer.h"
+#include "ns3/nr-qos-rule.h"
 #include "ns3/object.h"
 
 #include <optional>
@@ -105,13 +105,13 @@ class NrEpcHelper : public Object
      * @param ueNrDevice the Ipv4-enabled device of the UE, normally
      * connected via the NR radio interface
      * @param imsi the unique identifier of the UE
-     * @param tft the Traffic Flow Template of the new bearer
+     * @param rule the QoS rule of the new bearer
      * @param bearer struct describing the characteristics of the EPS bearer to be activated
      * @return bearer ID
      */
     virtual uint8_t ActivateEpsBearer(Ptr<NetDevice> ueNrDevice,
                                       uint64_t imsi,
-                                      Ptr<NrEpcTft> tft,
+                                      Ptr<NrQosRule> rule,
                                       NrEpsBearer bearer) = 0;
 
     /**

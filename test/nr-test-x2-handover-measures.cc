@@ -476,17 +476,17 @@ NrX2HandoverMeasuresTestCase::DoRun()
                     }
                 } // end if (useUdp)
 
-                Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+                Ptr<NrQosRule> tft = Create<NrQosRule>();
                 if (epcDl)
                 {
-                    NrEpcTft::PacketFilter dlpf;
+                    NrQosRule::PacketFilter dlpf;
                     dlpf.localPortStart = dlPort;
                     dlpf.localPortEnd = dlPort;
                     tft->Add(dlpf);
                 }
                 if (epcUl)
                 {
-                    NrEpcTft::PacketFilter ulpf;
+                    NrQosRule::PacketFilter ulpf;
                     ulpf.remotePortStart = ulPort;
                     ulpf.remotePortEnd = ulPort;
                     tft->Add(ulpf);

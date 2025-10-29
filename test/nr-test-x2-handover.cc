@@ -8,11 +8,11 @@
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
-#include "ns3/nr-epc-tft.h"
 #include "ns3/nr-gnb-net-device.h"
 #include "ns3/nr-gnb-rrc.h"
 #include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-qos-rule.h"
 #include "ns3/nr-radio-bearer-info.h"
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-rrc.h"
@@ -387,17 +387,17 @@ NrX2HandoverTestCase::DoRun()
                     serverApps.Add(sinkContainer);
                 }
 
-                Ptr<NrEpcTft> tft = Create<NrEpcTft>();
+                Ptr<NrQosRule> tft = Create<NrQosRule>();
                 // always true: if (epcDl)
                 {
-                    NrEpcTft::PacketFilter dlpf;
+                    NrQosRule::PacketFilter dlpf;
                     dlpf.localPortStart = dlPort;
                     dlpf.localPortEnd = dlPort;
                     tft->Add(dlpf);
                 }
                 // always true: if (epcUl)
                 {
-                    NrEpcTft::PacketFilter ulpf;
+                    NrQosRule::PacketFilter ulpf;
                     ulpf.remotePortStart = ulPort;
                     ulpf.remotePortEnd = ulPort;
                     tft->Add(ulpf);

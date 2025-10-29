@@ -51,9 +51,9 @@ ConfigureXrApp(NodeContainer& ueContainer,
                NetDeviceContainer& ueNetDev,
                Ptr<NrHelper> nrHelper,
                NrEpsBearer& bearer,
-               Ptr<NrEpcTft> tft,
+               Ptr<NrQosRule> rule,
                bool isMx1,
-               std::vector<Ptr<NrEpcTft>>& tfts,
+               std::vector<Ptr<NrQosRule>>& rules,
                ApplicationContainer& serverApps,
                ApplicationContainer& clientApps,
                ApplicationContainer& pingApps)
@@ -83,18 +83,18 @@ ConfigureXrApp(NodeContainer& ueContainer,
 
     Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
     // Activate a dedicated bearer for the traffic type per node
-    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
     // Activate a dedicated bearer for the traffic type per node
     if (isMx1)
     {
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
     }
     else
     {
-        NS_ASSERT(tfts.size() >= currentUeClientApps.GetN());
+        NS_ASSERT(rules.size() >= currentUeClientApps.GetN());
         for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
         {
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tfts[j]);
+            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rules[j]);
         }
     }
 
@@ -317,45 +317,45 @@ main(int argc, char* argv[])
 
     // The bearer that will carry AR traffic
     NrEpsBearer arBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
-    Ptr<NrEpcTft> arTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfAr;
-    std::vector<Ptr<NrEpcTft>> arTfts;
+    Ptr<NrQosRule> arRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfAr;
+    std::vector<Ptr<NrQosRule>> arRules;
 
     if (isMx1)
     {
         dlpfAr.localPortStart = dlPortArStart;
         dlpfAr.localPortEnd = dlPortArStop;
-        arTft->Add(dlpfAr);
+        arRule->Add(dlpfAr);
     }
     else
     {
-        // create 3 xrTfts for 1x1 mapping
+        // create 3 xrRules for 1x1 mapping
         for (uint32_t i = 0; i < 3; i++)
         {
-            Ptr<NrEpcTft> tempTft = Create<NrEpcTft>();
+            Ptr<NrQosRule> tempRule = Create<NrQosRule>();
             dlpfAr.localPortStart = dlPortArStart + i;
             dlpfAr.localPortEnd = dlPortArStart + i;
-            tempTft->Add(dlpfAr);
-            arTfts.emplace_back(tempTft);
+            tempRule->Add(dlpfAr);
+            arRules.emplace_back(tempRule);
         }
     }
     // The bearer that will carry VR traffic
     NrEpsBearer vrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<NrEpcTft> vrTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfVr;
+    Ptr<NrQosRule> vrRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfVr;
     dlpfVr.localPortStart = dlPortVrStart;
     dlpfVr.localPortEnd = dlPortVrStart;
-    vrTft->Add(dlpfVr);
+    vrRule->Add(dlpfVr);
 
     // The bearer that will carry CG traffic
     NrEpsBearer cgBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
 
-    Ptr<NrEpcTft> cgTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpfCg;
+    Ptr<NrQosRule> cgRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpfCg;
     dlpfCg.localPortStart = dlPortCgStart;
     dlpfCg.localPortEnd = dlPortCgStart;
-    cgTft->Add(dlpfCg);
+    cgRule->Add(dlpfCg);
 
     // Install traffic generators
     ApplicationContainer clientApps;
@@ -377,14 +377,14 @@ main(int argc, char* argv[])
                        ueArNetDev,
                        nrHelper,
                        arBearer,
-                       arTft,
+                       arRule,
                        isMx1,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps);
     }
-    // TODO for VR and CG of 2 flows Tfts and isMx1 have to be set. Currently they are
+    // TODO for VR and CG of 2 flows Rules and isMx1 have to be set. Currently they are
     // hardcoded for 1 flow
     for (uint32_t i = 0; i < ueVrContainer.GetN(); ++i)
     {
@@ -400,9 +400,9 @@ main(int argc, char* argv[])
                        ueVrNetDev,
                        nrHelper,
                        vrBearer,
-                       vrTft,
+                       vrRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps);
@@ -421,9 +421,9 @@ main(int argc, char* argv[])
                        ueCgNetDev,
                        nrHelper,
                        cgBearer,
-                       cgTft,
+                       cgRule,
                        true,
-                       arTfts,
+                       arRules,
                        serverApps,
                        clientApps,
                        pingApps);

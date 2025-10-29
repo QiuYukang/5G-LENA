@@ -338,11 +338,11 @@ main(int argc, char* argv[])
     // The bearer that will carry low latency traffic
     NrEpsBearer bearer(NrEpsBearer::GBR_CONV_VOICE);
 
-    Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpf;
+    Ptr<NrQosRule> rule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
     dlpf.localPortEnd = dlPort;
-    tft->Add(dlpf);
+    rule->Add(dlpf);
 
     /*
      * Let's install the applications!
@@ -363,7 +363,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClient.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, tft);
+        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
     }
 
     // start server and client apps

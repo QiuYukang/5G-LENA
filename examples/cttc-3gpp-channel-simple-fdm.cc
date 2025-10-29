@@ -274,11 +274,11 @@ main(int argc, char* argv[])
     // attach UEs to the closest gNB
     nrHelper->AttachToClosestGnb(ueNetDev, gnbNetDev);
 
-    Ptr<NrEpcTft> tft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpf;
+    Ptr<NrQosRule> rule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpf;
     dlpf.localPortStart = 1234;
     dlpf.localPortEnd = 1235;
-    tft->Add(dlpf);
+    rule->Add(dlpf);
     enum NrEpsBearer::Qci q;
 
     if (isUll)
@@ -291,7 +291,7 @@ main(int argc, char* argv[])
     }
 
     NrEpsBearer bearer(q);
-    nrHelper->ActivateDedicatedEpsBearer(ueNetDev, bearer, tft);
+    nrHelper->ActivateDedicatedEpsBearer(ueNetDev, bearer, rule);
 
     Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
 

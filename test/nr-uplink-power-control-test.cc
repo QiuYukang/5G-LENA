@@ -401,23 +401,23 @@ NrUplinkPowerControlTestCase::DoRun()
     dlClient.SetAttribute("PacketSize", UintegerValue(100));
     dlClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
     NrEpsBearer dlBearer(NrEpsBearer::GBR_CONV_VIDEO);
-    Ptr<NrEpcTft> dlTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter dlpf;
+    Ptr<NrQosRule> dlRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
     dlpf.localPortEnd = dlPort;
-    dlTft->Add(dlpf);
+    dlRule->Add(dlpf);
 
     UdpClientHelper ulClient;
     ulClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClient.SetAttribute("PacketSize", UintegerValue(100));
     ulClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
     NrEpsBearer ulBearer(NrEpsBearer::GBR_CONV_VIDEO);
-    Ptr<NrEpcTft> ulTft = Create<NrEpcTft>();
-    NrEpcTft::PacketFilter ulpf;
+    Ptr<NrQosRule> ulRule = Create<NrQosRule>();
+    NrQosRule::PacketFilter ulpf;
     ulpf.remotePortStart = ulPort;
     ulpf.remotePortEnd = ulPort;
-    ulpf.direction = NrEpcTft::UPLINK;
-    ulTft->Add(ulpf);
+    ulpf.direction = NrQosRule::UPLINK;
+    ulRule->Add(ulpf);
 
     ApplicationContainer clientApps;
     // set and add downlink app to container
@@ -426,13 +426,13 @@ NrUplinkPowerControlTestCase::DoRun()
                           AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPort)));
 
     clientApps.Add(dlClient.Install(remoteHost));
-    nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), dlBearer, dlTft);
+    nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), dlBearer, dlRule);
     // set and add uplink app to container
     ulClient.SetAttribute(
         "Remote",
         AddressValue(addressUtils::ConvertToSocketAddress(internetIpIfaces.GetAddress(1), ulPort)));
     clientApps.Add(ulClient.Install(ueNodes.Get(0)));
-    nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), ulBearer, ulTft);
+    nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), ulBearer, ulRule);
 
     // start UDP server and client apps
     serverApps.Start(udpAppStartTime);

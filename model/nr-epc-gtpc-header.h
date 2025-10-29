@@ -7,8 +7,8 @@
 #ifndef NR_EPC_GTPC_HEADER_H
 #define NR_EPC_GTPC_HEADER_H
 
-#include "nr-epc-tft.h"
 #include "nr-eps-bearer.h"
+#include "nr-qos-rule.h"
 
 #include "ns3/header.h"
 
@@ -197,10 +197,10 @@ class NrGtpcIes
     const uint32_t serializedSizePacketFilter =
         3 + 9 + 9 + 5 + 5 + 3; //!< Packet filter serialized size
     /**
-     * @return the BearerTft serialized size
+     * @return the Bearer QoS rule serialized size
      * @param packetFilters The packet filter
      */
-    uint32_t GetSerializedSizeBearerTft(std::list<NrEpcTft::PacketFilter> packetFilters) const;
+    uint32_t GetSerializedSizeBearerQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const;
     const uint32_t serializedSizeUliEcgi = 12;            //!< UliEcgi serialized size
     const uint32_t serializedSizeFteid = 13;              //!< Fteid serialized size
     const uint32_t serializedSizeBearerContextHeader = 4; //!< Fteid serialized size
@@ -281,19 +281,19 @@ class NrGtpcIes
     uint32_t DeserializeBearerQos(Buffer::Iterator& i, NrEpsBearer& bearerQos);
 
     /**
-     * Serialize the Bearer TFT
+     * Serialize the Bearer QoS rule
      * @param i Buffer iterator
      * @param packetFilters The Packet filters
      */
-    void SerializeBearerTft(Buffer::Iterator& i,
-                            std::list<NrEpcTft::PacketFilter> packetFilters) const;
+    void SerializeBearerQosRule(Buffer::Iterator& i,
+                                std::list<NrQosRule::PacketFilter> packetFilters) const;
     /**
-     * Deserialize the Bearer TFT
+     * Deserialize the Bearer QoS rule
      * @param i Buffer iterator
-     * @param [out] epcTft The Bearer TFT
+     * @param [out] rule The Bearer QoS rule
      * @return the number of deserialized bytes
      */
-    uint32_t DeserializeBearerTft(Buffer::Iterator& i, Ptr<NrEpcTft> epcTft) const;
+    uint32_t DeserializeBearerQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const;
 
     /**
      * Serialize the UliEcgi
@@ -399,7 +399,7 @@ class NrGtpcCreateSessionRequestMessage : public NrGtpcHeader, public NrGtpcIes
     {
         NrGtpcHeader::Fteid_t sgwS5uFteid; ///< FTEID
         uint8_t epsBearerId;               ///< EPS bearer ID
-        Ptr<NrEpcTft> tft;                 ///< traffic flow template
+        Ptr<NrQosRule> rule;               ///< traffic flow template
         NrEpsBearer bearerLevelQos;        ///< bearer QOS level
     };
 
@@ -473,7 +473,7 @@ class NrGtpcCreateSessionResponseMessage : public NrGtpcHeader, public NrGtpcIes
     {
         uint8_t epsBearerId;         ///< EPS bearer ID
         uint8_t cause;               ///< Cause
-        Ptr<NrEpcTft> tft;           ///< Bearer traffic flow template
+        Ptr<NrQosRule> rule;         ///< Bearer traffic flow template
         NrGtpcHeader::Fteid_t fteid; ///< FTEID
         NrEpsBearer bearerLevelQos;  ///< Bearer QOS level
     };
