@@ -1964,6 +1964,165 @@ Similarly, the ported classes/structures/tests received the ``Nr`` prefix.
 For example, LTE's ``EpcEnbApplication`` is the counterpart for NR's ``NrEpcGnbApplication``.
 For model details see: https://www.nsnam.org/docs/models/html/lte-design.html#epc-model
 
+The 4G EPC architecture (current) includes the S1 interface, S1 Application Protocol in
+the control plane, the S1 User Plane (GTP-U tunneling), the X2 interface for inter-eNB
+communication. These would need to be significantly revised for a 5G standalone (SA)
+Core (5GC), including moving to a SIP-based 5GC NAS, replacement of S1-AP with the NGAP
+protocol, implementation of the UPF, the N4 interface (PFCP protocol), the inter-gNB
+Xn interface (NG-RAN), and other concepts around Service-Based Interface (SBI). Almost
+the entire EPC model will need to be replaced to model a 5G SA Core
+
+QoS configuration
+*****************
+
+5G QoS relies on the concepts of QoS rules, QoS flows, and QoS profiles, as
+standardized in [TS24501]_. The simulator does not implement all of the
+standardized features of 5G QoS, but provides the following capabilities to
+allow users to characterize some desired or required QoS features and to
+have the simulator models react to this configuration.
+
+The general QoS architecture in 5G, from the perspective of a UE,
+is as follows:
+
+  .. code-block:: text
+
+        ┌─────────────────────────────────────────────────────┐
+        │                  IP packets                         │
+        └────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
+        ┌─────────────────────────────────────────────────────┐
+        │                 SDAP Layer                          │
+        │                                                     │
+        │   • QoS Rule processing                             │
+        │   • (possibly many-to-1 mapping)                    │
+        │                     │                               │
+        │                     ▼                               │
+        │  ┌──────────┬──────────┬──────────┬──────────┐      │
+        │  │  QoS     │  QoS     │  QoS     │  QoS     │      │
+        │  │ Flow 1   │ Flow 2   │ Flow 3   │ Flow N   │      │
+        │  └────┬─────┴────┬─────┴────┬─────┴────┬─────┘      │
+        │       │          │          │          │            │
+        │       └──────┬───┴──┬───────┘  ────┬───┘            │
+        │       │                        │                    │
+        │       ▼   (many-to-1 mapping)  ▼                    │
+        └────────────────────┬────────────────────────────────┘
+               │ Data Radio              │Data Radio
+               │ Bearer 1                │Bearer K
+               │                         │
+        ┌──────▼─────────────────────────▼────────┐
+        │              PDCP Sublayer              │
+        │                                         │
+        │  PDCP Entity 1      ...   PDCP Entity K │
+        └──────┬─────────────────────────┬────────┘
+               │                         │
+               │  (1-to-1 mapping)       │
+               │ RLC channel 1           │RLC channel K
+        ┌──────▼─────────────────────────▼────────┐
+        │        RLC Sublayer                     │
+        │                                         │
+        │  RLC Channel 1      ...   RLC Channel K │
+        │  (with queue)              (with queue) │
+        └──────┬─────────────────────────┬────────┘
+               │Logical  (1-to-1 mapping)│Logical
+               │Channel 1                │Channel K
+        ┌──────▼─────────────────────────▼────────┐
+        │        MAC Layer                        │
+        │                                         │
+        └──────┬─────────────────────────┬────────┘
+
+
+The SDAP layer is responsible for mapping IP packets to data radio bearers
+based on initially mapping the packets to QoS flows (based on QoS rules),
+and then mapping the QoS flows onto data radio bearers.  Each of these
+steps is a many-to-one mapping. Once packets are mapped to a data
+radio bearer, they are handled by entities at the PDCP layer and RLC
+layer; one data radio bearer at the PDCP layer maps to a single RLC
+channel at the RLC sublayer, which, in turn, maps to a single logical
+channel at the MAC layer.
+
+The overall goals of the simulator configuration are as follows:
+
+1.  QoS configuration should be optional for user-level programs. Default
+    configurations should create working data paths. In particular, there
+    should be a default data radio bearer that can handle all packets
+    in the absence of other configuration.
+2.  Users should be able to define additional data radio bearers and
+    to create packet filters (based on IP addresses, protocol numbers,
+    and port numbers) that will map packets to non-default data radio
+    bearers, for the purpose of different handling by the MAC layer
+    (e.g., scheduling, HARQ behavior, drop policy).
+
+In this simulation model, to simplify the model, the two-stage,
+many-to-one mapping between QoS rules and data radio bearers is
+reduced to a one-to-one mapping.  Users can configure multiple QoS
+rules but each QoS rule maps to a single QoS flow, which, in turn,
+maps to a single data radio bearer.
+
+  .. code-block:: text
+
+        ┌─────────────────────────────────────────────────────┐
+        │                  IP Packets                         │
+        └────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
+        ┌─────────────────────────────────────────────────────┐
+        │                 SDAP Layer                          │
+        │                                                     │
+        │   • QoS Rule Processing                             │
+        │                     │                               │
+        │                     ▼                               │
+        │  ┌──────────┬              ┬──────────┐             │
+        │  │  QoS     │              │  QoS     │             │
+        │  │ Flow 1   │              │ Flow K   │             │
+        │  └────┬─────┴              ┴───┬-─────┘             │
+        │       │                        │                    │
+        │       |                        |                    │
+        │       │                        │                    │
+        │       ▼    (1 to-1 mapping)    ▼                    │
+        └────────────────────┬────────────────────────────────┘
+               │ Data Radio              │Data Radio
+               │ Bearer 1                │Bearer K
+               │                         │
+
+The simulation objects that implement this are as follows:
+
+* **NrQosRule**:  The QoS rule is a structure containing a packet filter set,
+  a precedence value, and a QoS Flow Identifier (QFI).
+
+* **NrQosRuleClassifier**:  This object holds the set of NrQoSRules and
+  is able to classify an IP packet by iterating the rules in order of
+  precedence until a match is found.
+
+* **NrQosFlow**: This object holds a QoS Flow Identifier (QFI) and also most
+  of the QoS parameters (the QoS profile) such as the 5QI index value for
+  pre-defined application QoS profiles, priority, packet delay budget,
+  packet error rate, resource type (e.g., guaranteed bit rate).
+
+Additionally, there are properties of the data radio bearers that are
+outside of the QoS configuration but that must be configured and coordinated.
+For on-network operation, this includes, for example, which mode of RLC
+(RLC-UM, RLC-AM) and the number of MAC retransmissions to configure, and for
+sidelink operation, additional configuration such as cast type, type of
+grant (dynamic or semi-persistent), and the resource retransmission interval.
+For on-network operation, the gNB configures the type of bearers and the
+RRC ensures that QoS flows are mapped to the right bearers.  For sidelink,
+some additional configuration and coordination are required.  In the
+simulator, this information is associated with a separate **SidelinkInfo**
+parameter that is attached to the QoS rule.  Likewise, the QoS profile
+information available in the NrQosFlow must be made available to the lower
+layers so that the QoS requirements are met.
+
+5G has the concept of a **PDU Session** that is roughly analogous to a 4G EPS
+bearer. Configuration at the moment is done on the basis of QoS Flow, but
+could be done on the basis of PDU Session in the future. However, this probably
+should be coordinated with any EPC to 5GC upgrade (see above) and NAS upgrade.
+Some kind of PDU Session container for multiple QoS flows, and metadata such as
+PDU Session ID, DNN (Data Network Name), and S-NSSAI (network slice indicator)
+would be needed. At the user-level, the main question would be whether to
+maintain backward compatibility with a flow-centric API or refactor it to be
+(PDU) session-centric and manage the mappings from PDU Session to QoS Flows to
+Data Radio Bearers.
 
 S1, S5, S11 interfaces
 **********************
@@ -3218,3 +3377,5 @@ Open issues and future work
 .. [Sasaoka2019] Naoto Sasaoka, Takumi Sasaki, Yoshio Itoh. "PMI/RI Selection Based on Channel Capacity Increment Ratio". 2019 International Symposium on Multimedia and Communication Technology (ISMAC). doi: 10.1109/ISMAC.2019.8836179.
 
 .. [Maleki2023] Marjan Maleki, Juening Jin and Martin Haardt. "Low Complexity PMI Selection for BICM-MIMO Rate Maximization in 5G New Radio Systems". 2023 31st European Signal Processing Conference (EUSIPCO). doi: 10.23919/EUSIPCO58844.2023.10290121.
+
+.. [TS24501] 3GPP. "TS 24.501, Non-Access-Stratum (NAS) protocol for 5G System (5GS)", V19.4.0, 2025.
