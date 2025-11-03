@@ -61,7 +61,6 @@ SystemSchedulerTestQos::DoRun()
 
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::NrRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
-    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals
     int64_t randomStream = 1;
@@ -187,12 +186,12 @@ SystemSchedulerTestQos::DoRun()
     uint32_t bwpIdForLowLat = 0;
     uint32_t bwpIdForVoice = 0;
 
-    // gNb routing between Bearer and bandwidh part
+    // gNb routing between QoS flow and bandwidh part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
                                                  UintegerValue(bwpIdForLowLat));
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
 
-    // Ue routing between Bearer and bandwidth part
+    // Ue routing between QoS flow and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
 
@@ -333,7 +332,7 @@ SystemSchedulerTestQos::DoRun()
         ulpfLowLat.direction = NrQosRule::UPLINK;
         ulLowLatRule->Add(ulpfLowLat);
 
-        NrEpsBearer bearerLowLat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+        NrQosFlow flowLowLat(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
         UdpClientHelper ulClientVoice;
         ulClientVoice.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
@@ -347,7 +346,7 @@ SystemSchedulerTestQos::DoRun()
         ulpfVoice.direction = NrQosRule::UPLINK;
         ulVoiceRule->Add(ulpfVoice);
 
-        NrEpsBearer bearerVoice(NrEpsBearer::GBR_CONV_VOICE);
+        NrQosFlow flowVoice(NrQosFlow::GBR_CONV_VOICE);
 
         // configure here UDP traffic flows
         for (uint32_t j = 0; j < ueLowLatContainer.GetN(); ++j)
@@ -357,7 +356,7 @@ SystemSchedulerTestQos::DoRun()
                                             internetIpIfacesLowLat.GetAddress(1),
                                             ulPortLowLat)));
             clientAppsUl.Add(ulClientLowlat.Install(ueLowLatContainer.Get(j)));
-            nrHelper->ActivateDedicatedEpsBearer(ueLowLatNetDev.Get(j), bearerLowLat, ulLowLatRule);
+            nrHelper->ActivateDedicatedQosFlow(ueLowLatNetDev.Get(j), flowLowLat, ulLowLatRule);
         }
 
         // configure here UDP traffic flows
@@ -368,7 +367,7 @@ SystemSchedulerTestQos::DoRun()
                                            internetIpIfacesVoice.GetAddress(1),
                                            ulPortVoice)));
             clientAppsUl.Add(ulClientVoice.Install(ueVoiceContainer.Get(j)));
-            nrHelper->ActivateDedicatedEpsBearer(ueVoiceNetDev.Get(j), bearerVoice, ulVoiceRule);
+            nrHelper->ActivateDedicatedQosFlow(ueVoiceNetDev.Get(j), flowVoice, ulVoiceRule);
         }
 
         serverAppsUlLowLat.Start(udpAppStartTimeUl);
@@ -395,7 +394,7 @@ SystemSchedulerTestQos::DoRun()
         dlpfLowLat.direction = NrQosRule::DOWNLINK;
         dlLowLatRule->Add(dlpfLowLat);
 
-        NrEpsBearer bearerLowlat(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+        NrQosFlow flowLowlat(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
         Ptr<NrQosRule> dlVoiceRule = Create<NrQosRule>();
         NrQosRule::PacketFilter dlpfVoice;
@@ -404,7 +403,7 @@ SystemSchedulerTestQos::DoRun()
         dlpfVoice.direction = NrQosRule::DOWNLINK;
         dlVoiceRule->Add(dlpfVoice);
 
-        NrEpsBearer bearerVoice(NrEpsBearer::GBR_CONV_VOICE);
+        NrQosFlow flowVoice(NrQosFlow::GBR_CONV_VOICE);
 
         for (uint32_t j = 0; j < ueLowLatContainer.GetN(); ++j)
         {
@@ -414,7 +413,7 @@ SystemSchedulerTestQos::DoRun()
             dlClient.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
             clientAppsDl.Add(dlClient.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueLowLatNetDev.Get(j), bearerLowlat, dlLowLatRule);
+            nrHelper->ActivateDedicatedQosFlow(ueLowLatNetDev.Get(j), flowLowlat, dlLowLatRule);
         }
 
         for (uint32_t j = 0; j < ueVoiceContainer.GetN(); ++j)
@@ -425,7 +424,7 @@ SystemSchedulerTestQos::DoRun()
             dlClient.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
             clientAppsDl.Add(dlClient.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueVoiceNetDev.Get(j), bearerVoice, dlVoiceRule);
+            nrHelper->ActivateDedicatedQosFlow(ueVoiceNetDev.Get(j), flowVoice, dlVoiceRule);
         }
 
         // start UDP server and client apps

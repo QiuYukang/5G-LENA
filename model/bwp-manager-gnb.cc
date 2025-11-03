@@ -63,8 +63,8 @@ BwpManagerGnb::GetResourceType(NrMacSapProvider::BufferStatusReportParameters pa
 }
 
 std::vector<NrCcmRrcSapProvider::LcsConfig>
-BwpManagerGnb::DoSetupDataRadioBearer(NrEpsBearer bearer,
-                                      uint8_t bearerId,
+BwpManagerGnb::DoSetupDataRadioBearer(NrQosFlow flow,
+                                      uint8_t qfi,
                                       uint16_t rnti,
                                       uint8_t lcid,
                                       uint8_t lcGroup,
@@ -73,12 +73,7 @@ BwpManagerGnb::DoSetupDataRadioBearer(NrEpsBearer bearer,
     NS_LOG_FUNCTION(this);
 
     std::vector<NrCcmRrcSapProvider::LcsConfig> lcsConfig =
-        NrRrComponentCarrierManager::DoSetupDataRadioBearer(bearer,
-                                                            bearerId,
-                                                            rnti,
-                                                            lcid,
-                                                            lcGroup,
-                                                            msu);
+        NrRrComponentCarrierManager::DoSetupDataRadioBearer(flow, qfi, rnti, lcid, lcGroup, msu);
     return lcsConfig;
 }
 
@@ -95,8 +90,8 @@ BwpManagerGnb::GetBwpIndex(uint16_t rnti, uint8_t lcid)
     uint8_t qci = m_ueInfo[rnti].m_rlcLcInstantiated[lcid].qci;
 
     // Force a conversion between the uint8_t type that comes from the LcInfo
-    // struct (yeah, using the NrEpsBearer::Qci type was too hard ...)
-    return m_algorithm->GetBwpForEpsBearer(static_cast<NrEpsBearer::Qci>(qci));
+    // struct (yeah, using the NrQosFlow::Qci type was too hard ...)
+    return m_algorithm->GetBwpForQosFlow(static_cast<NrQosFlow::Qci>(qci));
 }
 
 uint8_t
@@ -113,8 +108,8 @@ BwpManagerGnb::PeekBwpIndex(uint16_t rnti, uint8_t lcid) const
     uint8_t qci = m_ueInfo.at(rnti).m_rlcLcInstantiated.at(lcid).qci;
 
     // Force a conversion between the uint8_t type that comes from the LcInfo
-    // struct (yeah, using the NrEpsBearer::Qci type was too hard ...)
-    return m_algorithm->GetBwpForEpsBearer(static_cast<NrEpsBearer::Qci>(qci));
+    // struct (yeah, using the NrQosFlow::Qci type was too hard ...)
+    return m_algorithm->GetBwpForQosFlow(static_cast<NrQosFlow::Qci>(qci));
 }
 
 uint8_t

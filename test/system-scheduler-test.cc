@@ -103,7 +103,6 @@ SystemSchedulerTest::DoRun()
 
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     Config::SetDefault("ns3::NrRlcUm::ReorderingTimer", TimeValue(Seconds(1)));
-    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     Config::SetDefault(
         "ns3::NrUePhy::EnableUplinkPowerControl",
@@ -241,10 +240,10 @@ SystemSchedulerTest::DoRun()
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     uint32_t bwpIdForLowLat = 0;
-    // gNb routing between Bearer and bandwidh part
+    // gNb routing between QoS flow and bandwidh part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
                                                  UintegerValue(bwpIdForLowLat));
-    // UE routing between Bearer and bandwidh part
+    // UE routing between QoS flow and bandwidh part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
 
     // install mmWave net devices
@@ -321,8 +320,8 @@ SystemSchedulerTest::DoRun()
             ulpf.direction = NrQosRule::UPLINK;
             tft->Add(ulpf);
 
-            NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
-            nrHelper->ActivateDedicatedEpsBearer(ueNetDevs.Get(j), bearer, tft);
+            NrQosFlow flow(NrQosFlow::NGBR_LOW_LAT_EMBB);
+            nrHelper->ActivateDedicatedQosFlow(ueNetDevs.Get(j), flow, tft);
         }
 
         serverAppsUl.Start(udpAppStartTimeUl);
@@ -355,8 +354,8 @@ SystemSchedulerTest::DoRun()
             dlpf.direction = NrQosRule::DOWNLINK;
             tft->Add(dlpf);
 
-            NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
-            nrHelper->ActivateDedicatedEpsBearer(ueNetDevs.Get(j), bearer, tft);
+            NrQosFlow flow(NrQosFlow::NGBR_LOW_LAT_EMBB);
+            nrHelper->ActivateDedicatedQosFlow(ueNetDevs.Get(j), flow, tft);
         }
         // start UDP server and client apps
         serverAppsDl.Start(udpAppStartTimeDl);

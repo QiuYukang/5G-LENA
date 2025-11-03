@@ -138,7 +138,6 @@ TestAntenna3gppModelConf::DoRun()
     DataRate udpRate = DataRate("2Mbps");
 
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     // create base stations and mobile terminals
     NodeContainer gNbNodes;
@@ -265,10 +264,10 @@ TestAntenna3gppModelConf::DoRun()
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     uint32_t bwpIdForLowLat = 0;
-    // gNb routing between Bearer and bandwidh part
+    // gNb routing between QoS flow and bandwidh part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
                                                  UintegerValue(bwpIdForLowLat));
-    // UE routing between Bearer and bandwidh part
+    // UE routing between QoS flow and bandwidh part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
 
     // install nr net devices
@@ -305,14 +304,14 @@ TestAntenna3gppModelConf::DoRun()
     dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     clientAppsDl.Add(dlClient.Install(remoteHost));
 
-    Ptr<NrQosRule> tft = Create<NrQosRule>();
+    Ptr<NrQosRule> rule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
     dlpf.localPortEnd = dlPort;
-    tft->Add(dlpf);
+    rule->Add(dlpf);
 
-    NrEpsBearer bearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
-    nrHelper->ActivateDedicatedEpsBearer(ueNetDevs.Get(0), bearer, tft);
+    NrQosFlow flow(NrQosFlow::NGBR_LOW_LAT_EMBB);
+    nrHelper->ActivateDedicatedQosFlow(ueNetDevs.Get(0), flow, rule);
 
     // start UDP server and client apps
     serverAppsDl.Start(udpAppStartTimeDl);

@@ -7,7 +7,7 @@
 #ifndef NR_EPC_S11_SAP_H
 #define NR_EPC_S11_SAP_H
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 #include "nr-qos-rule.h"
 
 #include "ns3/address.h"
@@ -65,11 +65,11 @@ class NrEpcS11SapMme : public NrEpcS11Sap
     /**
      * 3GPP TS 29.274 version 8.3.1 Release 8 section 8.28
      */
-    struct BearerContextCreated
+    struct FlowContextCreated
     {
         NrEpcS11Sap::Fteid sgwFteid; ///< EPC FTEID
-        uint8_t epsBearerId;         ///< EPS bearer ID
-        NrEpsBearer bearerLevelQos;  ///< EPS bearer
+        uint8_t qfi;                 ///< QoS flow ID
+        NrQosFlow flow;              ///< QoS flow
         Ptr<NrQosRule> rule;         ///< QoS rule
     };
 
@@ -78,7 +78,7 @@ class NrEpcS11SapMme : public NrEpcS11Sap
      */
     struct CreateSessionResponseMessage : public GtpcMessage
     {
-        std::list<BearerContextCreated> bearerContextsCreated; ///< bearer contexts created
+        std::list<FlowContextCreated> bearerContextsCreated; ///< bearer contexts created
     };
 
     /**
@@ -89,32 +89,32 @@ class NrEpcS11SapMme : public NrEpcS11Sap
     virtual void CreateSessionResponse(CreateSessionResponseMessage msg) = 0;
 
     /**
-     * Bearer Context Removed structure
+     * Flow Context Removed structure
      */
-    struct BearerContextRemoved
+    struct FlowContextRemoved
     {
-        uint8_t epsBearerId; ///< EPS bearer ID
+        uint8_t qosFlowId; ///< QoS Flow ID
     };
 
     /**
-     * Delete Bearer Request message, see 3GPP TS 29.274 Release 9 V9.3.0 section 7.2.9.2
+     * Delete Flow Request message, see 3GPP TS 29.274 Release 9 V9.3.0 section 7.2.9.2
      */
-    struct DeleteBearerRequestMessage : public GtpcMessage
+    struct DeleteFlowRequestMessage : public GtpcMessage
     {
-        std::list<BearerContextRemoved> bearerContextsRemoved; ///< list of bearer context removed
+        std::list<FlowContextRemoved> bearerContextsRemoved; ///< list of bearer context removed
     };
 
     /**
-     * @brief As per 3GPP TS 29.274 Release 9 V9.3.0, a Delete Bearer Request message shall be sent
+     * @brief As per 3GPP TS 29.274 Release 9 V9.3.0, a Delete Flow Request message shall be sent
      * on the S11 interface by PGW to SGW and from SGW to MME
      * @param msg the message
      */
-    virtual void DeleteBearerRequest(DeleteBearerRequestMessage msg) = 0;
+    virtual void DeleteFlowRequest(DeleteFlowRequestMessage msg) = 0;
 
     /**
-     * Modify Bearer Response message, see 3GPP TS 29.274 7.2.7
+     * Modify Flow Response message, see 3GPP TS 29.274 7.2.7
      */
-    struct ModifyBearerResponseMessage : public GtpcMessage
+    struct ModifyFlowResponseMessage : public GtpcMessage
     {
         /// Cause enumeration
         enum Cause
@@ -129,11 +129,11 @@ class NrEpcS11SapMme : public NrEpcS11Sap
     };
 
     /**
-     * Send a Modify Bearer Response message
+     * Send a Modify Flow Response message
      *
      * @param msg the message
      */
-    virtual void ModifyBearerResponse(ModifyBearerResponseMessage msg) = 0;
+    virtual void ModifyFlowResponse(ModifyFlowResponseMessage msg) = 0;
 };
 
 /**
@@ -145,12 +145,12 @@ class NrEpcS11SapMme : public NrEpcS11Sap
 class NrEpcS11SapSgw : public NrEpcS11Sap
 {
   public:
-    /// BearerContextToBeCreated structure
-    struct BearerContextToBeCreated
+    /// FlowContextToBeCreated structure
+    struct FlowContextToBeCreated
     {
         NrEpcS11Sap::Fteid sgwFteid; ///< FTEID
-        uint8_t epsBearerId;         ///< EPS bearer ID
-        NrEpsBearer bearerLevelQos;  ///< bearer QOS level
+        uint8_t qfi;                 ///< QoS Flow ID
+        NrQosFlow flow;              ///< QoS flow
         Ptr<NrQosRule> rule;         ///< QoS rule
     };
 
@@ -161,7 +161,7 @@ class NrEpcS11SapSgw : public NrEpcS11Sap
     {
         uint64_t imsi; ///< IMSI
         Uli uli;       ///< ULI
-        std::list<BearerContextToBeCreated>
+        std::list<FlowContextToBeCreated>
             bearerContextsToBeCreated; ///< list of bearer contexts to be created
     };
 
@@ -172,64 +172,64 @@ class NrEpcS11SapSgw : public NrEpcS11Sap
      */
     virtual void CreateSessionRequest(CreateSessionRequestMessage msg) = 0;
 
-    /// BearerContextToBeCreated structure
-    struct BearerContextToBeRemoved
+    /// FlowContextToBeCreated structure
+    struct FlowContextToBeRemoved
     {
-        uint8_t epsBearerId; ///< EPS bearer ID
+        uint8_t qosFlowId; ///< QoS flow ID
     };
 
     /**
-     * Delete Bearer Command message, see 3GPP TS 29.274 Release 9 V9.3.0 section 7.2.17.1
+     * Delete Flow Command message, see 3GPP TS 29.274 Release 9 V9.3.0 section 7.2.17.1
      */
-    struct DeleteBearerCommandMessage : public GtpcMessage
+    struct DeleteFlowCommandMessage : public GtpcMessage
     {
-        std::list<BearerContextToBeRemoved>
+        std::list<FlowContextToBeRemoved>
             bearerContextsToBeRemoved; ///< list of bearer contexts to be removed
     };
 
     /**
-     * @brief As per 3GPP TS 29.274 Release 9 V9.3.0, a Delete Bearer Command message shall be sent
+     * @brief As per 3GPP TS 29.274 Release 9 V9.3.0, a Delete Flow Command message shall be sent
      * on the S11 interface by the MME to the SGW
-     * @param msg the DeleteBearerCommandMessage
+     * @param msg the DeleteFlowCommandMessage
      */
-    virtual void DeleteBearerCommand(DeleteBearerCommandMessage msg) = 0;
+    virtual void DeleteFlowCommand(DeleteFlowCommandMessage msg) = 0;
 
-    /// BearerContextRemovedSgwPgw structure
-    struct BearerContextRemovedSgwPgw
+    /// FlowContextRemovedSgwPgw structure
+    struct FlowContextRemovedSgwPgw
     {
-        uint8_t epsBearerId; ///< EPS bearer ID
+        uint8_t qosFlowId; ///< QoS flow ID
     };
 
     /**
-     * Delete Bearer Response message, see 3GPP TS 29.274 Release 9 V9.3.0 section 7.2.10.2
+     * Delete Flow Response message, see 3GPP TS 29.274 Release 9 V9.3.0 section 7.2.10.2
      */
-    struct DeleteBearerResponseMessage : public GtpcMessage
+    struct DeleteFlowResponseMessage : public GtpcMessage
     {
-        std::list<BearerContextRemovedSgwPgw>
+        std::list<FlowContextRemovedSgwPgw>
             bearerContextsRemoved; ///< list of bearer contexts removed
     };
 
     /**
-     * @brief As per 3GPP TS 29.274 Release 9 V9.3.0, a Delete Bearer Command message shall be sent
+     * @brief As per 3GPP TS 29.274 Release 9 V9.3.0, a Delete Flow Command message shall be sent
      * on the S11 interface by the MME to the SGW
      * @param msg the message
      */
-    virtual void DeleteBearerResponse(DeleteBearerResponseMessage msg) = 0;
+    virtual void DeleteFlowResponse(DeleteFlowResponseMessage msg) = 0;
 
     /**
-     * Modify Bearer Request message, see 3GPP TS 29.274 7.2.7
+     * Modify Flow Request message, see 3GPP TS 29.274 7.2.7
      */
-    struct ModifyBearerRequestMessage : public GtpcMessage
+    struct ModifyFlowRequestMessage : public GtpcMessage
     {
         Uli uli; ///< ULI
     };
 
     /**
-     * Send a Modify Bearer Request message
+     * Send a Modify Flow Request message
      *
      * @param msg the message
      */
-    virtual void ModifyBearerRequest(ModifyBearerRequestMessage msg) = 0;
+    virtual void ModifyFlowRequest(ModifyFlowRequestMessage msg) = 0;
 };
 
 /**
@@ -252,8 +252,8 @@ class NrMemberEpcS11SapMme : public NrEpcS11SapMme
 
     // inherited from NrEpcS11SapMme
     void CreateSessionResponse(CreateSessionResponseMessage msg) override;
-    void ModifyBearerResponse(ModifyBearerResponseMessage msg) override;
-    void DeleteBearerRequest(DeleteBearerRequestMessage msg) override;
+    void ModifyFlowResponse(ModifyFlowResponseMessage msg) override;
+    void DeleteFlowRequest(DeleteFlowRequestMessage msg) override;
 
   private:
     C* m_owner; ///< owner class
@@ -274,16 +274,16 @@ NrMemberEpcS11SapMme<C>::CreateSessionResponse(CreateSessionResponseMessage msg)
 
 template <class C>
 void
-NrMemberEpcS11SapMme<C>::DeleteBearerRequest(DeleteBearerRequestMessage msg)
+NrMemberEpcS11SapMme<C>::DeleteFlowRequest(DeleteFlowRequestMessage msg)
 {
-    m_owner->DoDeleteBearerRequest(msg);
+    m_owner->DoDeleteFlowRequest(msg);
 }
 
 template <class C>
 void
-NrMemberEpcS11SapMme<C>::ModifyBearerResponse(ModifyBearerResponseMessage msg)
+NrMemberEpcS11SapMme<C>::ModifyFlowResponse(ModifyFlowResponseMessage msg)
 {
-    m_owner->DoModifyBearerResponse(msg);
+    m_owner->DoModifyFlowResponse(msg);
 }
 
 /**
@@ -306,9 +306,9 @@ class NrMemberEpcS11SapSgw : public NrEpcS11SapSgw
 
     // inherited from NrEpcS11SapSgw
     void CreateSessionRequest(CreateSessionRequestMessage msg) override;
-    void ModifyBearerRequest(ModifyBearerRequestMessage msg) override;
-    void DeleteBearerCommand(DeleteBearerCommandMessage msg) override;
-    void DeleteBearerResponse(DeleteBearerResponseMessage msg) override;
+    void ModifyFlowRequest(ModifyFlowRequestMessage msg) override;
+    void DeleteFlowCommand(DeleteFlowCommandMessage msg) override;
+    void DeleteFlowResponse(DeleteFlowResponseMessage msg) override;
 
   private:
     C* m_owner; ///< owner class
@@ -329,23 +329,23 @@ NrMemberEpcS11SapSgw<C>::CreateSessionRequest(CreateSessionRequestMessage msg)
 
 template <class C>
 void
-NrMemberEpcS11SapSgw<C>::ModifyBearerRequest(ModifyBearerRequestMessage msg)
+NrMemberEpcS11SapSgw<C>::ModifyFlowRequest(ModifyFlowRequestMessage msg)
 {
-    m_owner->DoModifyBearerRequest(msg);
+    m_owner->DoModifyFlowRequest(msg);
 }
 
 template <class C>
 void
-NrMemberEpcS11SapSgw<C>::DeleteBearerCommand(DeleteBearerCommandMessage msg)
+NrMemberEpcS11SapSgw<C>::DeleteFlowCommand(DeleteFlowCommandMessage msg)
 {
-    m_owner->DoDeleteBearerCommand(msg);
+    m_owner->DoDeleteFlowCommand(msg);
 }
 
 template <class C>
 void
-NrMemberEpcS11SapSgw<C>::DeleteBearerResponse(DeleteBearerResponseMessage msg)
+NrMemberEpcS11SapSgw<C>::DeleteFlowResponse(DeleteFlowResponseMessage msg)
 {
-    m_owner->DoDeleteBearerResponse(msg);
+    m_owner->DoDeleteFlowResponse(msg);
 }
 
 } // namespace ns3

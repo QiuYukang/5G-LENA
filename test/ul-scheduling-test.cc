@@ -490,10 +490,10 @@ UlSchedulingTest::DoRun()
         AddressValue(addressUtils::ConvertToSocketAddress(remoteHostAddr, ulPort)));
     clientApps.Add(ulClient.Install(ueNode.Get(0)));
 
-    // Activate a dedicated bearer for the traffic type
-    // The bearer that will carry voice traffic
-    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
-    nrHelper->ActivateDedicatedEpsBearer(ueDevices.Get(0), voiceBearer, voiceRule);
+    // Activate a dedicated QoS flow for the traffic type
+    // The QoS flow that will carry voice traffic
+    NrQosFlow voiceFlow(NrQosFlow::GBR_CONV_VOICE);
+    nrHelper->ActivateDedicatedQosFlow(ueDevices.Get(0), voiceFlow, voiceRule);
 
     serverApps.Start(udpAppStartTimeUl);
     clientApps.Start(udpAppStartTimeUl);

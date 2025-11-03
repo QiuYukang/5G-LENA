@@ -150,7 +150,7 @@ NrRrcHeaderTestCase::CreateRadioResourceConfigDedicated()
     rrd.srbToAddModList.insert(rrd.srbToAddModList.begin(), srbToAddMod);
 
     NrRrcSap::DrbToAddMod drbToAddMod;
-    drbToAddMod.epsBearerIdentity = 1;
+    drbToAddMod.qosFlowIdentity = 1;
     drbToAddMod.drbIdentity = 1;
     drbToAddMod.logicalChannelIdentity = 5;
     NrRrcSap::RlcConfig rlcConfig;
@@ -227,13 +227,13 @@ NrRrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated(
 
     for (; it3 != srcDrbToAddModList.end(); it3++, it4++)
     {
-        NS_TEST_ASSERT_MSG_EQ(it3->epsBearerIdentity, it4->epsBearerIdentity, "epsBearerIdentity");
+        NS_TEST_ASSERT_MSG_EQ(it3->qosFlowIdentity, it4->qosFlowIdentity, "qosFlowIdentity");
         NS_TEST_ASSERT_MSG_EQ(it3->drbIdentity, it4->drbIdentity, "drbIdentity");
         NS_TEST_ASSERT_MSG_EQ(it3->rlcConfig.choice, it4->rlcConfig.choice, "rlcConfig.choice");
         NS_TEST_ASSERT_MSG_EQ(it3->logicalChannelIdentity,
                               it4->logicalChannelIdentity,
                               "logicalChannelIdentity");
-        NS_TEST_ASSERT_MSG_EQ(it3->epsBearerIdentity, it4->epsBearerIdentity, "epsBearerIdentity");
+        NS_TEST_ASSERT_MSG_EQ(it3->qosFlowIdentity, it4->qosFlowIdentity, "qosFlowIdentity");
 
         NS_TEST_ASSERT_MSG_EQ(it3->logicalChannelConfig.priority,
                               it4->logicalChannelConfig.priority,

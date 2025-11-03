@@ -147,8 +147,8 @@ NrRlcUmE2eTestCase::DoRun()
     //     nrSimpleHelper->Attach (ueNrDevs.Get(i), nrGnbDevs.Get(i));
     //   }
 
-    // nrSimpleHelper->ActivateEpsBearer (ueNrDevs, NrEpsBearer
-    // (NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT), NrQosRule::Default ());
+    // nrSimpleHelper->ActivateEpsBearer (ueNrDevs, NrQosFlow);
+    // (NrQosFlow::NGBR_VIDEO_TCP_DEFAULT), NrQosRule::Default ());
 
     // Error models: downlink and uplink
     Ptr<RateErrorModel> dlEm = CreateObject<RateErrorModel>();

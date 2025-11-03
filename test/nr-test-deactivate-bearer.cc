@@ -18,11 +18,11 @@
 #include "ns3/network-module.h"
 #include "ns3/node-container.h"
 #include "ns3/nr-bearer-stats-calculator.h"
-#include "ns3/nr-eps-bearer.h"
 #include "ns3/nr-gnb-net-device.h"
 #include "ns3/nr-gnb-phy.h"
 #include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-qos-flow.h"
 #include "ns3/nr-stats-calculator.h"
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-phy.h"
@@ -226,12 +226,12 @@ NrDeactivateBearerTestCase::DoRun()
         qos.mbrDl = qos.gbrDl;
         qos.mbrUl = qos.gbrUl;
 
-        NrEpsBearer::Qci q = NrEpsBearer::GBR_CONV_VOICE;
-        NrEpsBearer bearer(q, qos);
-        bearer.arp.priorityLevel = 15 - (u + 1);
-        bearer.arp.preemptionCapability = true;
-        bearer.arp.preemptionVulnerability = true;
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, NrQosRule::Default());
+        NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+        NrQosFlow flow(q, qos);
+        flow.arp.priorityLevel = 15 - (u + 1);
+        flow.arp.preemptionCapability = true;
+        flow.arp.preemptionVulnerability = true;
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, NrQosRule::Default());
     }
 
     // Install downlink and uplink applications
@@ -282,7 +282,7 @@ NrDeactivateBearerTestCase::DoRun()
      */
     Time deActivateTime(Seconds(1.5));
     Simulator::Schedule(deActivateTime,
-                        &NrHelper::DeActivateDedicatedEpsBearer,
+                        &NrHelper::DeActivateDedicatedQosFlow,
                         nrHelper,
                         ueDevice,
                         gnbDevice,

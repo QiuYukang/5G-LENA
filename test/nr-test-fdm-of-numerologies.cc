@@ -8,8 +8,8 @@
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
-#include "ns3/nr-eps-bearer-tag.h"
 #include "ns3/nr-module.h"
+#include "ns3/nr-qos-flow-tag.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/three-gpp-channel-model.h"
 // #include "ns3/component-carrier-gnb.h"
@@ -86,7 +86,6 @@ NrTestFdmOfNumerologiesCase1::DoRun()
     uint32_t packetSize = 1000;
 
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
 
     RngSeedManager::SetSeed(1);
     RngSeedManager::SetRun(1);
@@ -296,25 +295,25 @@ NrTestFdmOfNumerologiesCase1::DoRun()
                                               // a short time, how much traffic can handle each BWP
             clientAppsUl.Add(ulClient.Install(ueNodes.Get(j)));
 
-            Ptr<NrQosRule> tft = Create<NrQosRule>();
+            Ptr<NrQosRule> rule = Create<NrQosRule>();
             NrQosRule::PacketFilter ulpf;
             ulpf.remotePortStart = ulPort;
             ulpf.remotePortEnd = ulPort;
-            tft->Add(ulpf);
+            rule->Add(ulpf);
 
-            enum NrEpsBearer::Qci q;
+            enum NrQosFlow::Qci q;
 
             if (j == 0)
             {
-                q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
+                q = NrQosFlow::NGBR_LOW_LAT_EMBB;
             }
             else
             {
-                q = NrEpsBearer::GBR_CONV_VOICE;
+                q = NrQosFlow::GBR_CONV_VOICE;
             }
 
-            NrEpsBearer bearer(q);
-            nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
+            NrQosFlow flow(q);
+            nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(j), flow, rule);
 
             ulPort++;
         }
@@ -342,25 +341,25 @@ NrTestFdmOfNumerologiesCase1::DoRun()
                                               // a short time, how much traffic can handle each BWP
             clientAppsDl.Add(dlClient.Install(remoteHost));
 
-            Ptr<NrQosRule> tft = Create<NrQosRule>();
+            Ptr<NrQosRule> rule = Create<NrQosRule>();
             NrQosRule::PacketFilter dlpf;
             dlpf.localPortStart = dlPort;
             dlpf.localPortEnd = dlPort;
-            tft->Add(dlpf);
+            rule->Add(dlpf);
 
-            enum NrEpsBearer::Qci q;
+            enum NrQosFlow::Qci q;
 
             if (j == 0)
             {
-                q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
+                q = NrQosFlow::NGBR_LOW_LAT_EMBB;
             }
             else
             {
-                q = NrEpsBearer::GBR_CONV_VOICE;
+                q = NrQosFlow::GBR_CONV_VOICE;
             }
 
-            NrEpsBearer bearer(q);
-            nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(j), bearer, tft);
+            NrQosFlow flow(q);
+            nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(j), flow, rule);
         }
 
         // start UDP server and client apps

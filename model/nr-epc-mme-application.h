@@ -9,6 +9,7 @@
 
 #include "nr-epc-gtpc-header.h"
 #include "nr-epc-s1ap-sap.h"
+#include "nr-qos-flow.h"
 
 #include "ns3/application.h"
 #include "ns3/socket.h"
@@ -28,7 +29,7 @@ namespace ns3
  * the MME node and the gNB nodes and the MME side of the S11 interface between
  * the MME node and the SGW node. It supports the following functions and messages:
  *
- *  - Bearer management functions including dedicated bearer establishment
+ *  - QoS flow management functions including dedicated flow establishment
  *  - NAS signalling
  *  - Tunnel Management messages
  *
@@ -86,16 +87,16 @@ class NrEpcMmeApplication : public Application
     void AddUe(uint64_t imsi);
 
     /**
-     * Add an EPS bearer to the list of bearers to be activated for this UE.
-     * The bearer will be activated when the UE enters the ECM
+     * Add a QosFlow to the list of flows to be activated for this UE.
+     * The flow will be activated when the UE enters the ECM
      * connected state.
      *
      * @param imsi UE identifier
-     * @param rule QoS rule of the bearer
-     * @param bearer QoS characteristics of the bearer
-     * @returns bearer ID
+     * @param rule QoS rule of the flow
+     * @param flow QoS flow (QoS characteristics)
+     * @returns QoS flow ID
      */
-    uint8_t AddBearer(uint64_t imsi, Ptr<NrQosRule> rule, NrEpsBearer bearer);
+    uint8_t AddFlow(uint64_t imsi, Ptr<NrQosRule> rule, NrQosFlow flow);
 
   private:
     // S1-AP SAP MME forwarded methods
@@ -159,27 +160,27 @@ class NrEpcMmeApplication : public Application
     void DoRecvCreateSessionResponse(NrGtpcHeader& header, Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Modify Bearer Response message
+     * Process GTP-C Modify Flow Response message
      * @param header the GTP-C header
      * @param packet the packet containing the message
      */
-    void DoRecvModifyBearerResponse(NrGtpcHeader& header, Ptr<Packet> packet);
+    void DoRecvModifyFlowResponse(NrGtpcHeader& header, Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Delete Bearer Request message
+     * Process GTP-C Delete Flow Request message
      * @param header the GTP-C header
      * @param packet the packet containing the message
      */
-    void DoRecvDeleteBearerRequest(NrGtpcHeader& header, Ptr<Packet> packet);
+    void DoRecvDeleteFlowRequest(NrGtpcHeader& header, Ptr<Packet> packet);
 
     /**
-     * Hold info on an EPS bearer to be activated
+     * Hold info on an QoS flow to be activated
      */
-    struct BearerInfo
+    struct FlowInfo
     {
         Ptr<NrQosRule> rule; ///< QoS rule
-        NrEpsBearer bearer;  ///< bearer QOS characteristics
-        uint8_t bearerId;    ///< bearer ID
+        NrQosFlow flow;      ///< QoS flow (QOS characteristics)
+        uint8_t qfi;         ///< QoS flow ID
     };
 
     /**
@@ -187,12 +188,12 @@ class NrEpcMmeApplication : public Application
      */
     struct NrUeInfo : public SimpleRefCount<NrUeInfo>
     {
-        uint64_t imsi;                              ///< UE identifier
-        uint64_t mmeUeS1Id;                         ///< mmeUeS1Id
-        uint16_t gnbUeS1Id;                         ///< gnbUeS1Id
-        uint16_t cellId;                            ///< cell ID
-        uint16_t bearerCounter;                     ///< bearer counter
-        std::list<BearerInfo> bearersToBeActivated; ///< list of bearers to be activated
+        uint64_t imsi;                          ///< UE identifier
+        uint64_t mmeUeS1Id;                     ///< mmeUeS1Id
+        uint16_t gnbUeS1Id;                     ///< gnbUeS1Id
+        uint16_t cellId;                        ///< cell ID
+        uint16_t flowCounter;                   ///< flow counter
+        std::list<FlowInfo> flowsToBeActivated; ///< list of flows to be activated
     };
 
     /**
@@ -201,11 +202,11 @@ class NrEpcMmeApplication : public Application
     std::map<uint64_t, Ptr<NrUeInfo>> m_ueInfoMap;
 
     /**
-     * @brief This Function erases all contexts of bearer from MME side
+     * @brief This Function erases all contexts of flow from MME side
      * @param ueInfo UE information pointer
-     * @param epsBearerId Bearer Id which need to be removed corresponding to UE
+     * @param qosFlowId Flow Id which needs to be removed corresponding to UE
      */
-    void RemoveBearer(Ptr<NrUeInfo> ueInfo, uint8_t epsBearerId);
+    void RemoveFlow(Ptr<NrUeInfo> ueInfo, uint8_t qosFlowId);
 
     /**
      * Hold info on an gNB

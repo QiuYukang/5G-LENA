@@ -25,6 +25,7 @@
 #include "nr-handover-management-sap.h"
 #include "nr-mac-sap.h"
 #include "nr-pdcp-sap.h"
+#include "nr-qos-flow.h"
 #include "nr-rrc-sap.h"
 
 #include "ns3/event-id.h"
@@ -164,14 +165,14 @@ class NrUeManager : public Object
      * Setup a new data radio bearer, including both the configuration
      * within the gNB and the necessary RRC signaling with the UE
      *
-     * @param bearer the QoS characteristics of the bearer
-     * @param bearerId the EPS bearer identifier
+     * @param flow the QoS characteristics of the flow
+     * @param qfi the QoS flow identifier
      * @param gtpTeid S1-bearer GTP tunnel endpoint identifier, see 36.423 9.2.1
      * @param transportLayerAddress  IP Address of the SGW, see 36.423 9.2.1
      *
      */
-    void SetupDataRadioBearer(NrEpsBearer bearer,
-                              uint8_t bearerId,
+    void SetupDataRadioBearer(NrQosFlow flow,
+                              uint8_t qfi,
                               uint32_t gtpTeid,
                               Ipv4Address transportLayerAddress);
 
@@ -245,10 +246,10 @@ class NrUeManager : public Object
      * RRC Connection Reconfiguration, the packet is sent through the
      * X2 interface.
      *
-     * @param bid the corresponding EPS Bearer ID
+     * @param qfi the corresponding QoS flow ID
      * @param p the packet
      */
-    void SendData(uint8_t bid, Ptr<Packet> p);
+    void SendData(uint8_t qfi, Ptr<Packet> p);
 
     /**
      *
@@ -508,30 +509,30 @@ class NrUeManager : public Object
     /**
      * @param lcid a  Logical Channel Identifier
      *
-     * @return the corresponding EPS Bearer Identifier
+     * @return the corresponding QoS flow identifier
      */
-    uint8_t Lcid2Bid(uint8_t lcid);
+    uint8_t Lcid2Qfi(uint8_t lcid);
 
     /**
-     * @param bid  an EPS Bearer Identifier
+     * @param qfi a QoS flow identifier
      *
      * @return the corresponding Logical Channel Identifier
      */
-    uint8_t Bid2Lcid(uint8_t bid);
+    uint8_t Qfi2Lcid(uint8_t qfi);
 
     /**
      * @param drbid Data Radio Bearer Id
      *
-     * @return the corresponding EPS Bearer Identifier
+     * @return the corresponding QoS flow identifier
      */
-    uint8_t Drbid2Bid(uint8_t drbid);
+    uint8_t Drbid2Qfi(uint8_t drbid);
 
     /**
-     * @param bid an EPS Bearer Identifier
+     * @param qfi a Qos flow identifier
      *
      * @return the corresponding Data Radio Bearer Id
      */
-    uint8_t Bid2Drbid(uint8_t bid);
+    uint8_t Qfi2Drbid(uint8_t qfi);
 
     /**
      * Send a data packet over the appropriate Data Radio Bearer.
@@ -539,10 +540,10 @@ class NrUeManager : public Object
      * or when the RRC Connection Reconfiguration Complete message
      * is received and the packets are debuffered.
      *
-     * @param bid the corresponding EPS Bearer ID
+     * @param qfi the corresponding QoS flow ID
      * @param p the packet
      */
-    void SendPacket(uint8_t bid, Ptr<Packet> p);
+    void SendPacket(uint8_t qfi, Ptr<Packet> p);
 
     /**
      * Switch the NrUeManager to the given state
@@ -1059,10 +1060,10 @@ class NrGnbRrc : public Object
     void SendRrcConnectionRelease();
 
     /**
-     * Identifies how EPS Bearer parameters are mapped to different RLC types
+     * Identifies how QoS Flow parameters are mapped to different RLC types
      *
      */
-    enum NrEpsBearerToRlcMapping_t
+    enum NrQosFlowToRlcMapping_t
     {
         RLC_SM_ALWAYS = 1,
         RLC_UM_ALWAYS = 2,
@@ -1406,11 +1407,11 @@ class NrGnbRrc : public Object
 
     /**
      *
-     * @param bearer the specification of an EPS bearer
+     * @param flow the specification of a QoS flow
      *
-     * @return the type of RLC that is to be created for the given EPS bearer
+     * @return the type of RLC that is to be created for the given QoS flow
      */
-    TypeId GetRlcType(NrEpsBearer bearer);
+    TypeId GetRlcType(NrQosFlow flow);
 
     /**
      * @brief Is random access completed function
@@ -1483,22 +1484,22 @@ class NrGnbRrc : public Object
 
     /**
      *
-     * @param bearer the characteristics of the bearer
+     * @param flow the QoS characteristics of the flow
      *
-     * @return the Logical Channel Group in a bearer with these
+     * @return the Logical Channel Group in a flow with these
      * characteristics is put. Used for MAC Buffer Status Reporting purposes.
      */
-    uint8_t GetLogicalChannelGroup(NrEpsBearer bearer);
+    uint8_t GetLogicalChannelGroup(NrQosFlow flow);
 
     /**
      *
-     * @param bearer the characteristics of the bearer
+     * @param flow the QoS characteristics of the flow
      *
-     * @return the priority level of a bearer with these
+     * @return the priority level of a flow with these
      * characteristics is put. Used for the part of UL MAC Scheduling
      * carried out by the UE
      */
-    uint8_t GetLogicalChannelPriority(NrEpsBearer bearer);
+    uint8_t GetLogicalChannelPriority(NrQosFlow flow);
 
     /**
      * method used to periodically send System Information
@@ -1597,10 +1598,10 @@ class NrGnbRrc : public Object
      */
     uint8_t m_defaultTransmissionMode;
     /**
-     * The `EpsBearerToRlcMapping` attribute. Specify which type of RLC will be
-     * used for each type of EPS bearer.
+     * The `QosFlowToRlcMapping` attribute. Specify which type of RLC will be
+     * used for each type of QoS flow.
      */
-    NrEpsBearerToRlcMapping_t m_epsBearerToRlcMapping;
+    NrQosFlowToRlcMapping_t m_qosFlowToRlcMapping;
     /**
      * The `SystemInformationPeriodicity` attribute. The interval for sending
      * system information.

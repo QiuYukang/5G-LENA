@@ -318,11 +318,11 @@ NrUeMeasurementsTestCase::DoRun()
         nrHelper->AttachToGnb(ueDevs2.Get(i), nrDevs.Get(1));
     }
 
-    // Activate an EPS bearer
-    NrEpsBearer::Qci q = NrEpsBearer::GBR_CONV_VOICE;
-    NrEpsBearer bearer(q);
-    nrHelper->ActivateDataRadioBearer(ueDevs1, bearer);
-    nrHelper->ActivateDataRadioBearer(ueDevs2, bearer);
+    // Activate an QoS flow
+    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow flow(q);
+    nrHelper->ActivateDataRadioBearer(ueDevs1, flow);
+    nrHelper->ActivateDataRadioBearer(ueDevs2, flow);
 
     Config::Connect("/NodeList/2/DeviceList/0/$ns3::NrNetDevice/$ns3::NrUeNetDevice/"
                     "ComponentCarrierMapUe/*/NrUePhy/ReportUeMeasurements",
@@ -796,10 +796,10 @@ NrUeMeasurementsPiecewiseTestCase1::DoRun()
     // Attach UE to eNodeB
     nrHelper->AttachToGnb(ueDevs.Get(0), nrDevs.Get(0));
 
-    // Activate an EPS bearer
-    NrEpsBearer::Qci q = NrEpsBearer::GBR_CONV_VOICE;
-    NrEpsBearer bearer(q);
-    nrHelper->ActivateDataRadioBearer(ueDevs, bearer);
+    // Activate an QoS flow
+    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow flow(q);
+    nrHelper->ActivateDataRadioBearer(ueDevs, flow);
 
     // Connect to trace sources
     Config::Connect(
@@ -1501,10 +1501,10 @@ NrUeMeasurementsPiecewiseTestCase2::DoRun()
     // Attach UE to serving eNodeB
     nrHelper->AttachToGnb(ueDevs.Get(0), nrDevs.Get(0));
 
-    // Activate an EPS bearer
-    NrEpsBearer::Qci q = NrEpsBearer::GBR_CONV_VOICE;
-    NrEpsBearer bearer(q);
-    nrHelper->ActivateDataRadioBearer(ueDevs, bearer);
+    // Activate an QoS flow
+    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow flow(q);
+    nrHelper->ActivateDataRadioBearer(ueDevs, flow);
 
     // Connect to trace sources in serving eNodeB
     Config::Connect(
@@ -1822,10 +1822,10 @@ NrUeMeasurementsPiecewiseTestCase3::DoRun()
     // Attach UE to serving eNodeB
     nrHelper->AttachToGnb(ueDevs.Get(0), nrDevs.Get(0));
 
-    // Activate an EPS bearer
-    NrEpsBearer::Qci q = NrEpsBearer::GBR_CONV_VOICE;
-    NrEpsBearer bearer(q);
-    nrHelper->ActivateDataRadioBearer(ueDevs, bearer);
+    // Activate an QoS flow
+    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow flow(q);
+    nrHelper->ActivateDataRadioBearer(ueDevs, flow);
 
     // Connect to trace sources in serving eNodeB
     Config::Connect(

@@ -272,12 +272,12 @@ main(int argc, char* argv[])
     uint32_t bwpIdForLowLat = 0;
     uint32_t bwpIdForVoice = 0;
 
-    // gNb routing between Bearer and bandwidh part
+    // gNb routing between flow and bandwidh part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB",
                                                  UintegerValue(bwpIdForLowLat));
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
 
-    // Ue routing between Bearer and bandwidth part
+    // Ue routing between flow and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdForLowLat));
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_CONV_VOICE", UintegerValue(bwpIdForVoice));
 
@@ -343,8 +343,8 @@ main(int argc, char* argv[])
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeULL));
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
 
-    // The bearer that will carry low latency traffic
-    NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry low latency traffic
+    NrQosFlow lowLatFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
     Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
@@ -359,8 +359,8 @@ main(int argc, char* argv[])
     dlClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     dlClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
-    // The bearer that will carry voice traffic
-    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
+    // The QoS flow that will carry voice traffic
+    NrQosFlow voiceFlow(NrQosFlow::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
     Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
@@ -384,8 +384,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
         clientApps.Add(dlClientLowLat.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
+        // Activate a dedicated QoS flow for the traffic type
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatFlow, lowLatRule);
     }
 
     for (uint32_t i = 0; i < ueVoiceContainer.GetN(); ++i)
@@ -400,8 +400,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVoice)));
         clientApps.Add(dlClientVoice.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceRule);
+        // Activate a dedicated QoS flow for the traffic type
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, voiceFlow, voiceRule);
     }
 
     // start UDP server and client apps

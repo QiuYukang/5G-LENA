@@ -18,8 +18,8 @@
 #include "ns3/ipv4-static-routing.h"
 #include "ns3/log.h"
 #include "ns3/nr-epc-gnb-application.h"
-#include "ns3/nr-eps-bearer.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-qos-flow.h"
 #include "ns3/packet-sink-helper.h"
 #include "ns3/packet-sink.h"
 #include "ns3/point-to-point-helper.h"
@@ -194,10 +194,10 @@ NrEpcS1uDlTestCase::DoRun()
 
             uint64_t imsi = ++imsiCounter;
             nrEpcHelper->AddUe(ueNrDevice, imsi);
-            nrEpcHelper->ActivateEpsBearer(ueNrDevice,
-                                           imsi,
-                                           NrQosRule::Default(),
-                                           NrEpsBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+            nrEpcHelper->ActivateQosFlow(ueNrDevice,
+                                         imsi,
+                                         NrQosRule::Default(),
+                                         NrQosFlow(NrQosFlow::NGBR_VIDEO_TCP_DEFAULT));
             Simulator::Schedule(MilliSeconds(10),
                                 &NrEpcGnbS1SapProvider::InitialUeMessage,
                                 gnbApp->GetS1SapProvider(),

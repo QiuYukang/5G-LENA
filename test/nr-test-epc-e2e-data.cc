@@ -269,20 +269,20 @@ NrEpcE2eDataTestCase::DoRun()
                     bearerTestData.ulClientApp = apps.Get(0);
                 }
 
-                NrEpsBearer epsBearer(NrEpsBearer::NGBR_VOICE_VIDEO_GAMING);
+                NrQosFlow flow(NrQosFlow::NGBR_VOICE_VIDEO_GAMING);
 
-                Ptr<NrQosRule> tft = Create<NrQosRule>();
+                Ptr<NrQosRule> rule = Create<NrQosRule>();
                 NrQosRule::PacketFilter dlpf;
                 dlpf.localPortStart = dlPort;
                 dlpf.localPortEnd = dlPort;
-                tft->Add(dlpf);
+                rule->Add(dlpf);
                 NrQosRule::PacketFilter ulpf;
                 ulpf.remotePortStart = ulPort;
                 ulpf.remotePortEnd = ulPort;
-                tft->Add(ulpf);
+                rule->Add(ulpf);
 
                 // all data will go over the dedicated bearer instead of the default EPS bearer
-                nrHelper->ActivateDedicatedEpsBearer(ueNrDevice, epsBearer, tft);
+                nrHelper->ActivateDedicatedQosFlow(ueNrDevice, flow, rule);
             }
         }
     }
@@ -314,7 +314,7 @@ NrEpcE2eDataTestCase::DoRun()
                 uint64_t imsi = ueit->bearers.at(b).dlServerApp->GetNode()->GetId();
 
                 // LCID 0, 1, 2 are for SRBs
-                // LCID 3 is (at the moment) the Default EPS bearer, and is unused in this test
+                // LCID 3 is (at the moment) the default bearer, and is unused in this test
                 // program
                 uint8_t lcid = b + 4;
                 uint32_t expectedPkts = ueit->bearers.at(b).numPkts;

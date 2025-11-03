@@ -530,8 +530,8 @@ main(int argc, char* argv[])
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
-    // The bearer that will carry low latency traffic
-    NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry low latency traffic
+    NrQosFlow lowLatFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
     Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
@@ -546,8 +546,8 @@ main(int argc, char* argv[])
     ulClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
-    // The bearer that will carry voice traffic
-    NrEpsBearer videoBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    // The QoS flow that will carry voice traffic
+    NrQosFlow videoFlow(NrQosFlow::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the voice traffic
     Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
@@ -575,7 +575,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
             clientApps.Add(dlClientLowLat.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatFlow, lowLatRule);
         }
         // For the uplink, the installation happens in the UE, and the remote address
         // is the one of the remote host
@@ -587,7 +587,7 @@ main(int argc, char* argv[])
                                                                   ulPortVoice)));
             clientApps.Add(ulClientVoice.Install(ue));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, voiceRule);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, videoFlow, voiceRule);
         }
     }
 

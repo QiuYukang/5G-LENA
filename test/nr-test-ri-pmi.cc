@@ -13,10 +13,10 @@
 #include "ns3/mobility-helper.h"
 #include "ns3/nr-amc.h"
 #include "ns3/nr-channel-helper.h"
-#include "ns3/nr-eps-bearer.h"
 #include "ns3/nr-gnb-net-device.h"
 #include "ns3/nr-helper.h"
 #include "ns3/nr-point-to-point-epc-helper.h"
+#include "ns3/nr-qos-flow.h"
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-phy.h"
 #include "ns3/point-to-point-helper.h"
@@ -321,8 +321,8 @@ RiPmiTestCase::DoRun()
     dlClient.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
     dlClient.SetAttribute("Interval", TimeValue(packetInterval));
 
-    // The bearer that will carry the traffic
-    NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry the traffic
+    NrQosFlow flow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
     Ptr<NrQosRule> dlRule = Create<NrQosRule>();
@@ -351,7 +351,7 @@ RiPmiTestCase::DoRun()
         clientApps.Add(dlClient.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlRule);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, dlRule);
     }
 
     // start UDP server and client apps

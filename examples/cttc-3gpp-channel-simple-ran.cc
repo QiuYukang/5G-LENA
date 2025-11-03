@@ -18,16 +18,10 @@
 #include "ns3/antenna-module.h"
 #include "ns3/config-store.h"
 #include "ns3/core-module.h"
-#include "ns3/grid-scenario-helper.h"
 #include "ns3/internet-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
-#include "ns3/log.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
-#include "ns3/nr-eps-bearer-tag.h"
-#include "ns3/nr-helper.h"
 #include "ns3/nr-module.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
 
 using namespace ns3;
 
@@ -55,7 +49,7 @@ SendPacket(Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
     Ipv4Header ipv4Header;
     ipv4Header.SetProtocol(UdpL4Protocol::PROT_NUMBER);
     pkt->AddHeader(ipv4Header);
-    NrEpsBearerTag tag(1, 1);
+    NrQosFlowTag tag(1, 1);
     pkt->AddPacketTag(tag);
     device->Send(pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }

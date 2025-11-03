@@ -43,7 +43,7 @@ NrEpcUeNas::NrEpcUeNas()
     : m_state(OFF),
       m_csgId(0),
       m_asSapProvider(nullptr),
-      m_bidCounter(0)
+      m_qfiCounter(0)
 {
     NS_LOG_FUNCTION(this);
     m_asSapUser = new MemberNrAsSapUser<NrEpcUeNas>(this);
@@ -163,22 +163,23 @@ NrEpcUeNas::Disconnect()
 }
 
 void
-NrEpcUeNas::ActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule)
+NrEpcUeNas::ActivateQosFlow(NrQosFlow flow, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
     switch (m_state)
     {
     case ACTIVE:
-        NS_FATAL_ERROR("the necessary NAS signaling to activate a bearer after the initial context "
-                       "has already been setup is not implemented");
+        NS_FATAL_ERROR(
+            "the necessary NAS signaling to activate a QoS flow after the initial context "
+            "has already been setup is not implemented");
         break;
 
     default:
-        BearerToBeActivated btba;
-        btba.bearer = bearer;
-        btba.rule = rule;
-        m_bearersToBeActivatedList.push_back(btba);
-        m_bearersToBeActivatedListForReconnection.push_back(btba);
+        QosFlowToBeActivated qftba;
+        qftba.flow = flow;
+        qftba.rule = rule;
+        m_qosFlowsToBeActivatedList.push_back(qftba);
+        m_qosFlowsToBeActivatedListForReconnection.push_back(qftba);
         break;
     }
 }
@@ -193,14 +194,14 @@ NrEpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
     case ACTIVE: {
         uint32_t id = m_qosRuleClassifier.Classify(packet, NrQosRule::UPLINK, protocolNumber);
         NS_ASSERT((id & 0xFFFFFF00) == 0);
-        auto bid = (uint8_t)(id & 0x000000FF);
-        if (bid == 0)
+        auto qfi = (uint8_t)(id & 0x000000FF);
+        if (qfi == 0)
         {
             return false;
         }
         else
         {
-            m_asSapProvider->SendData(packet, bid);
+            m_asSapProvider->SendData(packet, qfi);
             return true;
         }
     }
@@ -217,7 +218,7 @@ NrEpcUeNas::DoNotifyConnectionSuccessful()
 {
     NS_LOG_FUNCTION(this);
 
-    SwitchToState(ACTIVE); // will eventually activate dedicated bearers
+    SwitchToState(ACTIVE); // will eventually activate dedicated QoS flows
 }
 
 void
@@ -241,24 +242,24 @@ NrEpcUeNas::DoNotifyConnectionReleased()
 {
     NS_LOG_FUNCTION(this);
     // remove rules
-    while (m_bidCounter > 0)
+    while (m_qfiCounter > 0)
     {
-        m_qosRuleClassifier.Delete(m_bidCounter);
-        m_bidCounter--;
+        m_qosRuleClassifier.Delete(m_qfiCounter);
+        m_qfiCounter--;
     }
-    // restore the bearer list to be activated for the next RRC connection
-    m_bearersToBeActivatedList = m_bearersToBeActivatedListForReconnection;
+    // restore the QoS flow list to be activated for the next RRC connection
+    m_qosFlowsToBeActivatedList = m_qosFlowsToBeActivatedListForReconnection;
 
     Disconnect();
 }
 
 void
-NrEpcUeNas::DoActivateEpsBearer(NrEpsBearer bearer, Ptr<NrQosRule> rule)
+NrEpcUeNas::DoActivateQosFlow(NrQosFlow flow, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
-    NS_ASSERT_MSG(m_bidCounter < 11, "cannot have more than 11 EPS bearers");
-    uint8_t bid = ++m_bidCounter;
-    m_qosRuleClassifier.Add(rule, bid);
+    NS_ABORT_MSG_UNLESS(m_qfiCounter < 64, "cannot have more than 64 QFIs");
+    uint8_t qfi = ++m_qfiCounter;
+    m_qosRuleClassifier.Add(rule, qfi);
 }
 
 NrEpcUeNas::State
@@ -282,10 +283,10 @@ NrEpcUeNas::SwitchToState(State newState)
     switch (m_state)
     {
     case ACTIVE:
-        for (auto it = m_bearersToBeActivatedList.begin(); it != m_bearersToBeActivatedList.end();
-             m_bearersToBeActivatedList.erase(it++))
+        for (auto it = m_qosFlowsToBeActivatedList.begin(); it != m_qosFlowsToBeActivatedList.end();
+             m_qosFlowsToBeActivatedList.erase(it++))
         {
-            DoActivateEpsBearer(it->bearer, it->rule);
+            DoActivateQosFlow(it->flow, it->rule);
         }
         break;
 

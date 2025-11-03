@@ -47,10 +47,7 @@
 #include "ns3/log.h"
 #include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
-#include "ns3/nr-eps-bearer-tag.h"
-#include "ns3/nr-helper.h"
 #include "ns3/nr-module.h"
-#include "ns3/nr-point-to-point-epc-helper.h"
 #include "ns3/three-gpp-spectrum-propagation-loss-model.h"
 
 using namespace ns3;
@@ -84,7 +81,7 @@ SendPacket(Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
 
     // the dedicated bearer that we activate in the simulation
     // will have bearerId = 2
-    NrEpsBearerTag tag(1, 2);
+    NrQosFlowTag tag(1, 2);
     pkt->AddPacketTag(tag);
     device->Send(pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
@@ -185,8 +182,6 @@ main(int argc, char* argv[])
     randomStream += gridScenario.AssignStreams(randomStream);
     gridScenario.CreateScenario();
 
-    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(15));
-
     Ptr<NrPointToPointEpcHelper> nrEpcHelper = CreateObject<NrPointToPointEpcHelper>();
     Ptr<IdealBeamformingHelper> idealBeamformingHelper = CreateObject<IdealBeamformingHelper>();
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>();
@@ -279,19 +274,19 @@ main(int argc, char* argv[])
     dlpf.localPortStart = 1234;
     dlpf.localPortEnd = 1235;
     rule->Add(dlpf);
-    enum NrEpsBearer::Qci q;
+    enum NrQosFlow::Qci q;
 
     if (isUll)
     {
-        q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
+        q = NrQosFlow::NGBR_LOW_LAT_EMBB;
     }
     else
     {
-        q = NrEpsBearer::GBR_CONV_VOICE;
+        q = NrQosFlow::GBR_CONV_VOICE;
     }
 
-    NrEpsBearer bearer(q);
-    nrHelper->ActivateDedicatedEpsBearer(ueNetDev, bearer, rule);
+    NrQosFlow flow(q);
+    nrHelper->ActivateDedicatedQosFlow(ueNetDev, flow, rule);
 
     Simulator::Schedule(Seconds(0.2), &ConnectPdcpRlcTraces);
 

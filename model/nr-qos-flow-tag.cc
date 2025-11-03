@@ -5,7 +5,7 @@
 // Author: Marco Miozzo <marco.miozzo@cttc.es>
 //         Nicola Baldo <nbaldo@cttc.es>
 
-#include "nr-eps-bearer-tag.h"
+#include "nr-qos-flow-tag.h"
 
 #include "ns3/tag.h"
 #include "ns3/uinteger.h"
@@ -13,95 +13,95 @@
 namespace ns3
 {
 
-NS_OBJECT_ENSURE_REGISTERED(NrEpsBearerTag);
+NS_OBJECT_ENSURE_REGISTERED(NrQosFlowTag);
 
 TypeId
-NrEpsBearerTag::GetTypeId()
+NrQosFlowTag::GetTypeId()
 {
     static TypeId tid =
-        TypeId("ns3::NrEpsBearerTag")
+        TypeId("ns3::NrQosFlowTag")
             .SetParent<Tag>()
             .SetGroupName("Nr")
-            .AddConstructor<NrEpsBearerTag>()
-            .AddAttribute("rnti",
-                          "The rnti that indicates the UE which packet belongs",
+            .AddConstructor<NrQosFlowTag>()
+            .AddAttribute("Rnti",
+                          "The RNTI that indicates the UE to which the packet belongs",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&NrEpsBearerTag::GetRnti),
+                          MakeUintegerAccessor(&NrQosFlowTag::GetRnti),
                           MakeUintegerChecker<uint16_t>())
-            .AddAttribute("bid",
-                          "The EPS bearer id within the UE to which the packet belongs",
+            .AddAttribute("Qfi",
+                          "The QoS Flow ID within the UE to which the packet belongs",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&NrEpsBearerTag::GetBid),
+                          MakeUintegerAccessor(&NrQosFlowTag::GetQfi),
                           MakeUintegerChecker<uint8_t>());
     return tid;
 }
 
 TypeId
-NrEpsBearerTag::GetInstanceTypeId() const
+NrQosFlowTag::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
-NrEpsBearerTag::NrEpsBearerTag()
+NrQosFlowTag::NrQosFlowTag()
     : m_rnti(0),
-      m_bid(0)
+      m_qfi(0)
 {
 }
 
-NrEpsBearerTag::NrEpsBearerTag(uint16_t rnti, uint8_t bid)
+NrQosFlowTag::NrQosFlowTag(uint16_t rnti, uint8_t qfi)
     : m_rnti(rnti),
-      m_bid(bid)
+      m_qfi(qfi)
 {
 }
 
 void
-NrEpsBearerTag::SetRnti(uint16_t rnti)
+NrQosFlowTag::SetRnti(uint16_t rnti)
 {
     m_rnti = rnti;
 }
 
 void
-NrEpsBearerTag::SetBid(uint8_t bid)
+NrQosFlowTag::SetQfi(uint8_t qfi)
 {
-    m_bid = bid;
+    m_qfi = qfi;
 }
 
 uint32_t
-NrEpsBearerTag::GetSerializedSize() const
+NrQosFlowTag::GetSerializedSize() const
 {
     return 3;
 }
 
 void
-NrEpsBearerTag::Serialize(TagBuffer i) const
+NrQosFlowTag::Serialize(TagBuffer i) const
 {
     i.WriteU16(m_rnti);
-    i.WriteU8(m_bid);
+    i.WriteU8(m_qfi);
 }
 
 void
-NrEpsBearerTag::Deserialize(TagBuffer i)
+NrQosFlowTag::Deserialize(TagBuffer i)
 {
     m_rnti = (uint16_t)i.ReadU16();
-    m_bid = (uint8_t)i.ReadU8();
+    m_qfi = (uint8_t)i.ReadU8();
 }
 
 uint16_t
-NrEpsBearerTag::GetRnti() const
+NrQosFlowTag::GetRnti() const
 {
     return m_rnti;
 }
 
 uint8_t
-NrEpsBearerTag::GetBid() const
+NrQosFlowTag::GetQfi() const
 {
-    return m_bid;
+    return m_qfi;
 }
 
 void
-NrEpsBearerTag::Print(std::ostream& os) const
+NrQosFlowTag::Print(std::ostream& os) const
 {
-    os << "rnti=" << m_rnti << ", bid=" << (uint16_t)m_bid;
+    os << "rnti=" << m_rnti << ", qfi=" << (uint16_t)m_qfi;
 }
 
 } // namespace ns3

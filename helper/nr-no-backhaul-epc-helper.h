@@ -59,10 +59,10 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
                         Ipv4Address gnbAddress,
                         Ipv4Address sgwAddress,
                         uint16_t cellId) override;
-    uint8_t ActivateEpsBearer(Ptr<NetDevice> ueNrDevice,
-                              uint64_t imsi,
-                              Ptr<NrQosRule> rule,
-                              NrEpsBearer bearer) override;
+    uint8_t ActivateQosFlow(Ptr<NetDevice> ueNrDevice,
+                            uint64_t imsi,
+                            Ptr<NrQosRule> rule,
+                            NrQosFlow flow) override;
     Ptr<Node> GetSgwNode() const override;
     Ptr<Node> GetPgwNode() const override;
     Ipv4InterfaceContainer AssignUeIpv4Address(NetDeviceContainer ueDevices) override;
@@ -98,14 +98,14 @@ class NrNoBackhaulEpcHelper : public NrEpcHelper
                                   const Ipv4Address& gnb2X2Address) const;
 
     /**
-     * @brief DoActivateEpsBearerForUe: Schedule ActivateEpsBearer on the UE
+     * @brief DoActivateQosFlowForUe: Schedule ActivateQosFlow on the UE
      * @param ueDevice NR device for the UE
      * @param rule QoS rule
-     * @param bearer Bearer
+     * @param flow QoS flow
      */
-    virtual void DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                          const Ptr<NrQosRule>& rule,
-                                          const NrEpsBearer& bearer) const;
+    virtual void DoActivateQosFlowForUe(const Ptr<NetDevice>& ueDevice,
+                                        const Ptr<NrQosRule>& rule,
+                                        const NrQosFlow& flow) const;
 
   private:
     /**

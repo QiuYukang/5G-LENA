@@ -5,8 +5,8 @@
 // Author: Marco Miozzo  <marco.miozzo@cttc.es>
 //         Nicola Baldo <nbaldo@cttc.es>
 
-#ifndef NR_EPS_BEARER_TAG_H
-#define NR_EPS_BEARER_TAG_H
+#ifndef NR_QOS_FLOW_TAG_H
+#define NR_QOS_FLOW_TAG_H
 
 #include "ns3/tag.h"
 
@@ -16,11 +16,11 @@ namespace ns3
 class Tag;
 
 /**
- * Tag used to define the RNTI and EPS bearer ID for packets
+ * Tag used to define the RNTI and QoS flow ID for packets
  * interchanged between the NrEpcGnbApplication and the NrGnbNetDevice
  */
 
-class NrEpsBearerTag : public Tag
+class NrQosFlowTag : public Tag
 {
   public:
     /**
@@ -31,17 +31,17 @@ class NrEpsBearerTag : public Tag
     TypeId GetInstanceTypeId() const override;
 
     /**
-     * Create an empty NrEpsBearerTag
+     * Create an empty NrQosFlowTag
      */
-    NrEpsBearerTag();
+    NrQosFlowTag();
 
     /**
-     * Create a NrEpsBearerTag with the given RNTI and bearer id
+     * Create a NrQosFlowTag with the given RNTI and flow id
      *
      * @param rnti the value of the RNTI to set
-     * @param bid the value of the Bearer Id to set
+     * @param qfi the value of the flow Id to set
      */
-    NrEpsBearerTag(uint16_t rnti, uint8_t bid);
+    NrQosFlowTag(uint16_t rnti, uint8_t qfi);
 
     /**
      * Set the RNTI to the given value.
@@ -51,11 +51,11 @@ class NrEpsBearerTag : public Tag
     void SetRnti(uint16_t rnti);
 
     /**
-     * Set the bearer id to the given value.
+     * Set the QoS flow Id to the given value.
      *
-     * @param bid the value of the Bearer Id to set
+     * @param qfi the value of the QoS flow Id to set
      */
-    void SetBid(uint8_t bid);
+    void SetQfi(uint8_t qfi);
 
     void Serialize(TagBuffer i) const override;
     void Deserialize(TagBuffer i) override;
@@ -68,16 +68,16 @@ class NrEpsBearerTag : public Tag
      */
     uint16_t GetRnti() const;
     /**
-     * Get Bearer Id function
-     * @returns the Bearer Id
+     * Get QoS flow Id function
+     * @returns the QoS flow Id
      */
-    uint8_t GetBid() const;
+    uint8_t GetQfi() const;
 
   private:
     uint16_t m_rnti; ///< RNTI value
-    uint8_t m_bid;   ///< Bearer Id value
+    uint8_t m_qfi;   ///< QoS Flow Id value
 };
 
 } // namespace ns3
 
-#endif /* NR_EPS_BEARER_TAG_H */
+#endif /* NR_QOS_FLOW_TAG_H */

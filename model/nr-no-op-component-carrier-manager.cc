@@ -164,8 +164,8 @@ NrNoOpComponentCarrierManager::DoRemoveUe(uint16_t rnti)
 }
 
 std::vector<NrCcmRrcSapProvider::LcsConfig>
-NrNoOpComponentCarrierManager::DoSetupDataRadioBearer(NrEpsBearer bearer,
-                                                      uint8_t bearerId,
+NrNoOpComponentCarrierManager::DoSetupDataRadioBearer(NrQosFlow flow,
+                                                      uint8_t qfi,
                                                       uint16_t rnti,
                                                       uint8_t lcid,
                                                       uint8_t lcGroup,
@@ -189,14 +189,14 @@ NrNoOpComponentCarrierManager::DoSetupDataRadioBearer(NrEpsBearer bearer,
         lci.rnti = rnti;
         lci.lcId = lcid;
         lci.lcGroup = lcGroup;
-        lci.qci = bearer.qci;
+        lci.qci = flow.qci;
         if (ncc == 0)
         {
-            lci.resourceType = bearer.GetResourceType();
-            lci.mbrUl = bearer.gbrQosInfo.mbrUl;
-            lci.mbrDl = bearer.gbrQosInfo.mbrDl;
-            lci.gbrUl = bearer.gbrQosInfo.gbrUl;
-            lci.gbrDl = bearer.gbrQosInfo.gbrDl;
+            lci.resourceType = flow.GetResourceType();
+            lci.mbrUl = flow.gbrQosInfo.mbrUl;
+            lci.mbrDl = flow.gbrQosInfo.mbrDl;
+            lci.gbrUl = flow.gbrQosInfo.gbrUl;
+            lci.gbrDl = flow.gbrQosInfo.gbrDl;
         }
         else
         {
@@ -220,12 +220,12 @@ NrNoOpComponentCarrierManager::DoSetupDataRadioBearer(NrEpsBearer bearer,
         lcinfo.rnti = rnti;
         lcinfo.lcId = lcid;
         lcinfo.lcGroup = lcGroup;
-        lcinfo.qci = bearer.qci;
-        lcinfo.resourceType = bearer.GetResourceType();
-        lcinfo.mbrUl = bearer.gbrQosInfo.mbrUl;
-        lcinfo.mbrDl = bearer.gbrQosInfo.mbrDl;
-        lcinfo.gbrUl = bearer.gbrQosInfo.gbrUl;
-        lcinfo.gbrDl = bearer.gbrQosInfo.gbrDl;
+        lcinfo.qci = flow.qci;
+        lcinfo.resourceType = flow.GetResourceType();
+        lcinfo.mbrUl = flow.gbrQosInfo.mbrUl;
+        lcinfo.mbrDl = flow.gbrQosInfo.mbrDl;
+        lcinfo.gbrUl = flow.gbrQosInfo.gbrUl;
+        lcinfo.gbrDl = flow.gbrQosInfo.gbrDl;
         rntiIt->second.m_rlcLcInstantiated.emplace(lcinfo.lcId, lcinfo);
         rntiIt->second.m_ueAttached.emplace(lcinfo.lcId, msu);
     }

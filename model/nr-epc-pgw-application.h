@@ -160,22 +160,22 @@ class NrEpcPgwApplication : public Application
     void DoRecvCreateSessionRequest(Ptr<Packet> packet);
 
     /**
-     * Process Modify Bearer Request message
-     * @param packet GTPv2-C Modify Bearer Request message
+     * Process Modify Flow Request message
+     * @param packet GTPv2-C Modify Flow Request message
      */
-    void DoRecvModifyBearerRequest(Ptr<Packet> packet);
+    void DoRecvModifyFlowRequest(Ptr<Packet> packet);
 
     /**
-     * Process Delete Bearer Command message
-     * @param packet GTPv2-C Delete Bearer Command message
+     * Process Delete Flow Command message
+     * @param packet GTPv2-C Delete Flow Command message
      */
-    void DoRecvDeleteBearerCommand(Ptr<Packet> packet);
+    void DoRecvDeleteFlowCommand(Ptr<Packet> packet);
 
     /**
-     * Process Delete Bearer Response message
-     * @param packet GTPv2-C Delete Bearer Response message
+     * Process Delete Flow Response message
+     * @param packet GTPv2-C Delete Flow Response message
      */
-    void DoRecvDeleteBearerResponse(Ptr<Packet> packet);
+    void DoRecvDeleteFlowResponse(Ptr<Packet> packet);
 
     /**
      * store info for each UE connected to this PGW
@@ -186,20 +186,20 @@ class NrEpcPgwApplication : public Application
         NrUeInfo();
 
         /**
-         * Add a bearer for this UE on PGW side
+         * Add a flow for this UE on PGW side
          *
-         * @param bearerId the ID of the EPS Bearer to be activated
-         * @param teid  the TEID of the new bearer
-         * @param rule the QoS rule of the new bearer to be added
+         * @param qfi the ID of the QoS flow to be activated
+         * @param teid  the TEID of the new flow
+         * @param rule the QoS rule of the new flow to be added
          */
-        void AddBearer(uint8_t bearerId, uint32_t teid, Ptr<NrQosRule> rule);
+        void AddFlow(uint8_t qfi, uint32_t teid, Ptr<NrQosRule> rule);
 
         /**
-         * Delete context of bearer for this UE on PGW side
+         * Delete context of flow for this UE on PGW side
          *
-         * @param bearerId the ID of the EPS Bearer whose contexts is to be removed
+         * @param qfi the ID of the QoS flow whose contexts is to be removed
          */
-        void RemoveBearer(uint8_t bearerId);
+        void RemoveFlow(uint8_t qfi);
 
         /**
          * Classify the packet according to QoS rules of this UE
@@ -208,8 +208,8 @@ class NrEpcPgwApplication : public Application
          * @param protocolNumber identifies the type of packet.
          *        Only IPv4 and IPv6 packets are allowed.
          *
-         * @return the corresponding bearer ID > 0 identifying the bearer
-         * among all the bearers of this UE;  returns 0 if no bearers
+         * @return the corresponding qfi > 0 identifying the flow
+         * among all the flows of this UE;  returns 0 if no flow
          * matches with the previously declared QoS rules
          */
         uint32_t Classify(Ptr<Packet> p, uint16_t protocolNumber);
@@ -257,11 +257,11 @@ class NrEpcPgwApplication : public Application
         void SetUeAddr6(Ipv6Address addr);
 
       private:
-        Ipv4Address m_ueAddr;                            ///< UE IPv4 address
-        Ipv6Address m_ueAddr6;                           ///< UE IPv6 address
-        Ipv4Address m_sgwAddr;                           ///< SGW IPv4 address
-        NrQosRuleClassifier m_qosRuleClassifier;         ///< QoS rule classifier
-        std::map<uint8_t, uint32_t> m_teidByBearerIdMap; ///< TEID By bearer ID Map
+        Ipv4Address m_ueAddr;                          ///< UE IPv4 address
+        Ipv6Address m_ueAddr6;                         ///< UE IPv6 address
+        Ipv4Address m_sgwAddr;                         ///< SGW IPv4 address
+        NrQosRuleClassifier m_qosRuleClassifier;       ///< QoS rule classifier
+        std::map<uint8_t, uint32_t> m_teidByFlowIdMap; ///< TEID By flow ID map
     };
 
     /**

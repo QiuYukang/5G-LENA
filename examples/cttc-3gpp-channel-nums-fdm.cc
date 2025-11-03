@@ -376,8 +376,8 @@ main(int argc, char* argv[])
     dlClientVideo.SetAttribute("PacketSize", UintegerValue(udpPacketSizeVideo));
     dlClientVideo.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaVideo)));
 
-    // The bearer that will carry low latency traffic
-    NrEpsBearer videoBearer(NrEpsBearer::GBR_CONV_VIDEO);
+    // The QoS flow that will carry low latency traffic
+    NrQosFlow videoFlow(NrQosFlow::GBR_CONV_VIDEO);
 
     // The filter for the low-latency traffic
     Ptr<NrQosRule> videoRule = Create<NrQosRule>();
@@ -393,7 +393,7 @@ main(int argc, char* argv[])
     dlClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaVoice)));
 
     // The bearer that will carry voice traffic
-    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
+    NrQosFlow voiceFlow(NrQosFlow::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
     Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
@@ -409,7 +409,7 @@ main(int argc, char* argv[])
     ulClientGaming.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaGaming)));
 
     // The bearer that will carry gaming traffic
-    NrEpsBearer gamingBearer(NrEpsBearer::GBR_GAMING);
+    NrQosFlow gamingFlow(NrQosFlow::GBR_GAMING);
 
     // The filter for the gaming traffic
     Ptr<NrQosRule> gamingRule = Create<NrQosRule>();
@@ -439,7 +439,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVoice)));
             clientApps.Add(dlClientVoice.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceRule);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, voiceFlow, voiceRule);
         }
 
         if (enableVideo)
@@ -449,7 +449,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVideo)));
             clientApps.Add(dlClientVideo.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, videoRule);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, videoFlow, videoRule);
         }
 
         // For the uplink, the installation happens in the UE, and the remote address
@@ -463,7 +463,7 @@ main(int argc, char* argv[])
                     addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, ulPortGaming)));
             clientApps.Add(ulClientGaming.Install(ue));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, gamingBearer, gamingRule);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, gamingFlow, gamingRule);
         }
     }
 

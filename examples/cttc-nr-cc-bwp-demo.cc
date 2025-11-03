@@ -535,29 +535,29 @@ main(int argc, char* argv[])
                 ++dlPort;
                 rule->Add(dlpf);
 
-                enum NrEpsBearer::Qci q;
+                enum NrQosFlow::Qci q;
                 if (flow == 0)
                 {
-                    q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
+                    q = NrQosFlow::NGBR_LOW_LAT_EMBB;
                 }
                 else if (flow == 1)
                 {
-                    q = NrEpsBearer::GBR_CONV_VOICE;
+                    q = NrQosFlow::GBR_CONV_VOICE;
                 }
                 else if (flow == 2)
                 {
-                    q = NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM;
+                    q = NrQosFlow::NGBR_VIDEO_TCP_PREMIUM;
                 }
                 else if (flow == 3)
                 {
-                    q = NrEpsBearer::NGBR_VOICE_VIDEO_GAMING;
+                    q = NrQosFlow::NGBR_VOICE_VIDEO_GAMING;
                 }
                 else
                 {
-                    q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
+                    q = NrQosFlow::NGBR_VIDEO_TCP_DEFAULT;
                 }
-                NrEpsBearer bearer(q);
-                nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, rule);
+                NrQosFlow flow(q);
+                nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(u), flow, rule);
             }
 
             if (!disableUl)
@@ -580,29 +580,29 @@ main(int argc, char* argv[])
                 ++ulPort;
                 rule->Add(ulpf);
 
-                enum NrEpsBearer::Qci q;
+                enum NrQosFlow::Qci q;
                 if (flow == 0)
                 {
-                    q = NrEpsBearer::NGBR_LOW_LAT_EMBB;
+                    q = NrQosFlow::NGBR_LOW_LAT_EMBB;
                 }
                 else if (flow == 1)
                 {
-                    q = NrEpsBearer::GBR_CONV_VOICE;
+                    q = NrQosFlow::GBR_CONV_VOICE;
                 }
                 else if (flow == 2)
                 {
-                    q = NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM;
+                    q = NrQosFlow::NGBR_VIDEO_TCP_PREMIUM;
                 }
                 else if (flow == 3)
                 {
-                    q = NrEpsBearer::NGBR_VOICE_VIDEO_GAMING;
+                    q = NrQosFlow::NGBR_VOICE_VIDEO_GAMING;
                 }
                 else
                 {
-                    q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
+                    q = NrQosFlow::NGBR_VIDEO_TCP_DEFAULT;
                 }
-                NrEpsBearer bearer(q);
-                nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(u), bearer, rule);
+                NrQosFlow flow(q);
+                nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(u), flow, rule);
             }
         }
     }

@@ -7,7 +7,6 @@
 #include "ns3/callback.h"
 #include "ns3/node.h"
 #include "ns3/nr-control-messages.h"
-#include "ns3/nr-eps-bearer.h"
 #include "ns3/nr-gnb-mac.h"
 #include "ns3/nr-mac-sched-sap.h"
 #include "ns3/nr-mac-scheduler-ns3.h"
@@ -15,6 +14,7 @@
 #include "ns3/nr-mac-scheduler-tdma-ai.h"
 #include "ns3/nr-mac-scheduler-ue-info-ai.h"
 #include "ns3/nr-phy-sap.h"
+#include "ns3/nr-qos-flow.h"
 #include "ns3/object-factory.h"
 #include "ns3/test.h"
 
@@ -202,10 +202,10 @@ class NrTestSchedulerAiCase : public TestCase
     bool m_verbose = false;
     std::string m_schedulerType;
     TestSchedulerAiPhySapProvider* m_phySapProvider;
-    const std::unordered_map<uint8_t, NrEpsBearer> m_epsBearerMap = {
-        {1, static_cast<NrEpsBearer::Qci>(1)},
-        {2, static_cast<NrEpsBearer::Qci>(3)},
-        {3, static_cast<NrEpsBearer::Qci>(9)}};
+    const std::unordered_map<uint8_t, NrQosFlow> m_qosFlowMap = {
+        {1, static_cast<NrQosFlow::Qci>(1)},
+        {2, static_cast<NrQosFlow::Qci>(3)},
+        {3, static_cast<NrQosFlow::Qci>(9)}};
 };
 
 void
@@ -216,7 +216,7 @@ NrTestSchedulerAiCase::Notify(const std::vector<NrMacSchedulerUeInfoAi::LcObserv
                               const NrMacSchedulerUeInfoAi::UpdateAllUeWeightsFn& updateWeightsFn)
 {
     NS_TEST_ASSERT_MSG_EQ(observation.size(),
-                          m_epsBearerMap.size(),
+                          m_qosFlowMap.size(),
                           "Observation size should be equal to the flow profile size");
     if (m_verbose)
     {
@@ -236,8 +236,8 @@ NrTestSchedulerAiCase::Notify(const std::vector<NrMacSchedulerUeInfoAi::LcObserv
                       << std::endl;
         }
 
-        const auto& it = m_epsBearerMap.find(obs.rnti);
-        if (it == m_epsBearerMap.end())
+        const auto& it = m_qosFlowMap.find(obs.rnti);
+        if (it == m_qosFlowMap.end())
         {
             NS_FATAL_ERROR("RNTI not found");
         }
@@ -297,7 +297,7 @@ NrTestSchedulerAiCase::DoRun()
     auto mac = CreateMac(sched, params);
 
     m_phySapProvider = new TestSchedulerAiPhySapProvider();
-    m_phySapProvider->SetParams(m_epsBearerMap.size(), 1);
+    m_phySapProvider->SetParams(m_qosFlowMap.size(), 1);
 
     mac->SetPhySapProvider(m_phySapProvider);
 
@@ -305,11 +305,11 @@ NrTestSchedulerAiCase::DoRun()
     sched->InstallDlAmc(amc);
 
     uint8_t rnti;
-    NrEpsBearer bearer;
-    for (auto& pair : m_epsBearerMap)
+    NrQosFlow flow;
+    for (auto& pair : m_qosFlowMap)
     {
         rnti = pair.first;
-        bearer = pair.second;
+        flow = pair.second;
 
         NrMacCschedSapProvider::CschedUeConfigReqParameters paramsUe;
         paramsUe.m_rnti = rnti;
@@ -333,8 +333,8 @@ NrTestSchedulerAiCase::DoRun()
         lc.m_logicalChannelGroup = 2;
         lc.m_direction = nr::LogicalChannelConfigListElement_s::DIR_DL;
         lc.m_qosBearerType = static_cast<nr::LogicalChannelConfigListElement_s::QosBearerType_e>(
-            bearer.GetResourceType());
-        lc.m_qci = bearer.qci;
+            flow.GetResourceType());
+        lc.m_qci = flow.qci;
         paramsLc.m_logicalChannelConfigList.emplace_back(lc);
 
         sched->DoCschedLcConfigReq(paramsLc);
@@ -346,7 +346,7 @@ NrTestSchedulerAiCase::DoRun()
         paramsDlRlc.m_rlcRetransmissionHolDelay = 0;
         paramsDlRlc.m_rlcRetransmissionQueueSize = 0;
         paramsDlRlc.m_rlcStatusPduSize = 0;
-        paramsDlRlc.m_rlcTransmissionQueueHolDelay = bearer.GetPacketDelayBudgetMs();
+        paramsDlRlc.m_rlcTransmissionQueueHolDelay = flow.GetPacketDelayBudgetMs();
         paramsDlRlc.m_rlcTransmissionQueueSize = 1284;
 
         sched->DoSchedDlRlcBufferReq(paramsDlRlc);

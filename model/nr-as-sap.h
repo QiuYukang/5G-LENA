@@ -64,9 +64,9 @@ class NrAsSapProvider
      * @brief Send a data packet.
      *
      * @param packet the packet
-     * @param bid the EPS bearer ID
+     * @param qfi the QoS Flow ID
      */
-    virtual void SendData(Ptr<Packet> packet, uint8_t bid) = 0;
+    virtual void SendData(Ptr<Packet> packet, uint8_t qfi) = 0;
 
     /**
      * @brief Tell the RRC entity to release the connection.
@@ -132,7 +132,7 @@ class MemberNrAsSapProvider : public NrAsSapProvider
     void StartCellSelection(uint32_t arfcn) override;
     void ForceCampedOnGnb(uint16_t cellId, uint32_t arfcn) override;
     void Connect() override;
-    void SendData(Ptr<Packet> packet, uint8_t bid) override;
+    void SendData(Ptr<Packet> packet, uint8_t qfi) override;
     void Disconnect() override;
 
   private:

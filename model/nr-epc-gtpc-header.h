@@ -7,7 +7,7 @@
 #ifndef NR_EPC_GTPC_HEADER_H
 #define NR_EPC_GTPC_HEADER_H
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 #include "nr-qos-rule.h"
 
 #include "ns3/header.h"
@@ -22,6 +22,11 @@ namespace ns3
  *
  * Implementation of the GPRS Tunnelling Protocol for Control Plane (GTPv2-C) header
  * according to the 3GPP TS 29.274 document
+ *
+ * Note, this has been ported to 5G NR terminology to replace concepts such as the EPS
+ * bearer with the QoS flow, as has been updated in other classes in this module.
+ * However, this may eventually be removed from 5G NR module in favor of newer
+ * standards in the TS 29.500 series that use HTTP/2 protocol rather than GTP-C.
  */
 class NrGtpcHeader : public Header
 {
@@ -125,13 +130,13 @@ class NrGtpcHeader : public Header
         Reserved = 0,
         CreateSessionRequest = 32,
         CreateSessionResponse = 33,
-        ModifyBearerRequest = 34,
-        ModifyBearerResponse = 35,
+        ModifyFlowRequest = 34,
+        ModifyFlowResponse = 35,
         DeleteSessionRequest = 36,
         DeleteSessionResponse = 37,
-        DeleteBearerCommand = 66,
-        DeleteBearerRequest = 99,
-        DeleteBearerResponse = 100,
+        DeleteFlowCommand = 66,
+        DeleteFlowRequest = 99,
+        DeleteFlowResponse = 100,
     };
 
   private:
@@ -190,20 +195,20 @@ class NrGtpcIes
         REQUEST_ACCEPTED = 16,
     };
 
-    const uint32_t serializedSizeImsi = 12;      //!< IMSI serialized size
-    const uint32_t serializedSizeCause = 6;      //!< Cause serialized size
-    const uint32_t serializedSizeEbi = 5;        //!< EBI serialized size
-    const uint32_t serializedSizeBearerQos = 26; //!< Bearer QoS serialized size
+    const uint32_t serializedSizeImsi = 12;    //!< IMSI serialized size
+    const uint32_t serializedSizeCause = 6;    //!< Cause serialized size
+    const uint32_t serializedSizeQfi = 5;      //!< QFI serialized size
+    const uint32_t serializedSizeQosFlow = 26; //!< QoS Flow serialized size
     const uint32_t serializedSizePacketFilter =
         3 + 9 + 9 + 5 + 5 + 3; //!< Packet filter serialized size
     /**
-     * @return the Bearer QoS rule serialized size
+     * @return the QoS rule serialized size
      * @param packetFilters The packet filter
      */
-    uint32_t GetSerializedSizeBearerQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const;
-    const uint32_t serializedSizeUliEcgi = 12;            //!< UliEcgi serialized size
-    const uint32_t serializedSizeFteid = 13;              //!< Fteid serialized size
-    const uint32_t serializedSizeBearerContextHeader = 4; //!< Fteid serialized size
+    uint32_t GetSerializedSizeQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const;
+    const uint32_t serializedSizeUliEcgi = 12;          //!< UliEcgi serialized size
+    const uint32_t serializedSizeFteid = 13;            //!< Fteid serialized size
+    const uint32_t serializedSizeFlowContextHeader = 4; //!< Fteid serialized size
 
     /**
      * Serialize the IMSI
@@ -234,18 +239,18 @@ class NrGtpcIes
     uint32_t DeserializeCause(Buffer::Iterator& i, Cause_t& cause) const;
 
     /**
-     * Serialize the eps Bearer Id
+     * Serialize the QoS Flow Id
      * @param i Buffer iterator
-     * @param  epsBearerId The eps Bearer Id
+     * @param  qfi The QoS Flow Id
      */
-    void SerializeEbi(Buffer::Iterator& i, uint8_t epsBearerId) const;
+    void SerializeQfi(Buffer::Iterator& i, uint8_t qfi) const;
     /**
-     * Deserialize the eps Bearer Id
+     * Deserialize the QoS Flow Id
      * @param i Buffer iterator
-     * @param [out] epsBearerId The eps Bearer Id
+     * @param [out] qfi The QoS Flow Id
      * @return the number of deserialized bytes
      */
-    uint32_t DeserializeEbi(Buffer::Iterator& i, uint8_t& epsBearerId) const;
+    uint32_t DeserializeQfi(Buffer::Iterator& i, uint8_t& qfi) const;
 
     /**
      * @param i Buffer iterator
@@ -267,33 +272,33 @@ class NrGtpcIes
     uint64_t ReadNtohU40(Buffer::Iterator& i);
 
     /**
-     * Serialize the eps Bearer QoS
+     * Serialize the QoS flow
      * @param i Buffer iterator
-     * @param bearerQos The Bearer QoS
+     * @param flow The QoS Flow
      */
-    void SerializeBearerQos(Buffer::Iterator& i, NrEpsBearer bearerQos) const;
+    void SerializeQosFlow(Buffer::Iterator& i, NrQosFlow qosFlow) const;
     /**
-     * Deserialize the eps Bearer QoS
+     * Deserialize the QoS flow
      * @param i Buffer iterator
-     * @param [out] bearerQos The Bearer QoS
+     * @param [out] flow The QoS Flow
      * @return the number of deserialized bytes
      */
-    uint32_t DeserializeBearerQos(Buffer::Iterator& i, NrEpsBearer& bearerQos);
+    uint32_t DeserializeQosFlow(Buffer::Iterator& i, NrQosFlow& flow);
 
     /**
-     * Serialize the Bearer QoS rule
+     * Serialize the QoS rule
      * @param i Buffer iterator
      * @param packetFilters The Packet filters
      */
-    void SerializeBearerQosRule(Buffer::Iterator& i,
-                                std::list<NrQosRule::PacketFilter> packetFilters) const;
+    void SerializeQosRule(Buffer::Iterator& i,
+                          std::list<NrQosRule::PacketFilter> packetFilters) const;
     /**
-     * Deserialize the Bearer QoS rule
+     * Deserialize the QoS rule
      * @param i Buffer iterator
-     * @param [out] rule The Bearer QoS rule
+     * @param [out] rule The  QoS rule
      * @return the number of deserialized bytes
      */
-    uint32_t DeserializeBearerQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const;
+    uint32_t DeserializeQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const;
 
     /**
      * Serialize the UliEcgi
@@ -324,18 +329,18 @@ class NrGtpcIes
     uint32_t DeserializeFteid(Buffer::Iterator& i, NrGtpcHeader::Fteid_t& fteid) const;
 
     /**
-     * Serialize the Bearer Context Header
+     * Serialize the Flow Context Header
      * @param i Buffer iterator
      * @param length The length
      */
-    void SerializeBearerContextHeader(Buffer::Iterator& i, uint16_t length) const;
+    void SerializeFlowContextHeader(Buffer::Iterator& i, uint16_t length) const;
     /**
-     * Deserialize the Bearer Context Header
+     * Deserialize the Flow Context Header
      * @param i Buffer iterator
      * @param [out] length length
      * @return the number of deserialized bytes
      */
-    uint32_t DeserializeBearerContextHeader(Buffer::Iterator& i, uint16_t& length) const;
+    uint32_t DeserializeFlowContextHeader(Buffer::Iterator& i, uint16_t& length) const;
 };
 
 /**
@@ -393,34 +398,34 @@ class NrGtpcCreateSessionRequestMessage : public NrGtpcHeader, public NrGtpcIes
     void SetSenderCpFteid(NrGtpcHeader::Fteid_t fteid);
 
     /**
-     * Bearer Context structure
+     * Flow Context structure
      */
-    struct BearerContextToBeCreated
+    struct FlowContextToBeCreated
     {
         NrGtpcHeader::Fteid_t sgwS5uFteid; ///< FTEID
-        uint8_t epsBearerId;               ///< EPS bearer ID
-        Ptr<NrQosRule> rule;               ///< traffic flow template
-        NrEpsBearer bearerLevelQos;        ///< bearer QOS level
+        uint8_t qfi;                       ///< QoS Flow ID
+        Ptr<NrQosRule> rule;               ///< QoS rule
+        NrQosFlow flow;                    ///< QoS flow
     };
 
     /**
-     * Get the Bearer Contexts
-     * @return the Bearer Context list
+     * Get the Flow Contexts
+     * @return the Flow Context list
      */
-    std::list<BearerContextToBeCreated> GetBearerContextsToBeCreated() const;
+    std::list<FlowContextToBeCreated> GetFlowContextsToBeCreated() const;
     /**
-     * Set the Bearer Contexts
-     * @param bearerContexts the Bearer Context list
+     * Set the Flow Contexts
+     * @param flowContexts the Flow Context list
      */
-    void SetBearerContextsToBeCreated(std::list<BearerContextToBeCreated> bearerContexts);
+    void SetFlowContextsToBeCreated(std::list<FlowContextToBeCreated> flowContexts);
 
   private:
     uint64_t m_imsi;                       //!< IMSI
     uint32_t m_uliEcgi;                    //!< UliEcgi
     NrGtpcHeader::Fteid_t m_senderCpFteid; //!< Sender CpFteid
 
-    /// Bearer Context list
-    std::list<BearerContextToBeCreated> m_bearerContextsToBeCreated;
+    /// Flow Context list
+    std::list<FlowContextToBeCreated> m_flowContextsToBeCreated;
 };
 
 /**
@@ -467,44 +472,44 @@ class NrGtpcCreateSessionResponseMessage : public NrGtpcHeader, public NrGtpcIes
     void SetSenderCpFteid(NrGtpcHeader::Fteid_t fteid);
 
     /**
-     * Bearer Context structure
+     * Flow Context structure
      */
-    struct BearerContextCreated
+    struct FlowContextCreated
     {
-        uint8_t epsBearerId;         ///< EPS bearer ID
+        uint8_t qfi;                 ///< QoS Flow ID
         uint8_t cause;               ///< Cause
-        Ptr<NrQosRule> rule;         ///< Bearer traffic flow template
+        Ptr<NrQosRule> rule;         ///< QoS Rule
         NrGtpcHeader::Fteid_t fteid; ///< FTEID
-        NrEpsBearer bearerLevelQos;  ///< Bearer QOS level
+        NrQosFlow flow;              ///< QoS Flow
     };
 
     /**
-     * Get the Container of Bearer Contexts
-     * @return a list of Bearer Contexts
+     * Get the Container of Flow Contexts
+     * @return a list of Flow Contexts
      */
-    std::list<BearerContextCreated> GetBearerContextsCreated() const;
+    std::list<FlowContextCreated> GetFlowContextsCreated() const;
     /**
-     * Set the Bearer Contexts
-     * @param bearerContexts a list of Bearer Contexts
+     * Set the Flow Contexts
+     * @param flowContexts a list of Flow Contexts
      */
-    void SetBearerContextsCreated(std::list<BearerContextCreated> bearerContexts);
+    void SetFlowContextsCreated(std::list<FlowContextCreated> flowContexts);
 
   private:
     Cause_t m_cause;                       //!< Cause
     NrGtpcHeader::Fteid_t m_senderCpFteid; //!< Sender CpFteid
-    /// Container of Bearer Contexts
-    std::list<BearerContextCreated> m_bearerContextsCreated;
+    /// Container of Flow Contexts
+    std::list<FlowContextCreated> m_flowContextsCreated;
 };
 
 /**
  * @ingroup nr
- * GTP-C Modify Bearer Request Message
+ * GTP-C Modify Flow Request Message
  */
-class NrGtpcModifyBearerRequestMessage : public NrGtpcHeader, public NrGtpcIes
+class NrGtpcModifyFlowRequestMessage : public NrGtpcHeader, public NrGtpcIes
 {
   public:
-    NrGtpcModifyBearerRequestMessage();
-    ~NrGtpcModifyBearerRequestMessage() override;
+    NrGtpcModifyFlowRequestMessage();
+    ~NrGtpcModifyFlowRequestMessage() override;
     /**
      * @brief Get the type ID.
      * @return the object TypeId
@@ -540,42 +545,42 @@ class NrGtpcModifyBearerRequestMessage : public NrGtpcHeader, public NrGtpcIes
     void SetUliEcgi(uint32_t uliEcgi);
 
     /**
-     * Bearer Context structure
+     * Flow Context structure
      */
-    struct BearerContextToBeModified
+    struct FlowContextToBeModified
     {
-        uint8_t epsBearerId;         ///< EPS bearer ID
+        uint8_t qfi;                 ///< QoS flow ID
         NrGtpcHeader::Fteid_t fteid; ///< FTEID
     };
 
     /**
-     * Get the Bearer Contexts
-     * @return the Bearer Context list
+     * Get the Flow Contexts
+     * @return the Flow Context list
      */
-    std::list<BearerContextToBeModified> GetBearerContextsToBeModified() const;
+    std::list<FlowContextToBeModified> GetFlowContextsToBeModified() const;
     /**
-     * Set the Bearer Contexts
-     * @param bearerContexts the Bearer Context list
+     * Set the Flow Contexts
+     * @param flowContexts the Flow Context list
      */
-    void SetBearerContextsToBeModified(std::list<BearerContextToBeModified> bearerContexts);
+    void SetFlowContextsToBeModified(std::list<FlowContextToBeModified> flowContexts);
 
   private:
     uint64_t m_imsi;    //!< IMSI
     uint32_t m_uliEcgi; //!< UliEcgi
 
-    /// Bearer Context list
-    std::list<BearerContextToBeModified> m_bearerContextsToBeModified;
+    /// Flow Context list
+    std::list<FlowContextToBeModified> m_flowContextsToBeModified;
 };
 
 /**
  * @ingroup nr
- * GTP-C Modify Bearer Response Message
+ * GTP-C Modify Flow Response Message
  */
-class NrGtpcModifyBearerResponseMessage : public NrGtpcHeader, public NrGtpcIes
+class NrGtpcModifyFlowResponseMessage : public NrGtpcHeader, public NrGtpcIes
 {
   public:
-    NrGtpcModifyBearerResponseMessage();
-    ~NrGtpcModifyBearerResponseMessage() override;
+    NrGtpcModifyFlowResponseMessage();
+    ~NrGtpcModifyFlowResponseMessage() override;
     /**
      * @brief Get the type ID.
      * @return the object TypeId
@@ -605,13 +610,13 @@ class NrGtpcModifyBearerResponseMessage : public NrGtpcHeader, public NrGtpcIes
 
 /**
  * @ingroup nr
- * GTP-C Delete Bearer Command Message
+ * GTP-C Delete Flow Command Message
  */
-class NrGtpcDeleteBearerCommandMessage : public NrGtpcHeader, public NrGtpcIes
+class NrGtpcDeleteFlowCommandMessage : public NrGtpcHeader, public NrGtpcIes
 {
   public:
-    NrGtpcDeleteBearerCommandMessage();
-    ~NrGtpcDeleteBearerCommandMessage() override;
+    NrGtpcDeleteFlowCommandMessage();
+    ~NrGtpcDeleteFlowCommandMessage() override;
     /**
      * @brief Get the type ID.
      * @return the object TypeId
@@ -624,36 +629,36 @@ class NrGtpcDeleteBearerCommandMessage : public NrGtpcHeader, public NrGtpcIes
     void Print(std::ostream& os) const override;
     uint32_t GetMessageSize() const override;
 
-    /// Bearer context
-    struct BearerContext
+    /// Flow context
+    struct FlowContext
     {
-        uint8_t m_epsBearerId; ///< EPS bearer ID
+        uint8_t m_qfi; ///< QoS flow ID
     };
 
     /**
-     * Get the Bearer contexts
-     * @return container of beraer contexts
+     * Get the Flow contexts
+     * @return container of flow contexts
      */
-    std::list<BearerContext> GetBearerContexts() const;
+    std::list<FlowContext> GetFlowContexts() const;
     /**
-     * Set the Bearer contexts
-     * @param bearerContexts container of beraer contexts
+     * Set the Flow contexts
+     * @param flowContexts container of beraer contexts
      */
-    void SetBearerContexts(std::list<BearerContext> bearerContexts);
+    void SetFlowContexts(std::list<FlowContext> flowContexts);
 
   private:
-    std::list<BearerContext> m_bearerContexts; //!< Container of Bearer Contexts
+    std::list<FlowContext> m_flowContexts; //!< Container of Flow Contexts
 };
 
 /**
  * @ingroup nr
- * GTP-C Delete Bearer Request Message
+ * GTP-C Delete Flow Request Message
  */
-class NrGtpcDeleteBearerRequestMessage : public NrGtpcHeader, public NrGtpcIes
+class NrGtpcDeleteFlowRequestMessage : public NrGtpcHeader, public NrGtpcIes
 {
   public:
-    NrGtpcDeleteBearerRequestMessage();
-    ~NrGtpcDeleteBearerRequestMessage() override;
+    NrGtpcDeleteFlowRequestMessage();
+    ~NrGtpcDeleteFlowRequestMessage() override;
     /**
      * @brief Get the type ID.
      * @return the object TypeId
@@ -667,29 +672,29 @@ class NrGtpcDeleteBearerRequestMessage : public NrGtpcHeader, public NrGtpcIes
     uint32_t GetMessageSize() const override;
 
     /**
-     * Get the Bearers IDs
-     * @return a container of Bearers IDs
+     * Get the QoS Flow IDs
+     * @return a container of QoS Flow IDs
      */
-    std::list<uint8_t> GetEpsBearerIds() const;
+    std::list<uint8_t> GetQosFlowIds() const;
     /**
-     * Set the Bearers IDs
-     * @param epsBearerIds The container of Bearers IDs
+     * Set the QoS Flow IDs
+     * @param qosFlowIds The container of QoS Flow IDs
      */
-    void SetEpsBearerIds(std::list<uint8_t> epsBearerIds);
+    void SetQosFlowIds(std::list<uint8_t> qosFlowIds);
 
   private:
-    std::list<uint8_t> m_epsBearerIds; //!< Container of Bearers IDs
+    std::list<uint8_t> m_qosFlowIds; //!< Container of QoS Flow IDs
 };
 
 /**
  * @ingroup nr
- * GTP-C Delete Bearer Response Message
+ * GTP-C Delete Flow Response Message
  */
-class NrGtpcDeleteBearerResponseMessage : public NrGtpcHeader, public NrGtpcIes
+class NrGtpcDeleteFlowResponseMessage : public NrGtpcHeader, public NrGtpcIes
 {
   public:
-    NrGtpcDeleteBearerResponseMessage();
-    ~NrGtpcDeleteBearerResponseMessage() override;
+    NrGtpcDeleteFlowResponseMessage();
+    ~NrGtpcDeleteFlowResponseMessage() override;
     /**
      * @brief Get the type ID.
      * @return the object TypeId
@@ -714,19 +719,19 @@ class NrGtpcDeleteBearerResponseMessage : public NrGtpcHeader, public NrGtpcIes
     void SetCause(Cause_t cause);
 
     /**
-     * Get the Bearers IDs
-     * @return a container of Bearers IDs
+     * Get the QoS Flow IDs
+     * @return a container of QoS Flow IDs
      */
-    std::list<uint8_t> GetEpsBearerIds() const;
+    std::list<uint8_t> GetQosFlowIds() const;
     /**
-     * Set the Bearers IDs
-     * @param epsBearerIds The container of Bearers IDs
+     * Set the QoS Flow IDs
+     * @param qosFlowIds The container of QoS Flow IDs
      */
-    void SetEpsBearerIds(std::list<uint8_t> epsBearerIds);
+    void SetQosFlowIds(std::list<uint8_t> qosFlowIds);
 
   private:
-    Cause_t m_cause;                   //!< Cause
-    std::list<uint8_t> m_epsBearerIds; //!< Container of Bearers IDs
+    Cause_t m_cause;                 //!< Cause
+    std::list<uint8_t> m_qosFlowIds; //!< Container of QoS Flow IDs
 };
 
 } // namespace ns3

@@ -117,8 +117,6 @@ set(source_files
     model/nr-epc-ue-nas.cc
     model/nr-epc-x2-header.cc
     model/nr-epc-x2.cc
-    model/nr-eps-bearer-tag.cc
-    model/nr-eps-bearer.cc
     model/nr-error-model.cc
     model/nr-fh-control.cc
     model/nr-fh-phy-sap.cc
@@ -185,6 +183,8 @@ set(source_files
     model/nr-pm-search-ideal.cc
     model/nr-pm-search-sasaoka.cc
     model/nr-pm-search.cc
+    model/nr-qos-flow-tag.cc
+    model/nr-qos-flow.cc
     model/nr-qos-rule.cc
     model/nr-qos-rule-classifier.cc
     model/nr-radio-bearer-info.cc
@@ -312,8 +312,6 @@ set(header_files
     model/nr-epc-x2-header.h
     model/nr-epc-x2-sap.h
     model/nr-epc-x2.h
-    model/nr-eps-bearer-tag.h
-    model/nr-eps-bearer.h
     model/nr-error-model.h
     model/nr-fh-control.h
     model/nr-fh-phy-sap.h
@@ -393,6 +391,8 @@ set(header_files
     model/nr-pm-search-ideal.h
     model/nr-pm-search-sasaoka.h
     model/nr-pm-search.h
+    model/nr-qos-flow-tag.h
+    model/nr-qos-flow.h
     model/nr-qos-rule.h
     model/nr-qos-rule-classifier.h
     model/nr-radio-bearer-info.h

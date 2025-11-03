@@ -6,8 +6,8 @@
 #define BWP_MANAGER_H
 
 #include "nr-ccm-rrc-sap.h"
-#include "nr-eps-bearer.h"
 #include "nr-no-op-component-carrier-manager.h"
+#include "nr-qos-flow.h"
 #include "nr-rlc.h"
 
 #include <unordered_map>
@@ -122,8 +122,8 @@ class BwpManagerGnb : public NrRrComponentCarrierManager
     /**
      * @brief Overload DoSetupBadaRadioBearer to connect directly to Rlc retransmission buffer size.
      */
-    std::vector<NrCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(NrEpsBearer bearer,
-                                                                       uint8_t bearerId,
+    std::vector<NrCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(NrQosFlow flow,
+                                                                       uint8_t qfi,
                                                                        uint16_t rnti,
                                                                        uint8_t lcid,
                                                                        uint8_t lcGroup,

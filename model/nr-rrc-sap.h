@@ -230,7 +230,7 @@ class NrRrcSap
     /// DrbToAddMod structure
     struct DrbToAddMod
     {
-        uint8_t epsBearerIdentity;                 ///< EPS bearer identity
+        uint8_t qosFlowIdentity;                   ///< QoS flow identity
         uint8_t drbIdentity;                       ///< DRB identity
         RlcConfig rlcConfig;                       ///< RLC config
         uint8_t logicalChannelIdentity;            ///< logical channel identify

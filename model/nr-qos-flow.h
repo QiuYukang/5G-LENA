@@ -4,8 +4,8 @@
 //
 // Author: Nicola Baldo <nbaldo@cttc.es>
 
-#ifndef NR_EPS_BEARER
-#define NR_EPS_BEARER
+#ifndef NR_QOS_FLOW
+#define NR_QOS_FLOW
 
 #include "ns3/object-base.h"
 #include "ns3/uinteger.h"
@@ -48,33 +48,13 @@ struct NrAllocationRetentionPriority
 };
 
 /**
- * @brief This class contains the specification of EPS Bearers.
+ * @brief This class contains the specification of QoS flows.
  *
- * See the following references:
- * 3GPP TS 23.203, Section 4.7.2 The EPS bearer
- * 3GPP TS 23.203, Section 4.7.3 Bearer level QoS parameters
- * 3GPP TS 36.413 Section 9.2.1.15 E-RAB Level QoS Parameters
+ * See the following references:  3GPP TS 24.501, Rel. 19, Sec. 6.2.5.1.1.4;
+ * TS 23.501, Rel. 19, Table 5.7.4-1.
  *
- * It supports the selection of different specifications depending on the
- * release. To change the release, change the attribute "Release". Please remember
- * that we must expose to all releases the most recent Qci. Asking for Qci parameters
- * for a release in which it has not been created will result in a crash.
- *
- * For example, if you select Release 11 (or if you don't select anything, as
- * it is the default selection) and then ask for the packet error rate of
- * the NGBR_MC_DELAY_SIGNAL Qci, the program will crash.
- *
- * Please note that from Release 8 (the latest when the LENA project finished)
- * to Release 11, the bearers ID and requirements are the same. From Release 12,
- * they started to change, and the latest version is now Release 18. However,
- * we do not support intermediate types between releases 11 and 15: in other words,
- * you can select from Release 8 to Release 11, or Release 15 or 18.
- * Any other value will result in a program crash.
- *
- * The release version only affect Bearer definitions. Other part of the LTE
- * module are not affected when changing the Release attribute.
  */
-class NrEpsBearer : public ObjectBase
+class NrQosFlow : public ObjectBase
 {
   public:
     /**
@@ -88,6 +68,8 @@ class NrEpsBearer : public ObjectBase
     /**
      * QoS Class Indicator. See 3GPP 23.203 Section 6.1.7.2 for standard values.
      * Updated to Release 18.
+     *
+     * TODO: Update to 5QI tables from 23.501, Table 5.7.4-1.
      */
     enum Qci : uint8_t
     {
@@ -144,14 +126,14 @@ class NrEpsBearer : public ObjectBase
      * Default constructor. QCI will be initialized to NGBR_VIDEO_TCP_DEFAULT
      *
      */
-    NrEpsBearer();
+    NrQosFlow();
 
     /**
      *
      * @param x the QoS Class Indicator
      *
      */
-    NrEpsBearer(Qci x);
+    NrQosFlow(Qci x);
 
     /**
      *
@@ -159,42 +141,19 @@ class NrEpsBearer : public ObjectBase
      * @param y the NrGbrQosInformation
      *
      */
-    NrEpsBearer(Qci x, NrGbrQosInformation y);
+    NrQosFlow(Qci x, NrGbrQosInformation y);
 
     /**
-     * @brief NrEpsBearer copy constructor
+     * @brief NrQosFlow copy constructor
      * @param o other instance
      */
-    NrEpsBearer(const NrEpsBearer& o);
+    NrQosFlow(const NrQosFlow& o);
 
     /**
      * @brief Deconstructor
      */
-    ~NrEpsBearer() override
+    ~NrQosFlow() override
     {
-    }
-
-    /**
-     * @brief SetRelease
-     * @param release The release the user want for this bearer
-     *
-     * Releases introduces new types, and change values for existing ones.
-     * While we can't do much for the added type (we must expose them even
-     * if the user want to work with older releases) by calling this method
-     * we can, at least, select the specific parameters value the bearer returns.
-     *
-     * For instance, if the user select release 10 (the default) the priority
-     * of CONV_VIDEO will be 2. With release 15, such priority will be 20.
-     */
-    void SetRelease(uint8_t release);
-
-    /**
-     * @brief GetRelease
-     * @return The release currently set for this bearer type
-     */
-    uint8_t GetRelease() const
-    {
-        return m_release;
     }
 
     /**
@@ -305,32 +264,6 @@ class NrEpsBearer : public ObjectBase
     }
 
     /**
-     * @brief Retrieve requirements for Rel. 11
-     * @return the BearerRequirementsMap for Release 11
-     *
-     * It returns a pointer to a non-const static data. That is not thread-safe,
-     * nor safe to do in general. However, a const-correct version would have
-     * to initialize two static maps, and then returning either one or the other.
-     * But that's a huge memory increase, and NrEpsBearer is used everywhere.
-     *
-     * To be revisited when GCC 4.9 will not be supported anymore.
-     */
-    static const BearerRequirementsMap& GetRequirementsRel11();
-
-    /**
-     * @brief Retrieve requirements for Rel. 15
-     * @return the BearerRequirementsMap for Release 15
-     *
-     * It returns a pointer to a non-const static data. That is not thread-safe,
-     * nor safe to do in general. However, a const-correct version would have
-     * to initialize two static maps, and then returning either one or the other.
-     * But that's a huge memory increase, and NrEpsBearer is used everywhere.
-     *
-     * To be revisited when GCC 4.9 will not be supported anymore.
-     */
-    static const BearerRequirementsMap& GetRequirementsRel15();
-
-    /**
      * @brief Retrieve requirements for Rel. 18
      * @return the BearerRequirementsMap for Release 18
      */
@@ -342,8 +275,6 @@ class NrEpsBearer : public ObjectBase
      * It will point to a static map.
      */
     BearerRequirementsMap m_requirements;
-
-    uint8_t m_release{30}; //!< Release (10 or 15 or 18)
 };
 
 } // namespace ns3

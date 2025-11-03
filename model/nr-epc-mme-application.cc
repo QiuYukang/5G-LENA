@@ -84,24 +84,24 @@ NrEpcMmeApplication::AddUe(uint64_t imsi)
     Ptr<NrUeInfo> ueInfo = Create<NrUeInfo>();
     ueInfo->imsi = imsi;
     ueInfo->mmeUeS1Id = imsi;
-    ueInfo->bearerCounter = 0;
+    ueInfo->flowCounter = 0;
     m_ueInfoMap[imsi] = ueInfo;
 }
 
 uint8_t
-NrEpcMmeApplication::AddBearer(uint64_t imsi, Ptr<NrQosRule> rule, NrEpsBearer bearer)
+NrEpcMmeApplication::AddFlow(uint64_t imsi, Ptr<NrQosRule> rule, NrQosFlow flow)
 {
     NS_LOG_FUNCTION(this << imsi);
     auto it = m_ueInfoMap.find(imsi);
     NS_ASSERT_MSG(it != m_ueInfoMap.end(), "could not find any UE with IMSI " << imsi);
-    NS_ASSERT_MSG(it->second->bearerCounter < 11,
-                  "too many bearers already! " << it->second->bearerCounter);
-    BearerInfo bearerInfo;
-    bearerInfo.bearerId = ++(it->second->bearerCounter);
-    bearerInfo.rule = rule;
-    bearerInfo.bearer = bearer;
-    it->second->bearersToBeActivated.push_back(bearerInfo);
-    return bearerInfo.bearerId;
+    NS_ASSERT_MSG(it->second->flowCounter < 64,
+                  "too many flows already! " << it->second->flowCounter);
+    FlowInfo flowInfo;
+    flowInfo.qfi = ++(it->second->flowCounter);
+    flowInfo.rule = rule;
+    flowInfo.flow = flow;
+    it->second->flowsToBeActivated.push_back(flowInfo);
+    return flowInfo.qfi;
 }
 
 // S1-AP SAP MME forwarded methods
@@ -127,19 +127,19 @@ NrEpcMmeApplication::DoInitialUeMessage(uint64_t mmeUeS1Id,
     mmeS11Fteid.addr = m_mmeS11Addr;
     msg.SetSenderCpFteid(mmeS11Fteid); // S11 MME GTP-C F-TEID
 
-    std::list<NrGtpcCreateSessionRequestMessage::BearerContextToBeCreated> bearerContexts;
-    for (auto bit = it->second->bearersToBeActivated.begin();
-         bit != it->second->bearersToBeActivated.end();
+    std::list<NrGtpcCreateSessionRequestMessage::FlowContextToBeCreated> flowContexts;
+    for (auto bit = it->second->flowsToBeActivated.begin();
+         bit != it->second->flowsToBeActivated.end();
          ++bit)
     {
-        NrGtpcCreateSessionRequestMessage::BearerContextToBeCreated bearerContext{};
-        bearerContext.epsBearerId = bit->bearerId;
-        bearerContext.rule = bit->rule;
-        bearerContext.bearerLevelQos = bit->bearer;
-        bearerContexts.push_back(bearerContext);
+        NrGtpcCreateSessionRequestMessage::FlowContextToBeCreated flowContext{};
+        flowContext.qfi = bit->qfi;
+        flowContext.rule = bit->rule;
+        flowContext.flow = bit->flow;
+        flowContexts.push_back(flowContext);
     }
-    NS_LOG_DEBUG("BearerContextToBeCreated size = " << bearerContexts.size());
-    msg.SetBearerContextsToBeCreated(bearerContexts);
+    NS_LOG_DEBUG("FlowContextToBeCreated size = " << flowContexts.size());
+    msg.SetFlowContextsToBeCreated(flowContexts);
 
     msg.SetTeid(0);
     msg.ComputeMessageLength();
@@ -175,30 +175,30 @@ NrEpcMmeApplication::DoPathSwitchRequest(
     it->second->cellId = gci;
     it->second->gnbUeS1Id = gnbUeS1Id;
 
-    NrGtpcModifyBearerRequestMessage msg;
+    NrGtpcModifyFlowRequestMessage msg;
     msg.SetImsi(imsi);
     msg.SetUliEcgi(gci);
 
-    std::list<NrGtpcModifyBearerRequestMessage::BearerContextToBeModified> bearerContexts;
+    std::list<NrGtpcModifyFlowRequestMessage::FlowContextToBeModified> flowContexts;
     for (auto& erab : erabToBeSwitchedInDownlinkList)
     {
         NS_LOG_DEBUG("erabId " << erab.erabId << " gNB " << erab.gnbTransportLayerAddress
                                << " TEID " << erab.gnbTeid);
 
-        NrGtpcModifyBearerRequestMessage::BearerContextToBeModified bearerContext;
-        bearerContext.epsBearerId = erab.erabId;
-        bearerContext.fteid.interfaceType = NrGtpcHeader::S1U_GNB_GTPU;
-        bearerContext.fteid.addr = erab.gnbTransportLayerAddress;
-        bearerContext.fteid.teid = erab.gnbTeid;
-        bearerContexts.push_back(bearerContext);
+        NrGtpcModifyFlowRequestMessage::FlowContextToBeModified flowContext;
+        flowContext.qfi = erab.erabId;
+        flowContext.fteid.interfaceType = NrGtpcHeader::S1U_GNB_GTPU;
+        flowContext.fteid.addr = erab.gnbTransportLayerAddress;
+        flowContext.fteid.teid = erab.gnbTeid;
+        flowContexts.push_back(flowContext);
     }
-    msg.SetBearerContextsToBeModified(bearerContexts);
+    msg.SetFlowContextsToBeModified(flowContexts);
     msg.SetTeid(imsi);
     msg.ComputeMessageLength();
 
     Ptr<Packet> packet = Create<Packet>();
     packet->AddHeader(msg);
-    NS_LOG_DEBUG("Send ModifyBearerRequest to SGW " << m_sgwS11Addr);
+    NS_LOG_DEBUG("Send ModifyFlowRequest to SGW " << m_sgwS11Addr);
     m_s11Socket->SendTo(packet, 0, InetSocketAddress(m_sgwS11Addr, m_gtpcUdpPort));
 }
 
@@ -213,36 +213,36 @@ NrEpcMmeApplication::DoErabReleaseIndication(
     auto it = m_ueInfoMap.find(imsi);
     NS_ASSERT_MSG(it != m_ueInfoMap.end(), "could not find any UE with IMSI " << imsi);
 
-    NrGtpcDeleteBearerCommandMessage msg;
-    std::list<NrGtpcDeleteBearerCommandMessage::BearerContext> bearerContexts;
+    NrGtpcDeleteFlowCommandMessage msg;
+    std::list<NrGtpcDeleteFlowCommandMessage::FlowContext> flowContexts;
     for (auto& erab : erabToBeReleaseIndication)
     {
         NS_LOG_DEBUG("erabId " << (uint16_t)erab.erabId);
-        NrGtpcDeleteBearerCommandMessage::BearerContext bearerContext;
-        bearerContext.m_epsBearerId = erab.erabId;
-        bearerContexts.push_back(bearerContext);
+        NrGtpcDeleteFlowCommandMessage::FlowContext flowContext;
+        flowContext.m_qfi = erab.erabId;
+        flowContexts.push_back(flowContext);
     }
-    msg.SetBearerContexts(bearerContexts);
+    msg.SetFlowContexts(flowContexts);
     msg.SetTeid(imsi);
     msg.ComputeMessageLength();
 
     Ptr<Packet> packet = Create<Packet>();
     packet->AddHeader(msg);
-    NS_LOG_DEBUG("Send DeleteBearerCommand to SGW " << m_sgwS11Addr);
+    NS_LOG_DEBUG("Send DeleteFlowCommand to SGW " << m_sgwS11Addr);
     m_s11Socket->SendTo(packet, 0, InetSocketAddress(m_sgwS11Addr, m_gtpcUdpPort));
 }
 
 void
-NrEpcMmeApplication::RemoveBearer(Ptr<NrUeInfo> ueInfo, uint8_t epsBearerId)
+NrEpcMmeApplication::RemoveFlow(Ptr<NrUeInfo> ueInfo, uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << epsBearerId);
-    auto bit = ueInfo->bearersToBeActivated.begin();
-    while (bit != ueInfo->bearersToBeActivated.end())
+    NS_LOG_FUNCTION(this << qfi);
+    auto bit = ueInfo->flowsToBeActivated.begin();
+    while (bit != ueInfo->flowsToBeActivated.end())
     {
-        if (bit->bearerId == epsBearerId)
+        if (bit->qfi == qfi)
         {
-            ueInfo->bearersToBeActivated.erase(bit);
-            ueInfo->bearerCounter = ueInfo->bearerCounter - 1;
+            ueInfo->flowsToBeActivated.erase(bit);
+            ueInfo->flowCounter = ueInfo->flowCounter - 1;
             break;
         }
         ++bit;
@@ -265,12 +265,12 @@ NrEpcMmeApplication::RecvFromS11Socket(Ptr<Socket> socket)
         DoRecvCreateSessionResponse(header, packet);
         break;
 
-    case NrGtpcHeader::ModifyBearerResponse:
-        DoRecvModifyBearerResponse(header, packet);
+    case NrGtpcHeader::ModifyFlowResponse:
+        DoRecvModifyFlowResponse(header, packet);
         break;
 
-    case NrGtpcHeader::DeleteBearerRequest:
-        DoRecvDeleteBearerRequest(header, packet);
+    case NrGtpcHeader::DeleteFlowRequest:
+        DoRecvDeleteFlowRequest(header, packet);
         break;
 
     default:
@@ -298,16 +298,16 @@ NrEpcMmeApplication::DoRecvCreateSessionResponse(NrGtpcHeader& header, Ptr<Packe
     packet->RemoveHeader(msg);
 
     std::list<NrEpcS1apSapGnb::ErabToBeSetupItem> erabToBeSetupList;
-    std::list<NrGtpcCreateSessionResponseMessage::BearerContextCreated> bearerContexts =
-        msg.GetBearerContextsCreated();
-    NS_LOG_DEBUG("BearerContextsCreated size = " << bearerContexts.size());
-    for (auto& bearerContext : bearerContexts)
+    std::list<NrGtpcCreateSessionResponseMessage::FlowContextCreated> flowContexts =
+        msg.GetFlowContextsCreated();
+    NS_LOG_DEBUG("FlowContextsCreated size = " << flowContexts.size());
+    for (auto& flowContext : flowContexts)
     {
         NrEpcS1apSapGnb::ErabToBeSetupItem erab;
-        erab.erabId = bearerContext.epsBearerId;
-        erab.erabLevelQosParameters = bearerContext.bearerLevelQos;
-        erab.transportLayerAddress = bearerContext.fteid.addr; // SGW S1U address
-        erab.sgwTeid = bearerContext.fteid.teid;
+        erab.erabId = flowContext.qfi;
+        erab.erabLevelQosParameters = flowContext.flow;
+        erab.transportLayerAddress = flowContext.fteid.addr; // SGW S1U address
+        erab.sgwTeid = flowContext.fteid.teid;
         NS_LOG_DEBUG("SGW " << erab.transportLayerAddress << " TEID " << erab.sgwTeid);
         erabToBeSetupList.push_back(erab);
     }
@@ -317,12 +317,12 @@ NrEpcMmeApplication::DoRecvCreateSessionResponse(NrGtpcHeader& header, Ptr<Packe
 }
 
 void
-NrEpcMmeApplication::DoRecvModifyBearerResponse(NrGtpcHeader& header, Ptr<Packet> packet)
+NrEpcMmeApplication::DoRecvModifyFlowResponse(NrGtpcHeader& header, Ptr<Packet> packet)
 {
     NS_LOG_FUNCTION(this << header);
-    NrGtpcModifyBearerResponseMessage msg;
+    NrGtpcModifyFlowResponseMessage msg;
     packet->RemoveHeader(msg);
-    NS_ASSERT(msg.GetCause() == NrGtpcModifyBearerResponseMessage::REQUEST_ACCEPTED);
+    NS_ASSERT(msg.GetCause() == NrGtpcModifyFlowResponseMessage::REQUEST_ACCEPTED);
 
     uint64_t imsi = header.GetTeid();
     NS_LOG_DEBUG("TEID/IMSI " << imsi);
@@ -345,7 +345,7 @@ NrEpcMmeApplication::DoRecvModifyBearerResponse(NrGtpcHeader& header, Ptr<Packet
 }
 
 void
-NrEpcMmeApplication::DoRecvDeleteBearerRequest(NrGtpcHeader& header, Ptr<Packet> packet)
+NrEpcMmeApplication::DoRecvDeleteFlowRequest(NrGtpcHeader& header, Ptr<Packet> packet)
 {
     NS_LOG_FUNCTION(this << header);
     uint64_t imsi = header.GetTeid();
@@ -353,36 +353,36 @@ NrEpcMmeApplication::DoRecvDeleteBearerRequest(NrGtpcHeader& header, Ptr<Packet>
     auto it = m_ueInfoMap.find(imsi);
     NS_ASSERT_MSG(it != m_ueInfoMap.end(), "could not find any UE with IMSI " << imsi);
 
-    NrGtpcDeleteBearerRequestMessage msg;
+    NrGtpcDeleteFlowRequestMessage msg;
     packet->RemoveHeader(msg);
 
-    NrGtpcDeleteBearerResponseMessage msgOut;
+    NrGtpcDeleteFlowResponseMessage msgOut;
 
-    std::list<uint8_t> epsBearerIds;
-    for (auto& ebid : msg.GetEpsBearerIds())
+    std::list<uint8_t> qfis;
+    for (auto& qfi : msg.GetQosFlowIds())
     {
-        epsBearerIds.push_back(ebid);
+        qfis.push_back(qfi);
         /*
-         * This condition is added to not remove bearer info at MME
-         * when UE gets disconnected since the bearers are only added
+         * This condition is added to not remove flow info at MME
+         * when UE gets disconnected since the flows are only added
          * at beginning of simulation at MME and if it is removed the
-         * bearers cannot be activated again unless scheduled for
-         * addition of the bearer during simulation
+         * flows cannot be activated again unless scheduled for
+         * addition of the flow during simulation
          *
          */
         if (it->second->cellId == 0)
         {
-            RemoveBearer(it->second,
-                         ebid); // schedules function to erase, context of de-activated bearer
+            RemoveFlow(it->second,
+                       qfi); // schedules function to erase, context of de-activated flow
         }
     }
-    msgOut.SetEpsBearerIds(epsBearerIds);
+    msgOut.SetQosFlowIds(qfis);
     msgOut.SetTeid(imsi);
     msgOut.ComputeMessageLength();
 
     Ptr<Packet> packetOut = Create<Packet>();
     packetOut->AddHeader(msgOut);
-    NS_LOG_DEBUG("Send DeleteBearerResponse to SGW " << m_sgwS11Addr);
+    NS_LOG_DEBUG("Send DeleteFlowResponse to SGW " << m_sgwS11Addr);
     m_s11Socket->SendTo(packetOut, 0, InetSocketAddress(m_sgwS11Addr, m_gtpcUdpPort));
 }
 

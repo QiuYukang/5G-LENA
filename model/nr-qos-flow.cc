@@ -4,7 +4,7 @@
 //
 // Author: Nicola Baldo <nbaldo@cttc.es>
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 
 #include "ns3/attribute-construction-list.h"
 #include "ns3/fatal-error.h"
@@ -12,7 +12,7 @@
 namespace ns3
 {
 
-NS_OBJECT_ENSURE_REGISTERED(NrEpsBearer);
+NS_OBJECT_ENSURE_REGISTERED(NrQosFlow);
 
 NrGbrQosInformation::NrGbrQosInformation()
     : gbrDl(0),
@@ -30,172 +30,84 @@ NrAllocationRetentionPriority::NrAllocationRetentionPriority()
 }
 
 TypeId
-NrEpsBearer::GetTypeId()
+NrQosFlow::GetTypeId()
 {
-    static TypeId tid =
-        TypeId("ns3::NrEpsBearer")
-            .SetParent<ObjectBase>()
-            .SetGroupName("Nr")
-            .AddConstructor<NrEpsBearer>()
-            .AddAttribute(
-                "Release",
-                "Change from 11 to 18 if you need bearer definition as per newer Releases."
-                " Reference document: TS 23.203. The change does not impact other LTE code than "
-                " bearers definition.",
-                UintegerValue(11),
-                MakeUintegerAccessor(&NrEpsBearer::GetRelease, &NrEpsBearer::SetRelease),
-                MakeUintegerChecker<uint32_t>());
+    static TypeId tid = TypeId("ns3::NrQosFlow")
+                            .SetParent<ObjectBase>()
+                            .SetGroupName("Nr")
+                            .AddConstructor<NrQosFlow>();
     return tid;
 }
 
 TypeId
-NrEpsBearer::GetInstanceTypeId() const
+NrQosFlow::GetInstanceTypeId() const
 {
-    return NrEpsBearer::GetTypeId();
+    return NrQosFlow::GetTypeId();
 }
 
-NrEpsBearer::NrEpsBearer()
+NrQosFlow::NrQosFlow()
     : ObjectBase(),
       qci(NGBR_VIDEO_TCP_DEFAULT)
 {
     ObjectBase::ConstructSelf(AttributeConstructionList());
+    m_requirements = GetRequirementsRel18();
 }
 
-NrEpsBearer::NrEpsBearer(Qci x)
+NrQosFlow::NrQosFlow(Qci x)
     : ObjectBase(),
       qci(x)
 {
     ObjectBase::ConstructSelf(AttributeConstructionList());
+    m_requirements = GetRequirementsRel18();
 }
 
-NrEpsBearer::NrEpsBearer(Qci x, NrGbrQosInformation y)
+NrQosFlow::NrQosFlow(Qci x, NrGbrQosInformation y)
     : ObjectBase(),
       qci(x),
       gbrQosInfo(y)
 {
     ObjectBase::ConstructSelf(AttributeConstructionList());
+    m_requirements = GetRequirementsRel18();
 }
 
-NrEpsBearer::NrEpsBearer(const NrEpsBearer& o)
+NrQosFlow::NrQosFlow(const NrQosFlow& o)
     : ObjectBase(o)
 {
     qci = o.qci;
     gbrQosInfo = o.gbrQosInfo;
     ObjectBase::ConstructSelf(AttributeConstructionList());
-}
-
-void
-NrEpsBearer::SetRelease(uint8_t release)
-{
-    switch (release)
-    {
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-        m_requirements = GetRequirementsRel11();
-        break;
-    case 15:
-        m_requirements = GetRequirementsRel15();
-        break;
-    case 18:
-        m_requirements = GetRequirementsRel18();
-        break;
-    default:
-        NS_FATAL_ERROR("Not recognized release " << static_cast<uint32_t>(release)
-                                                 << " please choose a value between"
-                                                    " 8 and 11, or 15 or 18");
-    }
-    m_release = release;
+    m_requirements = GetRequirementsRel18();
 }
 
 uint8_t
-NrEpsBearer::GetResourceType() const
+NrQosFlow::GetResourceType() const
 {
     return GetResourceType(m_requirements, qci);
 }
 
 uint8_t
-NrEpsBearer::GetPriority() const
+NrQosFlow::GetPriority() const
 {
     return GetPriority(m_requirements, qci);
 }
 
 uint16_t
-NrEpsBearer::GetPacketDelayBudgetMs() const
+NrQosFlow::GetPacketDelayBudgetMs() const
 {
     return GetPacketDelayBudgetMs(m_requirements, qci);
 }
 
 double
-NrEpsBearer::GetPacketErrorLossRate() const
+NrQosFlow::GetPacketErrorLossRate() const
 {
     return GetPacketErrorLossRate(m_requirements, qci);
 }
 
-const NrEpsBearer::BearerRequirementsMap&
-NrEpsBearer::GetRequirementsRel11()
-{
-    /* Needed to support GCC 4.9. Otherwise, use list constructors, for example:
-     * NrEpsBearer::BearerRequirementsMap
-     * NrEpsBearer::GetRequirementsRel15 ()
-     * {
-     *   return
-     *     {
-     *       { GBR_CONV_VOICE          , { 1,  20, 100, 1.0e-2,    0, 2000} },
-     *       ...
-     *     };
-     * }
-     */
-    static NrEpsBearer::BearerRequirementsMap ret{
-        {GBR_CONV_VOICE, std::make_tuple(1, 2, 100, 1.0e-2, 0, 0)},
-        {GBR_CONV_VIDEO, std::make_tuple(1, 4, 150, 1.0e-3, 0, 0)},
-        {GBR_GAMING, std::make_tuple(1, 3, 50, 1.0e-3, 0, 0)},
-        {GBR_NON_CONV_VIDEO, std::make_tuple(1, 5, 300, 1.0e-6, 0, 0)},
-        {NGBR_IMS, std::make_tuple(0, 1, 100, 1.0e-6, 0, 0)},
-        {NGBR_VIDEO_TCP_OPERATOR, std::make_tuple(0, 6, 300, 1.0e-6, 0, 0)},
-        {NGBR_VOICE_VIDEO_GAMING, std::make_tuple(0, 7, 100, 1.0e-3, 0, 0)},
-        {NGBR_VIDEO_TCP_PREMIUM, std::make_tuple(0, 8, 300, 1.0e-6, 0, 0)},
-        {NGBR_VIDEO_TCP_DEFAULT, std::make_tuple(0, 9, 300, 1.0e-6, 0, 0)},
-    };
-    return ret;
-}
-
-const NrEpsBearer::BearerRequirementsMap&
-NrEpsBearer::GetRequirementsRel15()
+const NrQosFlow::BearerRequirementsMap&
+NrQosFlow::GetRequirementsRel18()
 {
     // Needed to support GCC 4.9. Otherwise, use list constructors (see GetRequirementsRel10)
-    static NrEpsBearer::BearerRequirementsMap ret{
-        {GBR_CONV_VOICE, std::make_tuple(1, 20, 100, 1.0e-2, 0, 2000)},
-        {GBR_CONV_VIDEO, std::make_tuple(1, 40, 150, 1.0e-3, 0, 2000)},
-        {GBR_GAMING, std::make_tuple(1, 30, 50, 1.0e-3, 0, 2000)},
-        {GBR_NON_CONV_VIDEO, std::make_tuple(1, 50, 300, 1.0e-6, 0, 2000)},
-        {GBR_MC_PUSH_TO_TALK, std::make_tuple(1, 7, 75, 1.0e-2, 0, 2000)},
-        {GBR_NMC_PUSH_TO_TALK, std::make_tuple(1, 20, 100, 1.0e-2, 0, 2000)},
-        {GBR_MC_VIDEO, std::make_tuple(1, 15, 100, 1.0e-3, 0, 2000)},
-        {GBR_V2X, std::make_tuple(1, 25, 50, 1.0e-2, 0, 2000)},
-        {NGBR_IMS, std::make_tuple(0, 10, 100, 1.0e-6, 0, 0)},
-        {NGBR_VIDEO_TCP_OPERATOR, std::make_tuple(0, 60, 300, 1.0e-6, 0, 0)},
-        {NGBR_VOICE_VIDEO_GAMING, std::make_tuple(0, 70, 100, 1.0e-3, 0, 0)},
-        {NGBR_VIDEO_TCP_PREMIUM, std::make_tuple(0, 80, 300, 1.0e-6, 0, 0)},
-        {NGBR_VIDEO_TCP_DEFAULT, std::make_tuple(0, 90, 300, 1.0e-6, 0, 0)},
-        {NGBR_MC_DELAY_SIGNAL, std::make_tuple(0, 5, 60, 1.0e-6, 0, 0)},
-        {NGBR_MC_DATA, std::make_tuple(0, 55, 200, 1.0e-6, 0, 0)},
-        {NGBR_V2X, std::make_tuple(0, 65, 5, 1.0e-2, 0, 0)},
-        {NGBR_LOW_LAT_EMBB, std::make_tuple(0, 68, 10, 1.0e-6, 0, 0)},
-        {DGBR_DISCRETE_AUT_SMALL, std::make_tuple(2, 19, 10, 1.0e-4, 255, 2000)},
-        {DGBR_DISCRETE_AUT_LARGE, std::make_tuple(2, 22, 10, 1.0e-4, 1358, 2000)},
-        {DGBR_ITS, std::make_tuple(2, 24, 30, 1.0e-5, 1354, 2000)},
-        {DGBR_ELECTRICITY, std::make_tuple(2, 21, 5, 1.0e-5, 255, 2000)},
-    };
-    return ret;
-}
-
-const NrEpsBearer::BearerRequirementsMap&
-NrEpsBearer::GetRequirementsRel18()
-{
-    // Needed to support GCC 4.9. Otherwise, use list constructors (see GetRequirementsRel10)
-    static NrEpsBearer::BearerRequirementsMap ret{
+    static NrQosFlow::BearerRequirementsMap ret{
         {GBR_CONV_VOICE, std::make_tuple(1, 20, 100, 1.0e-2, 0, 2000)},
         {GBR_CONV_VIDEO, std::make_tuple(1, 40, 150, 1.0e-3, 0, 2000)},
         {GBR_GAMING, std::make_tuple(1, 30, 50, 1.0e-3, 0, 2000)},

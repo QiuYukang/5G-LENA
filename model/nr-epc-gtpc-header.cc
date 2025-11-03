@@ -235,16 +235,16 @@ NrGtpcIes::DeserializeCause(Buffer::Iterator& i, Cause_t& cause) const
 }
 
 void
-NrGtpcIes::SerializeEbi(Buffer::Iterator& i, uint8_t epsBearerId) const
+NrGtpcIes::SerializeQfi(Buffer::Iterator& i, uint8_t qfi) const
 {
-    i.WriteU8(73);     // IE Type = EPS Bearer ID (EBI)
+    i.WriteU8(73);     // IE Type = QoS Flow ID
     i.WriteHtonU16(1); // Length
     i.WriteU8(0);      // Spare + Instance
-    i.WriteU8(epsBearerId & 0x0f);
+    i.WriteU8(qfi & 0x0f);
 }
 
 uint32_t
-NrGtpcIes::DeserializeEbi(Buffer::Iterator& i, uint8_t& epsBearerId) const
+NrGtpcIes::DeserializeQfi(Buffer::Iterator& i, uint8_t& qfi) const
 {
     uint8_t type = i.ReadU8();
     NS_ASSERT_MSG(type == 73, "Wrong EBI IE type = " << (uint16_t)type);
@@ -252,9 +252,9 @@ NrGtpcIes::DeserializeEbi(Buffer::Iterator& i, uint8_t& epsBearerId) const
     NS_ASSERT_MSG(length == 1, "Wrong EBI IE length");
     uint8_t instance = i.ReadU8();
     NS_ASSERT_MSG(instance == 0, "Wrong EBI IE instance");
-    epsBearerId = i.ReadU8() & 0x0f;
+    qfi = i.ReadU8() & 0x0f;
 
-    return serializedSizeEbi;
+    return serializedSizeQfi;
 }
 
 void
@@ -284,42 +284,42 @@ NrGtpcIes::ReadNtohU40(Buffer::Iterator& i)
 }
 
 void
-NrGtpcIes::SerializeBearerQos(Buffer::Iterator& i, NrEpsBearer bearerQos) const
+NrGtpcIes::SerializeQosFlow(Buffer::Iterator& i, NrQosFlow flow) const
 {
-    i.WriteU8(80);      // IE Type = Bearer QoS
+    i.WriteU8(80);      // IE Type = QoS Flow
     i.WriteHtonU16(22); // Length
     i.WriteU8(0);       // Spare + Instance
-    i.WriteU8(0);       // MRE TODO: bearerQos.arp
-    i.WriteU8(bearerQos.qci);
-    WriteHtonU40(i, bearerQos.gbrQosInfo.mbrUl);
-    WriteHtonU40(i, bearerQos.gbrQosInfo.mbrDl);
-    WriteHtonU40(i, bearerQos.gbrQosInfo.gbrUl);
-    WriteHtonU40(i, bearerQos.gbrQosInfo.gbrDl);
+    i.WriteU8(0);       // MRE TODO: flow.arp
+    i.WriteU8(flow.qci);
+    WriteHtonU40(i, flow.gbrQosInfo.mbrUl);
+    WriteHtonU40(i, flow.gbrQosInfo.mbrDl);
+    WriteHtonU40(i, flow.gbrQosInfo.gbrUl);
+    WriteHtonU40(i, flow.gbrQosInfo.gbrDl);
 }
 
 uint32_t
-NrGtpcIes::DeserializeBearerQos(Buffer::Iterator& i, NrEpsBearer& bearerQos)
+NrGtpcIes::DeserializeQosFlow(Buffer::Iterator& i, NrQosFlow& flow)
 {
     uint8_t type = i.ReadU8();
-    NS_ASSERT_MSG(type == 80, "Wrong Bearer QoS IE type = " << (uint16_t)type);
+    NS_ASSERT_MSG(type == 80, "Wrong QoS Flow IE type = " << (uint16_t)type);
     uint16_t length = i.ReadNtohU16();
-    NS_ASSERT_MSG(length == 22, "Wrong Bearer QoS IE length");
+    NS_ASSERT_MSG(length == 22, "Wrong QoS Flow IE length");
     uint8_t instance = i.ReadU8();
-    NS_ASSERT_MSG(instance == 0, "Wrong Bearer QoS IE instance");
+    NS_ASSERT_MSG(instance == 0, "Wrong QoS Flow IE instance");
     i.ReadU8();
-    bearerQos.qci = NrEpsBearer::Qci(i.ReadU8());
-    bearerQos.gbrQosInfo.mbrUl = ReadNtohU40(i);
-    bearerQos.gbrQosInfo.mbrDl = ReadNtohU40(i);
-    bearerQos.gbrQosInfo.gbrUl = ReadNtohU40(i);
-    bearerQos.gbrQosInfo.gbrDl = ReadNtohU40(i);
-    return serializedSizeBearerQos;
+    flow.qci = NrQosFlow::Qci(i.ReadU8());
+    flow.gbrQosInfo.mbrUl = ReadNtohU40(i);
+    flow.gbrQosInfo.mbrDl = ReadNtohU40(i);
+    flow.gbrQosInfo.gbrUl = ReadNtohU40(i);
+    flow.gbrQosInfo.gbrDl = ReadNtohU40(i);
+    return serializedSizeQosFlow;
 }
 
 void
-NrGtpcIes::SerializeBearerQosRule(Buffer::Iterator& i,
-                                  std::list<NrQosRule::PacketFilter> packetFilters) const
+NrGtpcIes::SerializeQosRule(Buffer::Iterator& i,
+                            std::list<NrQosRule::PacketFilter> packetFilters) const
 {
-    i.WriteU8(84); // IE Type = EPS Bearer Level QoS rule (Bearer QoS rule)
+    i.WriteU8(84); // IE Type = QoS rule
     i.WriteHtonU16(1 + packetFilters.size() * serializedSizePacketFilter);
     i.WriteU8(0);                                    // Spare + Instance
     i.WriteU8(0x20 + (packetFilters.size() & 0x0f)); // Create new rule + Number of packet filters
@@ -349,10 +349,10 @@ NrGtpcIes::SerializeBearerQosRule(Buffer::Iterator& i,
 }
 
 uint32_t
-NrGtpcIes::DeserializeBearerQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const
+NrGtpcIes::DeserializeQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const
 {
     uint8_t type = i.ReadU8();
-    NS_ASSERT_MSG(type == 84, "Wrong Bearer QoS rule IE type = " << (uint16_t)type);
+    NS_ASSERT_MSG(type == 84, "Wrong QoS rule IE type = " << (uint16_t)type);
     i.ReadNtohU16();
     i.ReadU8();
     uint8_t numberOfPacketFilters = i.ReadU8() & 0x0f;
@@ -381,11 +381,11 @@ NrGtpcIes::DeserializeBearerQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) co
         rule->Add(packetFilter);
     }
 
-    return GetSerializedSizeBearerQosRule(rule->GetPacketFilters());
+    return GetSerializedSizeQosRule(rule->GetPacketFilters());
 }
 
 uint32_t
-NrGtpcIes::GetSerializedSizeBearerQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const
+NrGtpcIes::GetSerializedSizeQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const
 {
     return (5 + packetFilters.size() * serializedSizePacketFilter);
 }
@@ -447,23 +447,23 @@ NrGtpcIes::DeserializeFteid(Buffer::Iterator& i, NrGtpcHeader::Fteid_t& fteid) c
 }
 
 void
-NrGtpcIes::SerializeBearerContextHeader(Buffer::Iterator& i, uint16_t length) const
+NrGtpcIes::SerializeFlowContextHeader(Buffer::Iterator& i, uint16_t length) const
 {
-    i.WriteU8(93); // IE Type = Bearer Context
+    i.WriteU8(93); // IE Type = Flow Context
     i.WriteU16(length);
     i.WriteU8(0); // Spare + Instance
 }
 
 uint32_t
-NrGtpcIes::DeserializeBearerContextHeader(Buffer::Iterator& i, uint16_t& length) const
+NrGtpcIes::DeserializeFlowContextHeader(Buffer::Iterator& i, uint16_t& length) const
 {
     uint8_t type = i.ReadU8();
-    NS_ASSERT_MSG(type == 93, "Wrong Bearer Context IE type = " << (uint16_t)type);
+    NS_ASSERT_MSG(type == 93, "Wrong Flow Context IE type = " << (uint16_t)type);
     length = i.ReadNtohU16();
     uint8_t instance = i.ReadU8() & 0x0f;
-    NS_ASSERT_MSG(instance == 0, "Wrong Bearer Context IE instance");
+    NS_ASSERT_MSG(instance == 0, "Wrong Flow Context IE instance");
 
-    return serializedSizeBearerContextHeader;
+    return serializedSizeFlowContextHeader;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -501,11 +501,11 @@ uint32_t
 NrGtpcCreateSessionRequestMessage::GetMessageSize() const
 {
     uint32_t serializedSize = serializedSizeImsi + serializedSizeUliEcgi + serializedSizeFteid;
-    for (auto& bc : m_bearerContextsToBeCreated)
+    for (auto& bc : m_flowContextsToBeCreated)
     {
-        serializedSize += serializedSizeBearerContextHeader + serializedSizeEbi +
-                          GetSerializedSizeBearerQosRule(bc.rule->GetPacketFilters()) +
-                          serializedSizeFteid + serializedSizeBearerQos;
+        serializedSize += serializedSizeFlowContextHeader + serializedSizeQfi +
+                          GetSerializedSizeQosRule(bc.rule->GetPacketFilters()) +
+                          serializedSizeFteid + serializedSizeQosFlow;
     }
 
     return serializedSize;
@@ -527,19 +527,18 @@ NrGtpcCreateSessionRequestMessage::Serialize(Buffer::Iterator start) const
     SerializeUliEcgi(i, m_uliEcgi);
     SerializeFteid(i, m_senderCpFteid);
 
-    for (auto& bc : m_bearerContextsToBeCreated)
+    for (auto& bc : m_flowContextsToBeCreated)
     {
         std::list<NrQosRule::PacketFilter> packetFilters = bc.rule->GetPacketFilters();
 
-        SerializeBearerContextHeader(i,
-                                     serializedSizeEbi +
-                                         GetSerializedSizeBearerQosRule(packetFilters) +
-                                         serializedSizeFteid + serializedSizeBearerQos);
+        SerializeFlowContextHeader(i,
+                                   serializedSizeQfi + GetSerializedSizeQosRule(packetFilters) +
+                                       serializedSizeFteid + serializedSizeQosFlow);
 
-        SerializeEbi(i, bc.epsBearerId);
-        SerializeBearerQosRule(i, packetFilters);
+        SerializeQfi(i, bc.qfi);
+        SerializeQosRule(i, packetFilters);
         SerializeFteid(i, bc.sgwS5uFteid);
-        SerializeBearerQos(i, bc.bearerLevelQos);
+        SerializeQosFlow(i, bc.flow);
     }
 }
 
@@ -553,23 +552,23 @@ NrGtpcCreateSessionRequestMessage::Deserialize(Buffer::Iterator start)
     DeserializeUliEcgi(i, m_uliEcgi);
     DeserializeFteid(i, m_senderCpFteid);
 
-    m_bearerContextsToBeCreated.clear();
+    m_flowContextsToBeCreated.clear();
     while (i.GetRemainingSize() > 0)
     {
         uint16_t length;
-        DeserializeBearerContextHeader(i, length);
+        DeserializeFlowContextHeader(i, length);
 
-        BearerContextToBeCreated bearerContext;
-        DeserializeEbi(i, bearerContext.epsBearerId);
+        FlowContextToBeCreated flowContext;
+        DeserializeQfi(i, flowContext.qfi);
 
         Ptr<NrQosRule> rule = Create<NrQosRule>();
-        DeserializeBearerQosRule(i, rule);
-        bearerContext.rule = rule;
+        DeserializeQosRule(i, rule);
+        flowContext.rule = rule;
 
-        DeserializeFteid(i, bearerContext.sgwS5uFteid);
-        DeserializeBearerQos(i, bearerContext.bearerLevelQos);
+        DeserializeFteid(i, flowContext.sgwS5uFteid);
+        DeserializeQosFlow(i, flowContext.flow);
 
-        m_bearerContextsToBeCreated.push_back(bearerContext);
+        m_flowContextsToBeCreated.push_back(flowContext);
     }
 
     return GetSerializedSize();
@@ -617,17 +616,17 @@ NrGtpcCreateSessionRequestMessage::SetSenderCpFteid(NrGtpcHeader::Fteid_t fteid)
     m_senderCpFteid = fteid;
 }
 
-std::list<NrGtpcCreateSessionRequestMessage::BearerContextToBeCreated>
-NrGtpcCreateSessionRequestMessage::GetBearerContextsToBeCreated() const
+std::list<NrGtpcCreateSessionRequestMessage::FlowContextToBeCreated>
+NrGtpcCreateSessionRequestMessage::GetFlowContextsToBeCreated() const
 {
-    return m_bearerContextsToBeCreated;
+    return m_flowContextsToBeCreated;
 }
 
 void
-NrGtpcCreateSessionRequestMessage::SetBearerContextsToBeCreated(
-    std::list<NrGtpcCreateSessionRequestMessage::BearerContextToBeCreated> bearerContexts)
+NrGtpcCreateSessionRequestMessage::SetFlowContextsToBeCreated(
+    std::list<NrGtpcCreateSessionRequestMessage::FlowContextToBeCreated> flowContexts)
 {
-    m_bearerContextsToBeCreated = bearerContexts;
+    m_flowContextsToBeCreated = flowContexts;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -664,11 +663,11 @@ uint32_t
 NrGtpcCreateSessionResponseMessage::GetMessageSize() const
 {
     uint32_t serializedSize = serializedSizeCause + serializedSizeFteid;
-    for (auto& bc : m_bearerContextsCreated)
+    for (auto& bc : m_flowContextsCreated)
     {
-        serializedSize += serializedSizeBearerContextHeader + serializedSizeEbi +
-                          GetSerializedSizeBearerQosRule(bc.rule->GetPacketFilters()) +
-                          serializedSizeFteid + serializedSizeBearerQos;
+        serializedSize += serializedSizeFlowContextHeader + serializedSizeQfi +
+                          GetSerializedSizeQosRule(bc.rule->GetPacketFilters()) +
+                          serializedSizeFteid + serializedSizeQosFlow;
     }
 
     return serializedSize;
@@ -689,19 +688,18 @@ NrGtpcCreateSessionResponseMessage::Serialize(Buffer::Iterator start) const
     SerializeCause(i, m_cause);
     SerializeFteid(i, m_senderCpFteid);
 
-    for (auto& bc : m_bearerContextsCreated)
+    for (auto& bc : m_flowContextsCreated)
     {
         std::list<NrQosRule::PacketFilter> packetFilters = bc.rule->GetPacketFilters();
 
-        SerializeBearerContextHeader(i,
-                                     serializedSizeEbi +
-                                         GetSerializedSizeBearerQosRule(packetFilters) +
-                                         serializedSizeFteid + serializedSizeBearerQos);
+        SerializeFlowContextHeader(i,
+                                   serializedSizeQfi + GetSerializedSizeQosRule(packetFilters) +
+                                       serializedSizeFteid + serializedSizeQosFlow);
 
-        SerializeEbi(i, bc.epsBearerId);
-        SerializeBearerQosRule(i, packetFilters);
+        SerializeQfi(i, bc.qfi);
+        SerializeQosRule(i, packetFilters);
         SerializeFteid(i, bc.fteid);
-        SerializeBearerQos(i, bc.bearerLevelQos);
+        SerializeQosFlow(i, bc.flow);
     }
 }
 
@@ -714,23 +712,23 @@ NrGtpcCreateSessionResponseMessage::Deserialize(Buffer::Iterator start)
     DeserializeCause(i, m_cause);
     DeserializeFteid(i, m_senderCpFteid);
 
-    m_bearerContextsCreated.clear();
+    m_flowContextsCreated.clear();
     while (i.GetRemainingSize() > 0)
     {
-        BearerContextCreated bearerContext;
+        FlowContextCreated flowContext;
         uint16_t length;
 
-        DeserializeBearerContextHeader(i, length);
-        DeserializeEbi(i, bearerContext.epsBearerId);
+        DeserializeFlowContextHeader(i, length);
+        DeserializeQfi(i, flowContext.qfi);
 
         Ptr<NrQosRule> rule = Create<NrQosRule>();
-        DeserializeBearerQosRule(i, rule);
-        bearerContext.rule = rule;
+        DeserializeQosRule(i, rule);
+        flowContext.rule = rule;
 
-        DeserializeFteid(i, bearerContext.fteid);
-        DeserializeBearerQos(i, bearerContext.bearerLevelQos);
+        DeserializeFteid(i, flowContext.fteid);
+        DeserializeQosFlow(i, flowContext.flow);
 
-        m_bearerContextsCreated.push_back(bearerContext);
+        m_flowContextsCreated.push_back(flowContext);
     }
 
     return GetSerializedSize();
@@ -766,67 +764,67 @@ NrGtpcCreateSessionResponseMessage::SetSenderCpFteid(NrGtpcHeader::Fteid_t fteid
     m_senderCpFteid = fteid;
 }
 
-std::list<NrGtpcCreateSessionResponseMessage::BearerContextCreated>
-NrGtpcCreateSessionResponseMessage::GetBearerContextsCreated() const
+std::list<NrGtpcCreateSessionResponseMessage::FlowContextCreated>
+NrGtpcCreateSessionResponseMessage::GetFlowContextsCreated() const
 {
-    return m_bearerContextsCreated;
+    return m_flowContextsCreated;
 }
 
 void
-NrGtpcCreateSessionResponseMessage::SetBearerContextsCreated(
-    std::list<NrGtpcCreateSessionResponseMessage::BearerContextCreated> bearerContexts)
+NrGtpcCreateSessionResponseMessage::SetFlowContextsCreated(
+    std::list<NrGtpcCreateSessionResponseMessage::FlowContextCreated> flowContexts)
 {
-    m_bearerContextsCreated = bearerContexts;
+    m_flowContextsCreated = flowContexts;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 TypeId
-NrGtpcModifyBearerRequestMessage::GetTypeId()
+NrGtpcModifyFlowRequestMessage::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrGtpcModifyBearerRequestMessage")
+    static TypeId tid = TypeId("ns3::NrGtpcModifyFlowRequestMessage")
                             .SetParent<Header>()
                             .SetGroupName("Nr")
-                            .AddConstructor<NrGtpcModifyBearerRequestMessage>();
+                            .AddConstructor<NrGtpcModifyFlowRequestMessage>();
     return tid;
 }
 
-NrGtpcModifyBearerRequestMessage::NrGtpcModifyBearerRequestMessage()
+NrGtpcModifyFlowRequestMessage::NrGtpcModifyFlowRequestMessage()
 {
-    SetMessageType(NrGtpcHeader::ModifyBearerRequest);
+    SetMessageType(NrGtpcHeader::ModifyFlowRequest);
     SetSequenceNumber(0);
     m_imsi = 0;
     m_uliEcgi = 0;
 }
 
-NrGtpcModifyBearerRequestMessage::~NrGtpcModifyBearerRequestMessage()
+NrGtpcModifyFlowRequestMessage::~NrGtpcModifyFlowRequestMessage()
 {
 }
 
 TypeId
-NrGtpcModifyBearerRequestMessage::GetInstanceTypeId() const
+NrGtpcModifyFlowRequestMessage::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
 uint32_t
-NrGtpcModifyBearerRequestMessage::GetMessageSize() const
+NrGtpcModifyFlowRequestMessage::GetMessageSize() const
 {
     uint32_t serializedSize =
         serializedSizeImsi + serializedSizeUliEcgi +
-        m_bearerContextsToBeModified.size() *
-            (serializedSizeBearerContextHeader + serializedSizeEbi + serializedSizeFteid);
+        m_flowContextsToBeModified.size() *
+            (serializedSizeFlowContextHeader + serializedSizeQfi + serializedSizeFteid);
     return serializedSize;
 }
 
 uint32_t
-NrGtpcModifyBearerRequestMessage::GetSerializedSize() const
+NrGtpcModifyFlowRequestMessage::GetSerializedSize() const
 {
     return NrGtpcHeader::GetSerializedSize() + GetMessageSize();
 }
 
 void
-NrGtpcModifyBearerRequestMessage::Serialize(Buffer::Iterator start) const
+NrGtpcModifyFlowRequestMessage::Serialize(Buffer::Iterator start) const
 {
     Buffer::Iterator i = start;
 
@@ -834,17 +832,17 @@ NrGtpcModifyBearerRequestMessage::Serialize(Buffer::Iterator start) const
     SerializeImsi(i, m_imsi);
     SerializeUliEcgi(i, m_uliEcgi);
 
-    for (auto& bc : m_bearerContextsToBeModified)
+    for (auto& bc : m_flowContextsToBeModified)
     {
-        SerializeBearerContextHeader(i, serializedSizeEbi + serializedSizeFteid);
+        SerializeFlowContextHeader(i, serializedSizeQfi + serializedSizeFteid);
 
-        SerializeEbi(i, bc.epsBearerId);
+        SerializeQfi(i, bc.qfi);
         SerializeFteid(i, bc.fteid);
     }
 }
 
 uint32_t
-NrGtpcModifyBearerRequestMessage::Deserialize(Buffer::Iterator start)
+NrGtpcModifyFlowRequestMessage::Deserialize(Buffer::Iterator start)
 {
     Buffer::Iterator i = start;
     NrGtpcHeader::PreDeserialize(i);
@@ -854,106 +852,106 @@ NrGtpcModifyBearerRequestMessage::Deserialize(Buffer::Iterator start)
 
     while (i.GetRemainingSize() > 0)
     {
-        BearerContextToBeModified bearerContext;
+        FlowContextToBeModified flowContext;
         uint16_t length;
 
-        DeserializeBearerContextHeader(i, length);
+        DeserializeFlowContextHeader(i, length);
 
-        DeserializeEbi(i, bearerContext.epsBearerId);
-        DeserializeFteid(i, bearerContext.fteid);
+        DeserializeQfi(i, flowContext.qfi);
+        DeserializeFteid(i, flowContext.fteid);
 
-        m_bearerContextsToBeModified.push_back(bearerContext);
+        m_flowContextsToBeModified.push_back(flowContext);
     }
 
     return GetSerializedSize();
 }
 
 void
-NrGtpcModifyBearerRequestMessage::Print(std::ostream& os) const
+NrGtpcModifyFlowRequestMessage::Print(std::ostream& os) const
 {
     os << " imsi " << m_imsi << " uliEcgi " << m_uliEcgi;
 }
 
 uint64_t
-NrGtpcModifyBearerRequestMessage::GetImsi() const
+NrGtpcModifyFlowRequestMessage::GetImsi() const
 {
     return m_imsi;
 }
 
 void
-NrGtpcModifyBearerRequestMessage::SetImsi(uint64_t imsi)
+NrGtpcModifyFlowRequestMessage::SetImsi(uint64_t imsi)
 {
     m_imsi = imsi;
 }
 
 uint32_t
-NrGtpcModifyBearerRequestMessage::GetUliEcgi() const
+NrGtpcModifyFlowRequestMessage::GetUliEcgi() const
 {
     return m_uliEcgi;
 }
 
 void
-NrGtpcModifyBearerRequestMessage::SetUliEcgi(uint32_t uliEcgi)
+NrGtpcModifyFlowRequestMessage::SetUliEcgi(uint32_t uliEcgi)
 {
     m_uliEcgi = uliEcgi;
 }
 
-std::list<NrGtpcModifyBearerRequestMessage::BearerContextToBeModified>
-NrGtpcModifyBearerRequestMessage::GetBearerContextsToBeModified() const
+std::list<NrGtpcModifyFlowRequestMessage::FlowContextToBeModified>
+NrGtpcModifyFlowRequestMessage::GetFlowContextsToBeModified() const
 {
-    return m_bearerContextsToBeModified;
+    return m_flowContextsToBeModified;
 }
 
 void
-NrGtpcModifyBearerRequestMessage::SetBearerContextsToBeModified(
-    std::list<NrGtpcModifyBearerRequestMessage::BearerContextToBeModified> bearerContexts)
+NrGtpcModifyFlowRequestMessage::SetFlowContextsToBeModified(
+    std::list<NrGtpcModifyFlowRequestMessage::FlowContextToBeModified> flowContexts)
 {
-    m_bearerContextsToBeModified = bearerContexts;
+    m_flowContextsToBeModified = flowContexts;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 TypeId
-NrGtpcModifyBearerResponseMessage::GetTypeId()
+NrGtpcModifyFlowResponseMessage::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrGtpcModifyBearerResponseMessage")
+    static TypeId tid = TypeId("ns3::NrGtpcModifyFlowResponseMessage")
                             .SetParent<Header>()
                             .SetGroupName("Nr")
-                            .AddConstructor<NrGtpcModifyBearerResponseMessage>();
+                            .AddConstructor<NrGtpcModifyFlowResponseMessage>();
     return tid;
 }
 
-NrGtpcModifyBearerResponseMessage::NrGtpcModifyBearerResponseMessage()
+NrGtpcModifyFlowResponseMessage::NrGtpcModifyFlowResponseMessage()
 {
-    SetMessageType(NrGtpcHeader::ModifyBearerResponse);
+    SetMessageType(NrGtpcHeader::ModifyFlowResponse);
     SetSequenceNumber(0);
     m_cause = Cause_t::RESERVED;
 }
 
-NrGtpcModifyBearerResponseMessage::~NrGtpcModifyBearerResponseMessage()
+NrGtpcModifyFlowResponseMessage::~NrGtpcModifyFlowResponseMessage()
 {
 }
 
 TypeId
-NrGtpcModifyBearerResponseMessage::GetInstanceTypeId() const
+NrGtpcModifyFlowResponseMessage::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
 uint32_t
-NrGtpcModifyBearerResponseMessage::GetMessageSize() const
+NrGtpcModifyFlowResponseMessage::GetMessageSize() const
 {
     return serializedSizeCause;
 }
 
 uint32_t
-NrGtpcModifyBearerResponseMessage::GetSerializedSize() const
+NrGtpcModifyFlowResponseMessage::GetSerializedSize() const
 {
     return NrGtpcHeader::GetSerializedSize() + GetMessageSize();
 }
 
 void
-NrGtpcModifyBearerResponseMessage::Serialize(Buffer::Iterator start) const
+NrGtpcModifyFlowResponseMessage::Serialize(Buffer::Iterator start) const
 {
     Buffer::Iterator i = start;
 
@@ -962,7 +960,7 @@ NrGtpcModifyBearerResponseMessage::Serialize(Buffer::Iterator start) const
 }
 
 uint32_t
-NrGtpcModifyBearerResponseMessage::Deserialize(Buffer::Iterator start)
+NrGtpcModifyFlowResponseMessage::Deserialize(Buffer::Iterator start)
 {
     Buffer::Iterator i = start;
     NrGtpcHeader::PreDeserialize(i);
@@ -973,19 +971,19 @@ NrGtpcModifyBearerResponseMessage::Deserialize(Buffer::Iterator start)
 }
 
 void
-NrGtpcModifyBearerResponseMessage::Print(std::ostream& os) const
+NrGtpcModifyFlowResponseMessage::Print(std::ostream& os) const
 {
     os << " cause " << (uint16_t)m_cause;
 }
 
-NrGtpcModifyBearerResponseMessage::Cause_t
-NrGtpcModifyBearerResponseMessage::GetCause() const
+NrGtpcModifyFlowResponseMessage::Cause_t
+NrGtpcModifyFlowResponseMessage::GetCause() const
 {
     return m_cause;
 }
 
 void
-NrGtpcModifyBearerResponseMessage::SetCause(NrGtpcModifyBearerResponseMessage::Cause_t cause)
+NrGtpcModifyFlowResponseMessage::SetCause(NrGtpcModifyFlowResponseMessage::Cause_t cause)
 {
     m_cause = cause;
 }
@@ -993,61 +991,61 @@ NrGtpcModifyBearerResponseMessage::SetCause(NrGtpcModifyBearerResponseMessage::C
 /////////////////////////////////////////////////////////////////////
 
 TypeId
-NrGtpcDeleteBearerCommandMessage::GetTypeId()
+NrGtpcDeleteFlowCommandMessage::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrGtpcDeleteBearerCommandMessage")
+    static TypeId tid = TypeId("ns3::NrGtpcDeleteFlowCommandMessage")
                             .SetParent<Header>()
                             .SetGroupName("Nr")
-                            .AddConstructor<NrGtpcDeleteBearerCommandMessage>();
+                            .AddConstructor<NrGtpcDeleteFlowCommandMessage>();
     return tid;
 }
 
-NrGtpcDeleteBearerCommandMessage::NrGtpcDeleteBearerCommandMessage()
+NrGtpcDeleteFlowCommandMessage::NrGtpcDeleteFlowCommandMessage()
 {
-    SetMessageType(NrGtpcHeader::DeleteBearerCommand);
+    SetMessageType(NrGtpcHeader::DeleteFlowCommand);
     SetSequenceNumber(0);
 }
 
-NrGtpcDeleteBearerCommandMessage::~NrGtpcDeleteBearerCommandMessage()
+NrGtpcDeleteFlowCommandMessage::~NrGtpcDeleteFlowCommandMessage()
 {
 }
 
 TypeId
-NrGtpcDeleteBearerCommandMessage::GetInstanceTypeId() const
+NrGtpcDeleteFlowCommandMessage::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
 uint32_t
-NrGtpcDeleteBearerCommandMessage::GetMessageSize() const
+NrGtpcDeleteFlowCommandMessage::GetMessageSize() const
 {
     uint32_t serializedSize =
-        m_bearerContexts.size() * (serializedSizeBearerContextHeader + serializedSizeEbi);
+        m_flowContexts.size() * (serializedSizeFlowContextHeader + serializedSizeQfi);
     return serializedSize;
 }
 
 uint32_t
-NrGtpcDeleteBearerCommandMessage::GetSerializedSize() const
+NrGtpcDeleteFlowCommandMessage::GetSerializedSize() const
 {
     return NrGtpcHeader::GetSerializedSize() + GetMessageSize();
 }
 
 void
-NrGtpcDeleteBearerCommandMessage::Serialize(Buffer::Iterator start) const
+NrGtpcDeleteFlowCommandMessage::Serialize(Buffer::Iterator start) const
 {
     Buffer::Iterator i = start;
 
     NrGtpcHeader::PreSerialize(i);
-    for (auto& bearerContext : m_bearerContexts)
+    for (auto& flowContext : m_flowContexts)
     {
-        SerializeBearerContextHeader(i, serializedSizeEbi);
+        SerializeFlowContextHeader(i, serializedSizeQfi);
 
-        SerializeEbi(i, bearerContext.m_epsBearerId);
+        SerializeQfi(i, flowContext.m_qfi);
     }
 }
 
 uint32_t
-NrGtpcDeleteBearerCommandMessage::Deserialize(Buffer::Iterator start)
+NrGtpcDeleteFlowCommandMessage::Deserialize(Buffer::Iterator start)
 {
     Buffer::Iterator i = start;
     NrGtpcHeader::PreDeserialize(i);
@@ -1055,190 +1053,190 @@ NrGtpcDeleteBearerCommandMessage::Deserialize(Buffer::Iterator start)
     while (i.GetRemainingSize() > 0)
     {
         uint16_t length;
-        DeserializeBearerContextHeader(i, length);
+        DeserializeFlowContextHeader(i, length);
 
-        BearerContext bearerContext;
-        DeserializeEbi(i, bearerContext.m_epsBearerId);
-        m_bearerContexts.push_back(bearerContext);
+        FlowContext flowContext;
+        DeserializeQfi(i, flowContext.m_qfi);
+        m_flowContexts.push_back(flowContext);
     }
 
     return GetSerializedSize();
 }
 
 void
-NrGtpcDeleteBearerCommandMessage::Print(std::ostream& os) const
+NrGtpcDeleteFlowCommandMessage::Print(std::ostream& os) const
 {
-    os << " bearerContexts [";
-    for (auto& bearerContext : m_bearerContexts)
+    os << " flowContexts [";
+    for (auto& flowContext : m_flowContexts)
     {
-        os << (uint16_t)bearerContext.m_epsBearerId << " ";
+        os << (uint16_t)flowContext.m_qfi << " ";
     }
     os << "]";
 }
 
-std::list<NrGtpcDeleteBearerCommandMessage::BearerContext>
-NrGtpcDeleteBearerCommandMessage::GetBearerContexts() const
+std::list<NrGtpcDeleteFlowCommandMessage::FlowContext>
+NrGtpcDeleteFlowCommandMessage::GetFlowContexts() const
 {
-    return m_bearerContexts;
+    return m_flowContexts;
 }
 
 void
-NrGtpcDeleteBearerCommandMessage::SetBearerContexts(
-    std::list<NrGtpcDeleteBearerCommandMessage::BearerContext> bearerContexts)
+NrGtpcDeleteFlowCommandMessage::SetFlowContexts(
+    std::list<NrGtpcDeleteFlowCommandMessage::FlowContext> flowContexts)
 {
-    m_bearerContexts = bearerContexts;
+    m_flowContexts = flowContexts;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 TypeId
-NrGtpcDeleteBearerRequestMessage::GetTypeId()
+NrGtpcDeleteFlowRequestMessage::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrGtpcDeleteBearerRequestMessage")
+    static TypeId tid = TypeId("ns3::NrGtpcDeleteFlowRequestMessage")
                             .SetParent<Header>()
                             .SetGroupName("Nr")
-                            .AddConstructor<NrGtpcDeleteBearerRequestMessage>();
+                            .AddConstructor<NrGtpcDeleteFlowRequestMessage>();
     return tid;
 }
 
-NrGtpcDeleteBearerRequestMessage::NrGtpcDeleteBearerRequestMessage()
+NrGtpcDeleteFlowRequestMessage::NrGtpcDeleteFlowRequestMessage()
 {
-    SetMessageType(NrGtpcHeader::DeleteBearerRequest);
+    SetMessageType(NrGtpcHeader::DeleteFlowRequest);
     SetSequenceNumber(0);
 }
 
-NrGtpcDeleteBearerRequestMessage::~NrGtpcDeleteBearerRequestMessage()
+NrGtpcDeleteFlowRequestMessage::~NrGtpcDeleteFlowRequestMessage()
 {
 }
 
 TypeId
-NrGtpcDeleteBearerRequestMessage::GetInstanceTypeId() const
+NrGtpcDeleteFlowRequestMessage::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
 uint32_t
-NrGtpcDeleteBearerRequestMessage::GetMessageSize() const
+NrGtpcDeleteFlowRequestMessage::GetMessageSize() const
 {
-    uint32_t serializedSize = m_epsBearerIds.size() * serializedSizeEbi;
+    uint32_t serializedSize = m_qosFlowIds.size() * serializedSizeQfi;
     return serializedSize;
 }
 
 uint32_t
-NrGtpcDeleteBearerRequestMessage::GetSerializedSize() const
+NrGtpcDeleteFlowRequestMessage::GetSerializedSize() const
 {
     return NrGtpcHeader::GetSerializedSize() + GetMessageSize();
 }
 
 void
-NrGtpcDeleteBearerRequestMessage::Serialize(Buffer::Iterator start) const
+NrGtpcDeleteFlowRequestMessage::Serialize(Buffer::Iterator start) const
 {
     Buffer::Iterator i = start;
 
     NrGtpcHeader::PreSerialize(i);
-    for (auto& epsBearerId : m_epsBearerIds)
+    for (auto& qfi : m_qosFlowIds)
     {
-        SerializeEbi(i, epsBearerId);
+        SerializeQfi(i, qfi);
     }
 }
 
 uint32_t
-NrGtpcDeleteBearerRequestMessage::Deserialize(Buffer::Iterator start)
+NrGtpcDeleteFlowRequestMessage::Deserialize(Buffer::Iterator start)
 {
     Buffer::Iterator i = start;
     NrGtpcHeader::PreDeserialize(i);
 
     while (i.GetRemainingSize() > 0)
     {
-        uint8_t epsBearerId;
-        DeserializeEbi(i, epsBearerId);
-        m_epsBearerIds.push_back(epsBearerId);
+        uint8_t qfi;
+        DeserializeQfi(i, qfi);
+        m_qosFlowIds.push_back(qfi);
     }
 
     return GetSerializedSize();
 }
 
 void
-NrGtpcDeleteBearerRequestMessage::Print(std::ostream& os) const
+NrGtpcDeleteFlowRequestMessage::Print(std::ostream& os) const
 {
-    os << " epsBearerIds [";
-    for (auto& epsBearerId : m_epsBearerIds)
+    os << " qfis [";
+    for (auto& qfi : m_qosFlowIds)
     {
-        os << (uint16_t)epsBearerId << " ";
+        os << (uint16_t)qfi << " ";
     }
     os << "]";
 }
 
 std::list<uint8_t>
-NrGtpcDeleteBearerRequestMessage::GetEpsBearerIds() const
+NrGtpcDeleteFlowRequestMessage::GetQosFlowIds() const
 {
-    return m_epsBearerIds;
+    return m_qosFlowIds;
 }
 
 void
-NrGtpcDeleteBearerRequestMessage::SetEpsBearerIds(std::list<uint8_t> epsBearerId)
+NrGtpcDeleteFlowRequestMessage::SetQosFlowIds(std::list<uint8_t> qosFlowIds)
 {
-    m_epsBearerIds = epsBearerId;
+    m_qosFlowIds = qosFlowIds;
 }
 
 /////////////////////////////////////////////////////////////////////
 
 TypeId
-NrGtpcDeleteBearerResponseMessage::GetTypeId()
+NrGtpcDeleteFlowResponseMessage::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::NrGtpcDeleteBearerResponseMessage")
+    static TypeId tid = TypeId("ns3::NrGtpcDeleteFlowResponseMessage")
                             .SetParent<Header>()
                             .SetGroupName("Nr")
-                            .AddConstructor<NrGtpcDeleteBearerResponseMessage>();
+                            .AddConstructor<NrGtpcDeleteFlowResponseMessage>();
     return tid;
 }
 
-NrGtpcDeleteBearerResponseMessage::NrGtpcDeleteBearerResponseMessage()
+NrGtpcDeleteFlowResponseMessage::NrGtpcDeleteFlowResponseMessage()
 {
-    SetMessageType(NrGtpcHeader::DeleteBearerResponse);
+    SetMessageType(NrGtpcHeader::DeleteFlowResponse);
     SetSequenceNumber(0);
     m_cause = Cause_t::RESERVED;
 }
 
-NrGtpcDeleteBearerResponseMessage::~NrGtpcDeleteBearerResponseMessage()
+NrGtpcDeleteFlowResponseMessage::~NrGtpcDeleteFlowResponseMessage()
 {
 }
 
 TypeId
-NrGtpcDeleteBearerResponseMessage::GetInstanceTypeId() const
+NrGtpcDeleteFlowResponseMessage::GetInstanceTypeId() const
 {
     return GetTypeId();
 }
 
 uint32_t
-NrGtpcDeleteBearerResponseMessage::GetMessageSize() const
+NrGtpcDeleteFlowResponseMessage::GetMessageSize() const
 {
-    uint32_t serializedSize = serializedSizeCause + m_epsBearerIds.size() * serializedSizeEbi;
+    uint32_t serializedSize = serializedSizeCause + m_qosFlowIds.size() * serializedSizeQfi;
     return serializedSize;
 }
 
 uint32_t
-NrGtpcDeleteBearerResponseMessage::GetSerializedSize() const
+NrGtpcDeleteFlowResponseMessage::GetSerializedSize() const
 {
     return NrGtpcHeader::GetSerializedSize() + GetMessageSize();
 }
 
 void
-NrGtpcDeleteBearerResponseMessage::Serialize(Buffer::Iterator start) const
+NrGtpcDeleteFlowResponseMessage::Serialize(Buffer::Iterator start) const
 {
     Buffer::Iterator i = start;
 
     NrGtpcHeader::PreSerialize(i);
     SerializeCause(i, m_cause);
 
-    for (auto& epsBearerId : m_epsBearerIds)
+    for (auto& qfi : m_qosFlowIds)
     {
-        SerializeEbi(i, epsBearerId);
+        SerializeQfi(i, qfi);
     }
 }
 
 uint32_t
-NrGtpcDeleteBearerResponseMessage::Deserialize(Buffer::Iterator start)
+NrGtpcDeleteFlowResponseMessage::Deserialize(Buffer::Iterator start)
 {
     Buffer::Iterator i = start;
     NrGtpcHeader::PreDeserialize(i);
@@ -1247,47 +1245,47 @@ NrGtpcDeleteBearerResponseMessage::Deserialize(Buffer::Iterator start)
 
     while (i.GetRemainingSize() > 0)
     {
-        uint8_t epsBearerId;
-        DeserializeEbi(i, epsBearerId);
-        m_epsBearerIds.push_back(epsBearerId);
+        uint8_t qfi;
+        DeserializeQfi(i, qfi);
+        m_qosFlowIds.push_back(qfi);
     }
 
     return GetSerializedSize();
 }
 
 void
-NrGtpcDeleteBearerResponseMessage::Print(std::ostream& os) const
+NrGtpcDeleteFlowResponseMessage::Print(std::ostream& os) const
 {
-    os << " cause " << (uint16_t)m_cause << " epsBearerIds [";
-    for (auto& epsBearerId : m_epsBearerIds)
+    os << " cause " << (uint16_t)m_cause << " qosFlowIds [";
+    for (auto& qfi : m_qosFlowIds)
     {
-        os << (uint16_t)epsBearerId << " ";
+        os << (uint16_t)qfi << " ";
     }
     os << "]";
 }
 
-NrGtpcDeleteBearerResponseMessage::Cause_t
-NrGtpcDeleteBearerResponseMessage::GetCause() const
+NrGtpcDeleteFlowResponseMessage::Cause_t
+NrGtpcDeleteFlowResponseMessage::GetCause() const
 {
     return m_cause;
 }
 
 void
-NrGtpcDeleteBearerResponseMessage::SetCause(NrGtpcDeleteBearerResponseMessage::Cause_t cause)
+NrGtpcDeleteFlowResponseMessage::SetCause(NrGtpcDeleteFlowResponseMessage::Cause_t cause)
 {
     m_cause = cause;
 }
 
 std::list<uint8_t>
-NrGtpcDeleteBearerResponseMessage::GetEpsBearerIds() const
+NrGtpcDeleteFlowResponseMessage::GetQosFlowIds() const
 {
-    return m_epsBearerIds;
+    return m_qosFlowIds;
 }
 
 void
-NrGtpcDeleteBearerResponseMessage::SetEpsBearerIds(std::list<uint8_t> epsBearerId)
+NrGtpcDeleteFlowResponseMessage::SetQosFlowIds(std::list<uint8_t> qosFlowIds)
 {
-    m_epsBearerIds = epsBearerId;
+    m_qosFlowIds = qosFlowIds;
 }
 
 } // namespace ns3

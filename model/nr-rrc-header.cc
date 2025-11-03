@@ -174,7 +174,7 @@ NrRrcAsn1Header::SerializeDrbToAddModList(std::list<NrRrcSap::DrbToAddMod> drbTo
         SerializeSequence(drbToAddModListOptionalFieldsPresent, true);
 
         // Serialize eps-BearerIdentity::=INTEGER (0..15)
-        SerializeInteger(it->epsBearerIdentity, 0, 15);
+        SerializeInteger(it->qosFlowIdentity, 0, 15);
 
         // Serialize drb-Identity ::= INTEGER (1..32)
         SerializeInteger(it->drbIdentity, 1, 32);
@@ -2372,9 +2372,9 @@ NrRrcAsn1Header::DeserializeDrbToAddModList(std::list<NrRrcSap::DrbToAddMod>* dr
 
         if (optionalFields[4])
         {
-            // Deserialize epsBearerIdentity
+            // Deserialize qosFlowIdentity
             bIterator = DeserializeInteger(&val, 0, 15, bIterator);
-            drbToAddMod.epsBearerIdentity = val;
+            drbToAddMod.qosFlowIdentity = val;
         }
 
         bIterator = DeserializeInteger(&val, 1, 32, bIterator);
@@ -3099,7 +3099,7 @@ NrRrcAsn1Header::Print(std::ostream& os,
     auto it2 = radioResourceConfigDedicated.drbToAddModList.begin();
     for (; it2 != radioResourceConfigDedicated.drbToAddModList.end(); it2++)
     {
-        os << "      epsBearerIdentity: " << (int)it2->epsBearerIdentity << std::endl;
+        os << "      qosFlowIdentity: " << (int)it2->qosFlowIdentity << std::endl;
         os << "      drbIdentity: " << (int)it2->drbIdentity << std::endl;
         os << "      rlcConfig: " << it2->rlcConfig.choice << std::endl;
         os << "      logicalChannelIdentity: " << (int)it2->logicalChannelIdentity << std::endl;

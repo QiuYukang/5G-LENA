@@ -343,17 +343,17 @@ NrRadioLinkFailureTestCase::DoRun()
                                                 InetSocketAddress(Ipv4Address::GetAny(), ulPort));
             ulServerApps.Add(ulPacketSinkHelper.Install(remoteHost));
 
-            Ptr<NrQosRule> tft = Create<NrQosRule>();
+            Ptr<NrQosRule> rule = Create<NrQosRule>();
             NrQosRule::PacketFilter dlpf;
             dlpf.localPortStart = dlPort;
             dlpf.localPortEnd = dlPort;
-            tft->Add(dlpf);
+            rule->Add(dlpf);
             NrQosRule::PacketFilter ulpf;
             ulpf.remotePortStart = ulPort;
             ulpf.remotePortEnd = ulPort;
-            tft->Add(ulpf);
-            NrEpsBearer bearer(NrEpsBearer::NGBR_IMS);
-            nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(u), bearer, tft);
+            rule->Add(ulpf);
+            NrQosFlow flow(NrQosFlow::NGBR_IMS);
+            nrHelper->ActivateDedicatedQosFlow(ueDevs.Get(u), flow, rule);
 
             dlServerApps.Start(Seconds(0.27));
             dlClientApps.Start(Seconds(0.27));
@@ -490,9 +490,9 @@ NrRadioLinkFailureTestCase::CheckConnected(Ptr<NetDevice> ueDevice, NetDeviceCon
             gnbBearerIt->second->GetObject<NrDataRadioBearerInfo>();
         Ptr<NrDataRadioBearerInfo> ueDrbInfo =
             ueBearerIt->second->GetObject<NrDataRadioBearerInfo>();
-        NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_epsBearerIdentity,
-                              (uint32_t)ueDrbInfo->m_epsBearerIdentity,
-                              "epsBearerIdentity differs");
+        NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_qosFlowIdentity,
+                              (uint32_t)ueDrbInfo->m_qosFlowIdentity,
+                              "qosFlowIdentity differs");
         NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_drbIdentity,
                               (uint32_t)ueDrbInfo->m_drbIdentity,
                               "drbIdentity differs");

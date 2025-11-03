@@ -410,9 +410,9 @@ NrRrcConnectionEstablishmentTestCase::Connect(Ptr<NetDevice> ueDevice, Ptr<NetDe
 
     for (uint32_t b = 0; b < m_nBearers; ++b)
     {
-        NrEpsBearer::Qci q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
-        NrEpsBearer bearer(q);
-        m_nrHelper->ActivateDataRadioBearer(ueDevice, bearer);
+        NrQosFlow::Qci q = NrQosFlow::NGBR_VIDEO_TCP_DEFAULT;
+        NrQosFlow flow(q);
+        m_nrHelper->ActivateDataRadioBearer(ueDevice, flow);
     }
 }
 
@@ -528,9 +528,9 @@ NrRrcConnectionEstablishmentTestCase::CheckConnected(Ptr<NetDevice> ueDevice,
                     ueBearerIt->second->GetObject<NrDataRadioBearerInfo>();
                 // NS_TEST_ASSERT_MSG_EQ (gnbDrbInfo->m_epsBearer, ueDrbInfo->m_epsBearer,
                 // "epsBearer differs");
-                NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_epsBearerIdentity,
-                                      (uint32_t)ueDrbInfo->m_epsBearerIdentity,
-                                      "epsBearerIdentity differs");
+                NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_qosFlowIdentity,
+                                      (uint32_t)ueDrbInfo->m_qosFlowIdentity,
+                                      "qosFlowIdentity differs");
                 NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_drbIdentity,
                                       (uint32_t)ueDrbInfo->m_drbIdentity,
                                       "drbIdentity differs");

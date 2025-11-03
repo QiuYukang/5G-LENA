@@ -7,7 +7,7 @@
 #ifndef NR_RADIO_BEARER_INFO_H
 #define NR_RADIO_BEARER_INFO_H
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 #include "nr-rrc-sap.h"
 
 #include "ns3/ipv4-address.h"
@@ -69,8 +69,8 @@ class NrDataRadioBearerInfo : public NrRadioBearerInfo
      */
     static TypeId GetTypeId();
 
-    NrEpsBearer m_epsBearer;                               ///< EPS bearer
-    uint8_t m_epsBearerIdentity;                           ///< EPS bearer identity
+    NrQosFlow m_qosFlow;                                   ///< QoS flow
+    uint8_t m_qosFlowIdentity;                             ///< QFI
     uint8_t m_drbIdentity;                                 ///< DRB identity
     NrRrcSap::RlcConfig m_rlcConfig;                       ///< RLC config
     uint8_t m_logicalChannelIdentity;                      ///< logical channel identity

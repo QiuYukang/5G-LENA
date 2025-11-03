@@ -611,9 +611,9 @@ NrCsiTestCase::DoRun()
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPowerUe));
 
     uint32_t bwpId = 0;
-    // gNb routing between bearer type and bandwidth part
+    // gNb routing between flow type and bandwidth part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
-    // UE routing between bearer type and bandwidth part
+    // UE routing between flow type and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
     /**
      * Initialize channel and pathloss, plus other things inside band.
@@ -731,8 +731,8 @@ NrCsiTestCase::DoRun()
     /**
      * Configure attributes for ON_OFF applications, used by interferers
      */
-    // The bearer that will carry the traffic
-    NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry the traffic
+    NrQosFlow flow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
     Ptr<NrQosRule> dlRule = Create<NrQosRule>();
@@ -790,7 +790,7 @@ NrCsiTestCase::DoRun()
                                         (i == 0 ? NanoSeconds(0) : MilliSeconds(100)));
 
         // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, epsBearer, dlRule);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, dlRule);
         if (i > 0)
         {
             std::stringstream ss;

@@ -68,16 +68,16 @@ class NrNoOpComponentCarrierManager : public NrGnbComponentCarrierManager
     virtual void DoAddLc(NrGnbCmacSapProvider::LcInfo lcInfo, NrMacSapUser* msu);
     /**
      * @brief Setup data radio bearer.
-     * @param bearer the radio bearer
-     * @param bearerId the bearerID
+     * @param flow the QoS flow
+     * @param qfi the QoS flow ID
      * @param rnti the RNTI
      * @param lcid the LCID
      * @param lcGroup the LC group
      * @param msu the MSU
      * @returns std::vector<NrCcmRrcSapProvider::LcsConfig>
      */
-    virtual std::vector<NrCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(NrEpsBearer bearer,
-                                                                               uint8_t bearerId,
+    virtual std::vector<NrCcmRrcSapProvider::LcsConfig> DoSetupDataRadioBearer(NrQosFlow flow,
+                                                                               uint8_t qfi,
                                                                                uint16_t rnti,
                                                                                uint8_t lcid,
                                                                                uint8_t lcGroup,

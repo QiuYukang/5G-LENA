@@ -7,7 +7,7 @@
 #ifndef NR_EPC_X2_SAP_H
 #define NR_EPC_X2_SAP_H
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 
 #include "ns3/ipv4-address.h"
 #include "ns3/packet.h"
@@ -45,14 +45,14 @@ class NrEpcX2Sap
      */
     struct ErabToBeSetupItem
     {
-        uint16_t erabId;                    ///< E-RAB ID
-        NrEpsBearer erabLevelQosParameters; ///< E-RAB level QOS parameters
-        bool dlForwarding;                  ///< DL forwarding
-        Ipv4Address transportLayerAddress;  ///< transport layer address
-        uint32_t gtpTeid;                   ///< TEID
+        uint16_t erabId;                   ///< E-RAB ID
+        NrQosFlow erabLevelQosParameters;  ///< E-RAB level QOS parameters
+        bool dlForwarding;                 ///< DL forwarding
+        Ipv4Address transportLayerAddress; ///< transport layer address
+        uint32_t gtpTeid;                  ///< TEID
 
         ErabToBeSetupItem()
-            : erabLevelQosParameters(NrEpsBearer(NrEpsBearer::GBR_CONV_VOICE))
+            : erabLevelQosParameters(NrQosFlow(NrQosFlow::GBR_CONV_VOICE))
         {
         }
     };

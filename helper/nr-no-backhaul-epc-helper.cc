@@ -444,10 +444,10 @@ NrNoBackhaulEpcHelper::AddUe(Ptr<NetDevice> ueDevice, uint64_t imsi)
 }
 
 uint8_t
-NrNoBackhaulEpcHelper::ActivateEpsBearer(Ptr<NetDevice> ueDevice,
-                                         uint64_t imsi,
-                                         Ptr<NrQosRule> rule,
-                                         NrEpsBearer bearer)
+NrNoBackhaulEpcHelper::ActivateQosFlow(Ptr<NetDevice> ueDevice,
+                                       uint64_t imsi,
+                                       Ptr<NrQosRule> rule,
+                                       NrQosFlow flow)
 {
     NS_LOG_FUNCTION(this << ueDevice << imsi);
 
@@ -458,7 +458,7 @@ NrNoBackhaulEpcHelper::ActivateEpsBearer(Ptr<NetDevice> ueDevice,
     Ptr<Ipv4> ueIpv4 = ueNode->GetObject<Ipv4>();
     Ptr<Ipv6> ueIpv6 = ueNode->GetObject<Ipv6>();
     NS_ASSERT_MSG(ueIpv4 || ueIpv6,
-                  "UEs need to have IPv4/IPv6 installed before EPS bearers can be activated");
+                  "UEs need to have IPv4/IPv6 installed before QoS flows can be activated");
 
     if (ueIpv4)
     {
@@ -480,16 +480,16 @@ NrNoBackhaulEpcHelper::ActivateEpsBearer(Ptr<NetDevice> ueDevice,
             m_pgwApp->SetUeAddress6(imsi, ueAddr6);
         }
     }
-    uint8_t bearerId = m_mmeApp->AddBearer(imsi, rule, bearer);
-    DoActivateEpsBearerForUe(ueDevice, rule, bearer);
+    uint8_t qosFlowId = m_mmeApp->AddFlow(imsi, rule, flow);
+    DoActivateQosFlowForUe(ueDevice, rule, flow);
 
-    return bearerId;
+    return qosFlowId;
 }
 
 void
-NrNoBackhaulEpcHelper::DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
-                                                const Ptr<NrQosRule>& rule,
-                                                const NrEpsBearer& bearer) const
+NrNoBackhaulEpcHelper::DoActivateQosFlowForUe(const Ptr<NetDevice>& ueDevice,
+                                              const Ptr<NrQosRule>& rule,
+                                              const NrQosFlow& flow) const
 {
     NS_LOG_FUNCTION(this);
     Ptr<NrUeNetDevice> ueNrDevice = DynamicCast<NrUeNetDevice>(ueDevice);
@@ -497,16 +497,16 @@ NrNoBackhaulEpcHelper::DoActivateEpsBearerForUe(const Ptr<NetDevice>& ueDevice,
     {
         // You may wonder why this is not an assert. Well, take a look in epc-test-s1u-downlink
         // and -uplink: we are using CSMA to simulate UEs.
-        NS_LOG_WARN("Unable to find NrUeNetDevice while activating the EPS bearer");
+        NS_LOG_WARN("Unable to find NrUeNetDevice while activating the QoS flow");
     }
     else
     {
         // Schedule with context so that logging statements have Node ID
         Simulator::ScheduleWithContext(ueNrDevice->GetNode()->GetId(),
                                        Time(),
-                                       &NrEpcUeNas::ActivateEpsBearer,
+                                       &NrEpcUeNas::ActivateQosFlow,
                                        ueNrDevice->GetNas(),
-                                       bearer,
+                                       flow,
                                        rule);
     }
 }

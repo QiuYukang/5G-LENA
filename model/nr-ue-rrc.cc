@@ -589,11 +589,11 @@ NrUeRrc::InitializeSap()
 }
 
 void
-NrUeRrc::DoSendData(Ptr<Packet> packet, uint8_t bid)
+NrUeRrc::DoSendData(Ptr<Packet> packet, uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << packet);
+    NS_LOG_FUNCTION(this << packet << qfi);
 
-    uint8_t drbid = Bid2Drbid(bid);
+    uint8_t drbid = Qfi2Drbid(qfi);
 
     if (drbid != 0)
     {
@@ -1577,7 +1577,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
 
             Ptr<NrDataRadioBearerInfo> drbInfo = CreateObject<NrDataRadioBearerInfo>();
             drbInfo->m_rlc = rlc;
-            drbInfo->m_epsBearerIdentity = dtamIt->epsBearerIdentity;
+            drbInfo->m_qosFlowIdentity = dtamIt->qosFlowIdentity;
             drbInfo->m_logicalChannelIdentity = dtamIt->logicalChannelIdentity;
             drbInfo->m_drbIdentity = dtamIt->drbIdentity;
 
@@ -1594,7 +1594,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
                 drbInfo->m_pdcp = pdcp;
             }
 
-            m_bid2DrbidMap[dtamIt->epsBearerIdentity] = dtamIt->drbIdentity;
+            m_qfi2DrbidMap[dtamIt->qosFlowIdentity] = dtamIt->drbIdentity;
 
             m_drbMap.insert(
                 std::pair<uint8_t, Ptr<NrDataRadioBearerInfo>>(dtamIt->drbIdentity, drbInfo));
@@ -1654,7 +1654,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
         auto it = m_drbMap.find(drbid);
         NS_ASSERT_MSG(it != m_drbMap.end(), "could not find bearer with given lcid");
         m_drbMap.erase(it);
-        m_bid2DrbidMap.erase(drbid);
+        m_qfi2DrbidMap.erase(drbid);
         // Remove LCID
         for (uint32_t i = 0; i < m_numberOfComponentCarriers; i++)
         {
@@ -3195,7 +3195,7 @@ NrUeRrc::LeaveConnectedMode()
     }
 
     m_drbMap.clear();
-    m_bid2DrbidMap.clear();
+    m_qfi2DrbidMap.clear();
     m_srb1 = nullptr;
     m_hasReceivedMib = false;
     m_hasReceivedSib1 = false;
@@ -3253,11 +3253,11 @@ NrUeRrc::DisposeOldSrb1()
 }
 
 uint8_t
-NrUeRrc::Bid2Drbid(uint8_t bid)
+NrUeRrc::Qfi2Drbid(uint8_t qfi)
 {
-    auto it = m_bid2DrbidMap.find(bid);
-    // NS_ASSERT_MSG (it != m_bid2DrbidMap.end (), "could not find BID " << bid);
-    if (it == m_bid2DrbidMap.end())
+    auto it = m_qfi2DrbidMap.find(qfi);
+    // NS_ASSERT_MSG (it != m_qfi2DrbidMap.end (), "could not find QFI " << +qfi);
+    if (it == m_qfi2DrbidMap.end())
     {
         return 0;
     }

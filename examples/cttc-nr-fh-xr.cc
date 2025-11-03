@@ -86,7 +86,7 @@ struct VoiceApplicationSettings
     Ptr<Node> remoteHost;
     Ptr<NetDevice> ueNetDev;
     Ptr<NrHelper> nrHelper;
-    NrEpsBearer& bearer;
+    NrQosFlow& flow;
     Ptr<NrQosRule> rule;
     ApplicationContainer& serverApps;
     ApplicationContainer& clientApps;
@@ -117,7 +117,7 @@ void ConfigureXrApp(NodeContainer& ueContainer,
                     NodeContainer& remoteHostContainer,
                     NetDeviceContainer& ueNetDev,
                     Ptr<NrHelper> nrHelper,
-                    NrEpsBearer& bearer,
+                    NrQosFlow& flow,
                     Ptr<NrQosRule> rule,
                     bool isMx1,
                     std::vector<Ptr<NrQosRule>>& rules,
@@ -564,7 +564,7 @@ main(int argc, char* argv[])
 
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod",
                        TimeValue(MilliSeconds(channelUpdatePeriod)));
-    Config::SetDefault("ns3::NrGnbRrc::EpsBearerToRlcMapping",
+    Config::SetDefault("ns3::NrGnbRrc::QosFlowToRlcMapping",
                        EnumValue(useUdp ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
@@ -1408,8 +1408,8 @@ main(int argc, char* argv[])
     uint16_t ulPortArStop = 2124;
     uint16_t ulPortVoiceStart = 2254; // VoIP has 1 flow
 
-    // The bearer that will carry AR traffic (QCI80)
-    NrEpsBearer arBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The flow that will carry AR traffic (QCI80)
+    NrQosFlow arBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> arRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfAr;
@@ -1434,10 +1434,10 @@ main(int argc, char* argv[])
         }
     }
 
-    // The bearer that will carry VR traffic (can be QCI80/QCI87)
-    NrEpsBearer vrConfig =
-        enableInterServ == 0 ? NrEpsBearer::NGBR_LOW_LAT_EMBB : NrEpsBearer::DGBR_INTER_SERV_87;
-    NrEpsBearer vrBearer(vrConfig);
+    // The flow that will carry VR traffic (can be QCI80/QCI87)
+    NrQosFlow vrConfig =
+        enableInterServ == 0 ? NrQosFlow::NGBR_LOW_LAT_EMBB : NrQosFlow::DGBR_INTER_SERV_87;
+    NrQosFlow vrBearer(vrConfig);
 
     Ptr<NrQosRule> vrRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfVr;
@@ -1445,8 +1445,8 @@ main(int argc, char* argv[])
     dlpfVr.localPortEnd = dlPortVrStart;
     vrRule->Add(dlpfVr);
 
-    // The bearer that will carry CG traffic (QCI80)
-    NrEpsBearer cgBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The flow that will carry CG traffic (QCI80)
+    NrQosFlow cgBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> cgRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfCg;
@@ -1454,8 +1454,8 @@ main(int argc, char* argv[])
     dlpfCg.localPortEnd = dlPortCgStart;
     cgRule->Add(dlpfCg);
 
-    // The bearer that will carry VoIP traffic
-    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
+    // The flow that will carry VoIP traffic
+    NrQosFlow voiceBearer(NrQosFlow::GBR_CONV_VOICE);
 
     Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfVoice;
@@ -1464,8 +1464,8 @@ main(int argc, char* argv[])
     voiceRule->Add(dlpfVoice);
 
     // UL
-    //  The bearer that will carry UL AR traffic (QCI80)
-    NrEpsBearer arUlBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    //  The flow that will carry UL AR traffic (QCI80)
+    NrQosFlow arUlBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> arUlRule = Create<NrQosRule>();
     NrQosRule::PacketFilter ulpfAr;
@@ -1492,8 +1492,8 @@ main(int argc, char* argv[])
         }
     }
 
-    // The bearer that will carry UL VoIP traffic
-    NrEpsBearer voiceUlBearer(NrEpsBearer::GBR_CONV_VOICE);
+    // The flow that will carry UL VoIP traffic
+    NrQosFlow voiceUlBearer(NrQosFlow::GBR_CONV_VOICE);
 
     Ptr<NrQosRule> voiceUlRule = Create<NrQosRule>();
     NrQosRule::PacketFilter ulpfVoice;
@@ -1516,7 +1516,7 @@ main(int argc, char* argv[])
         .uePort = dlPortVoiceStart,
         .transportProtocol = transportProtocol,
         .nrHelper = nrHelper,
-        .bearer = voiceBearer,
+        .flow = voiceBearer,
         .rule = voiceRule,
         .serverApps = serverApps,
         .clientApps = clientApps,
@@ -1539,7 +1539,7 @@ main(int argc, char* argv[])
     uint16_t remoteHostPort = 3254;
     if (enableUl)
     {
-        voiceAppSettings.bearer = voiceUlBearer;
+        voiceAppSettings.flow = voiceUlBearer;
         voiceAppSettings.rule = voiceUlRule;
         voiceAppSettings.direction = "UL";
         for (const auto& [nodeContainer, netDevContainer, ipIfaceContainer] : sectorContainers)
@@ -2261,7 +2261,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
                NodeContainer& remoteHostContainer,
                NetDeviceContainer& ueNetDev,
                Ptr<NrHelper> nrHelper,
-               NrEpsBearer& bearer,
+               NrQosFlow& flow,
                Ptr<NrQosRule> rule,
                bool isMx1,
                std::vector<Ptr<NrQosRule>>& rules,
@@ -2316,20 +2316,20 @@ ConfigureXrApp(NodeContainer& ueContainer,
 
     Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
 
-    // Activate a dedicated bearer for the traffic type per node
-    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
+    // Activate a dedicated flow for the traffic type per node
+    nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rule);
 
-    // Activate a dedicated bearer for the traffic type per node
+    // Activate a dedicated flow for the traffic type per node
     if (isMx1)
     {
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rule);
     }
     else
     {
         NS_ASSERT(rules.size() >= currentUeClientApps.GetN());
         for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
         {
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rules[j]);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rules[j]);
         }
     }
 
@@ -2398,10 +2398,10 @@ ConfigureVoiceApp(VoiceApplicationSettings& voiceAppSettings)
     }
 
     Ptr<NetDevice> ueDevice = voiceAppSettings.ueNetDev;
-    // Activate a dedicated bearer for the traffic type per node
-    voiceAppSettings.nrHelper->ActivateDedicatedEpsBearer(ueDevice,
-                                                          voiceAppSettings.bearer,
-                                                          voiceAppSettings.rule);
+    // Activate a dedicated flow for the traffic type per node
+    voiceAppSettings.nrHelper->ActivateDedicatedQosFlow(ueDevice,
+                                                        voiceAppSettings.flow,
+                                                        voiceAppSettings.rule);
 
     InetSocketAddress localAddress(Ipv4Address::GetAny(), port);
     PacketSinkHelper dlPacketSinkHelper(voiceAppSettings.transportProtocol, localAddress);

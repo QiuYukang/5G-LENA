@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
-#ifndef BWPMANAGERUE_H
-#define BWPMANAGERUE_H
+#ifndef BWP_MANAGER_UE_H
+#define BWP_MANAGER_UE_H
 
-#include "nr-eps-bearer.h"
 #include "nr-phy-mac-common.h"
+#include "nr-qos-flow.h"
 #include "nr-simple-ue-component-carrier-manager.h"
 #include "nr-ue-ccm-rrc-sap.h"
 
@@ -107,10 +107,10 @@ class BwpManagerUe : public NrSimpleUeComponentCarrierManager
 
   private:
     Ptr<BwpManagerAlgorithm> m_algorithm;
-    std::unordered_map<uint8_t, NrEpsBearer::Qci> m_lcToBearerMap; //!< Map from LCID to bearer ID
+    std::unordered_map<uint8_t, NrQosFlow::Qci> m_lcToBearerMap; //!< Map from LCID to QoS flow ID
 
     std::unordered_map<uint32_t, uint32_t> m_outputLinks; //!< Mapping between BWP.
 };
 
 } // namespace ns3
-#endif // BWPMANAGERUE_H
+#endif // BWP_MANAGER_UE_H

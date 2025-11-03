@@ -449,9 +449,9 @@ main(int argc, char* argv[])
                                 TimeValue(MilliSeconds(sbPmiUpdateIntervalMs)));
 
     uint32_t bwpId = 0;
-    // gNb routing between bearer type and bandwidth part
+    // gNb routing between QoS flow type and bandwidth part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
-    // UE routing between bearer type and bandwidth part
+    // UE routing between QoS flow type and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpId));
     BandwidthPartInfoPtrVector allBwps;
     allBwps = CcBwpCreator::GetAllBwps({band});
@@ -532,8 +532,8 @@ main(int argc, char* argv[])
     // The server, that is the application which is listening, is installed in the UE
     serverApps.Add(dlPacketSink.Install(ueContainer));
 
-    // The bearer that will carry the traffic
-    NrEpsBearer epsBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry the traffic
+    NrQosFlow qosFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the traffic
     Ptr<NrQosRule> dlRule = Create<NrQosRule>();
@@ -562,8 +562,8 @@ main(int argc, char* argv[])
             "Remote",
             AddressValue(addressUtils::ConvertToSocketAddress(ueIpIface.GetAddress(0), dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
-        // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlRule);
+        // Activate a dedicated QoS flow for the traffic
+        nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(0), qosFlow, dlRule);
     }
     else if (trafficType == "ftp")
     {
@@ -580,8 +580,8 @@ main(int argc, char* argv[])
         ftpHelper.SetAttribute("Remote",
                                AddressValue(InetSocketAddress(ueIpIface.GetAddress(0, 0), dlPort)));
         clientApps.Add(ftpHelper.Install(remoteHost));
-        // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(0), epsBearer, dlRule);
+        // Activate a dedicated QoS flow for the traffic
+        nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(0), qosFlow, dlRule);
     }
 
     if (enableInterfNode)
@@ -601,8 +601,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueIpIface.GetAddress(1), dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic
-        nrHelper->ActivateDedicatedEpsBearer(ueNetDev.Get(1), epsBearer, dlRule);
+        // Activate a dedicated QoS flow for the traffic
+        nrHelper->ActivateDedicatedQosFlow(ueNetDev.Get(1), qosFlow, dlRule);
     }
 
     // start UDP server and client apps

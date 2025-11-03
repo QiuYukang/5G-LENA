@@ -482,7 +482,7 @@ main(int argc, char* argv[])
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaULL)));
 
     // The bearer that will carry low latency traffic
-    NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    NrQosFlow lowLatFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
     Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
@@ -498,7 +498,7 @@ main(int argc, char* argv[])
     dlClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
     // The bearer that will carry voice traffic
-    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
+    NrQosFlow voiceFlow(NrQosFlow::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
     Ptr<NrQosRule> voiceRule = Create<NrQosRule>();
@@ -526,7 +526,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientLowLat.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatFlow, lowLatRule);
     }
 
     for (uint32_t i = 0; i < ueVoiceContainer.GetN(); ++i)
@@ -543,7 +543,7 @@ main(int argc, char* argv[])
         clientApps.Add(dlClientVoice.Install(remoteHost));
 
         // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceRule);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, voiceFlow, voiceRule);
     }
 
     // start UDP server and client apps

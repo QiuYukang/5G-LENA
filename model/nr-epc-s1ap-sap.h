@@ -7,7 +7,7 @@
 #ifndef NR_EPC_S1AP_SAP_H
 #define NR_EPC_S1AP_SAP_H
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 
 #include "ns3/address.h"
 #include "ns3/ipv4-address.h"
@@ -133,10 +133,10 @@ class NrEpcS1apSapGnb : public NrEpcS1apSap
     /// ErabToBeSetupItem structure
     struct ErabToBeSetupItem
     {
-        uint8_t erabId;                     ///< ERAB iD
-        NrEpsBearer erabLevelQosParameters; ///< Level QOS parameters
-        Ipv4Address transportLayerAddress;  ///< transport layer address
-        uint32_t sgwTeid;                   ///< TEID
+        uint8_t erabId;                    ///< ERAB iD
+        NrQosFlow erabLevelQosParameters;  ///< Level QOS parameters
+        Ipv4Address transportLayerAddress; ///< transport layer address
+        uint32_t sgwTeid;                  ///< TEID
     };
 
     /**

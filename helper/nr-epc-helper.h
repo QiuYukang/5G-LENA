@@ -14,7 +14,7 @@
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/ipv6-address-helper.h"
 #include "ns3/node-container.h"
-#include "ns3/nr-eps-bearer.h"
+#include "ns3/nr-qos-flow.h"
 #include "ns3/nr-qos-rule.h"
 #include "ns3/object.h"
 
@@ -98,21 +98,19 @@ class NrEpcHelper : public Object
                                 uint16_t cellId) = 0;
 
     /**
-     * Activate an EPS bearer, setting up the corresponding S1-U tunnel.
-     *
-     *
+     * Activate a QoS flow, setting up the corresponding S1-U tunnel.
      *
      * @param ueNrDevice the Ipv4-enabled device of the UE, normally
      * connected via the NR radio interface
      * @param imsi the unique identifier of the UE
-     * @param rule the QoS rule of the new bearer
-     * @param bearer struct describing the characteristics of the EPS bearer to be activated
-     * @return bearer ID
+     * @param rule the QoS rule of the new flow
+     * @param bearer struct describing the characteristics of the QoS flow to be activated
+     * @return QoS flow ID
      */
-    virtual uint8_t ActivateEpsBearer(Ptr<NetDevice> ueNrDevice,
-                                      uint64_t imsi,
-                                      Ptr<NrQosRule> rule,
-                                      NrEpsBearer bearer) = 0;
+    virtual uint8_t ActivateQosFlow(Ptr<NetDevice> ueNrDevice,
+                                    uint64_t imsi,
+                                    Ptr<NrQosRule> rule,
+                                    NrQosFlow flow) = 0;
 
     /**
      * Get the SGW node

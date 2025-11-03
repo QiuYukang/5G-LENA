@@ -268,7 +268,7 @@ NrEpcX2HandoverRequestHeader::Deserialize(Buffer::Iterator start)
 
         erabItem.erabId = i.ReadNtohU16();
 
-        erabItem.erabLevelQosParameters = NrEpsBearer((NrEpsBearer::Qci)i.ReadNtohU16());
+        erabItem.erabLevelQosParameters = NrQosFlow((NrQosFlow::Qci)i.ReadNtohU16());
         erabItem.erabLevelQosParameters.gbrQosInfo.gbrDl = i.ReadNtohU64();
         erabItem.erabLevelQosParameters.gbrQosInfo.gbrUl = i.ReadNtohU64();
         erabItem.erabLevelQosParameters.gbrQosInfo.mbrDl = i.ReadNtohU64();

@@ -300,13 +300,13 @@ main(int argc, char* argv[])
     uint32_t bwpIdUe2Flow1 = 0;
     uint32_t bwpIdUe2Flow2 = 0;
 
-    // gNb routing between Bearer and bandwidh part
+    // gNb routing between QoS flow and bandwidh part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdUe1));
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdUe2Flow1));
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("DGBR_INTER_SERV_87",
                                                  UintegerValue(bwpIdUe2Flow2));
 
-    // Ue routing between Bearer and bandwidth part
+    // Ue routing between QoS flow and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdUe1));
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_LOW_LAT_EMBB", UintegerValue(bwpIdUe2Flow1));
     nrHelper->SetUeBwpManagerAlgorithmAttribute("DGBR_INTER_SERV_87", UintegerValue(bwpIdUe2Flow2));
@@ -377,8 +377,8 @@ main(int argc, char* argv[])
     dlClientUe1flow.SetAttribute("PacketSize", UintegerValue(udpPacketSize1));
     dlClientUe1flow.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda1)));
 
-    // The bearer that will carry UE with 1 flow Non GBR traffic
-    NrEpsBearer ue1flowBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry UE with 1 flow Non GBR traffic
+    NrQosFlow ue1flow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the UE with 1 flow Non GBR traffic
     Ptr<NrQosRule> ue1flowRule = Create<NrQosRule>();
@@ -398,8 +398,8 @@ main(int argc, char* argv[])
     // NrGbrQosInformation qosInfoInterServ2;
     // qosInfoInterServ2.gbrDl = 6e6; // Downlink GBR
 
-    // The bearer that will carry UE with 2 Flows Non GBR traffic
-    NrEpsBearer ue2flowsNgbrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB); // qosInfoInterServ2);
+    // The QoS flow that will carry UE with 2 Flows Non GBR traffic
+    NrQosFlow ue2flowsNgbr(NrQosFlow::NGBR_LOW_LAT_EMBB); // qosInfoInterServ2);
 
     // The filter for the UE with 2 Flows Non GBR traffic
     Ptr<NrQosRule> ue2flowsNgbrRule = Create<NrQosRule>();
@@ -418,8 +418,8 @@ main(int argc, char* argv[])
     NrGbrQosInformation qosUe2flowsDcGbr;
     qosUe2flowsDcGbr.gbrDl = 5e6; // Downlink GBR
 
-    // The bearer that will carry Ue 2 Flows DC GBR traffic
-    NrEpsBearer ue2flowsDcGbrBearer(NrEpsBearer::DGBR_INTER_SERV_87, qosUe2flowsDcGbr);
+    // The QoS flow that will carry Ue 2 Flows DC GBR traffic
+    NrQosFlow ue2flowsDcGbr(NrQosFlow::DGBR_INTER_SERV_87, qosUe2flowsDcGbr);
 
     // The filter for the 2 Flows DC GBR traffic
     Ptr<NrQosRule> ue2FlowsDcGbrRule = Create<NrQosRule>();
@@ -444,8 +444,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortUe1flow)));
         clientApps.Add(dlClientUe1flow.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue1flowBearer, ue1flowRule);
+        // Activate a dedicated QoS flow for the traffic type
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, ue1flow, ue1flowRule);
     }
 
     for (uint32_t i = 0; i < ue2flowsContainer.GetN(); ++i)
@@ -460,8 +460,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortUe2flowsNgbr)));
         clientApps.Add(dlClientUe2flowsNgbr.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue2flowsNgbrBearer, ue2flowsNgbrRule);
+        // Activate a dedicated QoS flow for the traffic type
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, ue2flowsNgbr, ue2flowsNgbrRule);
     }
 
     for (uint32_t i = 0; i < ue2flowsContainer.GetN(); ++i)
@@ -476,8 +476,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortUe2flowsDcGbr)));
         clientApps.Add(dlClientUe2flowsDcGbr.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, ue2flowsDcGbrBearer, ue2FlowsDcGbrRule);
+        // Activate a dedicated QoS flow for the traffic type
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, ue2flowsDcGbr, ue2FlowsDcGbrRule);
     }
 
     // start UDP server and client apps

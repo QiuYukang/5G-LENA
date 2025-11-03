@@ -14,7 +14,7 @@
 #include "ns3/node-container.h"
 #include "ns3/nr-component-carrier.h"
 #include "ns3/nr-control-messages.h"
-#include "ns3/nr-eps-bearer.h"
+#include "ns3/nr-qos-flow.h"
 #include "ns3/nr-spectrum-phy.h"
 #include "ns3/object-factory.h"
 
@@ -179,10 +179,10 @@ class NrFhControl;
  * The call to UpdateConfig() will finish the configuration, and update the
  * RRC layer.
  *
- * @section helper_bearers Dedicated bearers
+ * @section helper_bearers Dedicated QoS flows
  *
- * We have methods to open dedicated UE bearers: ActivateDedicatedEpsBearer()
- * and DeActivateDedicatedEpsBearer(). Please take a look at their documentation
+ * We have methods to open dedicated UE QosFlows: ActivateDedicatedQosFlow()
+ * and DeActivateDedicatedQosFlow(). Please take a look at their documentation
  * for more information.
  *
  * @section helper_attachment Attachment of UEs to GNBs
@@ -330,9 +330,9 @@ class NrHelper : public Object
      * @brief Activate a Data Radio Bearer on a given UE devices
      *
      * @param ueDevices the set of UE devices
-     * @param bearer the characteristics of the bearer to be activated
+     * @param flow the QoS characteristics of the flow to be activated
      */
-    void ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrEpsBearer bearer);
+    void ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrQosFlow flow);
     /**
      * @brief Activate a Data Radio Bearer on a UE device.
      *
@@ -342,7 +342,7 @@ class NrHelper : public Object
      * @param ueDevice the UE device
      * @param bearer the characteristics of the bearer to be activated
      */
-    void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer);
+    void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrQosFlow flow);
     /**
      * Set the NrEpcHelper to be used to setup the EPC network in
      * conjunction with the setup of the NR radio access network.
@@ -379,42 +379,40 @@ class NrHelper : public Object
     bool GetSnrTest() const;
 
     /**
-     * Activate a dedicated EPS bearer on a given set of UE devices.
+     * Activate a dedicated QoS flow on a given set of UE devices.
      *
      * @param ueDevices the set of UE devices
-     * @param bearer the characteristics of the bearer to be activated
-     * @param rule the QoS rule that identifies the traffic to go on this bearer
-     * @returns bearer ID
+     * @param flow the QoS characteristics of the flow to be activated
+     * @param rule the QoS rule that identifies the traffic to go on this flow
+     * @returns QoS flow ID
      */
-    uint8_t ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
-                                       NrEpsBearer bearer,
-                                       Ptr<NrQosRule> rule);
+    uint8_t ActivateDedicatedQosFlow(NetDeviceContainer ueDevices,
+                                     NrQosFlow flow,
+                                     Ptr<NrQosRule> rule);
 
     /**
-     * Activate a dedicated EPS bearer on a given UE device.
+     * Activate a dedicated QoS flow on a given UE device.
      *
      * @param ueDevice the UE device
-     * @param bearer the characteristics of the bearer to be activated
-     * @param rule the QoS rule that identifies the traffic to go on this bearer.
-     * @returns bearer ID
+     * @param flow the QoS characteristics of the flow to be activated
+     * @param rule the QoS rule that identifies the traffic to go on this flow.
+     * @returns QoS flow ID
      */
-    uint8_t ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                       NrEpsBearer bearer,
-                                       Ptr<NrQosRule> rule);
+    uint8_t ActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice, NrQosFlow flow, Ptr<NrQosRule> rule);
 
     /**
-     *  @brief Manually trigger dedicated bearer de-activation at specific simulation time
-     *  @param ueDevice the UE on which dedicated bearer to be de-activated must be of the type
+     *  @brief Manually trigger dedicated flow de-activation at specific simulation time
+     *  @param ueDevice the UE on which dedicated flow to be de-activated must be of the type
      * NrUeNetDevice
      *  @param gnbDevice gNB, must be of the type NrGnbNetDevice
-     *  @param bearerId Bearer Identity which is to be de-activated
+     *  @param qosFlowId QoS flow ID which is to be de-activated
      *
      *  @warning Requires the use of EPC mode. See SetEpcHelper() method.
      */
 
-    void DeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                      Ptr<NetDevice> gnbDevice,
-                                      uint8_t bearerId);
+    void DeActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice,
+                                    Ptr<NetDevice> gnbDevice,
+                                    uint8_t qosFlowId);
 
     /**
      * @brief Set an attribute for the UE MAC, before it is created.
@@ -998,17 +996,17 @@ class NrHelper : public Object
     int64_t DoAssignStreamsToChannelObjects(Ptr<NrSpectrumPhy> phy, int64_t currentStream);
 
     /**
-     *  @brief The actual function to trigger a manual bearer de-activation
-     *  @param ueDevice the UE on which bearer to be de-activated must be of the type NrUeNetDevice
+     *  @brief The actual function to trigger a manual flow de-activation
+     *  @param ueDevice the UE on which flow to be de-activated must be of the type NrUeNetDevice
      *  @param gnbDevice gNB, must be of the type NrGnbNetDevice
-     *  @param bearerId Bearer Identity which is to be de-activated
+     *  @param qosFlowId QoS flow ID which is to be de-activated
      *
-     *  This method is normally scheduled by DeActivateDedicatedEpsBearer() to run at a specific
-     *  time when a manual bearer de-activation is desired by the simulation user.
+     *  This method is normally scheduled by DeActivateDedicatedQosFlow() to run at a specific
+     *  time when a manual flow de-activation is desired by the simulation user.
      */
-    void DoDeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                        Ptr<NetDevice> gnbDevice,
-                                        uint8_t bearerId);
+    void DoDeActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice,
+                                      Ptr<NetDevice> gnbDevice,
+                                      uint8_t qosFlowId);
 
     Ptr<NrGnbPhy> CreateGnbPhy(const Ptr<Node>& n,
                                const BandwidthPartInfoPtr& bwp,

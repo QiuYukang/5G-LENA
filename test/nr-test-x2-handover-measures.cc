@@ -476,26 +476,26 @@ NrX2HandoverMeasuresTestCase::DoRun()
                     }
                 } // end if (useUdp)
 
-                Ptr<NrQosRule> tft = Create<NrQosRule>();
+                Ptr<NrQosRule> rule = Create<NrQosRule>();
                 if (epcDl)
                 {
                     NrQosRule::PacketFilter dlpf;
                     dlpf.localPortStart = dlPort;
                     dlpf.localPortEnd = dlPort;
-                    tft->Add(dlpf);
+                    rule->Add(dlpf);
                 }
                 if (epcUl)
                 {
                     NrQosRule::PacketFilter ulpf;
                     ulpf.remotePortStart = ulPort;
                     ulpf.remotePortEnd = ulPort;
-                    tft->Add(ulpf);
+                    rule->Add(ulpf);
                 }
 
                 if (epcDl || epcUl)
                 {
-                    NrEpsBearer bearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
-                    m_nrHelper->ActivateDedicatedEpsBearer(ueDevices.Get(u), bearer, tft);
+                    NrQosFlow flow(NrQosFlow::NGBR_VIDEO_TCP_DEFAULT);
+                    m_nrHelper->ActivateDedicatedQosFlow(ueDevices.Get(u), flow, rule);
                 }
                 Time startTime = Seconds(startTimeSeconds->GetValue());
                 serverApps.Start(startTime);
@@ -516,8 +516,8 @@ NrX2HandoverMeasuresTestCase::DoRun()
             Ptr<NetDevice> ueDev = ueDevices.Get(u);
             for (uint32_t b = 0; b < m_nDedicatedBearers; ++b)
             {
-                NrEpsBearer::Qci q = NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT;
-                NrEpsBearer bearer(q);
+                NrQosFlow::Qci q = NrQosFlow::NGBR_VIDEO_TCP_DEFAULT;
+                NrQosFlow bearer(q);
                 m_nrHelper->ActivateDataRadioBearer(ueDev, bearer);
             }
         }
@@ -639,14 +639,14 @@ NrX2HandoverMeasuresTestCase::CheckConnected(Ptr<NetDevice> ueDevice, Ptr<NetDev
             gnbBearerIt->second->GetObject<NrDataRadioBearerInfo>();
         Ptr<NrDataRadioBearerInfo> ueDrbInfo =
             ueBearerIt->second->GetObject<NrDataRadioBearerInfo>();
-        // NS_TEST_ASSERT_MSG_EQ (gnbDrbInfo->m_epsBearer, ueDrbInfo->m_epsBearer, "NrEpsBearer
+        // NS_TEST_ASSERT_MSG_EQ (gnbDrbInfo->m_qosFlow, ueDrbInfo->m_qosFlow, "NrQosFlow
         // differs");
-        NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_epsBearerIdentity,
-                              (uint32_t)ueDrbInfo->m_epsBearerIdentity,
-                              "epsBearerIdentity differs");
+        NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_qosFlowIdentity,
+                              (uint32_t)ueDrbInfo->m_qosFlowIdentity,
+                              "qosFlowIdentity differs");
         NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_drbIdentity,
                               (uint32_t)ueDrbInfo->m_drbIdentity,
-                              "drbIdentity differs");
+                              "qosFlowIdentity differs");
         // NS_TEST_ASSERT_MSG_EQ (gnbDrbInfo->m_rlcConfig, ueDrbInfo->m_rlcConfig, "rlcConfig
         // differs");
         NS_TEST_ASSERT_MSG_EQ((uint32_t)gnbDrbInfo->m_logicalChannelIdentity,

@@ -1287,7 +1287,7 @@ main(int argc, char* argv[])
 
     // The bearer that will carry low latency traffic
     EpsBearer lowLatBearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
-    NrEpsBearer nrLowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    NrQosFlow nrLowLatFlow(NrQosFlow::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
     Ptr<EpcTft> lowLatTft = CreateLowLatTft<EpcTft>(dlPortLowLat, dlPortLowLat, direction);
@@ -1421,7 +1421,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
+                nrHelper->ActivateDedicatedQosFlow(ueDevice, nrLowLatFlow, nrLowLatTft);
             }
             else
             {
@@ -1471,7 +1471,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
+                nrHelper->ActivateDedicatedQosFlow(ueDevice, nrLowLatFlow, nrLowLatTft);
             }
             else
             {
@@ -1521,7 +1521,7 @@ main(int argc, char* argv[])
             }
             else if (nrHelper != nullptr)
             {
-                nrHelper->ActivateDedicatedEpsBearer(ueDevice, nrLowLatBearer, nrLowLatTft);
+                nrHelper->ActivateDedicatedQosFlow(ueDevice, nrLowLatFlow, nrLowLatTft);
             }
             else
             {

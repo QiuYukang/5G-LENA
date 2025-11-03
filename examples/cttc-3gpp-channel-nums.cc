@@ -335,8 +335,8 @@ main(int argc, char* argv[])
     }
     dlClient.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambda)));
 
-    // The bearer that will carry low latency traffic
-    NrEpsBearer bearer(NrEpsBearer::GBR_CONV_VOICE);
+    // The flow that will carry low latency traffic
+    NrQosFlow flow(NrQosFlow::GBR_CONV_VOICE);
 
     Ptr<NrQosRule> rule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpf;
@@ -362,8 +362,8 @@ main(int argc, char* argv[])
             AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPort)));
         clientApps.Add(dlClient.Install(remoteHost));
 
-        // Activate a dedicated bearer for the traffic type
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
+        // Activate a dedicated QoS flow for the traffic type
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rule);
     }
 
     // start server and client apps

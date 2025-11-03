@@ -588,8 +588,8 @@ main(int argc, char* argv[])
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     dlClientLowLat.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
-    // The bearer that will carry low latency traffic
-    NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The flow that will carry low latency traffic
+    NrQosFlow lowLatBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     // The filter for the low-latency traffic
     Ptr<NrQosRule> lowLatTft = Create<NrQosRule>();
@@ -604,8 +604,8 @@ main(int argc, char* argv[])
     ulClientVoice.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
     ulClientVoice.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaBe)));
 
-    // The bearer that will carry voice traffic
-    NrEpsBearer voiceBearer(NrEpsBearer::GBR_CONV_VOICE);
+    // The flow that will carry voice traffic
+    NrQosFlow voiceFlow(NrQosFlow::GBR_CONV_VOICE);
 
     // The filter for the voice traffic
     Ptr<NrQosRule> voiceTft = Create<NrQosRule>();
@@ -621,8 +621,8 @@ main(int argc, char* argv[])
     dlClientVideo.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
     dlClientVideo.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaUll)));
 
-    // The bearer that will carry video traffic
-    NrEpsBearer videoBearer(NrEpsBearer::NGBR_VIDEO_TCP_PREMIUM);
+    // The flow that will carry video traffic
+    NrQosFlow videoFlow(NrQosFlow::NGBR_VIDEO_TCP_PREMIUM);
 
     // The filter for the video traffic
     Ptr<NrQosRule> videoTft = Create<NrQosRule>();
@@ -637,8 +637,8 @@ main(int argc, char* argv[])
     ulClientGaming.SetAttribute("PacketSize", UintegerValue(udpPacketSizeUll));
     ulClientGaming.SetAttribute("Interval", TimeValue(Seconds(1.0 / lambdaUll)));
 
-    // The bearer that will carry gaming traffic
-    NrEpsBearer gamingBearer(NrEpsBearer::NGBR_VOICE_VIDEO_GAMING);
+    // The flow that will carry gaming traffic
+    NrQosFlow gamingFlow(NrQosFlow::NGBR_VOICE_VIDEO_GAMING);
 
     // The filter for the gaming traffic
     Ptr<NrQosRule> gamingTft = Create<NrQosRule>();
@@ -666,7 +666,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortLowLat)));
             clientApps.Add(dlClientLowLat.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatTft);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatBearer, lowLatTft);
         }
         if (enableVideo)
         {
@@ -675,7 +675,7 @@ main(int argc, char* argv[])
                 AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPortVideo)));
             clientApps.Add(dlClientVideo.Install(remoteHost));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, videoBearer, videoTft);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, videoFlow, videoTft);
         }
 
         // For the uplink, the installation happens in the UE, and the remote address
@@ -689,7 +689,7 @@ main(int argc, char* argv[])
                     addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, ulPortVoice)));
             clientApps.Add(ulClientVoice.Install(ue));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, voiceBearer, voiceTft);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, voiceFlow, voiceTft);
         }
 
         if (enableGaming)
@@ -700,7 +700,7 @@ main(int argc, char* argv[])
                     addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, ulPortGaming)));
             clientApps.Add(ulClientGaming.Install(ue));
 
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, gamingBearer, gamingTft);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, gamingFlow, gamingTft);
         }
     }
 

@@ -45,11 +45,11 @@ NrDataRadioBearerInfo::GetTypeId()
                           UintegerValue(0), // unused (attribute is read-only
                           MakeUintegerAccessor(&NrDataRadioBearerInfo::m_drbIdentity),
                           MakeUintegerChecker<uint8_t>())
-            .AddAttribute("EpsBearerIdentity",
-                          "The id of the EPS bearer corresponding to this Data Radio Bearer",
+            .AddAttribute("QosFlowIdentity",
+                          "The id of the QoS Flow corresponding to this Data Radio Bearer",
                           TypeId::ATTR_GET, // allow only getting it.
                           UintegerValue(0), // unused (attribute is read-only
-                          MakeUintegerAccessor(&NrDataRadioBearerInfo::m_epsBearerIdentity),
+                          MakeUintegerAccessor(&NrDataRadioBearerInfo::m_qosFlowIdentity),
                           MakeUintegerChecker<uint8_t>())
             .AddAttribute("logicalChannelIdentity",
                           "The id of the Logical Channel corresponding to this Data Radio Bearer",

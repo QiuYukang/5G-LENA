@@ -147,22 +147,22 @@ class NrEpcSgwApplication : public Application
     void DoRecvCreateSessionRequest(Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Modify Bearer Request message
+     * Process GTP-C Modify Flow Request message
      * @param packet the packet containing the message
      */
-    void DoRecvModifyBearerRequest(Ptr<Packet> packet);
+    void DoRecvModifyFlowRequest(Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Delete Bearer Command message
+     * Process GTP-C Delete Flow Command message
      * @param packet the packet containing the message
      */
-    void DoRecvDeleteBearerCommand(Ptr<Packet> packet);
+    void DoRecvDeleteFlowCommand(Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Delete Bearer Response message
+     * Process GTP-C Delete Flow Response message
      * @param packet the packet containing the message
      */
-    void DoRecvDeleteBearerResponse(Ptr<Packet> packet);
+    void DoRecvDeleteFlowResponse(Ptr<Packet> packet);
 
     // Process messages received from the PGW
 
@@ -173,16 +173,16 @@ class NrEpcSgwApplication : public Application
     void DoRecvCreateSessionResponse(Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Modify Bearer Response message
+     * Process GTP-C Modify Flow Response message
      * @param packet the packet containing the message
      */
-    void DoRecvModifyBearerResponse(Ptr<Packet> packet);
+    void DoRecvModifyFlowResponse(Ptr<Packet> packet);
 
     /**
-     * Process GTP-C Delete Bearer Request message
+     * Process GTP-C Delete Flow Request message
      * @param packet the packet containing the message
      */
-    void DoRecvDeleteBearerRequest(Ptr<Packet> packet);
+    void DoRecvDeleteFlowRequest(Ptr<Packet> packet);
 
     /**
      * SGW address in the S5 interface

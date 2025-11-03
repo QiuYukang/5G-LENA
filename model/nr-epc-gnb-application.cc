@@ -8,7 +8,7 @@
 #include "nr-epc-gnb-application.h"
 
 #include "nr-epc-gtpu-header.h"
-#include "nr-eps-bearer-tag.h"
+#include "nr-qos-flow-tag.h"
 
 #include "ns3/inet-socket-address.h"
 #include "ns3/ipv4.h"
@@ -27,20 +27,20 @@ NrEpcGnbApplication::EpsFlowId_t::EpsFlowId_t()
 
 NrEpcGnbApplication::EpsFlowId_t::EpsFlowId_t(const uint16_t a, const uint8_t b)
     : m_rnti(a),
-      m_bid(b)
+      m_qfi(b)
 {
 }
 
 bool
 operator==(const NrEpcGnbApplication::EpsFlowId_t& a, const NrEpcGnbApplication::EpsFlowId_t& b)
 {
-    return ((a.m_rnti == b.m_rnti) && (a.m_bid == b.m_bid));
+    return ((a.m_rnti == b.m_rnti) && (a.m_qfi == b.m_qfi));
 }
 
 bool
 operator<(const NrEpcGnbApplication::EpsFlowId_t& a, const NrEpcGnbApplication::EpsFlowId_t& b)
 {
-    return ((a.m_rnti < b.m_rnti) || ((a.m_rnti == b.m_rnti) && (a.m_bid < b.m_bid)));
+    return ((a.m_rnti < b.m_rnti) || ((a.m_rnti == b.m_rnti) && (a.m_qfi < b.m_qfi)));
 }
 
 TypeId
@@ -153,21 +153,20 @@ NrEpcGnbApplication::DoPathSwitchRequest(NrEpcGnbS1SapProvider::PathSwitchReques
 
     uint16_t gci = params.cellId;
     std::list<NrEpcS1apSapMme::ErabSwitchedInDownlinkItem> erabToBeSwitchedInDownlinkList;
-    for (auto bit = params.bearersToBeSwitched.begin(); bit != params.bearersToBeSwitched.end();
-         ++bit)
+    for (auto bit = params.flowsToBeSwitched.begin(); bit != params.flowsToBeSwitched.end(); ++bit)
     {
         EpsFlowId_t flowId;
         flowId.m_rnti = params.rnti;
-        flowId.m_bid = bit->epsBearerId;
+        flowId.m_qfi = bit->qfi;
         uint32_t teid = bit->teid;
 
-        EpsFlowId_t rbid(params.rnti, bit->epsBearerId);
+        EpsFlowId_t rqfi(params.rnti, bit->qfi);
         // side effect: create entries if not exist
-        m_rbidTeidMap[params.rnti][bit->epsBearerId] = teid;
-        m_teidRbidMap[teid] = rbid;
+        m_rqfiTeidMap[params.rnti][bit->qfi] = teid;
+        m_teidRqfiMap[teid] = rqfi;
 
         NrEpcS1apSapMme::ErabSwitchedInDownlinkItem erab;
-        erab.erabId = bit->epsBearerId;
+        erab.erabId = bit->qfi;
         erab.gnbTransportLayerAddress = m_gnbS1uAddress;
         erab.gnbTeid = bit->teid;
 
@@ -180,16 +179,16 @@ void
 NrEpcGnbApplication::DoUeContextRelease(uint16_t rnti)
 {
     NS_LOG_FUNCTION(this << rnti);
-    auto rntiIt = m_rbidTeidMap.find(rnti);
-    if (rntiIt != m_rbidTeidMap.end())
+    auto rntiIt = m_rqfiTeidMap.find(rnti);
+    if (rntiIt != m_rqfiTeidMap.end())
     {
-        for (auto bidIt = rntiIt->second.begin(); bidIt != rntiIt->second.end(); ++bidIt)
+        for (auto qfiIt = rntiIt->second.begin(); qfiIt != rntiIt->second.end(); ++qfiIt)
         {
-            uint32_t teid = bidIt->second;
-            m_teidRbidMap.erase(teid);
+            uint32_t teid = qfiIt->second;
+            m_teidRqfiMap.erase(teid);
             NS_LOG_INFO("TEID: " << teid << " erased");
         }
-        m_rbidTeidMap.erase(rntiIt);
+        m_rqfiTeidMap.erase(rntiIt);
         NS_LOG_INFO("RNTI: " << rntiIt->first << " erased");
     }
 }
@@ -212,15 +211,15 @@ NrEpcGnbApplication::DoInitialContextSetupRequest(
         // request the RRC to setup a radio bearer
         NrEpcGnbS1SapUser::DataRadioBearerSetupRequestParameters params;
         params.rnti = rnti;
-        params.bearer = erabIt->erabLevelQosParameters;
-        params.bearerId = erabIt->erabId;
+        params.flow = erabIt->erabLevelQosParameters;
+        params.qfi = erabIt->erabId;
         params.gtpTeid = erabIt->sgwTeid;
         m_s1SapUser->DataRadioBearerSetupRequest(params);
 
-        EpsFlowId_t rbid(rnti, erabIt->erabId);
+        EpsFlowId_t rqfi(rnti, erabIt->erabId);
         // side effect: create entries if not exist
-        m_rbidTeidMap[rnti][erabIt->erabId] = params.gtpTeid;
-        m_teidRbidMap[params.gtpTeid] = rbid;
+        m_rqfiTeidMap[rnti][erabIt->erabId] = params.gtpTeid;
+        m_teidRqfiMap[params.gtpTeid] = rqfi;
     }
 
     // Send Initial Context Setup Request to RRC
@@ -261,22 +260,22 @@ NrEpcGnbApplication::RecvFromNrSocket(Ptr<Socket> socket)
     }
     Ptr<Packet> packet = socket->Recv();
 
-    NrEpsBearerTag tag;
+    NrQosFlowTag tag;
     bool found = packet->RemovePacketTag(tag);
     NS_ASSERT(found);
     uint16_t rnti = tag.GetRnti();
-    uint8_t bid = tag.GetBid();
-    NS_LOG_INFO("Received packet with RNTI: " << rnti << ", BID: " << +bid);
-    auto rntiIt = m_rbidTeidMap.find(rnti);
-    if (rntiIt == m_rbidTeidMap.end())
+    uint8_t qfi = tag.GetQfi();
+    NS_LOG_INFO("Received packet with RNTI: " << rnti << ", BID: " << +qfi);
+    auto rntiIt = m_rqfiTeidMap.find(rnti);
+    if (rntiIt == m_rqfiTeidMap.end())
     {
         NS_LOG_WARN("UE context not found, discarding packet");
     }
     else
     {
-        auto bidIt = rntiIt->second.find(bid);
-        NS_ASSERT(bidIt != rntiIt->second.end());
-        uint32_t teid = bidIt->second;
+        auto qfiIt = rntiIt->second.find(qfi);
+        NS_ASSERT(qfiIt != rntiIt->second.end());
+        uint32_t teid = qfiIt->second;
         m_rxNrSocketPktTrace(packet->Copy());
         SendToS1uSocket(packet, teid);
     }
@@ -292,25 +291,25 @@ NrEpcGnbApplication::RecvFromS1uSocket(Ptr<Socket> socket)
     packet->RemoveHeader(gtpu);
     uint32_t teid = gtpu.GetTeid();
     NS_LOG_INFO("Received packet from S1-U interface with GTP TEID: " << teid);
-    auto it = m_teidRbidMap.find(teid);
-    if (it == m_teidRbidMap.end())
+    auto it = m_teidRqfiMap.find(teid);
+    if (it == m_teidRqfiMap.end())
     {
         NS_LOG_WARN("UE context at cell id " << m_cellId << " not found, discarding packet");
     }
     else
     {
         m_rxS1uSocketPktTrace(packet->Copy());
-        SendToNrSocket(packet, it->second.m_rnti, it->second.m_bid);
+        SendToNrSocket(packet, it->second.m_rnti, it->second.m_qfi);
     }
 }
 
 void
-NrEpcGnbApplication::SendToNrSocket(Ptr<Packet> packet, uint16_t rnti, uint8_t bid)
+NrEpcGnbApplication::SendToNrSocket(Ptr<Packet> packet, uint16_t rnti, uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << packet << rnti << bid << packet->GetSize());
-    NrEpsBearerTag tag(rnti, bid);
+    NS_LOG_FUNCTION(this << packet << rnti << qfi << packet->GetSize());
+    NrQosFlowTag tag(rnti, qfi);
     packet->AddPacketTag(tag);
-    NS_LOG_INFO("Add NrEpsBearerTag with RNTI " << rnti << " and bearer ID " << +bid);
+    NS_LOG_INFO("Add NrQosFlowTag with RNTI " << rnti << " and bearer ID " << +qfi);
     uint8_t ipType;
 
     packet->CopyData(&ipType, 1);

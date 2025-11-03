@@ -50,7 +50,7 @@ ConfigureXrApp(NodeContainer& ueContainer,
                NodeContainer& remoteHostContainer,
                NetDeviceContainer& ueNetDev,
                Ptr<NrHelper> nrHelper,
-               NrEpsBearer& bearer,
+               NrQosFlow& flow,
                Ptr<NrQosRule> rule,
                bool isMx1,
                std::vector<Ptr<NrQosRule>>& rules,
@@ -82,19 +82,19 @@ ConfigureXrApp(NodeContainer& ueContainer,
     pingApps.Add(ping.Install(remoteHostContainer));
 
     Ptr<NetDevice> ueDevice = ueNetDev.Get(i);
-    // Activate a dedicated bearer for the traffic type per node
-    nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
-    // Activate a dedicated bearer for the traffic type per node
+    // Activate a dedicated QoS flow for the traffic type per node
+    nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rule);
+    // Activate a dedicated QoS flow for the traffic type per node
     if (isMx1)
     {
-        nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rule);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rule);
     }
     else
     {
         NS_ASSERT(rules.size() >= currentUeClientApps.GetN());
         for (uint32_t j = 0; j < currentUeClientApps.GetN(); j++)
         {
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, bearer, rules[j]);
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, rules[j]);
         }
     }
 
@@ -194,7 +194,7 @@ main(int argc, char* argv[])
     nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(7));
 
     Config::SetDefault("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    Config::SetDefault("ns3::NrGnbRrc::EpsBearerToRlcMapping",
+    Config::SetDefault("ns3::NrGnbRrc::QosFlowToRlcMapping",
                        EnumValue(useUdp ? NrGnbRrc::RLC_UM_ALWAYS : NrGnbRrc::RLC_AM_ALWAYS));
 
     nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(4));
@@ -315,8 +315,8 @@ main(int argc, char* argv[])
     uint16_t dlPortVrStart = 1131;
     uint16_t dlPortCgStart = 1141;
 
-    // The bearer that will carry AR traffic
-    NrEpsBearer arBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry AR traffic
+    NrQosFlow arFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
     Ptr<NrQosRule> arRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfAr;
     std::vector<Ptr<NrQosRule>> arRules;
@@ -339,8 +339,8 @@ main(int argc, char* argv[])
             arRules.emplace_back(tempRule);
         }
     }
-    // The bearer that will carry VR traffic
-    NrEpsBearer vrBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry VR traffic
+    NrQosFlow vrFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> vrRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfVr;
@@ -348,8 +348,8 @@ main(int argc, char* argv[])
     dlpfVr.localPortEnd = dlPortVrStart;
     vrRule->Add(dlpfVr);
 
-    // The bearer that will carry CG traffic
-    NrEpsBearer cgBearer(NrEpsBearer::NGBR_LOW_LAT_EMBB);
+    // The QoS flow that will carry CG traffic
+    NrQosFlow cgFlow(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> cgRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpfCg;
@@ -376,7 +376,7 @@ main(int argc, char* argv[])
                        remoteHostContainer,
                        ueArNetDev,
                        nrHelper,
-                       arBearer,
+                       arFlow,
                        arRule,
                        isMx1,
                        arRules,
@@ -399,7 +399,7 @@ main(int argc, char* argv[])
                        remoteHostContainer,
                        ueVrNetDev,
                        nrHelper,
-                       vrBearer,
+                       vrFlow,
                        vrRule,
                        true,
                        arRules,
@@ -420,7 +420,7 @@ main(int argc, char* argv[])
                        remoteHostContainer,
                        ueCgNetDev,
                        nrHelper,
-                       cgBearer,
+                       cgFlow,
                        cgRule,
                        true,
                        arRules,

@@ -7,9 +7,9 @@
 #ifndef NR_CCM_RRC_SAP_H
 #define NR_CCM_RRC_SAP_H
 
-#include "nr-eps-bearer.h"
 #include "nr-gnb-cmac-sap.h"
 #include "nr-mac-sap.h"
+#include "nr-qos-flow.h"
 #include "nr-rrc-sap.h"
 
 #include <map>
@@ -84,8 +84,8 @@ class NrCcmRrcSapProvider
 
     /**
      * @brief Add a new Bearer for the Ue in the NrGnbComponentCarrierManager.
-     * @param bearer a pointer to the NrEpsBearer object
-     * @param bearerId a unique identifier for the bearer
+     * @param flow a pointer to the NrQosFlow object
+     * @param qfi a unique identifier for the flow
      * @param rnti Radio Network Temporary Identity, an integer identifying the UE
      *             where the report originates from
      * @param lcid the Logical Channel id
@@ -100,8 +100,8 @@ class NrCcmRrcSapProvider
      * The Logical Channel configurations for each component carrier depend on the
      * algorithm used to split the traffic between the component carriers themself.
      */
-    virtual std::vector<NrCcmRrcSapProvider::LcsConfig> SetupDataRadioBearer(NrEpsBearer bearer,
-                                                                             uint8_t bearerId,
+    virtual std::vector<NrCcmRrcSapProvider::LcsConfig> SetupDataRadioBearer(NrQosFlow flow,
+                                                                             uint8_t qfi,
                                                                              uint16_t rnti,
                                                                              uint8_t lcid,
                                                                              uint8_t lcGroup,
@@ -113,7 +113,7 @@ class NrCcmRrcSapProvider
      *             where the report originates from
      * @param lcid the Logical Channel Id
      * @return vector of integer the componentCarrierId of the NrComponentCarrier
-     *                where the bearer is enabled
+     *                where the flow is enabled
      */
 
     virtual std::vector<uint8_t> ReleaseDataRadioBearer(uint16_t rnti, uint8_t lcid) = 0;
@@ -229,7 +229,7 @@ class MemberNrCcmRrcSapProvider : public NrCcmRrcSapProvider
     void AddUe(uint16_t rnti, uint8_t state) override;
     void AddLc(NrGnbCmacSapProvider::LcInfo lcInfo, NrMacSapUser* msu) override;
     void RemoveUe(uint16_t rnti) override;
-    std::vector<NrCcmRrcSapProvider::LcsConfig> SetupDataRadioBearer(NrEpsBearer bearer,
+    std::vector<NrCcmRrcSapProvider::LcsConfig> SetupDataRadioBearer(NrQosFlow bearer,
                                                                      uint8_t bearerId,
                                                                      uint16_t rnti,
                                                                      uint8_t lcid,
@@ -279,14 +279,14 @@ MemberNrCcmRrcSapProvider<C>::RemoveUe(uint16_t rnti)
 
 template <class C>
 std::vector<NrCcmRrcSapProvider::LcsConfig>
-MemberNrCcmRrcSapProvider<C>::SetupDataRadioBearer(NrEpsBearer bearer,
-                                                   uint8_t bearerId,
+MemberNrCcmRrcSapProvider<C>::SetupDataRadioBearer(NrQosFlow flow,
+                                                   uint8_t qfi,
                                                    uint16_t rnti,
                                                    uint8_t lcid,
                                                    uint8_t lcGroup,
                                                    NrMacSapUser* msu)
 {
-    return m_owner->DoSetupDataRadioBearer(bearer, bearerId, rnti, lcid, lcGroup, msu);
+    return m_owner->DoSetupDataRadioBearer(flow, qfi, rnti, lcid, lcGroup, msu);
 }
 
 template <class C>

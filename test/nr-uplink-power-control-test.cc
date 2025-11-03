@@ -400,7 +400,7 @@ NrUplinkPowerControlTestCase::DoRun()
     dlClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     dlClient.SetAttribute("PacketSize", UintegerValue(100));
     dlClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
-    NrEpsBearer dlBearer(NrEpsBearer::GBR_CONV_VIDEO);
+    NrQosFlow dlFlow(NrQosFlow::GBR_CONV_VIDEO);
     Ptr<NrQosRule> dlRule = Create<NrQosRule>();
     NrQosRule::PacketFilter dlpf;
     dlpf.localPortStart = dlPort;
@@ -411,7 +411,7 @@ NrUplinkPowerControlTestCase::DoRun()
     ulClient.SetAttribute("MaxPackets", UintegerValue(0xFFFFFFFF));
     ulClient.SetAttribute("PacketSize", UintegerValue(100));
     ulClient.SetAttribute("Interval", TimeValue(MilliSeconds(1)));
-    NrEpsBearer ulBearer(NrEpsBearer::GBR_CONV_VIDEO);
+    NrQosFlow ulFlow(NrQosFlow::GBR_CONV_VIDEO);
     Ptr<NrQosRule> ulRule = Create<NrQosRule>();
     NrQosRule::PacketFilter ulpf;
     ulpf.remotePortStart = ulPort;
@@ -426,13 +426,13 @@ NrUplinkPowerControlTestCase::DoRun()
                           AddressValue(addressUtils::ConvertToSocketAddress(ueAddress, dlPort)));
 
     clientApps.Add(dlClient.Install(remoteHost));
-    nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), dlBearer, dlRule);
+    nrHelper->ActivateDedicatedQosFlow(ueDevs.Get(0), dlFlow, dlRule);
     // set and add uplink app to container
     ulClient.SetAttribute(
         "Remote",
         AddressValue(addressUtils::ConvertToSocketAddress(internetIpIfaces.GetAddress(1), ulPort)));
     clientApps.Add(ulClient.Install(ueNodes.Get(0)));
-    nrHelper->ActivateDedicatedEpsBearer(ueDevs.Get(0), ulBearer, ulRule);
+    nrHelper->ActivateDedicatedQosFlow(ueDevs.Get(0), ulFlow, ulRule);
 
     // start UDP server and client apps
     serverApps.Start(udpAppStartTime);

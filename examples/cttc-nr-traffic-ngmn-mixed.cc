@@ -383,12 +383,12 @@ Set5gLenaSimulatorParameters(HexagonalGridScenarioHelper gridScenario,
         bwpIdForLowLat = 1;
     }
 
-    // TODO check later when QoS scheduler is in place, that the type of bearer corresponds to the
-    // type of traffic gNb routing between Bearer and bandwidth part
+    // TODO check later when QoS scheduler is in place, that the type of QoS flow corresponds to the
+    // type of traffic gNb routing between QoS flow and bandwidth part
     nrHelper->SetGnbBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_DEFAULT",
                                                  UintegerValue(bwpIdForLowLat));
 
-    // Ue routing between Bearer and bandwidth part
+    // Ue routing between QoS flow and bandwidth part
     nrHelper->SetUeBwpManagerAlgorithmAttribute("NGBR_VIDEO_TCP_DEFAULT",
                                                 UintegerValue(bwpIdForLowLat));
 
@@ -1086,8 +1086,8 @@ main(int argc, char* argv[])
     dlClientLowLat.SetAttribute("PacketSize", UintegerValue(udpPacketSize));
     // dlClientLowLat.SetAttribute ("Interval", TimeValue (Seconds (1.0/lambda)));
 
-    // The bearer that will carry low latency traffic
-    NrEpsBearer lowLatBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    // The QoS flow that will carry low latency traffic
+    NrQosFlow lowLatFlow(NrQosFlow::NGBR_VIDEO_TCP_DEFAULT);
 
     // The filter for the low-latency traffic
     Ptr<NrQosRule> lowLatRule = Create<NrQosRule>();
@@ -1762,8 +1762,8 @@ main(int argc, char* argv[])
                         addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
-            // Activate a dedicated bearer for the traffic type
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
+            // Activate a dedicated QoS flow for the traffic type
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatFlow, lowLatRule);
         }
 
         for (uint32_t i = 0; i < ueSector2Container.GetN(); ++i)
@@ -1801,8 +1801,8 @@ main(int argc, char* argv[])
                         addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
-            // Activate a dedicated bearer for the traffic type
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
+            // Activate a dedicated QoS flow for the traffic type
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatFlow, lowLatRule);
         }
 
         for (uint32_t i = 0; i < ueSector3Container.GetN(); ++i)
@@ -1840,8 +1840,8 @@ main(int argc, char* argv[])
                         addressUtils::ConvertToSocketAddress(remoteHostIpv4Address, dlPortLowLat)));
                 clientApps.Add(dlClientLowLat.Install(ue));
             }
-            // Activate a dedicated bearer for the traffic type
-            nrHelper->ActivateDedicatedEpsBearer(ueDevice, lowLatBearer, lowLatRule);
+            // Activate a dedicated QoS flow for the traffic type
+            nrHelper->ActivateDedicatedQosFlow(ueDevice, lowLatFlow, lowLatRule);
         }
     }
 

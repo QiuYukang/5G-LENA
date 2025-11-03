@@ -4,7 +4,7 @@
 
 #include "nr-mac-scheduler-lcg.h"
 
-#include "nr-eps-bearer.h"
+#include "nr-qos-flow.h"
 
 #include "ns3/log.h"
 
@@ -16,13 +16,13 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerLCG");
 NrMacSchedulerLC::NrMacSchedulerLC(const nr::LogicalChannelConfigListElement_s& conf)
     : m_id(conf.m_logicalChannelIdentity)
 {
-    NrEpsBearer bearer(static_cast<NrEpsBearer::Qci>(conf.m_qci));
+    NrQosFlow flow(static_cast<NrQosFlow::Qci>(conf.m_qci));
 
-    m_delayBudget = MilliSeconds(bearer.GetPacketDelayBudgetMs());
-    m_resourceType = bearer.GetResourceType();
-    m_PER = bearer.GetPacketErrorLossRate();
+    m_delayBudget = MilliSeconds(flow.GetPacketDelayBudgetMs());
+    m_resourceType = flow.GetResourceType();
+    m_PER = flow.GetPacketErrorLossRate();
     m_qci = conf.m_qci;
-    m_priority = bearer.GetPriority();
+    m_priority = flow.GetPriority();
     m_eRabGuaranteedBitrateDl = conf.m_eRabGuaranteedBitrateDl;
 }
 

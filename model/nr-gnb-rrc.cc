@@ -16,8 +16,8 @@
 
 #include "bandwidth-part-gnb.h"
 #include "nr-common.h"
-#include "nr-eps-bearer-tag.h"
 #include "nr-pdcp.h"
+#include "nr-qos-flow-tag.h"
 #include "nr-radio-bearer-info.h"
 #include "nr-rlc-am.h"
 #include "nr-rlc-tm.h"
@@ -260,8 +260,8 @@ NrUeManager::ConfigureSrb1()
         lcinfo.lcId = lcid;
         lcinfo.lcGroup = 0; // all SRBs always mapped to LCG 0
         lcinfo.qci =
-            NrEpsBearer::GBR_CONV_VOICE; // not sure why the FF API requires a CQI even for SRBs...
-        lcinfo.resourceType = 1;         // GBR resource type
+            NrQosFlow::GBR_CONV_VOICE; // not sure why the FF API requires a CQI even for SRBs...
+        lcinfo.resourceType = 1;       // GBR resource type
         lcinfo.mbrUl = 1e6;
         lcinfo.mbrDl = 1e6;
         lcinfo.gbrUl = 1e4;
@@ -410,8 +410,8 @@ NrUeManager::InitialContextSetupRequest()
 }
 
 void
-NrUeManager::SetupDataRadioBearer(NrEpsBearer bearer,
-                                  uint8_t bearerId,
+NrUeManager::SetupDataRadioBearer(NrQosFlow flow,
+                                  uint8_t qfi,
                                   uint32_t gtpTeid,
                                   Ipv4Address transportLayerAddress)
 {
@@ -420,13 +420,13 @@ NrUeManager::SetupDataRadioBearer(NrEpsBearer bearer,
     Ptr<NrDataRadioBearerInfo> drbInfo = CreateObject<NrDataRadioBearerInfo>();
     uint8_t drbid = AddDataRadioBearerInfo(drbInfo);
     uint8_t lcid = Drbid2Lcid(drbid);
-    uint8_t bid = Drbid2Bid(drbid);
-    NS_ASSERT_MSG(bearerId == 0 || bid == bearerId,
-                  "bearer ID mismatch (" << (uint32_t)bid << " != " << (uint32_t)bearerId
-                                         << ", the assumption that ID are allocated in the same "
-                                            "way by MME and RRC is not valid any more");
-    drbInfo->m_epsBearer = bearer;
-    drbInfo->m_epsBearerIdentity = bid;
+    uint8_t qosFlowId = Drbid2Qfi(drbid);
+    NS_ASSERT_MSG(qfi == 0 || qosFlowId == qfi,
+                  "QFI mismatch (" << (uint32_t)qosFlowId << " != " << (uint32_t)qfi
+                                   << ", the assumption that ID are allocated in the same "
+                                      "way by MME and RRC is not valid any more");
+    drbInfo->m_qosFlow = flow;
+    drbInfo->m_qosFlowIdentity = qfi;
     drbInfo->m_drbIdentity = drbid;
     drbInfo->m_logicalChannelIdentity = lcid;
     drbInfo->m_gtpTeid = gtpTeid;
@@ -443,14 +443,14 @@ NrUeManager::SetupDataRadioBearer(NrEpsBearer bearer,
         NS_ASSERT_MSG(ret.second == true, "overwriting a pre-existing entry in m_x2uTeidInfoMap");
     }
 
-    TypeId rlcTypeId = m_rrc->GetRlcType(bearer);
+    TypeId rlcTypeId = m_rrc->GetRlcType(flow);
 
     ObjectFactory rlcObjectFactory;
     rlcObjectFactory.SetTypeId(rlcTypeId);
     Ptr<NrRlc> rlc = rlcObjectFactory.Create()->GetObject<NrRlc>();
     rlc->SetNrMacSapProvider(m_rrc->m_macSapProvider);
     rlc->SetRnti(m_rnti);
-    rlc->SetPacketDelayBudgetMs(bearer.GetPacketDelayBudgetMs());
+    rlc->SetPacketDelayBudgetMs(flow.GetPacketDelayBudgetMs());
     if (rlcTypeId == NrRlcSm::GetTypeId())
     {
         // Starts the chain of calls:
@@ -478,22 +478,22 @@ NrUeManager::SetupDataRadioBearer(NrEpsBearer bearer,
     m_drbCreatedTrace(m_imsi, m_rrc->ComponentCarrierToCellId(m_componentCarrierId), m_rnti, lcid);
 
     std::vector<NrCcmRrcSapProvider::LcsConfig> lcOnCcMapping =
-        m_rrc->m_ccmRrcSapProvider->SetupDataRadioBearer(bearer,
-                                                         bearerId,
+        m_rrc->m_ccmRrcSapProvider->SetupDataRadioBearer(flow,
+                                                         qfi,
                                                          m_rnti,
                                                          lcid,
-                                                         m_rrc->GetLogicalChannelGroup(bearer),
+                                                         m_rrc->GetLogicalChannelGroup(flow),
                                                          rlc->GetNrMacSapUser());
     // NrGnbCmacSapProvider::LcInfo lcinfo;
     // lcinfo.rnti = m_rnti;
     // lcinfo.lcId = lcid;
-    // lcinfo.lcGroup = m_rrc->GetLogicalChannelGroup (bearer);
+    // lcinfo.lcGroup = m_rrc->GetLogicalChannelGroup (flow);
     // lcinfo.qci = bearer.qci;
-    // lcinfo.resourceType = bearer.GetResourceType();
-    // lcinfo.mbrUl = bearer.gbrQosInfo.mbrUl;
-    // lcinfo.mbrDl = bearer.gbrQosInfo.mbrDl;
-    // lcinfo.gbrUl = bearer.gbrQosInfo.gbrUl;
-    // lcinfo.gbrDl = bearer.gbrQosInfo.gbrDl;
+    // lcinfo.resourceType = flow.GetResourceType();
+    // lcinfo.mbrUl = flow.gbrQosInfo.mbrUl;
+    // lcinfo.mbrDl = flow.gbrQosInfo.mbrDl;
+    // lcinfo.gbrUl = flow.gbrQosInfo.gbrUl;
+    // lcinfo.gbrDl = flow.gbrQosInfo.gbrDl;
     // use a for cycle to send the AddLc to the appropriate Mac Sap
     // if the sap is not initialized the appropriated method has to be called
     auto itLcOnCcMapping = lcOnCcMapping.begin();
@@ -522,11 +522,11 @@ NrUeManager::SetupDataRadioBearer(NrEpsBearer bearer,
     }
 
     drbInfo->m_logicalChannelIdentity = lcid;
-    drbInfo->m_logicalChannelConfig.priority = m_rrc->GetLogicalChannelPriority(bearer);
-    drbInfo->m_logicalChannelConfig.logicalChannelGroup = m_rrc->GetLogicalChannelGroup(bearer);
-    if (bearer.GetResourceType() > 0) // 1, 2 for GBR and DC-GBR
+    drbInfo->m_logicalChannelConfig.priority = m_rrc->GetLogicalChannelPriority(flow);
+    drbInfo->m_logicalChannelConfig.logicalChannelGroup = m_rrc->GetLogicalChannelGroup(flow);
+    if (flow.GetResourceType() > 0) // 1, 2 for GBR and DC-GBR
     {
-        drbInfo->m_logicalChannelConfig.prioritizedBitRateKbps = bearer.gbrQosInfo.gbrUl;
+        drbInfo->m_logicalChannelConfig.prioritizedBitRateKbps = flow.gbrQosInfo.gbrUl;
     }
     else
     {
@@ -878,8 +878,8 @@ NrUeManager::SendPacket(uint8_t bid, Ptr<Packet> p)
     NrPdcpSapProvider::TransmitPdcpSduParameters params;
     params.pdcpSdu = p;
     params.rnti = m_rnti;
-    params.lcid = Bid2Lcid(bid);
-    uint8_t drbid = Bid2Drbid(bid);
+    params.lcid = Qfi2Lcid(bid);
+    uint8_t drbid = Qfi2Drbid(bid);
     // Transmit PDCP sdu only if DRB ID found in drbMap
     auto it = m_drbMap.find(drbid);
     if (it != m_drbMap.end())
@@ -924,7 +924,7 @@ NrUeManager::SendData(uint8_t bid, Ptr<Packet> p)
 
     case HANDOVER_LEAVING: {
         NS_LOG_INFO("forwarding data to target gNB over X2-U");
-        uint8_t drbid = Bid2Drbid(bid);
+        uint8_t drbid = Qfi2Drbid(bid);
         NrEpcX2Sap::UeDataParams params;
         params.sourceCellId = m_rrc->ComponentCarrierToCellId(m_componentCarrierId);
         params.targetCellId = m_targetCellId;
@@ -948,8 +948,8 @@ NrUeManager::GetErabList()
     for (auto it = m_drbMap.begin(); it != m_drbMap.end(); ++it)
     {
         NrEpcX2Sap::ErabToBeSetupItem etbsi;
-        etbsi.erabId = it->second->m_epsBearerIdentity;
-        etbsi.erabLevelQosParameters = it->second->m_epsBearer;
+        etbsi.erabId = it->second->m_qosFlowIdentity;
+        etbsi.erabLevelQosParameters = it->second->m_qosFlow;
         etbsi.dlForwarding = false;
         etbsi.transportLayerAddress = it->second->m_transportLayerAddress;
         etbsi.gtpTeid = it->second->m_gtpTeid;
@@ -1027,7 +1027,7 @@ NrUeManager::RecvSnStatusTransfer(NrEpcX2SapUser::SnStatusTransferParams params)
         NrPdcp::Status status;
         status.txSn = erabIt->dlPdcpSn;
         status.rxSn = erabIt->ulPdcpSn;
-        uint8_t drbId = Bid2Drbid(erabIt->erabId);
+        uint8_t drbId = Qfi2Drbid(erabIt->erabId);
         auto drbIt = m_drbMap.find(drbId);
         NS_ASSERT_MSG(drbIt != m_drbMap.end(), "could not find DRBID " << (uint32_t)drbId);
         drbIt->second->m_pdcp->SetStatus(status);
@@ -1231,10 +1231,10 @@ NrUeManager::RecvRrcConnectionReconfigurationCompleted(
         SwitchToState(HANDOVER_PATH_SWITCH);
         for (auto it = m_drbMap.begin(); it != m_drbMap.end(); ++it)
         {
-            NrEpcGnbS1SapProvider::BearerToBeSwitched b;
-            b.epsBearerId = it->second->m_epsBearerIdentity;
+            NrEpcGnbS1SapProvider::FlowToBeSwitched b;
+            b.qfi = it->second->m_qosFlowIdentity;
             b.teid = it->second->m_gtpTeid;
-            params.bearersToBeSwitched.push_back(b);
+            params.flowsToBeSwitched.push_back(b);
         }
         m_rrc->m_s1SapProvider->PathSwitchRequest(params);
     }
@@ -1363,9 +1363,9 @@ NrUeManager::DoReceivePdcpSdu(NrPdcpSapUser::ReceivePdcpSduParameters params)
     if (params.lcid > 2)
     {
         // data radio bearer
-        NrEpsBearerTag tag;
+        NrQosFlowTag tag;
         tag.SetRnti(params.rnti);
-        tag.SetBid(Lcid2Bid(params.lcid));
+        tag.SetQfi(Lcid2Qfi(params.lcid));
         params.pdcpSdu->AddPacketTag(tag);
         m_rrc->m_forwardUpCallback(params.pdcpSdu);
     }
@@ -1561,7 +1561,7 @@ NrUeManager::BuildRadioResourceConfigDedicated()
     for (auto it = m_drbMap.begin(); it != m_drbMap.end(); ++it)
     {
         NrRrcSap::DrbToAddMod dtam{};
-        dtam.epsBearerIdentity = it->second->m_epsBearerIdentity;
+        dtam.qosFlowIdentity = it->second->m_qosFlowIdentity;
         dtam.drbIdentity = it->second->m_drbIdentity;
         dtam.rlcConfig = it->second->m_rlcConfig;
         dtam.logicalChannelIdentity = it->second->m_logicalChannelIdentity;
@@ -1597,28 +1597,28 @@ NrUeManager::Drbid2Lcid(uint8_t drbid)
 }
 
 uint8_t
-NrUeManager::Lcid2Bid(uint8_t lcid)
+NrUeManager::Lcid2Qfi(uint8_t lcid)
 {
     NS_ASSERT(lcid > 2);
     return lcid - 2;
 }
 
 uint8_t
-NrUeManager::Bid2Lcid(uint8_t bid)
+NrUeManager::Qfi2Lcid(uint8_t qfi)
 {
-    return bid + 2;
+    return qfi + 2;
 }
 
 uint8_t
-NrUeManager::Drbid2Bid(uint8_t drbid)
+NrUeManager::Drbid2Qfi(uint8_t drbid)
 {
     return drbid;
 }
 
 uint8_t
-NrUeManager::Bid2Drbid(uint8_t bid)
+NrUeManager::Qfi2Drbid(uint8_t qfi)
 {
-    return bid;
+    return qfi;
 }
 
 void
@@ -1853,10 +1853,10 @@ NrGnbRrc::GetTypeId()
                           MakeUintegerAccessor(&NrGnbRrc::m_defaultTransmissionMode),
                           MakeUintegerChecker<uint8_t>())
             .AddAttribute(
-                "EpsBearerToRlcMapping",
-                "Specify which type of RLC will be used for each type of EPS bearer.",
+                "QosFlowToRlcMapping",
+                "Specify which type of RLC will be used for each type of QoS flow.",
                 EnumValue(RLC_SM_ALWAYS),
-                MakeEnumAccessor<NrEpsBearerToRlcMapping_t>(&NrGnbRrc::m_epsBearerToRlcMapping),
+                MakeEnumAccessor<NrQosFlowToRlcMapping_t>(&NrGnbRrc::m_qosFlowToRlcMapping),
                 MakeEnumChecker(RLC_SM_ALWAYS,
                                 "RlcSmAlways",
                                 RLC_UM_ALWAYS,
@@ -2460,15 +2460,15 @@ bool
 NrGnbRrc::SendData(Ptr<Packet> packet)
 {
     NS_LOG_FUNCTION(this << packet);
-    NrEpsBearerTag tag;
+    NrQosFlowTag tag;
     bool found = packet->RemovePacketTag(tag);
-    NS_ASSERT_MSG(found, "no NrEpsBearerTag found in packet to be sent");
+    NS_ASSERT_MSG(found, "no NrQosFlowTag found in packet to be sent");
     Ptr<NrUeManager> ueManager = GetUeManager(tag.GetRnti());
 
     NS_LOG_INFO("Sending a packet of " << packet->GetSize() << " bytes to IMSI "
                                        << ueManager->GetImsi() << ", RNTI " << ueManager->GetRnti()
-                                       << ", BID " << (uint16_t)tag.GetBid());
-    ueManager->SendData(tag.GetBid(), packet);
+                                       << ", QFI " << (uint16_t)tag.GetQfi());
+    ueManager->SendData(tag.GetQfi(), packet);
 
     return true;
 }
@@ -2688,8 +2688,8 @@ NrGnbRrc::DoDataRadioBearerSetupRequest(
 {
     NS_LOG_FUNCTION(this);
     Ptr<NrUeManager> ueManager = GetUeManager(request.rnti);
-    ueManager->SetupDataRadioBearer(request.bearer,
-                                    request.bearerId,
+    ueManager->SetupDataRadioBearer(request.flow,
+                                    request.qfi,
                                     request.gtpTeid,
                                     request.transportLayerAddress);
 }
@@ -3139,9 +3139,9 @@ NrGnbRrc::RemoveUe(uint16_t rnti)
 }
 
 TypeId
-NrGnbRrc::GetRlcType(NrEpsBearer bearer)
+NrGnbRrc::GetRlcType(NrQosFlow flow)
 {
-    switch (m_epsBearerToRlcMapping)
+    switch (m_qosFlowToRlcMapping)
     {
     case RLC_SM_ALWAYS:
         return NrRlcSm::GetTypeId();
@@ -3153,7 +3153,7 @@ NrGnbRrc::GetRlcType(NrEpsBearer bearer)
         return NrRlcAm::GetTypeId();
 
     case PER_BASED:
-        if (bearer.GetPacketErrorLossRate() > 1.0e-5)
+        if (flow.GetPacketErrorLossRate() > 1.0e-5)
         {
             return NrRlcUm::GetTypeId();
         }
@@ -3240,9 +3240,9 @@ NrGnbRrc::IsMaxSrsReached() const
 }
 
 uint8_t
-NrGnbRrc::GetLogicalChannelGroup(NrEpsBearer bearer)
+NrGnbRrc::GetLogicalChannelGroup(NrQosFlow flow)
 {
-    if (bearer.GetResourceType() > 0) // 1, 2 for GBR and DC-GBR
+    if (flow.GetResourceType() > 0) // 1, 2 for GBR and DC-GBR
     {
         return 1;
     }
@@ -3253,9 +3253,9 @@ NrGnbRrc::GetLogicalChannelGroup(NrEpsBearer bearer)
 }
 
 uint8_t
-NrGnbRrc::GetLogicalChannelPriority(NrEpsBearer bearer)
+NrGnbRrc::GetLogicalChannelPriority(NrQosFlow flow)
 {
-    return bearer.qci;
+    return flow.qci;
 }
 
 void

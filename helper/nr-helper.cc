@@ -91,8 +91,6 @@ NrHelper::NrHelper()
     m_pathlossModelFactory.SetTypeId(ThreeGppPropagationLossModel::GetTypeId());
     m_channelConditionModelFactory.SetTypeId(ThreeGppChannelConditionModel::GetTypeId());
     m_fhControlFactory.SetTypeId(NrFhControl::GetTypeId());
-
-    Config::SetDefault("ns3::NrEpsBearer::Release", UintegerValue(18));
 }
 
 NrHelper::~NrHelper()
@@ -839,12 +837,12 @@ NrHelper::InstallSingleGnbDevice(
 
     if (m_nrEpcHelper != nullptr)
     {
-        EnumValue<NrGnbRrc::NrEpsBearerToRlcMapping_t> epsBearerToRlcMapping;
-        rrc->GetAttribute("EpsBearerToRlcMapping", epsBearerToRlcMapping);
+        EnumValue<NrGnbRrc::NrQosFlowToRlcMapping_t> qosFlowToRlcMapping;
+        rrc->GetAttribute("QosFlowToRlcMapping", qosFlowToRlcMapping);
         // it does not make sense to use RLC/SM when also using the EPC
-        if (epsBearerToRlcMapping.Get() == NrGnbRrc::RLC_SM_ALWAYS)
+        if (qosFlowToRlcMapping.Get() == NrGnbRrc::RLC_SM_ALWAYS)
         {
-            rrc->SetAttribute("EpsBearerToRlcMapping", EnumValue(NrGnbRrc::RLC_UM_ALWAYS));
+            rrc->SetAttribute("QosFlowToRlcMapping", EnumValue(NrGnbRrc::RLC_UM_ALWAYS));
         }
     }
 
@@ -1157,11 +1155,11 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
 
     if (m_nrEpcHelper)
     {
-        // activate default EPS bearer
-        m_nrEpcHelper->ActivateEpsBearer(ueDevice,
-                                         ueNetDev->GetImsi(),
-                                         NrQosRule::Default(),
-                                         NrEpsBearer(NrEpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+        // activate default QoS flow
+        m_nrEpcHelper->ActivateQosFlow(ueDevice,
+                                       ueNetDev->GetImsi(),
+                                       NrQosRule::Default(),
+                                       NrQosFlow(NrQosFlow::NGBR_VIDEO_TCP_DEFAULT));
     }
 
     // tricks needed for the simplified LTE-only simulations
@@ -1177,45 +1175,44 @@ NrHelper::AttachToGnb(const Ptr<NetDevice>& ueDevice, const Ptr<NetDevice>& gnbD
 }
 
 uint8_t
-NrHelper::ActivateDedicatedEpsBearer(NetDeviceContainer ueDevices,
-                                     NrEpsBearer bearer,
-                                     Ptr<NrQosRule> rule)
+NrHelper::ActivateDedicatedQosFlow(NetDeviceContainer ueDevices,
+                                   NrQosFlow flow,
+                                   Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
     for (auto i = ueDevices.Begin(); i != ueDevices.End(); ++i)
     {
-        uint8_t bearerId = ActivateDedicatedEpsBearer(*i, bearer, rule);
-        return bearerId;
+        uint8_t qosFlowId = ActivateDedicatedQosFlow(*i, flow, rule);
+
+        return qosFlowId;
     }
     return 0;
 }
 
 uint8_t
-NrHelper::ActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                     NrEpsBearer bearer,
-                                     Ptr<NrQosRule> rule)
+NrHelper::ActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice, NrQosFlow flow, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
 
-    NS_ASSERT_MSG(m_nrEpcHelper, "dedicated EPS bearers cannot be set up when the EPC is not used");
+    NS_ASSERT_MSG(m_nrEpcHelper, "dedicated QoS flows cannot be set up when the EPC is not used");
 
     uint64_t imsi = ueDevice->GetObject<NrUeNetDevice>()->GetImsi();
-    uint8_t bearerId = m_nrEpcHelper->ActivateEpsBearer(ueDevice, imsi, rule, bearer);
-    return bearerId;
+    uint8_t qosFlowId = m_nrEpcHelper->ActivateQosFlow(ueDevice, imsi, rule, flow);
+    return qosFlowId;
 }
 
 void
-NrHelper::DeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                       Ptr<NetDevice> gnbDevice,
-                                       uint8_t bearerId)
+NrHelper::DeActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice,
+                                     Ptr<NetDevice> gnbDevice,
+                                     uint8_t qosFlowId)
 {
-    NS_LOG_FUNCTION(this << ueDevice << bearerId);
+    NS_LOG_FUNCTION(this << ueDevice << qosFlowId);
     NS_ASSERT_MSG(m_nrEpcHelper != nullptr,
-                  "Dedicated EPS bearers cannot be de-activated when the EPC is not used");
-    NS_ASSERT_MSG(bearerId != 1,
-                  "Default bearer cannot be de-activated until and unless and UE is released");
+                  "Dedicated QoS flows cannot be de-activated when the EPC is not used");
+    NS_ASSERT_MSG(qosFlowId != 1,
+                  "Default QoS flow cannot be de-activated until and unless and UE is released");
 
-    DoDeActivateDedicatedEpsBearer(ueDevice, gnbDevice, bearerId);
+    DoDeActivateDedicatedQosFlow(ueDevice, gnbDevice, qosFlowId);
 }
 
 void
@@ -1530,11 +1527,11 @@ NrHelper::SetGnbBwpManagerAlgorithmAttribute(const std::string& n, const Attribu
 }
 
 void
-NrHelper::DoDeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
-                                         Ptr<NetDevice> gnbDevice,
-                                         uint8_t bearerId)
+NrHelper::DoDeActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice,
+                                       Ptr<NetDevice> gnbDevice,
+                                       uint8_t qosFlowId)
 {
-    NS_LOG_FUNCTION(this << ueDevice << bearerId);
+    NS_LOG_FUNCTION(this << ueDevice << qosFlowId);
 
     // Extract IMSI and rnti
     uint64_t imsi = ueDevice->GetObject<NrUeNetDevice>()->GetImsi();
@@ -1542,7 +1539,7 @@ NrHelper::DoDeActivateDedicatedEpsBearer(Ptr<NetDevice> ueDevice,
 
     Ptr<NrGnbRrc> gnbRrc = gnbDevice->GetObject<NrGnbNetDevice>()->GetRrc();
 
-    gnbRrc->DoSendReleaseDataRadioBearer(imsi, rnti, bearerId);
+    gnbRrc->DoSendReleaseDataRadioBearer(imsi, rnti, qosFlowId);
 }
 
 void
@@ -1561,7 +1558,7 @@ NrHelper::SetBeamformingHelper(Ptr<BeamformingHelperBase> beamformingHelper)
 class NrDrbActivator : public SimpleRefCount<NrDrbActivator>
 {
   public:
-    NrDrbActivator(Ptr<NetDevice> ueDevice, NrEpsBearer bearer);
+    NrDrbActivator(Ptr<NetDevice> ueDevice, NrQosFlow flow);
     static void ActivateCallback(Ptr<NrDrbActivator> a,
                                  std::string context,
                                  uint64_t imsi,
@@ -1572,14 +1569,14 @@ class NrDrbActivator : public SimpleRefCount<NrDrbActivator>
   private:
     bool m_active;
     Ptr<NetDevice> m_ueDevice;
-    NrEpsBearer m_bearer;
+    NrQosFlow m_flow;
     uint64_t m_imsi;
 };
 
-NrDrbActivator::NrDrbActivator(Ptr<NetDevice> ueDevice, NrEpsBearer bearer)
+NrDrbActivator::NrDrbActivator(Ptr<NetDevice> ueDevice, NrQosFlow flow)
     : m_active(false),
       m_ueDevice(ueDevice),
-      m_bearer(bearer),
+      m_flow(flow),
       m_imsi(m_ueDevice->GetObject<NrUeNetDevice>()->GetImsi())
 {
 }
@@ -1613,8 +1610,8 @@ NrDrbActivator::ActivateDrb(uint64_t imsi, uint16_t cellId, uint16_t rnti)
                   ueManager->GetState() == NrUeManager::CONNECTION_RECONFIGURATION);
         NrEpcGnbS1SapUser::DataRadioBearerSetupRequestParameters params;
         params.rnti = rnti;
-        params.bearer = m_bearer;
-        params.bearerId = 0;
+        params.flow = m_flow;
+        params.qfi = 0;
         params.gtpTeid = 0; // don't care
         gnbRrc->GetS1SapUser()->DataRadioBearerSetupRequest(params);
         m_active = true;
@@ -1622,17 +1619,17 @@ NrDrbActivator::ActivateDrb(uint64_t imsi, uint16_t cellId, uint16_t rnti)
 }
 
 void
-NrHelper::ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrEpsBearer bearer)
+NrHelper::ActivateDataRadioBearer(NetDeviceContainer ueDevices, NrQosFlow flow)
 {
     NS_LOG_FUNCTION(this);
     for (auto i = ueDevices.Begin(); i != ueDevices.End(); ++i)
     {
-        ActivateDataRadioBearer(*i, bearer);
+        ActivateDataRadioBearer(*i, flow);
     }
 }
 
 void
-NrHelper::ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer)
+NrHelper::ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrQosFlow flow)
 {
     NS_LOG_FUNCTION(this << ueDevice);
     NS_ASSERT_MSG(!m_nrEpcHelper, "this method must not be used when the EPC is being used");
@@ -1647,7 +1644,7 @@ NrHelper::ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, NrEpsBearer bearer)
     std::ostringstream path;
     path << "/NodeList/" << nrGnbDevice->GetNode()->GetId() << "/DeviceList/"
          << nrGnbDevice->GetIfIndex() << "/NrGnbRrc/ConnectionEstablished";
-    Ptr<NrDrbActivator> arg = Create<NrDrbActivator>(ueDevice, bearer);
+    Ptr<NrDrbActivator> arg = Create<NrDrbActivator>(ueDevice, flow);
     Config::Connect(path.str(), MakeBoundCallback(&NrDrbActivator::ActivateCallback, arg));
 }
 

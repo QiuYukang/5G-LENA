@@ -466,9 +466,9 @@ class NrUeRrc : public Object
      * Send data function
      *
      * @param packet the packet
-     * @param bid the BID
+     * @param qfi the QoS flow ID
      */
-    void DoSendData(Ptr<Packet> packet, uint8_t bid);
+    void DoSendData(Ptr<Packet> packet, uint8_t qfi);
     /// Disconnect function
     void DoDisconnect();
 
@@ -750,18 +750,18 @@ class NrUeRrc : public Object
     /// Dispose old SRB1
     void DisposeOldSrb1();
     /**
-     * Bid 2 DR bid.
-     * @param bid the BID
+     * Convert QFI to DRB ID
+     * @param qfi the QoS Flow ID
      * @returns the DR bid
      */
-    uint8_t Bid2Drbid(uint8_t bid);
+    uint8_t Qfi2Drbid(uint8_t qfi);
     /**
      * Switch the UE RRC to the given state.
      * @param s the destination state
      */
     void SwitchToState(State s);
 
-    std::map<uint8_t, uint8_t> m_bid2DrbidMap; ///< bid to DR bid map
+    std::map<uint8_t, uint8_t> m_qfi2DrbidMap; ///< QFI to DR bearer id map
 
     std::vector<NrUeCphySapUser*> m_cphySapUser;         ///< UE CPhy SAP user
     std::vector<NrUeCphySapProvider*> m_cphySapProvider; ///< UE CPhy SAP provider

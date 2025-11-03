@@ -237,7 +237,7 @@ BwpManagerAlgorithmStatic::GetTypeId()
 }
 
 uint8_t
-BwpManagerAlgorithmStatic::GetBwpForEpsBearer(const NrEpsBearer::Qci& v) const
+BwpManagerAlgorithmStatic::GetBwpForQosFlow(const NrQosFlow::Qci& v) const
 {
     return m_qciToBwpMap.at(v == 0 ? 1 : v);
 }
