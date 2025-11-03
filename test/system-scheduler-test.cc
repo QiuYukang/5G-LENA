@@ -369,13 +369,13 @@ SystemSchedulerTest::DoRun()
 
     for (auto it = serverAppsDl.Begin(); it != serverAppsDl.End(); ++it)
     {
-        (*it)->TraceConnectWithoutContext("Rx",
+        (*it)->TraceConnectWithoutContext("RxWithoutAddress",
                                           MakeCallback(&SystemSchedulerTest::CountPkts, this));
     }
 
     for (auto it = serverAppsUl.Begin(); it != serverAppsUl.End(); ++it)
     {
-        (*it)->TraceConnectWithoutContext("Rx",
+        (*it)->TraceConnectWithoutContext("RxWithoutAddress",
                                           MakeCallback(&SystemSchedulerTest::CountPkts, this));
     }
 

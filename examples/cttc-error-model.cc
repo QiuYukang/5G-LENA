@@ -324,7 +324,7 @@ main(int argc, char* argv[])
         NS_ASSERT(client != nullptr);
         std::stringstream ss;
         ss << j;
-        client->TraceConnect("Rx", ss.str(), MakeCallback(&PrintRxPkt));
+        client->TraceConnect("RxWithoutAddress", ss.str(), MakeCallback(&PrintRxPkt));
     }
 
     // start UDP server and client apps
