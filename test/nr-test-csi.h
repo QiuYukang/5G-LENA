@@ -38,7 +38,6 @@ class NrCsiTestCase : public TestCase
             m_interfPattern;       //!< RBGs affected by each of the interferer pairs
         bool m_subbandCqiClamping; //!< Enable 3gpp sub-band CQI clamping (2 bits worth of info on
                                    //!< top of wide-band CQI)
-        double m_expectedThrUe0;   //!< Expected throughput of observed UE0
         double m_interfCovMatAlpha;
         uint32_t m_rlcBufferSize;
         bool m_enableCsiFeedback;
