@@ -103,7 +103,7 @@ NrTestMacSchedLcRr::DoRun()
         {
             auto lcgAssigned = std::find_if(assignedBytes->begin(),
                                             assignedBytes->end(),
-                                            [&](auto& entry) { return entry.m_lcg == lcgId; });
+                                            [lcgId](auto& entry) { return entry.m_lcg == lcgId; });
             if (lcgAssigned != assignedBytes->end())
             {
                 NS_TEST_ASSERT_MSG_EQ(lcgAssigned->m_bytes,
