@@ -87,12 +87,7 @@ variables:
     - pacman-key --init
     - pacman -Sy
     - pacman -S --noconfirm archlinux-keyring
-    - pacman -Su --noconfirm
-      base-devel gcc clang libc++ cmake ninja ccache
-      git
-      python
-      openssh
-      eigen
+    - pacman -Su --noconfirm base-devel gcc clang libc++ cmake ninja ccache git python openssh eigen
 
 per-commit-clang-debug:
   extends: .base-per-commit-compile
