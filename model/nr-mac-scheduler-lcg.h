@@ -66,9 +66,9 @@ class NrMacSchedulerLC
 
     Time m_delayBudget{Time::Min()}; //!< Delay budget of the flow
     double m_PER{0.0};               //!< PER of the flow
-    uint8_t m_resourceType{0};       //!< the resource type associated with the QCI of the flow
-    uint8_t m_qci{0};                //!< QoS Class Identifier of the flow
-    uint8_t m_priority{0}; //!< the priority associated with the QCI of the flow 3GPP 23.203
+    uint8_t m_resourceType{0};       //!< the resource type associated with the 5QI of the flow
+    uint8_t m_fiveQi{0};             //!< 5G QoS Identifier of the flow
+    uint8_t m_priority{0}; //!< the priority associated with the 5QI of the flow 3GPP 23.203
     uint64_t m_eRabGuaranteedBitrateDl{UINT64_MAX}; //!< ERAB guaranteed bit rate DL
 };
 
@@ -179,11 +179,11 @@ class NrMacSchedulerLCG
     std::vector<uint8_t> GetActiveLCIds() const;
 
     /**
-     * @brief Get the QoS Class Identifier of the flow
+     * @brief Get the 5G QoS Identifier of the flow
      * @param lcId LC ID
-     * @return the QoS Class Identifier of the flow with lcId
+     * @return the 5G QoS Identifier of the flow with lcId
      */
-    uint8_t GetQci(uint8_t lcId) const;
+    uint8_t GetFiveQi(uint8_t lcId) const;
 
     /**
      * @brief Get the LC Ptr for a specific LC ID

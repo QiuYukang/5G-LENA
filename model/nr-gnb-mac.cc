@@ -1531,7 +1531,7 @@ NrGnbMac::DoAddLc(NrGnbCmacSapProvider::LcInfo lcinfo, NrMacSapUser* msu)
         lccle.m_logicalChannelIdentity = lcinfo.lcId;
         lccle.m_logicalChannelGroup = lcinfo.lcGroup;
         lccle.m_direction = nr::LogicalChannelConfigListElement_s::DIR_BOTH;
-        lccle.m_qci = lcinfo.qci;
+        lccle.m_fiveQi = lcinfo.fiveQi;
         lccle.m_eRabMaximulBitrateUl = lcinfo.mbrUl;
         lccle.m_eRabMaximulBitrateDl = lcinfo.mbrDl;
         lccle.m_eRabGuaranteedBitrateUl = lcinfo.gbrUl;

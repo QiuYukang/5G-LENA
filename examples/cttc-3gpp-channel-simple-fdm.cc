@@ -274,7 +274,7 @@ main(int argc, char* argv[])
     dlpf.localPortStart = 1234;
     dlpf.localPortEnd = 1235;
     rule->Add(dlpf);
-    enum NrQosFlow::Qci q;
+    enum NrQosFlow::FiveQi q;
 
     if (isUll)
     {

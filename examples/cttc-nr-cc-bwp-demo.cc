@@ -535,7 +535,7 @@ main(int argc, char* argv[])
                 ++dlPort;
                 rule->Add(dlpf);
 
-                enum NrQosFlow::Qci q;
+                enum NrQosFlow::FiveQi q;
                 if (flow == 0)
                 {
                     q = NrQosFlow::NGBR_LOW_LAT_EMBB;
@@ -580,7 +580,7 @@ main(int argc, char* argv[])
                 ++ulPort;
                 rule->Add(ulpf);
 
-                enum NrQosFlow::Qci q;
+                enum NrQosFlow::FiveQi q;
                 if (flow == 0)
                 {
                     q = NrQosFlow::NGBR_LOW_LAT_EMBB;

@@ -21,14 +21,14 @@ class Packet;
  * the QoS scheduling logic.
  *
  * For the testing of the QoS scheduler we consider two different types of traffic,
- * each one assigned a QCI with different priority. Based on this priority, we test
+ * each one assigned a 5QI with different priority. Based on this priority, we test
  * if the ratio of the throughput obtained is equal to the ratio of the priorities
  * for the case that the load of the higher priority UEs is in saturation:
  *
  * \f$P=frac{100-P_1}{100-P_2}=frac{Th_1}{Th_2}\f$
  *
  * Notice that for the UL case, due to a restriction of the scheduler for the
- * case of non-GBR QCIs, we consider the default QCI 9 with priority 90. Therefore,
+ * case of non-GBR 5QIs, we consider the default 5QI 9 with priority 90. Therefore,
  * in the check we consider hardcoded P_2 = 90.
  *
  * To execute this test suite run:
@@ -53,7 +53,7 @@ class SystemSchedulerTestQos : public TestCase
      * @param bw1 The system bandwidth (Hz)
      * @param isDownlnk Is the downlink traffic going to be present in the test case
      * @param isUplink Is the uplink traffic going to be present in the test case
-     * @param priorityTrafficScenario The type of traffic to be assign to flow with QCI 1
+     * @param priorityTrafficScenario The type of traffic to be assign to flow with 5QI 1
      * @param schedulerType Which scheduler is going to be used in the test case
      *        Ofdma/Tdma" and the scheduling logic "QoS"
      */
@@ -80,8 +80,8 @@ class SystemSchedulerTestQos : public TestCase
     double m_bw1;                       //!< bandwidth of bandwidth part 1
     bool m_isDownlink;                  //!< whether to generate the downlink traffic
     bool m_isUplink;                    //!< whether to generate the uplink traffic
-    double m_p1;                        //!< The priority of QCI for Low Lat
-    double m_p2;                        //!< The priority of QCI for Voice
+    double m_p1;                        //!< The priority of 5QI for Low Lat
+    double m_p2;                        //!< The priority of 5QI for Voice
     uint32_t m_priorityTrafficScenario; //!< traffic Type (saturation/mediumLoad)
     std::string m_schedulerType;        //!< Sched type
     bool verbose{false};
@@ -97,7 +97,7 @@ class SystemSchedulerTestQos : public TestCase
  * - number of UEs: 2, 4, 6
  * - numerologies: 0
  * - currently the priorities are hardcoded, but the test can be extended to
- *   support additional QCIs
+ *   support additional 5QIs
  *
  * @see SystemSchedulerTestQos
  */
@@ -118,8 +118,8 @@ NrSystemTestSchedulerQosSuite::NrSystemTestSchedulerQosSuite()
     std::list<std::string> mode = {"DL", "UL"};
     std::list<uint32_t> numUesPerGnbList = {2, 4};
     std::list<uint32_t> numerologies = {0, 1};
-    double qciP1 = {20};
-    double qciP2 = {68};
+    double fiveQiP1 = {20};
+    double fiveQiP2 = {68};
     std::list<uint32_t> priorityTrafficScenarioList = {0};
 
     for (const auto& modeType : mode)
@@ -143,8 +143,8 @@ NrSystemTestSchedulerQosSuite::NrSystemTestSchedulerQosSuite()
                                                                5e6,
                                                                isDl,
                                                                isUl,
-                                                               qciP1,
-                                                               qciP2,
+                                                               fiveQiP1,
+                                                               fiveQiP2,
                                                                priorityTrafficScenario,
                                                                schedName.str()),
                                     Duration::QUICK);

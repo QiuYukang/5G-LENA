@@ -9,12 +9,12 @@
  *
  * This example describes how to setup a simulation using the QoS scheduler and
  * the 3GPP channel model from TR 38.900. This example consists of a simple
- * topology, in which there is only one gNB and two UEs with different QCI flows.
+ * topology, in which there is only one gNB and two UEs with different 5QI flows.
  * Have a look at the possible parameters to know what you can configure through
  * the command line.
  *
  * With the default configuration, the example will create one flow for each UE,
- * with different QCIs that will go through the same BWP.
+ * with different 5QIs that will go through the same BWP.
  *
  * The example will print on-screen the end-to-end result of one (or two) flows,
  * as well as writing them on a file.

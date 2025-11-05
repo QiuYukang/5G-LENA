@@ -193,7 +193,7 @@ NrSchedOfdmaMcsTestCase::LcConfig(uint16_t rnti,
     params.m_reconfigureFlag = false;
     lc.m_direction = nr::LogicalChannelConfigListElement_s::Direction_e::DIR_BOTH;
     lc.m_qosBearerType = nr::LogicalChannelConfigListElement_s::QosBearerType_e::QBT_NON_GBR;
-    lc.m_qci = 9;
+    lc.m_fiveQi = 9;
     for (size_t i = 0; i < 4; i++)
     {
         lc.m_logicalChannelGroup = i;

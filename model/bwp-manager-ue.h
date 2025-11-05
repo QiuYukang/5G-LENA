@@ -107,7 +107,7 @@ class BwpManagerUe : public NrSimpleUeComponentCarrierManager
 
   private:
     Ptr<BwpManagerAlgorithm> m_algorithm;
-    std::unordered_map<uint8_t, NrQosFlow::Qci> m_lcToBearerMap; //!< Map from LCID to QoS flow ID
+    std::unordered_map<uint8_t, NrQosFlow::FiveQi> m_lcToFlowMap; //!< Map from LCID to QoS flow ID
 
     std::unordered_map<uint32_t, uint32_t> m_outputLinks; //!< Mapping between BWP.
 };

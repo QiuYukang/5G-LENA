@@ -13,8 +13,8 @@ namespace ns3
  * @ingroup scheduler
  * @brief Assign entire symbols in a QoS-based fashion
  *
- * Sort the UE based on the QoS metric (PF + priority) from the minimum QCI
- * among all the QCIs of the LCs activated for a UE.
+ * Sort the UE based on the QoS metric (PF + priority) from the minimum 5QI
+ * among all the 5QIs of the LCs activated for a UE.
  *
  * Details in the class NrMacSchedulerUeInfoQos.
  */

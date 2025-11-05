@@ -226,7 +226,7 @@ NrDeactivateBearerTestCase::DoRun()
         qos.mbrDl = qos.gbrDl;
         qos.mbrUl = qos.gbrUl;
 
-        NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+        NrQosFlow::FiveQi q = NrQosFlow::GBR_CONV_VOICE;
         NrQosFlow flow(q, qos);
         flow.arp.priorityLevel = 15 - (u + 1);
         flow.arp.preemptionCapability = true;

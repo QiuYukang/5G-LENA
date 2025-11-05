@@ -410,7 +410,7 @@ NrRrcConnectionEstablishmentTestCase::Connect(Ptr<NetDevice> ueDevice, Ptr<NetDe
 
     for (uint32_t b = 0; b < m_nBearers; ++b)
     {
-        NrQosFlow::Qci q = NrQosFlow::NGBR_VIDEO_TCP_DEFAULT;
+        NrQosFlow::FiveQi q = NrQosFlow::NGBR_VIDEO_TCP_DEFAULT;
         NrQosFlow flow(q);
         m_nrHelper->ActivateDataRadioBearer(ueDevice, flow);
     }

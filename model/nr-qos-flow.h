@@ -16,7 +16,7 @@ namespace ns3
 {
 
 /**
- * 3GPP TS 36.413 9.2.1.18 GBR QoS Information
+ * 3GPP TS 38.413 9.3.1.10 GBR QoS Information
  *
  */
 struct NrGbrQosInformation
@@ -43,8 +43,8 @@ struct NrAllocationRetentionPriority
      */
     NrAllocationRetentionPriority();
     uint8_t priorityLevel;        ///< 1-15; 1 = highest
-    bool preemptionCapability;    ///< true if bearer can preempt others
-    bool preemptionVulnerability; ///< true if bearer can be preempted by others
+    bool preemptionCapability;    ///< true if flow can preempt others
+    bool preemptionVulnerability; ///< true if flow can be preempted by others
 };
 
 /**
@@ -66,12 +66,11 @@ class NrQosFlow : public ObjectBase
     TypeId GetInstanceTypeId() const override;
 
     /**
-     * QoS Class Indicator. See 3GPP 23.203 Section 6.1.7.2 for standard values.
-     * Updated to Release 18.
+     * 5QI values. See 3GPP 23.501 Table 5.7.4-1 for standard values.
      *
-     * TODO: Update to 5QI tables from 23.501, Table 5.7.4-1.
+     * TODO: Check that the below are still consistent with 23.501, Table 5.7.4-1.
      */
-    enum Qci : uint8_t
+    enum FiveQi : uint8_t
     {
         GBR_CONV_VOICE = 1,        ///< GBR Conversational Voice
         GBR_CONV_VIDEO = 2,        ///< GBR Conversational Video (Live streaming)
@@ -117,13 +116,13 @@ class NrQosFlow : public ObjectBase
             90, ///< Delay-Critical GBR Visual Content for cloud/edge/split rendering (TS 23.501)
     };
 
-    Qci qci; ///< Qos class indicator
+    FiveQi fiveQi; ///< Qos class indicator
 
     NrGbrQosInformation gbrQosInfo;    ///< GBR QOS information
     NrAllocationRetentionPriority arp; ///< allocation retention priority
 
     /**
-     * Default constructor. QCI will be initialized to NGBR_VIDEO_TCP_DEFAULT
+     * Default constructor. 5QI will be initialized to NGBR_VIDEO_TCP_DEFAULT
      *
      */
     NrQosFlow();
@@ -133,15 +132,15 @@ class NrQosFlow : public ObjectBase
      * @param x the QoS Class Indicator
      *
      */
-    NrQosFlow(Qci x);
+    NrQosFlow(FiveQi x);
 
     /**
      *
-     * @param x the QoS Class Indicator
+     * @param x the 5G QoS Identifier (5QI)
      * @param y the NrGbrQosInformation
      *
      */
-    NrQosFlow(Qci x, NrGbrQosInformation y);
+    NrQosFlow(FiveQi x, NrGbrQosInformation y);
 
     /**
      * @brief NrQosFlow copy constructor
@@ -158,13 +157,13 @@ class NrQosFlow : public ObjectBase
 
     /**
      *
-     * @return the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
+     * @return the resource type (NON-GBR, GBR, DC-GBR) of the selected 5QI
      */
     uint8_t GetResourceType() const;
 
     /**
      *
-     * @return the priority associated with the QCI of this bearer as per 3GPP 23.203
+     * @return the priority associated with the 5QI of this flow as per 3GPP 23.203
      * Section 6.1.7.2
      */
     uint8_t GetPriority() const;
@@ -173,7 +172,7 @@ class NrQosFlow : public ObjectBase
      *
      *
      *
-     * @return the packet delay budget associated with the QCI of this bearer as per 3GPP 23.203
+     * @return the packet delay budget associated with the 5QI of this flow as per 3GPP 23.203
      * Section 6.1.7.2
      */
     uint16_t GetPacketDelayBudgetMs() const;
@@ -182,101 +181,102 @@ class NrQosFlow : public ObjectBase
      *
      *
      *
-     * @return the packet error loss rate associated with the QCI of this bearer as per 3GPP 23.203
+     * @return the packet error loss rate associated with the 5QI of this flow as per 3GPP 23.203
      * Section 6.1.7.2
      */
     double GetPacketErrorLossRate() const;
 
   private:
     /**
-     * @brief Map between QCI and requirements
+     * @brief Map between 5QI and characteristics
      *
      * The tuple is formed by: resource type, priority, packet delay budget, packet error rate,
      *  default maximum data burst, default averaging window (0 when does not apply)
      */
-    using BearerRequirementsMap =
-        std::unordered_map<Qci, std::tuple<uint8_t, uint8_t, uint16_t, double, uint32_t, uint32_t>>;
+    using FiveQiCharacteristicsMap =
+        std::unordered_map<FiveQi,
+                           std::tuple<uint8_t, uint8_t, uint16_t, double, uint32_t, uint32_t>>;
 
     /**
-     * @brief Get the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
-     * @param map Map between QCI and requirements
-     * @param qci QCI to look for
-     * @return the resource type (NON-GBR, GBR, DC-GBR) of the selected QCI
+     * @brief Get the resource type (NON-GBR, GBR, DC-GBR) of the selected 5QI
+     * @param map Map between 5QI and characteristics
+     * @param fiveQi 5QI to look for
+     * @return the resource type (NON-GBR, GBR, DC-GBR) of the selected 5QI
      */
-    static uint8_t GetResourceType(const BearerRequirementsMap& map, Qci qci)
+    static uint8_t GetResourceType(const FiveQiCharacteristicsMap& map, FiveQi fiveQi)
     {
-        return std::get<0>(map.at(qci));
+        return std::get<0>(map.at(fiveQi));
     }
 
     /**
-     * @brief Get priority for the selected QCI
-     * @param map Map between QCI and requirements
-     * @param qci QCI to look for
-     * @return priority for the selected QCI
+     * @brief Get priority for the selected 5QI
+     * @param map Map between 5QI and characteristics
+     * @param fiveQi 5QI to look for
+     * @return priority for the selected 5QI
      */
-    static uint8_t GetPriority(const BearerRequirementsMap& map, Qci qci)
+    static uint8_t GetPriority(const FiveQiCharacteristicsMap& map, FiveQi fiveQi)
     {
-        return std::get<1>(map.at(qci));
+        return std::get<1>(map.at(fiveQi));
     }
 
     /**
-     * @brief Get packet delay in ms for the selected QCI
-     * @param map Map between QCI and requirements
-     * @param qci QCI to look for
-     * @return packet delay in ms for the selected QCI
+     * @brief Get packet delay in ms for the selected 5QI
+     * @param map Map between 5QI and characteristics
+     * @param fiveQi 5QI to look for
+     * @return packet delay in ms for the selected 5QI
      */
-    static uint16_t GetPacketDelayBudgetMs(const BearerRequirementsMap& map, Qci qci)
+    static uint16_t GetPacketDelayBudgetMs(const FiveQiCharacteristicsMap& map, FiveQi fiveQi)
     {
-        return std::get<2>(map.at(qci));
+        return std::get<2>(map.at(fiveQi));
     }
 
     /**
-     * @brief Get packet error rate for the selected QCI
-     * @param map Map between QCI and requirements
-     * @param qci QCI to look for
-     * @return packet error rate for the selected QCI
+     * @brief Get packet error rate for the selected 5QI
+     * @param map Map between 5QI and characteristics
+     * @param fiveQi 5QI to look for
+     * @return packet error rate for the selected 5QI
      */
-    static double GetPacketErrorLossRate(const BearerRequirementsMap& map, Qci qci)
+    static double GetPacketErrorLossRate(const FiveQiCharacteristicsMap& map, FiveQi fiveQi)
     {
-        return std::get<3>(map.at(qci));
+        return std::get<3>(map.at(fiveQi));
     }
 
     /**
-     * @brief Get maximum data burst for the selected QCI
-     * @param map Map between QCI and requirements
-     * @param qci QCI to look for
-     * @return maximum data burst for the selected QCI
+     * @brief Get maximum data burst for the selected 5QI
+     * @param map Map between 5QI and characteristics
+     * @param fiveQi 5QI to look for
+     * @return maximum data burst for the selected 5QI
      */
-    static uint32_t GetMaxDataBurst(const BearerRequirementsMap& map, Qci qci)
+    static uint32_t GetMaxDataBurst(const FiveQiCharacteristicsMap& map, FiveQi fiveQi)
     {
-        return std::get<4>(map.at(qci));
+        return std::get<4>(map.at(fiveQi));
     }
 
     /**
-     * @brief Get default averaging window for the selected QCI
-     * @param map Map between QCI and requirements
-     * @param qci QCI to look for
-     * @return default averaging window for the selected QCI
+     * @brief Get default averaging window for the selected 5QI
+     * @param map Map between 5QI and characteristics
+     * @param fiveQi 5QI to look for
+     * @return default averaging window for the selected 5QI
      */
-    static uint32_t GetAvgWindow(const BearerRequirementsMap& map, Qci qci)
+    static uint32_t GetAvgWindow(const FiveQiCharacteristicsMap& map, FiveQi fiveQi)
     {
-        return std::get<5>(map.at(qci));
+        return std::get<5>(map.at(fiveQi));
     }
 
     /**
-     * @brief Retrieve requirements for Rel. 18
-     * @return the BearerRequirementsMap for Release 18
+     * @brief Retrieve characteristics for Rel. 19
+     * @return the FiveQiCharacteristicsMap for Release 19
      */
-    static const BearerRequirementsMap& GetRequirementsRel18();
+    static const FiveQiCharacteristicsMap& GetCharacteristicsRel19();
 
     /**
-     * @brief Requirements pointer per bearer
+     * @brief QoS characteristics map to resolve 5QI to characteristics
      *
      * It will point to a static map.
      */
-    BearerRequirementsMap m_requirements;
+    FiveQiCharacteristicsMap m_characteristics;
 };
 
 } // namespace ns3
 
-#endif // NR_EPS_BEARER
+#endif // NR_QOS_FLOW

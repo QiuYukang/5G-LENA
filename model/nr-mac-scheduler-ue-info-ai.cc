@@ -28,7 +28,7 @@ NrMacSchedulerUeInfoAi::GetDlObservation()
             NrMacSchedulerUeInfoAi::LcObservation lcObservation = {
                 m_rnti,
                 lcId,
-                LCPtr->m_qci,
+                LCPtr->m_fiveQi,
                 LCPtr->m_priority,
                 LCPtr->m_rlcTransmissionQueueHolDelay};
 
@@ -54,7 +54,7 @@ NrMacSchedulerUeInfoAi::GetUlObservation()
             NrMacSchedulerUeInfoAi::LcObservation lcObservation = {
                 m_rnti,
                 lcId,
-                LCPtr->m_qci,
+                LCPtr->m_fiveQi,
                 LCPtr->m_priority,
                 LCPtr->m_rlcTransmissionQueueHolDelay};
 

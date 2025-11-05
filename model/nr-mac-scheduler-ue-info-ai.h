@@ -60,14 +60,14 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      * @struct LcObservation
      * @brief A struct for an observation of a flow
      *
-     * A struct for an observation of a flow that stores the RNTI, LCG ID, LC ID, QCI, priority, and
+     * A struct for an observation of a flow that stores the RNTI, LCG ID, LC ID, 5QI, priority, and
      * head-of-line delay of the flow.
      */
     struct LcObservation
     {
         uint16_t rnti;
         uint8_t lcId;
-        uint8_t qci;
+        uint8_t fiveQi;
         uint8_t priority;
         uint16_t holDelay;
     };
@@ -127,7 +127,7 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      *
      * Get the current observation for downlink by iterating over the active LCs of the UE.
      * The observation is stored in a vector of LcObservation and each consists of the RNTI,
-     * LCG ID, LC ID, QCI, priority, and head-of-line delay of the flow.
+     * LCG ID, LC ID, 5QI, priority, and head-of-line delay of the flow.
      */
     std::vector<LcObservation> GetDlObservation();
 
@@ -138,7 +138,7 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      *
      * Get the current observation for uplink by iterating over the active LCs of the UE.
      * The observation is stored in a vector of LcObservation and each consists of the RNTI,
-     * LCG ID, LC ID, QCI, priority, and head-of-line delay of the flow.
+     * LCG ID, LC ID, 5QI, priority, and head-of-line delay of the flow.
      */
     std::vector<LcObservation> GetUlObservation();
 
@@ -174,7 +174,7 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      * \f$ \text{reward}_{i} = \frac{\text{std::pow}(\text{potentialTput}, \alpha)}{\max(1E-9,
      * \text{avgTput})} \times P_{i} \times \text{HOL}_{i} \f$.
      *
-     * @alpha is a fairness metric. \( P \) is the priority associated with the QCI.
+     * @alpha is a fairness metric. \( P \) is the priority associated with the 5QI.
      * HOL is the head-of-line delay of the LC.
      * Please note that the throughput is calculated in bit/symbol.
      */
@@ -190,7 +190,7 @@ class NrMacSchedulerUeInfoAi : public NrMacSchedulerUeInfoQos
      * \f$ \text{reward}_{i} = \frac{\text{std::pow}(\text{potentialTput}, \alpha)}{\max(1E-9,
      * \text{avgTput})} \times P_{i} \times \text{HOL}_{i} \f$.
      *
-     * @alpha is a fairness metric. \( P \) is the priority associated with the QCI.
+     * @alpha is a fairness metric. \( P \) is the priority associated with the 5QI.
      * HOL is the head-of-line delay of the LC.
      * Please note that the throughput is calculated in bit/symbol.
      */

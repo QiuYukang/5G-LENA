@@ -790,7 +790,7 @@ struct LogicalChannelConfigListElement_s
         NotValid_QosBearerType
     } m_qosBearerType{NotValid_QosBearerType}; ///< the QOS bearer type
 
-    uint8_t m_qci{UINT8_MAX};                       ///< QCI
+    uint8_t m_fiveQi{UINT8_MAX};                    ///< 5QI
     uint64_t m_eRabMaximulBitrateUl{UINT64_MAX};    ///< ERAB maximum bit rate UL
     uint64_t m_eRabMaximulBitrateDl{UINT64_MAX};    ///< ERAB maximum bit rate DL
     uint64_t m_eRabGuaranteedBitrateUl{UINT64_MAX}; ///< ERAB guaranteed bit rate UL

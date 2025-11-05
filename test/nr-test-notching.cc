@@ -386,7 +386,7 @@ NrNotchingTestCase::DoRun()
             lc.m_logicalChannelGroup = 2;
             lc.m_direction = nr::LogicalChannelConfigListElement_s::DIR_DL;
             lc.m_qosBearerType = nr::LogicalChannelConfigListElement_s::QBT_NON_GBR;
-            lc.m_qci = 9;
+            lc.m_fiveQi = 9;
             paramsLc.m_logicalChannelConfigList.emplace_back(lc);
 
             sched->DoCschedLcConfigReq(paramsLc);

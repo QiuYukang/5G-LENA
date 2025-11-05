@@ -301,7 +301,7 @@ NrTestFdmOfNumerologiesCase1::DoRun()
             ulpf.remotePortEnd = ulPort;
             rule->Add(ulpf);
 
-            enum NrQosFlow::Qci q;
+            enum NrQosFlow::FiveQi q;
 
             if (j == 0)
             {
@@ -347,7 +347,7 @@ NrTestFdmOfNumerologiesCase1::DoRun()
             dlpf.localPortEnd = dlPort;
             rule->Add(dlpf);
 
-            enum NrQosFlow::Qci q;
+            enum NrQosFlow::FiveQi q;
 
             if (j == 0)
             {

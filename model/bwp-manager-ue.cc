@@ -55,11 +55,11 @@ BwpManagerUe::DoTransmitBufferStatusReport(NrMacSapProvider::BufferStatusReportP
     NS_LOG_FUNCTION(this);
     NS_ASSERT(m_algorithm != nullptr);
 
-    uint8_t bwpIndex = m_algorithm->GetBwpForQosFlow(m_lcToBearerMap.at(params.lcid));
+    uint8_t bwpIndex = m_algorithm->GetBwpForQosFlow(m_lcToFlowMap.at(params.lcid));
 
     NS_LOG_DEBUG("BSR of size " << params.txQueueSize
                                 << " from RLC for LCID = " << static_cast<uint32_t>(params.lcid)
-                                << " traffic type " << m_lcToBearerMap.at(params.lcid)
+                                << " traffic type " << m_lcToFlowMap.at(params.lcid)
                                 << " reported to CcId " << static_cast<uint32_t>(bwpIndex));
 
     m_componentCarrierLcMap.at(bwpIndex).at(params.lcid)->BufferStatusReport(params);
@@ -72,12 +72,12 @@ BwpManagerUe::DoAddLc(uint8_t lcId,
 {
     NS_LOG_FUNCTION(this);
 
-    NS_LOG_INFO("For LC ID " << static_cast<uint32_t>(lcId) << " bearer qci "
+    NS_LOG_INFO("For LC ID " << static_cast<uint32_t>(lcId) << " flow QFI "
                              << static_cast<uint32_t>(lcConfig.priority) << " from priority "
                              << static_cast<uint32_t>(lcConfig.priority));
 
     // see nr-gnb-rrc.cc
-    m_lcToBearerMap.insert(std::make_pair(lcId, static_cast<NrQosFlow::Qci>(lcConfig.priority)));
+    m_lcToFlowMap.insert(std::make_pair(lcId, static_cast<NrQosFlow::FiveQi>(lcConfig.priority)));
 
     return NrSimpleUeComponentCarrierManager::DoAddLc(lcId, lcConfig, msu);
 }
@@ -89,7 +89,7 @@ BwpManagerUe::DoConfigureSignalBearer(uint8_t lcId,
 {
     NS_LOG_FUNCTION(this);
 
-    m_lcToBearerMap.insert(std::make_pair(lcId, static_cast<NrQosFlow::Qci>(lcConfig.priority)));
+    m_lcToFlowMap.insert(std::make_pair(lcId, static_cast<NrQosFlow::FiveQi>(lcConfig.priority)));
 
     return NrSimpleUeComponentCarrierManager::DoConfigureSignalBearer(lcId, lcConfig, msu);
 }

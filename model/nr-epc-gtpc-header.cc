@@ -290,7 +290,7 @@ NrGtpcIes::SerializeQosFlow(Buffer::Iterator& i, NrQosFlow flow) const
     i.WriteHtonU16(22); // Length
     i.WriteU8(0);       // Spare + Instance
     i.WriteU8(0);       // MRE TODO: flow.arp
-    i.WriteU8(flow.qci);
+    i.WriteU8(flow.fiveQi);
     WriteHtonU40(i, flow.gbrQosInfo.mbrUl);
     WriteHtonU40(i, flow.gbrQosInfo.mbrDl);
     WriteHtonU40(i, flow.gbrQosInfo.gbrUl);
@@ -307,7 +307,7 @@ NrGtpcIes::DeserializeQosFlow(Buffer::Iterator& i, NrQosFlow& flow)
     uint8_t instance = i.ReadU8();
     NS_ASSERT_MSG(instance == 0, "Wrong QoS Flow IE instance");
     i.ReadU8();
-    flow.qci = NrQosFlow::Qci(i.ReadU8());
+    flow.fiveQi = NrQosFlow::FiveQi(i.ReadU8());
     flow.gbrQosInfo.mbrUl = ReadNtohU40(i);
     flow.gbrQosInfo.mbrDl = ReadNtohU40(i);
     flow.gbrQosInfo.gbrUl = ReadNtohU40(i);

@@ -210,7 +210,7 @@ NrUeManager::ConfigureSrb0()
         // m_rnti and lcid will be used from passed lcinfo structure. See FF LTE MAC Scheduler
         // Iinterface Specification v1.11, 4.3.4 logicalChannelConfigListElement
         lcinfo.lcGroup = 0;
-        lcinfo.qci = 0;
+        lcinfo.fiveQi = 0;
         lcinfo.resourceType = 0;
         lcinfo.mbrUl = 0;
         lcinfo.mbrDl = 0;
@@ -259,7 +259,7 @@ NrUeManager::ConfigureSrb1()
         lcinfo.rnti = m_rnti;
         lcinfo.lcId = lcid;
         lcinfo.lcGroup = 0; // all SRBs always mapped to LCG 0
-        lcinfo.qci =
+        lcinfo.fiveQi =
             NrQosFlow::GBR_CONV_VOICE; // not sure why the FF API requires a CQI even for SRBs...
         lcinfo.resourceType = 1;       // GBR resource type
         lcinfo.mbrUl = 1e6;
@@ -488,7 +488,7 @@ NrUeManager::SetupDataRadioBearer(NrQosFlow flow,
     // lcinfo.rnti = m_rnti;
     // lcinfo.lcId = lcid;
     // lcinfo.lcGroup = m_rrc->GetLogicalChannelGroup (flow);
-    // lcinfo.qci = bearer.qci;
+    // lcinfo.fiveQi = bearer.fiveQi;
     // lcinfo.resourceType = flow.GetResourceType();
     // lcinfo.mbrUl = flow.gbrQosInfo.mbrUl;
     // lcinfo.mbrDl = flow.gbrQosInfo.mbrDl;
@@ -3255,7 +3255,7 @@ NrGnbRrc::GetLogicalChannelGroup(NrQosFlow flow)
 uint8_t
 NrGnbRrc::GetLogicalChannelPriority(NrQosFlow flow)
 {
-    return flow.qci;
+    return flow.fiveQi;
 }
 
 void

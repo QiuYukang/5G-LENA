@@ -189,7 +189,7 @@ NrNoOpComponentCarrierManager::DoSetupDataRadioBearer(NrQosFlow flow,
         lci.rnti = rnti;
         lci.lcId = lcid;
         lci.lcGroup = lcGroup;
-        lci.qci = flow.qci;
+        lci.fiveQi = flow.fiveQi;
         if (ncc == 0)
         {
             lci.resourceType = flow.GetResourceType();
@@ -220,7 +220,7 @@ NrNoOpComponentCarrierManager::DoSetupDataRadioBearer(NrQosFlow flow,
         lcinfo.rnti = rnti;
         lcinfo.lcId = lcid;
         lcinfo.lcGroup = lcGroup;
-        lcinfo.qci = flow.qci;
+        lcinfo.fiveQi = flow.fiveQi;
         lcinfo.resourceType = flow.GetResourceType();
         lcinfo.mbrUl = flow.gbrQosInfo.mbrUl;
         lcinfo.mbrDl = flow.gbrQosInfo.mbrDl;

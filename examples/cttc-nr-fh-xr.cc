@@ -1408,7 +1408,7 @@ main(int argc, char* argv[])
     uint16_t ulPortArStop = 2124;
     uint16_t ulPortVoiceStart = 2254; // VoIP has 1 flow
 
-    // The flow that will carry AR traffic (QCI80)
+    // The flow that will carry AR traffic (5QI80)
     NrQosFlow arBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> arRule = Create<NrQosRule>();
@@ -1434,7 +1434,7 @@ main(int argc, char* argv[])
         }
     }
 
-    // The flow that will carry VR traffic (can be QCI80/QCI87)
+    // The flow that will carry VR traffic (can be 5QI80/5QI87)
     NrQosFlow vrConfig =
         enableInterServ == 0 ? NrQosFlow::NGBR_LOW_LAT_EMBB : NrQosFlow::DGBR_INTER_SERV_87;
     NrQosFlow vrBearer(vrConfig);
@@ -1445,7 +1445,7 @@ main(int argc, char* argv[])
     dlpfVr.localPortEnd = dlPortVrStart;
     vrRule->Add(dlpfVr);
 
-    // The flow that will carry CG traffic (QCI80)
+    // The flow that will carry CG traffic (5QI80)
     NrQosFlow cgBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> cgRule = Create<NrQosRule>();
@@ -1464,7 +1464,7 @@ main(int argc, char* argv[])
     voiceRule->Add(dlpfVoice);
 
     // UL
-    //  The flow that will carry UL AR traffic (QCI80)
+    //  The flow that will carry UL AR traffic (5QI80)
     NrQosFlow arUlBearer(NrQosFlow::NGBR_LOW_LAT_EMBB);
 
     Ptr<NrQosRule> arUlRule = Create<NrQosRule>();

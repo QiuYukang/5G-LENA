@@ -57,7 +57,7 @@ class NrGnbCmacSapProvider
         uint16_t rnti;        /**< C-RNTI identifying the UE */
         uint8_t lcId;         /**< logical channel identifier */
         uint8_t lcGroup;      /**< logical channel group */
-        uint8_t qci;          /**< QoS Class Identifier */
+        uint8_t fiveQi;       /**< 5G QoS Identifier */
         uint8_t resourceType; /**< 0 if the bearer is NON-GBR, 1 if the bearer
                                    is GBR, 2 if the bearer in DC-GBR */
         uint64_t mbrUl;       /**< maximum bitrate in uplink */

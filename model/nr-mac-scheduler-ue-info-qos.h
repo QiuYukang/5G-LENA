@@ -14,7 +14,7 @@ namespace ns3
  *
  * The representation stores the current throughput, the average throughput,
  * and the last average throughput, as well as providing comparison functions
- * to sort the UEs in case of a QoS scheduler, according to its QCI and priority.
+ * to sort the UEs in case of a QoS scheduler, according to its 5QI and priority.
  *
  * @see CompareUeWeightsDl
  * @see CompareUeWeightsUl
@@ -148,7 +148,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
      * \f$ qosMetric_{i} = P * std::pow(potentialTPut_{i}, alpha) / std::max (1E-9, m_avgTput_{i})
      * \f$
      *
-     * Alpha is a fairness metric. P is the priority associated to the QCI.
+     * Alpha is a fairness metric. P is the priority associated to the 5QI.
      * Please note that the throughput is calculated in bit/symbol.
      */
     static double CalculateDlWeight(const NrMacSchedulerNs3::UePtrAndBufferReq& ue)
@@ -189,7 +189,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
      * not implement packet drop by default), we give very high priority to this
      * packet. We do this by considering a very small value for the denominator
      * (i.e. (PDB - HOL) = 0.1).
-     * @param pdb The Packet Delay Budget associated to the QCI
+     * @param pdb The Packet Delay Budget associated to the 5QI
      * @param hol The HeadOfLine Delay of the transmission queue
      * @return the delayBudgetFactor
      */
@@ -214,7 +214,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
      * \f$ qosMetric_{i} = P * std::pow(potentialTPut_{i}, alpha) / std::max (1E-9, m_avgTput_{i})
      * \f$
      *
-     * Alpha is a fairness metric. P is the priority associated to the QCI.
+     * Alpha is a fairness metric. P is the priority associated to the 5QI.
      * Please note that the throughput is calculated in bit/symbol.
      */
     static bool CompareUeWeightsUl(const NrMacSchedulerNs3::UePtrAndBufferReq& lue,
@@ -267,7 +267,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                 ns3::NrMacSchedulerUeInfo::PrintLcInfo(ue.first->m_rnti,
                                                        ueLcg.first,
                                                        lcId,
-                                                       LCPtr->m_qci,
+                                                       LCPtr->m_fiveQi,
                                                        LCPtr->m_priority,
                                                        ueMinPriority);
             }
@@ -306,7 +306,7 @@ class NrMacSchedulerUeInfoQos : public NrMacSchedulerUeInfo
                 ns3::NrMacSchedulerUeInfo::PrintLcInfo(ue.first->m_rnti,
                                                        ueLcg.first,
                                                        lcId,
-                                                       LCPtr->m_qci,
+                                                       LCPtr->m_fiveQi,
                                                        LCPtr->m_priority,
                                                        ueMinPriority);
             }

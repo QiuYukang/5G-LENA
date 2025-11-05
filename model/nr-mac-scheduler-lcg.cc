@@ -16,12 +16,12 @@ NS_LOG_COMPONENT_DEFINE("NrMacSchedulerLCG");
 NrMacSchedulerLC::NrMacSchedulerLC(const nr::LogicalChannelConfigListElement_s& conf)
     : m_id(conf.m_logicalChannelIdentity)
 {
-    NrQosFlow flow(static_cast<NrQosFlow::Qci>(conf.m_qci));
+    NrQosFlow flow(static_cast<NrQosFlow::FiveQi>(conf.m_fiveQi));
 
     m_delayBudget = MilliSeconds(flow.GetPacketDelayBudgetMs());
     m_resourceType = flow.GetResourceType();
     m_PER = flow.GetPacketErrorLossRate();
-    m_qci = conf.m_qci;
+    m_fiveQi = conf.m_fiveQi;
     m_priority = flow.GetPriority();
     m_eRabGuaranteedBitrateDl = conf.m_eRabGuaranteedBitrateDl;
 }
@@ -146,10 +146,10 @@ NrMacSchedulerLCG::GetActiveLCIds() const
 }
 
 uint8_t
-NrMacSchedulerLCG::GetQci(uint8_t lcId) const
+NrMacSchedulerLCG::GetFiveQi(uint8_t lcId) const
 {
     NS_LOG_FUNCTION(this);
-    return m_lcMap.at(lcId)->m_qci;
+    return m_lcMap.at(lcId)->m_fiveQi;
 }
 
 std::unique_ptr<NrMacSchedulerLC>&

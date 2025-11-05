@@ -203,9 +203,9 @@ class NrTestSchedulerAiCase : public TestCase
     std::string m_schedulerType;
     TestSchedulerAiPhySapProvider* m_phySapProvider;
     const std::unordered_map<uint8_t, NrQosFlow> m_qosFlowMap = {
-        {1, static_cast<NrQosFlow::Qci>(1)},
-        {2, static_cast<NrQosFlow::Qci>(3)},
-        {3, static_cast<NrQosFlow::Qci>(9)}};
+        {1, static_cast<NrQosFlow::FiveQi>(1)},
+        {2, static_cast<NrQosFlow::FiveQi>(3)},
+        {3, static_cast<NrQosFlow::FiveQi>(9)}};
 };
 
 void
@@ -231,7 +231,7 @@ NrTestSchedulerAiCase::Notify(const std::vector<NrMacSchedulerUeInfoAi::LcObserv
     {
         if (m_verbose)
         {
-            std::cout << "rnti: " << obs.rnti << " qci: " << obs.qci << " lcId: " << obs.lcId
+            std::cout << "rnti: " << obs.rnti << " fiveQi: " << obs.fiveQi << " lcId: " << obs.lcId
                       << " priority: " << obs.priority << " holDelay: " << obs.holDelay
                       << std::endl;
         }
@@ -243,7 +243,7 @@ NrTestSchedulerAiCase::Notify(const std::vector<NrMacSchedulerUeInfoAi::LcObserv
         }
         NS_TEST_ASSERT_MSG_EQ(obs.lcId, 1, "LC ID should be 1");
         NS_TEST_ASSERT_MSG_EQ(it->first, obs.rnti, "RNTI should be equal");
-        NS_TEST_ASSERT_MSG_EQ(it->second.qci, obs.qci, "QCI should be equal");
+        NS_TEST_ASSERT_MSG_EQ(it->second.fiveQi, obs.fiveQi, "5QI should be equal");
         NS_TEST_ASSERT_MSG_EQ(it->second.GetPriority(), obs.priority, "Priority should be equal");
         NS_TEST_ASSERT_MSG_EQ(it->second.GetPacketDelayBudgetMs(),
                               obs.holDelay,
@@ -334,7 +334,7 @@ NrTestSchedulerAiCase::DoRun()
         lc.m_direction = nr::LogicalChannelConfigListElement_s::DIR_DL;
         lc.m_qosBearerType = static_cast<nr::LogicalChannelConfigListElement_s::QosBearerType_e>(
             flow.GetResourceType());
-        lc.m_qci = flow.qci;
+        lc.m_fiveQi = flow.fiveQi;
         paramsLc.m_logicalChannelConfigList.emplace_back(lc);
 
         sched->DoCschedLcConfigReq(paramsLc);

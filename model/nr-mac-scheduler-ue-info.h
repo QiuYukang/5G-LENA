@@ -164,18 +164,18 @@ class NrMacSchedulerUeInfo
     static NrMacHarqVector& GetUlHarqVector(const UePtr& ue);
 
     /**
-     * @brief Prints information related to the QCI of a UEs LC
+     * @brief Prints information related to the 5QI of a UEs LC
      * @param ue UE for which we want to print the LC info
      * @param lcgId The logical channel group ID
      * @param lcId The logical channel ID
-     * @param qci The QCI of this LC
-     * @param P The priority associated to the QCI of this LC
+     * @param fiveQi The 5QI of this LC
+     * @param P The priority associated to the 5QI of this LC
      * @return
      */
     static void PrintLcInfo(uint16_t ue,
                             uint8_t lcgId,
                             uint8_t lcId,
-                            uint8_t cqi,
+                            uint8_t fiveQi,
                             uint8_t P,
                             uint8_t minP);
 

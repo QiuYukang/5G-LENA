@@ -319,7 +319,7 @@ NrUeMeasurementsTestCase::DoRun()
     }
 
     // Activate an QoS flow
-    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow::FiveQi q = NrQosFlow::GBR_CONV_VOICE;
     NrQosFlow flow(q);
     nrHelper->ActivateDataRadioBearer(ueDevs1, flow);
     nrHelper->ActivateDataRadioBearer(ueDevs2, flow);
@@ -797,7 +797,7 @@ NrUeMeasurementsPiecewiseTestCase1::DoRun()
     nrHelper->AttachToGnb(ueDevs.Get(0), nrDevs.Get(0));
 
     // Activate an QoS flow
-    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow::FiveQi q = NrQosFlow::GBR_CONV_VOICE;
     NrQosFlow flow(q);
     nrHelper->ActivateDataRadioBearer(ueDevs, flow);
 
@@ -1502,7 +1502,7 @@ NrUeMeasurementsPiecewiseTestCase2::DoRun()
     nrHelper->AttachToGnb(ueDevs.Get(0), nrDevs.Get(0));
 
     // Activate an QoS flow
-    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow::FiveQi q = NrQosFlow::GBR_CONV_VOICE;
     NrQosFlow flow(q);
     nrHelper->ActivateDataRadioBearer(ueDevs, flow);
 
@@ -1823,7 +1823,7 @@ NrUeMeasurementsPiecewiseTestCase3::DoRun()
     nrHelper->AttachToGnb(ueDevs.Get(0), nrDevs.Get(0));
 
     // Activate an QoS flow
-    NrQosFlow::Qci q = NrQosFlow::GBR_CONV_VOICE;
+    NrQosFlow::FiveQi q = NrQosFlow::GBR_CONV_VOICE;
     NrQosFlow flow(q);
     nrHelper->ActivateDataRadioBearer(ueDevs, flow);
 

@@ -69,7 +69,7 @@ class NrTestMacSchedLcRr : public TestCase
         {
             auto lcgEntry = std::make_unique<NrMacSchedulerLCG>(lcgId);
             m_lcg.emplace(lcgId, std::move(lcgEntry));
-            nr::LogicalChannelConfigListElement_s config{.m_qci = 5};
+            nr::LogicalChannelConfigListElement_s config{.m_fiveQi = 5};
             auto lcEntry = std::make_unique<NrMacSchedulerLC>(config);
             lcEntry->m_id = lcgId;
             m_lcg.at(lcgId)->Insert(std::move(lcEntry));

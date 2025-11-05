@@ -47,67 +47,67 @@ NrQosFlow::GetInstanceTypeId() const
 
 NrQosFlow::NrQosFlow()
     : ObjectBase(),
-      qci(NGBR_VIDEO_TCP_DEFAULT)
+      fiveQi(NGBR_VIDEO_TCP_DEFAULT)
 {
     ObjectBase::ConstructSelf(AttributeConstructionList());
-    m_requirements = GetRequirementsRel18();
+    m_characteristics = GetCharacteristicsRel19();
 }
 
-NrQosFlow::NrQosFlow(Qci x)
+NrQosFlow::NrQosFlow(FiveQi x)
     : ObjectBase(),
-      qci(x)
+      fiveQi(x)
 {
     ObjectBase::ConstructSelf(AttributeConstructionList());
-    m_requirements = GetRequirementsRel18();
+    m_characteristics = GetCharacteristicsRel19();
 }
 
-NrQosFlow::NrQosFlow(Qci x, NrGbrQosInformation y)
+NrQosFlow::NrQosFlow(FiveQi x, NrGbrQosInformation y)
     : ObjectBase(),
-      qci(x),
+      fiveQi(x),
       gbrQosInfo(y)
 {
     ObjectBase::ConstructSelf(AttributeConstructionList());
-    m_requirements = GetRequirementsRel18();
+    m_characteristics = GetCharacteristicsRel19();
 }
 
 NrQosFlow::NrQosFlow(const NrQosFlow& o)
     : ObjectBase(o)
 {
-    qci = o.qci;
+    fiveQi = o.fiveQi;
     gbrQosInfo = o.gbrQosInfo;
     ObjectBase::ConstructSelf(AttributeConstructionList());
-    m_requirements = GetRequirementsRel18();
+    m_characteristics = GetCharacteristicsRel19();
 }
 
 uint8_t
 NrQosFlow::GetResourceType() const
 {
-    return GetResourceType(m_requirements, qci);
+    return GetResourceType(m_characteristics, fiveQi);
 }
 
 uint8_t
 NrQosFlow::GetPriority() const
 {
-    return GetPriority(m_requirements, qci);
+    return GetPriority(m_characteristics, fiveQi);
 }
 
 uint16_t
 NrQosFlow::GetPacketDelayBudgetMs() const
 {
-    return GetPacketDelayBudgetMs(m_requirements, qci);
+    return GetPacketDelayBudgetMs(m_characteristics, fiveQi);
 }
 
 double
 NrQosFlow::GetPacketErrorLossRate() const
 {
-    return GetPacketErrorLossRate(m_requirements, qci);
+    return GetPacketErrorLossRate(m_characteristics, fiveQi);
 }
 
-const NrQosFlow::BearerRequirementsMap&
-NrQosFlow::GetRequirementsRel18()
+const NrQosFlow::FiveQiCharacteristicsMap&
+NrQosFlow::GetCharacteristicsRel19()
 {
-    // Needed to support GCC 4.9. Otherwise, use list constructors (see GetRequirementsRel10)
-    static NrQosFlow::BearerRequirementsMap ret{
+    // TODO: Check that the below are still consistent with 23.501, Table 5.7.4-1.
+    static NrQosFlow::FiveQiCharacteristicsMap ret{
         {GBR_CONV_VOICE, std::make_tuple(1, 20, 100, 1.0e-2, 0, 2000)},
         {GBR_CONV_VIDEO, std::make_tuple(1, 40, 150, 1.0e-3, 0, 2000)},
         {GBR_GAMING, std::make_tuple(1, 30, 50, 1.0e-3, 0, 2000)},

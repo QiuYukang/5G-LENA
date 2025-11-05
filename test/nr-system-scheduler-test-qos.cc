@@ -443,8 +443,8 @@ SystemSchedulerTestQos::DoRun()
 
     uint32_t appTime = (simTime.GetSeconds() - udpAppStartTimeDl.GetSeconds());
 
-    // Test Case 1: Half UEs QCI 1 saturated
-    // and Half UEs QCI 80
+    // Test Case 1: Half UEs 5QI 1 saturated
+    // and Half UEs 5QI 80
     // check if ratio of throughputs is equal to ratio of priorities
     double dlThroughputLowLat = 0;
     double dlThroughputVoice = 0;
@@ -464,23 +464,23 @@ SystemSchedulerTestQos::DoRun()
             dlThroughputVoice += (serverApp->GetReceived() * udpPacketSizeBe * 8) / appTime;
         }
 
-        // Flow 2 is saturated and it must be prioritized (QCI 1 vs 80)
+        // Flow 2 is saturated and it must be prioritized (5QI 1 vs 80)
 
-        double qciRatio = (100 - m_p1) / (100 - m_p2);
+        double fiveQiRatio = (100 - m_p1) / (100 - m_p2);
         double throughputRatio = dlThroughputVoice / dlThroughputLowLat;
 
         if (verbose)
         {
             std::cout << "dlThroughputLowLat: " << dlThroughputVoice
                       << " dlThroughputVoice: " << dlThroughputLowLat << std::endl;
-            std::cout << "ratio: " << qciRatio << " throughput ratio: " << throughputRatio
+            std::cout << "ratio: " << fiveQiRatio << " throughput ratio: " << throughputRatio
                       << std::endl;
         }
 
-        NS_TEST_ASSERT_MSG_EQ_TOL(qciRatio,
+        NS_TEST_ASSERT_MSG_EQ_TOL(fiveQiRatio,
                                   throughputRatio,
-                                  (qciRatio * 0.1),
-                                  "DL qci Ratio and throughput Ratio are not "
+                                  (fiveQiRatio * 0.1),
+                                  "DL fiveQi Ratio and throughput Ratio are not "
                                   "equal within tolerance");
     }
     if (m_isUplink)
@@ -496,21 +496,21 @@ SystemSchedulerTestQos::DoRun()
             ulThroughputVoice += (serverApp->GetReceived() * udpPacketSizeBe * 8) / appTime;
         }
 
-        double qciRatio = (100 - m_p1) / (100 - 90); // Hardcoded P due to scheduler restrictions
+        double fiveQiRatio = (100 - m_p1) / (100 - 90); // Hardcoded P due to scheduler restrictions
         double throughputRatio = ulThroughputVoice / ulThroughputLowLat;
 
         if (verbose)
         {
             std::cout << "ulThroughputLowLat: " << ulThroughputVoice
                       << " ulThroughputVoice: " << ulThroughputLowLat << std::endl;
-            std::cout << "ratio: " << qciRatio << " throughput ratio: " << throughputRatio
+            std::cout << "ratio: " << fiveQiRatio << " throughput ratio: " << throughputRatio
                       << std::endl;
         }
 
-        NS_TEST_ASSERT_MSG_EQ_TOL(qciRatio,
+        NS_TEST_ASSERT_MSG_EQ_TOL(fiveQiRatio,
                                   throughputRatio,
-                                  (qciRatio * 0.1),
-                                  "UL qci Ratio and throughput Ratio are not "
+                                  (fiveQiRatio * 0.1),
+                                  "UL fiveQi Ratio and throughput Ratio are not "
                                   "equal within tolerance");
     }
 
