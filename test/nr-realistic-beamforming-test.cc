@@ -202,27 +202,14 @@ NrRealisticBeamformingTestCase::DoRun()
                     {
                         DynamicCast<NrGnbNetDevice>(*it)->ConfigureCell();
                     }
+                    uint32_t stream = 1;
+                    stream += nrHelper->AssignStreams(gnbDevs, stream);
+                    stream += nrHelper->AssignStreams(ueDevs, stream);
 
                     Ptr<NrUePhy> uePhy = NrHelper::GetUePhy(ueDevs.Get(0), 0);
 
                     Ptr<NrSpectrumPhy> txSpectrumPhy =
                         NrHelper::GetGnbPhy(gnbDevs.Get(0), 0)->GetSpectrumPhy();
-                    Ptr<SpectrumChannel> txSpectrumChannel = txSpectrumPhy->GetSpectrumChannel();
-                    Ptr<ThreeGppPropagationLossModel> propagationLossModel =
-                        DynamicCast<ThreeGppPropagationLossModel>(
-                            txSpectrumChannel->GetPropagationLossModel());
-                    NS_ASSERT(propagationLossModel != nullptr);
-                    propagationLossModel->AssignStreams(1);
-                    Ptr<ChannelConditionModel> channelConditionModel =
-                        propagationLossModel->GetChannelConditionModel();
-                    channelConditionModel->AssignStreams(1);
-                    Ptr<ThreeGppSpectrumPropagationLossModel> spectrumLossModel =
-                        DynamicCast<ThreeGppSpectrumPropagationLossModel>(
-                            txSpectrumChannel->GetPhasedArraySpectrumPropagationLossModel());
-                    NS_ASSERT(spectrumLossModel != nullptr);
-                    Ptr<ThreeGppChannelModel> channel =
-                        DynamicCast<ThreeGppChannelModel>(spectrumLossModel->GetChannelModel());
-                    channel->AssignStreams(1);
 
                     double sinrSrsHighLineal = std::pow(10.0, 0.1 * 40);
                     double sinrSrsLowLineal = std::pow(10.0, 0.1 * (-10));
@@ -240,6 +227,7 @@ NrRealisticBeamformingTestCase::DoRun()
                         txSpectrumPhy,
                         uePhy->GetSpectrumPhy(),
                         DynamicCast<NrGnbNetDevice>(gnbDevs.Get(0))->GetScheduler(0));
+                    stream += realisticBeamforming->AssignStreams(stream);
 
                     // directly update max SINR SRS to a high value, skipping other set functions of
                     // the algorithm
