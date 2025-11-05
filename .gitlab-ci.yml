@@ -79,6 +79,11 @@ variables:
       - $RELEASE == "daily"
   image: archlinux
   before_script:
+    # Extra fluf to handle CTTC's MITM firewall and self-hosted gitlab instance
+    # - openssl s_client -showcerts -servername gitlab.cttc.es -connect gitlab.cttc.es:443 </dev/null 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /etc/ssl/certs/gitlab.cttc.es.pem
+    # - openssl s_client -showcerts -servername doi.org -connect doi.org:443 </dev/null 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /etc/ssl/certs/firewall.cttc.pem
+    # - update-ca-trust
+    # Proceed to normal behavior
     - pacman-key --init
     - pacman -Sy
     - pacman -S --noconfirm archlinux-keyring
