@@ -523,6 +523,7 @@ NrUeManager::SetupDataRadioBearer(NrQosFlow flow,
 
     drbInfo->m_logicalChannelIdentity = lcid;
     drbInfo->m_logicalChannelConfig.priority = m_rrc->GetLogicalChannelPriority(flow);
+    drbInfo->m_logicalChannelConfig.fiveQi = m_rrc->GetLogicalChannelFiveQi(flow);
     drbInfo->m_logicalChannelConfig.logicalChannelGroup = m_rrc->GetLogicalChannelGroup(flow);
     if (flow.GetResourceType() > 0) // 1, 2 for GBR and DC-GBR
     {
@@ -3254,6 +3255,12 @@ NrGnbRrc::GetLogicalChannelGroup(NrQosFlow flow)
 
 uint8_t
 NrGnbRrc::GetLogicalChannelPriority(NrQosFlow flow)
+{
+    return flow.GetPriority();
+}
+
+NrQosFlow::FiveQi
+NrGnbRrc::GetLogicalChannelFiveQi(NrQosFlow flow)
 {
     return flow.fiveQi;
 }

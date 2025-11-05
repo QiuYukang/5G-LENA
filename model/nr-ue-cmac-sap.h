@@ -7,6 +7,8 @@
 #ifndef NR_UE_CMAC_SAP_H
 #define NR_UE_CMAC_SAP_H
 
+#include "nr-qos-flow.h"
+
 namespace ns3
 {
 class NrMacSapUser;
@@ -61,6 +63,7 @@ class NrUeCmacSapProvider
     struct LogicalChannelConfig
     {
         uint8_t priority;                ///< priority
+        NrQosFlow::FiveQi fiveQi;        ///< 5G QoS Identifier
         uint16_t prioritizedBitRateKbps; ///< prioritize bit rate Kbps
         uint16_t bucketSizeDurationMs;   ///< bucket size duration ms
         uint8_t logicalChannelGroup;     ///< logical channel group

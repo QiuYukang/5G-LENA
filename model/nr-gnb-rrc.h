@@ -1502,6 +1502,14 @@ class NrGnbRrc : public Object
     uint8_t GetLogicalChannelPriority(NrQosFlow flow);
 
     /**
+     * Get the 5G QoS Identifier (5QI) for a QoS flow
+     *
+     * @param flow the QoS flow
+     * @return the 5QI value
+     */
+    NrQosFlow::FiveQi GetLogicalChannelFiveQi(NrQosFlow flow);
+
+    /**
      * method used to periodically send System Information
      *
      */

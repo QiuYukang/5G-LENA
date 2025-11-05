@@ -73,11 +73,11 @@ BwpManagerUe::DoAddLc(uint8_t lcId,
     NS_LOG_FUNCTION(this);
 
     NS_LOG_INFO("For LC ID " << static_cast<uint32_t>(lcId) << " flow QFI "
-                             << static_cast<uint32_t>(lcConfig.priority) << " from priority "
+                             << static_cast<uint32_t>(lcConfig.fiveQi) << " from priority "
                              << static_cast<uint32_t>(lcConfig.priority));
 
     // see nr-gnb-rrc.cc
-    m_lcToFlowMap.insert(std::make_pair(lcId, static_cast<NrQosFlow::FiveQi>(lcConfig.priority)));
+    m_lcToFlowMap.insert(std::make_pair(lcId, lcConfig.fiveQi));
 
     return NrSimpleUeComponentCarrierManager::DoAddLc(lcId, lcConfig, msu);
 }
@@ -89,7 +89,7 @@ BwpManagerUe::DoConfigureSignalBearer(uint8_t lcId,
 {
     NS_LOG_FUNCTION(this);
 
-    m_lcToFlowMap.insert(std::make_pair(lcId, static_cast<NrQosFlow::FiveQi>(lcConfig.priority)));
+    m_lcToFlowMap.insert(std::make_pair(lcId, lcConfig.fiveQi));
 
     return NrSimpleUeComponentCarrierManager::DoConfigureSignalBearer(lcId, lcConfig, msu);
 }

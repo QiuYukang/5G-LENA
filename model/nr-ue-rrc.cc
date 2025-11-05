@@ -1496,6 +1496,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
             m_srb1CreatedTrace(m_imsi, m_cellId, m_rnti);
 
             m_srb1->m_logicalChannelConfig.priority = stamIt->logicalChannelConfig.priority;
+            m_srb1->m_logicalChannelConfig.fiveQi = stamIt->logicalChannelConfig.fiveQi;
             m_srb1->m_logicalChannelConfig.prioritizedBitRateKbps =
                 stamIt->logicalChannelConfig.prioritizedBitRateKbps;
             m_srb1->m_logicalChannelConfig.bucketSizeDurationMs =
@@ -1505,6 +1506,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
 
             NrUeCmacSapProvider::LogicalChannelConfig lcConfig;
             lcConfig.priority = stamIt->logicalChannelConfig.priority;
+            lcConfig.fiveQi = stamIt->logicalChannelConfig.fiveQi;
             lcConfig.prioritizedBitRateKbps = stamIt->logicalChannelConfig.prioritizedBitRateKbps;
             lcConfig.bucketSizeDurationMs = stamIt->logicalChannelConfig.bucketSizeDurationMs;
             lcConfig.logicalChannelGroup = stamIt->logicalChannelConfig.logicalChannelGroup;
@@ -1603,6 +1605,7 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
 
             NrUeCmacSapProvider::LogicalChannelConfig lcConfig;
             lcConfig.priority = dtamIt->logicalChannelConfig.priority;
+            lcConfig.fiveQi = dtamIt->logicalChannelConfig.fiveQi;
             lcConfig.prioritizedBitRateKbps = dtamIt->logicalChannelConfig.prioritizedBitRateKbps;
             lcConfig.bucketSizeDurationMs = dtamIt->logicalChannelConfig.bucketSizeDurationMs;
             lcConfig.logicalChannelGroup = dtamIt->logicalChannelConfig.logicalChannelGroup;
