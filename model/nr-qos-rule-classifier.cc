@@ -36,20 +36,20 @@ NrQosRuleClassifier::NrQosRuleClassifier()
 }
 
 void
-NrQosRuleClassifier::Add(Ptr<NrQosRule> rule, uint32_t id)
+NrQosRuleClassifier::Add(Ptr<NrQosRule> rule, uint32_t qfi)
 {
-    NS_LOG_FUNCTION(this << rule << id);
-    m_qosRuleMap[id] = rule;
+    NS_LOG_FUNCTION(this << rule << qfi);
+    m_qosRuleMap[qfi] = rule;
 
     // simple sanity check: there shouldn't be more than 16 bearers (hence rules) per UE
     NS_ASSERT(m_qosRuleMap.size() <= 16);
 }
 
 void
-NrQosRuleClassifier::Delete(uint32_t id)
+NrQosRuleClassifier::Delete(uint32_t qfi)
 {
-    NS_LOG_FUNCTION(this << id);
-    m_qosRuleMap.erase(id);
+    NS_LOG_FUNCTION(this << qfi);
+    m_qosRuleMap.erase(qfi);
 }
 
 uint32_t

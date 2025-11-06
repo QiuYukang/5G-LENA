@@ -45,27 +45,32 @@ class NrQosRuleClassifier : public SimpleRefCount<NrQosRuleClassifier>
      * add a QoS rule to the Classifier
      *
      * @param rule the QoS rule to be added
-     * @param id the ID of the bearer which will be classified
+     * @param qfi the QoS Flow ID (QFI) of the bearer which will be classified
+     *
+     * QFI must take a unique value between 0 and 63
      *
      */
-    void Add(Ptr<NrQosRule> rule, uint32_t id);
+    void Add(Ptr<NrQosRule> rule, uint32_t qfi);
 
     /**
      * delete an existing QoS rule from the classifier
      *
-     * @param id the identifier of the QoS rule to be deleted
+     * @param qfi the QoS Flow ID (QFI) QoS rule to be deleted
      */
-    void Delete(uint32_t id);
+    void Delete(uint32_t qfi);
 
     /**
      * classify an IP packet
      *
-     * @param p the IP packet. The outmost header can only be an IPv4 or an IPv6 header.
+     * The packet is classified by iterating the QoS rules in increasing order of precedence
+     * value until a match is found.
+     *
+     * @param p the IP packet. The outermost header can only be an IPv4 or an IPv6 header.
      * @param direction the QoS rule direction (can be downlink, uplink or bi-directional)
      * @param protocolNumber the protocol of the packet. Only IPv4 and IPv6 are supported.
      *
-     * @return the identifier (>0) of the first rule that matches with the IP packet; 0 if no rule
-     * matched.
+     * @return the QoS flow identifier (>0) of the first rule that matches with the IP packet; 0 if
+     * no rule matched.
      */
     uint32_t Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint16_t protocolNumber);
 
