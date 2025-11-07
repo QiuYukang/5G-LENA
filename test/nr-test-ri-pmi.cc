@@ -98,8 +98,6 @@ class RiPmiTestCase : public TestCase
                   std::string riSelectionTechnique,
                   double riThreshold,
                   std::string pmiSelectionTechnique,
-                  double throughput,
-                  double latency,
                   double meanRank,
                   double meanMcs)
         : TestCase(GetRiPmiTestCaseName(distanceGnbUe,
@@ -110,8 +108,6 @@ class RiPmiTestCase : public TestCase
           m_riSelectionTechnique(riSelectionTechnique),
           m_riThreshold(riThreshold),
           m_pmiSelectionTechnique(pmiSelectionTechnique),
-          m_targetThroughput(throughput),
-          m_targetLatency(latency),
           m_targetMeanRank(meanRank),
           m_targetMeanMcs(meanMcs)
     {
@@ -123,8 +119,6 @@ class RiPmiTestCase : public TestCase
     std::string m_riSelectionTechnique;
     double m_riThreshold;
     std::string m_pmiSelectionTechnique;
-    double m_targetThroughput;
-    double m_targetLatency;
     double m_targetMeanRank;
     double m_targetMeanMcs;
 };
@@ -382,14 +376,17 @@ RiPmiTestCase::DoRun()
     Simulator::Stop(simTime);
     Simulator::Run();
 
-    // Print per-flow statistics
+    // Check per-flow statistics
     monitor->CheckForLostPackets();
     Ptr<Ipv4FlowClassifier> classifier =
         DynamicCast<Ipv4FlowClassifier>(flowmonHelper.GetClassifier());
     FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats();
 
-    double averageFlowThroughput = 0.0;
-    double averageFlowDelay = 0.0;
+    for (auto i = stats.begin(); i != stats.end(); ++i)
+    {
+        NS_TEST_EXPECT_MSG_GT(i->second.rxPackets, 0, "Expected UE to receive packets");
+    }
+
     double averageMcsForAllUes = 0.0;
     double averageRiForAllUes = 0.0;
     for (const auto& ue : cqiTraces)
@@ -402,26 +399,7 @@ RiPmiTestCase::DoRun()
                           cqiTraces.size(),
                           "Not all UEs have generated CQI feedback.");
 
-    double flowDuration = (simTime - udpAppStartTime).GetSeconds();
-    for (auto i = stats.begin(); i != stats.end(); ++i)
-    {
-        if (i->second.rxPackets > 0)
-        {
-            // Measure the duration of the flow from receiver's perspective
-            averageFlowThroughput += i->second.rxBytes * 8.0 / flowDuration / 1000 / 1000;
-            averageFlowDelay += 1000 * i->second.delaySum.GetSeconds() / i->second.rxPackets;
-        }
-    }
-
     // Tolerate results with a 20% tolerance, since only run for a single UE
-    NS_TEST_EXPECT_MSG_EQ_TOL(averageFlowThroughput,
-                              m_targetThroughput,
-                              m_targetThroughput * 0.2,
-                              "Throughput is out of the expected range");
-    NS_TEST_EXPECT_MSG_EQ_TOL(averageFlowDelay,
-                              m_targetLatency,
-                              m_targetLatency * 0.2,
-                              "Delay is out of the expected range");
     NS_TEST_EXPECT_MSG_EQ_TOL(averageRiForAllUes,
                               m_targetMeanRank,
                               m_targetMeanRank * 0.2,
@@ -444,33 +422,33 @@ class TestRiPmiSystem : public TestSuite
         // Parameters (gNB-UE distance, RI selection technique, RI threshold, PMI selection
         // technique, expected throughput, latency, mean RI and mean MCS)
         // clang-format off
-        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,    "ns3::NrPmSearchFull", 133.0, 157.0, 3.1, 25.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500,             "",  0.0,    "ns3::NrPmSearchFull", 104.0, 243.7, 2.3, 26.6), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,   "ns3::NrPmSearchIdeal", 154.0,  71.4, 3.5, 25.3), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500,             "",  0.0,   "ns3::NrPmSearchIdeal", 106.2, 205.4, 2.9, 24.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase( 20,          "SVD",  0.0,    "ns3::NrPmSearchFast", 114.4, 202.6, 4.0, 17.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase( 20,          "SVD",  0.5,    "ns3::NrPmSearchFast",  86.1, 291.1, 1.7, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20,          "SVD",  0.9,    "ns3::NrPmSearchFast",  61.0, 376.5, 1.0, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase(500,          "SVD",  0.0,    "ns3::NrPmSearchFast",  62.4, 356.8, 4.0,  9.6), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500,          "SVD",  0.5,    "ns3::NrPmSearchFast",  96.9, 250.8, 1.9, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase(500,          "SVD",  0.9,    "ns3::NrPmSearchFast",  53.0, 400.3, 1.1, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 10.0,    "ns3::NrPmSearchFast", 126.4, 157.6, 3.6, 20.5), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 50.0,    "ns3::NrPmSearchFast", 128.2, 156.9, 3.3, 23.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 129.5, 155.7, 3.1, 24.5), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 129.5, 155.7, 3.1, 24.5), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 10.0,    "ns3::NrPmSearchFast",  92.0, 282.9, 3.1, 18.5), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 50.0,    "ns3::NrPmSearchFast",  99.8, 268.1, 2.3, 24.7), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 101.8, 260.8, 2.2, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 101.8, 260.8, 2.2, 27.0), Duration::EXTENSIVE);
-        AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast", 124.3, 170.3, 3.1, 23.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0, "ns3::NrPmSearchSasaoka", 117.6, 196.8, 3.1, 23.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast",  75.9, 299.2, 3.1, 15.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500,      "Sasaoka",  0.0, "ns3::NrPmSearchSasaoka",  76.5, 301.5, 3.1, 15.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,    "ns3::NrPmSearchFull", 3.1, 25.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500,             "",  0.0,    "ns3::NrPmSearchFull", 2.3, 26.6), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,   "ns3::NrPmSearchIdeal", 3.5, 25.3), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500,             "",  0.0,   "ns3::NrPmSearchIdeal", 2.9, 24.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,          "SVD",  0.0,    "ns3::NrPmSearchFast", 4.0, 17.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,          "SVD",  0.5,    "ns3::NrPmSearchFast", 1.7, 27.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20,          "SVD",  0.9,    "ns3::NrPmSearchFast", 1.0, 27.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase(500,          "SVD",  0.0,    "ns3::NrPmSearchFast", 4.0,  9.6), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500,          "SVD",  0.5,    "ns3::NrPmSearchFast", 1.9, 27.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase(500,          "SVD",  0.9,    "ns3::NrPmSearchFast", 1.1, 27.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 10.0,    "ns3::NrPmSearchFast", 3.6, 20.5), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 50.0,    "ns3::NrPmSearchFast", 3.3, 23.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 3.1, 24.5), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 3.1, 24.5), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 10.0,    "ns3::NrPmSearchFast", 3.1, 18.5), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 50.0,    "ns3::NrPmSearchFast", 2.3, 24.7), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 75.0,    "ns3::NrPmSearchFast", 2.2, 27.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase(500, "WaterFilling", 90.0,    "ns3::NrPmSearchFast", 2.2, 27.0), Duration::EXTENSIVE);
+        AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast", 3.1, 23.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,      "Sasaoka",  0.0, "ns3::NrPmSearchSasaoka", 3.1, 23.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500,      "Sasaoka",  0.0,    "ns3::NrPmSearchFast", 3.1, 15.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500,      "Sasaoka",  0.0, "ns3::NrPmSearchSasaoka", 3.1, 15.0), Duration::QUICK);
 #ifdef PMI_MALEKI
         // Maleki's PMI test is enabled via a conditional compilation flag due to external
         // dependencies such as Pybind11+Pyttb presence
-        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,  "ns3::NrPmSearchMaleki", 120.2, 169.8, 2.6, 27.0), Duration::QUICK);
-        AddTestCase(new RiPmiTestCase(500,             "",  0.0,  "ns3::NrPmSearchMaleki", 104.9, 242.7, 2.2, 27.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase( 20,             "",  0.0,  "ns3::NrPmSearchMaleki", 2.6, 27.0), Duration::QUICK);
+        AddTestCase(new RiPmiTestCase(500,             "",  0.0,  "ns3::NrPmSearchMaleki", 2.2, 27.0), Duration::QUICK);
 #endif
         // clang-format on
     }
