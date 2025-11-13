@@ -572,9 +572,9 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // By using the configuration created, make the operation band
     OperationBandInfo band = ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
     // Set and create the channel for the band
+    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
     channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
-    channelHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(enableShadowing));
 
     // Disable channel matrix update to speed up the simulation execution
     // Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
