@@ -172,7 +172,7 @@ class Nr3gppIndoorCalibration
              uint32_t duration,
              uint8_t numUePanel,
              uint16_t ueCount,
-             DroppingParameters dropParam = DroppingParameters());
+             DroppingParameters dropParam = DroppingParameters() std::string confType);
     /**
      * @brief Destructor that closes the output file stream and finished the
      * writing into the files.
@@ -298,7 +298,7 @@ UeRssiPerProcessedChunkTrace(Nr3gppIndoorCalibration* scenario, double rssidBm)
 void
 Nr3gppIndoorCalibration::UeReception(RxPacketTraceParams params)
 {
-    m_outSinrFile << params.m_cellId << params.m_rnti << "\t" << 10 * log10(params.m_sinr)
+    m_outSinrFile << params.m_cellId << "\t" << params.m_rnti << "\t" << 10 * log10(params.m_sinr)
                   << std::endl;
 }
 
@@ -388,7 +388,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              uint32_t duration,
                              uint8_t numUePanel,
                              uint16_t ueCount,
-                             DroppingParameters dropParam)
+                             DroppingParameters dropParam,
+                             std::string confType)
 {
     Time simTime = MilliSeconds(duration);
     Time udpAppStartTimeDl = MilliSeconds(100);
@@ -423,6 +424,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         NS_ABORT_MSG("Can't open file " << filenameSinr);
     }
+    m_outSinrFile << "CellId" << "\t" << "Rnti" << "\t" << "SINR (dB)" << std::endl;
 
     m_outSnrFile.open(filenameSnr.c_str());
     m_outSnrFile.setf(std::ios_base::fixed);
@@ -576,7 +578,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     allBwps = CcBwpCreator::GetAllBwps({band});
 
     // Disable channel matrix update to speed up the simulation execution
-    // Config::SetDefault ("ns3::Nr3gppChannel::UpdatePeriod", TimeValue (MilliSeconds(0)));
+    Config::SetDefault("ns3::Nr3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(0)));
     // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999))
 
@@ -601,7 +603,14 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         NS_ABORT_MSG("Unsupported Beamforming Method");
     }
-    nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaPF"));
+    if (confType == "3gppCalibConf")
+    {
+        nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaRandom"));
+    }
+    else
+    {
+        nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaPF"));
+    }
     nrHelper->SetSchedulerAttribute("EnableHarqReTx", BooleanValue(false));
 
     // Antennas for all the UEs - Should be 2x4 = 8 antenna elements
@@ -612,15 +621,26 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         nrHelper->SetUeAntennaAttribute("AntennaElement",
                                         PointerValue(CreateObject<IsotropicAntennaModel>()));
+        Config::SetDefault("ns3::ThreeGppAntennaModel::RadiationPattern",
+                           EnumValue(ns3::ThreeGppAntennaModel::RadiationPattern::INDOOR));
     }
     else
     {
         nrHelper->SetUeAntennaAttribute("AntennaElement",
                                         PointerValue(CreateObject<ThreeGppAntennaModel>()));
     }
-    // Antennas for all the gNbs - Should be 4x8 = 32 antenna elements
-    nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(4));
-    nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(8));
+
+    if (confType == "3gppCalibConf")
+    {
+        nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(2));
+        nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(4));
+    }
+    else
+    {
+        // Antennas for all the gNbs - Should be 4x8 = 32 antenna elements
+        nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(4));
+        nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(8));
+    }
     // Antenna element type for gNBs
     if (gNbAntennaModel)
     {
@@ -647,6 +667,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     if (dropParam.ueAntennaPolarization)
     {
         nrHelper->SetUeAntennaAttribute("IsDualPolarized", BooleanValue(true));
+        nrHelper->SetUeAntennaAttribute("DowntiltAngle",
+                                        DoubleValue(-downtiltAnglegNB * M_PI / 180.0));
         nrHelper->SetUeAntennaAttribute("PolSlantAngle", DoubleValue(0 * M_PI / 180.0));
     }
     nrHelper->SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsGnb));
@@ -851,6 +873,7 @@ main(int argc, char* argv[])
     bool enableShadowing = false;
     std::string indoorScenario = "InH-OfficeOpen";
     std::string beamformingMethod = "KroneckerBeamforming";
+    std::string confType = "customConf";
     double speed = 3.00;
     bool polarizedAntennas = true;
     std::string outdir = "./";
@@ -862,11 +885,20 @@ main(int argc, char* argv[])
     uint8_t numUePanel = 2;
     uint16_t ueCount = 120;
     NrHelper::InitialAssocParams Initparams;
-    Initparams.rowAngles = {-67.5, -22.5, 22.5, 67.5};
-    Initparams.colAngles = {45, 135};
+    Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue("45|135"));
+    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles",
+                       StringValue("-67.5|-22.5|22.5|67.5"));
+
+    Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue("45|135"));
+    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles",
+                       StringValue("-67.5|-22.5|22.5|67.5"));
+
+    Config::SetDefault("ns3::NrInitialAssociation::ColumnAngles", StringValue("45|135"));
+    Config::SetDefault("ns3::NrInitialAssociation::RowAngles",
+                       StringValue("-67.5|-22.5|22.5|67.5"));
 
     CommandLine cmd(__FILE__);
-
+    cmd.AddValue("configurationType", "Choose among a) customConf and b) 3gppCalibConf.", confType);
     cmd.AddValue("duration",
                  "Simulation duration in ms, should be greater than 100 ms to allow the collection "
                  "of traces",
@@ -908,6 +940,39 @@ main(int argc, char* argv[])
     ConfigStore inputConfig;
     inputConfig.ConfigureDefaults();
 
+    // If calibration configuration is selected, override the default parameters
+    if (confType == "3gppCalibConf")
+    {
+        centralFrequencyBand = 30e9;
+        bandwidthBand = 40e6;
+        numerology = 2;
+        totalTxPower = 20;
+        ueTxPower = 23;
+        enableInitialAssoc = true;
+        enableGnbIso = false;
+        enableUeIso = false;
+        enableShadowing = false;
+        std::string beamformingMethod = "KroneckerBeamforming";
+        double speed = 3.00;
+        bool polarizedAntennas = false;
+        numVPortsGnb = 1;
+        numHPortsGnb = 1;
+        numVPortsUe = 1;
+        numHPortsUe = 1;
+        numUePanel = 2;
+
+        Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue("45|135"));
+        Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles",
+                           StringValue("-67.5|-22.5|22.5|67.5"));
+
+        Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue("45|135"));
+        Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles",
+                           StringValue("-67.5|-22.5|22.5|67.5"));
+
+        Config::SetDefault("ns3::NrInitialAssociation::ColumnAngles", StringValue("45|135"));
+        Config::SetDefault("ns3::NrInitialAssociation::RowAngles",
+                           StringValue("-67.5|-22.5|22.5|67.5"));
+    }
     Nr3gppIndoorCalibration phase1CalibrationScenario;
 
     DroppingParameters dropParam = {polarizedAntennas,
@@ -934,6 +999,7 @@ main(int argc, char* argv[])
                                   duration,
                                   numUePanel,
                                   ueCount,
-                                  dropParam);
+                                  dropParam,
+                                  confType);
     return 0;
 }
