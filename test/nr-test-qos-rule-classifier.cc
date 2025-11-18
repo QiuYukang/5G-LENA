@@ -186,11 +186,25 @@ NrQosRuleClassifierTestCase::DoRun()
         udpPacket->AddHeader(m_ipHeader);
     }
     NS_LOG_LOGIC(this << *udpPacket);
-    uint32_t obtainedRuleId =
+    auto obtainedRuleId =
         m_c->Classify(udpPacket,
                       m_d,
                       m_useIpv6 ? Ipv6L3Protocol::PROT_NUMBER : Ipv4L3Protocol::PROT_NUMBER);
-    NS_TEST_ASSERT_MSG_EQ(obtainedRuleId, (uint16_t)m_ruleId, "bad classification of UDP packet");
+
+    // Special case: m_ruleId == 0 means we expect no match (std::nullopt)
+    if (m_ruleId == 0)
+    {
+        NS_TEST_ASSERT_MSG_EQ(obtainedRuleId.has_value(),
+                              false,
+                              "classification should return nullopt for no match");
+    }
+    else
+    {
+        NS_TEST_ASSERT_MSG_EQ(obtainedRuleId.has_value(),
+                              true,
+                              "classification should return a value");
+        NS_TEST_ASSERT_MSG_EQ(obtainedRuleId.value(), m_ruleId, "bad classification of UDP packet");
+    }
 }
 
 /**

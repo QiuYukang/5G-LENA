@@ -192,16 +192,14 @@ NrEpcUeNas::Send(Ptr<Packet> packet, uint16_t protocolNumber)
     switch (m_state)
     {
     case ACTIVE: {
-        uint32_t id = m_qosRuleClassifier.Classify(packet, NrQosRule::UPLINK, protocolNumber);
-        NS_ASSERT((id & 0xFFFFFF00) == 0);
-        auto qfi = (uint8_t)(id & 0x000000FF);
-        if (qfi == 0)
+        auto qfi = m_qosRuleClassifier.Classify(packet, NrQosRule::UPLINK, protocolNumber);
+        if (!qfi.has_value())
         {
             return false;
         }
         else
         {
-            m_asSapProvider->SendData(packet, qfi);
+            m_asSapProvider->SendData(packet, qfi.value());
             return true;
         }
     }

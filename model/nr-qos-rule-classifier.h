@@ -12,7 +12,9 @@
 #include "ns3/ptr.h"
 #include "ns3/simple-ref-count.h"
 
+#include <cstdint>
 #include <map>
+#include <optional>
 
 namespace ns3
 {
@@ -50,14 +52,14 @@ class NrQosRuleClassifier : public SimpleRefCount<NrQosRuleClassifier>
      * QFI must take a unique value between 0 and 63
      *
      */
-    void Add(Ptr<NrQosRule> rule, uint32_t qfi);
+    void Add(Ptr<NrQosRule> rule, uint8_t qfi);
 
     /**
      * delete an existing QoS rule from the classifier
      *
      * @param qfi the QoS Flow ID (QFI) QoS rule to be deleted
      */
-    void Delete(uint32_t qfi);
+    void Delete(uint8_t qfi);
 
     /**
      * classify an IP packet
@@ -69,13 +71,15 @@ class NrQosRuleClassifier : public SimpleRefCount<NrQosRuleClassifier>
      * @param direction the QoS rule direction (can be downlink, uplink or bi-directional)
      * @param protocolNumber the protocol of the packet. Only IPv4 and IPv6 are supported.
      *
-     * @return the QoS flow identifier (>0) of the first rule that matches with the IP packet; 0 if
-     * no rule matched.
+     * @return the QoS flow identifier (0-63) if a rule matches; std::nullopt if no rule matched.
+     *         QFI=0 is reserved for the default bearer.
      */
-    uint32_t Classify(Ptr<Packet> p, NrQosRule::Direction direction, uint16_t protocolNumber);
+    std::optional<uint8_t> Classify(Ptr<Packet> p,
+                                    NrQosRule::Direction direction,
+                                    uint16_t protocolNumber);
 
   protected:
-    std::map<uint32_t, Ptr<NrQosRule>> m_qosRuleMap; ///< QoS rule map
+    std::map<uint8_t, Ptr<NrQosRule>> m_qosRuleMap; ///< QoS rule map
 
     std::map<std::tuple<uint32_t, uint32_t, uint8_t, uint16_t>, std::pair<uint32_t, uint32_t>>
         m_classifiedIpv4Fragments; ///< Map with already classified IPv4 Fragments

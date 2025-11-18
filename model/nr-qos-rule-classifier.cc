@@ -36,23 +36,24 @@ NrQosRuleClassifier::NrQosRuleClassifier()
 }
 
 void
-NrQosRuleClassifier::Add(Ptr<NrQosRule> rule, uint32_t qfi)
+NrQosRuleClassifier::Add(Ptr<NrQosRule> rule, uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << rule << qfi);
+    NS_LOG_FUNCTION(this << rule << +qfi);
+    NS_ASSERT_MSG(qfi >= 0 && qfi <= 63, "QFI must be in range 0-63");
     m_qosRuleMap[qfi] = rule;
 
-    // simple sanity check: there shouldn't be more than 16 bearers (hence rules) per UE
-    NS_ASSERT(m_qosRuleMap.size() <= 16);
+    // simple sanity check: there shouldn't be more than 64 flows per UE
+    NS_ASSERT(m_qosRuleMap.size() <= 64);
 }
 
 void
-NrQosRuleClassifier::Delete(uint32_t qfi)
+NrQosRuleClassifier::Delete(uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << qfi);
+    NS_LOG_FUNCTION(this << +qfi);
     m_qosRuleMap.erase(qfi);
 }
 
-uint32_t
+std::optional<uint8_t>
 NrQosRuleClassifier::Classify(Ptr<Packet> p,
                               NrQosRule::Direction direction,
                               uint16_t protocolNumber)
@@ -259,12 +260,12 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
         // we use a reverse iterator since filter priority is not implemented properly.
         // This way, since the default bearer is expected to be added first, it will be evaluated
         // last.
-        std::map<uint32_t, Ptr<NrQosRule>>::const_reverse_iterator it;
+        std::map<uint8_t, Ptr<NrQosRule>>::const_reverse_iterator it;
         NS_LOG_LOGIC("QoS rule MAP size: " << m_qosRuleMap.size());
 
         for (it = m_qosRuleMap.rbegin(); it != m_qosRuleMap.rend(); ++it)
         {
-            NS_LOG_LOGIC("QoS rule id: " << it->first);
+            NS_LOG_LOGIC("QoS rule id: " << +it->first);
             NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
             Ptr<NrQosRule> rule = it->second;
             if (rule->Matches(direction,
@@ -274,8 +275,8 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
                               localPort,
                               tos))
             {
-                NS_LOG_LOGIC("matches with QoS rule ID = " << it->first);
-                return it->first; // the id of the matching QoS rule
+                NS_LOG_LOGIC("matches with QoS rule ID = " << +it->first);
+                return std::optional<uint8_t>(it->first); // the id of the matching QoS rule
             }
         }
     }
@@ -290,12 +291,12 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
         // we use a reverse iterator since filter priority is not implemented properly.
         // This way, since the default bearer is expected to be added first, it will be evaluated
         // last.
-        std::map<uint32_t, Ptr<NrQosRule>>::const_reverse_iterator it;
+        std::map<uint8_t, Ptr<NrQosRule>>::const_reverse_iterator it;
         NS_LOG_LOGIC("QoS rule MAP size: " << m_qosRuleMap.size());
 
         for (it = m_qosRuleMap.rbegin(); it != m_qosRuleMap.rend(); ++it)
         {
-            NS_LOG_LOGIC("QoS rule id: " << it->first);
+            NS_LOG_LOGIC("QoS rule id: " << +it->first);
             NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
             Ptr<NrQosRule> rule = it->second;
             if (rule->Matches(direction,
@@ -305,13 +306,13 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
                               localPort,
                               tos))
             {
-                NS_LOG_LOGIC("matches with QoS rule ID = " << it->first);
-                return it->first; // the id of the matching QoS rule
+                NS_LOG_LOGIC("matches with QoS rule ID = " << +it->first);
+                return std::optional<uint8_t>(it->first); // the id of the matching QoS rule
             }
         }
     }
     NS_LOG_LOGIC("no match");
-    return 0; // no match
+    return std::nullopt; // no match
 }
 
 } // namespace ns3

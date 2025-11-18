@@ -50,7 +50,7 @@ NrEpcPgwApplication::NrUeInfo::RemoveFlow(uint8_t qfi)
     m_teidByFlowIdMap.erase(qfi);
 }
 
-uint32_t
+std::optional<uint8_t>
 NrEpcPgwApplication::NrUeInfo::Classify(Ptr<Packet> p, uint16_t protocolNumber)
 {
     NS_LOG_FUNCTION(this << p);
@@ -175,14 +175,14 @@ NrEpcPgwApplication::RecvFromTunDevice(Ptr<Packet> packet,
         else
         {
             Ipv4Address sgwAddr = it->second->GetSgwAddr();
-            uint32_t teid = it->second->Classify(packet, protocolNumber);
-            if (teid == 0)
+            auto qfi = it->second->Classify(packet, protocolNumber);
+            if (!qfi.has_value())
             {
                 NS_LOG_WARN("no matching flow for this packet");
             }
             else
             {
-                SendToS5uSocket(packet, sgwAddr, teid);
+                SendToS5uSocket(packet, sgwAddr, qfi.value());
             }
         }
     }
@@ -202,14 +202,14 @@ NrEpcPgwApplication::RecvFromTunDevice(Ptr<Packet> packet,
         else
         {
             Ipv4Address sgwAddr = it->second->GetSgwAddr();
-            uint32_t teid = it->second->Classify(packet, protocolNumber);
-            if (teid == 0)
+            auto qfi = it->second->Classify(packet, protocolNumber);
+            if (!qfi.has_value())
             {
                 NS_LOG_WARN("no matching flow for this packet");
             }
             else
             {
-                SendToS5uSocket(packet, sgwAddr, teid);
+                SendToS5uSocket(packet, sgwAddr, qfi.value());
             }
         }
     }

@@ -208,11 +208,11 @@ class NrEpcPgwApplication : public Application
          * @param protocolNumber identifies the type of packet.
          *        Only IPv4 and IPv6 packets are allowed.
          *
-         * @return the corresponding qfi > 0 identifying the flow
-         * among all the flows of this UE;  returns 0 if no flow
+         * @return the corresponding qfi (0-63) identifying the flow
+         * among all the flows of this UE;  returns std::nullopt if no flow
          * matches with the previously declared QoS rules
          */
-        uint32_t Classify(Ptr<Packet> p, uint16_t protocolNumber);
+        std::optional<uint8_t> Classify(Ptr<Packet> p, uint16_t protocolNumber);
 
         /**
          * Get the address of the SGW to which the UE is connected
