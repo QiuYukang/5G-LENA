@@ -66,8 +66,14 @@ operator<<(std::ostream& os, const NrQosRule::PacketFilter& f)
 NrQosRule::PacketFilter::PacketFilter()
     : precedence(255),
       direction(BIDIRECTIONAL),
+      remoteAddress(Ipv4Address("0.0.0.0")),
       remoteMask("0.0.0.0"),
+      localAddress(Ipv4Address("0.0.0.0")),
       localMask("0.0.0.0"),
+      remoteIpv6Address(Ipv6Address("::")),
+      remoteIpv6Prefix(static_cast<uint8_t>(0)),
+      localIpv6Address(Ipv6Address("::")),
+      localIpv6Prefix(static_cast<uint8_t>(0)),
       remotePortStart(0),
       remotePortEnd(65535),
       localPortStart(0),
@@ -299,6 +305,46 @@ NrQosRule::GetPacketFilters() const
 {
     NS_LOG_FUNCTION(this);
     return m_filters;
+}
+
+bool
+NrQosRule::IsDefault() const
+{
+    // A default rule should match what Default() produces
+    if (m_numFilters != 1)
+    {
+        return false;
+    }
+
+    // Compare with the default rule
+    Ptr<NrQosRule> defaultRule = Default();
+    auto defaultFilters = defaultRule->GetPacketFilters();
+
+    if (defaultFilters.size() != 1)
+    {
+        return false;
+    }
+
+    // Compare the packet filters
+    const PacketFilter& thisFilter = m_filters.front();
+    const PacketFilter& defaultFilter = defaultFilters.front();
+
+    return (thisFilter.precedence == defaultFilter.precedence &&
+            thisFilter.direction == defaultFilter.direction &&
+            thisFilter.remoteAddress == defaultFilter.remoteAddress &&
+            thisFilter.remoteMask == defaultFilter.remoteMask &&
+            thisFilter.localAddress == defaultFilter.localAddress &&
+            thisFilter.localMask == defaultFilter.localMask &&
+            thisFilter.remoteIpv6Address == defaultFilter.remoteIpv6Address &&
+            thisFilter.remoteIpv6Prefix == defaultFilter.remoteIpv6Prefix &&
+            thisFilter.localIpv6Address == defaultFilter.localIpv6Address &&
+            thisFilter.localIpv6Prefix == defaultFilter.localIpv6Prefix &&
+            thisFilter.remotePortStart == defaultFilter.remotePortStart &&
+            thisFilter.remotePortEnd == defaultFilter.remotePortEnd &&
+            thisFilter.localPortStart == defaultFilter.localPortStart &&
+            thisFilter.localPortEnd == defaultFilter.localPortEnd &&
+            thisFilter.typeOfService == defaultFilter.typeOfService &&
+            thisFilter.typeOfServiceMask == defaultFilter.typeOfServiceMask);
 }
 
 } // namespace ns3

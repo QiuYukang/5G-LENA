@@ -178,6 +178,12 @@ class NrQosRule : public SimpleRefCount<NrQosRule>
      */
     std::list<PacketFilter> GetPacketFilters() const;
 
+    /**
+     * Check if this is a default QoS rule (catch-all rule matching all traffic)
+     * @return true if this rule matches all traffic, false otherwise
+     */
+    bool IsDefault() const;
+
   private:
     std::list<PacketFilter> m_filters; ///< packet filter list
     uint8_t m_numFilters;              ///< number of packet filters applied to this QoS rule
