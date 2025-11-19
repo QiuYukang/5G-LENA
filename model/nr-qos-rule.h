@@ -196,10 +196,23 @@ class NrQosRule : public SimpleRefCount<NrQosRule>
      */
     uint8_t GetPrecedence() const;
 
+    /**
+     * Set the QFI of the QoS rule
+     * @param qfi the QFI value
+     */
+    void SetQfi(uint8_t qfi);
+
+    /**
+     * Get the QFI of the QoS rule
+     * @return the QFI value
+     */
+    uint8_t GetQfi() const;
+
   private:
     std::list<PacketFilter> m_filters; ///< packet filter list
     uint8_t m_numFilters;              ///< number of packet filters applied to this QoS rule
     uint8_t m_precedence;              ///< precedence of the QoS rule
+    uint8_t m_qfi;                     ///< QFI of the QoS rule
 };
 
 std::ostream& operator<<(std::ostream& os, const NrQosRule::Direction& d);

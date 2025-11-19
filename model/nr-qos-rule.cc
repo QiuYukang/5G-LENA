@@ -232,7 +232,8 @@ NrQosRule::Default()
 
 NrQosRule::NrQosRule()
     : m_numFilters(0),
-      m_precedence(128)
+      m_precedence(128),
+      m_qfi(0)
 {
     NS_LOG_FUNCTION(this);
 }
@@ -360,6 +361,20 @@ uint8_t
 NrQosRule::GetPrecedence() const
 {
     return m_precedence;
+}
+
+void
+NrQosRule::SetQfi(uint8_t qfi)
+{
+    NS_LOG_FUNCTION(this << qfi);
+    NS_ABORT_MSG_IF(qfi > 63, "QFI must be less than 64");
+    m_qfi = qfi;
+}
+
+uint8_t
+NrQosRule::GetQfi() const
+{
+    return m_qfi;
 }
 
 } // namespace ns3

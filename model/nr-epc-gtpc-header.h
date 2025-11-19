@@ -288,16 +288,14 @@ class NrGtpcIes
     /**
      * Serialize the QoS rule
      * @param i Buffer iterator
-     * @param precedence the QoS rule precedence
-     * @param packetFilters The Packet filters
+     * @param rule The QoS rule
      */
-    void SerializeQosRule(Buffer::Iterator& i,
-                          uint8_t precedence,
-                          std::list<NrQosRule::PacketFilter> packetFilters) const;
+    void SerializeQosRule(Buffer::Iterator& i, Ptr<const NrQosRule> rule) const;
+
     /**
      * Deserialize the QoS rule
      * @param i Buffer iterator
-     * @param [out] rule The  QoS rule
+     * @param [out] rule The QoS rule
      * @return the number of deserialized bytes
      */
     uint32_t DeserializeQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const;
