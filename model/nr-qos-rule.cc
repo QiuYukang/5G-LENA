@@ -64,8 +64,7 @@ operator<<(std::ostream& os, const NrQosRule::PacketFilter& f)
 }
 
 NrQosRule::PacketFilter::PacketFilter()
-    : precedence(255),
-      direction(BIDIRECTIONAL),
+    : direction(BIDIRECTIONAL),
       remoteAddress(Ipv4Address("0.0.0.0")),
       remoteMask("0.0.0.0"),
       localAddress(Ipv4Address("0.0.0.0")),
@@ -223,14 +222,17 @@ NrQosRule::PacketFilter::Matches(Direction d,
 Ptr<NrQosRule>
 NrQosRule::Default()
 {
+    NS_LOG_FUNCTION_NOARGS();
     Ptr<NrQosRule> rule = Create<NrQosRule>();
     NrQosRule::PacketFilter defaultPacketFilter;
     rule->Add(defaultPacketFilter);
+    rule->SetPrecedence(255);
     return rule;
 }
 
 NrQosRule::NrQosRule()
-    : m_numFilters(0)
+    : m_numFilters(0),
+      m_precedence(128)
 {
     NS_LOG_FUNCTION(this);
 }
@@ -242,7 +244,7 @@ NrQosRule::Add(PacketFilter f)
     NS_ABORT_MSG_IF(m_numFilters >= 16, "Maximum number of packet filters limited to 16");
 
     std::list<PacketFilter>::iterator it;
-    for (it = m_filters.begin(); (it != m_filters.end()) && (it->precedence <= f.precedence); ++it)
+    for (it = m_filters.begin(); it != m_filters.end(); ++it)
     {
     }
     m_filters.insert(it, f);
@@ -329,8 +331,7 @@ NrQosRule::IsDefault() const
     const PacketFilter& thisFilter = m_filters.front();
     const PacketFilter& defaultFilter = defaultFilters.front();
 
-    return (thisFilter.precedence == defaultFilter.precedence &&
-            thisFilter.direction == defaultFilter.direction &&
+    return (thisFilter.direction == defaultFilter.direction &&
             thisFilter.remoteAddress == defaultFilter.remoteAddress &&
             thisFilter.remoteMask == defaultFilter.remoteMask &&
             thisFilter.localAddress == defaultFilter.localAddress &&
@@ -345,6 +346,20 @@ NrQosRule::IsDefault() const
             thisFilter.localPortEnd == defaultFilter.localPortEnd &&
             thisFilter.typeOfService == defaultFilter.typeOfService &&
             thisFilter.typeOfServiceMask == defaultFilter.typeOfServiceMask);
+}
+
+void
+NrQosRule::SetPrecedence(uint8_t precedence)
+{
+    NS_LOG_FUNCTION(this << precedence);
+    NS_ABORT_MSG_IF(!precedence, "Precedence must be greater than 0");
+    m_precedence = precedence;
+}
+
+uint8_t
+NrQosRule::GetPrecedence() const
+{
+    return m_precedence;
 }
 
 } // namespace ns3

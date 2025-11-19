@@ -317,18 +317,19 @@ NrGtpcIes::DeserializeQosFlow(Buffer::Iterator& i, NrQosFlow& flow)
 
 void
 NrGtpcIes::SerializeQosRule(Buffer::Iterator& i,
+                            uint8_t precedence,
                             std::list<NrQosRule::PacketFilter> packetFilters) const
 {
     i.WriteU8(84); // IE Type = QoS rule
     i.WriteHtonU16(1 + packetFilters.size() * serializedSizePacketFilter);
     i.WriteU8(0);                                    // Spare + Instance
+    i.WriteU8(precedence);                           // Spare + Instance
     i.WriteU8(0x20 + (packetFilters.size() & 0x0f)); // Create new rule + Number of packet filters
 
     for (auto& pf : packetFilters)
     {
         i.WriteU8((pf.direction << 4) & 0x30);
-        i.WriteU8(pf.precedence);
-        i.WriteU8(serializedSizePacketFilter - 3); // Length of Packet filter contents
+        i.WriteU8(serializedSizePacketFilter - 2); // Length of Packet filter contents
 
         i.WriteU8(0x10); // IPv4 remote address type
         i.WriteHtonU32(pf.remoteAddress.Get());
@@ -355,13 +356,13 @@ NrGtpcIes::DeserializeQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const
     NS_ASSERT_MSG(type == 84, "Wrong QoS rule IE type = " << (uint16_t)type);
     i.ReadNtohU16();
     i.ReadU8();
+    rule->SetPrecedence(i.ReadU8());
     uint8_t numberOfPacketFilters = i.ReadU8() & 0x0f;
 
     for (uint8_t pf = 0; pf < numberOfPacketFilters; ++pf)
     {
         NrQosRule::PacketFilter packetFilter;
         packetFilter.direction = NrQosRule::Direction((i.ReadU8() & 0x30) >> 4);
-        packetFilter.precedence = i.ReadU8();
         i.ReadU8(); // Length of Packet filter contents
         i.ReadU8();
         packetFilter.remoteAddress = Ipv4Address(i.ReadNtohU32());
@@ -387,7 +388,7 @@ NrGtpcIes::DeserializeQosRule(Buffer::Iterator& i, Ptr<NrQosRule> rule) const
 uint32_t
 NrGtpcIes::GetSerializedSizeQosRule(std::list<NrQosRule::PacketFilter> packetFilters) const
 {
-    return (5 + packetFilters.size() * serializedSizePacketFilter);
+    return (6 + packetFilters.size() * serializedSizePacketFilter);
 }
 
 void
@@ -536,7 +537,7 @@ NrGtpcCreateSessionRequestMessage::Serialize(Buffer::Iterator start) const
                                        serializedSizeFteid + serializedSizeQosFlow);
 
         SerializeQfi(i, bc.qfi);
-        SerializeQosRule(i, packetFilters);
+        SerializeQosRule(i, bc.rule->GetPrecedence(), packetFilters);
         SerializeFteid(i, bc.sgwS5uFteid);
         SerializeQosFlow(i, bc.flow);
     }
@@ -697,7 +698,7 @@ NrGtpcCreateSessionResponseMessage::Serialize(Buffer::Iterator start) const
                                        serializedSizeFteid + serializedSizeQosFlow);
 
         SerializeQfi(i, bc.qfi);
-        SerializeQosRule(i, packetFilters);
+        SerializeQosRule(i, bc.rule->GetPrecedence(), packetFilters);
         SerializeFteid(i, bc.fteid);
         SerializeQosFlow(i, bc.flow);
     }

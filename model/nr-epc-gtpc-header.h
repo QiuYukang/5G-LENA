@@ -200,7 +200,7 @@ class NrGtpcIes
     const uint32_t serializedSizeQfi = 5;      //!< QFI serialized size
     const uint32_t serializedSizeQosFlow = 26; //!< QoS Flow serialized size
     const uint32_t serializedSizePacketFilter =
-        3 + 9 + 9 + 5 + 5 + 3; //!< Packet filter serialized size
+        2 + 9 + 9 + 5 + 5 + 3; //!< Packet filter serialized size
     /**
      * @return the QoS rule serialized size
      * @param packetFilters The packet filter
@@ -288,9 +288,11 @@ class NrGtpcIes
     /**
      * Serialize the QoS rule
      * @param i Buffer iterator
+     * @param precedence the QoS rule precedence
      * @param packetFilters The Packet filters
      */
     void SerializeQosRule(Buffer::Iterator& i,
+                          uint8_t precedence,
                           std::list<NrQosRule::PacketFilter> packetFilters) const;
     /**
      * Deserialize the QoS rule

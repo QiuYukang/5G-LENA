@@ -21,13 +21,17 @@ namespace ns3
 /**
  * This class implements the model for a 5G NR QoS rule
  * which is the set of all packet filters associated with a
- * data radio bearer, as well as selected QoS parameters
+ * data radio bearer, a precedence value (ranging from
+ * 1-255) and a QoS Flow Identifier (QFI) ranging from
+ * 1-64.
  */
 class NrQosRule : public SimpleRefCount<NrQosRule>
 {
   public:
     /**
-     * creates a QoS rule matching any traffic
+     * Creates a QoS rule with a single packet filter matching any traffic.
+     * The QFI is initialized to zero (an invalid value; must be later set to
+     * a value between 1-64) and the precedence is initialized to 255.
      *
      * @return a newly created QoS rule that will match any traffic
      */
@@ -95,10 +99,6 @@ class NrQosRule : public SimpleRefCount<NrQosRule>
                      uint16_t rp,
                      uint16_t lp,
                      uint8_t tos);
-
-        /// Used to specify the precedence for the packet filter among all packet filters in the
-        /// QoS rule; higher values will be evaluated last.
-        uint8_t precedence;
 
         /// Whether the filter needs to be applied to uplink / downlink only, or in both cases
         Direction direction;
@@ -184,9 +184,22 @@ class NrQosRule : public SimpleRefCount<NrQosRule>
      */
     bool IsDefault() const;
 
+    /**
+     * Set the precedence of the QoS rule
+     * @param precedence the precedence value
+     */
+    void SetPrecedence(uint8_t precedence);
+
+    /**
+     * Get the precedence of the QoS rule
+     * @return the precedence value
+     */
+    uint8_t GetPrecedence() const;
+
   private:
     std::list<PacketFilter> m_filters; ///< packet filter list
     uint8_t m_numFilters;              ///< number of packet filters applied to this QoS rule
+    uint8_t m_precedence;              ///< precedence of the QoS rule
 };
 
 std::ostream& operator<<(std::ostream& os, const NrQosRule::Direction& d);
