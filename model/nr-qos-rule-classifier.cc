@@ -40,17 +40,43 @@ NrQosRuleClassifier::Add(Ptr<NrQosRule> rule, uint8_t qfi)
 {
     NS_LOG_FUNCTION(this << rule << +qfi);
     NS_ASSERT_MSG(qfi >= 0 && qfi <= 63, "QFI must be in range 0-63");
-    m_qosRuleMap[qfi] = rule;
+
+    // Set the QFI in the rule for later retrieval during classification
+    rule->SetQfi(qfi);
+
+    // Extract the rule precedence and insert into multimap
+    uint8_t precedence = rule->GetPrecedence();
+    m_qosRuleMap.insert({precedence, rule});
+    NS_LOG_INFO("Added rule with QFI " << +qfi << " and precedence " << +precedence);
 
     // simple sanity check: there shouldn't be more than 64 flows per UE
     NS_ASSERT(m_qosRuleMap.size() <= 64);
 }
 
-void
+bool
 NrQosRuleClassifier::Delete(uint8_t qfi)
 {
     NS_LOG_FUNCTION(this << +qfi);
-    m_qosRuleMap.erase(qfi);
+
+    // Iterate through the multimap to find the rule with matching QFI
+    for (auto it = m_qosRuleMap.begin(); it != m_qosRuleMap.end(); ++it)
+    {
+        if (it->second->GetQfi() == qfi)
+        {
+            NS_LOG_INFO("Deleting rule with QFI " << +qfi << " and precedence " << +it->first);
+            m_qosRuleMap.erase(it);
+            return true;
+        }
+    }
+    NS_LOG_WARN("Attempted to delete rule with QFI " << +qfi << " but no matching rule found");
+    return false;
+}
+
+void
+NrQosRuleClassifier::Clear()
+{
+    NS_LOG_FUNCTION(this);
+    m_qosRuleMap.clear();
 }
 
 std::optional<uint8_t>
@@ -256,18 +282,18 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
                                           << " remotePort=" << remotePort << " tos=0x"
                                           << (uint16_t)tos);
 
-        // now it is possible to classify the packet!
-        // we use a reverse iterator since filter priority is not implemented properly.
-        // This way, since the default bearer is expected to be added first, it will be evaluated
-        // last.
-        std::map<uint8_t, Ptr<NrQosRule>>::const_reverse_iterator it;
+        // Classify the packet by iterating rules in precedence order (ascending).
+        // Per 3GPP TS 24.501, rules with lower precedence values are evaluated first.
+        // The multimap is already ordered by precedence (key), so we iterate forward.
         NS_LOG_LOGIC("QoS rule MAP size: " << m_qosRuleMap.size());
 
-        for (it = m_qosRuleMap.rbegin(); it != m_qosRuleMap.rend(); ++it)
+        for (auto it = m_qosRuleMap.begin(); it != m_qosRuleMap.end(); ++it)
         {
-            NS_LOG_LOGIC("QoS rule id: " << +it->first);
-            NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
+            uint8_t precedence = it->first;
             Ptr<NrQosRule> rule = it->second;
+            uint8_t qfi = rule->GetQfi();
+            NS_LOG_LOGIC("Checking QoS rule with precedence " << +precedence << " and QFI "
+                                                              << +qfi);
             if (rule->Matches(direction,
                               remoteAddressIpv4,
                               localAddressIpv4,
@@ -275,8 +301,8 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
                               localPort,
                               tos))
             {
-                NS_LOG_LOGIC("matches with QoS rule ID = " << +it->first);
-                return std::optional<uint8_t>(it->first); // the id of the matching QoS rule
+                NS_LOG_LOGIC("Packet matches QoS rule with QFI " << +qfi);
+                return std::optional<uint8_t>(qfi);
             }
         }
     }
@@ -287,18 +313,18 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
                                           << " remotePort=" << remotePort << " tos=0x"
                                           << (uint16_t)tos);
 
-        // now it is possible to classify the packet!
-        // we use a reverse iterator since filter priority is not implemented properly.
-        // This way, since the default bearer is expected to be added first, it will be evaluated
-        // last.
-        std::map<uint8_t, Ptr<NrQosRule>>::const_reverse_iterator it;
+        // Classify the packet by iterating rules in precedence order (ascending).
+        // Per 3GPP TS 24.501, rules with lower precedence values are evaluated first.
+        // The multimap is already ordered by precedence (key), so we iterate forward.
         NS_LOG_LOGIC("QoS rule MAP size: " << m_qosRuleMap.size());
 
-        for (it = m_qosRuleMap.rbegin(); it != m_qosRuleMap.rend(); ++it)
+        for (auto it = m_qosRuleMap.begin(); it != m_qosRuleMap.end(); ++it)
         {
-            NS_LOG_LOGIC("QoS rule id: " << +it->first);
-            NS_LOG_LOGIC(" Ptr<NrQosRule>: " << it->second);
+            uint8_t precedence = it->first;
             Ptr<NrQosRule> rule = it->second;
+            uint8_t qfi = rule->GetQfi();
+            NS_LOG_LOGIC("Checking QoS rule with precedence " << +precedence << " and QFI "
+                                                              << +qfi);
             if (rule->Matches(direction,
                               remoteAddressIpv6,
                               localAddressIpv6,
@@ -306,8 +332,8 @@ NrQosRuleClassifier::Classify(Ptr<Packet> p,
                               localPort,
                               tos))
             {
-                NS_LOG_LOGIC("matches with QoS rule ID = " << +it->first);
-                return std::optional<uint8_t>(it->first); // the id of the matching QoS rule
+                NS_LOG_LOGIC("Packet matches QoS rule with QFI " << +qfi);
+                return std::optional<uint8_t>(qfi);
             }
         }
     }

@@ -65,6 +65,7 @@ us a note on ns-developers mailing list.
 
 ### Changed Behavior
 - The numeration of BWPs was changed, so that BWP Ids match the order they are installed.
+- The iteration order of rules used to classify packets to QoS flows, in the QosRuleClassifier (previously EpcTftClassifier), has changed.  The default bearer is still checked last, but a precedence-based ordering (ascending precedence according to TS 24.501) is now supported, and for rules that do not have precedence explicitly set, they are now evaluated in the order that they were added, rather than in reverse order (previously).
 
 ---
 

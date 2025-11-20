@@ -58,8 +58,14 @@ class NrQosRuleClassifier : public SimpleRefCount<NrQosRuleClassifier>
      * delete an existing QoS rule from the classifier
      *
      * @param qfi the QoS Flow ID (QFI) QoS rule to be deleted
+     * @return true if an entry for the QFI was found and deleted
      */
-    void Delete(uint8_t qfi);
+    bool Delete(uint8_t qfi);
+
+    /**
+     * clear all QoS rule from the classifier
+     */
+    void Clear();
 
     /**
      * classify an IP packet
@@ -79,7 +85,28 @@ class NrQosRuleClassifier : public SimpleRefCount<NrQosRuleClassifier>
                                     uint16_t protocolNumber);
 
   protected:
-    std::map<uint8_t, Ptr<NrQosRule>> m_qosRuleMap; ///< QoS rule map
+    /**
+     * QoS rules stored in a multimap keyed by rule precedence.
+     *
+     * Key: Rule precedence (0-255). Rules with lower precedence values are
+     * evaluated first during packet classification, per 3GPP TS 24.501.
+     *
+     * Value: Ptr<NrQosRule> containing the rule and its associated metadata
+     * (precedence, QFI, packet filters).
+     *
+     * Using multimap allows multiple rules to have the same precedence value.
+     * During classification, rules are iterated in precedence order (ascending)
+     * until a matching rule is found. The QFI is obtained from the matched rule.
+     *
+     * For rules with identical precedence values, iteration order is determined by
+     * insertion order (the order Add() was called). This provides deterministic
+     * behavior and allows implicit control of evaluation order via insertion sequence
+     * when precedence values are identical.
+     *
+     * When deleting a rule by QFI, the map is iterated to find the entry whose
+     * rule->GetQfi() matches the requested QFI.
+     */
+    std::multimap<uint8_t, Ptr<NrQosRule>> m_qosRuleMap;
 
     std::map<std::tuple<uint32_t, uint32_t, uint8_t, uint16_t>, std::pair<uint32_t, uint32_t>>
         m_classifiedIpv4Fragments; ///< Map with already classified IPv4 Fragments
