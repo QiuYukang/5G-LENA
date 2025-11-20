@@ -204,15 +204,30 @@ class NrEpcPgwApplication : public Application
         /**
          * Classify the packet according to QoS rules of this UE
          *
+         * This method performs QoS rule classification on downlink packets arriving from the
+         * internet. The classifier matches the packet against the QoS rules registered for
+         * this UE. Once a matching rule is found, the QFI is determined and used to look up
+         * the corresponding TEID for GTP-U tunneling via m_teidByFlowIdMap.
+         *
+         * Data flow (downlink - Internet to UE):
+         * 1. Internet packet arrives at PGW TUN device
+         * 2. PGW::RecvFromTunDevice() calls this Classify() method
+         * 3. Classifier matches packet to QoS rule -> determines QFI
+         * 4. Method looks up TEID: m_teidByFlowIdMap[qfi]
+         * 5. Method returns TEID (or std::nullopt if no match)
+         * 6. PGW encapsulates packet in GTP-U with TEID for S5-U tunnel
+         * 7. SGW receives GTP-U packet and forwards to gNB
+         * 8. gNB receives GTP-U, extracts TEID, looks up (RNTI, QFI) in m_teidRqfiMap
+         * 9. gNB routes to correct PDCP bearer
+         *
          * @param p the IPv4 or IPv6 packet from the internet to be classified
          * @param protocolNumber identifies the type of packet.
          *        Only IPv4 and IPv6 packets are allowed.
          *
-         * @return the corresponding qfi (0-63) identifying the flow
-         * among all the flows of this UE;  returns std::nullopt if no flow
-         * matches with the previously declared QoS rules
+         * @return the TEID of the matching flow for GTP-U tunneling;
+         * returns std::nullopt if no flow matches with the previously declared QoS rules
          */
-        std::optional<uint8_t> Classify(Ptr<Packet> p, uint16_t protocolNumber);
+        std::optional<uint32_t> Classify(Ptr<Packet> p, uint16_t protocolNumber);
 
         /**
          * Get the address of the SGW to which the UE is connected
@@ -257,11 +272,35 @@ class NrEpcPgwApplication : public Application
         void SetUeAddr6(Ipv6Address addr);
 
       private:
-        Ipv4Address m_ueAddr;                          ///< UE IPv4 address
-        Ipv6Address m_ueAddr6;                         ///< UE IPv6 address
-        Ipv4Address m_sgwAddr;                         ///< SGW IPv4 address
-        NrQosRuleClassifier m_qosRuleClassifier;       ///< QoS rule classifier
-        std::map<uint8_t, uint32_t> m_teidByFlowIdMap; ///< TEID By flow ID map
+        Ipv4Address m_ueAddr;                    ///< UE IPv4 address
+        Ipv6Address m_ueAddr6;                   ///< UE IPv6 address
+        Ipv4Address m_sgwAddr;                   ///< SGW IPv4 address
+        NrQosRuleClassifier m_qosRuleClassifier; ///< QoS rule classifier
+        /**
+         * Maps QFI to TEID for downlink packet routing.
+         *
+         * Usage (downlink - Internet to UE):
+         * After QoS rule classification returns a QFI, this map is used to find the
+         * corresponding TEID (Tunnel Endpoint Identifier) that was allocated by the SGW
+         * and received during bearer setup in DoRecvCreateSessionRequest().
+         *
+         * The TEID is then used to encapsulate the packet in a GTP-U header for tunneling
+         * through the S5-U interface to the SGW.
+         *
+         * Relationship to other identifiers:
+         * - QFI (QoS Flow Identifier, 0-63): Allocated by MME, identifies a logical flow
+         * - TEID (Tunnel Endpoint Identifier, 32-bit): Allocated by SGW, identifies tunnel
+         * - At PGW: Both exist simultaneously, linked by this map
+         * - At gNB: Only TEID exists on S1-U; gNB uses m_teidRqfiMap to recover (RNTI, QFI)
+         *
+         * Key: QFI (value: 0-63)
+         * Value: TEID (value: 1-0xFFFFFFFF)
+         *
+         * Populated by: DoRecvCreateSessionRequest() when bearer is established
+         * Updated by: DoRecvModifyFlowRequest() when bearer parameters change
+         * Cleared by: DoRecvDeleteFlowResponse() when bearer is released
+         */
+        std::map<uint8_t, uint32_t> m_teidByFlowIdMap;
     };
 
     /**

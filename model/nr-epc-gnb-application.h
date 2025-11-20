@@ -271,14 +271,59 @@ class NrEpcGnbApplication : public Application
     Ipv4Address m_sgwS1uAddress;
 
     /**
-     * map of maps telling for each RNTI and QFI the corresponding  S1-U TEID
+     * Maps (RNTI, QFI) to TEID for uplink packet routing.
      *
+     * Data flow (uplink - UE to Internet):
+     * 1. UE sends packet on radio with (RNTI, QFI) information
+     * 2. gNB receives on NR interface with NrQosFlowTag containing (RNTI, QFI)
+     * 3. gNB::RecvFromNrSocket() looks up TEID: m_rqfiTeidMap[rnti][qfi]
+     * 4. gNB encapsulates packet in GTP-U with TEID for S1-U tunnel to SGW
+     * 5. SGW receives GTP-U and forwards to PGW via S5-U
+     * 6. PGW receives GTP-U, extracts TEID, looks up QFI in m_teidByFlowIdMap
+     * 7. PGW classifies and routes to internet
+     *
+     * Relationship to PGW m_teidByFlowIdMap:
+     * - gNB has bidirectional maps: RNTI/QFI <-> TEID
+     * - PGW has unidirectional map: QFI -> TEID
+     * - Both reference the same TEID allocated by SGW
+     *
+     * Key: (RNTI, QFI)
+     * Value: TEID (Tunnel Endpoint Identifier)
+     *
+     * Populated by: DoInitialContextSetupRequest() during bearer setup
+     * Updated by: DoPathSwitchRequestAcknowledge() during handover
+     * Cleared by: DoUeContextRelease() when UE detaches
+     *
+     * @see m_teidRqfiMap for reverse mapping (TEID -> (RNTI, QFI))
      */
     std::map<uint16_t, std::map<uint8_t, uint32_t>> m_rqfiTeidMap;
 
     /**
-     * map telling for each S1-U TEID the corresponding RNTI,QFI
+     * Maps TEID to (RNTI, QFI) for downlink packet routing.
      *
+     * Data flow (downlink - Internet to UE):
+     * 1. PGW classifies packet -> finds QFI and looks up TEID in m_teidByFlowIdMap[qfi]
+     * 2. PGW encapsulates in GTP-U with TEID for S5-U tunnel to SGW
+     * 3. SGW receives and forwards via S1-U tunnel to gNB
+     * 4. gNB::RecvFromS1uSocket() extracts TEID from GTP-U header
+     * 5. gNB looks up (RNTI, QFI): m_teidRqfiMap[teid] -> EpsFlowId_t{rnti, qfi}
+     * 6. gNB adds NrQosFlowTag with (RNTI, QFI) to packet
+     * 7. gNB sends to NR interface for routing to correct PDCP bearer
+     *
+     * Relationship to PGW m_teidByFlowIdMap:
+     * - This is the "reverse lookup" needed on gNB side
+     * - PGW only maintains QFI -> TEID (unidirectional)
+     * - gNB maintains both directions: TEID <-> (RNTI, QFI)
+     * - Both reference the same TEID allocated by SGW
+     *
+     * Key: TEID (Tunnel Endpoint Identifier, 32-bit)
+     * Value: EpsFlowId_t{rnti (16-bit), qfi (8-bit)}
+     *
+     * Populated by: DoInitialContextSetupRequest() during bearer setup
+     * Updated by: DoPathSwitchRequestAcknowledge() during handover
+     * Cleared by: DoUeContextRelease() when UE detaches
+     *
+     * @see m_rqfiTeidMap for forward mapping ((RNTI, QFI) -> TEID)
      */
     std::map<uint32_t, EpsFlowId_t> m_teidRqfiMap;
 

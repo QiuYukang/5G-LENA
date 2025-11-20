@@ -163,7 +163,11 @@ NrEpcGnbApplication::DoPathSwitchRequest(NrEpcGnbS1SapProvider::PathSwitchReques
         EpsFlowId_t rqfi(params.rnti, bit->qfi);
         // side effect: create entries if not exist
         m_rqfiTeidMap[params.rnti][bit->qfi] = teid;
+        NS_LOG_INFO("Add entry to RNTI: " << params.rnti << " / QFI: (" << +bit->qfi
+                                          << ") to TEID: " << teid << " map");
         m_teidRqfiMap[teid] = rqfi;
+        NS_LOG_INFO("Add entry to TEID: " << teid << " to RNTI " << rqfi.m_rnti << " / QFI "
+                                          << +rqfi.m_qfi << " map");
 
         NrEpcS1apSapMme::ErabSwitchedInDownlinkItem erab;
         erab.erabId = bit->qfi;
@@ -188,8 +192,8 @@ NrEpcGnbApplication::DoUeContextRelease(uint16_t rnti)
             m_teidRqfiMap.erase(teid);
             NS_LOG_INFO("TEID: " << teid << " erased");
         }
+        NS_LOG_INFO("RNTI: " << rnti << " erased from RNTI/QFI to TEID map");
         m_rqfiTeidMap.erase(rntiIt);
-        NS_LOG_INFO("RNTI: " << rntiIt->first << " erased");
     }
 }
 
@@ -219,7 +223,11 @@ NrEpcGnbApplication::DoInitialContextSetupRequest(
         EpsFlowId_t rqfi(rnti, erabIt->erabId);
         // side effect: create entries if not exist
         m_rqfiTeidMap[rnti][erabIt->erabId] = params.gtpTeid;
+        NS_LOG_INFO("Add entry to RNTI: " << rnti << " / QFI: " << +erabIt->erabId
+                                          << " to TEID: " << params.gtpTeid << " map");
         m_teidRqfiMap[params.gtpTeid] = rqfi;
+        NS_LOG_INFO("Add entry to TEID: " << params.gtpTeid << " to RNTI: " << rqfi.m_rnti
+                                          << " QFI: " << +rqfi.m_qfi << " map");
     }
 
     // Send Initial Context Setup Request to RRC
@@ -265,10 +273,10 @@ NrEpcGnbApplication::RecvFromNrSocket(Ptr<Socket> socket)
     NS_ASSERT(found);
     uint16_t rnti = tag.GetRnti();
     uint8_t qfi = tag.GetQfi();
-    NS_LOG_INFO("Received packet with RNTI: " << rnti << ", BID: " << +qfi);
     auto rntiIt = m_rqfiTeidMap.find(rnti);
     if (rntiIt == m_rqfiTeidMap.end())
     {
+        NS_LOG_INFO("Received packet tagged with RNTI: " << rnti << ", QFI: " << +qfi);
         NS_LOG_WARN("UE context not found, discarding packet");
     }
     else
@@ -276,6 +284,9 @@ NrEpcGnbApplication::RecvFromNrSocket(Ptr<Socket> socket)
         auto qfiIt = rntiIt->second.find(qfi);
         NS_ASSERT(qfiIt != rntiIt->second.end());
         uint32_t teid = qfiIt->second;
+        NS_LOG_INFO("Received packet tagged with RNTI: " << rnti << ", QFI: " << +qfi
+                                                         << ", mapped to TEID: " << teid
+                                                         << " and sent to S1U socket");
         m_rxNrSocketPktTrace(packet->Copy());
         SendToS1uSocket(packet, teid);
     }
@@ -286,6 +297,20 @@ NrEpcGnbApplication::RecvFromS1uSocket(Ptr<Socket> socket)
 {
     NS_LOG_FUNCTION(this << socket);
     NS_ASSERT(socket == m_s1uSocket);
+
+    // Downlink packet reception (internet to UE via S1-U).
+    // This method handles downlink packets arriving via the S1-U tunnel from SGW.
+    // The routing procedure is:
+    // 1. Receive GTP-U encapsulated packet from S1-U socket
+    // 2. Extract TEID from GTP-U header
+    // 3. Look up (RNTI, QFI) from m_teidRqfiMap[teid]
+    // 4. Add NrQosFlowTag with (RNTI, QFI) to packet
+    // 5. Send to NR socket for routing to correct PDCP bearer
+    //
+    // The identifier relationship: TEID (from GTP-U) -> m_teidRqfiMap[teid] -> (RNTI, QFI).
+    // At gNB, the TEID is the cross-domain identifier that connects the backhaul tunnel
+    // to the radio bearer.
+
     Ptr<Packet> packet = socket->Recv();
     NrGtpuHeader gtpu;
     packet->RemoveHeader(gtpu);
@@ -299,6 +324,8 @@ NrEpcGnbApplication::RecvFromS1uSocket(Ptr<Socket> socket)
     else
     {
         m_rxS1uSocketPktTrace(packet->Copy());
+        NS_LOG_INFO("Send to NR socket with RNTI " << it->second.m_rnti << " QFI "
+                                                   << +it->second.m_qfi);
         SendToNrSocket(packet, it->second.m_rnti, it->second.m_qfi);
     }
 }
@@ -309,7 +336,7 @@ NrEpcGnbApplication::SendToNrSocket(Ptr<Packet> packet, uint16_t rnti, uint8_t q
     NS_LOG_FUNCTION(this << packet << rnti << qfi << packet->GetSize());
     NrQosFlowTag tag(rnti, qfi);
     packet->AddPacketTag(tag);
-    NS_LOG_INFO("Add NrQosFlowTag with RNTI " << rnti << " and bearer ID " << +qfi);
+    NS_LOG_INFO("Add NrQosFlowTag with RNTI " << rnti << " and QFI " << +qfi);
     uint8_t ipType;
 
     packet->CopyData(&ipType, 1);

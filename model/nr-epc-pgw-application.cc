@@ -38,7 +38,9 @@ NrEpcPgwApplication::NrUeInfo::AddFlow(uint8_t qfi, uint32_t teid, Ptr<NrQosRule
 {
     NS_LOG_FUNCTION(this << (uint16_t)qfi << teid << rule);
     m_teidByFlowIdMap[qfi] = teid;
-    return m_qosRuleClassifier.Add(rule, teid);
+    NS_LOG_INFO("Add entry to TEID: " << teid << " by flow ID: " << +qfi << " map");
+    m_qosRuleClassifier.Add(rule, qfi);
+    NS_LOG_INFO("Add QosRule entry to classifier for QFI: " << +qfi);
 }
 
 void
@@ -46,18 +48,34 @@ NrEpcPgwApplication::NrUeInfo::RemoveFlow(uint8_t qfi)
 {
     NS_LOG_FUNCTION(this << (uint16_t)qfi);
     auto it = m_teidByFlowIdMap.find(qfi);
-    m_qosRuleClassifier.Delete(it->second); // delete rule
+    m_qosRuleClassifier.Delete(qfi); // delete rule using QFI
+    NS_LOG_INFO("Remove QosRule entry from classifier for QFI: " << +qfi);
     m_teidByFlowIdMap.erase(qfi);
+    NS_LOG_INFO("Remove entry from TEID: " << it->second << " by flow ID: " << +qfi << " map");
 }
 
-std::optional<uint8_t>
+std::optional<uint32_t>
 NrEpcPgwApplication::NrUeInfo::Classify(Ptr<Packet> p, uint16_t protocolNumber)
 {
     NS_LOG_FUNCTION(this << p);
-    // we hardcode DOWNLINK direction since the PGW is expected to
+    // We hardcode DOWNLINK direction since the PGW is expected to
     // classify only downlink packets (uplink packets will go to the
     // internet without any classification).
-    return m_qosRuleClassifier.Classify(p, NrQosRule::DOWNLINK, protocolNumber);
+    auto qfi = m_qosRuleClassifier.Classify(p, NrQosRule::DOWNLINK, protocolNumber);
+    if (!qfi.has_value())
+    {
+        return std::nullopt;
+    }
+
+    // Look up the TEID corresponding to the matched QFI
+    auto it = m_teidByFlowIdMap.find(qfi.value());
+    if (it == m_teidByFlowIdMap.end())
+    {
+        NS_LOG_WARN("QFI " << +qfi.value() << " not found in TEID map");
+        return std::nullopt;
+    }
+
+    return std::optional<uint32_t>(it->second);
 }
 
 Ipv4Address
@@ -158,6 +176,24 @@ NrEpcPgwApplication::RecvFromTunDevice(Ptr<Packet> packet,
     NS_LOG_FUNCTION(this << source << dest << protocolNumber << packet << packet->GetSize());
     m_rxTunPktTrace(packet->Copy());
 
+    // Downlink packet routing (internet to UE).
+    // This method handles downlink packets arriving from the internet via the TUN device.
+    // The routing procedure is:
+    // 1. Extract UE destination address from IP header
+    // 2. Find the NrUeInfo context for this UE using the address
+    // 3. Call Classify() which internally:
+    //    a. Classifies packet using QoS rules to obtain QFI
+    //    b. Looks up TEID from m_teidByFlowIdMap[qfi]
+    //    c. Returns TEID directly
+    // 4. Encapsulate packet in GTP-U header with TEID for tunneling to SGW
+    // 5. Send via S5-U interface to SGW
+    //
+    // Note on TEID allocation: The TEID is allocated by SGW and received during
+    // bearer setup in DoRecvCreateSessionRequest(). At PGW, we maintain the mapping
+    // from QFI to TEID in m_teidByFlowIdMap. The gNB maintains the reverse mapping
+    // (TEID -> (RNTI, QFI)) via m_teidRqfiMap for routing downlink packets back to
+    // the correct bearer.
+
     // get IP address of UE
     if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
     {
@@ -175,14 +211,14 @@ NrEpcPgwApplication::RecvFromTunDevice(Ptr<Packet> packet,
         else
         {
             Ipv4Address sgwAddr = it->second->GetSgwAddr();
-            auto qfi = it->second->Classify(packet, protocolNumber);
-            if (!qfi.has_value())
+            auto teid = it->second->Classify(packet, protocolNumber);
+            if (!teid.has_value())
             {
                 NS_LOG_WARN("no matching flow for this packet");
             }
             else
             {
-                SendToS5uSocket(packet, sgwAddr, qfi.value());
+                SendToS5uSocket(packet, sgwAddr, teid.value());
             }
         }
     }
@@ -202,14 +238,14 @@ NrEpcPgwApplication::RecvFromTunDevice(Ptr<Packet> packet,
         else
         {
             Ipv4Address sgwAddr = it->second->GetSgwAddr();
-            auto qfi = it->second->Classify(packet, protocolNumber);
-            if (!qfi.has_value())
+            auto teid = it->second->Classify(packet, protocolNumber);
+            if (!teid.has_value())
             {
                 NS_LOG_WARN("no matching flow for this packet");
             }
             else
             {
-                SendToS5uSocket(packet, sgwAddr, qfi.value());
+                SendToS5uSocket(packet, sgwAddr, teid.value());
             }
         }
     }
@@ -462,6 +498,8 @@ NrEpcPgwApplication::SendToS5uSocket(Ptr<Packet> packet, Ipv4Address sgwAddr, ui
     gtpu.SetLength(packet->GetSize() + gtpu.GetSerializedSize() - 8);
     packet->AddHeader(gtpu);
     uint32_t flags = 0;
+    NS_LOG_INFO("Sending packet to S5U socket with TEID " << teid << " address " << sgwAddr
+                                                          << " port " << m_gtpuUdpPort);
     m_s5uSocket->SendTo(packet, flags, InetSocketAddress(sgwAddr, m_gtpuUdpPort));
 }
 
