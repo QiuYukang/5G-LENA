@@ -4,6 +4,8 @@
 
 #include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
 
+#include "nr-mac-scheduler-ofdma.h"
+
 #include "ns3/log.h"
 
 using namespace ns3;

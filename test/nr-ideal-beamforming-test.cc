@@ -10,6 +10,7 @@
 #include "ns3/nr-channel-helper.h"
 #include "ns3/nr-epc-helper.h"
 #include "ns3/nr-gnb-net-device.h"
+#include "ns3/nr-gnb-phy.h"
 #include "ns3/nr-helper.h"
 #include "ns3/nr-ue-net-device.h"
 #include "ns3/nr-ue-phy.h"

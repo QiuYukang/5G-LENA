@@ -8,7 +8,6 @@
 #define NR_MAC_SCHEDULER_OFDMA_SYMBOL_PER_BEAM_H
 
 #include "nr-mac-scheduler-ns3.h"
-#include "nr-mac-scheduler-ofdma.h"
 
 #include "ns3/log.h"
 #include "ns3/type-id.h"

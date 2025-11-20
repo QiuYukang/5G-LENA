@@ -21,6 +21,7 @@
 #include "ns3/deprecated.h"
 #include "ns3/multi-model-spectrum-channel.h"
 #include "ns3/names.h"
+#include "ns3/node-list.h"
 #include "ns3/nr-ch-access-manager.h"
 #include "ns3/nr-chunk-processor.h"
 #include "ns3/nr-epc-gnb-application.h"

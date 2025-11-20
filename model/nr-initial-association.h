@@ -4,8 +4,16 @@
 
 #ifndef NR_INITIAL_ASSOC_H
 #define NR_INITIAL_ASSOC_H
-#include "ns3/nr-module.h"
+
+#include "ns3/mobility-model.h"
+#include "ns3/net-device-container.h"
 #include "ns3/object.h"
+#include "ns3/spectrum-model.h"
+#include "ns3/spectrum-signal-parameters.h"
+#include "ns3/three-gpp-channel-model.h"
+#include "ns3/three-gpp-propagation-loss-model.h"
+#include "ns3/three-gpp-spectrum-propagation-loss-model.h"
+#include "ns3/uniform-planar-array.h"
 
 namespace ns3
 {

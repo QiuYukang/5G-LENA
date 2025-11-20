@@ -5,7 +5,7 @@
 #ifndef NR_FH_PHY_SAP_H
 #define NR_FH_PHY_SAP_H
 
-#include "nr-gnb-phy.h"
+#include "sfnsf.h"
 
 namespace ns3
 {

@@ -5,6 +5,7 @@
 #include "nr-initial-association.h"
 
 #include "beamforming-vector.h"
+#include "nr-ue-net-device.h"
 
 #include "ns3/nr-module.h"
 #include "ns3/nr-wraparound-utils.h"

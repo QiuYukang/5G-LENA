@@ -5,7 +5,6 @@
 #ifndef NR_FH_SCHED_SAP_H
 #define NR_FH_SCHED_SAP_H
 
-#include "nr-mac-scheduler-ns3.h"
 #include "nr-mac-scheduler-ue-info.h"
 
 // #include "nr-fh-control.h"
