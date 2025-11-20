@@ -203,7 +203,9 @@ NrQosRuleClassifierTestCase::DoRun()
         NS_TEST_ASSERT_MSG_EQ(obtainedRuleId.has_value(),
                               true,
                               "classification should return a value");
-        NS_TEST_ASSERT_MSG_EQ(obtainedRuleId.value(), m_ruleId, "bad classification of UDP packet");
+        NS_TEST_ASSERT_MSG_EQ(+obtainedRuleId.value(),
+                              +m_ruleId,
+                              "bad classification of UDP packet");
     }
 }
 
@@ -280,6 +282,7 @@ NrQosRuleClassifierTestSuite::NrQosRuleClassifierTestSuite()
         }
         rule1_1->Add(pf1_1_2);
 
+        rule1_1->SetPrecedence(1);
         c1->Add(rule1_1, 1);
 
         Ptr<NrQosRule> rule1_2 = Create<NrQosRule>();
@@ -304,6 +307,7 @@ NrQosRuleClassifierTestSuite::NrQosRuleClassifierTestSuite()
         pf1_2_4.remotePortEnd = 5897;
         rule1_2->Add(pf1_2_4);
 
+        rule1_2->SetPrecedence(2);
         c1->Add(rule1_2, 2);
 
         // --------------------------------classifier----direction-------src_addr---dst_addr--src_port--dst_port--ToS--rule_id
@@ -756,8 +760,66 @@ NrQosRuleClassifierTestSuite::NrQosRuleClassifierTestSuite()
 
         Ptr<NrQosRuleClassifier> c3 = Create<NrQosRuleClassifier>();
         c3->Add(NrQosRule::Default(), 1);
-        c3->Add(rule1_1, 2);
-        c3->Add(rule1_2, 3);
+
+        // Create separate rule instances for c3 with same packet filters as rule1_1 and rule1_2
+        Ptr<NrQosRule> rule3_1 = Create<NrQosRule>();
+        if (useIpv6)
+        {
+            NrQosRule::PacketFilter pf3_1_1;
+            pf3_1_1.remoteIpv6Address.Set("0::ffff:0100:0000");
+            pf3_1_1.remoteIpv6Prefix = Ipv6Prefix(96 + 8);
+            pf3_1_1.localIpv6Address.Set("0::ffff:0200:0000");
+            pf3_1_1.localIpv6Prefix = Ipv6Prefix(96 + 8);
+            rule3_1->Add(pf3_1_1);
+
+            NrQosRule::PacketFilter pf3_1_2;
+            pf3_1_2.remoteIpv6Address.Set("0::ffff:0303:0300");
+            pf3_1_2.remoteIpv6Prefix = Ipv6Prefix(96 + 24);
+            pf3_1_2.localIpv6Address.Set("0::ffff:0404:0400");
+            pf3_1_2.localIpv6Prefix = Ipv6Prefix(96 + 24);
+            rule3_1->Add(pf3_1_2);
+        }
+        else
+        {
+            NrQosRule::PacketFilter pf3_1_1;
+            pf3_1_1.remoteAddress.Set("1.0.0.0");
+            pf3_1_1.remoteMask.Set(0xff000000);
+            pf3_1_1.localAddress.Set("2.0.0.0");
+            pf3_1_1.localMask.Set(0xff000000);
+            rule3_1->Add(pf3_1_1);
+
+            NrQosRule::PacketFilter pf3_1_2;
+            pf3_1_2.remoteAddress.Set("3.3.3.0");
+            pf3_1_2.remoteMask.Set(0xffffff00);
+            pf3_1_2.localAddress.Set("4.4.4.0");
+            pf3_1_2.localMask.Set(0xffffff00);
+            rule3_1->Add(pf3_1_2);
+        }
+        rule3_1->SetPrecedence(1);
+        c3->Add(rule3_1, 2);
+
+        Ptr<NrQosRule> rule3_2 = Create<NrQosRule>();
+        NrQosRule::PacketFilter pf3_2_1;
+        pf3_2_1.remotePortStart = 1024;
+        pf3_2_1.remotePortEnd = 1035;
+        rule3_2->Add(pf3_2_1);
+
+        NrQosRule::PacketFilter pf3_2_2;
+        pf3_2_2.localPortStart = 3456;
+        pf3_2_2.localPortEnd = 3489;
+        rule3_2->Add(pf3_2_2);
+
+        NrQosRule::PacketFilter pf3_2_3;
+        pf3_2_3.localPortStart = 7895;
+        pf3_2_3.localPortEnd = 7895;
+        rule3_2->Add(pf3_2_3);
+
+        NrQosRule::PacketFilter pf3_2_4;
+        pf3_2_4.remotePortStart = 5897;
+        pf3_2_4.remotePortEnd = 5897;
+        rule3_2->Add(pf3_2_4);
+        rule3_2->SetPrecedence(2);
+        c3->Add(rule3_2, 3);
 
         // --------------------------------classifier---direction--------src_addr---dst_addr---src_port--dst_port--ToS--rule_id
 
@@ -964,9 +1026,11 @@ NrQosRuleClassifierTestSuite::NrQosRuleClassifierTestSuite()
         Ptr<NrQosRuleClassifier> c4 = Create<NrQosRuleClassifier>();
         Ptr<NrQosRule> rule4_1 = Create<NrQosRule>();
         rule4_1->Add(pf1_2_3);
+        rule4_1->SetPrecedence(1);
         c4->Add(rule4_1, 1);
         Ptr<NrQosRule> rule4_2 = Create<NrQosRule>();
         rule4_2->Add(pf1_2_4);
+        rule4_2->SetPrecedence(2);
         c4->Add(rule4_2, 2);
         AddTestCase(new NrQosRuleClassifierTestCase(c4,
                                                     NrQosRule::DOWNLINK,

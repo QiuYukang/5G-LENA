@@ -231,7 +231,9 @@ NrDeactivateBearerTestCase::DoRun()
         flow.arp.priorityLevel = 15 - (u + 1);
         flow.arp.preemptionCapability = true;
         flow.arp.preemptionVulnerability = true;
-        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, NrQosRule::Default());
+        auto dedicatedRule = NrQosRule::Default();
+        dedicatedRule->SetPrecedence(10);
+        nrHelper->ActivateDedicatedQosFlow(ueDevice, flow, dedicatedRule);
     }
 
     // Install downlink and uplink applications
