@@ -8,9 +8,13 @@
 #if __has_include("ns3/opengym-module.h")
 #define HAVE_OPENGYM
 
-#include "ns3/core-module.h"
-#include "ns3/nr-module.h"
+#include "nr-mac-scheduler-ue-info-ai.h"
+
+#include "ns3/object.h"
 #include "ns3/opengym-module.h"
+
+#include <string>
+#include <vector>
 
 namespace ns3
 {

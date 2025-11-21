@@ -4,6 +4,8 @@
 
 #include "nr-fh-control.h"
 
+#include "nr-mac-scheduler-ue-info.h"
+
 #include "ns3/core-module.h"
 
 namespace ns3

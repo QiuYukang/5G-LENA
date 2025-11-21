@@ -5,6 +5,8 @@
 
 #include "nr-mac-scheduler-ofdma-ai.h"
 
+#include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
+
 #include "ns3/boolean.h"
 #include "ns3/log.h"
 

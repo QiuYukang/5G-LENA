@@ -4,6 +4,8 @@
 
 #include "nr-mac-scheduler-ofdma-random.h"
 
+#include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
+
 #include "ns3/log.h"
 #include "ns3/shuffle.h"
 

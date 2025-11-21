@@ -8,6 +8,7 @@
 #include "ns3/mobility-model.h"
 #include "ns3/net-device-container.h"
 #include "ns3/object.h"
+#include "ns3/phased-array-model.h"
 #include "ns3/spectrum-model.h"
 #include "ns3/spectrum-signal-parameters.h"
 #include "ns3/three-gpp-channel-model.h"
@@ -17,6 +18,11 @@
 
 namespace ns3
 {
+
+class NetDevice;
+class SpectrumModel;
+struct SpectrumSignalParameters;
+
 const uint16_t NR_NUM_BANDS_FOR_SSB = 20;      ///< Number of bands used for the SSB
 const double TRANSMIT_POWER_INIT_ASSOC = 30.0; ///< Transmit power in dBm
 

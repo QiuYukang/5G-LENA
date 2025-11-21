@@ -4,6 +4,7 @@
 
 #include "nr-mac-scheduler-ofdma-rr.h"
 
+#include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
 #include "nr-mac-scheduler-ue-info-rr.h"
 
 #include "ns3/log.h"

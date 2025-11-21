@@ -5,13 +5,22 @@
 #include "nr-initial-association.h"
 
 #include "beamforming-vector.h"
+#include "nr-gnb-net-device.h"
+#include "nr-gnb-phy.h"
+#include "nr-spectrum-phy.h"
 #include "nr-ue-net-device.h"
+#include "nr-ue-phy.h"
 
-#include "ns3/nr-module.h"
+#include "ns3/double.h"
+#include "ns3/net-device.h"
+#include "ns3/nr-spectrum-value-helper.h"
 #include "ns3/nr-wraparound-utils.h"
 #include "ns3/object.h"
 #include "ns3/parse-string-to-vector.h"
+#include "ns3/spectrum-model.h"
+#include "ns3/spectrum-signal-parameters.h"
 #include "ns3/string.h"
+#include "ns3/uinteger.h"
 
 #include <numeric>
 

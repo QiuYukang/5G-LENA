@@ -5,12 +5,14 @@
 #ifndef NR_FH_SCHED_SAP_H
 #define NR_FH_SCHED_SAP_H
 
-#include "nr-mac-scheduler-ue-info.h"
+#include "nr-phy-mac-common.h"
 
-// #include "nr-fh-control.h"
+#include <unordered_map>
 
 namespace ns3
 {
+
+class NrMacSchedulerUeInfo;
 
 /**
  * @brief Service Access Point (SAP) offered by the FhControl instance

@@ -4,6 +4,7 @@
 
 #include "ns3/nr-mac-sched-sap.h"
 #include "ns3/nr-mac-scheduler-ofdma-rr.h"
+#include "ns3/nr-mac-scheduler-ofdma-symbol-per-beam.h"
 #include "ns3/nr-mac-scheduler-ofdma.h"
 #include "ns3/nr-mac-short-bsr-ce.h"
 #include "ns3/object-factory.h"

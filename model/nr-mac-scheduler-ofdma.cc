@@ -11,6 +11,7 @@
 #include "nr-mac-scheduler-ofdma.h"
 
 #include "nr-fh-control.h"
+#include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
 
 #include "ns3/log.h"
 

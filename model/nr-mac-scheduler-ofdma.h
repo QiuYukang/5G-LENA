@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "nr-mac-scheduler-ofdma-symbol-per-beam.h"
 #include "nr-mac-scheduler-tdma.h"
 
 #include "ns3/traced-value.h"
