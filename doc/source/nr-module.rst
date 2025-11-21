@@ -2124,6 +2124,123 @@ maintain backward compatibility with a flow-centric API or refactor it to be
 (PDU) session-centric and manage the mappings from PDU Session to QoS Flows to
 Data Radio Bearers.
 
+QoS and Bearer Identifiers
+**************************
+
+This section documents the mapping and relationships between various identifiers
+used throughout the ns-3 5G NR model for QoS flow setup and data bearer
+configuration. These identifiers span multiple network layers and domains:
+
+- **NAS Layer**: QoS Flow Identifier (QFI), E-RAB ID
+- **RAN/RRC Layer**: Data Radio Bearer ID (DRBID), Logical Channel ID (LCID)
+- **MAC Layer**: Logical Channel ID (LCID)
+- **GTP-U Layer**: Tunnel Endpoint Identifiers (TEID)
+
+Identifier Mapping
+==================
+
+The following table documents the key identifiers and their relationships:
+
+.. table:: QoS and Bearer Identifier Mapping in ns-3 NR
+
+  +------------------+------------------+-------------------------------+
+  | Identifier       | Description      | Assignment/Derivation         |
+  +==================+==================+===============================+
+  | QFI              | QoS Flow         | Assigned by MME; QFI=1 for    |
+  |                  | Identifier       | default, QFI 2 reserved for   |
+  |                  | (NAS Layer)      | sidelink; subsequent flows    |
+  |                  |                  | assigned 3, 4, 5...           |
+  +------------------+------------------+-------------------------------+
+  | E-RAB ID         | EPC Layer        | Assigned by MME; in this      |
+  |                  | Identifier       | model, E-RAB ID = QFI         |
+  |                  |                  |                               |
+  +------------------+------------------+-------------------------------+
+  | DRBID            | Data Radio       | Derived from QFI using        |
+  |                  | Bearer ID        | formula: DRBID = QFI + 2;     |
+  |                  | (RAN/RRC Layer)  | DRBID 1, 2, 4 reserved        |
+  |                  |                  | (SRB1, SRB2, sidelink)        |
+  +------------------+------------------+-------------------------------+
+  | LCID             | Logical Channel  | Derived from DRBID using      |
+  |                  | Identifier       | formula: LCID = DRBID         |
+  |                  | (MAC Layer)      | (direct 1:1 mapping);         |
+  |                  |                  | LCID 1, 2, 4 reserved         |
+  +------------------+------------------+-------------------------------+
+  | S1-U SGW TEID    | Tunnel Endpoint  | Assigned by SGW (independent  |
+  |                  | Identifier for   | value, not derived from       |
+  |                  | S1-U Interface   | QFI/DRBID/LCID); propagated  |
+  |                  | (EPC/SGW)        | to MME and gNB for data       |
+  |                  |                  | tunneling                     |
+  +------------------+------------------+-------------------------------+
+  | S5-U SGW TEID    | Tunnel Endpoint  | Assigned by SGW (independent  |
+  |                  | Identifier for   | value, not derived from       |
+  |                  | S5-U Interface   | QFI/DRBID/LCID); used for     |
+  |                  | (EPC/SGW)        | receiving data from PGW       |
+  +------------------+------------------+-------------------------------+
+  | S5-U PGW TEID    | Tunnel Endpoint  | Assigned by PGW (independent  |
+  |                  | Identifier for   | value, not derived from       |
+  |                  | S5-U Interface   | QFI/DRBID/LCID); sent to SGW  |
+  |                  | (EPC/PGW)        | so SGW knows PGW's tunnel     |
+  |                  |                  | endpoint                      |
+  +------------------+------------------+-------------------------------+
+
+Key Design Relationships
+========================
+
+The model uses the following direct relationships between identifiers:
+
+* **QFI Numbering**: QFI=1 for the default data radio bearer. Subsequent QoS
+  flows are assigned QFI 3, 4, 5, ... (QFI 2 is reserved for sidelink and
+  is skipped). This numbering is assigned by the MME during flow activation.
+
+* **DRBID Derivation**: DRBID = QFI + 2. Therefore, the default bearer
+  (QFI=1) uses DRBID=3. Dedicated bearers use DRBID=5, 6, 7, ... DRBID
+  values 1, 2, and 4 are reserved for Signaling Radio Bearers (SRB) and
+  sidelink operations.
+
+* **LCID Direct Mapping**: LCID = DRBID. This is a direct 1:1 mapping, not
+  an offset. The default data radio bearer uses LCID=3, and dedicated bearers
+  use LCID=5, 6, 7, ... LCID values 0-2 are reserved for SRBs, and LCID 4
+  is reserved for sidelink.
+
+* **E-RAB ID Alignment**: In this ns-3 model, E-RAB ID = QFI. This ensures
+  that the identifier assigned by the MME (E-RAB ID) matches the QFI used at
+  the NAS layer, simplifying the implementation while maintaining semantic
+  correctness.
+
+* **TEID Independence**: The S1-U SGW TEID, S5-U SGW TEID, and S5-U PGW TEID
+  are all independently assigned by their respective entities (SGW or PGW).
+  They are not derived from QFI, DRBID, or LCID. These TEIDs identify the
+  tunnel endpoints for GTP-U data transfer across the EPC interfaces.
+
+It is important to note that in the 5G NR QoS architecture, there can be
+a many-to-one mapping between QFIs and DRBs.  In the ns-3 model at present,
+there is a one-to-one mapping, which allows the models to derive DRBID
+directly from QFI rather than maintain a separate mapping.
+
+Implementation Details
+======================
+
+The identifier assignment occurs across the following code paths:
+
+1. **NAS Layer (UE)**: The UE's NAS entity (NrEpcUeNas) receives QoS flows
+   to be activated. When transitioning to ACTIVE state, it assigns QFIs
+   sequentially starting from QFI=1 for the default bearer, then QFI=3, 4, 5...
+   for dedicated bearers (skipping QFI 2).
+
+2. **MME**: The MME's AddFlow() method in NrEpcMmeApplication assigns E-RAB IDs
+   that align with QFI values, using the same numbering scheme: 1 for default,
+   then 3, 4, 5... (skipping 2). The MME receives TEID values from SGW and PGW
+   and stores them for use in routing and tunneling operations.
+
+3. **RAN/RRC Layer (gNB)**: The gNB's RRC entity (NrUeManager) receives
+   activation requests for QoS flows and derives DRBID values using the
+   formula DRBID = QFI + 2. The LCID is set equal to the DRBID.
+
+4. **EPC/SGW and PGW**: The SGW independently assigns its S1-U and S5-U TEIDs,
+   and the PGW independently assigns its S5-U TEID. These values are exchanged
+   through EPC signaling (CreateSession messages) so that the gNB and MME know
+   the correct tunnel endpoints for data forwarding.
+
 S1, S5, S11 interfaces
 **********************
 The simulator currently uses a ported version of the S1, S5, and S11 interfaces of LENA ns-3 LTE.
