@@ -6,7 +6,10 @@
 
 #include "nr-mac-scheduler-ue-info.h"
 
-#include "ns3/core-module.h"
+#include "ns3/boolean.h"
+#include "ns3/enum.h"
+#include "ns3/object.h"
+#include "ns3/uinteger.h"
 
 namespace ns3
 {
