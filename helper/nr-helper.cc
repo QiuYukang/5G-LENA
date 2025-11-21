@@ -1539,7 +1539,7 @@ NrHelper::DoDeActivateDedicatedQosFlow(Ptr<NetDevice> ueDevice,
 
     Ptr<NrGnbRrc> gnbRrc = gnbDevice->GetObject<NrGnbNetDevice>()->GetRrc();
 
-    gnbRrc->DoSendReleaseDataRadioBearer(imsi, rnti, qosFlowId);
+    gnbRrc->DoSendReleaseQosFlow(imsi, rnti, qosFlowId);
 }
 
 void

@@ -409,7 +409,11 @@ NrEpcSgwApplication::DoRecvCreateSessionResponse(Ptr<Packet> packet)
         flowContextOut.qfi = flowContext.qfi;
         flowContextOut.flow = flowContext.flow;
         flowContextOut.rule = flowContext.rule;
-        flowContextsOut.push_back(flowContext);
+        // flowContext contains PGW's tunnel info (S5-PGW interface and TEID) for SGW's internal
+        // use. flowContextOut contains SGW's tunnel info (S5-SGW interface and TEID) that must be
+        // sent to MME so the MME knows the SGW's tunnel endpoint for routing, not the PGW's
+        // endpoint.
+        flowContextsOut.push_back(flowContextOut);
     }
     msgOut.SetFlowContextsCreated(flowContextsOut);
 

@@ -598,7 +598,8 @@ NrUeRrc::DoSendData(Ptr<Packet> packet, uint8_t qfi)
     if (drbid != 0)
     {
         auto it = m_drbMap.find(drbid);
-        NS_ASSERT_MSG(it != m_drbMap.end(), "could not find bearer with drbid == " << drbid);
+        NS_ASSERT_MSG(it != m_drbMap.end(),
+                      "could not find bearer with drbid == " << +drbid << " for QFI " << +qfi);
 
         NrPdcpSapProvider::TransmitPdcpSduParameters params;
         params.pdcpSdu = packet;
@@ -1600,6 +1601,8 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
 
             m_drbMap.insert(
                 std::pair<uint8_t, Ptr<NrDataRadioBearerInfo>>(dtamIt->drbIdentity, drbInfo));
+            NS_LOG_DEBUG("Inserting drbid " << +dtamIt->drbIdentity << " qfi "
+                                            << +dtamIt->qosFlowIdentity << " to DRB map");
 
             m_drbCreatedTrace(m_imsi, m_cellId, m_rnti, dtamIt->drbIdentity);
 
@@ -1656,14 +1659,20 @@ NrUeRrc::ApplyRadioResourceConfigDedicated(NrRrcSap::RadioResourceConfigDedicate
         NS_LOG_INFO(this << " IMSI " << m_imsi << " releasing DRB " << (uint32_t)drbid);
         auto it = m_drbMap.find(drbid);
         NS_ASSERT_MSG(it != m_drbMap.end(), "could not find bearer with given lcid");
+        uint8_t qfi = it->second->m_qosFlowIdentity;
         m_drbMap.erase(it);
-        m_qfi2DrbidMap.erase(drbid);
-        // Remove LCID
+        m_qfi2DrbidMap.erase(qfi);
+        NS_LOG_INFO("IMSI " << m_imsi << " releasing QFI " << +qfi);
+
+        // Remove QoS rules from the classifier for this flow only
+        m_asSapUser->DeactivateQosFlow(qfi);
+
+        // Remove LCID using the new direct mapping: LCID = DRBID (not DRBID + 2)
         for (uint32_t i = 0; i < m_numberOfComponentCarriers; i++)
         {
-            m_cmacSapProvider.at(i)->RemoveLc(drbid + 2);
+            m_cmacSapProvider.at(i)->RemoveLc(nr::Drbid2Lcid(drbid));
         }
-        // m_ccmRrcSapProvider->RemoveLc(drbid+2);
+        // m_ccmRrcSapProvider->RemoveLc(nr::Drbid2Lcid(drbid));
     }
 }
 

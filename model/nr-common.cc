@@ -347,5 +347,51 @@ EutranMeasurementMapping::IeValue2ActualQQualMin(int8_t qQualMinIeValue)
     NS_ASSERT(actual <= -3.0);
     return actual;
 }
+
+uint8_t
+Lcid2Drbid(uint8_t lcid)
+{
+    // Direct mapping: LCID = DRBID for data radio bearers
+    return lcid;
+}
+
+uint8_t
+Drbid2Lcid(uint8_t drbid)
+{
+    // Direct mapping: LCID = DRBID for data radio bearers
+    return drbid;
+}
+
+uint8_t
+Lcid2Qfi(uint8_t lcid)
+{
+    // LCID = DRBID, and DRBID = QFI + 2, so QFI = LCID - 2
+    return lcid - 2;
+}
+
+uint8_t
+Qfi2Lcid(uint8_t qfi)
+{
+    // QFI -> DRBID -> LCID
+    // DRBID = QFI + 2, LCID = DRBID, so LCID = QFI + 2
+    return qfi + 2;
+}
+
+uint8_t
+Drbid2Qfi(uint8_t drbid)
+{
+    // QFI = DRBID - 2
+    return drbid - 2;
+}
+
+uint8_t
+Qfi2Drbid(uint8_t qfi)
+{
+    // DRBID = QFI + 2
+    // QFI 2 is reserved for sidelink, so this function should not be called with QFI 2
+    NS_ASSERT_MSG(qfi != 2, "QFI 2 is reserved for sidelink and cannot be converted to DRBID");
+    return qfi + 2;
+}
+
 }; // namespace nr
 }; // namespace ns3

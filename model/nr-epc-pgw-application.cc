@@ -48,10 +48,24 @@ NrEpcPgwApplication::NrUeInfo::RemoveFlow(uint8_t qfi)
 {
     NS_LOG_FUNCTION(this << (uint16_t)qfi);
     auto it = m_teidByFlowIdMap.find(qfi);
-    m_qosRuleClassifier.Delete(qfi); // delete rule using QFI
-    NS_LOG_INFO("Remove QosRule entry from classifier for QFI: " << +qfi);
-    m_teidByFlowIdMap.erase(qfi);
-    NS_LOG_INFO("Remove entry from TEID: " << it->second << " by flow ID: " << +qfi << " map");
+    bool found = m_qosRuleClassifier.Delete(qfi);
+    if (!found)
+    {
+        NS_LOG_WARN("Could not remove entry in classifier for QFI: " << +qfi);
+    }
+    else
+    {
+        NS_LOG_INFO("Removed QosRule entry from classifier for QFI: " << +qfi);
+    }
+    std::size_t erasedCount = m_teidByFlowIdMap.erase(qfi);
+    if (!erasedCount)
+    {
+        NS_LOG_WARN("TEID by Flow ID map did not erase flow ID: " << +qfi << " (not found)");
+    }
+    else
+    {
+        NS_LOG_INFO("Removed entry from TEID: " << it->second << " by flow ID: " << +qfi << " map");
+    }
 }
 
 std::optional<uint32_t>
@@ -420,7 +434,7 @@ NrEpcPgwApplication::DoRecvDeleteFlowCommand(Ptr<Packet> packet)
     std::list<uint8_t> qosFlowIds;
     for (auto& flowContext : msg.GetFlowContexts())
     {
-        NS_LOG_DEBUG("ebid " << (uint16_t)flowContext.m_qfi);
+        NS_LOG_DEBUG("QFI to delete " << (uint16_t)flowContext.m_qfi);
         qosFlowIds.push_back(flowContext.m_qfi);
     }
 

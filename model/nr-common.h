@@ -373,6 +373,67 @@ class EutranMeasurementMapping
     static double IeValue2ActualQQualMin(int8_t qQualMinIeValue);
 
 }; // end of class EutranMeasurementMapping
+
+/**
+ * @ingroup nr
+ *
+ * Convert Logical Channel ID to Data Radio Bearer ID.
+ *
+ * @param lcid Logical Channel ID
+ * @return Data Radio Bearer ID (LCID value for DRBs)
+ */
+uint8_t Lcid2Drbid(uint8_t lcid);
+
+/**
+ * @ingroup nr
+ *
+ * Convert Data Radio Bearer ID to Logical Channel ID.
+ *
+ * @param drbid Data Radio Bearer ID
+ * @return Logical Channel ID (equal to DRBID for DRBs)
+ */
+uint8_t Drbid2Lcid(uint8_t drbid);
+
+/**
+ * @ingroup nr
+ *
+ * Convert Logical Channel ID to QoS Flow Identifier.
+ *
+ * @param lcid Logical Channel ID
+ * @return QoS Flow Identifier
+ */
+uint8_t Lcid2Qfi(uint8_t lcid);
+
+/**
+ * @ingroup nr
+ *
+ * Convert QoS Flow Identifier to Logical Channel ID.
+ *
+ * @param qfi QoS Flow Identifier
+ * @return Logical Channel ID
+ */
+uint8_t Qfi2Lcid(uint8_t qfi);
+
+/**
+ * @ingroup nr
+ *
+ * Derive QoS Flow Identifier from Data Radio Bearer ID.
+ *
+ * @param drbid Data Radio Bearer ID
+ * @return QoS Flow Identifier (DRBID - 2)
+ */
+uint8_t Drbid2Qfi(uint8_t drbid);
+
+/**
+ * @ingroup nr
+ *
+ * Derive Data Radio Bearer ID from QoS Flow Identifier.
+ *
+ * @param qfi QoS Flow Identifier
+ * @return Data Radio Bearer ID (QFI + 2)
+ */
+uint8_t Qfi2Drbid(uint8_t qfi);
+
 }; // namespace nr
 }; // namespace ns3
 

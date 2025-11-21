@@ -225,13 +225,14 @@ NrEpcE2eDataTestCase::DoRun()
             Ipv4InterfaceContainer ueIpIface =
                 nrEpcHelper->AssignUeIpv4Address(NetDeviceContainer(ueNrDevice));
 
-            // we can now attach the UE, which will also activate the default EPS bearer
+            // AttachToGnb sets up the default DRB (QFI=1, DRBID=3, LCID=3)
             nrHelper->AttachToGnb(ueNrDevice, *nrGnbDevIt);
 
             uint16_t dlPort = 2000;
-            for (uint32_t b = 0; b < gnbit->ues.at(u).bearers.size(); ++b)
+            for (uint32_t bearerIndex = 0; bearerIndex < gnbit->ues.at(u).bearers.size();
+                 ++bearerIndex)
             {
-                NrBearerTestData& bearerTestData = gnbit->ues.at(u).bearers.at(b);
+                NrBearerTestData& bearerTestData = gnbit->ues.at(u).bearers.at(bearerIndex);
 
                 { // Downlink
                     ++dlPort;
@@ -281,7 +282,8 @@ NrEpcE2eDataTestCase::DoRun()
                 ulpf.remotePortEnd = ulPort;
                 rule->Add(ulpf);
 
-                // all data will go over the dedicated bearer instead of the default EPS bearer
+                // Activate dedicated QoS flows. Each dedicated flow will get QFI 3, 4, 5, ...
+                // (skipping QFI 2) which maps to DRBID 5, 6, 7, ... and LCID 5, 6, 7, ...
                 nrHelper->ActivateDedicatedQosFlow(ueNrDevice, flow, rule);
             }
         }
@@ -308,18 +310,22 @@ NrEpcE2eDataTestCase::DoRun()
     {
         for (auto ueit = gnbit->ues.begin(); ueit < gnbit->ues.end(); ++ueit)
         {
-            for (uint32_t b = 0; b < ueit->bearers.size(); ++b)
+            for (uint32_t bearerIndex = 0; bearerIndex < ueit->bearers.size(); ++bearerIndex)
             {
                 // Since IMSIs now match NodeId, we can use this shortcut to retrieve the IMSI
-                uint64_t imsi = ueit->bearers.at(b).dlServerApp->GetNode()->GetId();
+                uint64_t imsi = ueit->bearers.at(bearerIndex).dlServerApp->GetNode()->GetId();
 
-                // LCID 0, 1, 2 are for SRBs
-                // LCID 3 is (at the moment) the default bearer, and is unused in this test
-                // program
-                uint8_t lcid = b + 4;
-                uint32_t expectedPkts = ueit->bearers.at(b).numPkts;
-                uint32_t expectedBytes =
-                    (ueit->bearers.at(b).numPkts) * (ueit->bearers.at(b).pktSize);
+                // LCID allocation:
+                // LCID 0:   Reserved
+                // LCID 1-2: SRBs (SRB1, SRB2)
+                // LCID 3:   Default DRB (QFI 1)
+                // LCID 4:   Reserved for sidelink
+                // LCID 5+:  Dedicated DRBs (first dedicated at LCID 5 = QFI 3)
+                // Dedicated bearers in this test start at bearerIndex 0, mapped to LCID 5+
+                uint8_t lcid = bearerIndex + 5;
+                uint32_t expectedPkts = ueit->bearers.at(bearerIndex).numPkts;
+                uint32_t expectedBytes = (ueit->bearers.at(bearerIndex).numPkts) *
+                                         (ueit->bearers.at(bearerIndex).pktSize);
                 uint32_t txPktsPdcpDl =
                     nrHelper->GetPdcpStatsCalculator()->GetDlTxPackets(imsi, lcid);
                 uint32_t rxPktsPdcpDl =
@@ -328,8 +334,8 @@ NrEpcE2eDataTestCase::DoRun()
                     nrHelper->GetPdcpStatsCalculator()->GetUlTxPackets(imsi, lcid);
                 uint32_t rxPktsPdcpUl =
                     nrHelper->GetPdcpStatsCalculator()->GetUlRxPackets(imsi, lcid);
-                uint32_t rxBytesDl = ueit->bearers.at(b).dlServerApp->GetTotalRx();
-                uint32_t rxBytesUl = ueit->bearers.at(b).ulServerApp->GetTotalRx();
+                uint32_t rxBytesDl = ueit->bearers.at(bearerIndex).dlServerApp->GetTotalRx();
+                uint32_t rxBytesUl = ueit->bearers.at(bearerIndex).ulServerApp->GetTotalRx();
 
                 NS_TEST_ASSERT_MSG_EQ(txPktsPdcpDl,
                                       expectedPkts,

@@ -377,12 +377,12 @@ NrEpcGnbApplication::SendToS1uSocket(Ptr<Packet> packet, uint32_t teid)
 }
 
 void
-NrEpcGnbApplication::DoReleaseIndication(uint64_t imsi, uint16_t rnti, uint8_t bearerId)
+NrEpcGnbApplication::DoReleaseIndication(uint64_t imsi, uint16_t rnti, uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << bearerId);
+    NS_LOG_FUNCTION(this << qfi);
     std::list<NrEpcS1apSapMme::ErabToBeReleasedIndication> erabToBeReleaseIndication;
     NrEpcS1apSapMme::ErabToBeReleasedIndication erab;
-    erab.erabId = bearerId;
+    erab.erabId = qfi;
     erabToBeReleaseIndication.push_back(erab);
     // From 3GPP TS 23401-950 Section 5.4.4.2, gNB sends EPS bearer Identity in Bearer Release
     // Indication message to MME

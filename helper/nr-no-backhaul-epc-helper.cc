@@ -481,6 +481,7 @@ NrNoBackhaulEpcHelper::ActivateQosFlow(Ptr<NetDevice> ueDevice,
         }
     }
     uint8_t qosFlowId = m_mmeApp->AddFlow(imsi, rule, flow);
+    rule->SetQfi(qosFlowId);
     DoActivateQosFlowForUe(ueDevice, rule, flow);
 
     return qosFlowId;

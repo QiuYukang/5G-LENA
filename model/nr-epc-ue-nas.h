@@ -176,6 +176,9 @@ class NrEpcUeNas : public Object
     void DoNotifyConnectionFailed();
     /// Notify connection released
     void DoNotifyConnectionReleased();
+    /// Deactivate QosFlow
+    void DoDeactivateQosFlow(uint8_t qfi);
+
     /**
      * Receive data
      * @param packet the packet
@@ -219,7 +222,6 @@ class NrEpcUeNas : public Object
     /// NR SAP user
     NrAsSapUser* m_asSapUser;
 
-    uint8_t m_qfiCounter;                    ///< qfi counter
     NrQosRuleClassifier m_qosRuleClassifier; ///< QoS rule classifier
 
     Callback<void, Ptr<Packet>> m_forwardUpCallback; ///< upward callback

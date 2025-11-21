@@ -253,6 +253,7 @@ NrNetDevice::Receive(Ptr<Packet> p)
 bool
 NrNetDevice::Send(Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
+    NS_LOG_FUNCTION(this << packet << dest << protocolNumber);
     bool ret = DoSend(packet, dest, protocolNumber);
     m_txTrace(packet, dest);
     return ret;

@@ -97,10 +97,19 @@ NrEpcMmeApplication::AddFlow(uint64_t imsi, Ptr<NrQosRule> rule, NrQosFlow flow)
     NS_ASSERT_MSG(it->second->flowCounter < 64,
                   "too many flows already! " << it->second->flowCounter);
     FlowInfo flowInfo;
-    flowInfo.qfi = ++(it->second->flowCounter);
+    // Assign QFI: QFI 1 for default flow, then QFI 3+ for dedicated flows (QFI 2 is reserved for
+    // sidelink)
+    uint8_t qfi = ++(it->second->flowCounter);
+    if (qfi == 2)
+    {
+        NS_LOG_INFO("MME IMSI " << imsi << " QFI 2 assignment skipped (reserved for sidelink)");
+        qfi = ++(it->second->flowCounter);
+    }
+    flowInfo.qfi = qfi;
     flowInfo.rule = rule;
     flowInfo.flow = flow;
     it->second->flowsToBeActivated.push_back(flowInfo);
+    NS_LOG_INFO("MME IMSI " << imsi << " added flow with QFI " << (uint32_t)flowInfo.qfi);
     return flowInfo.qfi;
 }
 

@@ -134,7 +134,7 @@ NrUeManager::NrUeManager()
 }
 
 NrUeManager::NrUeManager(Ptr<NrGnbRrc> rrc, uint16_t rnti, State s, uint8_t componentCarrierId)
-    : m_lastAllocatedDrbid(0),
+    : m_lastAllocatedDrbid(2),
       m_rnti(rnti),
       m_imsi(0),
       m_componentCarrierId(componentCarrierId),
@@ -419,8 +419,8 @@ NrUeManager::SetupDataRadioBearer(NrQosFlow flow,
 
     Ptr<NrDataRadioBearerInfo> drbInfo = CreateObject<NrDataRadioBearerInfo>();
     uint8_t drbid = AddDataRadioBearerInfo(drbInfo);
-    uint8_t lcid = Drbid2Lcid(drbid);
-    uint8_t qosFlowId = Drbid2Qfi(drbid);
+    uint8_t lcid = nr::Drbid2Lcid(drbid);
+    uint8_t qosFlowId = nr::Drbid2Qfi(drbid);
     NS_ASSERT_MSG(qfi == 0 || qosFlowId == qfi,
                   "QFI mismatch (" << (uint32_t)qosFlowId << " != " << (uint32_t)qfi
                                    << ", the assumption that ID are allocated in the same "
@@ -564,7 +564,7 @@ void
 NrUeManager::ReleaseDataRadioBearer(uint8_t drbid)
 {
     NS_LOG_FUNCTION(this << (uint32_t)m_rnti << (uint32_t)drbid);
-    uint8_t lcid = Drbid2Lcid(drbid);
+    uint8_t lcid = nr::Drbid2Lcid(drbid);
     auto it = m_drbMap.find(drbid);
     NS_ASSERT_MSG(it != m_drbMap.end(),
                   "request to remove radio bearer with unknown drbid " << drbid);
@@ -605,18 +605,21 @@ NrUeManager::ReleaseDataRadioBearer(uint8_t drbid)
 }
 
 void
-NrGnbRrc::DoSendReleaseDataRadioBearer(uint64_t imsi, uint16_t rnti, uint8_t bearerId)
+NrGnbRrc::DoSendReleaseQosFlow(uint64_t imsi, uint16_t rnti, uint8_t qfi)
 {
-    NS_LOG_FUNCTION(this << imsi << rnti << (uint16_t)bearerId);
+    NS_LOG_FUNCTION(this << imsi << rnti << qfi);
 
     // check if the RNTI to be removed is not stale
     if (HasUeManager(rnti))
     {
         Ptr<NrUeManager> ueManager = GetUeManager(rnti);
+        // Convert QFI to DRBID: bearerId is passed as QFI, but ReleaseDataRadioBearer expects DRBID
+        // DRBID = QFI + 2
+        uint8_t drbid = nr::Qfi2Drbid(qfi);
         // Bearer de-activation towards UE
-        ueManager->ReleaseDataRadioBearer(bearerId);
+        ueManager->ReleaseDataRadioBearer(drbid);
         // Bearer de-activation indication towards epc-gNB application
-        m_s1SapProvider->DoSendReleaseIndication(imsi, rnti, bearerId);
+        m_s1SapProvider->DoSendReleaseIndication(imsi, rnti, qfi);
     }
 }
 
@@ -873,14 +876,14 @@ NrUeManager::GetRrcConnectionReconfigurationForHandover(uint8_t componentCarrier
 }
 
 void
-NrUeManager::SendPacket(uint8_t bid, Ptr<Packet> p)
+NrUeManager::SendPacket(uint8_t qfi, Ptr<Packet> p)
 {
-    NS_LOG_FUNCTION(this << p << (uint16_t)bid);
+    NS_LOG_FUNCTION(this << p << qfi);
     NrPdcpSapProvider::TransmitPdcpSduParameters params;
     params.pdcpSdu = p;
     params.rnti = m_rnti;
-    params.lcid = Qfi2Lcid(bid);
-    uint8_t drbid = Qfi2Drbid(bid);
+    params.lcid = nr::Qfi2Lcid(qfi);
+    uint8_t drbid = nr::Qfi2Drbid(qfi);
     // Transmit PDCP sdu only if DRB ID found in drbMap
     auto it = m_drbMap.find(drbid);
     if (it != m_drbMap.end())
@@ -896,9 +899,9 @@ NrUeManager::SendPacket(uint8_t bid, Ptr<Packet> p)
 }
 
 void
-NrUeManager::SendData(uint8_t bid, Ptr<Packet> p)
+NrUeManager::SendData(uint8_t qfi, Ptr<Packet> p)
 {
-    NS_LOG_FUNCTION(this << p << (uint16_t)bid);
+    NS_LOG_FUNCTION(this << p << qfi);
     switch (m_state)
     {
     case INITIAL_RANDOM_ACCESS:
@@ -912,20 +915,20 @@ NrUeManager::SendData(uint8_t bid, Ptr<Packet> p)
     case HANDOVER_PREPARATION:
     case HANDOVER_PATH_SWITCH: {
         NS_LOG_INFO("queueing data on PDCP for transmission over the air");
-        SendPacket(bid, p);
+        SendPacket(qfi, p);
     }
     break;
 
     case HANDOVER_JOINING: {
         // Buffer data until RRC Connection Reconfiguration Complete message is received
-        NS_LOG_INFO("buffering data");
-        m_packetBuffer.emplace_back(bid, p);
+        NS_LOG_INFO("buffering data for QFI " << +qfi);
+        m_packetBuffer.emplace_back(qfi, p);
     }
     break;
 
     case HANDOVER_LEAVING: {
         NS_LOG_INFO("forwarding data to target gNB over X2-U");
-        uint8_t drbid = Qfi2Drbid(bid);
+        uint8_t drbid = nr::Qfi2Drbid(qfi);
         NrEpcX2Sap::UeDataParams params;
         params.sourceCellId = m_rrc->ComponentCarrierToCellId(m_componentCarrierId);
         params.targetCellId = m_targetCellId;
@@ -1028,7 +1031,7 @@ NrUeManager::RecvSnStatusTransfer(NrEpcX2SapUser::SnStatusTransferParams params)
         NrPdcp::Status status;
         status.txSn = erabIt->dlPdcpSn;
         status.rxSn = erabIt->ulPdcpSn;
-        uint8_t drbId = Qfi2Drbid(erabIt->erabId);
+        uint8_t drbId = nr::Qfi2Drbid(erabIt->erabId);
         auto drbIt = m_drbMap.find(drbId);
         NS_ASSERT_MSG(drbIt != m_drbMap.end(), "could not find DRBID " << (uint32_t)drbId);
         drbIt->second->m_pdcp->SetStatus(status);
@@ -1214,12 +1217,12 @@ NrUeManager::RecvRrcConnectionReconfigurationCompleted(
         while (!m_packetBuffer.empty())
         {
             NS_LOG_LOGIC("dequeueing data from buffer");
-            std::pair<uint8_t, Ptr<Packet>> bidPacket = m_packetBuffer.front();
-            uint8_t bid = bidPacket.first;
-            Ptr<Packet> p = bidPacket.second;
+            std::pair<uint8_t, Ptr<Packet>> qfiPacketPair = m_packetBuffer.front();
+            uint8_t qfi = qfiPacketPair.first;
+            Ptr<Packet> p = qfiPacketPair.second;
 
-            NS_LOG_LOGIC("queueing data on PDCP for transmission over the air");
-            SendPacket(bid, p);
+            NS_LOG_LOGIC("queueing data on PDCP for QFI " << +qfi);
+            SendPacket(qfi, p);
 
             m_packetBuffer.pop_front();
         }
@@ -1366,8 +1369,10 @@ NrUeManager::DoReceivePdcpSdu(NrPdcpSapUser::ReceivePdcpSduParameters params)
         // data radio bearer
         NrQosFlowTag tag;
         tag.SetRnti(params.rnti);
-        tag.SetQfi(Lcid2Qfi(params.lcid));
+        tag.SetQfi(nr::Lcid2Qfi(params.lcid));
         params.pdcpSdu->AddPacketTag(tag);
+        NS_LOG_DEBUG("Adding packet tag for RNTI " << params.rnti << " LCID " << params.lcid
+                                                   << " QFI " << nr::Lcid2Qfi(params.lcid));
         m_rrc->m_forwardUpCallback(params.pdcpSdu);
     }
 }
@@ -1483,13 +1488,16 @@ NrUeManager::AddDataRadioBearerInfo(Ptr<NrDataRadioBearerInfo> drbInfo)
     for (int drbid = (m_lastAllocatedDrbid + 1) % MAX_DRB_ID; drbid != m_lastAllocatedDrbid;
          drbid = (drbid + 1) % MAX_DRB_ID)
     {
-        if (drbid != 0) // 0 is not allowed
+        // Skip DRBID 0 (not allowed), 1-2 (reserved), 4 (reserved for sidelink)
+        if (drbid != 0 && drbid != 1 && drbid != 2 && drbid != 4)
         {
             if (m_drbMap.find(drbid) == m_drbMap.end())
             {
                 m_drbMap.insert(std::pair<uint8_t, Ptr<NrDataRadioBearerInfo>>(drbid, drbInfo));
                 drbInfo->m_drbIdentity = drbid;
                 m_lastAllocatedDrbid = drbid;
+                NS_LOG_DEBUG("Allocated DRBID " << (uint32_t)drbid << " (LCID " << (uint32_t)drbid
+                                                << ") for RNTI " << m_rnti);
                 return drbid;
             }
         }
@@ -1582,44 +1590,6 @@ NrUeManager::GetNewRrcTransactionIdentifier()
     ++m_lastRrcTransactionIdentifier;
     m_lastRrcTransactionIdentifier %= 4;
     return m_lastRrcTransactionIdentifier;
-}
-
-uint8_t
-NrUeManager::Lcid2Drbid(uint8_t lcid)
-{
-    NS_ASSERT(lcid > 2);
-    return lcid - 2;
-}
-
-uint8_t
-NrUeManager::Drbid2Lcid(uint8_t drbid)
-{
-    return drbid + 2;
-}
-
-uint8_t
-NrUeManager::Lcid2Qfi(uint8_t lcid)
-{
-    NS_ASSERT(lcid > 2);
-    return lcid - 2;
-}
-
-uint8_t
-NrUeManager::Qfi2Lcid(uint8_t qfi)
-{
-    return qfi + 2;
-}
-
-uint8_t
-NrUeManager::Drbid2Qfi(uint8_t drbid)
-{
-    return drbid;
-}
-
-uint8_t
-NrUeManager::Qfi2Drbid(uint8_t qfi)
-{
-    return qfi;
 }
 
 void

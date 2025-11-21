@@ -241,8 +241,11 @@ NrNoOpComponentCarrierManager::DoReleaseDataRadioBearer(uint16_t rnti, uint8_t l
 {
     NS_LOG_FUNCTION(this << rnti << +lcid);
 
-    // Here we receive directly the RNTI and the LCID, instead of only DRB ID
-    // DRB ID are mapped as DRBID = LCID + 2
+    // Here we receive directly the RNTI and the LCID, instead of only DRB ID.
+    // With the updated mapping scheme:
+    // DRBID = LCID (direct mapping, no offset)
+    // LCID 3: Default DRB (QFI 1)
+    // LCID 5+: Dedicated DRBs
     auto rntiIt = m_ueInfo.find(rnti);
     NS_ASSERT_MSG(rntiIt != m_ueInfo.end(),
                   "request to Release Data Radio Bearer on UE with unknown RNTI " << rnti);

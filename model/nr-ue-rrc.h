@@ -761,6 +761,10 @@ class NrUeRrc : public Object
      */
     void SwitchToState(State s);
 
+    // QFI to DRBID mapping, maintained for defensive programming purposes. While the
+    // current ns-3 implementation enforces DRBID = QFI + 2 (which could be computed with
+    // a formula), this explicit map allows for future changes to the identifier mapping
+    // scheme without requiring code modifications elsewhere in the UE RRC layer.
     std::map<uint8_t, uint8_t> m_qfi2DrbidMap; ///< QFI to DR bearer id map
 
     std::vector<NrUeCphySapUser*> m_cphySapUser;         ///< UE CPhy SAP user

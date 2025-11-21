@@ -493,48 +493,6 @@ class NrUeManager : public Object
     uint8_t GetNewRrcTransactionIdentifier();
 
     /**
-     * @param lcid a Logical Channel Identifier
-     *
-     * @return the corresponding Data Radio Bearer Id
-     */
-    uint8_t Lcid2Drbid(uint8_t lcid);
-
-    /**
-     * @param drbid a Data Radio Bearer Id
-     *
-     * @return the corresponding  Logical Channel Identifier
-     */
-    uint8_t Drbid2Lcid(uint8_t drbid);
-
-    /**
-     * @param lcid a  Logical Channel Identifier
-     *
-     * @return the corresponding QoS flow identifier
-     */
-    uint8_t Lcid2Qfi(uint8_t lcid);
-
-    /**
-     * @param qfi a QoS flow identifier
-     *
-     * @return the corresponding Logical Channel Identifier
-     */
-    uint8_t Qfi2Lcid(uint8_t qfi);
-
-    /**
-     * @param drbid Data Radio Bearer Id
-     *
-     * @return the corresponding QoS flow identifier
-     */
-    uint8_t Drbid2Qfi(uint8_t drbid);
-
-    /**
-     * @param qfi a Qos flow identifier
-     *
-     * @return the corresponding Data Radio Bearer Id
-     */
-    uint8_t Qfi2Drbid(uint8_t qfi);
-
-    /**
      * Send a data packet over the appropriate Data Radio Bearer.
      * It is called by SendData if the UE is in a connected state
      * or when the RRC Connection Reconfiguration Complete message
@@ -658,7 +616,7 @@ class NrUeManager : public Object
 
     /**
      * Packet buffer for when UE is doing the handover.
-     * The packets are stored with the bid (bearer ID).
+     * The packets are stored with the QFI (QoS Flow ID).
      *
      * Source gNB starts forwarding data to target gNB through the X2 interface
      * when it sends RRC Connection Reconfiguration to the UE.
@@ -1047,9 +1005,9 @@ class NrGnbRrc : public Object
      * and EPC
      * @param imsi the IMSI
      * @param rnti the RNTI
-     * @param bearerId Bearer Identity which is to be de-activated
+     * @param qfi QoS flow ID
      */
-    void DoSendReleaseDataRadioBearer(uint64_t imsi, uint16_t rnti, uint8_t bearerId);
+    void DoSendReleaseQosFlow(uint64_t imsi, uint16_t rnti, uint8_t qfi);
 
     /**
      *  @brief Send RRC connection release function

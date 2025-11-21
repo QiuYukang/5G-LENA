@@ -8,6 +8,7 @@
 
 #include "nr-as-sap.h"
 
+#include "ns3/abort.h"
 #include "ns3/fatal-error.h"
 #include "ns3/log.h"
 #include "ns3/nr-epc-helper.h"
@@ -42,8 +43,7 @@ NS_OBJECT_ENSURE_REGISTERED(NrEpcUeNas);
 NrEpcUeNas::NrEpcUeNas()
     : m_state(OFF),
       m_csgId(0),
-      m_asSapProvider(nullptr),
-      m_qfiCounter(0)
+      m_asSapProvider(nullptr)
 {
     NS_LOG_FUNCTION(this);
     m_asSapUser = new MemberNrAsSapUser<NrEpcUeNas>(this);
@@ -166,6 +166,7 @@ void
 NrEpcUeNas::ActivateQosFlow(NrQosFlow flow, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
+    NS_ABORT_MSG_IF(!rule->GetQfi(), "A QFI must be set on the rule before activating it");
     switch (m_state)
     {
     case ACTIVE:
@@ -239,12 +240,10 @@ void
 NrEpcUeNas::DoNotifyConnectionReleased()
 {
     NS_LOG_FUNCTION(this);
-    // remove rules
-    while (m_qfiCounter > 0)
-    {
-        m_qosRuleClassifier.Delete(m_qfiCounter);
-        m_qfiCounter--;
-    }
+
+    // remove all rules
+    NS_LOG_INFO("Clearing all QosRules from classifier");
+    m_qosRuleClassifier.Clear();
     // restore the QoS flow list to be activated for the next RRC connection
     m_qosFlowsToBeActivatedList = m_qosFlowsToBeActivatedListForReconnection;
 
@@ -255,9 +254,18 @@ void
 NrEpcUeNas::DoActivateQosFlow(NrQosFlow flow, Ptr<NrQosRule> rule)
 {
     NS_LOG_FUNCTION(this);
-    NS_ABORT_MSG_UNLESS(m_qfiCounter < 64, "cannot have more than 64 QFIs");
-    uint8_t qfi = ++m_qfiCounter;
+
+    auto qfi = rule->GetQfi();
+    NS_LOG_INFO("NAS " << m_imsi << " activated QoS flow with QFI " << +qfi);
     m_qosRuleClassifier.Add(rule, qfi);
+}
+
+void
+NrEpcUeNas::DoDeactivateQosFlow(uint8_t qfi)
+{
+    NS_LOG_FUNCTION(this << qfi);
+    NS_LOG_INFO("NAS " << m_imsi << " deactivated QoS flow with QFI " << +qfi);
+    m_qosRuleClassifier.Delete(qfi);
 }
 
 NrEpcUeNas::State

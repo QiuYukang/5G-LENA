@@ -51,7 +51,7 @@ namespace ns3
 NrTestBearerDeactivateSuite::NrTestBearerDeactivateSuite()
     : TestSuite("nr-test-deactivate-bearer", Type::SYSTEM)
 {
-    NS_LOG_INFO("creating NrTestPssFfMacSchedulerSuite");
+    NS_LOG_INFO("creating NrTestBearerDeactivateSuite");
 
     bool errorModel = false;
     std::vector<uint16_t> dist_1{1, 2, 3}; // 3 nearby UEs
@@ -283,12 +283,14 @@ NrDeactivateBearerTestCase::DoRun()
      * MEM mem_ptr, OBJ obj, T1 a1, T2 a2, T3 a3)
      */
     Time deActivateTime(Seconds(1.5));
+    // Deactivate the first dedicated QoS flow (QFI 3) for UE with IMSI 1
+    // (First dedicated flow gets QFI 3 since QFI 1 is default and QFI 2 is reserved)
     Simulator::Schedule(deActivateTime,
                         &NrHelper::DeActivateDedicatedQosFlow,
                         nrHelper,
                         ueDevice,
                         gnbDevice,
-                        2);
+                        3);
 
     // enable rlc traffic measurements and start measuring after the bearer from
     // imsi 1 has been disabled (a.k.a. there should no traffic)
@@ -309,9 +311,8 @@ NrDeactivateBearerTestCase::DoRun()
     {
         // get the imsi
         uint64_t imsi = ueDevs.Get(i)->GetObject<NrUeNetDevice>()->GetImsi();
-        // get the lcId
-        // lcId is hard-coded, since only one dedicated bearer is added
-        uint8_t lcId = 4;
+        // get the lcId of the first dedicated bearer
+        uint8_t lcId = 5;
         dlDataRxed.push_back(rlcStats->GetDlRxData(imsi, lcId));
         dlDataTxed.push_back(rlcStats->GetDlTxData(imsi, lcId));
         NS_LOG_INFO("\tUser " << i << " dist " << m_dist.at(i) << " imsi " << imsi << " bytes rxed "
@@ -327,8 +328,9 @@ NrDeactivateBearerTestCase::DoRun()
         uint64_t imsi = ueDevs.Get(i)->GetObject<NrUeNetDevice>()->GetImsi();
 
         /*
-         * For UE ID-0 IMSI 1, LCID=4 is deactivated hence If traffic seen on it, test case should
-         * fail Else For other UE's, test case should validate throughput
+         * For UE ID-0 IMSI 1, LCID=5 (QFI 3, first dedicated bearer) is deactivated.
+         * If traffic is seen on it, the test case should fail.
+         * For other UEs, the test case should validate throughput.
          */
         if (imsi == 1)
         {
