@@ -18,17 +18,17 @@ reuse:
 # Clang-format
 check-style-clang-format:
   stage: code-linting
-  image: ubuntu:latest
+  image: alpine:latest
   before_script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive apt install -y
-      python3
-      clang-format-20
-      git
+    - apk update
+    - apk add git python3
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
+    - pip install clang-format==20.1.0
   script:
     - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - ln -s ${PWD} ns-3-dev/contrib/nr
-    - pushd ns-3-dev
+    - cd ns-3-dev
     - python3 utils/check-style-clang-format.py contrib/nr/model
     - python3 utils/check-style-clang-format.py contrib/nr/helper
     - python3 utils/check-style-clang-format.py contrib/nr/utils
@@ -36,32 +36,40 @@ check-style-clang-format:
     - python3 utils/check-style-clang-format.py contrib/nr/test
     - python3 utils/check-style-clang-format.py --no-formatting contrib/nr/doc
     - python3 utils/check-style-clang-format.py --no-formatting contrib/nr/tutorial
-    - popd
+    - cd ../
     - rm -rf ns-3-dev
   timeout: 1h
 
 # Check cmake format
 cmake-format:
   stage: code-linting
-  image: python:3.13
+  image: alpine:latest
   before_script:
+    - apk update
+    - apk add git python3 g++
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
     - pip install pyyaml cmake cmake-format ninja
   script:
     - git clone -b $NS3_RELEASE_VERSION --depth=1 $NS3_REPOSITORY_URL
     - mkdir -p ns-3-dev/contrib/nr/
     - ln -s ${PWD} ns-3-dev/contrib/nr
-    - pushd ns-3-dev
+    - cd ns-3-dev
     - ./ns3 configure --enable-modules=core
     - ./ns3 build cmake-format-check
-    - popd
+    - cd ../
     - rm -rf ns-3-dev
   timeout: 1h
 
 # Check Python format
 python-format:
   stage: code-linting
-  image: python:latest
+  image: alpine:latest
   before_script:
+    - apk update
+    - apk add git python3
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
     - pip install black isort
   script:
     - black --check .
@@ -71,8 +79,12 @@ python-format:
 # Spell checking
 spell-check:
   stage: code-linting
-  image: python:latest
+  image: alpine:latest
   before_script:
+    - apk update
+    - apk add git python3
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
     # Python <3.11 also requires the 'tomli' package
     - pip install codespell
   script:
@@ -122,8 +134,12 @@ clang-tidy-19:
 # Check commit format and style
 check-commit-message:
   stage: code-linting
-  image: python:latest
+  image: alpine:latest
   before_script:
+    - apk update
+    - apk add git python3
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
     - pip install GitPython
   script:
     # Check source code and commit messages
@@ -134,13 +150,34 @@ check-commit-message:
 # Check for emacs line presence
 emacs-line:
   stage: code-linting
-  image: ubuntu:latest
+  image: alpine:latest
+  before_script:
+    - apk update
+    - apk add grep
   script:
     - if ( egrep -rn --include="*.h" --include="*.cc" --include="*.c" --include="*.py" --include="*.rst" "c-file-style:|py-indent-offset:" ) ; then
       echo "Found Emacs lines on the above C/C++, Python and RST files" ;
       exit 1 ;
       else
       echo "No Emacs lines found on C/C++, Python and RST files" ;
+      exit 0 ;
+      fi
+  timeout: 1h
+  interruptible: true
+
+# Check for header module include in module sources
+header-module-include:
+  stage: code-linting
+  image: alpine:latest
+  before_script:
+    - apk update
+    - apk add grep
+  script:
+    - if ( egrep -rn --include="*.h" --include="*.cc" "#include \"ns3/nr-module.h\"" ./model ./helper ./utils ) ; then
+      echo "Found nr-module.h includes on the above nr module source files. Replace with actual nr headers." ;
+      exit 1 ;
+      else
+      echo "No incorrect use of nr-module.h header found. Keep up with the good work :)" ;
       exit 0 ;
       fi
   timeout: 1h
