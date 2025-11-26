@@ -601,7 +601,7 @@ string(
 )
 build_exec(
   EXECNAME nr-print-introspected-doxygen
-  SOURCE_FILES ./utils/print-introspected-doxygen.cc
+  SOURCE_FILES ./tools/print-introspected-doxygen.cc
   LIBRARIES_TO_LINK ${libnr}
   EXECUTABLE_DIRECTORY_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${FOLDER}
 )
