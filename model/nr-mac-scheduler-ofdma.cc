@@ -196,6 +196,52 @@ NrMacSchedulerOfdma::DeallocateCurrentResourceFromUe(
     availableRbgs.at(currentRbg) = true;
 }
 
+uint32_t
+NrMacSchedulerOfdma::EstimateTotalTbCapacity(
+    std::vector<std::pair<std::shared_ptr<ns3::NrMacSchedulerUeInfo>, unsigned int>>::iterator
+        schedInfoIt,
+    std::shared_ptr<NrMacSchedulerUeInfo> currentUe,
+    const std::vector<bool>& availableRbgs,
+    const uint32_t beamSym,
+    FTResources& assignedResources) const
+{
+    // Compute maximum tb size achievable with current resources plus all remaining available ones
+    // so we know whether we never schedule based on sub-band CQI less than at least WB would
+
+    // We first allocate all remaining resources to UE
+    std::vector<bool> availableRbgsBackup = availableRbgs;
+    for (std::size_t i = 0; i < availableRbgs.size(); i++)
+    {
+        if (availableRbgs.at(i))
+        {
+            AllocateCurrentResourceToUe(currentUe,
+                                        i,
+                                        beamSym,
+                                        assignedResources,
+                                        availableRbgsBackup);
+        }
+    }
+    // Recompute tbSize and scheduler metrics
+    AssignedDlResources(*schedInfoIt, FTResources(beamSym, beamSym), assignedResources);
+    // Collect maximum tbSize
+    const auto maximumWbTbSize = currentUe->m_dlTbSize;
+    // Then reclaim resources
+    for (std::size_t i = 0; i < availableRbgs.size(); i++)
+    {
+        if (availableRbgs.at(i))
+        {
+            DeallocateCurrentResourceFromUe(currentUe,
+                                            i,
+                                            beamSym,
+                                            assignedResources,
+                                            availableRbgsBackup);
+        }
+    }
+    // And reset tbSize and scheduler metrics
+    AssignedDlResources(*schedInfoIt, FTResources(beamSym, beamSym), assignedResources);
+    return maximumWbTbSize;
+}
+
 bool
 NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
     std::vector<UePtrAndBufferReq>::iterator schedInfoIt,
@@ -228,17 +274,6 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
             }
         }
 
-        // Do not schedule RBGs that are lower than 4 CQI than maximum
-        if (!currentUe->m_dlRBG.empty())
-        {
-            const auto bestCqi =
-                currentUe->m_dlSbMcsInfo.at(currentUe->m_rbgToSb.at(currentUe->m_dlRBG.at(0))).cqi;
-            if (maxCqi < bestCqi - 4)
-            {
-                return false;
-            }
-        }
-
         // Do not schedule RBGs with sub-band CQI equals to zero
         if (currentRbgPos == std::numeric_limits<uint32_t>::max())
         {
@@ -259,7 +294,12 @@ NrMacSchedulerOfdma::AttemptAllocationOfCurrentResourceToUe(
 
     // Check if the allocated RBG had a bad MCS and lowered our overall tbsize
     const auto currentTbSize = currentUe->m_dlTbSize;
-    if (currentTbSize < previousTbSize * 0.99 && currentUe->GetDlMcs() > 0)
+
+    const auto maximumTbSize =
+        EstimateTotalTbCapacity(schedInfoIt, currentUe, availableRbgs, beamSym, assignedResources);
+
+    if (currentTbSize <= previousTbSize && previousTbSize >= maximumTbSize &&
+        currentUe->GetDlMcs() > 0)
     {
         // Undo allocation
         DeallocateCurrentResourceFromUe(currentUe,

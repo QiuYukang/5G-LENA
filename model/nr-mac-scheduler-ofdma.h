@@ -221,6 +221,34 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
         FTResources& assignedResources,
         std::vector<bool>& availableRbgs) const;
 
+    /**
+     * Estimates the total achievable transport block (TB) capacity for a given UE, considering
+     * all available resource block groups (RBGs) and the current resource assignment state.
+     *
+     * This method calculates the maximum possible TB size that can be achieved for the given UE
+     * by temporarily allocating all available resources and evaluating the allocation. The result
+     * is used to assess if the UE should be scheduled or prioritized based on its potential
+     * capacity.
+     *
+     * @param schedInfoIt Iterator pointing to the scheduling information of the UE within the
+     * scheduling container.
+     * @param currentUe Shared pointer to the scheduling information object for the current UE.
+     * @param availableRbgs Vector representing the availability of resource block groups (RBGs).
+     *        Each element indicates whether the corresponding RBG is available for allocation.
+     * @param beamSym Number of symbols available in the current beam.
+     * @param assignedResources Reference to the structure that tracks the resources currently
+     * assigned to UEs during scheduling.
+     * @return The maximum transport block size (in bits) that can be achieved for the UE with
+     *         the given resources and configurations.
+     */
+    uint32_t EstimateTotalTbCapacity(
+        std::vector<std::pair<std::shared_ptr<ns3::NrMacSchedulerUeInfo>, unsigned int>>::iterator
+            schedInfoIt,
+        std::shared_ptr<NrMacSchedulerUeInfo> currentUe,
+        const std::vector<bool>& availableRbgs,
+        const uint32_t beamSym,
+        FTResources& assignedResources) const;
+
     void SetSymPerBeamType(SymPerBeamType type);
     TracedValue<uint32_t>
         m_tracedValueSymPerBeam; //!< Variable to trace symbols per beam allocation
