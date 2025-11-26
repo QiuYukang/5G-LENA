@@ -79,9 +79,9 @@ SendPacket(Ptr<NetDevice> device, Address& addr, uint32_t packetSize)
     Ipv4Header ipHeader;
     pkt->AddHeader(ipHeader);
 
-    // the dedicated bearer that we activate in the simulation
-    // will have bearerId = 2
-    NrQosFlowTag tag(1, 2);
+    // the dedicated QoS Flow ID that we activate in the simulation
+    // will have QoS Flow ID = 3;
+    NrQosFlowTag tag(1, 3);
     pkt->AddPacketTag(tag);
     device->Send(pkt, addr, Ipv4L3Protocol::PROT_NUMBER);
 }
