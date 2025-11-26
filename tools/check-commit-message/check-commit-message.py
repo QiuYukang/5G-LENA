@@ -234,7 +234,9 @@ class CheckPrefix(BaseCheck):
 
     @staticmethod
     def _basename_without_ext(path):
-        return os.path.splitext(os.path.basename(path))[0]
+        base = os.path.basename(path)
+        name, _ = os.path.splitext(base)
+        return name.lstrip(".").lower()
 
     def _components_from_files(self, paths):
         """
@@ -277,10 +279,10 @@ class CheckPrefix(BaseCheck):
 
     @staticmethod
     def _common_parent_dir(paths):
-        dirs = [os.path.dirname(os.path.abspath(p)) or "." for p in paths]
+        dirs = [os.path.dirname(p) or "." for p in paths]
         common = os.path.commonpath(dirs)
         if common in ("", "."):
-            return "."
+            return "nr"
         return os.path.basename(common)
 
     def check(self, commit_info):
