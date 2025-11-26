@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import sys
+from collections import defaultdict
 
 # Check for dependencies that are not in the standard Python libraries
 try:
@@ -224,49 +225,78 @@ class MatchesFormatCheck(BaseCheck):
 
 
 class CheckPrefix(BaseCheck):
+    def _parse_components(self, commit_info):
+        raw = commit_info.matches.group(1)
+        return [c.strip() for c in raw.split(",") if c.strip()]
+
+    def _changed_paths(self, commit_info):
+        return list(commit_info.commit.stats.files.keys())
+
+    @staticmethod
+    def _basename_without_ext(path):
+        return os.path.splitext(os.path.basename(path))[0]
+
+    def _components_from_files(self, paths):
+        """
+        Build the ideal components from the changed files.
+
+        - Group by prefix up to the last '-' (so real/ideal -> nr-rrc-protocol-*).
+        - If a group has >1 base name, use '<prefix>-*' (this string must be <= 40).
+        - If a group has 1 base name, use that base name (also must be <= 40).
+        - If result has > 3 components OR any component is > 40 chars,
+          return None so caller can fall back to directory prefix.
+        """
+        groups = defaultdict(set)
+
+        for p in paths:
+            base = self._basename_without_ext(p)
+            if "-" in base:
+                prefix = base.rsplit("-", 1)[0] + "-"
+            else:
+                prefix = base
+            groups[prefix].add(base)
+
+        components = []
+        for prefix, basenames in sorted(groups.items()):
+            if len(basenames) > 1:
+                comp = prefix + "*"
+            else:
+                comp = next(iter(basenames))
+
+            # Enforce per-item length, including wildcard
+            if len(comp) > 40:
+                return None
+
+            components.append(comp)
+
+        # Enforce max number of components
+        if len(components) > 3:
+            return None
+
+        return components
+
+    @staticmethod
+    def _common_parent_dir(paths):
+        dirs = [os.path.dirname(os.path.abspath(p)) or "." for p in paths]
+        common = os.path.commonpath(dirs)
+        if common in ("", "."):
+            return "."
+        return os.path.basename(common)
+
     def check(self, commit_info):
-        # Can't check prefix if it doesn't match the expected format
         if commit_info.matches is None:
             return False
 
-        # Extract changed files in the commit
-        changed_files = get_files_dictionary(list(commit_info.commit.stats.files.keys()))
+        paths = self._changed_paths(commit_info)
+        given_components = self._parse_components(commit_info)
 
-        # Extract the components from the first regex group (list of files before ':')
-        components = commit_info.matches.group(1).split(", ")
+        ideal_components = self._components_from_files(paths)
 
-        if len(changed_files) < 4:
-            # Test the case with less than 4 modified files
-            for component in components:
-                if component.endswith("*"):
-                    matching_files = list(filter(lambda x: component[:-1] in x, FILES))
-                    if len(matching_files) == 0:
-                        return False
-                    matching_changed_files = list(
-                        filter(lambda x: x in changed_files, matching_files)
-                    )
-                    if len(matching_changed_files) == 0:
-                        return False
-                else:
-                    if component not in FILES:
-                        return False
-                    if component not in changed_files:
-                        return False
-            return True
-        else:
-            # Test the case with more than 3 modified files
-            # There should be a single component
-            if len(components) != 1:
-                return False
+        if ideal_components is not None:
+            return sorted(given_components) == sorted(ideal_components)
 
-            # Get the common path between the changed files
-            parent_dir = os.path.commonpath(
-                list(map(lambda x: os.path.join("nr", x), changed_files.values()))
-            )
-            parent_dir = os.path.basename(parent_dir)
-
-            # Check if that path matches the component prefix
-            return components[0] == parent_dir
+        parent_dir = self._common_parent_dir(paths)
+        return len(given_components) == 1 and given_components[0] == parent_dir
 
     def description(self):
         msg = (
@@ -278,65 +308,33 @@ class CheckPrefix(BaseCheck):
 
     def diagnostic_message(self, commit_info):
         if commit_info.matches is None:
-            return f"  \tError: incorrect format style"
+            return "  \tError: incorrect format style. See MatchesFormatCheck results."
 
-        # Extract components from prefix
-        components = commit_info.matches.group(1).split(", ")
+        paths = self._changed_paths(commit_info)
+        given_components = self._parse_components(commit_info)
 
-        # Extract changed files in the commit
-        changed_files = get_files_dictionary(list(commit_info.commit.stats.files.keys()))
+        ideal_components = self._components_from_files(paths)
 
-        if len(changed_files) < 4:
-            # Check each component
-            errors = []
+        if ideal_components is not None:
+            # Small / name-based case
+            expected_prefix = ", ".join(ideal_components)
 
-            # If the names of the files are bigger than 40 characters,
-            # look for similarities, so that we can save up on the prefix length
-            if len(", ".join(changed_files.keys())) > 40:
-                # Find the largest shared prefix
-                all_combinations = itertools.combinations(changed_files.keys(), len(changed_files))
-                max_prefix = ""
-                for combination in all_combinations:
-                    prefix = os.path.commonprefix(combination)
-                    if len(prefix) > len(max_prefix):
-                        max_prefix = prefix
+            # Normalize order when comparing
+            if sorted(given_components) == sorted(ideal_components):
+                return None
 
-                # Regenerate prefix with shared prefix
-                changed_files_not_sharing_prefix = list(
-                    filter(lambda x: max_prefix not in x, changed_files.keys())
-                )
-                shorter_prefix = ", ".join(changed_files_not_sharing_prefix + [f"{max_prefix}-*"])
-                if shorter_prefix not in commit_info.header:
-                    errors.append(f'Prefix is too large (> 40): use "{shorter_prefix}"')
+            # Tell the user exactly what to put after the colon
+            return f'  \tError: prefix should be "{expected_prefix}"'
 
-            for component in components:
-                if component.endswith("*"):
-                    matching_files = list(filter(lambda x: component[:-1] in x, FILES))
-                    if len(matching_files) == 0:
-                        errors.append(f"{component} is not an existing file")
-                        continue
-                    matching_changed_files = list(
-                        filter(lambda x: x in changed_files, matching_files)
-                    )
-                    if len(matching_changed_files) == 0:
-                        errors.append(f"{matching_files} have not been changed")
-                else:
-                    if component not in FILES:
-                        errors.append(f"{component} is not an existing file")
-                        continue
-                    if component not in changed_files:
-                        errors.append(f"{FILES[component]} has not been changed")
-            return f"  \tErrors: {', '.join(errors)}"
-        else:
-            # Get the common path between the changed files
-            parent_dir = os.path.commonpath(
-                list(map(lambda x: os.path.join("nr", x), changed_files.values()))
-            )
-            parent_dir = os.path.basename(parent_dir)
+        # Large / fallback case: use directory name
+        parent_dir = self._common_parent_dir(paths)
+        expected_prefix = parent_dir
 
-            if len(components) != 1 or components[0] != parent_dir:
-                return f"  \tError: prefix should be '{parent_dir}'"
-        return None
+        # Here the prefix must be exactly one component = directory name
+        if len(given_components) == 1 and given_components[0] == parent_dir:
+            return None
+
+        return f'  \tError: prefix should be "{expected_prefix}"'
 
 
 def retrieve_commits_info():
