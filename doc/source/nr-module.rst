@@ -1530,8 +1530,7 @@ These specializations perform the downlink scheduling in a round robin (RR), pro
 * RR: the available RBGs are divided evenly among UEs associated to that beam.
 * PF: the available RBGs are distributed among the UEs according to a PF metric that considers the actual rate (based on the CQI) elevated to :math:`\alpha` and the average rate that has been provided in the previous slots to the different UEs. Changing the α parameter changes the PF metric. For :math:`\alpha=0`, the scheduler selects the UE with the lowest average rate. For :math:`\alpha=1`, the scheduler selects the UE with the largest ratio between actual rate and average rate.
 * MR: the total available RBGs are distributed among the UEs according to a maximum rate (MR) metric that considers the actual rate (based on the CQI) of the different UEs.
-* QoS: the available RBGs are distributed among the UEs based on their traffic requirements by considering QoS profile of each QoS flow (the 5QI information, such as the resource type, the priority level and the Packet Delay
-Budget (PDB), along with real-time measurements as provided at the MAC layer, i.e., the head-of-line delay (HOL) and the PF metric.
+* QoS: the available RBGs are distributed among the UEs based on their traffic requirements by considering QoS profile of each QoS flow (the 5QI information, such as the resource type, the priority level and the Packet Delay Budget (PDB), along with real-time measurements as provided at the MAC layer, i.e., the head-of-line delay (HOL) and the PF metric.
 * AI RL-based: the available RBGs are distributed based on the RL model whose objective is to meet latency requirements. AI RL-based scheduler considers QoS profile of each QoS flow together with HOL delay.
 * Random: the available RBGs are divided among UEs in a random manner to ensure that all UEs get assigned, with no clear preference to a particular UE. The generated interference is random in the power/time/frequency/spatial domains because of the random selection of UEs.
 
@@ -1567,6 +1566,70 @@ to one of the following: ``AVG_MCS``, ``AVG_SPEC_EFF`` and ``AVG_SINR``.
 
 Note that when sub-band CQI is used, the RBG allocated to the UE is the one that produces
 the highest MCS.
+
+.. caution::
+
+    Also note that after a user is selected, according to the scheduler policy,
+    the list of available RBGs is sorted by the user's sub-band CQIs.
+    If the first RBG with the highest sub-band CQI is different than 0, it is then assigned to the user.
+    However, if its sub-band CQI is 0, no resources are assigned to the user in this slot,
+    and scheduling proceeds to the next user as defined by the scheduler policy.
+
+    This can impact simulations that rely exclusively on PDSCH-based feedback.
+    Such users will never be scheduled due to CQI 0, and thus cannot provide up-to-date
+    feedback since channel and interference measurements require data transmission.
+    **Recommendation**: Use CSI-RS and CSI-IM instead.
+
+    If using PDSCH-only feedback, set ``NrMacSchedulerNs3::McsCsiSource=WIDEBAND_MCS``
+    for wideband CQI-based scheduling, which continues allocating RBGs even with CQI 0.
+
+Also note that from the nr-4.0 to nr-4.1 releases, an eviction factor and a guard rail were introduced
+to prevent early termination of resource allocation when there was sufficient bandwidth available,
+even at lower sub-band CQI levels.
+
+The eviction factor reverts allocations that reduce the transport block size (TBS) by more than 1%.
+The guard rail prevents scheduling resource block groups (RBGs) with sub-band CQI values equal to the
+maximum sub-band CQI minus 4 (e.g., 15->11, or 4->0). This follows the 3GPP expectation for sub-band
+CQI ranges relative to wideband CQI, controlled by ``ns3::NrPmSearch::SubbandCqiClamping``.
+
+Without these adjustments, bad scheduling may occur, especially with large channels where a few sub-bands
+have high CQI and many have low CQI. Low CQI sub-bands could be ignored, even if scheduling the entire
+bandwidth would result in a larger TBS.
+
+To better visualize this limitation, imagine the following sub-band CQI table:
+
++-----+---------------------------------------+
+|     |              Sub-bands                |
++-----+---+---+---+---+---+---+---+---+---+---+
+| CQI | 8 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
++-----+---+---+---+---+---+---+---+---+---+---+
+
+The scheduler could allocate only sub-band 0 with CQI 8, achieving a TBS of 28 bits with MCS 14,
+or allocate all RBGs to get a TBS of 30 bits with MCS 1.
+
+In releases nr-4.0 and 4.1, only the single high-CQI sub-band with TBS 28 and MCS 14 would be allocated.
+In nr-4.2, all RBGs are allocated with a TBS of 30 and MCS 1.
+
+This example assumes ``ns3::NrPmSearch::SubbandCqiClamping`` is set to false and the range of sub-band CQI values
+exceeds the wideband CQI by [-2, +1], which is non-standard, but adequate for demonstration purposes.
+
+.. important::
+
+   Evolution after scheduling each additional sub-band (since nr-4.2)
+
+   **TBS:** 28->21->15->16->15->18->22->23->26->30
+
+   **MCS:** 14->07->04->03->02->02->02->01->01->01
+
+This behavior is enabled by an exhaustive solution estimating the maximum achievable TBS for each new allocation.
+The estimate assumes all remaining free resources will be allocated to the current user alongside already
+scheduled resources.
+
+If this estimate is lower than a previously achieved TBS, the allocation reverts to the known maximum
+and stops scheduling the user.
+
+The test case ``NrSchedOfdmaMcsTestCase`` confirms this behavior works as expected.
+
 
 Scheduler operation
 ===================
