@@ -210,7 +210,7 @@ class MatchesFormatCheck(BaseCheck):
                 errors.append("mismatching parenthesis")
 
             # If there is a closing parenthesis, get the commit description after it
-            if message.count(")"):
+            if "(fixes" in message and message.count(")"):
                 message = message[message.index(")") + 1 :]
 
             # Remove whitespaces and newlines
@@ -238,52 +238,70 @@ class CheckPrefix(BaseCheck):
         name, _ = os.path.splitext(base)
         return name.lstrip(".").lower()
 
-    def _components_from_files(self, paths):
-        """
-        Build the ideal components from the changed files.
-
-        - Group by prefix up to the last '-' (so real/ideal -> nr-rrc-protocol-*).
-        - If a group has >1 base name, use '<prefix>-*' (this string must be <= 40).
-        - If a group has 1 base name, use that base name (also must be <= 40).
-        - If result has > 3 components OR any component is > 40 chars,
-          return None so caller can fall back to directory prefix.
-        """
-        groups = defaultdict(set)
-
-        for p in paths:
-            base = self._basename_without_ext(p)
-            if "-" in base:
-                prefix = base.rsplit("-", 1)[0] + "-"
-            else:
-                prefix = base
-            groups[prefix].add(base)
-
-        components = []
-        for prefix, basenames in sorted(groups.items()):
-            if len(basenames) > 1:
-                comp = prefix + "*"
-            else:
-                comp = next(iter(basenames))
-
-            # Enforce per-item length, including wildcard
-            if len(comp) > 40:
-                return None
-
-            components.append(comp)
-
-        # Enforce max number of components
-        if len(components) > 3:
-            return None
-
-        return components
-
     @staticmethod
     def _common_parent_dir(paths):
+        # Fallback when stats are empty (e.g., merge or empty commit)
+        if not paths:
+            return "nr"
         dirs = [os.path.dirname(p) or "." for p in paths]
         common = os.path.commonpath(dirs)
         if common in ("", "."):
             return "nr"
         return os.path.basename(common)
+
+    def _unique_basenames(self, paths):
+        basenames = {self._basename_without_ext(p) for p in paths}
+        return sorted(basenames)
+
+    @staticmethod
+    def _longest_common_prefix(strings):
+        if not strings:
+            return ""
+        prefix = strings[0]
+        for s in strings[1:]:
+            i = 0
+            max_i = min(len(prefix), len(s))
+            while i < max_i and prefix[i] == s[i]:
+                i += 1
+            prefix = prefix[:i]
+            if not prefix:
+                break
+        return prefix
+
+    def _valid_prefix_representations(self, paths):
+        basenames = self._unique_basenames(paths)
+        n_unique = len(basenames)
+
+        if n_unique == 0:
+            return []
+
+        if n_unique <= 3:
+            canonical = basenames
+            canonical_prefix_str = ", ".join(canonical)
+            canonical_valid = len(canonical_prefix_str) <= 40
+
+            # Hyphen-aware wildcard when filenames share a prefix
+            lcp = self._longest_common_prefix(basenames)
+            wildcard = None
+            if lcp:
+                # Truncate LCP back to last '-' so we only keep full segments
+                last_dash = lcp.rfind("-")
+                if last_dash > 0:
+                    common_segment = lcp[:last_dash]  # e.g., "nr-epc"
+                    candidate = common_segment + "-*"
+                    if len(candidate) <= 40:
+                        wildcard = [candidate]
+
+            representations = []
+            if canonical_valid:
+                representations.append(canonical)
+            if wildcard is not None:
+                representations.append(wildcard)
+
+            return representations
+
+        # More than 3 distinct filenames: only directory fallback is allowed
+        return []
 
     def check(self, commit_info):
         if commit_info.matches is None:
@@ -292,19 +310,32 @@ class CheckPrefix(BaseCheck):
         paths = self._changed_paths(commit_info)
         given_components = self._parse_components(commit_info)
 
-        ideal_components = self._components_from_files(paths)
+        # First, try filename-based prefixes (≤ 3 distinct basenames)
+        valid_sets = self._valid_prefix_representations(paths)
 
-        if ideal_components is not None:
-            return sorted(given_components) == sorted(ideal_components)
+        if valid_sets:
+            sorted_given = sorted(given_components)
+            for allowed in valid_sets:
+                if sorted_given == sorted(allowed):
+                    return True
+            # There *was* a valid filename-based representation, but the user
+            # did not use any of them.
+            return False
 
+        # Otherwise, require closest common parent directory prefix
         parent_dir = self._common_parent_dir(paths)
         return len(given_components) == 1 and given_components[0] == parent_dir
 
     def description(self):
         msg = (
             "  Checked rules:\n"
-            "   1.Commits with up to 3 changed files should use them as a prefix.\n"
-            "   2.Commits with more than 3 changed files should use their closest common parent directory as a prefix."
+            "   1.Commits touching up to 3 distinct files should use their "
+            "lowercase, extension-less names as the prefix, provided that the "
+            "resulting prefix is at most 40 characters long. When those names "
+            "share a common prefix, a single '<common-prefix>-*' wildcard is also allowed.\n"
+            "   2.Commits touching more than 3 distinct files, or for which no "
+            "filename-based prefix fits within 40 characters, should use their "
+            "closest common parent directory as a prefix."
         )
         return msg
 
@@ -315,26 +346,27 @@ class CheckPrefix(BaseCheck):
         paths = self._changed_paths(commit_info)
         given_components = self._parse_components(commit_info)
 
-        ideal_components = self._components_from_files(paths)
-
-        if ideal_components is not None:
-            # Small / name-based case
-            expected_prefix = ", ".join(ideal_components)
-
-            # Normalize order when comparing
-            if sorted(given_components) == sorted(ideal_components):
-                return None
-
-            # Tell the user exactly what to put after the colon
-            return f'  \tError: prefix should be "{expected_prefix}"'
-
-        # Large / fallback case: use directory name
-        parent_dir = self._common_parent_dir(paths)
-        expected_prefix = parent_dir
-
-        # Here the prefix must be exactly one component = directory name
-        if len(given_components) == 1 and given_components[0] == parent_dir:
+        # If it already passes, do not print anything.
+        if self.check(commit_info):
             return None
+
+        basenames = self._unique_basenames(paths)
+        valid_sets = self._valid_prefix_representations(paths)
+
+        if valid_sets:
+            # Prefer the most explicit representation (full filenames) when valid.
+            canonical = basenames
+            canonical_prefix_str = ", ".join(canonical)
+            canonical_valid = len(canonical_prefix_str) <= 40
+
+            if canonical_valid:
+                expected_prefix = canonical_prefix_str
+            else:
+                # Fall back to the first wildcard representation.
+                expected_prefix = ", ".join(valid_sets[0])
+        else:
+            parent_dir = self._common_parent_dir(paths)
+            expected_prefix = parent_dir
 
         return f'  \tError: prefix should be "{expected_prefix}"'
 

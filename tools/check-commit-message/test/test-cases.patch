@@ -1,7 +1,7 @@
-From 95f94534ac6dfd7495b468ef345b94d6200b53ff Mon Sep 17 00:00:00 2001
+From 724afe5fed0ba31f29f6f26b4c8fe02aee33b686 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:52:29 +0100
-Subject: [PATCH 01/21] Borked: Commit
+Subject: [PATCH 01/24] Borked: Commit
 
 ---
  1.txt | 0
@@ -12,13 +12,13 @@ diff --git a/1.txt b/1.txt
 new file mode 100644
 index 00000000..e69de29b
 -- 
-2.34.1
+2.48.1
 
 
-From ede6cec440611e298e4ee64e2b99cb1ac4ea3366 Mon Sep 17 00:00:00 2001
+From 1f1e11c0c33bac4480a326d5c2d8463724346e54 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:52:47 +0100
-Subject: [PATCH 02/21] Borked: commit
+Subject: [PATCH 02/24] Borked: commit
 
 ---
  1.txt | 1 +
@@ -31,13 +31,13 @@ index e69de29b..8b137891 100644
 @@ -0,0 +1 @@
 +
 -- 
-2.34.1
+2.48.1
 
 
-From fa9296c62f66876560f15bd49689ae22c224228a Mon Sep 17 00:00:00 2001
+From 894dd8a1bd9d4245be4ca584dcd8a3ad96a8d1c1 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:53:02 +0100
-Subject: [PATCH 03/21] borked: commit
+Subject: [PATCH 03/24] borked: commit
 
 ---
  1.txt | 1 +
@@ -51,13 +51,13 @@ index 8b137891..139597f9 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 1859355171d1f9f467ded793a803f24e797be521 Mon Sep 17 00:00:00 2001
+From b16724eb730083c16661f91e19ccf8067eab7047 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:53:20 +0100
-Subject: [PATCH 04/21] borked: Commit
+Subject: [PATCH 04/24] borked: Commit
 
 ---
  1.txt | 1 +
@@ -72,13 +72,13 @@ index 139597f9..b28b04f6 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 585b486804df5558bcf30c3d6664611a01b42d02 Mon Sep 17 00:00:00 2001
+From 515b7ffa60479b40668f611f06d64d4500556d8b Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:53:37 +0100
-Subject: [PATCH 05/21] borked
+Subject: [PATCH 05/24] borked
 
 ---
  1.txt | 1 +
@@ -94,13 +94,13 @@ index b28b04f6..fd40910d 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 0ab8d7315e8f58b6813b7a85b4d6927bdcd9a309 Mon Sep 17 00:00:00 2001
+From 36b83b62c55a4bdb8c72ec44f9a3e9012ba5b83b Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:53:57 +0100
-Subject: [PATCH 06/21] borked: fixes 132 Commit
+Subject: [PATCH 06/24] borked: fixes 132 Commit
 
 ---
  1.txt | 1 +
@@ -116,13 +116,13 @@ index fd40910d..3f2ff2d6 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 30dd5b61ae3b6aa31ecc18e14646c50eff6d20fe Mon Sep 17 00:00:00 2001
+From 41e69eed41d73ac66d08f132fa21bde95f43f11e Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:54:13 +0100
-Subject: [PATCH 07/21] 1: Ok commit
+Subject: [PATCH 07/24] 1: Ok commit
 
 ---
  1.txt | 1 +
@@ -138,13 +138,13 @@ index 3f2ff2d6..6fb66a5e 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 612195c5e069d136ff17d1b6f9a564242bb6fddf Mon Sep 17 00:00:00 2001
+From 8d9c711e253a71f21bad7e3e83051920bbffa025 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:54:26 +0100
-Subject: [PATCH 08/21] 1: (fixes #132) Ok commit
+Subject: [PATCH 08/24] 1: (fixes #132) Ok commit
 
 ---
  1.txt | 1 +
@@ -160,13 +160,13 @@ index 6fb66a5e..9e5f5f8a 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From aa2de191f7bd4e2fc54de7e4d8ff19cd330c6848 Mon Sep 17 00:00:00 2001
+From 2615002042b770875678225ad4ebe40857399ffe Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:54:40 +0100
-Subject: [PATCH 09/21] 1,2: Borked commit
+Subject: [PATCH 09/24] 1,2: Borked commit
 
 ---
  1.txt | 1 +
@@ -187,13 +187,13 @@ diff --git a/2.txt b/2.txt
 new file mode 100644
 index 00000000..e69de29b
 -- 
-2.34.1
+2.48.1
 
 
-From 490d4032062d62d9d1937c50d20e5c1e2a864c69 Mon Sep 17 00:00:00 2001
+From e7b9837153131be6ae26102c52801d18dfe017cc Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:54:59 +0100
-Subject: [PATCH 10/21] 1, 2: Ok commit
+Subject: [PATCH 10/24] 1, 2: Ok commit
 
 ---
  1.txt | 1 +
@@ -216,13 +216,13 @@ index e69de29b..8b137891 100644
 @@ -0,0 +1 @@
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 7d91a3e3f3498b2fa919766f77306750e9043897 Mon Sep 17 00:00:00 2001
+From 7fb658aeaa018a57aa47424821172c77f121b741 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:55:11 +0100
-Subject: [PATCH 11/21] 1, 2: (fixes #132) Ok commit
+Subject: [PATCH 11/24] 1, 2: (fixes #132) Ok commit
 
 ---
  1.txt | 1 +
@@ -246,13 +246,13 @@ index 8b137891..139597f9 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 4db3751e4fd7b33e946004f8aa2f5c021dd1e764 Mon Sep 17 00:00:00 2001
+From 86e736cc0dd659cb0c985cc461d5718edf4c6ce4 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:55:24 +0100
-Subject: [PATCH 12/21] 1, 2, 3: (fixes #132) Ok commit
+Subject: [PATCH 12/24] 1, 2, 3: (fixes #132) Ok commit
 
 ---
  1.txt | 1 +
@@ -282,13 +282,13 @@ diff --git a/3.txt b/3.txt
 new file mode 100644
 index 00000000..e69de29b
 -- 
-2.34.1
+2.48.1
 
 
-From a0d21ce93a3fd5aa9a725c312a8d066205532daa Mon Sep 17 00:00:00 2001
+From 28dcda97767ea401ec43326721b7dbcd3fb7cab8 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:55:44 +0100
-Subject: [PATCH 13/21] 1, 2, 3, 4: Borked commit
+Subject: [PATCH 13/24] 1, 2, 3, 4: Borked commit
 
 ---
  1.txt | 1 +
@@ -326,13 +326,13 @@ diff --git a/4.txt b/4.txt
 new file mode 100644
 index 00000000..e69de29b
 -- 
-2.34.1
+2.48.1
 
 
-From 59741f7807ab6ea394cab197d8fa802e571e64a6 Mon Sep 17 00:00:00 2001
+From 141967c5d07ccb64977b7cffd3d7a86ac3969fd8 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:56:01 +0100
-Subject: [PATCH 14/21] nr: Ok commit
+Subject: [PATCH 14/24] nr: Ok commit
 
 ---
  1.txt | 1 +
@@ -373,13 +373,13 @@ index e69de29b..8b137891 100644
 @@ -0,0 +1 @@
 +
 -- 
-2.34.1
+2.48.1
 
 
-From ee6e4af3dce3f9b6d9faedf6bd7a7dd7bd02b9bf Mon Sep 17 00:00:00 2001
+From ee0976d4ce41a39adc6e9f035d3c02b3a350a0ad Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:56:16 +0100
-Subject: [PATCH 15/21] 5, 6, 7, 8: Borked commit
+Subject: [PATCH 15/24] 5, 6, 7, 8: Borked commit
 
 ---
  examples/lena-lte-comparison/5.txt | 0
@@ -405,13 +405,13 @@ diff --git a/examples/lena-lte-comparison/8.txt b/examples/lena-lte-comparison/8
 new file mode 100644
 index 00000000..e69de29b
 -- 
-2.34.1
+2.48.1
 
 
-From 089cab0a04e03b9ce3e8177e038b06b2655db7e5 Mon Sep 17 00:00:00 2001
+From 0e0901a0e9c1189bdc7c443255ae6fe3dba29de4 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:56:33 +0100
-Subject: [PATCH 16/21] lena-lte-comparison: (fixes #132) Ok commit
+Subject: [PATCH 16/24] lena-lte-comparison: (fixes #132) Ok commit
 
 ---
  examples/lena-lte-comparison/5.txt | 1 +
@@ -445,13 +445,13 @@ index e69de29b..8b137891 100644
 @@ -0,0 +1 @@
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 94867dc362a666d496aa85dc80e41cdf6b92a390 Mon Sep 17 00:00:00 2001
+From 145e16176a338e32729bea44f42c4791aa6189e4 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:56:47 +0100
-Subject: [PATCH 17/21] lena-lte-comparison: Ok commit
+Subject: [PATCH 17/24] lena-lte-comparison: Ok commit
 
 ---
  examples/lena-lte-comparison/5.txt | 1 +
@@ -489,13 +489,13 @@ index 8b137891..139597f9 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 8b075772674c1ff051a7ebfa6775ace002caf03e Mon Sep 17 00:00:00 2001
+From bb9acc44c2dca295202f22ed1dce1e4cff4712f7 Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:57:02 +0100
-Subject: [PATCH 18/21] 1: Borked commit due to unnecessarily long commit
+Subject: [PATCH 18/24] 1: Borked commit due to unnecessarily long commit
  message. Let's keep this going for a bit more. And more. And more. And more.
 
 ---
@@ -512,13 +512,13 @@ index 384ee9a8..5cf5d3dc 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From b824fccb56c285b7a0ec88dbf8a2e9110a6027ac Mon Sep 17 00:00:00 2001
+From 15a16cf7f63a704168bb08e1dbcae0713893a82e Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:59:01 +0100
-Subject: [PATCH 19/21] 7, 8, 9: Ok commit
+Subject: [PATCH 19/24] 7, 8, 9: Ok commit
 
 ---
  examples/3gpp-outdoor-calibration/9.txt | 0
@@ -547,13 +547,13 @@ index 139597f9..b28b04f6 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From 782ddeb79c37f237037c121fba5751627612537a Mon Sep 17 00:00:00 2001
+From fcc5f4a6c9481bf2f179501d4462bb5e2818c82e Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:59:21 +0100
-Subject: [PATCH 20/21] 7, 8, 9, 10: Borked commit
+Subject: [PATCH 20/24] 7, 8, 9, 10: Borked commit
 
 ---
  examples/3gpp-outdoor-calibration/10.txt | 0
@@ -591,13 +591,13 @@ index b28b04f6..fd40910d 100644
  
 +
 -- 
-2.34.1
+2.48.1
 
 
-From debed9901e7c8513e83cb05dc975545f6f533152 Mon Sep 17 00:00:00 2001
+From 7e0876b96c89246633ef323f2943691f04d413fd Mon Sep 17 00:00:00 2001
 From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
 Date: Fri, 12 Jan 2024 10:59:39 +0100
-Subject: [PATCH 21/21] examples: Ok commit
+Subject: [PATCH 21/24] examples: Ok commit
 
 ---
  examples/3gpp-outdoor-calibration/10.txt | 1 +
@@ -638,5 +638,338 @@ index fd40910d..3f2ff2d6 100644
  
 +
 -- 
-2.34.1
+2.48.1
+
+
+From c145799b7b385857b8c4fd519b3b5f6fbc3cce1d Mon Sep 17 00:00:00 2001
+From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
+Date: Thu, 27 Nov 2025 19:45:47 +0100
+Subject: [PATCH 22/24] mist-software: Add MIST-Software license (not NIST not
+ to collide with the real one)
+
+---
+ LICENSES/MIST-Software.txt | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+ create mode 100644 LICENSES/MIST-Software.txt
+
+diff --git a/LICENSES/MIST-Software.txt b/LICENSES/MIST-Software.txt
+new file mode 100644
+index 00000000..218559bb
+--- /dev/null
++++ b/LICENSES/MIST-Software.txt
+@@ -0,0 +1,28 @@
++NIST-developed software is provided by NIST as a public service.
++You may use, copy, and distribute copies of the software in any
++medium, provided that you keep intact this entire notice. You may
++improve, modify, and create derivative works of the software or any
++portion of the software, and you may copy and distribute such
++modifications or works. Modified works should carry a notice stating
++that you changed the software and should note the date and nature of
++any such change. Please explicitly acknowledge the National Institute
++of Standards and Technology as the source of the software.
++
++NIST-developed software is expressly provided "AS IS." NIST MAKES NO
++WARRANTY OF ANY KIND, EXPRESS, IMPLIED, IN FACT, OR ARISING BY OPERATION
++OF LAW, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTY OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND DATA ACCURACY. NIST
++NEITHER REPRESENTS NOR WARRANTS THAT THE OPERATION OF THE SOFTWARE WILL BE
++UNINTERRUPTED OR ERROR-FREE, OR THAT ANY DEFECTS WILL BE CORRECTED. NIST DOES
++NOT WARRANT OR MAKE ANY REPRESENTATIONS REGARDING THE USE OF THE SOFTWARE OR
++THE RESULTS THEREOF, INCLUDING BUT NOT LIMITED TO THE CORRECTNESS, ACCURACY,
++RELIABILITY, OR USEFULNESS OF THE SOFTWARE.
++
++You are solely responsible for determining the appropriateness of using and
++distributing the software and you assume all risks associated with its use,
++including but not limited to the risks and costs of program errors, compliance
++with applicable laws, damage to or loss of data, programs or equipment, and the
++unavailability or interruption of operation. This software is not intended to be
++used in any situation where a failure could cause risk of injury or damage to
++property. The software developed by NIST employees is not subject to copyright
++protection within the United States.
+-- 
+2.48.1
+
+
+From 9a4f0ef5ae328e92e463cf66a4adacbfd01862bc Mon Sep 17 00:00:00 2001
+From: Gabriel Ferreira <gabrielcarvfer@gmail.com>
+Date: Thu, 27 Nov 2025 19:49:39 +0100
+Subject: [PATCH 23/24] nr-epc-*: Add extra space
+
+---
+ model/nr-epc-gnb-application.cc | 1 +
+ model/nr-epc-pgw-application.cc | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/model/nr-epc-gnb-application.cc b/model/nr-epc-gnb-application.cc
+index 3116b67c..6c180537 100644
+--- a/model/nr-epc-gnb-application.cc
++++ b/model/nr-epc-gnb-application.cc
+@@ -5,6 +5,7 @@
+ // Author: Jaume Nin <jnin@cttc.cat>
+ //         Nicola Baldo <nbaldo@cttc.cat>
+ 
++
+ #include "nr-epc-gnb-application.h"
+ 
+ #include "nr-epc-gtpu-header.h"
+diff --git a/model/nr-epc-pgw-application.cc b/model/nr-epc-pgw-application.cc
+index ebe0aedc..8d0860cd 100644
+--- a/model/nr-epc-pgw-application.cc
++++ b/model/nr-epc-pgw-application.cc
+@@ -5,6 +5,7 @@
+ // Author: Manuel Requena <manuel.requena@cttc.es>
+ //         (based on epc-sgw-pgw-application.cc)
+ 
++
+ #include "nr-epc-pgw-application.h"
+ 
+ #include "nr-epc-gtpu-header.h"
+-- 
+2.48.1
+
+
+From 2d57c7465087372f89c751b160dec77f706d6557 Mon Sep 17 00:00:00 2001
+From: Biljana Bojovic <biljana.bojovic@gmail.com>
+Date: Wed, 26 Nov 2025 16:24:41 +0100
+Subject: [PATCH 24/24] FEATURES2: Change the structure (Initial Bils idea) not
+ to collide
+
+---
+ FEATURES2.md | 225 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 225 insertions(+)
+ create mode 100644 FEATURES2.md
+
+diff --git a/FEATURES2.md b/FEATURES2.md
+new file mode 100644
+index 00000000..05302eca
+--- /dev/null
++++ b/FEATURES2.md
+@@ -0,0 +1,225 @@
++<!--
++Copyright (c) 2025 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
++
++SPDX-License-Identifier: GPL-2.0-only
++-->
++
++# 5G-LENA Features Summary
++*(Centre Tecnològic de Telecomunicacions de Catalunya – CTTC)*
++
++_Last verified with ns-3.47 / CTTC-LENA master (October 2025)_
++
++---
++
++## 📘 Overview
++
++This document summarizes the main features currently **supported**, **partially supported**, or **planned** in the **5G-LENA (ns-3 nr)** simulator.
++
++It is meant to be a compact, “at-a-glance” view, complementary to the detailed technical documentation:
++
++- [NR Module Manual](https://cttc-lena.gitlab.io/nr/manual/nr-module.html)
++- [Doxygen Reference (ns-3-dev)](https://cttc-lena.gitlab.io/nr/html/index.html)
++- [CTTC-LENA GitLab Repository](https://gitlab.com/cttc-lena/nr)
++
++---
++
++## Table of Contents
++
++Layers:
++- [PHY Layer](#phy-layer)
++- [Antenna & Beamforming](#antenna--beamforming--precoding)
++- [Channel Models](#channel-models)
++- [MAC Layer](#mac-layer)
++- [RLC / PDCP / RRC/ Core Integration](#rlc--pdcp--rrc-core-integration)
++- [Application Layer - Traffic Models](#application-layer-traffic-models)
++
++Calibration and Testing:
++
++- [Calibration & Deployment models](#calibration--deployment-models)
++- [Tools, CI & Framework](#tools-ci--framework)
++
++Other features & modules:
++- [Sidelink NR-V2X](#sidelink-nr-v2x)
++- [Fronthaul / O-RAN split 7.2x](#fronthaul--o-ran-split-72x)
++- [NR-U (Unlicensed NR)](#nr-u-unlicensed)
++
++Future works:
++- [Planned Roadmap](#-planned-roadmap-2025--2028)
++---
++
++## PHY Layer
++
++| Feature                                                                                                               | Status      | Notes                                                                                                           |
++|-----------------------------------------------------------------------------------------------------------------------|-------------|-----------------------------------------------------------------------------------------------------------------|
++| [OFDMA (DL/UL)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#resource-allocation-model-ofdma-and-tdma)        | ✅ Supported | 3GPP-compliant slot/symbol allocation; OFDMA with single analog beam capability                                 |
++| [TDMA (variable TTIs)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#resource-allocation-model-ofdma-and-tdma) | ✅ Supported | Configurable symbol granularity                                                                                 |
++| [Numerologies (μ = 0–4)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#frame-structure-model)                  | ✅ Supported | Per-BWP SCS                                                                                                     |
++| [TDD and FDD](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#duplexing-schemes)                                 | ✅ Supported | Per-cell configurable TDD string pattern                                                                        |
++| [Time-multiplex of shared/control](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#tdd-model)                    | ✅ Supported | PDCCH/PDSCH in same slot; PUCCH/PUSCH in same slot                                                              |
++| [LDPC coding](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#data-phy-error-model)                              | ✅ Supported | 3GPP TS 38.212 base graphs 1 & 2                                                                                |
++| [Code block segmentation](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#data-phy-error-model)                  | ✅ Supported | 3GPP TS 38.212                                                                                                  |
++| [MCS tables](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#adaptive-modulation-and-coding-model)               | ✅ Supported | Per BWP; 3GPP TS 38.214 MCS Tables 1 & 2                                                                        |
++| [SRS](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#srs-transmission-and-reception)                            | ✅ Supported | UE-specific SRS; periodic and scheduled-based SRS (offset and periodicity are reconfigurable)                   |
++| [CSI-RS & CSI-IM](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#csi-rs-and-csi-im)                             | ✅ Supported | CSI-RS for channel estimation and inter-cell interference measurement (**NR-v4.0**)                             |
++| [SU-MIMO](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#mimo)                                                  | ✅ Supported | Up to rank-4 and 32 antenna ports (**NR-v3.0**)                                                                 |
++| [Sub-band CSI feedback](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#cqi-feedback)                            | ✅ Supported | Sub-band CQI and PMI (**NR-v4.0**)                                                                              |
++| [Uplink power control](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#uplink-power-control)                     | ✅ Supported | Fractional; PUSCH/PUCCH/SRS                                                                                     |
++
++---
++
++## Antenna & Beamforming & Precoding
++
++| Feature                                                                                                 | Status      | Notes                                                                                             |
++|---------------------------------------------------------------------------------------------------------|-------------|---------------------------------------------------------------------------------------------------|
++| [Antenna modeling (ULA/UPA)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#beamforming-model)    | ✅ Supported | 3D antenna arrays at gNB/UE; 3GPP element patterns; dual-polarization; multi-port; multi-panel UE |
++| [Analog beamforming](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#beamforming-model)            | ✅ Supported | Ideal beamforming (Kronecker, and others); realistic BF (SRS-based, imperfect CSI)                |
++| [Digital Precoding](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#mimo)                          | ✅ Supported | Type-I; codebook-based; closed-loop MIMO based on CSI feedback (PMI, RI, CQI) (**NR-v3.0**)       |
++| [PMI/RI search method](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#mimo)                       | ✅ Supported | 3GPP Codebook, Ideal, Maleki, Sasaoka, Fast                                                       |
++| [Beam management (sweep/track)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#beamforming-model) | ⚙️ Partial  | Simplified model; no SSB blocks                                                                   |
++| [Attach to max-RSRP gNB](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#architecture)             | ✅ Supported | UE attaches to gNB with highest RSRP (**NR-v4.0**)                                                |
++
++---
++
++## Channel Models
++
++| Feature                                                                                                         | Status      | Notes                                                                                   |
++|-----------------------------------------------------------------------------------------------------------------|-------------|-----------------------------------------------------------------------------------------|
++| [3GPP TR 38.901](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-channel-helper)                        | ✅ Supported | UMi/UMa/RMa/InH/InF/V2V/NTN (**NR-v2.1**), O2I penetration loss; shadowing; fast fading |
++| [3GPP TR 38.901 Spatial consistency](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-channel-helper)    | ⚙️ Ongoing  | Procedure A; temporal consistency                                                       |
++| [NYUSIM](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-channel-helper)                                | ✅ Supported | NYU mmWave/THz channel; based on real NYU measurements (**NR-v4.0**)                    |
++| [Fluctuating Two-Ray (FTR)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-channel-helper)             | ✅ Supported | FTR model built on top of 3GPP pathloss/channel for fast abstraction; (**NR-v4.0**)     |
++| [Sionna Ray Tracing](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-channel-helper)                    | ⚙️ Ongoing  | Sionna-based channel model for the precise simulation of radio wave propagation         |
++| [Legacy ns-3 non-spatial/Friis channel](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-channel-helper) | ✅ Supported | ns-3 legacy non-spatial channel models; Ideal for large-scale simulations (**NR-v4.0**) |
++
++---
++
++## MAC Layer
++
++| Feature                                                                                                                           | Status      | Notes                                                       |
++|-----------------------------------------------------------------------------------------------------------------------------------|-------------|-------------------------------------------------------------|
++| **🟦 SCHEDULERS**                                                                                                                 |             |                                                             |
++| [PF / RR / MR](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#scheduler)                                                    | ✅ Supported | Temporal fairness                                           |
++| [QoS-aware scheduler](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#qos-schedulers)                                        | ✅ Supported | 5QI-aware; LC byte assignment (**NR-v2.5**)                 |
++| [Random TDMA / OFDMA schedulers](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#resource-allocation-model-ofdma-and-tdma)   | ✅ Supported | Stress interference testing (**NR-v4.1**)                   |
++| [AI Reinforcement-Learning scheduler](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#rl-based-scheduler)                    | ✅ Supported | Via ns3-gym (**NR-v4.0**)                                   |
++| [Sub-band CQI-aware scheduling](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#sub-band-scheduling)                         | ✅ Supported | Optional sub-band CQI aware scheduling(**NR-v4.0**)         |
++| **🟩 CORE MAC FEATURES**                                                                                                          |             |                                                             |
++| [HARQ](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#harq)                                                                 | ✅ Supported | IR and CC methods; configurable max number of ReTx          |
++| [Multiple HARQ processes per UE](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#harq)                                       | ✅ Supported | Configurable; defaults to 16                                |
++| [3GPP-compliant processing times](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#timing-relations)                          | ✅ Supported | NR K0/K1/K2 and N0/N1/N2 processing times                   |
++| [Adaptive Modulation and Coding (AMC)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#adaptive-modulation-and-coding-model) | ✅ Supported | Error-model based and Shannon-based AMC                     |
++| [BSR / SR / CQI / RI / PMI processing](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#scheduler)                            | ✅ Supported | BSR multiplexed with PUSCH; SR/CQI/RI/PMI in PUCCH          |
++| **🟨 ADVANCED FEATURES**                                                                                                          |             |                                                             |
++| [Notching mask](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#ufa-aka-notching)                                            | ✅ Supported | UFA masks per-BWP and per-cell; configurable notched RBGs   |
++| [CC / BWP managers](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#bwp-manager)                                             | ✅ Supported | Multi-carrier; FDM of numerologies; CC/BWP routing          |
++| [Carrier Aggregation (CA)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#bwp-manager)                                      | ✅ Supported | Multiple CC/BWPs with flexible mapping                      |
++| [RACH](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#mac-layer)                                                            | ⚙️ Ongoing  | Contention-based for initial access; RA preamble, RAR, MSG3 |
++
++---
++
++## RLC / PDCP / RRC/ Core Integration
++
++| Feature                                                                                | Status      | Notes                                                         |
++|----------------------------------------------------------------------------------------|-------------|---------------------------------------------------------------|
++| [RLC AM / UM / TM](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#rlc-layer)     | ✅ Supported | LTE-based                                                     |
++| [PDCP + ROHC](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#pdcp-layer)         | ✅ Supported | Basic header compression                                      |
++| [5QI handling](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#qos-schedulers)    | ⚙️ Partial  | QoS per flow; PDCP discard timer; RLC reordering window timer |
++| [SDAP](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#sdap-layer)                | ⚙️ Ongoing  | Maybe will be contributed soon                                |
++| [RRC](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#rrc-layer)                  | ⚙️ Ongoing  | Ideal RRC; Real RRC under Experimentation (Planned)           |
++| [Multi-flow per UE](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#architecture) | ✅ Supported | Independent bearers                                           |
++| [EPC/5GC integration](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#epc-model)  | ⚙️ Partial  | Via LTE-EPC model                                             |
++
++---
++
++## Application layer - Traffic Models
++
++| Feature                                                                                                                            | Status      | Notes                                                                 |
++|------------------------------------------------------------------------------------------------------------------------------------|-------------|-----------------------------------------------------------------------|
++| [NGMN apps (FTP, video, gaming, VoIP)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#ngmn-mixed-and-3gpp-xr-traffic-models) | ✅ Supported | NGMN-based traffic generators; NGMN mixed traffic model (**NR-v2.4**) |
++| [3GPP XR (VR/AR/CG)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#ngmn-mixed-and-3gpp-xr-traffic-models)                   | ✅ Supported | 3GPP TR 38.838 XR traffic profiles; multi-flow XR models              |
++| [3GPP FTP (Model 1)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#ngmn-mixed-and-3gpp-xr-traffic-models)                   | ✅ Supported | 3GPP FTP Model 1; TR 36.814 (**NR-v1.2**)                             |
++| [ns-3 3GPP HTTP](https://www.nsnam.org/docs/models/html/applications.html#)                                                        | ✅ Supported | ns-3 3GPP HTTP model                                                  |
++
++---
++
++## Calibration & Deployment models
++
++| Feature                                                                                                                  | Status      | Notes                                                                                |
++|--------------------------------------------------------------------------------------------------------------------------|-------------|--------------------------------------------------------------------------------------|
++| [Calibration examples](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#cttc-nr-3gpp-calibration)                    | ✅ Supported | Indoor/Outdoor (R1-1709828/RP-180524) and R1-1707360 (3GPP SU-MIMO) (**NR-v4.1**)    |
++| [Hexagonal wrap-around](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#cttc-nr-3gpp-calibration)                   | ✅ Supported | Wrap-around for up to 5 rings, 37-site/111-cell topology for RMa/UMa/UMi calibration |
++| [FastFadingConstantPositionMobilityModel](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#cttc-nr-3gpp-calibration) | ✅ Supported | Calibration for static users with temporal fading                                    |
++| [REM maps (DL/UL)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-rem-helper)                                   | ✅ Supported | DL/UL REM maps, SIR/SNR/SINR for topology inspection                                 |
++
++---
++
++## Tools, CI & Framework
++
++| Feature                                                                                  | Status      | Notes                                                                      |
++|------------------------------------------------------------------------------------------|-------------|----------------------------------------------------------------------------|
++| [JSON stats & traces](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#usage)        | ✅ Supported | PHY/RLC/PDCP (**NR-v2.6**)                                                 |
++| [Reproducibility tests](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#validation) | ✅ Supported | Examples with KPI checks (**NR-v2.4**)                                     |
++| [Platform/CI upgrades](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#validation)  | ✅ Supported | Clang-format/tidy updates, Mac CI, style/format jobs (**NR-v3.0->v4.1.1**) |
++
++---
++
++## Sidelink NR-V2X
++
++| Feature                                                                                                   | Status          | Notes                                |
++|-----------------------------------------------------------------------------------------------------------|-----------------|--------------------------------------|
++| [Broadcast](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension)                        | ✅ Supported     | Mode 4-like broadcast                |
++| [Out-of-coverage](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension)                  | ✅ Supported     | V2V communication, No gNB required   |
++| [PSCCH/PSSCH](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension)                      | ✅ Supported     | Time multiplexing of PSCCH and PSSCH |
++| [Resource allocation](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension)              | ✅ Supported     | Mode 2: UE-selected, sensing-based   |
++| [Semi-persistent scheduling (SPS)](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension) | ✅ Supported     | Sensing-based and random SPS         |
++| [Blind retransmissions](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension)            | ✅ Supported     | No feedback                          |
++| [HARQ feedback](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-v2x-extension)                    | ❌ Not supported | Ongoing                              |
++
++---
++
++## Fronthaul / O-RAN integration
++
++| Feature                                                                                     | Status      | Notes                                                                                                             |
++|---------------------------------------------------------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------|
++| [Fronthaul Control](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#fronthaul-control) | ✅ Supported | Limited-capacity FH link; FH control methods: Dropping, Postponing, Optimize MCS/RBs); MAC/PHY SAPs (**NR-v3.3**) |
++| [near-RT RIC](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#fronthaul-control)       | ⚙️ Planned  | Under integration and testing                                                                                     |
++| [xApps](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#fronthaul-control)             | ⚙️ Planned  | Under integration and testing                                                                                     |
++| [E2](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#fronthaul-control)                | ⚙️ Planned  | Under integration and testing                                                                                     |
++
++---
++
++## NR-U (Unlicensed)
++
++| Feature                                                                                        | Status          | Notes                                                                       |
++|------------------------------------------------------------------------------------------------|-----------------|-----------------------------------------------------------------------------|
++| [LBT Cat 2/3/4](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-u-extension)           | ✅ Supported     | ETSI-compliant LBT; LBT after MAC; ED omnidirectional                       |
++| [Channel Access Managers](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-u-extension) | ✅ Supported     | Per-BWP and per-node channel access; Modes: AlwaysOn, OnOff duty cycle, LBT |
++| [Wi-Fi coexistence](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-u-extension)       | ⚙️ Experimental | Coexistence with ns-3 Wi-Fi                                                 |
++| [Directional LBT](https://cttc-lena.gitlab.io/nr/manual/nr-module.html#nr-u-extension)         | ⚙️ Experimental | LBT with directional beams; null-space projected LBT and precoding          |
++
++
++---
++
++## 🧭 Planned Roadmap (2025 → 2028)
++
++| Area                | Possible Enhancements                                                                                                                                   |
++|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
++| **Channel/Antenna** | Sionna-Ray Tracing channel; hybrid spatially-consistent channels; improved polarization; UE antenna and near-field blocking models for handheld devices |
++| **PHY**             | Precoding Type-II and MU-MIMO; NTN maturation; TN-NTN integration; SSB blocks transmission and scheduling                                               |
++| **MAC**             | SL HARQ; LTM; MU-MIMO schedulers; O-RAN xApp hooks; network slicing                                                                                     |
++| **RLC**             | Additional RLC implementations for high-throughput and ultra-low latency                                                                                |
++| **SDAP**            | Add 5G SDAP layer                                                                                                                                       |
++| **RRC**             | Handover (ongoing); Dual Connectivity; advanced mobility procedures                                                                                     |
++| **O-RAN**           | O-RAN xApp hooks; network slicing (ongoing)                                                                                                             |
++| **NR-U**            | Directional LBT                                                                                                                                         |
++| **V2X**             | HARQ feedback; multicast/unicast                                                                                                                        |
++| **Framework**       | SDAP layer; 5GC; Network Digital Twin; O-RAN integration                                                                                                |
++| **6G-LENA**         | NTN; ISAC; FFS; RIS; AI                                                                                                                                 |
++
++---
++
++## Legend
++
++✅ = Supported ⚙️ = Partial / Ongoing/ Experimental ❌ = Not yet supported
++
++© 2025 Centre Tecnològic de Telecomunicacions de Catalunya (CTTC) – OpenSim Research Unit
+-- 
+2.48.1
 
