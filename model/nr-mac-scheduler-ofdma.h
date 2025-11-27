@@ -255,5 +255,6 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
     Ptr<NrMacSchedulerOfdmaSymbolPerBeam> m_symPerBeam; //!< Holds a symbol per beam allocator
     /// Make it friend of the test case, so that the test case can access m_symPerBeam
     friend class NrSchedOfdmaSymbolPerBeamTestCase;
+    friend class NrSchedOfdmaMcsTestCase;
 };
 } // namespace ns3

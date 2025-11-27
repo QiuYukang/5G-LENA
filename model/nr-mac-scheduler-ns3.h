@@ -239,6 +239,7 @@ class NrFhSchedSapProvider;
 class NrMacSchedulerNs3 : public NrMacScheduler
 {
     friend class NrTestSchedulerAiCase;
+    friend class NrSchedOfdmaMcsTestCase;
     friend class NrSchedOfdmaSymbolPerBeamTestCase;
     friend class NrSchedGeneralTestCase;
     friend class NrTestMacSchedulerHarqRrReshape;
