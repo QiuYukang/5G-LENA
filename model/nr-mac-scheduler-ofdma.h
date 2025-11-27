@@ -69,9 +69,7 @@ class NrMacSchedulerOfdma : public NrMacSchedulerTdma
     /**
      * @brief Deconstructor
      */
-    ~NrMacSchedulerOfdma() override
-    {
-    }
+    ~NrMacSchedulerOfdma() override;
 
   protected:
     BeamSymbolMap AssignDLRBG(uint32_t symAvail, const ActiveUeMap& activeDl) const override;

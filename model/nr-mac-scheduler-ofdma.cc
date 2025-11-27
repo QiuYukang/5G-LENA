@@ -52,6 +52,10 @@ NrMacSchedulerOfdma::NrMacSchedulerOfdma()
 {
 }
 
+NrMacSchedulerOfdma::~NrMacSchedulerOfdma()
+{
+}
+
 void
 NrMacSchedulerOfdma::SetSymPerBeamType(SymPerBeamType type)
 {
