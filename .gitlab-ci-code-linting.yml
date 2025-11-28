@@ -182,3 +182,18 @@ header-module-include:
       fi
   timeout: 1h
   interruptible: true
+
+# Check for dead urls
+check-dead-urls:
+  stage: code-linting
+  image: alpine:latest
+  before_script:
+    - apk update
+    - apk add git python3
+    - python3 -m venv .venv
+    - source ./.venv/bin/activate
+    - pip install httpx[http2]
+  script:
+    - echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+    - ./tools/check-dead-urls.py ./
+  timeout: 1h
