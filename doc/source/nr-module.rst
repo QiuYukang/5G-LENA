@@ -2633,7 +2633,7 @@ traffic-generator-example.cc
 The program ``traffic-generator-example`` included in the ``nr`` module consists of a simple topology with two nodes, a TX and an RX node. We install on each of these nodes a SimpleNetDevice that assumes an infinite bandwidth and we connect them through s SimpleChannel which does not introduce neither error nor delay to the packet transmission/reception. On the TX node we install the traffic generator by specifying the type of the NGMN traffic generator (FTP, VoIP, video, gaming) and on the RX node we install the PacketSink application. The example supports several command line parameters. The parameter trafficType can be used to configure the traffic type (NGMN FTP, video, gaming and VoIP). The example gathers the measurements (the bytes transmitted) per the measurement window interval, and writes them to the output file in the root ns-3-dev folder, so one can plot this to see the pattern of each traffic type.
 
 The complete details of the simulation script are provided in
-https://cttc-lena.gitlab.io/nr/html/traffic-generator-example_8cc.html.
+https://cttc-lena.gitlab.io/nr/html/traffic-generator_8cc.html.
 
 cttc-nr-traffic-ngmn-mixed.cc
 =============================
@@ -2819,7 +2819,7 @@ Test for CC/BWP
 Test case called ``nr-lte-cc-bwp-configuration`` validates that the creation of operation bands, CCs and BWPs is correct within the limitations of the NR implementation. The main limitation of BWPs is that they do not overlap, because in such case, the interference calculation would be erroneous. This test also proves that the creation of BWP information with the CcBwpHelper is correct.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/html/nr-lte-cc-bwp-configuration_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-cc-bwp-configuration_8cc.html
 
 
 Test of numerology FDM
@@ -3066,7 +3066,7 @@ A companion script, ``nr-test-csi-plot.py``, can plot all the measurements for a
 the visual inspection of the behavior of the system during the simulation.
 
 The complete details of the validation script are provided in
-https://cttc-lena.gitlab.io/nr/html/nr-test-csi_8cc.html
+https://cttc-lena.gitlab.io/nr/html/nr-test-csi_8cc_source.html
 
 Test for OFDMA time-domain schedulers (symbols per beam)
 ========================================================
