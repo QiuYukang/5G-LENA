@@ -1,3 +1,5 @@
+@page features 5G-LENA Features
+
 <!--
 Copyright (c) 2025 Centre Tecnologic de Telecomunicacions de Catalunya (CTTC)
 
