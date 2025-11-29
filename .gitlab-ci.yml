@@ -172,6 +172,10 @@ documentation:
     - pushd tutorial
     - make latexpdf && mv ./build/latex/cttc-nr-demo-tutorial.pdf ../public/
     - popd
+    # Copy FEATURES.md to preview it 5G-LENA website in FEATURES section
+    - pushd ns-3-dev/contrib/nr
+    - cp FEATURES.md public/FEATURES.md
+    - popd
   artifacts:
     paths:
       - public
