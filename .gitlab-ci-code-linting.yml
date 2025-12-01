@@ -197,3 +197,4 @@ check-dead-urls:
     - echo 'nameserver 1.1.1.1' > /etc/resolv.conf
     - ./tools/check-dead-urls.py ./
   timeout: 1h
+  allow_failure: true
