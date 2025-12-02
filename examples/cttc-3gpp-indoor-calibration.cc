@@ -886,17 +886,8 @@ main(int argc, char* argv[])
     uint8_t numUePanel = 2;
     uint16_t ueCount = 120;
     NrHelper::InitialAssocParams Initparams;
-    Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue("45|135"));
-    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles",
-                       StringValue("-67.5|-22.5|22.5|67.5"));
-
-    Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue("45|135"));
-    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles",
-                       StringValue("-67.5|-22.5|22.5|67.5"));
-
-    Config::SetDefault("ns3::NrInitialAssociation::ColumnAngles", StringValue("45|135"));
-    Config::SetDefault("ns3::NrInitialAssociation::RowAngles",
-                       StringValue("-67.5|-22.5|22.5|67.5"));
+    Initparams.colAngles={22.5,67.5,112.5,157.5};
+    Initparams.rowAngles={45,135};
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("configurationType", "Choose among a) customConf and b) 3gppCalibConf.", confType);
@@ -970,9 +961,8 @@ main(int argc, char* argv[])
         Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles",
                            StringValue("-67.5|-22.5|22.5|67.5"));
 
-        Config::SetDefault("ns3::NrInitialAssociation::ColumnAngles", StringValue("45|135"));
-        Config::SetDefault("ns3::NrInitialAssociation::RowAngles",
-                           StringValue("-67.5|-22.5|22.5|67.5"));
+        Initparams.colAngles={22.5,67.5,112.5,157.5};
+        Initparams.rowAngles={45,135};
     }
     Nr3gppIndoorCalibration phase1CalibrationScenario;
 
