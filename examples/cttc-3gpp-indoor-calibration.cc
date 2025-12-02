@@ -578,11 +578,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     channelHelper->AssignChannelsToBands({band});
     allBwps = CcBwpCreator::GetAllBwps({band});
 
-    // Disable channel matrix update to speed up the simulation execution
-    Config::SetDefault("ns3::Nr3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(0)));
-    // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-    // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999))
-
     if (beamformingMethod == "KroneckerBeamforming")
     {
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
@@ -622,8 +617,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     {
         nrHelper->SetUeAntennaAttribute("AntennaElement",
                                         PointerValue(CreateObject<IsotropicAntennaModel>()));
-        Config::SetDefault("ns3::ThreeGppAntennaModel::RadiationPattern",
-                           EnumValue(ns3::ThreeGppAntennaModel::RadiationPattern::INDOOR));
     }
     else
     {
@@ -860,6 +853,24 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
 int
 main(int argc, char* argv[])
 {
+    // Set 3GPP indoor calibration settings based on RP-180524 as defaults at the very beginning
+    // of simulation, so users can override these settings via command line
+    Config::SetDefault("ns3::ThreeGppAntennaModel::RadiationPattern",
+                       EnumValue(ns3::ThreeGppAntennaModel::RadiationPattern::INDOOR));
+
+    Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles",
+                       StringValue("22.5|67.5|112.5|157.5"));
+    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles", StringValue("45|135"));
+
+    Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles",
+                       StringValue("22.5|67.5|112.5|157.5"));
+    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue("45|135"));
+
+    // Disable channel matrix update to speed up the simulation execution
+    Config::SetDefault("ns3::Nr3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
+    // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999))
+
     // Parameters according to RP-180524 Indoor Hotspot Config B,
     // Evaluation assumptions for Phase 1 NR MIMO system level calibration,
     double centralFrequencyBand = 30e9;
@@ -886,8 +897,8 @@ main(int argc, char* argv[])
     uint8_t numUePanel = 2;
     uint16_t ueCount = 120;
     NrHelper::InitialAssocParams Initparams;
-    Initparams.colAngles={22.5,67.5,112.5,157.5};
-    Initparams.rowAngles={45,135};
+    Initparams.colAngles = {22.5, 67.5, 112.5, 157.5};
+    Initparams.rowAngles = {45, 135};
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("configurationType", "Choose among a) customConf and b) 3gppCalibConf.", confType);
@@ -953,16 +964,8 @@ main(int argc, char* argv[])
         numHPortsUe = 1;
         numUePanel = 2;
 
-        Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue("22.5|67.5|112.5|157.5"));
-        Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles",
-                           StringValue("45|135"));
-
-        Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue("22.5|67.5|112.5|157.5"));
-        Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles",
-                           StringValue("45|135"));
-
-        Initparams.colAngles={22.5,67.5,112.5,157.5};
-        Initparams.rowAngles={45,135};
+        Initparams.colAngles = {22.5, 67.5, 112.5, 157.5};
+        Initparams.rowAngles = {45, 135};
     }
     Nr3gppIndoorCalibration phase1CalibrationScenario;
 
