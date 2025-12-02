@@ -172,7 +172,8 @@ class Nr3gppIndoorCalibration
              uint32_t duration,
              uint8_t numUePanel,
              uint16_t ueCount,
-             DroppingParameters dropParam = DroppingParameters() std::string confType);
+             std::string confType,
+             DroppingParameters dropParam = DroppingParameters());
     /**
      * @brief Destructor that closes the output file stream and finished the
      * writing into the files.
@@ -388,8 +389,8 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              uint32_t duration,
                              uint8_t numUePanel,
                              uint16_t ueCount,
-                             DroppingParameters dropParam,
-                             std::string confType)
+                             std::string confType,
+                             DroppingParameters dropParam)
 {
     Time simTime = MilliSeconds(duration);
     Time udpAppStartTimeDl = MilliSeconds(100);
@@ -999,7 +1000,7 @@ main(int argc, char* argv[])
                                   duration,
                                   numUePanel,
                                   ueCount,
-                                  dropParam,
-                                  confType);
+                                  confType,
+                                  dropParam);
     return 0;
 }
