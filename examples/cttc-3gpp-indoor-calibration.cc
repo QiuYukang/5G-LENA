@@ -953,13 +953,13 @@ main(int argc, char* argv[])
         numHPortsUe = 1;
         numUePanel = 2;
 
-        Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue("45|135"));
+        Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue("22.5|67.5|112.5|157.5"));
         Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles",
-                           StringValue("-67.5|-22.5|22.5|67.5"));
+                           StringValue("45|135"));
 
-        Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue("45|135"));
+        Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue("22.5|67.5|112.5|157.5"));
         Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles",
-                           StringValue("-67.5|-22.5|22.5|67.5"));
+                           StringValue("45|135"));
 
         Initparams.colAngles={22.5,67.5,112.5,157.5};
         Initparams.rowAngles={45,135};
