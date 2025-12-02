@@ -955,9 +955,9 @@ main(int argc, char* argv[])
         enableGnbIso = false;
         enableUeIso = false;
         enableShadowing = false;
-        std::string beamformingMethod = "KroneckerBeamforming";
-        double speed = 3.00;
-        bool polarizedAntennas = false;
+        beamformingMethod = "KroneckerBeamforming";
+        speed = 3.00;
+        polarizedAntennas = false;
         numVPortsGnb = 1;
         numHPortsGnb = 1;
         numVPortsUe = 1;
