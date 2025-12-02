@@ -867,7 +867,14 @@ main(int argc, char* argv[])
     Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue("45|135"));
 
     // Disable channel matrix update to speed up the simulation execution
-    Config::SetDefault("ns3::Nr3gppChannel::UpdatePeriod", TimeValue(MilliSeconds(0)));
+    //Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
+
+    // Set CSI feedback source and RI/PMI settings
+    Config::SetDefault("ns3::NrHelper::CsiFeedbackFlags", UintegerValue(CQI_CSI_RS | CQI_CSI_IM));
+    Config::SetDefault("ns3::NrHelper::PmSearchMethod", StringValue("ns3::NrPmSearchFull"));
+    Config::SetDefault("ns3::NrPmSearchFull::CodebookType", StringValue("ns3::NrCbTypeOneSp"));
+    Config::SetDefault("ns3::NrPmSearch::SubbandSize", UintegerValue(8));
+
     // Config::SetDefault ("ns3::NrRlcUm::MaxTxBufferSize", UintegerValue(999999999));
     // Config::SetDefault ("ns3::NrRlcUmLowLat::MaxTxBufferSize", UintegerValue(999999999))
 
