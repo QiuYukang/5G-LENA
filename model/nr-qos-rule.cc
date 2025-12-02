@@ -323,30 +323,10 @@ NrQosRule::IsDefault() const
     Ptr<NrQosRule> defaultRule = Default();
     auto defaultFilters = defaultRule->GetPacketFilters();
 
-    if (defaultFilters.size() != 1)
-    {
-        return false;
-    }
+    NS_ASSERT_MSG(defaultFilters.size() == 1, "Default rule should have one packet filter");
 
     // Compare the packet filters
-    const PacketFilter& thisFilter = m_filters.front();
-    const PacketFilter& defaultFilter = defaultFilters.front();
-
-    return (thisFilter.direction == defaultFilter.direction &&
-            thisFilter.remoteAddress == defaultFilter.remoteAddress &&
-            thisFilter.remoteMask == defaultFilter.remoteMask &&
-            thisFilter.localAddress == defaultFilter.localAddress &&
-            thisFilter.localMask == defaultFilter.localMask &&
-            thisFilter.remoteIpv6Address == defaultFilter.remoteIpv6Address &&
-            thisFilter.remoteIpv6Prefix == defaultFilter.remoteIpv6Prefix &&
-            thisFilter.localIpv6Address == defaultFilter.localIpv6Address &&
-            thisFilter.localIpv6Prefix == defaultFilter.localIpv6Prefix &&
-            thisFilter.remotePortStart == defaultFilter.remotePortStart &&
-            thisFilter.remotePortEnd == defaultFilter.remotePortEnd &&
-            thisFilter.localPortStart == defaultFilter.localPortStart &&
-            thisFilter.localPortEnd == defaultFilter.localPortEnd &&
-            thisFilter.typeOfService == defaultFilter.typeOfService &&
-            thisFilter.typeOfServiceMask == defaultFilter.typeOfServiceMask);
+    return (m_filters.front() == defaultFilters.front());
 }
 
 void

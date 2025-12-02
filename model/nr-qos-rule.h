@@ -13,6 +13,7 @@
 #include "ns3/ipv6-address.h"
 #include "ns3/simple-ref-count.h"
 
+#include <compare>
 #include <list>
 
 namespace ns3
@@ -120,6 +121,14 @@ class NrQosRule : public SimpleRefCount<NrQosRule>
 
         uint8_t typeOfService;     //!< type of service field
         uint8_t typeOfServiceMask; //!< type of service field mask
+
+        /**
+         * @brief Three-way comparison operator.
+         *
+         * @param other the other PacketFilter to compare with
+         * @returns comparison result
+         */
+        std::strong_ordering operator<=>(const PacketFilter& other) const = default;
     };
 
     NrQosRule();
@@ -180,6 +189,11 @@ class NrQosRule : public SimpleRefCount<NrQosRule>
 
     /**
      * Check if this is a default QoS rule (catch-all rule matching all traffic)
+     *
+     * This method does not evaluate the values of QFI or precedence; it only
+     * checks whether there is one PacketFilter that matches the single PacketFilter
+     * that is produced by a call to NrQosRule::Default().
+     *
      * @return true if this rule matches all traffic, false otherwise
      */
     bool IsDefault() const;
