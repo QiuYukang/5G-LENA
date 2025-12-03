@@ -2167,7 +2167,7 @@ The following table documents the key identifiers and their relationships:
   +------------------+------------------+-------------------------------+
   | S1-U SGW TEID    | Tunnel Endpoint  | Assigned by SGW (independent  |
   |                  | Identifier for   | value, not derived from       |
-  |                  | S1-U Interface   | QFI/DRBID/LCID); propagated  |
+  |                  | S1-U Interface   | QFI/DRBID/LCID); propagated   |
   |                  | (EPC/SGW)        | to MME and gNB for data       |
   |                  |                  | tunneling                     |
   +------------------+------------------+-------------------------------+
