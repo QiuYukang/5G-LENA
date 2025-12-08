@@ -658,7 +658,7 @@ NrNoBackhaulEpcHelper::SetupRemoteHost(std::optional<std::string> dataRate,
     Ptr<Ipv4StaticRouting> remoteHostStaticRouting4 =
         ipv4RoutingHelper.GetStaticRouting(remoteHost->GetObject<Ipv4>());
     remoteHostStaticRouting4->AddNetworkRouteTo(Ipv4Address("7.0.0.0"), Ipv4Mask("255.0.0.0"), 1);
-    return std::make_pair(remoteHost, internetIpIfaces.GetAddress(0, 0));
+    return std::make_pair(remoteHost, internetIpIfaces.GetAddress(1, 0));
 }
 
 std::pair<Ptr<Node>, Ipv6Address>
