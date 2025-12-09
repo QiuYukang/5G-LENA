@@ -676,7 +676,6 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     nrHelper->SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsUe));
     nrHelper->SetUeAntennaAttribute("NumHorizontalPorts", UintegerValue(dropParam.numHPortsUe));
     nrHelper->SetUeSpectrumAttribute("NumAntennaPanel", UintegerValue(numUePanel));
-    // mobility.SetPositionAllocator (ueRandomRectPosAlloc);
     // install nr net devices
     NetDeviceContainer gNbDevs = nrHelper->InstallGnbDevice(gNbNodes, allBwps);
     NetDeviceContainer ueNetDevs = nrHelper->InstallUeDevice(selectedUeNodes, allBwps);
