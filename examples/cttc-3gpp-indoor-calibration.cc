@@ -660,18 +660,17 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     if (dropParam.gnbAntennaPolarization)
     {
         nrHelper->SetGnbAntennaAttribute("IsDualPolarized", BooleanValue(true));
-        nrHelper->SetGnbAntennaAttribute("DowntiltAngle",
-                                         DoubleValue(downtiltAnglegNB * M_PI / 180.0));
         nrHelper->SetGnbAntennaAttribute("PolSlantAngle",
                                          DoubleValue(polSlantAnglegNB * M_PI / 180.0));
     }
     if (dropParam.ueAntennaPolarization)
     {
         nrHelper->SetUeAntennaAttribute("IsDualPolarized", BooleanValue(true));
-        nrHelper->SetUeAntennaAttribute("DowntiltAngle",
-                                        DoubleValue(-downtiltAnglegNB * M_PI / 180.0));
         nrHelper->SetUeAntennaAttribute("PolSlantAngle", DoubleValue(0 * M_PI / 180.0));
     }
+    // Set gNB pointing downwards (ceiling mounted) and UE pointing upwards (phone resting in desk)
+    nrHelper->SetGnbAntennaAttribute("DowntiltAngle", DoubleValue(downtiltAnglegNB * M_PI / 180.0));
+    nrHelper->SetUeAntennaAttribute("DowntiltAngle", DoubleValue(-downtiltAnglegNB * M_PI / 180.0));
     nrHelper->SetGnbAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsGnb));
     nrHelper->SetGnbAntennaAttribute("NumHorizontalPorts", UintegerValue(dropParam.numHPortsGnb));
     nrHelper->SetUeAntennaAttribute("NumVerticalPorts", UintegerValue(dropParam.numVPortsUe));
