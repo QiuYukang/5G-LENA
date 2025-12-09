@@ -907,7 +907,7 @@ main(int argc, char* argv[])
     uint8_t numVPortsUe = 1;
     uint8_t numHPortsUe = 1;
     uint8_t numUePanel = 2;
-    uint16_t ueCount = 120;
+    uint16_t ueCount = 24; // 20% of number of UEs from reference, to execute faster during testing
     NrHelper::InitialAssocParams initParams;
     initParams.colAngles = {22.5, 67.5, 112.5, 157.5};
     initParams.rowAngles = {45, 135};
@@ -977,6 +977,7 @@ main(int argc, char* argv[])
         numVPortsUe = 1;
         numHPortsUe = 1;
         numUePanel = 2;
+        ueCount = 120;
         duration = 1000;
         indoorScenario = "InH-OfficeMixed";
 
