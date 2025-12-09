@@ -864,12 +864,12 @@ main(int argc, char* argv[])
                        EnumValue(ns3::ThreeGppAntennaModel::RadiationPattern::INDOOR));
 
     Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles",
-                       StringValue("22.5|67.5|112.5|157.5"));
-    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles", StringValue("45|135"));
+                       StringValue("22.5|67.5|90.0|112.5|157.5"));
+    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles", StringValue("45|90.0|135"));
 
     Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles",
-                       StringValue("22.5|67.5|112.5|157.5"));
-    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue("45|135"));
+                       StringValue("22.5|67.5|90.0|112.5|157.5"));
+    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue("45|90.0|135"));
 
     // Disable channel matrix update to speed up the simulation execution
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
