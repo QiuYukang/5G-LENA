@@ -162,7 +162,7 @@ class Nr3gppIndoorCalibration
              std::string beamformingMethod,
              bool enableShadowing,
              bool enableInitialAssoc,
-             NrHelper::InitialAssocParams Initparams,
+             NrHelper::InitialAssocParams initParams,
              bool gNbAntennaModel,
              bool ueAntennaModel,
              std::string indoorScenario,
@@ -379,7 +379,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
                              std::string beamformingMethod,
                              bool enableShadowing,
                              bool enableInitialAssoc,
-                             NrHelper::InitialAssocParams Initparams,
+                             NrHelper::InitialAssocParams initParams,
                              bool gNbAntennaModel,
                              bool ueAntennaModel,
                              std::string indoorScenario,
@@ -708,7 +708,7 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // attach UEs to the closest gNB
     if (enableInitialAssoc)
     {
-        nrHelper->SetupInitialAssoc(Initparams);
+        nrHelper->SetupInitialAssoc(initParams);
         nrHelper->AttachToMaxRsrpGnb(ueNetDevs, gNbDevs);
     }
     else
@@ -903,9 +903,9 @@ main(int argc, char* argv[])
     uint8_t numHPortsUe = 1;
     uint8_t numUePanel = 2;
     uint16_t ueCount = 120;
-    NrHelper::InitialAssocParams Initparams;
-    Initparams.colAngles = {22.5, 67.5, 112.5, 157.5};
-    Initparams.rowAngles = {45, 135};
+    NrHelper::InitialAssocParams initParams;
+    initParams.colAngles = {22.5, 67.5, 112.5, 157.5};
+    initParams.rowAngles = {45, 135};
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("configurationType", "Choose among a) customConf and b) 3gppCalibConf.", confType);
@@ -926,7 +926,7 @@ main(int argc, char* argv[])
     cmd.AddValue("numUePanel", "Number of UE panels in spectrum phy ", numUePanel);
     cmd.AddValue("handoffMargin",
                  "Hand-off margin in initial association to attach UEs,",
-                 Initparams.handoffMargin);
+                 initParams.handoffMargin);
     cmd.AddValue("ueCount", "Number of UE count ", ueCount);
     cmd.AddValue("enableShadowing", "Enable shadowing in the channel modeling", enableShadowing);
     cmd.AddValue("enableInitialAssoc",
@@ -971,8 +971,8 @@ main(int argc, char* argv[])
         numHPortsUe = 1;
         numUePanel = 2;
 
-        Initparams.colAngles = {22.5, 67.5, 112.5, 157.5};
-        Initparams.rowAngles = {45, 135};
+        initParams.colAngles = {22.5, 67.5, 90.0, 112.5, 157.5};
+        initParams.rowAngles = {45.0, 90.0, 135.0};
     }
     Nr3gppIndoorCalibration phase1CalibrationScenario;
 
@@ -990,7 +990,7 @@ main(int argc, char* argv[])
                                   beamformingMethod,
                                   enableShadowing,
                                   enableInitialAssoc,
-                                  Initparams,
+                                  initParams,
                                   enableGnbIso,
                                   enableUeIso,
                                   indoorScenario,
