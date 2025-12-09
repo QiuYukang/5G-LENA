@@ -895,7 +895,7 @@ main(int argc, char* argv[])
     bool enableGnbIso = false;
     bool enableUeIso = false;
     bool enableShadowing = false;
-    std::string indoorScenario = "InH-OfficeOpen";
+    std::string indoorScenario = "InH-OfficeMixed";
     std::string beamformingMethod = "KroneckerBeamforming";
     std::string confType = "customConf";
     double speed = 3.00;
@@ -975,6 +975,8 @@ main(int argc, char* argv[])
         numVPortsUe = 1;
         numHPortsUe = 1;
         numUePanel = 2;
+        duration = 1000;
+        indoorScenario = "InH-OfficeMixed";
 
         initParams.colAngles = {22.5, 67.5, 90.0, 112.5, 157.5};
         initParams.rowAngles = {45.0, 90.0, 135.0};
