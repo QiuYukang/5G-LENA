@@ -1974,7 +1974,8 @@ main(int argc, char* argv[])
     //   }
     // double FiftyTileFlowDelay = (delayValues[stats.size()/2] + delayValues[stats.size()/2 -1])/2;
     double FiftyTileFlowDelay = delayValues[stats.size() / 2];
-
+    // Make sure that traffic was actually transmitted
+    NS_ASSERT(averageUpt != 0.0 && averageFlowThroughput != 0.0 && averageFlowDelay != 0.0);
     outFile << "\n\n  Mean flow throughput: " << averageFlowThroughput / stats.size() << " Mbps\n";
     outFile << "  Mean UPT: " << averageUpt / stats.size() << " Mbps\n";
     outFile << "  Mean delay: " << averageFlowDelay / stats.size() << " ms\n";
