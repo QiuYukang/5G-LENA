@@ -872,7 +872,7 @@ main(int argc, char* argv[])
     Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue("45|135"));
 
     // Disable channel matrix update to speed up the simulation execution
-    //Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
 
     // Set CSI feedback source and RI/PMI settings
     Config::SetDefault("ns3::NrHelper::CsiFeedbackFlags", UintegerValue(CQI_CSI_RS | CQI_CSI_IM));
