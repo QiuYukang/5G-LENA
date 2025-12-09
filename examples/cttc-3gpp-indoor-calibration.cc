@@ -409,7 +409,14 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
     // if simulation tag is not provided create one
     if (tag.empty())
     {
-        tag = BuildTag(gNbAntennaModel, ueAntennaModel, indoorScenario, speed);
+        if (confType == "3gppCalibConf")
+        {
+            tag = confType;
+        }
+        else
+        {
+            tag = BuildTag(gNbAntennaModel, ueAntennaModel, indoorScenario, speed);
+        }
     }
     std::string filenameSinr = BuildFileNameString(resultsDirPath, "sinrs", tag);
     std::string filenameSnr = BuildFileNameString(resultsDirPath, "snrs", tag);
