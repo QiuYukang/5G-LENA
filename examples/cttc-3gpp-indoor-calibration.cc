@@ -601,11 +601,11 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
         idealBeamformingHelper->SetAttribute("BeamformingMethod",
                                              TypeIdValue(DirectPathBeamforming::GetTypeId()));
     }
-
     else
     {
         NS_ABORT_MSG("Unsupported Beamforming Method");
     }
+
     if (confType == "3gppCalibConf")
     {
         nrHelper->SetSchedulerTypeId(TypeId::LookupByName("ns3::NrMacSchedulerTdmaRandom"));
