@@ -5,12 +5,14 @@
 #include "beamforming-vector.h"
 
 #include "ns3/angles.h"
+#include "ns3/enum.h"
 #include "ns3/hexagonal-wraparound-model.h"
 #include "ns3/node.h"
 #include "ns3/uinteger.h"
 
 namespace ns3
 {
+NS_OBJECT_ENSURE_REGISTERED(PhasedArrayAngleConvention);
 
 PhasedArrayModel::ComplexVector
 CreateQuasiOmniBfv(const Ptr<const UniformPlanarArray>& antenna)
@@ -154,15 +156,12 @@ CreateDirectPathBfv(const Ptr<MobilityModel>& a,
 }
 
 PhasedArrayModel::ComplexVector
-CreateKroneckerBfv(const Ptr<const UniformPlanarArray>& antenna, double rowAngle, double colAngle)
+CreateKroneckerBfvImpl(const Ptr<const UniformPlanarArray>& antenna,
+                       double vPhasePerEl,
+                       double hPhasePerEl)
 {
     // retrieve the number of antenna elements to create bf vector
     PhasedArrayModel::ComplexVector bfVector(antenna->GetNumElems());
-    auto vPhasePerEl =
-        -2.0 * M_PI * antenna->GetAntennaVerticalSpacing() * cos(rowAngle * M_PI / 180.0);
-    auto hPhasePerEl =
-        -2.0 * M_PI * antenna->GetAntennaHorizontalSpacing() * cos(colAngle * M_PI / 180.0);
-
     auto numAnalogBeamElements = antenna->GetVElemsPerPort() * antenna->GetHElemsPerPort();
 
     // normalize because the total power is divided equally among the analog beams elements
@@ -187,5 +186,90 @@ CreateKroneckerBfv(const Ptr<const UniformPlanarArray>& antenna, double rowAngle
         bfVector[elIdx] = normalizer * std::complex<double>(cos(combPhase), sin(combPhase));
     }
     return bfVector;
+}
+
+PhasedArrayModel::ComplexVector
+CreateKroneckerBfvThreeGpp(const Ptr<const UniformPlanarArray>& antenna,
+                           double zenith,
+                           double azimuth)
+{
+    NS_ASSERT_MSG(0.0 <= zenith && zenith <= 180.0,
+                  "3GPP zenith set to " << zenith << " should be in range [0, 180] degrees.");
+    NS_ASSERT_MSG(-90.0 <= azimuth && azimuth <= 90.0,
+                  "3GPP azimuth set to " << azimuth << " should be in range [-90, 90] degrees.");
+
+    // Compute phases per element assuming a single bidimensional UPA
+    double inc = zenith * M_PI / 180.0; // θ (zenith/inclination)
+    double az = azimuth * M_PI / 180.0; // φ (azimuth)
+
+    double dV = antenna->GetAntennaVerticalSpacing();   // in λ
+    double dH = antenna->GetAntennaHorizontalSpacing(); // in λ
+
+    double vPhasePerEl = -2.0 * M_PI * dV * std::cos(inc);
+    double hPhasePerEl = -2.0 * M_PI * dH * std::sin(inc) * std::sin(az);
+    return CreateKroneckerBfvImpl(antenna, vPhasePerEl, hPhasePerEl);
+}
+
+PhasedArrayModel::ComplexVector
+CreateKroneckerBfvUla(const Ptr<const UniformPlanarArray>& antenna,
+                      double rowAngle,
+                      double colAngle)
+{
+    NS_ASSERT_MSG(0.0 <= rowAngle && rowAngle <= 180.0,
+                  "ULA vertical angle set to " << rowAngle
+                                               << " should be in range [0, 180] degrees.");
+    NS_ASSERT_MSG(0.0 <= colAngle && colAngle <= 180.0,
+                  "ULA horizontal angle set to " << colAngle
+                                                 << " should be in range [0, 180] degrees.");
+
+    // Compute phases per element assuming two separate ULA panels, one vertical and the other
+    // horizontal
+    double dV = antenna->GetAntennaVerticalSpacing();   // in λ
+    double dH = antenna->GetAntennaHorizontalSpacing(); // in λ
+
+    auto vPhasePerEl = -2.0 * M_PI * dV * cos(rowAngle * M_PI / 180.0);
+    auto hPhasePerEl = -2.0 * M_PI * dH * cos(colAngle * M_PI / 180.0);
+    return CreateKroneckerBfvImpl(antenna, vPhasePerEl, hPhasePerEl);
+}
+
+PhasedArrayModel::ComplexVector
+CreateKroneckerBfv(const Ptr<const UniformPlanarArray>& antenna, double rowAngle, double colAngle)
+{
+    switch (CreateObject<PhasedArrayAngleConvention>()->GetConvention())
+    {
+    case PhasedArrayAngleConvention::THREE_GPP:
+        return CreateKroneckerBfvThreeGpp(antenna, rowAngle, colAngle);
+    case PhasedArrayAngleConvention::ULA_VH:
+        return CreateKroneckerBfvUla(antenna, rowAngle, colAngle);
+    default:
+        NS_ABORT_MSG("Unexpected angle convention");
+    }
+}
+
+TypeId
+PhasedArrayAngleConvention::GetTypeId()
+{
+    static TypeId tid =
+        TypeId("ns3::PhasedArrayAngleConvention")
+            .SetParent<Object>()
+            .SetGroupName("Nr")
+            .AddConstructor<PhasedArrayAngleConvention>()
+            .AddAttribute(
+                "AngleConvention",
+                "Angle input convention: 3GPP (zenith/azimuth) or UlaVH (row/col angles).",
+                EnumValue(PhasedArrayAngleConvention::ULA_VH),
+                MakeEnumAccessor<PhasedArrayAngleConvention::AngleConvention>(
+                    &PhasedArrayAngleConvention::m_angleConvention),
+                MakeEnumChecker(PhasedArrayAngleConvention::THREE_GPP,
+                                "3GPP",
+                                PhasedArrayAngleConvention::ULA_VH,
+                                "UlaVH"));
+    return tid;
+}
+
+PhasedArrayAngleConvention::AngleConvention
+PhasedArrayAngleConvention::GetConvention() const
+{
+    return m_angleConvention;
 }
 } // namespace ns3
