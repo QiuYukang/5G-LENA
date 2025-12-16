@@ -863,13 +863,16 @@ main(int argc, char* argv[])
     // assumes beam is centered in 0 degrees and we assume at 90.
     // We also include the beam perpendicular to the panel (90, 90), equivalent to 3GPP (0, 90),
     // since it significantly affects results, better overlapping with 3GPP reference curves.
-    std::string columnAngles = "22.5|67.5|90.0|112.5|157.5";
+    std::string columnAngles = "-67.5|-22.5|0.0|22.5|67.5";
     std::string rowAngles = "45.0|90.0|135.0";
 
     // Set 3GPP indoor calibration settings based on RP-180524 as defaults at the very beginning
     // of simulation, so users can override these settings via command line
     Config::SetDefault("ns3::ThreeGppAntennaModel::RadiationPattern",
                        EnumValue(ns3::ThreeGppAntennaModel::RadiationPattern::INDOOR));
+
+    // Use 3GPP reference azimuth and zenith angles, instead of previously used ULA V|H angles
+    Config::SetDefault("ns3::PhasedArrayAngleConvention::AngleConvention", StringValue("3GPP"));
 
     Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue(columnAngles));
     Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles", StringValue(rowAngles));
@@ -987,7 +990,7 @@ main(int argc, char* argv[])
         duration = 1000;
         indoorScenario = "InH-OfficeMixed";
 
-        initParams.colAngles = {22.5, 67.5, 90.0, 112.5, 157.5};
+        initParams.colAngles = {-67.5, -22.5, 0.0, 22.5, 67.5};
         initParams.rowAngles = {45.0, 90.0, 135.0};
     }
     Nr3gppIndoorCalibration phase1CalibrationScenario;
