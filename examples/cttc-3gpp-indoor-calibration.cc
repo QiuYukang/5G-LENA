@@ -10,6 +10,7 @@
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/nr-module.h"
+#include "ns3/parse-string-to-vector.h"
 #include "ns3/point-to-point-helper.h"
 
 using namespace ns3;
@@ -858,18 +859,23 @@ Nr3gppIndoorCalibration::Run(double centralFrequencyBand,
 int
 main(int argc, char* argv[])
 {
+    // Angles for 30 GHz scenario, but shifted 90 degrees for column because 3GPP
+    // assumes beam is centered in 0 degrees and we assume at 90.
+    // We also include the beam perpendicular to the panel (90, 90), equivalent to 3GPP (0, 90),
+    // since it significantly affects results, better overlapping with 3GPP reference curves.
+    std::string columnAngles = "22.5|67.5|90.0|112.5|157.5";
+    std::string rowAngles = "45.0|90.0|135.0";
+
     // Set 3GPP indoor calibration settings based on RP-180524 as defaults at the very beginning
     // of simulation, so users can override these settings via command line
     Config::SetDefault("ns3::ThreeGppAntennaModel::RadiationPattern",
                        EnumValue(ns3::ThreeGppAntennaModel::RadiationPattern::INDOOR));
 
-    Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles",
-                       StringValue("22.5|67.5|90.0|112.5|157.5"));
-    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles", StringValue("45|90.0|135"));
+    Config::SetDefault("ns3::KroneckerBeamforming::TxColumnAngles", StringValue(columnAngles));
+    Config::SetDefault("ns3::KroneckerBeamforming::TxRowAngles", StringValue(rowAngles));
 
-    Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles",
-                       StringValue("22.5|67.5|90.0|112.5|157.5"));
-    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue("45|90.0|135"));
+    Config::SetDefault("ns3::KroneckerBeamforming::RxColumnAngles", StringValue(columnAngles));
+    Config::SetDefault("ns3::KroneckerBeamforming::RxRowAngles", StringValue(rowAngles));
 
     // Disable channel matrix update to speed up the simulation execution
     Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(0)));
@@ -909,8 +915,8 @@ main(int argc, char* argv[])
     uint8_t numUePanel = 2;
     uint16_t ueCount = 24; // 20% of number of UEs from reference, to execute faster during testing
     NrHelper::InitialAssocParams initParams;
-    initParams.colAngles = {22.5, 67.5, 112.5, 157.5};
-    initParams.rowAngles = {45, 135};
+    initParams.colAngles = ParseVBarSeparatedValuesStringToVector(columnAngles);
+    initParams.rowAngles = ParseVBarSeparatedValuesStringToVector(rowAngles);
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("configurationType", "Choose among a) customConf and b) 3gppCalibConf.", confType);
