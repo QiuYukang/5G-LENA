@@ -82,7 +82,7 @@ def is_alive_with_retries(
 
 def check_urls(
     urls: Iterable[str],
-    timeout: float = 5.0,
+    timeout: float = 10.0,
     retries: int = 2,
 ) -> Dict[str, Tuple[bool, int, str]]:
     urls = sorted(set(urls))
