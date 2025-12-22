@@ -4,6 +4,8 @@
 
 #include "nr-eesm-t2.h"
 
+#include "nr-mcs-tables.h"
+
 namespace ns3
 {
 
@@ -14,140 +16,6 @@ static const std::vector<double> BetaTable2 = {1.6,   1.63,  1.67,  1.73,   1.79
                                                5.16,  5.66,  6.16,  6.5,    10.97,  12.92,  14.96,
                                                17.06, 19.33, 21.85, 24.51,  27.14,  29.94,  56.48,
                                                65.0,  78.58, 92.48, 106.27, 118.74, 126.36, 132.54};
-
-/**
- * @brief Table of ECR of the standard MCSs: 28 MCSs as per Table2 in TS38.214
- */
-static const std::vector<double> McsEcrTable2 = {
-    // QPSK (M=2)
-    0.12,
-    0.19,
-    0.30,
-    0.44,
-    0.59, // ECRs of MCSs
-    // 16QAM (M=4)
-    0.37,
-    0.42,
-    0.48,
-    0.54,
-    0.60,
-    0.64, // ECRs of MCSs
-    // 64QAM (M=6)
-    0.46,
-    0.50,
-    0.55,
-    0.60,
-    0.65,
-    0.70,
-    0.75,
-    0.80,
-    0.85, // ECRs of MCSs
-    // 256QAM (M=8)
-    0.67,
-    0.69,
-    0.74,
-    0.77,
-    0.82,
-    0.86,
-    0.90,
-    0.93 // ECRs of MCSs
-};
-
-/**
- * @brief Table of modulation order of the standard MCSs: 28 MCSs as per Table2
- * in TS38.214
- */
-static const std::vector<uint8_t> McsMTable2 = {
-    // QPSK (M=2)
-    2,
-    2,
-    2,
-    2,
-    2,
-    // 16QAM (M=4)
-    4,
-    4,
-    4,
-    4,
-    4,
-    4,
-    // 64QAM (M=6)
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    6,
-    // 256QAM (M=8)
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8};
-
-/**
- * @brief Table of SE of the standard MCSs: 28 (0 to 27) MCSs as per Table2 in TS38.214
- */
-static const std::vector<double> SpectralEfficiencyForMcs2 = {
-    // QPSK (M=2)
-    0.23,
-    0.38,
-    0.60,
-    0.88,
-    1.18, // SEs of MCSs
-    // 16QAM (M=4)
-    1.48,
-    1.70,
-    1.91,
-    2.16,
-    2.41,
-    2.57, // SEs of MCSs
-    // 64QAM (M=6)
-    2.73,
-    3.03,
-    3.32,
-    3.61,
-    3.90,
-    4.21,
-    4.52,
-    4.82,
-    5.12, // SEs of MCSs
-    // 256QAM (M=8)
-    5.33,
-    5.55,
-    5.89,
-    6.23,
-    6.57,
-    6.91,
-    7.16,
-    7.41 // SEs of MCSs
-};
-
-/**
- * @brief Table of SE of the standard CQIs: 16 CQIs as per Table2 in TS38.214
- */
-static const std::vector<double> SpectralEfficiencyForCqi2 = {0.0, // out of range
-                                                              0.15,
-                                                              0.38,
-                                                              0.88,
-                                                              1.48,
-                                                              1.91,
-                                                              2.41,
-                                                              2.73,
-                                                              3.32,
-                                                              3.90,
-                                                              4.52,
-                                                              5.12,
-                                                              5.55,
-                                                              6.23,
-                                                              6.91,
-                                                              7.41};
 
 /**
  * @brief SINR to BLER mapping for MCSs in Table2
@@ -17739,11 +17607,11 @@ static const NrEesmErrorModel::SimulatedBlerFromSINR BlerForSinr2 = {
 NrEesmT2::NrEesmT2()
 {
     m_betaTable = &BetaTable2;
-    m_mcsEcrTable = &McsEcrTable2;
+    m_mcsEcrTable = &NrMcsTables::GetMcsEcrTableRef(2);
     m_simulatedBlerFromSINR = &BlerForSinr2;
-    m_mcsMTable = &McsMTable2;
-    m_spectralEfficiencyForMcs = &SpectralEfficiencyForMcs2;
-    m_spectralEfficiencyForCqi = &SpectralEfficiencyForCqi2;
+    m_mcsMTable = &NrMcsTables::GetMcsMTableRef(2);
+    m_spectralEfficiencyForMcs = &NrMcsTables::GetSpectralEfficiencyForMcsRef(2);
+    m_spectralEfficiencyForCqi = &NrMcsTables::GetSpectralEfficiencyForCqiRef(2);
 }
 
 } // namespace ns3

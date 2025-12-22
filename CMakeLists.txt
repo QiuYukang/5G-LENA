@@ -166,6 +166,7 @@ set(source_files
     model/nr-mac-scheduler-ue-info.cc
     model/nr-mac-scheduler.cc
     model/nr-mac-short-bsr-ce.cc
+    model/nr-mcs-tables.cc
     model/nr-mimo-chunk-processor.cc
     model/nr-mimo-matrices.cc
     model/nr-mimo-signal.cc
@@ -372,6 +373,7 @@ set(header_files
     model/nr-mac-scheduler-ue-info.h
     model/nr-mac-scheduler.h
     model/nr-mac-short-bsr-ce.h
+    model/nr-mcs-tables.h
     model/nr-mimo-chunk-processor.h
     model/nr-mimo-matrices.h
     model/nr-mimo-signal.h
