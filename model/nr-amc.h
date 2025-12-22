@@ -166,25 +166,51 @@ class NrAmc : public Object
     TypeId GetErrorModelType() const;
 
     /**
-     * @brief Calculate the TransportBlock size (in bytes) giving the MCS and the number of RB
-     * assigned
+     * @brief Calculate the effective MAC PDU capacity for a given allocation.
      *
-     * It depends on the error model and the "mode" configured with SetMode().
-     * Please note that this function expects in input the RB, not the RBG of the transmission.
+     * Computes the usable MAC PDU size by taking the raw information bytes from
+     * GetPayloadSize() and subtracting PHY-layer CRC overhead (TB CRC and CB CRCs
+     * if code block segmentation occurs).
      *
-     * @param mcs the MCS of the transmission
-     * @param rank the MIMO rank
-     * @param nprb The number of physical resource blocks used in the transmission
-     * @return the TBS in bytes
+     * This method can be used to determine whether pending RLC data will fit in an
+     * allocation.
+     *
+     * @note Despite the method name, there are some differences from transport block
+     * size (TBS) calculation according to 3GPP TS 38.214:
+     * - Continuous calculation rather than discrete values from a table lookup
+     * - Subtracts CRC bytes; 3GPP TBS is defined as a MAC quantity, before PHY adds CRC
+     * - Uses an LTE-style scattered DMRS model (NumRefScPerRb) rather than NR full-symbol DMRS
+     *
+     * @param mcs the MCS index of the transmission
+     * @param rank the MIMO rank (number of spatial layers)
+     * @param nprb Resource allocation: RBs (for per-symbol) or RBs * symbols (for full block)
+     * @return the effective MAC PDU capacity in bytes (after CRC subtraction)
+     *
+     * @see GetPayloadSize for a similar calculation but without CRC adjustment
      */
     uint32_t CalculateTbSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const;
 
     /**
-     * @brief Calculate the Payload Size (in bytes) from MCS and the number of RB
-     * @param mcs MCS of the transmission
-     * @param rank the MIMO rank
-     * @param nprb Number of Physical Resource Blocks (not RBG)
-     * @return the payload size in bytes
+     * @brief Calculate the number of information bytes that fit in a resource allocation.
+     *
+     * Computes the theoretical data size (in bytes) that can be transmitted
+     * over the specified resource elements, based on spectral efficiency:
+     * @code
+     * bytes = (N_SC_RB - NumRefScPerRb) * nprb * Q_m * R * rank / 8
+     * @endcode
+     *
+     * The result is the raw information-carrying size before CRC overhead.
+     *
+     * The `nprb` parameter specifies the resource allocation scope:
+     * - If `nprb` = RBs in frequency domain, the return value is bytes per OFDM symbol
+     * - If `nprb` = RBs * symbols, the return value is bytes for the full time-frequency block
+     *
+     * @param mcs MCS index of the transmission
+     * @param rank the MIMO rank (number of spatial layers)
+     * @param nprb Resource allocation: RBs (for per-symbol) or RBs * symbols (for full block)
+     * @return information bytes that fit in the allocation (before CRC subtraction)
+     *
+     * @see CalculateTbSize subtracts CRC to give usable MAC PDU size
      */
     uint32_t GetPayloadSize(uint8_t mcs, uint8_t rank, uint32_t nprb) const;
 
