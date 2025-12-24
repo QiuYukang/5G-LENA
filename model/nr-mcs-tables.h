@@ -38,10 +38,10 @@ class NrMcsTables
     static uint8_t GetModulationOrder(uint8_t mcs, uint8_t table);
 
     /**
-     * @brief Get code rate (R) for MCS index
+     * @brief Get effective code rate (R) for MCS index
      * @param mcs MCS index
      * @param table MCS table (1 or 2)
-     * @return Code rate as decimal (e.g., 0.12, 0.50, 0.93)
+     * @return Effective code rate (a value between 0 and 1)
      */
     static double GetCodeRate(uint8_t mcs, uint8_t table);
 
