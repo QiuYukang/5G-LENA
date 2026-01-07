@@ -134,22 +134,22 @@ const std::vector<double> NrMcsTables::m_spectralEfficiencyForMcs1 = {
  * 16 CQI values (0-15) as per TS 38.214 Table 5.2.2.1-2
  */
 const std::vector<double> NrMcsTables::m_spectralEfficiencyForCqi1 = {
-    0.0,  // CQI 0: out of range
-    0.15, // CQI 1
-    0.23, // CQI 2
-    0.38, // CQI 3
-    0.60, // CQI 4
-    0.88, // CQI 5
-    1.18, // CQI 6
-    1.48, // CQI 7
-    1.91, // CQI 8
-    2.41, // CQI 9
-    2.73, // CQI 10
-    3.32, // CQI 11
-    3.90, // CQI 12
-    4.52, // CQI 13
-    5.12, // CQI 14
-    5.55  // CQI 15
+    0.0,    // CQI 0: out of range
+    0.1523, // CQI 1
+    0.2344, // CQI 2
+    0.3770, // CQI 3
+    0.6016, // CQI 4
+    0.8770, // CQI 5
+    1.1758, // CQI 6
+    1.4766, // CQI 7
+    1.9141, // CQI 8
+    2.4063, // CQI 9
+    2.7305, // CQI 10
+    3.3223, // CQI 11
+    3.9023, // CQI 12
+    4.5234, // CQI 13
+    5.1152, // CQI 14
+    5.5547  // CQI 15
 };
 
 /**
@@ -277,22 +277,22 @@ const std::vector<double> NrMcsTables::m_spectralEfficiencyForMcs2 = {
  * 16 CQI values (0-15) as per TS 38.214 Table 5.2.2.1-3
  */
 const std::vector<double> NrMcsTables::m_spectralEfficiencyForCqi2 = {
-    0.0,  // CQI 0: out of range
-    0.15, // CQI 1
-    0.38, // CQI 2
-    0.88, // CQI 3
-    1.48, // CQI 4
-    1.91, // CQI 5
-    2.41, // CQI 6
-    2.73, // CQI 7
-    3.32, // CQI 8
-    3.90, // CQI 9
-    4.52, // CQI 10
-    5.12, // CQI 11
-    5.55, // CQI 12
-    6.23, // CQI 13
-    6.91, // CQI 14
-    7.41  // CQI 15
+    0.0,    // CQI 0: out of range
+    0.1523, // CQI 1
+    0.3770, // CQI 2
+    0.8770, // CQI 3
+    1.4766, // CQI 4
+    1.9141, // CQI 5
+    2.4063, // CQI 6
+    2.7305, // CQI 7
+    3.3223, // CQI 8
+    3.9023, // CQI 9
+    4.5234, // CQI 10
+    5.1152, // CQI 11
+    5.5547, // CQI 12
+    6.2266, // CQI 13
+    6.9141, // CQI 14
+    7.4063  // CQI 15
 };
 
 uint8_t
