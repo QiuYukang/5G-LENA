@@ -210,7 +210,7 @@ NrGnbNetDevice::GetCellId(uint8_t index) const
     return m_ccMap.at(index)->GetCellId();
 }
 
-uint16_t
+uint32_t
 NrGnbNetDevice::GetArfcn(uint8_t index) const
 {
     NS_LOG_FUNCTION(this);
