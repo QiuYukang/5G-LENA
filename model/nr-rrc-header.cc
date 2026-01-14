@@ -344,6 +344,9 @@ NrRrcAsn1Header::SerializeLogicalChannelConfig(
 
     // Serialize logicalChannelGroup ::= INTEGER (0..3)
     SerializeInteger(logicalChannelConfig.logicalChannelGroup, 0, 3);
+
+    // Serialize fiveQi ::= INTEGER (0..255)
+    SerializeInteger(logicalChannelConfig.fiveQi, 0, 255);
 }
 
 void
@@ -2551,6 +2554,10 @@ NrRrcAsn1Header::DeserializeLogicalChannelConfig(
             bIterator = DeserializeInteger(&n, 0, 3, bIterator);
             logicalChannelConfig->logicalChannelGroup = n;
         }
+
+        // Serialize fiveQi ::= INTEGER (0..255)
+        bIterator = DeserializeInteger(&n, 0, 255, bIterator);
+        logicalChannelConfig->fiveQi = static_cast<NrQosFlow::FiveQi>(n);
     }
     return bIterator;
 }
