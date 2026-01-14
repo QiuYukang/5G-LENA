@@ -329,12 +329,6 @@ class NrUeRrc : public Object
     uint16_t GetPrimaryDlIndex() const;
 
     /**
-     * @param s The UE RRC state.
-     * @return The string representation of the given state.
-     */
-    static const std::string ToString(NrUeRrc::State s);
-
-    /**
      * TracedCallback signature for imsi, cellId and rnti events.
      *
      * @param [in] imsi
@@ -1365,6 +1359,20 @@ class NrUeRrc : public Object
     uint16_t m_numberOfComponentCarriers;
 
 }; // end of class NrUeRrc
+
+/**
+ * Converts NrUeRrc::State to a string
+ * @param state enum value of the state
+ * @return string value of the state
+ */
+const std::string ToString(NrUeRrc::State state);
+/**
+ * Prints to the output stream the NrUeRrc::State
+ * @param os output stream
+ * @param state the enum value of the state
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& os, NrUeRrc::State state);
 
 } // namespace ns3
 

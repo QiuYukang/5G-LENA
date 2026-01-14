@@ -628,6 +628,21 @@ class NrUeManager : public Object
 }; // end of `class NrUeManager`
 
 /**
+ * Converts NrUeManager::State to a string
+ * @param state enum value of the state
+ * @return string value of the state
+ */
+const std::string ToString(NrUeManager::State state);
+
+/**
+ * Prints to the output stream the NrUeManager::State
+ * @param os output stream
+ * @param state the enum value of the state
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& os, NrUeManager::State state);
+
+/**
  * @ingroup nr
  *
  * The NR Radio Resource Control entity at the gNB

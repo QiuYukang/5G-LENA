@@ -81,21 +81,48 @@ UeMemberNrUeCmacSapUser::NotifyRandomAccessFailed()
 }
 
 /// Map each of UE RRC states to its string representation.
-static const std::string g_ueRrcStateName[NrUeRrc::NUM_STATES] = {
-    "IDLE_START",
-    "IDLE_CELL_SEARCH",
-    "IDLE_WAIT_MIB_SIB1",
-    "IDLE_WAIT_MIB",
-    "IDLE_WAIT_SIB1",
-    "IDLE_CAMPED_NORMALLY",
-    "IDLE_WAIT_SIB2",
-    "IDLE_RANDOM_ACCESS",
-    "IDLE_CONNECTING",
-    "CONNECTED_NORMALLY",
-    "CONNECTED_HANDOVER",
-    "CONNECTED_PHY_PROBLEM",
-    "CONNECTED_REESTABLISHING",
-};
+const std::string
+ToString(NrUeRrc::State state)
+{
+    switch (state)
+    {
+    case NrUeRrc::IDLE_START:
+        return "IDLE_START";
+    case NrUeRrc::IDLE_CELL_SEARCH:
+        return "IDLE_CELL_SEARCH";
+    case NrUeRrc::IDLE_WAIT_MIB_SIB1:
+        return "IDLE_WAIT_MIB_SIB1";
+    case NrUeRrc::IDLE_WAIT_MIB:
+        return "IDLE_WAIT_MIB";
+    case NrUeRrc::IDLE_WAIT_SIB1:
+        return "IDLE_WAIT_SIB1";
+    case NrUeRrc::IDLE_CAMPED_NORMALLY:
+        return "IDLE_CAMPED_NORMALLY";
+    case NrUeRrc::IDLE_WAIT_SIB2:
+        return "IDLE_WAIT_SIB2";
+    case NrUeRrc::IDLE_RANDOM_ACCESS:
+        return "IDLE_RANDOM_ACCESS";
+    case NrUeRrc::IDLE_CONNECTING:
+        return "IDLE_CONNECTING";
+    case NrUeRrc::CONNECTED_NORMALLY:
+        return "CONNECTED_NORMALLY";
+    case NrUeRrc::CONNECTED_HANDOVER:
+        return "CONNECTED_HANDOVER";
+    case NrUeRrc::CONNECTED_PHY_PROBLEM:
+        return "CONNECTED_PHY_PROBLEM";
+    case NrUeRrc::CONNECTED_REESTABLISHING:
+        return "CONNECTED_REESTABLISHING";
+    default:
+        return "UNKNOWN_STATE";
+    }
+}
+
+std::ostream&
+operator<<(std::ostream& os, NrUeRrc::State state)
+{
+    os << ToString(state);
+    return os;
+}
 
 /////////////////////////////
 // ue RRC methods
@@ -3396,11 +3423,4 @@ NrUeRrc::ResetRlfParams()
     m_noOfSyncIndications = 0;
     m_cphySapProvider.at(GetPrimaryDlIndex())->ResetRlfParams();
 }
-
-const std::string
-NrUeRrc::ToString(NrUeRrc::State s)
-{
-    return g_ueRrcStateName[s];
-}
-
 } // namespace ns3

@@ -447,6 +447,8 @@ NrRrcConnectionEstablishmentTestCase::CheckConnected(Ptr<NetDevice> ueDevice,
                           NrUeRrc::CONNECTED_NORMALLY,
                           "RNTI " << rnti << " is not at CONNECTED_NORMALLY state");
 
+    NS_LOG_INFO("UeRrc state is: " << ueRrc->GetState());
+
     // Verifying UE context state in eNodeB RRC.
 
     Ptr<NrGnbNetDevice> nrGnbDevice = gnbDevice->GetObject<NrGnbNetDevice>();
@@ -457,6 +459,10 @@ NrRrcConnectionEstablishmentTestCase::CheckConnected(Ptr<NetDevice> ueDevice,
     {
         Ptr<NrUeManager> ueManager = gnbRrc->GetUeManager(rnti);
         NS_ASSERT(ueManager);
+
+        NS_LOG_INFO("GnbRrc context for RNTI: " << rnti
+                                                << " is in state: " << ueManager->GetState());
+
         NS_TEST_ASSERT_MSG_EQ(ueManager->GetState(),
                               NrUeManager::CONNECTED_NORMALLY,
                               "The context of RNTI " << rnti << " is in invalid state");

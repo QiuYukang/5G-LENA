@@ -102,28 +102,43 @@ GnbRrcMemberNrGnbCmacSapUser::IsRandomAccessCompleted(uint16_t rnti)
 ///////////////////////////////////////////
 
 /// Map each of UE Manager states to its string representation.
-static const std::string g_ueManagerStateName[NrUeManager::NUM_STATES] = {
-    "INITIAL_RANDOM_ACCESS",
-    "CONNECTION_SETUP",
-    "CONNECTION_REJECTED",
-    "ATTACH_REQUEST",
-    "CONNECTED_NORMALLY",
-    "CONNECTION_RECONFIGURATION",
-    "CONNECTION_REESTABLISHMENT",
-    "HANDOVER_PREPARATION",
-    "HANDOVER_JOINING",
-    "HANDOVER_PATH_SWITCH",
-    "HANDOVER_LEAVING",
-};
-
-/**
- * @param s The UE manager state.
- * @return The string representation of the given state.
- */
-static const std::string&
-ToString(NrUeManager::State s)
+const std::string
+ToString(NrUeManager::State state)
 {
-    return g_ueManagerStateName[s];
+    switch (state)
+    {
+    case NrUeManager::INITIAL_RANDOM_ACCESS:
+        return "INITIAL_RANDOM_ACCESS";
+    case NrUeManager::CONNECTION_SETUP:
+        return "CONNECTION_SETUP";
+    case NrUeManager::CONNECTION_REJECTED:
+        return "CONNECTION_REJECTED";
+    case NrUeManager::ATTACH_REQUEST:
+        return "ATTACH_REQUEST";
+    case NrUeManager::CONNECTED_NORMALLY:
+        return "CONNECTED_NORMALLY";
+    case NrUeManager::CONNECTION_RECONFIGURATION:
+        return "CONNECTION_RECONFIGURATION";
+    case NrUeManager::CONNECTION_REESTABLISHMENT:
+        return "CONNECTION_REESTABLISHMENT";
+    case NrUeManager::HANDOVER_PREPARATION:
+        return "HANDOVER_PREPARATION";
+    case NrUeManager::HANDOVER_JOINING:
+        return "HANDOVER_JOINING";
+    case NrUeManager::HANDOVER_PATH_SWITCH:
+        return "HANDOVER_PATH_SWITCH";
+    case NrUeManager::HANDOVER_LEAVING:
+        return "HANDOVER_LEAVING";
+    default:
+        return "UNKNOWN_STATE";
+    }
+}
+
+std::ostream&
+operator<<(std::ostream& os, NrUeManager::State state)
+{
+    os << ToString(state);
+    return os;
 }
 
 NS_OBJECT_ENSURE_REGISTERED(NrUeManager);
