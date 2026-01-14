@@ -586,6 +586,8 @@ NrUeRrc::InitializeSrb0()
     lcConfig.prioritizedBitRateKbps = 65535; // maximum
     lcConfig.bucketSizeDurationMs = 65535;   // maximum
     lcConfig.logicalChannelGroup = 0;        // all SRBs mapped to LCG 0
+    // Arbitrary 5QI to route UE RRC UL messages through BWP manager
+    lcConfig.fiveQi = NrQosFlow::GBR_CONV_VOICE;
     NrMacSapUser* msu =
         m_ccmRrcSapProvider->ConfigureSignalBearer(lcid, lcConfig, rlc->GetNrMacSapUser());
     m_cmacSapProvider.at(GetPrimaryUlIndex())->AddLc(lcid, lcConfig, msu);

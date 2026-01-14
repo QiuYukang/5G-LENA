@@ -269,6 +269,7 @@ NrUeManager::ConfigureSrb1()
         m_srb1->m_logicalChannelConfig.prioritizedBitRateKbps = 100;
         m_srb1->m_logicalChannelConfig.bucketSizeDurationMs = 100;
         m_srb1->m_logicalChannelConfig.logicalChannelGroup = 0;
+        m_srb1->m_logicalChannelConfig.fiveQi = NrQosFlow::GBR_CONV_VOICE;
 
         NrGnbCmacSapProvider::LcInfo lcinfo;
         lcinfo.rnti = m_rnti;
