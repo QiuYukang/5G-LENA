@@ -2548,12 +2548,9 @@ NrRrcAsn1Header::DeserializeLogicalChannelConfig(
         }
         logicalChannelConfig->bucketSizeDurationMs = bucketSizeDurationMs;
 
-        if (bitset1[0])
-        {
-            // Deserialize logicalChannelGroup
-            bIterator = DeserializeInteger(&n, 0, 3, bIterator);
-            logicalChannelConfig->logicalChannelGroup = n;
-        }
+        // Deserialize logicalChannelGroup
+        bIterator = DeserializeInteger(&n, 0, 3, bIterator);
+        logicalChannelConfig->logicalChannelGroup = n;
 
         // Serialize fiveQi ::= INTEGER (0..255)
         bIterator = DeserializeInteger(&n, 0, 255, bIterator);
