@@ -581,7 +581,7 @@ NrUeRrc::InitializeSrb0()
     m_rrcSapUser->Setup(ueParams);
 
     // CCCH (LCID 0) is pre-configured, here is the hardcoded configuration:
-    NrUeCmacSapProvider::LogicalChannelConfig lcConfig;
+    NrUeCmacSapProvider::LogicalChannelConfig lcConfig{};
     lcConfig.priority = 0;                   // highest priority
     lcConfig.prioritizedBitRateKbps = 65535; // maximum
     lcConfig.bucketSizeDurationMs = 65535;   // maximum
