@@ -282,8 +282,8 @@ NrRrcAsn1Header::SerializeLogicalChannelConfig(
     // 1 optional field (logicalChannelGroup), which is present. No extension marker.
     SerializeSequence(std::bitset<1>(1), false);
 
-    // Serialize priority ::= INTEGER (1..16)
-    SerializeInteger(logicalChannelConfig.priority, 1, 16);
+    // Serialize priority ::= INTEGER (1..90)
+    SerializeInteger(logicalChannelConfig.priority, 1, 90);
 
     // Serialize prioritisedBitRate
     int prioritizedBitRate;
@@ -2482,7 +2482,7 @@ NrRrcAsn1Header::DeserializeLogicalChannelConfig(
         bIterator = DeserializeSequence(&bitset1, false, bIterator);
 
         // Deserialize priority
-        bIterator = DeserializeInteger(&n, 1, 16, bIterator);
+        bIterator = DeserializeInteger(&n, 1, 90, bIterator);
         logicalChannelConfig->priority = n;
 
         // Deserialize prioritisedBitRate
