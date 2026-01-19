@@ -18,11 +18,9 @@ extensions = [
 ]
 
 latex_engine = "xelatex"
-latex_elements = {
-    "preamble": r"""
+latex_elements = {"preamble": r"""
                  \usepackage{amsmath}
-                 """
-}
+                 """}
 todo_include_todos = True
 templates_path = ["_templates"]
 source_suffix = ".rst"
