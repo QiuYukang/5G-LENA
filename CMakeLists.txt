@@ -513,6 +513,7 @@ set(test_sources
     test/system-scheduler-test.cc
     test/ul-scheduling-test.cc
     utils/traffic-generators/test/traffic-generator-test.cc
+    test/nr-test-hexagonal-grid-scenario-helper.cc
     # cmake-format: off
     # todo:
     # test/nr-test-x2-handover.cc               \
